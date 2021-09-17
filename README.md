@@ -11,7 +11,7 @@ Returns the total amount of AVT in the AvN
 **HEADERS**  
 `Content-Type: application/json`  
 
-**EXAMPLE**  
+**EXAMPLE**
 ```
 ## JSON-RPC over HTTPS POST
 curl https://AVN-API-URL/YOUR-API-KEY \
@@ -23,7 +23,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 **RESULT FIELDS**  
 `TOTAL` - integer of the current total amount of circulating AVT in atto-AVT
 
-**BODY**  
+**BODY**
 ```
 {
   "jsonrpc": "2.0",
@@ -44,7 +44,7 @@ Returns the AVT balance of a given AvN account
 **REQUEST PARAMS**  
 `ACCOUNT ID` *[required]* - a string representing the account ID (32 bytes) to check for AVT balance
 
-**EXAMPLE**  
+**EXAMPLE**
 ```
 ## JSON-RPC over HTTPS POST
 curl https://AVN-API-URL/YOUR-API-KEY \
@@ -56,7 +56,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 **RESULT FIELDS**  
 `BALANCE` - integer of the current AVT balance in atto-AVT
 
-**BODY**  
+**BODY**
 ```
 {
   "jsonrpc": "2.0",
@@ -78,7 +78,7 @@ Returns the balance of a given token for a given AvN account
 `TOKEN ID` *[required]* - a string representing the token ID (20 bytes) of the token being checked  
 `ACCOUNT ID` *[required]* - a string representing the account ID (32 bytes) to check for token balance
 
-**EXAMPLE**  
+**EXAMPLE**
 ```
 ## JSON-RPC over HTTPS POST
 curl https://AVN-API-URL/YOUR-API-KEY \
@@ -90,7 +90,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 **RESULT FIELDS**  
 `BALANCE` - integer of the current token balance in ???
 
-**BODY**  
+**BODY**
 ```
 {
   "jsonrpc": "2.0",

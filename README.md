@@ -84,7 +84,7 @@ Returns the balance of a given token for a given AvN account
 curl https://AVN-API-URL/YOUR-API-KEY \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"getTokenBalance","params": ["0xc0ffee254729296a45a3885639AC7E10F9d54979", "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":3}'
+    -d '{"jsonrpc":"2.0","method":"getTokenBalance","params": ["0xc0ffee254729296a45a3885639AC7E10F9d54979", "5Gv8YYFu8H1btvmrJy9FjjAWfb99wrhV3uhPFoNEr918utyR"],"id":3}'
 ```
 
 **RESULT FIELDS**  

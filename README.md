@@ -50,7 +50,7 @@ Returns the AVT balance of a given AvN account
 curl https://AVN-API-URL/YOUR-API-KEY \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"getAvtBalance","params": ["0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":1}'
+    -d '{"jsonrpc":"2.0","method":"getAvtBalance","params": ["0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":2}'
 ```
 
 **RESULT FIELDS**  
@@ -60,7 +60,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 ```
 {
   "jsonrpc": "2.0",
-  "id": 1,
+  "id": 2,
   "result": "3000000000000000000"
 }
 ```
@@ -84,7 +84,7 @@ Returns the balance of a given token for a given AvN account
 curl https://AVN-API-URL/YOUR-API-KEY \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"getTokenBalance","params": ["0xc0ffee254729296a45a3885639AC7E10F9d54979", "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":1}'
+    -d '{"jsonrpc":"2.0","method":"getTokenBalance","params": ["0xc0ffee254729296a45a3885639AC7E10F9d54979", "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":3}'
 ```
 
 **RESULT FIELDS**  
@@ -94,7 +94,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 ```
 {
   "jsonrpc": "2.0",
-  "id": 1,
+  "id": 3,
   "result": "5000000000000000000"
 }
 ```

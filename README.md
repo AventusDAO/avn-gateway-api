@@ -2,7 +2,7 @@
 
 ## JSON-RPC Methods
 
-### avn_getTotalAvt
+### getTotalAvt
 Returns the total amount of AVT in the AvN
 
 **REQUEST**  
@@ -17,22 +17,22 @@ Returns the total amount of AVT in the AvN
 curl https://AVN-API-URL/YOUR-API-KEY \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"avn_getTotalAvt","params": [],"id":1}'
+    -d '{"jsonrpc":"2.0","method":"getTotalAvt","params": [],"id":1}'
 ```
 
 **RESULT FIELDS**  
-`TOTAL` - integer of the current total amount of circulating AVT in its smallest denomination
+`TOTAL` - string integer value of the current total amount of circulating AVT in its smallest denomination
 
 **BODY**
 ```
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "result": "0x2fe84e3113d7b"
+  "result": "150000000000000000000"
 }
 ```
 
-### avn_getAvtBalance
+### getAvtBalance
 Returns the AVT balance of a given AvN account
 
 **REQUEST**  
@@ -42,7 +42,7 @@ Returns the AVT balance of a given AvN account
 `Content-Type: application/json`
 
 **REQUEST PARAMS**  
-`ACCOUNT ID` *[required]* - a string representing the account ID (32 bytes) to check for AVT balance
+`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for AVT balance
 
 **EXAMPLE**
 ```
@@ -50,22 +50,22 @@ Returns the AVT balance of a given AvN account
 curl https://AVN-API-URL/YOUR-API-KEY \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"avn_getAvtBalance","params": ["0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":1}'
+    -d '{"jsonrpc":"2.0","method":"getAvtBalance","params": ["0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":1}'
 ```
 
 **RESULT FIELDS**  
-`BALANCE` - integer of the current AVT balance in its smallest denomination
+`BALANCE` - string integer value of the current AVT balance in its smallest denomination
 
 **BODY**
 ```
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "result": "0x65a8db"
+  "result": "3000000000000000000"
 }
 ```
 
-### avn_getTokenBalance
+### getTokenBalance
 Returns the balance of a given token for a given AvN account
 
 **REQUEST**  
@@ -76,7 +76,7 @@ Returns the balance of a given token for a given AvN account
 
 **REQUEST PARAMS**  
 `TOKEN ID` *[required]* - a string representing the token ID (20 bytes) of the token being checked  
-`ACCOUNT ID` *[required]* - a string representing the account ID (32 bytes) to check for token balance
+`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for token balance
 
 **EXAMPLE**
 ```
@@ -84,17 +84,17 @@ Returns the balance of a given token for a given AvN account
 curl https://AVN-API-URL/YOUR-API-KEY \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"avn_getTokenBalance","params": ["0xc0ffee254729296a45a3885639AC7E10F9d54979", "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":1}'
+    -d '{"jsonrpc":"2.0","method":"getTokenBalance","params": ["0xc0ffee254729296a45a3885639AC7E10F9d54979", "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":1}'
 ```
 
 **RESULT FIELDS**  
-`BALANCE` - integer of the current token balance in its smallest denomination
+`BALANCE` - string integer value of the current token balance in its smallest denomination
 
 **BODY**
 ```
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "result": "0x7a28db03"
+  "result": "5000000000000000000"
 }
 ```

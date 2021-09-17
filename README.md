@@ -21,7 +21,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 ```
 
 **RESULT FIELDS**  
-`TOTAL` - integer of the current total amount of circulating AVT in atto-AVT
+`TOTAL` - integer of the current total amount of circulating AVT in its smallest denomination
 
 **BODY**
 ```

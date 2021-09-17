@@ -10,7 +10,7 @@ Components for AvN Gateway API
     * index.js
     * package.json
     * any additional files your function requires
-4. Run `npm install` in YOUR_LAMBDA folder to generate node_modules folder.
+4. Install any node modules required or run `npm i` on a populated package.json in YOUR_LAMBDA folder to generate the node_modules folder.
 5. Zip the entire contents of YOUR_LAMBDA folder into YOUR_LAMBDA.zip.
 6. From the folder run `aws lambda update-function-code --function-name YOUR_LAMBDA --zip-file fileb://YOUR_LAMBDA.zip` to upload the function to AWS.
 

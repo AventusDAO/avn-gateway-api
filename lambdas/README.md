@@ -7,7 +7,6 @@
     * index.js
     * package.json
     * any additional files your function requires
-(see `lambdas/example` for example).
 4. Run `npm install` in YOUR_LAMBDA folder to generate node_modules folder.
 5. Zip the entire contents of YOUR_LAMBDA folder into YOUR_LAMBDA.zip.
 6. From the folder run `aws lambda update-function-code --function-name YOUR_LAMBDA --zip-file fileb://YOUR_LAMBDA.zip` to upload the function to AWS.

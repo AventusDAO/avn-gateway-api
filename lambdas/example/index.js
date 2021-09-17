@@ -20,8 +20,8 @@ exports.handler = async (event) => {
   return response;
 };
 
-async function testlocal() {
-  console.log(await getExampleMessage());
-}
-
-testlocal();
+// async function testlocal() {
+//   console.log(await getExampleMessage());
+// }
+//
+// testlocal();

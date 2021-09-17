@@ -88,7 +88,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 ```
 
 **RESULT FIELDS**  
-`BALANCE` - integer of the current token balance in ???
+`BALANCE` - integer of the current token balance in its smallest denomination
 
 **BODY**
 ```

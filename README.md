@@ -2,7 +2,7 @@
 
 ## JSON-RPC Methods
 
-#### avn_getTotalAvt
+### avn_getTotalAvt
 Returns the total amount of AVT in the AvN
 
 **REQUEST**
@@ -32,7 +32,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 }
 ```
 
-#### avn_getAvtBalance
+### avn_getAvtBalance
 Returns the AVT balance of a given AvN account
 
 **REQUEST**
@@ -65,7 +65,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 }
 ```
 
-#### avn_getTokenBalance
+### avn_getTokenBalance
 Returns the balance of a given token for a given AvN account
 
 **REQUEST**

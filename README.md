@@ -1,4 +1,7 @@
-# Creating new lambda functions
+# avn-gateway-api
+Components for AvN Gateway API
+
+## Lambdas
 
 ### Create a new lambda function
 1. Create YOUR_LAMBDA as a basic lambda function via the AWS console.

@@ -1,3 +1,4 @@
+'use strict'
 const { ApiPromise, WsProvider } = require('@polkadot/api')
 const config = require('multiconfig').load()
 const log4js = require('log4js')

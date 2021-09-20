@@ -1,0 +1,6 @@
+{
+  "name": "json-rpc-handler",
+  "dependencies": {
+    "axios": "^0.21.4"
+  }
+}

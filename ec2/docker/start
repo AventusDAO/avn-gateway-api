@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# (Re)starts Docker containers.
+#
+DIR=$(dirname "$0")
+
+(cd "$DIR/.." &&
+  docker-compose build &&
+  docker-compose up --remove-orphans -d "$@" &&
+  sleep 5 &&
+  docker-compose ps)

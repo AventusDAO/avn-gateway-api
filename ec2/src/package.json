@@ -1,0 +1,23 @@
+{
+  "name": "avn-connector",
+  "author": "Aventus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Connects to the AVN and keeps connection in memory",
+  "scripts": {
+    "start": "node index.js",
+    "pretty": "prettier --config ../.prettierrc.json --check '**/*.{js,json}'",
+    "pretty:fix": "prettier --config ../.prettierrc.json --write '**/*.{js,json}'",
+    "format": "npm run pretty:fix"
+  },
+  "dependencies": {
+    "@polkadot/api": "^3.4.1",
+    "@polkadot/types": "^3.4.1",
+    "express": "^4.17.1",
+    "log4js": "^6.3.0",
+    "multiconfig": "^1.1.6"
+  },
+  "devDependencies": {
+    "prettier": "^1.19.1"
+  }
+}

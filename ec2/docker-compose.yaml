@@ -1,0 +1,17 @@
+version: "3.2"
+
+services:
+  avn-connector:
+    image: avn-connector
+    build: .
+    hostname: src
+    # WARNING: container runs as non-root user, therefore all log files (app.log, app.log.DATE.gz)
+    # must be writable by ANY user on local machine. This becomes especially important if this app
+    # is sometimes run without Docker.
+    volumes:
+      - ./log/avn-connector/:/home/www/log/
+    # Instead of a env file you can declare the enviroment variables in the "environment" section
+    env_file: .env
+    environment:
+      - NODE_ENV=docker
+    restart: always

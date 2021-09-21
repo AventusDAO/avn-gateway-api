@@ -1,31 +1,34 @@
 const axios = require('axios');
-const jp = require('jsonpath');
 const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
 
 exports.handler = async (event) => {
   const response = {
     statusCode: 200,
-    body: JSON.stringify(await processCall(event.body))
+    body: JSON.stringify(await processRequest(event.body))
   };
   return response;
 };
 
-async function queryChain(palletName, storageName, params, responsePath) {
+// response formatters
+const toBigInt = (response) => BigInt(response.data).toString();
+const toBigInt2 = (response) => BigInt(response.data.data.free).toString();
+
+async function queryChain(palletName, storageName, params, responseFormatter) {
   let response;
   try {
     response = await axios.post(AVN_API_QUERY_ENDPOINT, {palletName: palletName, storageName: storageName, params: params});
   } catch (e) {
     throw true;
   }
-  return BigInt(jp.value(response, responsePath)).toString();
+  return responseFormatter(response);
 }
 
-async function processCall(body) {
-  let responseObject = {jsonrpc: '2.0'};``
+async function processRequest(requestObject) {
+  let responseObject = {jsonrpc: '2.0'};
 
   let call;
   try {
-    call = JSON.parse(body);
+    call = JSON.parse(requestObject);
   } catch (e) {
     responseObject.error = {code:-32700, message:'Parse error'};
     responseObject.id = null;
@@ -37,7 +40,7 @@ async function processCall(body) {
   switch (call.method) {
     case 'getTotalAvt':
       try {
-        responseObject.result = await queryChain('balances', 'totalIssuance', [], 'data');
+        responseObject.result = await queryChain('balances', 'totalIssuance', [], toBigInt);
       } catch (e) {
         responseObject.error = {code:-32603, message:'Internal error'};
       }
@@ -45,7 +48,7 @@ async function processCall(body) {
     case 'getAvtBalance':
       if (isValidAccountIDFormat(call.params[0])) {
         try {
-          responseObject.result = await queryChain('system', 'account', [call.params[0]], 'data.data.free');
+          responseObject.result = await queryChain('system', 'account', [call.params[0]], toBigInt2);
         } catch (e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }
@@ -56,7 +59,7 @@ async function processCall(body) {
     case 'getTokenBalance':
       if (isValidAccountIDFormat(call.params[0]) && isValidTokenIdFormat(call.params[1])) {
         try {
-          responseObject.result = await queryChain('tokenManager', 'balances', [[call.params[1], call.params[0]]], 'data');
+          responseObject.result = await queryChain('tokenManager', 'balances', [[call.params[1], call.params[0]]], toBigInt);
         } catch (e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }
@@ -67,7 +70,7 @@ async function processCall(body) {
     case 'getAccountNonce':
       if (isValidAccountIDFormat(call.params[0])) {
         try {
-          responseObject.result = await queryChain('tokenManager', 'nonces', [call.params[0]], 'data');
+          responseObject.result = await queryChain('tokenManager', 'nonces', [call.params[0]], toBigInt);
         } catch(e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }
@@ -105,10 +108,10 @@ function isValidTokenIdFormat(tokenId) {
 }
 
 // async function testlocal() {
-//   console.log('getTotalAvt:', await processCall('{"jsonrpc": "2.0", "method":"getTotalAvt", "params":[], "id":1}'));
-//   console.log('getAvtBalance:', await processCall('{"jsonrpc":"2.0", "method":"getAvtBalance", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":2}'));
-//   console.log('getTokenBalance:', await processCall('{"jsonrpc":"2.0", "method":"getTokenBalance", "params": ["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"], "id":3}'));
-//   console.log('getAccountNonce:', await processCall('{"jsonrpc":"2.0", "method":"getAccountNonce", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":4}'));
+//   console.log('getTotalAvt:', await processRequest('{"jsonrpc": "2.0", "method":"getTotalAvt", "params":[], "id":1}'));
+//   console.log('getAvtBalance:', await processRequest('{"jsonrpc":"2.0", "method":"getAvtBalance", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":2}'));
+//   console.log('getTokenBalance:', await processRequest('{"jsonrpc":"2.0", "method":"getTokenBalance", "params": ["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"], "id":3}'));
+//   console.log('getAccountNonce:', await processRequest('{"jsonrpc":"2.0", "method":"getAccountNonce", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":4}'));
 // }
 //
 // testlocal();

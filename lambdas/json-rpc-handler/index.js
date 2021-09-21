@@ -85,23 +85,23 @@ async function processCall(body) {
 }
 
 function isValidAccountIDFormat(accountId) {
-  let charArray = accountId.toLowerCase().split('');
+  let charArray = accountId.split('');
   switch (charArray.length) {
     case 48:
-      return charArray.every(c => 'abcdefghijklmnopqrstuvwxyz0123456789'.includes(c));
+      return charArray.every(c => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'.includes(c));
     case 66:
       if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
-      return charArray.every(c => 'abcdef0123456789'.includes(c));
+      return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
     default:
       return false;
   }
 }
 
 function isValidTokenIdFormat(tokenId) {
-  let charArray = tokenId.toLowerCase().split('');
+  let charArray = tokenId.split('');
   if (charArray.length !== 42) return false;
   if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
-  return charArray.every(c => 'abcdef0123456789'.includes(c));
+  return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
 }
 
 // async function testlocal() {

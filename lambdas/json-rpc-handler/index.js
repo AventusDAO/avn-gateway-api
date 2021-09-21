@@ -1,4 +1,5 @@
 const axios = require('axios');
+const bigInt = require('big-integer');
 const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
 
 exports.handler = async (event) => {
@@ -10,8 +11,8 @@ exports.handler = async (event) => {
 };
 
 // response formatters
-const toBigInt = (response) => BigInt(response.data).toString();
-const toBigInt2 = (response) => BigInt(response.data.data.free).toString();
+const toBigInt = (response) => bigInt(response.data).toString();
+const toBigInt2 = (response) => bigInt(response.data.data.free.replace('0x',''), 16).toString();
 
 async function queryChain(palletName, storageName, params, responseFormatter) {
   let response;

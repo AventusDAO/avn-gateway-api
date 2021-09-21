@@ -87,7 +87,7 @@ async function processCall(body) {
 function isValidAccountIDFormat(accountId) {
   let charArray = accountId.split('');
   switch (charArray.length) {
-    case 48:
+    case 48: // TODO: SS58 address format may not always be 48 characters - check on this
       return charArray.every(c => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'.includes(c));
     case 66:
       if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;

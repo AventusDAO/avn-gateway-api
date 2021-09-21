@@ -1,6 +1,6 @@
 const axios = require('axios');
 const jp = require('jsonpath');
-const CHAIN_CONNECTION = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
+const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
 
 exports.handler = async (event) => {
   const response = {
@@ -13,7 +13,7 @@ exports.handler = async (event) => {
 async function callChain(palletName, storageName, params, responsePath) {
   let response;
   try {
-    response = await axios.post(CHAIN_CONNECTION, {palletName: palletName, storageName: storageName, params: params});
+    response = await axios.post(AVN_API_QUERY_ENDPOINT, {palletName: palletName, storageName: storageName, params: params});
   } catch (e) {
     throw true;
   }

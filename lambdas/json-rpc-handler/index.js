@@ -10,7 +10,7 @@ exports.handler = async (event) => {
   return response;
 };
 
-async function callChain(palletName, storageName, params, responsePath) {
+async function queryChain(palletName, storageName, params, responsePath) {
   let response;
   try {
     response = await axios.post(AVN_API_QUERY_ENDPOINT, {palletName: palletName, storageName: storageName, params: params});
@@ -37,7 +37,7 @@ async function processCall(body) {
   switch (call.method) {
     case 'getTotalAvt':
       try {
-        responseObject.result = await callChain('balances', 'totalIssuance', [], 'data');
+        responseObject.result = await queryChain('balances', 'totalIssuance', [], 'data');
       } catch (e) {
         responseObject.error = {code:-32603, message:'Internal error'};
       }
@@ -45,7 +45,7 @@ async function processCall(body) {
     case 'getAvtBalance':
       if (isValidAccountIDFormat(call.params[0])) {
         try {
-          responseObject.result = await callChain('system', 'account', [call.params[0]], 'data.data.free');
+          responseObject.result = await queryChain('system', 'account', [call.params[0]], 'data.data.free');
         } catch (e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }
@@ -56,7 +56,7 @@ async function processCall(body) {
     case 'getTokenBalance':
       if (isValidAccountIDFormat(call.params[0]) && isValidTokenIdFormat(call.params[1])) {
         try {
-          responseObject.result = await callChain('tokenManager', 'balances', [[call.params[1], call.params[0]]], 'data');
+          responseObject.result = await queryChain('tokenManager', 'balances', [[call.params[1], call.params[0]]], 'data');
         } catch (e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }
@@ -67,7 +67,7 @@ async function processCall(body) {
     case 'getAccountNonce':
       if (isValidAccountIDFormat(call.params[0])) {
         try {
-          responseObject.result = await callChain('tokenManager', 'nonces', [call.params[0]], 'data');
+          responseObject.result = await queryChain('tokenManager', 'nonces', [call.params[0]], 'data');
         } catch(e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }

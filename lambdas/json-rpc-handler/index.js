@@ -1,4 +1,5 @@
 const axios = require('axios');
+const bigInt = require('big-integer');
 const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
 
 exports.handler = async (event) => {
@@ -10,8 +11,8 @@ exports.handler = async (event) => {
 };
 
 // response formatters
-const toBigInt = (response) => BigInt(response.data).toString();
-const toBigInt2 = (response) => BigInt(response.data.data.free).toString();
+const toBigInt = (response) => bigInt(response.data).toString();
+const toBigInt2 = (response) => bigInt(response.data.data.free.replace('0x',''), 16).toString();
 
 async function queryChain(palletName, storageName, params, responseFormatter) {
   let response;
@@ -25,8 +26,8 @@ async function queryChain(palletName, storageName, params, responseFormatter) {
 
 async function processRequest(requestObject) {
   let responseObject = {jsonrpc: '2.0'};
-
   let call;
+
   try {
     call = JSON.parse(requestObject);
   } catch (e) {
@@ -35,8 +36,17 @@ async function processRequest(requestObject) {
     return responseObject;
   }
 
-  if (typeof call.method !== 'string') responseObject.error = {code:-32600, message:'Invalid Request'};
+  if (typeof call.method !== 'string') {
+    responseObject.error = {code:-32600, message:'Invalid Request'};
+  } else {
+    responseObject = await callSwitch(call, responseObject);
+  }
 
+  responseObject.id = call.id;
+  return responseObject;
+}
+
+async function callSwitch(call, responseObject) {
   switch (call.method) {
     case 'getTotalAvt':
       try {
@@ -82,8 +92,6 @@ async function processRequest(requestObject) {
     default:
       responseObject.error = {code:-32601, message:'Method not found'};
   }
-
-  responseObject.id = call.id;
   return responseObject;
 }
 

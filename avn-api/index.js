@@ -6,6 +6,4 @@ const AvnApi = function AvnApi(gateway) {
   this.query = new Query(gateway);
 };
 
-AvnApi.version = version;
-
 module.exports = AvnApi;

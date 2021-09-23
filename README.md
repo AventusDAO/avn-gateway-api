@@ -6,7 +6,7 @@
 Returns the total amount of AVT in the AvN
 
 **REQUEST**  
-`POST https://AVN-API-URL/YOUR-API-KEY`  
+`POST https://AVN-API-URL`  
 
 **HEADERS**  
 `Content-Type: application/json`  
@@ -14,10 +14,10 @@ Returns the total amount of AVT in the AvN
 **EXAMPLE**
 ```
 ## JSON-RPC over HTTPS POST
-curl https://AVN-API-URL/YOUR-API-KEY \
+curl https://AVN-API-URL \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"getTotalAvt","params": [],"id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getTotalAvt", "params":[], "id":1}'
 ```
 
 **RESULT FIELDS**  
@@ -28,7 +28,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "result": "150000000000000000000"
+  "result": "5100000000000000000000"
 }
 ```
 
@@ -36,7 +36,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 Returns the AVT balance of a given AvN account
 
 **REQUEST**  
-`POST https://AVN-API-URL/YOUR-API-KEY`
+`POST https://AVN-API-URL`
 
 **HEADERS**  
 `Content-Type: application/json`
@@ -47,10 +47,10 @@ Returns the AVT balance of a given AvN account
 **EXAMPLE**
 ```
 ## JSON-RPC over HTTPS POST
-curl https://AVN-API-URL/YOUR-API-KEY \
+curl https://AVN-API-URL \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"getAvtBalance","params": ["0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a"],"id":2}'
+    -d '{"jsonrpc":"2.0", "method":"getAvtBalance", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":2}'
 ```
 
 **RESULT FIELDS**  
@@ -61,7 +61,7 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 {
   "jsonrpc": "2.0",
   "id": 2,
-  "result": "3000000000000000000"
+  "result": "930009105441170202155"
 }
 ```
 
@@ -69,22 +69,22 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 Returns the balance of a given token for a given AvN account
 
 **REQUEST**  
-`POST https://AVN-API-URL/YOUR-API-KEY`
+`POST https://AVN-API-URL`
 
 **HEADERS**  
 `Content-Type: application/json`
 
 **REQUEST PARAMS**  
-`TOKEN ID` *[required]* - a string representing the token ID (20 bytes) of the token being checked  
 `ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for token balance
+`TOKEN ID` *[required]* - a string representing the token ID (20 bytes) of the token being checked  
 
 **EXAMPLE**
 ```
 ## JSON-RPC over HTTPS POST
-curl https://AVN-API-URL/YOUR-API-KEY \
+curl https://AVN-API-URL \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"getTokenBalance","params": ["0xc0ffee254729296a45a3885639AC7E10F9d54979", "5Gv8YYFu8H1btvmrJy9FjjAWfb99wrhV3uhPFoNEr918utyR"],"id":3}'
+    -d '{"jsonrpc":"2.0", "method":"getTokenBalance", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"], "id":3}'
 ```
 
 **RESULT FIELDS**  
@@ -95,6 +95,39 @@ curl https://AVN-API-URL/YOUR-API-KEY \
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "result": "5000000000000000000"
+  "result": "30"
+}
+```
+
+### getAccountNonce
+Returns the nonce of a given AvN account
+
+**REQUEST**  
+`POST https://AVN-API-URL`
+
+**HEADERS**  
+`Content-Type: application/json`
+
+**REQUEST PARAMS**  
+`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for nonce
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0", "method":"getAccountNonce", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":4}'
+```
+
+**RESULT FIELDS**  
+`BALANCE` - string integer value of the current account nonce
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": "3"
 }
 ```

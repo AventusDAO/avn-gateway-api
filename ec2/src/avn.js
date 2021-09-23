@@ -16,21 +16,21 @@ async function query(palletName, storageName, params) {
 
 async function connectToAvN(url) {
   let provider = new WsProvider(url)
-  const api = await ApiPromise.create({
+  const avnConnection = await ApiPromise.create({
     provider,
     types: avn_types.description,
     typesSpec: avn_types.nodeTypes
   })
 
   const [chain, nodeName, nodeVersion] = await Promise.all([
-    api.rpc.system.chain(),
-    api.rpc.system.name(),
-    api.rpc.system.version()
+    avnConnection.rpc.system.chain(),
+    avnConnection.rpc.system.name(),
+    avnConnection.rpc.system.version()
   ])
 
   log.info(`You are connected to chain ${chain} (${URL}) using ${nodeName} v${nodeVersion}\n`)
 
-  return api
+  return avnConnection
 }
 
 async function instantiateEC2() {

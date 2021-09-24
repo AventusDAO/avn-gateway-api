@@ -10,6 +10,9 @@ services:
     # is sometimes run without Docker.
     volumes:
       - ./log/avn-connector/:/home/www/log/
+    ports:
+      - published: 3000
+        target: 3000
     # Instead of a env file you can declare the enviroment variables in the "environment" section
     env_file: .env
     environment:

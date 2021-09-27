@@ -4,7 +4,7 @@ const avn = require('./avn')
 const express = require('express')
 const log4js = require('log4js')
 
-log4js.configure(config.log4Js);
+log4js.configure(config.log4Js)
 const log = log4js.getLogger()
 
 const app = express()
@@ -22,6 +22,17 @@ app.post('/avnQuery', async (req, res, next) => {
     log.trace(`request body: ${req.body}`)
     const result = await avn.query(req.body.palletName, req.body.storageName, req.body.params)
     res.send(result.toString())
+  } catch (err) {
+    next(err)
+  }
+})
+
+app.post('/avnTx', async (req, res, next) => {
+  try {
+    log.trace(`request body: ${req.body}`)
+    const result = await avn.tx(req.body.palletName, req.body.method, req.body.params)
+    console.log('Extrinsic sent with hash %j', result)
+    res.send(result)
   } catch (err) {
     next(err)
   }

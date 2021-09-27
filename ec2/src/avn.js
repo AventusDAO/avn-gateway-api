@@ -1,16 +1,36 @@
 'use strict'
-const { ApiPromise, WsProvider } = require('@polkadot/api')
+const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
 const config = require('multiconfig').load()
 const log4js = require('log4js')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
 
 const URL = config.avnUrl
-let api
+const SENDER = config.senderSuri
+let api, sender
 
 async function query(palletName, storageName, params) {
   const result = await api.query[palletName][storageName](...params)
-  log.trace(`Query response: ${result}`)
+  log.trace(`Encoded query response: ${result}`)
+  return result
+}
+
+// for now, no proxy. Just trying to reach and send something
+async function tx(palletName, method, params) {
+  log.trace(`Sending extrinsic api.tx.${palletName}.${method}`)
+  const txn = await api.tx[palletName][method](...params)
+  log.trace(`Encoded Transaction: ${txn}`)
+  let signedTransaction = await txn.signAsync(sender, { era: 64 }) // default era is 128. using 50 or 60 rounds it to 64 in practice
+  log.trace('Encoded signed: %j', signedTransaction)
+  let result
+  try {
+    let receipt = await signedTransaction.send()
+    result = {requestId: receipt.toString()}
+  } catch (error) {
+    log.trace(`Failed sending transaction: ${error}`)
+    result = { chainError: error.toString() }
+  }
+
   return result
 }
 
@@ -33,12 +53,21 @@ async function connectToAvN(url) {
   return avnConnection
 }
 
+async function createAccount(suri) {
+  const keyring = new Keyring({ type: 'sr25519' })
+  return await keyring.addFromUri(suri)
+}
+
 async function instantiateEC2() {
   log.info(`Creating a connection to the AVN on: ${URL}`)
   api = await connectToAvN(URL)
+
+  sender = await createAccount(SENDER)
+  console.log('Using sender with address: %o', sender.address.toString())
 }
 
 module.exports = {
   instantiateEC2,
-  query
+  query,
+  tx
 }

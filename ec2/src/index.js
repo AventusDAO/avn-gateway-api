@@ -27,6 +27,17 @@ app.post('/avnQuery', async (req, res, next) => {
   }
 })
 
+app.post('/avnTx', async (req, res, next) => {
+  try {
+    log.trace(`request body: ${req.body}`)
+    const txn = await avn.query(req.body.palletName, req.body.storageName, req.body.params)
+    
+    res.send(result.toString())
+  } catch (err) {
+    next(err)
+  }
+})
+
 app.listen(port, () => {
   log.info(`EC2 avn-connector listening on port ${port}`)
 })

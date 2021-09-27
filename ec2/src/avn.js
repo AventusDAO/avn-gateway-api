@@ -5,12 +5,29 @@ const log4js = require('log4js')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
 
+
 const URL = config.avnUrl
 let api
 
 async function query(palletName, storageName, params) {
   const result = await api.query[palletName][storageName](...params)
-  log.trace(`Query response: ${result}`)
+  log.trace(`Encoded query response: ${result}`)
+  return result
+}
+
+// for now, no proxy. Just trying to reach and send something
+async function tx(palletName, storageName, params) {
+  const txn = await api.tx[palletName][storageName](...params)
+  log.trace(`Encoded Transaction: ${txn}`)
+  let signedTransaction = await txn.signAsync(sender.keys, {era: 64 });  // default era is 128. using 50 or 60 rounds it to 64 in practice
+  let result
+  try {
+    result = await signedTransaction.send()
+  } catch (error) {
+    log.trace(`Failed sending transaction: ${error}`)
+    result = "error"
+  }
+
   return result
 }
 

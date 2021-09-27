@@ -1,16 +1,13 @@
 const axios = require('axios');
 
 const Query = function Query(gateway) {
-  Query.gateway = gateway  + '/query';
-  this.gateway = Query.gateway;
+  Query.endpoint = gateway  + '/query';
   this.id = 1;
   this.getTotalAvt = Query.getTotalAvt;
   this.getAvtBalance = Query.getAvtBalance;
   this.getTokenBalance = Query.getTokenBalance;
   this.getAccountNonce = Query.getAccountNonce;
 };
-
-Query.gateway;
 
 Query.getTotalAvt = async function () {
   return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'getTotalAvt', params: []});
@@ -29,7 +26,7 @@ Query.getAccountNonce = async function (account) {
 };
 
 async function postRequest(request) {
-  const response = (await axios.post(Query.gateway, request)).data;
+  const response = (await axios.post(Query.endpoint, request)).data;
   return response.result || response.error.message;
 }
 

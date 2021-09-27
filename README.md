@@ -133,3 +133,39 @@ curl https://AVN-API-URL/query \
   "result": "3"
 }
 ```
+
+### Transactions
+
+#### transferAvt
+Transfers the specified amount of AVT from the sender account to the destination account
+
+**REQUEST**  
+`POST https://AVN-API-URL/send`  
+
+**HEADERS**  
+`Content-Type: application/json`  
+
+**REQUEST PARAMS**  
+`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the destination account ID (32 bytes) or SS58 address
+`AMOUNT` *[required]* - string integer value of the current account nonce
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/send \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'
+```
+
+**RESULT FIELDS**  
+`REQUEST ID` - string bytes value of the request ID
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x97bf91291b28c6af9cba82b5e5aee28509cde8b27610fce543723956fa8b8bc3"
+}
+```

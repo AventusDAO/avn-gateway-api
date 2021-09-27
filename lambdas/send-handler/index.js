@@ -76,15 +76,15 @@ function isValidAccountIDFormat(accountId) {
 }
 
 function isValidAmount(amount) {
-  if (amount.match(/^[0-9]\d*$/)) {
+  if (amount.match(/^[0-9]*$/)) {
     return ! bigInt(amount).isZero();
   } else {
     return false;
   }
 }
 
-// async function testlocal() {
-//   console.log('transferAvt:', await processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));
-// }
-//
-// testlocal();
+async function testlocal() {
+  console.log('transferAvt:', await processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));
+}
+
+testlocal();

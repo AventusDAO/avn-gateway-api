@@ -20,14 +20,14 @@ async function tx(palletName, method, params) {
   log.trace(`Sending extrinsic api.tx.${palletName}.${method}`)
   const txn = await api.tx[palletName][method](...params)
   log.trace(`Encoded Transaction: ${txn}`)
-  let signedTransaction = await txn.signAsync(sender, {era: 64 });  // default era is 128. using 50 or 60 rounds it to 64 in practice
-  log.trace("Encoded signed: %j", signedTransaction)
+  let signedTransaction = await txn.signAsync(sender, { era: 64 }) // default era is 128. using 50 or 60 rounds it to 64 in practice
+  log.trace('Encoded signed: %j', signedTransaction)
   let result
   try {
     result = await signedTransaction.send()
   } catch (error) {
     log.trace(`Failed sending transaction: ${error}`)
-    result = `Chain Error: ${error}`
+    result = { chainError: error }
   }
 
   return result
@@ -53,8 +53,8 @@ async function connectToAvN(url) {
 }
 
 async function createAccount(suri) {
-  const keyring = new Keyring({ type: 'sr25519' });
-  return await keyring.addFromUri(suri);
+  const keyring = new Keyring({ type: 'sr25519' })
+  return await keyring.addFromUri(suri)
 }
 
 async function instantiateEC2() {
@@ -62,7 +62,7 @@ async function instantiateEC2() {
   api = await connectToAvN(URL)
 
   sender = await createAccount(SENDER)
-  console.log("Using sender with address: %o", sender.address.toString())
+  console.log('Using sender with address: %o', sender.address.toString())
 }
 
 module.exports = {

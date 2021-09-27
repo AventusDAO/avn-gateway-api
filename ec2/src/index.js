@@ -41,3 +41,5 @@ app.post('/avnTx', async (req, res, next) => {
 app.listen(port, () => {
   log.info(`EC2 avn-connector listening on port ${port}`)
 })
+
+avn.instantiateEC2()

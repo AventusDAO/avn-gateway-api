@@ -38,6 +38,16 @@ app.post('/avnTx', async (req, res, next) => {
   }
 })
 
+app.post('/avnPoll', async (req, res, next) => {
+  try {
+    log.trace(`request body: ${req.body}`)
+    const result = await avn.poll(req.body.requestId)
+    res.send(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
 app.listen(port, () => {
   log.info(`EC2 avn-connector listening on port ${port}`)
 })

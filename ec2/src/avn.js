@@ -2,8 +2,10 @@
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
 const config = require('multiconfig').load()
 const log4js = require('log4js')
+const fs = require('fs')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
+const { request } = require('http')
 
 const URL = config.avnUrl
 const SENDER = config.senderSuri
@@ -25,10 +27,40 @@ async function tx(palletName, method, params) {
   let result
   try {
     let receipt = await signedTransaction.send()
-    result = {requestId: receipt.toString()}
+    let requestId = receipt.toString()
+    result = {requestId: requestId}
+
+    let stateFilename = `state_${requestId}`
+    let fd = fs.openSync(stateFilename, 'w')
+    fs.writeSync(fd, 'Pending')
+    fs.closeSync(fd)
   } catch (error) {
     log.trace(`Failed sending transaction: ${error}`)
     result = { chainError: error.toString() }
+  }
+
+  return result
+}
+
+async function poll(requestId) {
+  let fd, result
+
+  let stateFilename = `state_${requestId}`
+  try {
+    fd = fs.openSync(stateFilename, 'r')
+  } catch (error) {
+    log.trace('Unknown request: ${requestId}')
+    result = {error: 'Bad request'}
+  }
+
+  try {
+    let state = fs.readFileSync(fd, 'utf8')
+
+    fs.closeSync(fd)
+    result = {state: state}
+  } catch (error) {
+    log.trace(`Error reading state file: ${stateFilename}`)
+    result = {error: `Unable to access request's state`}
   }
 
   return result
@@ -69,5 +101,6 @@ async function instantiateEC2() {
 module.exports = {
   instantiateEC2,
   query,
-  tx
+  tx,
+  poll
 }

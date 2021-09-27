@@ -49,7 +49,7 @@ async function poll(requestId) {
   try {
     fd = fs.openSync(stateFilename, 'r')
   } catch (error) {
-    log.trace('Unknown request: ${requestId}')
+    log.trace(`Unknown request: ${requestId}`)
     result = { error: 'Bad request' }
   }
 

@@ -32,7 +32,7 @@ app.post('/avnTx', async (req, res, next) => {
     log.trace(`request body: ${req.body}`)
     const result = await avn.tx(req.body.palletName, req.body.method, req.body.params)
     console.log('Extrinsic sent with hash %j', result)
-    res.send(result.toString())
+    res.send(result)
   } catch (err) {
     next(err)
   }

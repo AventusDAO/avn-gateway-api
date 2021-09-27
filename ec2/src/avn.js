@@ -24,10 +24,11 @@ async function tx(palletName, method, params) {
   log.trace('Encoded signed: %j', signedTransaction)
   let result
   try {
-    result = await signedTransaction.send()
+    let receipt = await signedTransaction.send()
+    result = {requestId: receipt.toString()}
   } catch (error) {
     log.trace(`Failed sending transaction: ${error}`)
-    result = { chainError: error }
+    result = { chainError: error.toString() }
   }
 
   return result

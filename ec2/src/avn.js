@@ -28,7 +28,7 @@ async function tx(palletName, method, params) {
   try {
     let receipt = await signedTransaction.send()
     let requestId = receipt.toString()
-    result = {requestId: requestId}
+    result = { requestId: requestId }
 
     let stateFilename = `state_${requestId}`
     let fd = fs.openSync(stateFilename, 'w')
@@ -50,17 +50,17 @@ async function poll(requestId) {
     fd = fs.openSync(stateFilename, 'r')
   } catch (error) {
     log.trace('Unknown request: ${requestId}')
-    result = {error: 'Bad request'}
+    result = { error: 'Bad request' }
   }
 
   try {
     let state = fs.readFileSync(fd, 'utf8')
 
     fs.closeSync(fd)
-    result = {state: state}
+    result = { state: state }
   } catch (error) {
     log.trace(`Error reading state file: ${stateFilename}`)
-    result = {error: `Unable to access request's state`}
+    result = { error: `Unable to access request's state` }
   }
 
   return result

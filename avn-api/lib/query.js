@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 const Query = function Query(gateway) {
-  Query.gateway = gateway;
+  Query.gateway = gateway  + '/query';
   this.gateway = Query.gateway;
   this.id = 1;
   this.getTotalAvt = Query.getTotalAvt;

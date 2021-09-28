@@ -19,7 +19,7 @@ app.use(function(err, req, res, _next) {
 
 app.post('/avnQuery', async (req, res, next) => {
   try {
-    log.trace(`request body: ${req.body}`)
+    log.trace(`request body: ${JSON.stringify(req.body)}`)
     const result = await avn.query(req.body.palletName, req.body.storageName, req.body.params)
     res.send(result.toString())
   } catch (err) {
@@ -29,9 +29,19 @@ app.post('/avnQuery', async (req, res, next) => {
 
 app.post('/avnTx', async (req, res, next) => {
   try {
-    log.trace(`request body: ${req.body}`)
+    log.trace(`request body: ${JSON.stringify(req.body)}`)
     const result = await avn.tx(req.body.palletName, req.body.method, req.body.params)
-    console.log('Extrinsic sent with hash %j', result)
+    log.info(`Request sent with ID: ${result.requestId}`)
+    res.send(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+app.post('/avnPoll', async (req, res, next) => {
+  try {
+    log.trace(`request body: ${JSON.stringify(req.body)}`)
+    const result = await avn.poll(req.body.requestId)
     res.send(result)
   } catch (err) {
     next(err)

@@ -11,10 +11,10 @@ const user2 = {
 }
 
 const token = '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e';
+const BAD_REQUEST = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
 async function main() {
   const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
-
 
   console.log('\n***INFO**');
   console.log('Version:', api.version);
@@ -31,7 +31,21 @@ async function main() {
   console.log('Expect error:                          ', await api.query.getAccountNonce('0000'));
 
   console.log('\n***TRANSACTIONS***');
-  console.log('Transfer AVT using recipient address:  ', await api.send.transferAvt(user2.address, '1'));
+  let requestId = await api.send.transferAvt(user2.address, '1');
+  console.log('Transfer AVT using recipient address. Returned hash:  ', requestId);
+
+  console.log('\n***POLLING STATE***');
+  try {
+    console.log('Check state of unknown request:  ', await api.poll.requestState(BAD_REQUEST));
+  } catch (error) {
+    console.log(error.toString());
+  }
+
+  try {
+    console.log('Check state of previous request:  ', await api.poll.requestState(requestId));
+  } catch (error) {
+    console.log(error.toString());
+  }
 
   return;
 }

@@ -95,7 +95,7 @@ async function instantiateEC2() {
   api = await connectToAvN(URL)
 
   sender = await createAccount(SENDER)
-  console.log('Using sender with address: %o', sender.address.toString())
+  log.info(`Using sender with address: ${sender.address.toString()}`)
 }
 
 module.exports = {

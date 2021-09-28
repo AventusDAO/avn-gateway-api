@@ -31,7 +31,7 @@ app.post('/avnTx', async (req, res, next) => {
   try {
     log.trace(`request body: ${JSON.stringify(req.body)}`)
     const result = await avn.tx(req.body.palletName, req.body.method, req.body.params)
-    console.log('Extrinsic sent with hash %j', result)
+    log.info(`Request sent with ID: ${result.requestId}`)
     res.send(result)
   } catch (err) {
     next(err)

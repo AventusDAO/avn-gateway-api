@@ -1,8 +1,8 @@
 const axios = require('axios');
 
-const Query = function Query(gateway) {
+const Query = function Query(gateway, id) {
   Query.endpoint = gateway + '/query';
-  this.id = 1;
+  this.id = id;
   this.getTotalAvt = Query.getTotalAvt;
   this.getAvtBalance = Query.getAvtBalance;
   this.getTokenBalance = Query.getTokenBalance;
@@ -10,19 +10,19 @@ const Query = function Query(gateway) {
 };
 
 Query.getTotalAvt = async function () {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'getTotalAvt', params: []});
+  return await postRequest({jsonrpc: '2.0', id: this.id(), method: 'getTotalAvt', params: []});
 };
 
 Query.getAvtBalance = async function (account) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'getAvtBalance', params: [account]});
+  return await postRequest({jsonrpc: '2.0', id: this.id(), method: 'getAvtBalance', params: [account]});
 };
 
 Query.getTokenBalance = async function (account, token) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'getTokenBalance', params: [account, token]});
+  return await postRequest({jsonrpc: '2.0', id: this.id(), method: 'getTokenBalance', params: [account, token]});
 };
 
 Query.getAccountNonce = async function (account) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'getAccountNonce', params: [account]});
+  return await postRequest({jsonrpc: '2.0', id: this.id(), method: 'getAccountNonce', params: [account]});
 };
 
 async function postRequest(request) {

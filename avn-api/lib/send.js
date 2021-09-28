@@ -1,13 +1,13 @@
 const axios = require('axios');
 
-const Send = function Send(gateway) {
+const Send = function Send(gateway, id) {
   Send.endpoint = gateway + '/send';
-  this.id = 1;
+  this.id = id;
   this.transferAvt = Send.transferAvt;
 };
 
 Send.transferAvt = async function (account, amount) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'transferAvt', params: [account, amount]});
+  return await postRequest({jsonrpc: '2.0', id: this.id(), method: 'transferAvt', params: [account, amount]});
 };
 
 async function postRequest(request) {

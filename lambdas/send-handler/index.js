@@ -76,7 +76,7 @@ function isValidAccountIDFormat(accountId) {
 }
 
 function isValidAmount(amount) {
-  if (amount.match(/^[0-9]*$/)) {
+  if (amount.match(/^[0-9]+$/)) {
     return ! bigInt(amount).isZero();
   } else {
     return false;

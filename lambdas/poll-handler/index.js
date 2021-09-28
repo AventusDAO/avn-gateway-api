@@ -64,8 +64,8 @@ function isValidRequestId(accountId) {
   return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
 }
 
-async function testlocal() {
-  console.log('pollRequestState:', await processRequest('{"jsonrpc": "2.0", "method":"pollRequestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'));
-}
-
-testlocal();
+// async function testlocal() {
+//   console.log('pollRequestState:', await processRequest('{"jsonrpc": "2.0", "method":"pollRequestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'));
+// }
+//
+// testlocal();

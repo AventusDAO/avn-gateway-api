@@ -5,7 +5,7 @@ const Poll = require('./lib/poll.js');
 
 const AvnApi = function AvnApi(gateway) {
   let id = 1;
-  this.id = id;
+  this.id = () => id;
   this.nextId = () => id++;
   this.gateway = gateway;
   this.version = version;

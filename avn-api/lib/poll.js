@@ -1,13 +1,13 @@
 const axios = require('axios');
 
-const Poll = function Poll(gateway, id) {
+const Poll = function Poll(gateway, nextId) {
   Poll.endpoint = gateway + '/poll';
-  this.id = id;
+  this.nextId = nextId;
   this.requestState = Poll.requestState;
 };
 
 Poll.requestState = async function (requestId) {
-  return await postRequest({jsonrpc: '2.0', id: this.id(), method: 'requestState', params: [requestId]});
+  return await postRequest({jsonrpc: '2.0', id: this.nextId(), method: 'requestState', params: [requestId]});
 };
 
 async function postRequest(request) {

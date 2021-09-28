@@ -169,3 +169,38 @@ curl https://AVN-API-URL/send \
   "result": "0x97bf91291b28c6af9cba82b5e5aee28509cde8b27610fce543723956fa8b8bc3"
 }
 ```
+
+### Polling
+
+#### pollRequestState
+Gets the current state of a previously sent asynchronous transaction request
+
+**REQUEST**  
+`POST https://AVN-API-URL/poll`  
+
+**HEADERS**  
+`Content-Type: application/json`  
+
+**REQUEST PARAMS**  
+`REQUEST ID` *[required]* - string bytes value of the request ID
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/poll \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0", "method":"pollRequestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'
+```
+
+**RESULT FIELDS**  
+`STATE` - string detailing the current state ('pending', 'pending and lost', 'finished', 'errored', 'unknown')
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "finished"
+}
+```

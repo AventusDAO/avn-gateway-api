@@ -47,7 +47,6 @@ async function main() {
     console.log(error.toString());
   }
 
-
   return;
 }
 

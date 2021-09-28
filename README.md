@@ -172,7 +172,7 @@ curl https://AVN-API-URL/send \
 
 ### Polling
 
-#### pollRequestState
+#### requestState
 Gets the current state of a previously sent asynchronous transaction request
 
 **REQUEST**  
@@ -190,7 +190,7 @@ Gets the current state of a previously sent asynchronous transaction request
 curl https://AVN-API-URL/poll \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0", "method":"pollRequestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'
+    -d '{"jsonrpc":"2.0", "method":"requestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'
 ```
 
 **RESULT FIELDS**  

@@ -11,6 +11,7 @@ const user2 = {
 }
 
 const token = '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e';
+const BAD_REQUEST = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
 async function main() {
   const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
@@ -35,7 +36,7 @@ async function main() {
 
   console.log('\n***POLLING STATE***');
   try {
-    console.log('Check state of unknown request:  ', await api.poll.requestState('BAD_REQUEST'));
+    console.log('Check state of unknown request:  ', await api.poll.requestState(BAD_REQUEST));
   } catch (error) {
     console.log(error.toString());
   }

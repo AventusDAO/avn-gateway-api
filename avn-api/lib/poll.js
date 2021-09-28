@@ -7,7 +7,7 @@ const Poll = function Poll(gateway) {
 };
 
 Poll.requestState = async function (requestId) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'pollRequestState', params: [requestId]});
+  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'requestState', params: [requestId]});
 };
 
 async function postRequest(request) {

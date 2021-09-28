@@ -16,7 +16,7 @@ async function poll(requestId) {
   } catch (e) {
     throw true;
   }
-  return response.data.state;
+  return response.data.state || response.data.error;
 }
 
 async function processRequest(requestObject) {
@@ -34,15 +34,15 @@ async function processRequest(requestObject) {
   if (typeof call.method !== 'string') {
     responseObject.error = {code:-32600, message:'Invalid Request'};
   } else {
-    responseObject = await call(call, responseObject);
+    responseObject = await makeCall(call, responseObject);
   }
 
   responseObject.id = call.id;
   return responseObject;
 }
 
-async function call(call, responseObject) {
-  if (call.method !== 'pollRequestState') {
+async function makeCall(call, responseObject) {
+  if (call.method !== 'requestState') {
     responseObject.error = {code:-32601, message:'Method not found'};
   } else if (isValidRequestId(call.params[0])) {
     try {
@@ -65,7 +65,7 @@ function isValidRequestId(accountId) {
 }
 
 // async function testlocal() {
-//   console.log('pollRequestState:', await processRequest('{"jsonrpc": "2.0", "method":"pollRequestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'));
+//   console.log('requestState:', await processRequest('{"jsonrpc": "2.0", "method":"requestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'));
 // }
 //
 // testlocal();

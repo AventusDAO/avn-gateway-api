@@ -6,12 +6,12 @@ const Poll = require('./lib/poll.js');
 const AvnApi = function AvnApi(gateway) {
   let id = 1;
   this.id = () => id;
-  this.nextId = () => id++;
+  AvnApi.nextId = () => id++;
   this.gateway = gateway;
   this.version = version;
-  this.query = new Query(gateway, this.nextId);
-  this.send = new Send(gateway, this.nextId);
-  this.poll = new Poll(gateway, this.nextId);
+  this.query = new Query(gateway, AvnApi.nextId);
+  this.send = new Send(gateway, AvnApi.nextId);
+  this.poll = new Poll(gateway, AvnApi.nextId);
 };
 
 

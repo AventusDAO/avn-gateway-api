@@ -1,32 +1,43 @@
 const axios = require('axios');
 
-const Query = function Query(gateway) {
-  Query.endpoint = gateway + '/query';
-  this.id = 1;
-  this.getTotalAvt = Query.getTotalAvt;
-  this.getAvtBalance = Query.getAvtBalance;
-  this.getTokenBalance = Query.getTokenBalance;
-  this.getAccountNonce = Query.getAccountNonce;
+function Query(api) {
+  this.getTotalAvt = generateFunction(getTotalAvt, api);
+  this.getAvtBalance = generateFunction(getAvtBalance, api);
+  this.getTokenBalance = generateFunction(getTokenBalance, api);
+  this.getAccountNonce = generateFunction(getAccountNonce, api);
 };
 
-Query.getTotalAvt = async function () {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'getTotalAvt', params: []});
+function getTotalAvt(api) {
+  return async function() {
+    return await this.postRequest(api, 'getTotalAvt', []);
+  }
 };
 
-Query.getAvtBalance = async function (account) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'getAvtBalance', params: [account]});
+function getAvtBalance(api) {
+  return async function(account) {
+    return await this.postRequest(api, 'getAvtBalance', [account]);
+  }
 };
 
-Query.getTokenBalance = async function (account, token) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'getTokenBalance', params: [account, token]});
+function getTokenBalance(api) {
+  return async function(account, token) {
+    return await this.postRequest(api, 'getTokenBalance', [account, token]);
+  }
 };
 
-Query.getAccountNonce = async function (account) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'getAccountNonce', params: [account]});
+function getAccountNonce(api) {
+  return async function(account) {
+    return await this.postRequest(api, 'getAccountNonce', [account]);
+  }
 };
 
-async function postRequest(request) {
-  const response = (await axios.post(Query.endpoint, request)).data;
+function generateFunction(functionName, api) {
+  return functionName(api);
+}
+
+Query.prototype.postRequest = async function(api, method, params) {
+  const endpoint = api.gateway + '/query';
+  const response = (await axios.post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
   return response.result || response.error.message;
 }
 

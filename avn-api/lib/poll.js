@@ -1,17 +1,22 @@
 const axios = require('axios');
 
-const Poll = function Poll(gateway) {
-  Poll.endpoint = gateway + '/poll';
-  this.id = 1;
-  this.requestState = Poll.requestState;
+function Poll(api) {
+  this.requestState = generateFunction(requestState, api);
 };
 
-Poll.requestState = async function (requestId) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'requestState', params: [requestId]});
+function requestState(api) {
+  return async function(requestId) {
+    return await this.postRequest(api, 'requestState', [requestId]);
+  }
 };
 
-async function postRequest(request) {
-  const response = (await axios.post(Poll.endpoint, request)).data;
+function generateFunction(functionName, api) {
+  return functionName(api);
+}
+
+Poll.prototype.postRequest = async function(api, method, params) {
+  const endpoint = api.gateway + '/poll';
+  const response = (await axios.post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
   return response.result || response.error.message;
 }
 

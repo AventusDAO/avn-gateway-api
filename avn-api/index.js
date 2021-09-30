@@ -8,7 +8,7 @@ function AvnApi(gateway, id) {
   this.gateway = gateway;
   this.version = version;
   const avnApi = {
-    gateway : this.gateway,
+    gateway : gateway,
     nextId : () => this.id++
   };
   this.query = new Query(avnApi);

@@ -32,10 +32,10 @@ function getAccountNonce(api) {
 };
 
 function generateFunction(functionName, api) {
-  return functionName(api)
+  return functionName(api);
 }
 
-Query.prototype.postRequest = async function (api, method, params) {
+Query.prototype.postRequest = async function(api, method, params) {
   const endpoint = api.gateway + '/query';
   const response = (await axios.post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
   return response.result || response.error.message;

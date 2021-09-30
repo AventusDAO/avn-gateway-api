@@ -11,7 +11,7 @@ function transferAvt(api) {
 };
 
 function generateFunction(functionName, api) {
-  return functionName(api)
+  return functionName(api);
 }
 
 Send.prototype.postRequest = async function(api, method, params) {

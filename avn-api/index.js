@@ -3,8 +3,8 @@ const Query = require('./lib/query.js');
 const Send = require('./lib/send.js');
 const Poll = require('./lib/poll.js');
 
-function AvnApi(gateway, _id) {
-  this.id = _id || 1;
+function AvnApi(gateway, id) {
+  this.id = id || 1;
   this.gateway = gateway;
   this.version = version;
   this.query = new Query(gateway, () => this.id++);

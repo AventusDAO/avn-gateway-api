@@ -1,35 +1,39 @@
 const axios = require('axios');
 
 function Query(api) {
-  this.getTotalAvt = Query.getTotalAvt(api);
-  this.getAvtBalance = Query.getAvtBalance(api);
-  this.getTokenBalance = Query.getTokenBalance(api);
-  this.getAccountNonce = Query.getAccountNonce(api);
+  this.getTotalAvt = generateFunction(getTotalAvt, api);
+  this.getAvtBalance = generateFunction(getAvtBalance, api);
+  this.getTokenBalance = generateFunction(getTokenBalance, api);
+  this.getAccountNonce = generateFunction(getAccountNonce, api);
 };
 
-Query.getTotalAvt = function (api) {
+function getTotalAvt(api) {
   return async function () {
     return await this.postRequest(api, 'getTotalAvt', []);
   }
 };
 
-Query.getAvtBalance = function (api) {
+function getAvtBalance(api) {
   return async function (account) {
     return await this.postRequest(api, 'getAvtBalance', [account]);
   }
 };
 
-Query.getTokenBalance = function (api) {
+function getTokenBalance(api) {
   return async function (account, token) {
     return await this.postRequest(api, 'getTokenBalance', [account, token]);
   }
 };
 
-Query.getAccountNonce = function (api) {
+function getAccountNonce(api) {
   return async function (account) {
     return await this.postRequest(api, 'getAccountNonce', [account]);
   }
 };
+
+function generateFunction(functionName, api) {
+  return functionName(api)
+}
 
 Query.prototype.postRequest = async function (api, method, params) {
   const endpoint = api.gateway + '/query';

@@ -8,25 +8,25 @@ function Query(api) {
 };
 
 function getTotalAvt(api) {
-  return async function () {
+  return async function() {
     return await this.postRequest(api, 'getTotalAvt', []);
   }
 };
 
 function getAvtBalance(api) {
-  return async function (account) {
+  return async function(account) {
     return await this.postRequest(api, 'getAvtBalance', [account]);
   }
 };
 
 function getTokenBalance(api) {
-  return async function (account, token) {
+  return async function(account, token) {
     return await this.postRequest(api, 'getTokenBalance', [account, token]);
   }
 };
 
 function getAccountNonce(api) {
-  return async function (account) {
+  return async function(account) {
     return await this.postRequest(api, 'getAccountNonce', [account]);
   }
 };

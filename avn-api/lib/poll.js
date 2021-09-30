@@ -5,7 +5,7 @@ function Poll(api) {
 };
 
 function requestState(api) {
-  return async function (requestId) {
+  return async function(requestId) {
     return await this.postRequest(api, 'requestState', [requestId]);
   }
 };

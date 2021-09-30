@@ -5,7 +5,7 @@ function Send(api) {
 };
 
 function transferAvt(api) {
-  return async function (account, amount) {
+  return async function(account, amount) {
     return await this.postRequest(api, 'transferAvt', [account, amount]);
   }
 };

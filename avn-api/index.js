@@ -2,6 +2,7 @@ const version = require('./package.json').version;
 const Query = require('./lib/query.js');
 const Send = require('./lib/send.js');
 const Poll = require('./lib/poll.js');
+const Awt = require('./lib/awt.js');
 
 const AvnApi = function AvnApi(gateway) {
   this.gateway = gateway;
@@ -9,6 +10,7 @@ const AvnApi = function AvnApi(gateway) {
   this.query = new Query(gateway);
   this.send = new Send(gateway);
   this.poll = new Poll(gateway);
+  this.awt = Awt;
 };
 
 module.exports = AvnApi;

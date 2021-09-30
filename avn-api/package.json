@@ -6,6 +6,9 @@
   "author": "Aventus Network Services",
   "license": "ISC",
   "dependencies": {
+    "@polkadot/keyring": "5.9.2",
+    "@polkadot/types": "^3.0.1",
+    "@polkadot/util-crypto": "5.9.2",
     "axios": "^0.21.4"
   }
 }

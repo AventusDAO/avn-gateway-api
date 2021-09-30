@@ -15,7 +15,7 @@ async function init() {
 
     return {
         generateAwtToken
-    }
+    };
 }
 
 async function generateAwtToken(suri) {
@@ -27,14 +27,14 @@ async function generateAwtToken(suri) {
     const encodedData = await encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt);
 
     // Sign the avnPublicKey of the token owner
-    const signature = tokenOwner.sign(encodedData)
+    const signature = tokenOwner.sign(encodedData);
 
     // generate the token - base64 encoded
     const payload = {
         pk: avnPublicKey,
         iat: issuedAt,
         sig: u8aToHex(signature)
-    }
+    };
 
     const payloadBuff = new Buffer.from(JSON.stringify(payload));
     return payloadBuff.toString('base64');

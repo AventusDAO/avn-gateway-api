@@ -1,38 +1,39 @@
 const axios = require('axios');
 
-function Query(gateway, nextId) {
-  this.getTotalAvt = Query.getTotalAvt(gateway, nextId);
-  this.getAvtBalance = Query.getAvtBalance(gateway, nextId);
-  this.getTokenBalance = Query.getTokenBalance(gateway, nextId);
-  this.getAccountNonce = Query.getAccountNonce(gateway, nextId);
+function Query(api) {
+  this.getTotalAvt = Query.getTotalAvt(api);
+  this.getAvtBalance = Query.getAvtBalance(api);
+  this.getTokenBalance = Query.getTokenBalance(api);
+  this.getAccountNonce = Query.getAccountNonce(api);
 };
 
-Query.getTotalAvt = function (gateway, nextId) {
+Query.getTotalAvt = function (api) {
   return async function () {
-    return await this.postRequest(gateway, nextId, 'getTotalAvt', []);
+    return await this.postRequest(api, 'getTotalAvt', []);
   }
 };
 
-Query.getAvtBalance = function (gateway, nextId) {
+Query.getAvtBalance = function (api) {
   return async function (account) {
-    return await this.postRequest(gateway, nextId, 'getAvtBalance', [account]);
+    return await this.postRequest(api, 'getAvtBalance', [account]);
   }
 };
 
-Query.getTokenBalance = function (gateway, nextId) {
+Query.getTokenBalance = function (api) {
   return async function (account, token) {
-    return await this.postRequest(gateway, nextId, 'getTokenBalance', [account, token]);
+    return await this.postRequest(api, 'getTokenBalance', [account, token]);
   }
 };
 
-Query.getAccountNonce = function (gateway, nextId) {
+Query.getAccountNonce = function (api) {
   return async function (account) {
-    return await this.postRequest(gateway, nextId, 'getAccountNonce', [account]);
+    return await this.postRequest(api, 'getAccountNonce', [account]);
   }
 };
 
-Query.prototype.postRequest = async function (gateway, nextId, method, params) {
-  const response = (await axios.post(gateway+'/query', {jsonrpc: '2.0', id: nextId(), method: method, params: params})).data;
+Query.prototype.postRequest = async function (api, method, params) {
+  const endpoint = api.gateway + '/query';
+  const response = (await axios.post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
   return response.result || response.error.message;
 }
 

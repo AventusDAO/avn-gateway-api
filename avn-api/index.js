@@ -7,9 +7,13 @@ function AvnApi(gateway, id) {
   this.id = id || 1;
   this.gateway = gateway;
   this.version = version;
-  this.query = new Query(gateway, () => this.id++);
-  this.send = new Send(gateway, () => this.id++);
-  this.poll = new Poll(gateway, () => this.id++);
+  const avnApi = {
+    gateway : this.gateway,
+    nextId : () => this.id++
+  };
+  this.query = new Query(avnApi);
+  this.send = new Send(avnApi);
+  this.poll = new Poll(avnApi);
 };
 
 module.exports = AvnApi;

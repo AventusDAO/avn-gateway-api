@@ -1,8 +1,6 @@
 const { LambdaClient, UpdateFunctionCodeCommand } = require('@aws-sdk/client-lambda');
 const aws = new LambdaClient({ region: 'eu-west-2'});
-const jsZip = require('jszip');
-const path = require('path');
-const fs = require('fs');
+var zipdir = require('zip-dir');
 
 const LAMBDAS = [
   'example',
@@ -11,28 +9,9 @@ const LAMBDAS = [
   'send-handler',
 ];
 
-function zipLambda(lambda) {
-  const zip = new jsZip();
-  const contents = fs.readdirSync(lambda, { withFileTypes: true });
-
-  contents.forEach(({name}) => {
-    const path = `${lambda}/${name}`;
-
-    if (fs.statSync(path).isFile()) {
-      zip.file(path, fs.readFileSync(path, 'utf-8'));
-    }
-
-    if (fs.statSync(path).isDirectory()) {
-      zipLambda(path, zip);
-    }
-  });
-
-  return zip;
-};
-
 async function uploadLambda(lambda) {
   const params = {
-    ZipFile: await zipLambda(lambda).generateAsync({ type: 'nodebuffer' }),
+    ZipFile: await zipdir(lambda),
     FunctionName: lambda,
   };
 

@@ -17,7 +17,7 @@ async function sendTx(palletName, method, params) {
   } catch (e) {
     throw true;
   }
-  return response.data.requestId;
+  return response.data.error || response.data.requestId;
 }
 
 async function processRequest(requestObject) {

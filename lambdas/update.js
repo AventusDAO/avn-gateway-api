@@ -11,19 +11,19 @@ const LAMBDAS = [
   'send-handler'
 ];
 
-function addLambdaContentsToZip(lambdaDir) {
+function zipLambda(lambda) {
   const zip = new JSZip();
-  const dirContents = fs.readdirSync(lambdaDir, { withFileTypes: true });
+  const contents = fs.readdirSync(lambda, { withFileTypes: true });
 
-  dirContents.forEach(({name}) => {
-    const path = `${lambdaDir}/${name}`;
+  contents.forEach(({name}) => {
+    const path = `${lambda}/${name}`;
 
     if (fs.statSync(path).isFile()) {
       zip.file(path, fs.readFileSync(path, 'utf-8'));
     }
 
     if (fs.statSync(path).isDirectory()) {
-      addLambdaContentsToZip(path, zip);
+      zipLambda(path, zip);
     }
   });
 
@@ -31,10 +31,8 @@ function addLambdaContentsToZip(lambdaDir) {
 };
 
 async function uploadLambda(lambda) {
-  const zip = addLambdaContentsToZip(lambda);
-
   const params = {
-    ZipFile: await zip.generateAsync({ type: 'nodebuffer' }),
+    ZipFile: await zipLambda(lambda).generateAsync({ type: 'nodebuffer' }),
     FunctionName: lambda,
   };
 

@@ -1,3 +1,4 @@
+const { cryptoWaitReady } = require('@polkadot/util-crypto');
 const axios = require('axios');
 const version = require('./package.json').version;
 const Query = require('./lib/query.js');
@@ -11,13 +12,15 @@ function AvnApi(gateway, id) {
   this.version = version;
 };
 
-async function init() {
+AvnApi.prototype.init = async function () {
+  await cryptoWaitReady();
+
   const axios = await setupAxios();
 
   const avnApi = {
     gateway : this.gateway,
     nextId : () => this.id++,
-    axios
+    axios,
   };
 
   this.query = new Query(avnApi);
@@ -27,7 +30,7 @@ async function init() {
 }
 
 async function setupAxios() {
-  const awtToken = (await Awt.init()).generateAwtToken(process.env.SURI);
+  const awtToken = Awt.generateAwtToken(process.env.SURI);
   // Add any middlewares here to configure global axios behaviours
   axios.defaults.headers.common = {'Authorization': `bearer ${awtToken}`};
 

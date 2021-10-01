@@ -34,7 +34,7 @@ async function main() {
   console.log('Gateway:', api.gateway);
 
   console.log('\n***AWT TOKENS***');
-  const tokenGenerator = await api.awt.init();
+  const tokenGenerator = await api.awt;
   console.log(`AWT token 1 (from mnemonic): ${await tokenGenerator.generateAwtToken(user3.mnemonic)} \n`);
   console.log(`AWT token 2 (from seed): ${await tokenGenerator.generateAwtToken(user3.seed)}`);
 

@@ -1,7 +1,8 @@
 const { isHex, u8aToHex } = require('@polkadot/util');
+const { TypeRegistry } = require('@polkadot/types');
 const { Keyring } = require('@polkadot/keyring');
-// maybe add support here to obtain the client's suri
 
+const registry = new TypeRegistry();
 let keyring = new Keyring({ type: 'sr25519' });
 
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
@@ -25,7 +26,14 @@ function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
       && accountString.slice(2).length === 64
   }
 
+  function obtainClientSuri() {
+    return process.env.SURI;
+  }
+
   module.exports = {
     isAccountPK,
     convertToPublicKeyIfNeeded,
+    obtainClientSuri,
+    keyring,
+    registry
   };

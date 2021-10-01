@@ -1,6 +1,6 @@
 'use strict';
 
-const { cryptoWaitReady } = require('@polkadot/util-crypto');
+
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 const { TypeRegistry } = require('@polkadot/types');
 const { Keyring } = require('@polkadot/keyring');
@@ -9,14 +9,6 @@ const SIGNING_CONTEXT = 'awt_gateway_api';
 
 const registry = new TypeRegistry();
 const keyring = new Keyring({type: 'sr25519'});
-
-async function init() {
-  await cryptoWaitReady();
-
-  return {
-      generateAwtToken
-  };
-}
 
 async function generateAwtToken(suri) {
   const tokenOwner = keyring.addFromUri(suri);
@@ -51,5 +43,5 @@ function encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt) {
 }
 
 module.exports = {
-  init
+  generateAwtToken
 };

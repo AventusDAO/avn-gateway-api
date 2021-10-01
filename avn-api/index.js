@@ -13,12 +13,11 @@ function AvnApi(gateway, id) {
 
 AvnApi.prototype.init = async function () {
   const awt = await Awt.init();
-  const axios = setupAxios(awt);
 
   const avnApi = {
     gateway : this.gateway,
     nextId : () => this.id++,
-    axios: axios
+    axios: () => setupAxios(awt)
   };
 
   this.query = new Query(avnApi);

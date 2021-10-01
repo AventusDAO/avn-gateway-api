@@ -1,5 +1,5 @@
 const { LambdaClient, UpdateFunctionCodeCommand } = require('@aws-sdk/client-lambda');
-const JSZip = require('jszip');
+const jsZip = require('jszip');
 const path = require('path');
 const fs = require('fs');
 const aws = new LambdaClient({ region: 'eu-west-2'});
@@ -12,7 +12,7 @@ const LAMBDAS = [
 ];
 
 function zipLambda(lambda) {
-  const zip = new JSZip();
+  const zip = new jsZip();
   const contents = fs.readdirSync(lambda, { withFileTypes: true });
 
   contents.forEach(({name}) => {

@@ -21,7 +21,7 @@ async function queryChain(palletName, storageName, params, responseFormatter) {
   } catch (e) {
     throw true;
   }
-  return responseFormatter(response);
+  return response.data.errror || responseFormatter(response);
 }
 
 async function processRequest(requestObject) {

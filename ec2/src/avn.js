@@ -36,7 +36,7 @@ async function tx(palletName, method, params) {
     fs.closeSync(fd)
   } catch (error) {
     log.trace(`Failed sending transaction: ${error}`)
-    result = { chainError: error.toString() }
+    result = { error: error.toString() }
   }
 
   return result

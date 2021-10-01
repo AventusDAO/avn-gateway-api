@@ -15,6 +15,12 @@ const user2 = {
   publicKey: '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e'
 }
 
+const user3 = {
+    mnemonic: 'skate almost song wood lake giant stomach pupil know ugly check image',
+    seed: '0x197bcdc6a4f99683346ada29b1ec2beb62aafffff487a55070a9c9e13d36d86a',
+    address: '5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF',
+}
+
 const token = '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e';
 const BAD_REQUEST = '0x0000000000000000000000000000000000000000000000000000000000000000'
 const MIN_AMOUNT = 1
@@ -25,6 +31,11 @@ async function main() {
   console.log('\n***INFO**');
   console.log('Version:', api.version);
   console.log('Gateway:', api.gateway);
+
+  console.log('\n***AWT TOKENS***');
+  const tokenGenerator = await api.awt.init();
+  console.log(`AWT token 1 (from mnemonic): ${await tokenGenerator.generateAwtToken(user3.mnemonic)} \n`);
+  console.log(`AWT token 2 (from seed): ${await tokenGenerator.generateAwtToken(user3.seed)}`);
 
   console.log('\n***QUERIES***');
   console.log('Total AVT:                             ', await api.query.getTotalAvt());

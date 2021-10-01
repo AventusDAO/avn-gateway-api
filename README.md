@@ -1,5 +1,61 @@
 # avn-gateway-api
 
+## AvN API
+Aventus AvN javascript API which connects to generic JSON-RPC spec
+
+### Installation
+`npm install avn-api`
+
+### Usage
+```
+const AvnApi = require('avn-api');
+const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
+
+```
+
+### Queries
+
+```
+// Return the total amount of AVT in the AvN:
+let totalAvt = await api.query.getTotalAvt();
+
+
+// Return an account's AVT balance by its address or public key:
+const user1AvtBalance = await api.query.getAvtBalance('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH');
+const user2AvtBalance = await api.query.getAvtBalance('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e');
+
+
+// Return an account's token balance by its address or public key and Ethereum address:
+const token = '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e';
+const totalAvt = await api.query.getTokenBalance('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', token);
+const totalAvt = await api.query.getTokenBalance('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', token);
+
+
+// Return the nonce of an AvN account by its address or public key:
+const user1Nonce = api.query.getAccountNonce('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH');
+const user2Nonce = api.query.getAccountNonce('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e');
+
+```
+
+### Transactions
+
+```
+// Transfer an amount of AVT from the sender account to the destination account by address or public key:
+const requestId1 = await api.send.transferAvt('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', '100000000000000000000');
+const requestId2 = await api.send.transferAvt('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', 10);
+
+```
+
+### Polling
+
+```
+// Get the current state of a previously sent transaction:
+const requestId3 = await api.send.transferAvt('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', 100);
+const state = await api.poll.requestState(requestId);
+
+```
+
+
 ## JSON-RPC Methods
 
 ### Queries

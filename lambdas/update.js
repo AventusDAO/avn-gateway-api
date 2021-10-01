@@ -1,14 +1,14 @@
 const { LambdaClient, UpdateFunctionCodeCommand } = require('@aws-sdk/client-lambda');
+const aws = new LambdaClient({ region: 'eu-west-2'});
 const jsZip = require('jszip');
 const path = require('path');
 const fs = require('fs');
-const aws = new LambdaClient({ region: 'eu-west-2'});
 
 const LAMBDAS = [
   'example',
   'poll-handler',
   'query-handler',
-  'send-handler'
+  'send-handler',
 ];
 
 function zipLambda(lambda) {

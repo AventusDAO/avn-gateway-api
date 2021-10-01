@@ -16,7 +16,7 @@ async function poll(requestId) {
   } catch (e) {
     throw true;
   }
-  return response.data.state || response.data.error;
+  return response.data.error || response.data.state;
 }
 
 async function processRequest(requestObject) {

@@ -10,8 +10,19 @@ Aventus AvN javascript API which connects to generic JSON-RPC spec
 ```
 const AvnApi = require('avn-api');
 const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
-
+await api.init();
 ```
+
+#### Running
+Before running the script, set your AvN mnemonic or secret seed as an environment variable by running:
+```
+export SURI=<mnemonic OR secret seed>
+```
+examples:
+`export SURI=industry icon train animal assist park sister wrong hammer cruise faint describe`
+`export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
+
+**Please note:** Its important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
 
 ### Queries
 

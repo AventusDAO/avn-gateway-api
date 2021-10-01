@@ -24,6 +24,19 @@ examples:
 
 **Please note:** Its important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
 
+#### AWT tokens
+AWT (Aventus Web Token) is an authorisation token that is included in the header of every request sent to the api gateway.
+This token is automatically generated, and included in the request header, using the environment variable (SURI) set before using the api. 
+
+If you want to test the api using a different way (curl or postman...), you can generate this token using the following code: 
+```
+const AvnApi = require('avn-api');
+const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
+await api.init();
+
+const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
+// you can replace <mnemonic OR secret seed> with process.env.SURI if you have already set the environment variable
+```
 ### Queries
 
 ```

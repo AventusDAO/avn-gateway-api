@@ -11,7 +11,7 @@ const LAMBDAS = [
   'send-handler'
 ];
 
-function addFilesFromDirectoryToZip (lambdaDir) {
+function addLambdaContentsToZip(lambdaDir) {
   const zip = new JSZip();
   const dirContents = fs.readdirSync(lambdaDir, { withFileTypes: true });
 
@@ -23,14 +23,14 @@ function addFilesFromDirectoryToZip (lambdaDir) {
     }
 
     if (fs.statSync(path).isDirectory()) {
-      addFilesFromDirectoryToZip(path, zip);
+      addLambdaContentsToZip(path, zip);
     }
   });
 
   return zip;
 };
 
-async function zipAndUploadLambda(lambda) {
+async function uploadLambda(lambda) {
   const lambdaDir = path.join(lambda);
   const zipPath = path.join(lambdaDir, lambda + '.zip');
 
@@ -38,7 +38,7 @@ async function zipAndUploadLambda(lambda) {
     fs.unlinkSync(zipPath);
   }
 
-  const zip = addFilesFromDirectoryToZip(lambdaDir);
+  const zip = addLambdaContentsToZip(lambdaDir);
 
   const params = {
     ZipFile: await zip.generateAsync({ type: 'nodebuffer' }),
@@ -56,9 +56,9 @@ async function zipAndUploadLambda(lambda) {
 async function main() {
   const target = process.argv[2];
   if (target === 'all') {
-    LAMBDAS.forEach(async lambda => await zipAndUploadLambda(lambda));
+    LAMBDAS.forEach(async lambda => await uploadLambda(lambda));
   } else {
-    await zipAndUploadLambda(target);
+    await uploadLambda(target);
   }
 };
 

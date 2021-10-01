@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 function Query(api) {
   this.getTotalAvt = generateFunction(getTotalAvt, api);
   this.getAvtBalance = generateFunction(getAvtBalance, api);
@@ -37,7 +35,7 @@ function generateFunction(functionName, api) {
 
 Query.prototype.postRequest = async function(api, method, params) {
   const endpoint = api.gateway + '/query';
-  const response = (await axios.post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
+  const response = (await api.axios.post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
   return response.result || response.error.message;
 }
 

@@ -1,3 +1,4 @@
+const axios = require('axios');
 const version = require('./package.json').version;
 const Query = require('./lib/query.js');
 const Send = require('./lib/send.js');
@@ -8,14 +9,29 @@ function AvnApi(gateway, id) {
   this.id = id || 1;
   this.gateway = gateway;
   this.version = version;
+};
+
+async function init() {
+  const axios = await setupAxios();
+
   const avnApi = {
-    gateway : gateway,
-    nextId : () => this.id++
+    gateway : this.gateway,
+    nextId : () => this.id++,
+    axios
   };
+
   this.query = new Query(avnApi);
   this.send = new Send(avnApi);
   this.poll = new Poll(avnApi);
   this.awt = Awt;
-};
+}
+
+async function setupAxios() {
+  const awtToken = (await Awt.init()).generateAwtToken(process.env.SURI);
+  // Add any middlewares here to configure global axios behaviours
+  axios.defaults.headers.common = {'Authorization': `bearer ${awtToken}`};
+
+  return axios;
+}
 
 module.exports = AvnApi;

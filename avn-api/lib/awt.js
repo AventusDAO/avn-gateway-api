@@ -16,7 +16,7 @@ async function generateAwtToken(suri) {
   const avnPublicKey = u8aToHex(tokenOwner.publicKey);
 
   // Encode the data to sign
-  const encodedData = await encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt);
+  const encodedData = encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt);
 
   // Sign the avnPublicKey of the token owner
   const signature = tokenOwner.sign(encodedData);

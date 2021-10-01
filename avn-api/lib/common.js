@@ -1,3 +1,5 @@
+'use strict';
+
 const { isHex, u8aToHex } = require('@polkadot/util');
 const { TypeRegistry } = require('@polkadot/types');
 const { Keyring } = require('@polkadot/keyring');

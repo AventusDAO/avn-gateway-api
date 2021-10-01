@@ -1,3 +1,5 @@
+'use strict';
+
 const proxyApi = require('./proxy.js');
 
 function Send(api) {

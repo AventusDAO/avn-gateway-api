@@ -1,17 +1,12 @@
 'use strict';
 
-
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
-const { TypeRegistry } = require('@polkadot/types');
-const { Keyring } = require('@polkadot/keyring');
+const common = require('./common.js');
 
 const SIGNING_CONTEXT = 'awt_gateway_api';
 
-const registry = new TypeRegistry();
-const keyring = new Keyring({type: 'sr25519'});
-
 function generateAwtToken(suri) {
-  const tokenOwner = keyring.addFromUri(suri);
+  const tokenOwner = common.keyring.addFromUri(suri);
   const issuedAt = new Date().toUTCString();
   const avnPublicKey = u8aToHex(tokenOwner.publicKey);
 
@@ -34,9 +29,9 @@ function generateAwtToken(suri) {
 
 function encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt) {
   const encodedData = u8aConcat(
-      registry.createType('Text', SIGNING_CONTEXT).toU8a(false),
-      registry.createType('AccountId', hexToU8a(avnPublicKey)).toU8a(true),
-      registry.createType('Text', issuedAt).toU8a(false)
+      common.registry.createType('Text', SIGNING_CONTEXT).toU8a(false),
+      common.registry.createType('AccountId', hexToU8a(avnPublicKey)).toU8a(true),
+      common.registry.createType('Text', issuedAt).toU8a(false)
   );
 
   return u8aToHex(encodedData);

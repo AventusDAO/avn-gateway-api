@@ -15,8 +15,6 @@ function AvnApi(gateway, id) {
 AvnApi.prototype.init = async function () {
   await cryptoWaitReady();
 
-  const axios = await setupAxios();
-
   const avnApi = {
     gateway : this.gateway,
     nextId : () => this.id++,

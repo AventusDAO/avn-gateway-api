@@ -1,3 +1,5 @@
+'use strict';
+
 const common = require('./common.js');
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 

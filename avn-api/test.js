@@ -27,6 +27,7 @@ const MIN_AMOUNT = 1
 
 async function main() {
   const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
+  await api.init();
 
   console.log('\n***INFO**');
   console.log('Version:', api.version);

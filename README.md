@@ -1,7 +1,7 @@
 # avn-gateway-api
 
 ## AvN API
-This is the Aventus AvN javascript API which connects to generic JSON-RPC spec
+Aventus AvN javascript API which connects to generic JSON-RPC spec
 
 ### Installation
 `npm install avn-api`

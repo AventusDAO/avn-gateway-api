@@ -49,7 +49,7 @@ async function uploadLambda(lambda) {
     const data = await aws.send(new UpdateFunctionCodeCommand(params));
     console.log(lambda, 'updated successfully');
   } catch (err) {
-    console.log(lambda, '- error', err);
+    console.log(lambda, '- Error:', err);
   }
 }
 
@@ -61,7 +61,7 @@ async function main() {
   } else if (LAMBDAS.includes(lambda)) {
     await uploadLambda(lambda);
   } else {
-    console.log('no such lambda - ', lambda);
+    console.log('Error: no such lambda');
   }
 };
 

@@ -1,5 +1,5 @@
 const { cryptoWaitReady } = require('@polkadot/util-crypto');
-const axios = require('axios');
+const Axios = require('axios');
 const version = require('./package.json').version;
 const Query = require('./lib/query.js');
 const Send = require('./lib/send.js');
@@ -20,13 +20,13 @@ AvnApi.prototype.init = async function () {
   const avnApi = {
     gateway : this.gateway,
     nextId : () => this.id++,
-    axios: axios
+    axios: () => setupAxios(Awt)
   };
 
   this.query = new Query(avnApi);
   this.send = new Send(avnApi);
   this.poll = new Poll(avnApi);
-  this.awt = awt;
+  this.awt = Awt;
 }
 
 function setupAxios(awt) {

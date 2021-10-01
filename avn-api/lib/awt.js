@@ -10,7 +10,7 @@ const SIGNING_CONTEXT = 'awt_gateway_api';
 const registry = new TypeRegistry();
 const keyring = new Keyring({type: 'sr25519'});
 
-async function generateAwtToken(suri) {
+function generateAwtToken(suri) {
   const tokenOwner = keyring.addFromUri(suri);
   const issuedAt = new Date().toUTCString();
   const avnPublicKey = u8aToHex(tokenOwner.publicKey);

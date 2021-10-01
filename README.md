@@ -21,7 +21,7 @@ examples:
 `export SURI=industry icon train animal assist park sister wrong hammer cruise faint describe`  
 `export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`  
 
-**Please note:** Its important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
+**Please note:** It's important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
 
 
 ### AWT tokens

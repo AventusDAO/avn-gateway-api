@@ -7,9 +7,7 @@ Aventus AvN javascript API which connects to generic JSON-RPC spec
 `npm install avn-api`
 
 #### Usage
-
 ```
-
 const AvnApi = require('avn-api');
 const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
 

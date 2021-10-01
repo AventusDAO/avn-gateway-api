@@ -32,12 +32,6 @@ function addLambdaContentsToZip(lambdaDir) {
 
 async function uploadLambda(lambda) {
   const lambdaDir = path.join(lambda);
-  const zipPath = path.join(lambdaDir, lambda + '.zip');
-
-  if (fs.existsSync(zipPath)) {
-    fs.unlinkSync(zipPath);
-  }
-
   const zip = addLambdaContentsToZip(lambdaDir);
 
   const params = {

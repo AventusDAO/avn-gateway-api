@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 function Poll(api) {
   this.requestState = generateFunction(requestState, api);
 };
@@ -16,7 +14,7 @@ function generateFunction(functionName, api) {
 
 Poll.prototype.postRequest = async function(api, method, params) {
   const endpoint = api.gateway + '/poll';
-  const response = (await axios.post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
+  const response = (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
   return response.result || response.error.message;
 }
 

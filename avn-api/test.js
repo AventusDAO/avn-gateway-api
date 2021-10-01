@@ -21,15 +21,15 @@ const BAD_REQUEST = '0x000000000000000000000000000000000000000000000000000000000
 
 async function main() {
   const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
+  await api.init();
 
   console.log('\n***INFO**');
   console.log('Version:', api.version);
   console.log('Gateway:', api.gateway);
 
   console.log('\n***AWT TOKENS***');
-  const tokenGenerator = await api.awt.init();
-  console.log(`AWT token 1 (from mnemonic): ${await tokenGenerator.generateAwtToken(user3.mnemonic)} \n`);
-  console.log(`AWT token 2 (from seed): ${await tokenGenerator.generateAwtToken(user3.seed)}`);
+  console.log(`AWT token 1 (from mnemonic): ${api.awt.generateAwtToken(user3.mnemonic)} \n`);
+  console.log(`AWT token 2 (from seed): ${api.awt.generateAwtToken(user3.seed)}`);
 
   console.log('\n***QUERIES***');
   console.log('Total AVT:                             ', await api.query.getTotalAvt());

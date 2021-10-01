@@ -10,9 +10,33 @@ Aventus AvN javascript API which connects to generic JSON-RPC spec
 ```
 const AvnApi = require('avn-api');
 const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
-
+await api.init();
 ```
+#### Running
+Before running the script, set your AvN mnemonic or secret seed as an environment variable by running:
+```
+export SURI=<mnemonic OR secret seed>
+```
+examples:  
+`export SURI=industry icon train animal assist park sister wrong hammer cruise faint describe`  
+`export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`  
 
+**Please note:** It's important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
+
+
+### AWT tokens
+AWT (Aventus Web Token) is an authorisation token that is included in the header of every request sent to the api gateway.
+This token is automatically generated, and included in the request header, using the environment variable (SURI) set before using the api. 
+
+If you want to test the api using a different way (curl or postman...), you can generate this token using the following code: 
+```
+const AvnApi = require('avn-api');
+const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
+await api.init();
+
+const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
+// you can replace <mnemonic OR secret seed> with process.env.SURI if you have already set the environment variable
+```
 ### Queries
 
 ```
@@ -57,6 +81,10 @@ const state = await api.poll.requestState(requestId);
 
 
 ## JSON-RPC Methods
+Accessing the gateway API requires an authorisation token to be included in the request header. The format for this header should be:
+`Authorization': bearer <awtToken>` where `<awtToken>` is the unique token for this request.
+
+This token will be generated for you automatically by the library.
 
 ### Queries
 
@@ -68,6 +96,7 @@ Returns the total amount of AVT in the AvN
 
 **HEADERS**  
 `Content-Type: application/json`  
+`Authorization': bearer <awtToken>`  
 
 **EXAMPLE**
 ```
@@ -75,6 +104,7 @@ Returns the total amount of AVT in the AvN
 curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"getTotalAvt", "params":[], "id":1}'
 ```
 
@@ -97,7 +127,8 @@ Returns the AVT balance of a given AvN account
 `POST https://AVN-API-URL/query`
 
 **HEADERS**  
-`Content-Type: application/json`
+`Content-Type: application/json`  
+`Authorization': bearer <awtToken>`  
 
 **REQUEST PARAMS**  
 `ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for AVT balance
@@ -108,6 +139,7 @@ Returns the AVT balance of a given AvN account
 curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"getAvtBalance", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":2}'
 ```
 
@@ -130,7 +162,8 @@ Returns the balance of a given token for a given AvN account
 `POST https://AVN-API-URL/query`
 
 **HEADERS**  
-`Content-Type: application/json`
+`Content-Type: application/json`  
+`Authorization': bearer <awtToken>`  
 
 **REQUEST PARAMS**  
 `ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for token balance
@@ -142,6 +175,7 @@ Returns the balance of a given token for a given AvN account
 curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"getTokenBalance", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"], "id":3}'
 ```
 
@@ -164,7 +198,8 @@ Returns the nonce of a given AvN account
 `POST https://AVN-API-URL/query`
 
 **HEADERS**  
-`Content-Type: application/json`
+`Content-Type: application/json`  
+`Authorization': bearer <awtToken>`  
 
 **REQUEST PARAMS**  
 `ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for nonce
@@ -175,6 +210,7 @@ Returns the nonce of a given AvN account
 curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"getAccountNonce", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":4}'
 ```
 
@@ -200,6 +236,7 @@ Transfers the specified amount of AVT from the sender account to the destination
 
 **HEADERS**  
 `Content-Type: application/json`  
+`Authorization': bearer <awtToken>`  
 
 **REQUEST PARAMS**  
 `DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the destination account ID (32 bytes) or SS58 address
@@ -211,6 +248,7 @@ Transfers the specified amount of AVT from the sender account to the destination
 curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'
 ```
 
@@ -236,6 +274,7 @@ Gets the current state of a previously sent asynchronous transaction request
 
 **HEADERS**  
 `Content-Type: application/json`  
+`Authorization': bearer <awtToken>`  
 
 **REQUEST PARAMS**  
 `REQUEST ID` *[required]* - string bytes value of the request ID
@@ -246,6 +285,7 @@ Gets the current state of a previously sent asynchronous transaction request
 curl https://AVN-API-URL/poll \
     -X POST \
     -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"requestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'
 ```
 

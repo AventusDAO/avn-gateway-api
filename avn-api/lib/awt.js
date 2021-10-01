@@ -5,7 +5,7 @@ const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 const { TypeRegistry } = require('@polkadot/types');
 const { Keyring } = require('@polkadot/keyring');
 
-const SIGNING_CONTEXT = 'awt_gateway_api'
+const SIGNING_CONTEXT = 'awt_gateway_api';
 
 const registry = new TypeRegistry();
 const keyring = new Keyring({type: 'sr25519'});

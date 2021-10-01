@@ -4,12 +4,17 @@ const Send = require('./lib/send.js');
 const Poll = require('./lib/poll.js');
 const Awt = require('./lib/awt.js');
 
-const AvnApi = function AvnApi(gateway) {
+function AvnApi(gateway, id) {
+  this.id = id || 1;
   this.gateway = gateway;
   this.version = version;
-  this.query = new Query(gateway);
-  this.send = new Send(gateway);
-  this.poll = new Poll(gateway);
+  const avnApi = {
+    gateway : gateway,
+    nextId : () => this.id++
+  };
+  this.query = new Query(avnApi);
+  this.send = new Send(avnApi);
+  this.poll = new Poll(avnApi);
   this.awt = Awt;
 };
 

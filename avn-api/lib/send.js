@@ -1,17 +1,22 @@
 const axios = require('axios');
 
-const Send = function Send(gateway) {
-  Send.endpoint = gateway + '/send';
-  this.id = 1;
-  this.transferAvt = Send.transferAvt;
+function Send(api) {
+  this.transferAvt = generateFunction(transferAvt, api);
 };
 
-Send.transferAvt = async function (account, amount) {
-  return await postRequest({jsonrpc: '2.0', id: this.id++, method: 'transferAvt', params: [account, amount]});
+function transferAvt(api) {
+  return async function(account, amount) {
+    return await this.postRequest(api, 'transferAvt', [account, amount]);
+  }
 };
 
-async function postRequest(request) {
-  const response = (await axios.post(Send.endpoint, request)).data;
+function generateFunction(functionName, api) {
+  return functionName(api);
+}
+
+Send.prototype.postRequest = async function(api, method, params) {
+  const endpoint = api.gateway + '/send';
+  const response = (await axios.post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
   return response.result || response.error.message;
 }
 

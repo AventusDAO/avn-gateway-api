@@ -31,8 +31,7 @@ function addLambdaContentsToZip(lambdaDir) {
 };
 
 async function uploadLambda(lambda) {
-  const lambdaDir = path.join(lambda);
-  const zip = addLambdaContentsToZip(lambdaDir);
+  const zip = addLambdaContentsToZip(lambda);
 
   const params = {
     ZipFile: await zip.generateAsync({ type: 'nodebuffer' }),

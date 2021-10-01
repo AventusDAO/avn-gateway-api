@@ -54,11 +54,14 @@ async function uploadLambda(lambda) {
 }
 
 async function main() {
-  const target = process.argv[2];
-  if (target === 'all') {
+  const lambda = process.argv[2];
+
+  if (lambda === undefined) {
     LAMBDAS.forEach(async lambda => await uploadLambda(lambda));
+  } else if (LAMBDAS.includes(lambda)) {
+    await uploadLambda(lambda);
   } else {
-    await uploadLambda(target);
+    console.log('no such lambda - ', lambda);
   }
 };
 

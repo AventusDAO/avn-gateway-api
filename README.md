@@ -300,4 +300,3 @@ curl https://AVN-API-URL/poll \
   "result": "finished"
 }
 ```
-

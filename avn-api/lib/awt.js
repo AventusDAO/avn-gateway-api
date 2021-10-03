@@ -3,6 +3,7 @@
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 const common = require('./common.js');
 
+const MAX_TOKEN_AGE_MSEC = 60000;
 const SIGNING_CONTEXT = 'awt_gateway_api';
 
 function generateAwtToken(suri) {
@@ -37,6 +38,20 @@ function encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt) {
   return u8aToHex(encodedData);
 }
 
+function tokenAgeIsValid(awtTokenBase64) {
+  try {
+    const awtToken = JSON.parse(Buffer.from(awtTokenBase64, 'base64').toString('ascii'));
+    const issuedAt = new Date(awtToken.iat);
+    const tokenAge = new Date() - issuedAt;
+
+    return tokenAge > 0 && tokenAge < MAX_TOKEN_AGE_MSEC;
+  } catch (err) {
+    console.error(`Error checking the age of the awt token: ${err}`);
+    return false;
+  }
+}
+
 module.exports = {
-  generateAwtToken
+  generateAwtToken,
+  tokenAgeIsValid
 };

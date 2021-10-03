@@ -29,8 +29,6 @@ async function main() {
   const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
   await api.init();
 
-  console.log(api);
-
   console.log('\n***INFO**');
   console.log('Version:', api.version);
   console.log('Gateway:', api.gateway);

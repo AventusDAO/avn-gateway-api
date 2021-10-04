@@ -4,10 +4,12 @@
 3. Add a new folder in the lambdas directory titled YOUR_LAMBDA and include:
     * index.js
     * package.json
-    * any additional files your function requires
-4. Install any node modules required or run `npm i` on a populated package.json in YOUR_LAMBDA folder to generate the node_modules folder.
-5. Zip the entire contents of YOUR_LAMBDA folder into YOUR_LAMBDA.zip.
-6. From the folder run `aws lambda update-function-code --function-name YOUR_LAMBDA --zip-file fileb://YOUR_LAMBDA.zip` to upload the function to AWS.
+    * any additional files your lambda requires
+4. Install any node modules required by your lambda in YOUR_LAMBDA's directory.
+5. Include YOUR_LAMBDA in the LAMBDA array in update.js.
+
+## Update the code on AWS
+From the lambdas root directory run 'node update.js YOUR_LAMBDA' or 'node update.js' to update all lambdas.
 
 ### Testing
-For local testing, comment out the `exports.handler` function and replace with a local test function (see `example/index.js`)
+For local testing, uncomment the 'testlocal' function at the bottom of the lambda's index.js.

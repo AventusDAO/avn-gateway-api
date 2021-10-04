@@ -19,6 +19,7 @@ export SURI=<mnemonic OR secret seed>
 ```
 examples: \
 `export SURI=industry icon train animal assist park sister wrong hammer cruise faint describe`
+ \
 `export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
 
 **Please note:** It's important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
@@ -114,9 +115,9 @@ curl https://AVN-API-URL/query \
 **BODY**
 ```
 {
- \"jsonrpc": "2.0",
- \"id": 1,
- \"result": "5100000000000000000000"
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "5100000000000000000000"
 }
 ```
 
@@ -149,9 +150,9 @@ curl https://AVN-API-URL/query \
 **BODY**
 ```
 {
- \"jsonrpc": "2.0",
- \"id": 2,
- \"result": "930009105441170202155"
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": "930009105441170202155"
 }
 ```
 
@@ -185,9 +186,9 @@ curl https://AVN-API-URL/query \
 **BODY**
 ```
 {
- \"jsonrpc": "2.0",
- \"id": 3,
- \"result": "30"
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": "30"
 }
 ```
 
@@ -220,9 +221,9 @@ curl https://AVN-API-URL/query \
 **BODY**
 ```
 {
- \"jsonrpc": "2.0",
- \"id": 4,
- \"result": "3"
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": "3"
 }
 ```
 
@@ -258,9 +259,9 @@ curl https://AVN-API-URL/send \
 **BODY**
 ```
 {
- \"jsonrpc": "2.0",
- \"id": 1,
- \"result": "0x97bf91291b28c6af9cba82b5e5aee28509cde8b27610fce543723956fa8b8bc3"
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x97bf91291b28c6af9cba82b5e5aee28509cde8b27610fce543723956fa8b8bc3"
 }
 ```
 
@@ -295,8 +296,8 @@ curl https://AVN-API-URL/poll \
 **BODY**
 ```
 {
- \"jsonrpc": "2.0",
- \"id": 1,
- \"result": "finished"
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "finished"
 }
 ```

@@ -16,6 +16,7 @@ async function sendTx(palletName, method, params) {
   try {
     response = await axios.post(AVN_API_TX_ENDPOINT, {palletName: palletName, method: method, params: params});
   } catch (e) {
+    console.log('sendTx Error:', e);
     throw true;
   }
   return response.data.error || response.data.requestId;
@@ -26,6 +27,7 @@ async function sendProxyTx(palletName, method, params) {
   try {
     response = await axios.post(AVN_API_PROXY_ENDPOINT, {palletName: palletName, method: method, params: params});
   } catch (e) {
+    console.log('sendProxyTx Error:', e);
     throw true;
   }
   return response.data.requestId;
@@ -38,6 +40,7 @@ async function processRequest(requestObject) {
   try {
     call = JSON.parse(requestObject);
   } catch (e) {
+    console.log('error processing request object', e);
     responseObject.error = {code:-32700, message:'Parse error'};
     responseObject.id = null;
     return responseObject;
@@ -56,7 +59,7 @@ async function processRequest(requestObject) {
 async function callSwitch(call, responseObject) {
   switch (call.method) {
     case 'transferAvt':
-      if (isValidAccountIDFormat(call.params[0]) && isValidAmount(call.params[1])) {
+      if (isValidAccountIdFormat(call.params[0]) && isValidAmount(call.params[1])) {
         try {
           responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]]);
         } catch (e) {
@@ -68,32 +71,27 @@ async function callSwitch(call, responseObject) {
       break;
 
     case 'proxy':
-      // may add some verification in here
-      // to do in SYS-1419
       let pallet = call.params.pallet;
       let method = call.params.method;
 
-      let proof = {
-        signer: call.params.innerArgs.from,
-        relayer: call.params.relayerPublicKey,
-        signature: {
-          Sr25519: call.params.signature
-        }
-      }
-
       let formatter = codeFormatters[pallet][method];
+
       if (!formatter) {
-        // error: unknown combination of method and pallet, invalid request
-      }
-
-      if (!formatter.validate(call.params.innerArgs)) {
-        // error:
-      }
-
-      try {
-        responseObject.result = await sendProxyTx(pallet, method, proof, formatter.encode(call.params.innerArgs));
-      } catch (e) {
-        // some errors
+        responseObject.error = {code:-32601, message:'Method not found'};
+      } else if (!formatter.validate(call.params)) {
+        responseObject.error = {code:-32602, message:'Invalid params'};
+      } else {
+        try {
+          let proof = {
+            signer: call.params.innerArgs.from,
+            relayer: call.params.relayer,
+            signature: {
+              Sr25519: call.params.signature
+            }
+          }
+          responseObject.result = await sendProxyTx(pallet, method, formatter.encode(proof, call.params.innerArgs));
+        } catch (e) {
+        responseObject.error = {code:-32603, message:'Internal error'};
       }
 
     default:
@@ -102,18 +100,37 @@ async function callSwitch(call, responseObject) {
   return responseObject;
 }
 
-codeFormatters.balances.transfer = {
-  validate: function(params0, params1) {
-    return (isValidAccountIDFormat(params0) && isValidAmount(params1));
+codeFormatters = {
+  balances: {
+    transfer = {
+      validate: function(params0, params1) {
+        return (isValidAccountIdFormat(params0) && isValidAmount(params1));
+      },
+      encode: function(params0, params1) {
+        return [params0, params1];
+      }
+    },
   },
-
-  encode: function(params0, params1) {
-    return [params0, params1];
-  }
+  tokenManager: {
+    signedTransfer: {
+      validate: function(params) {
+        return (
+          isValidAccountIdFormat(params.relayer)
+          && isValidAccountIdFormat(params.innerArgs.from)
+          && isValidAccountIdFormat(params.innerArgs.to)
+          && isValidTokenIdFormat(params.innerArgs.token)
+          && isValidAmount(params.innerArgs.amount)
+        );
+      },
+      encode: function(proof, innerArgs) {
+        return [proof, innerArgs.from, innerArgs.to, innerArgs.token, innerArgs.amount];
+      }
+    }
+  },
 };
 
 // Can this be brought into a common.js file?
-function isValidAccountIDFormat(accountId) {
+function isValidAccountIdFormat(accountId) {
   let charArray = accountId.split('');
   switch (charArray.length) {
     case 48: // TODO: SS58 address format may not always be 48 characters - check on this
@@ -132,6 +149,13 @@ function isValidAmount(amount) {
   } else {
     return false;
   }
+}
+
+function isValidTokenIdFormat(tokenId) {
+  let charArray = tokenId.split('');
+  if (charArray.length !== 42) return false;
+  if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
+  return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
 }
 
 // async function testlocal() {

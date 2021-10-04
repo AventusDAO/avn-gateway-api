@@ -7,6 +7,7 @@ const LAMBDAS = [
   'poll-handler',
   'query-handler',
   'send-handler',
+  'authorisation-handler',
 ];
 
 async function uploadLambda(lambda) {

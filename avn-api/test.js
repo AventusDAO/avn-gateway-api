@@ -1,3 +1,4 @@
+const { schnorrkelDerivePublic } = require('@polkadot/util-crypto')
 const AvnApi = require('./index.js')
 
 const relayer = {
@@ -24,6 +25,10 @@ const user3 = {
 const token = '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e';
 const BAD_REQUEST = '0x0000000000000000000000000000000000000000000000000000000000000000'
 const MIN_AMOUNT = 1
+
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function main() {
   const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
@@ -78,6 +83,11 @@ async function main() {
 
   requestId = await api.send.transferToken(relayer.address, user2.address, user1.publicKey, token, MIN_AMOUNT)
   console.log('Transfer token using recipient public key. Returned hash:  ', requestId);
+
+  console.log('\n***Waiting for 1 minute to let the awt token expire***');
+  await sleep(60000);
+
+  console.log('Total AVT (with fresh awt token):                             ', await api.query.getTotalAvt());
   return;
 }
 

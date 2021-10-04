@@ -16,9 +16,9 @@ const user2 = {
 }
 
 const user3 = {
-    mnemonic: 'skate almost song wood lake giant stomach pupil know ugly check image',
-    seed: '0x197bcdc6a4f99683346ada29b1ec2beb62aafffff487a55070a9c9e13d36d86a',
-    address: '5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF',
+  mnemonic: 'skate almost song wood lake giant stomach pupil know ugly check image',
+  seed: '0x197bcdc6a4f99683346ada29b1ec2beb62aafffff487a55070a9c9e13d36d86a',
+  address: '5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF',
 }
 
 const token = '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e';

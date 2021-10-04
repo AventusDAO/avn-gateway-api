@@ -18,9 +18,9 @@ function generateAwtToken(suri) {
 
   // generate the token - base64 encoded
   const payload = {
-      pk: avnPublicKey,
-      iat: issuedAt,
-      sig: u8aToHex(signature)
+    pk: avnPublicKey,
+    iat: issuedAt,
+    sig: u8aToHex(signature)
   };
 
   const payloadBuff = new Buffer.from(JSON.stringify(payload));
@@ -29,9 +29,9 @@ function generateAwtToken(suri) {
 
 function encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt) {
   const encodedData = u8aConcat(
-      common.registry.createType('Text', SIGNING_CONTEXT).toU8a(false),
-      common.registry.createType('AccountId', hexToU8a(avnPublicKey)).toU8a(true),
-      common.registry.createType('Text', issuedAt).toU8a(false)
+    common.registry.createType('Text', SIGNING_CONTEXT).toU8a(false),
+    common.registry.createType('AccountId', hexToU8a(avnPublicKey)).toU8a(true),
+    common.registry.createType('Text', issuedAt).toU8a(false)
   );
 
   return u8aToHex(encodedData);

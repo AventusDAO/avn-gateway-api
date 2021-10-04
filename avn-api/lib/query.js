@@ -5,31 +5,31 @@ function Query(api) {
   this.getAvtBalance = generateFunction(getAvtBalance, api);
   this.getTokenBalance = generateFunction(getTokenBalance, api);
   this.getAccountNonce = generateFunction(getAccountNonce, api);
-};
+}
 
 function getTotalAvt(api) {
   return async function() {
     return await this.postRequest(api, 'getTotalAvt', []);
   }
-};
+}
 
 function getAvtBalance(api) {
   return async function(account) {
     return await this.postRequest(api, 'getAvtBalance', [account]);
   }
-};
+}
 
 function getTokenBalance(api) {
   return async function(account, token) {
     return await this.postRequest(api, 'getTokenBalance', [account, token]);
   }
-};
+}
 
 function getAccountNonce(api) {
   return async function(account) {
     return await this.postRequest(api, 'getAccountNonce', [account]);
   }
-};
+}
 
 function generateFunction(functionName, api) {
   return functionName(api);

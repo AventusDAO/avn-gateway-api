@@ -10,7 +10,7 @@ function AvnApi(gateway, id) {
   this.id = id || 1;
   this.gateway = gateway;
   this.version = version;
-};
+}
 
 AvnApi.prototype.init = async function () {
   await cryptoWaitReady();

@@ -5,13 +5,13 @@ const proxyApi = require('./proxy.js');
 function Send(api) {
   this.transferAvt = generateFunction(transferAvt, api);
   this.transferToken = generateFunction(transferToken, api);
-};
+}
 
 function transferAvt(api) {
   return async function(account, amount) {
     return await this.postRequest(api, 'transferAvt', [account, amount.toString()]);
   }
-};
+}
 
 function transferToken(api) {
   return async function (relayer, nonce, from, to, token, amount) {

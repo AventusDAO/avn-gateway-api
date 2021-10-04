@@ -3,7 +3,6 @@ const aws = new LambdaClient({ region: 'eu-west-2'});
 var zipdir = require('zip-dir');
 
 const LAMBDAS = [
-  'example',
   'poll-handler',
   'query-handler',
   'send-handler',

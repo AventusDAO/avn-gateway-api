@@ -1,3 +1,5 @@
+'use strict';
+
 function Query(api) {
   this.getTotalAvt = generateFunction(getTotalAvt, api);
   this.getAvtBalance = generateFunction(getAvtBalance, api);

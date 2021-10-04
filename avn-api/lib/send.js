@@ -1,5 +1,10 @@
+'use strict';
+
+const proxyApi = require('./proxy.js');
+
 function Send(api) {
   this.transferAvt = generateFunction(transferAvt, api);
+  this.transferToken = generateFunction(transferToken, api);
 };
 
 function transferAvt(api) {
@@ -8,13 +13,29 @@ function transferAvt(api) {
   }
 };
 
+function transferToken(api) {
+  return async function (relayer, nonce, from, to, token, amount) {
+    let signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce);
+
+    return await this.postRequest(api, 'proxy',
+      {
+        pallet: 'tokenManager',
+        method: 'signedTransfer',
+        signature,
+        relayer,
+        innerArgs: { from, to, token, amount }
+      });
+  };
+}
+
 function generateFunction(functionName, api) {
   return functionName(api);
 }
 
 Send.prototype.postRequest = async function(api, method, params) {
   const endpoint = api.gateway + '/send';
-  const response = (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
+  const response =
+    (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
   return response.result || response.error.message;
 }
 

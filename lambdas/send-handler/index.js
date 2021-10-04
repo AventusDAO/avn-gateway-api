@@ -1,6 +1,7 @@
 const axios = require('axios');
 const bigInt = require('big-integer');
 const AVN_API_TX_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnTx';
+const AVN_API_PROXY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnProxy';
 
 exports.handler = async (event) => {
   const response = {
@@ -18,6 +19,16 @@ async function sendTx(palletName, method, params) {
     throw true;
   }
   return response.data.error || response.data.requestId;
+}
+
+async function sendProxyTx(palletName, method, params) {
+  let response;
+  try {
+    response = await axios.post(AVN_API_PROXY_ENDPOINT, {palletName: palletName, method: method, params: params});
+  } catch (e) {
+    throw true;
+  }
+  return response.data.requestId;
 }
 
 async function processRequest(requestObject) {
@@ -56,12 +67,52 @@ async function callSwitch(call, responseObject) {
       }
       break;
 
+    case 'proxy':
+      // may add some verification in here
+      // to do in SYS-1419
+      let pallet = call.params.pallet;
+      let method = call.params.method;
+
+      let proof = {
+        signer: call.params.innerArgs.from,
+        relayer: call.params.relayerPublicKey,
+        signature: {
+          Sr25519: call.params.signature
+        }
+      }
+
+      let formatter = codeFormatters[pallet][method];
+      if (!formatter) {
+        // error: unknown combination of method and pallet, invalid request
+      }
+
+      if (!formatter.validate(call.params.innerArgs)) {
+        // error:
+      }
+
+      try {
+        responseObject.result = await sendProxyTx(pallet, method, proof, formatter.encode(call.params.innerArgs));
+      } catch (e) {
+        // some errors
+      }
+
     default:
       responseObject.error = {code:-32601, message:'Method not found'};
   }
   return responseObject;
 }
 
+codeFormatters.balances.transfer = {
+  validate: function(params0, params1) {
+    return (isValidAccountIDFormat(params0) && isValidAmount(params1));
+  },
+
+  encode: function(params0, params1) {
+    return [params0, params1];
+  }
+};
+
+// Can this be brought into a common.js file?
 function isValidAccountIDFormat(accountId) {
   let charArray = accountId.split('');
   switch (charArray.length) {

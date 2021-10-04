@@ -1,3 +1,5 @@
+'use strict';
+
 function Poll(api) {
   this.requestState = generateFunction(requestState, api);
 };

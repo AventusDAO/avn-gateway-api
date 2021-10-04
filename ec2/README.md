@@ -45,3 +45,9 @@ Be careful when specifying variables in the `.env` file. The raw seed of an acco
 
 ## Formatting code
 Before opening a PR, remember to run `npm run format` to apply automatic formatting to your javascript code files and check-in any changes. This will ensure code structure and format is consistent.
+
+## Deploying a new version
+While in DEV mode, to deploy a new version on the EC2 instance, you should:
+ - Stop the containers by running `./stop` from the `docker` folder
+ - Get the latest version of the code from github by running `git pull` from anywhere in the `avn-gateway-api` folder. This will pull from `master` by default
+ - Start the containers by running `./start` from the `docker` folder

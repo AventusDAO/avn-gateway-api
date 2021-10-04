@@ -68,6 +68,13 @@ const user2Nonce = api.query.getAccountNonce('0x30ccad92fa31a27621c5fdf872c0244d
 const requestId1 = await api.send.transferAvt('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', '100000000000000000000');
 const requestId2 = await api.send.transferAvt('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', 10);
 
+// Transfer an amount of an ERC20 or ERC777 token from the sender account to the destination account by address or public key.
+This operation uses a relayer account that the sender authorises to submit the transfer. Either addresses or public keys can be used for every account:
+
+const requestId1 = await api.send.transferToken('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh', '5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr', '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e', '100000000000000000000');
+
+const requestId2 = await api.send.transferToken('0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004', '0xbcfb2baf67c7553a9fa39d3526f697dcf84165fbef074378ec8d5d68384d7749', '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e', 10);
+
 ```
 
 ### Polling
@@ -264,6 +271,45 @@ curl https://AVN-API-URL/send \
 }
 ```
 
+#### transferToken
+Transfers the specified amount of an ERC20 or ERC777 token, from the sender account to the destination account, using a relayer account
+
+**REQUEST**\
+`POST https://AVN-API-URL/send`\
+
+**HEADERS**\
+`Content-Type: application/json`\
+`Authorization': bearer <awtToken>`\
+
+**REQUEST PARAMS**\
+`RELAYER ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the relayer account ID (32 bytes) or SS58 address\
+`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the destination account ID (32 bytes) or SS58 address\
+`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the recipient account ID (32 bytes) or SS58 address\
+`TOKEN ADDRESS` *[required]* - hexadecimal string specifying the Ethereum address (20 bytes) of the token being transferred\
+`AMOUNT` *[required]* - string integer value of the current account nonce
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/send \
+\\-X POST \
+\\-H "Content-Type: application/json" \
+\\-H "Authorization: bearer <awtToken>" \
+\\-d '{"jsonrpc":"2.0", "method":"transferToken", "params":["5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH", "5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e", "2"], "id":6}'
+```
+
+**RESULT FIELDS**\
+`REQUEST ID` - string bytes value of the request ID
+
+**BODY**
+```
+{
+\"jsonrpc": "2.0",
+\"id": 6,
+\"result": "0x97bf91291b28c6af9cba82b5e5aee28509cde8b27610fce543723956fa8b8bc3"
+}
+```
+
 ### Polling
 
 #### requestState
@@ -286,7 +332,7 @@ curl https://AVN-API-URL/poll \
 \\-X POST \
 \\-H "Content-Type: application/json" \
 \\-H "Authorization: bearer <awtToken>" \
-\\-d '{"jsonrpc":"2.0", "method":"requestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'
+\\-d '{"jsonrpc":"2.0", "method":"requestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":7}'
 ```
 
 **RESULT FIELDS**\

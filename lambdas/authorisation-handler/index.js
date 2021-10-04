@@ -63,7 +63,6 @@ async function userHasAvtBalance(awtToken) {
   try {
     const response = await axios.post(AVN_API_QUERY_ENDPOINT, {palletName: 'system', storageName: 'account', params: [awtToken.pk]});
     const avtBalance = bigInt(response.data.data.free.replace('0x',''), 16);
-    console.log(`AVT balance: ${avtBalance.toString()}`)
     return avtBalance.geq(MIN_AVT_BALANCE);
   } catch (err) {
     console.log(`Error checking AVT balance for user: ${err}`);
@@ -77,7 +76,7 @@ async function isSignatureValid(awtToken) {
     await cryptoWaitReady();
 
     const encodedAvnPublicKey = encodeAvnPublicKeyForVerification(awtToken.pk, awtToken.iat);
-    const verificationResult = await signatureVerify(encodedAvnPublicKey, awtToken.sig, awtToken.pk);
+    const verificationResult = signatureVerify(encodedAvnPublicKey, awtToken.sig, awtToken.pk);
     return verificationResult.isValid;
   } catch (err) {
     console.error(`Error verifying awt token signature: ${err}`);
@@ -100,7 +99,7 @@ function tokenAgeIsValid(token) {
 function getAwtTokenIfAny(event) {
   try {
     const rawToken = event.headers.authorization;
-    if (rawToken && (rawToken.startsWith(AUTH_PREFIX) || rawToken.startsWith(AUTH_PREFIX.toLowerCase()))) {
+    if (rawToken && (rawToken.toLowerCase().startsWith(AUTH_PREFIX.toLowerCase()))) {
       const decodedToken = Buffer.from(rawToken.split(' ')[1], 'base64').toString('ascii');
       return JSON.parse(decodedToken);
     }

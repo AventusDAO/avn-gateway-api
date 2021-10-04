@@ -18,8 +18,8 @@ Before running the script, set your AvN mnemonic or secret seed as an environmen
 export SURI=<mnemonic OR secret seed>
 ```
 examples: \
-`export SURI=industry icon train animal assist park sister wrong hammer cruise faint describe` \
-`export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0` \
+`export SURI=industry icon train animal assist park sister wrong hammer cruise faint describe`
+`export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
 
 **Please note:** It's important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
 
@@ -92,11 +92,11 @@ This token will be generated for you automatically by the library.
 Returns the total amount of AVT in the AvN
 
 **REQUEST** \
-`POST https://AVN-API-URL/query` \
+`POST https://AVN-API-URL/query`
 
 **HEADERS** \
-`Content-Type: application/json` \
-`Authorization': bearer <awtToken>` \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
 
 **EXAMPLE**
 ```
@@ -127,8 +127,8 @@ Returns the AVT balance of a given AvN account
 `POST https://AVN-API-URL/query`
 
 **HEADERS** \
-`Content-Type: application/json` \
-`Authorization': bearer <awtToken>` \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for AVT balance
@@ -162,8 +162,8 @@ Returns the balance of a given token for a given AvN account
 `POST https://AVN-API-URL/query`
 
 **HEADERS** \
-`Content-Type: application/json` \
-`Authorization': bearer <awtToken>` \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for token balance
@@ -198,8 +198,8 @@ Returns the nonce of a given AvN account
 `POST https://AVN-API-URL/query`
 
 **HEADERS** \
-`Content-Type: application/json` \
-`Authorization': bearer <awtToken>` \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for nonce
@@ -232,11 +232,11 @@ curl https://AVN-API-URL/query \
 Transfers the specified amount of AVT from the sender account to the destination account
 
 **REQUEST** \
-`POST https://AVN-API-URL/send` \
+`POST https://AVN-API-URL/send`
 
 **HEADERS** \
-`Content-Type: application/json` \
-`Authorization': bearer <awtToken>` \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the destination account ID (32 bytes) or SS58 address
@@ -270,11 +270,11 @@ curl https://AVN-API-URL/send \
 Gets the current state of a previously sent asynchronous transaction request
 
 **REQUEST** \
-`POST https://AVN-API-URL/poll` \
+`POST https://AVN-API-URL/poll`
 
 **HEADERS** \
-`Content-Type: application/json` \
-`Authorization': bearer <awtToken>` \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `REQUEST ID` *[required]* - string bytes value of the request ID

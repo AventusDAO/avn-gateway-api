@@ -2,9 +2,9 @@
 
 const proxyApi = require('./proxy.js');
 
-function Send(api) {
+function Send(api, queryApi) {
   this.transferAvt = generateFunction(transferAvt, api);
-  this.transferToken = generateFunction(transferToken, api);
+  this.transferToken = generateFunction(transferToken, api, queryApi);
 }
 
 function transferAvt(api) {
@@ -13,8 +13,11 @@ function transferAvt(api) {
   }
 }
 
-function transferToken(api) {
-  return async function (relayer, nonce, from, to, token, amount) {
+function transferToken(api, queryApi) {
+  console.log("query Api", queryApi);
+
+  return async function (relayer, from, to, token, amount) {
+    let nonce = await queryApi.getAccountNonce(from);
     let signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce);
 
     return await this.postRequest(api, 'proxy',
@@ -28,8 +31,8 @@ function transferToken(api) {
   };
 }
 
-function generateFunction(functionName, api) {
-  return functionName(api);
+function generateFunction(functionName, api, queryApi) {
+  return functionName(api, queryApi);
 }
 
 Send.prototype.postRequest = async function(api, method, params) {

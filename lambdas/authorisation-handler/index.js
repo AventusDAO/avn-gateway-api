@@ -7,6 +7,7 @@ const { TypeRegistry } = require('@polkadot/types');
 const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const MAX_TOKEN_AGE_MSEC = 60000;
+const CLOCK_JITTER_MSEC = -15000;
 const MIN_AVT_BALANCE = bigInt("100000000000000000000");
 const AUTH_PREFIX = 'Bearer ';
 const registry = new TypeRegistry();
@@ -89,7 +90,7 @@ function tokenAgeIsValid(token) {
     const issuedAt = new Date(token.iat);
     const tokenAge = new Date() - issuedAt;
 
-    return tokenAge > 0 && tokenAge < MAX_TOKEN_AGE_MSEC;
+    return tokenAge >= CLOCK_JITTER_MSEC && tokenAge < MAX_TOKEN_AGE_MSEC;
   } catch (err) {
     console.error(`Error checking the age of the awt token: ${err}`);
     return false;

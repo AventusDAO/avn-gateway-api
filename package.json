@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "apiTests": "mocha ./avn-api/tests --recursive",
+    "ec2Tests": "mocha ./ec2/tests --recursive",
+    "lambdaTests": "mocha ./lambdas/tests --recursive",
+    "allTests": "npm run apiTests && npm run ec2Tests && npm run lambdaTests"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^9.0.2"
+  }
+}

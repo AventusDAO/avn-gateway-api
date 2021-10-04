@@ -343,7 +343,7 @@ curl https://AVN-API-URL/poll \
 ```
 {
   "jsonrpc": "2.0",
-  "id": 1,
+  "id": 7,
   "result": "finished"
 }
 ```

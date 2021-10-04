@@ -10,7 +10,7 @@ function AvnApi(gateway, id) {
   this.id = id || 1;
   this.gateway = gateway;
   this.version = version;
-};
+}
 
 AvnApi.prototype.init = async function () {
   await cryptoWaitReady();
@@ -23,7 +23,7 @@ AvnApi.prototype.init = async function () {
   };
 
   this.query = new Query(avnApi);
-  this.send = new Send(avnApi);
+  this.send = new Send(avnApi, this.query);
   this.poll = new Poll(avnApi);
   this.awt = Awt;
 }

@@ -17,9 +17,9 @@ const user2 = {
 }
 
 const user3 = {
-    mnemonic: 'skate almost song wood lake giant stomach pupil know ugly check image',
-    seed: '0x197bcdc6a4f99683346ada29b1ec2beb62aafffff487a55070a9c9e13d36d86a',
-    address: '5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF',
+  mnemonic: 'skate almost song wood lake giant stomach pupil know ugly check image',
+  seed: '0x197bcdc6a4f99683346ada29b1ec2beb62aafffff487a55070a9c9e13d36d86a',
+  address: '5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF',
 }
 
 const token = '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e';
@@ -70,25 +70,19 @@ async function main() {
   }
 
   console.log('\n***Demonstrating Proxied Transactions***');
-  let senderNonce = await api.query.getAccountNonce(user1.address);
-
-  requestId = await api.send.transferToken(relayer.address, senderNonce, user1.address, user2.address, token, MIN_AMOUNT);
+  requestId = await api.send.transferToken(relayer.address, user1.address, user2.address, token, MIN_AMOUNT);
   console.log('Transfer token using recipient address. Returned hash:  ', requestId);
-  senderNonce++;
 
-  requestId = await api.send.transferToken(relayer.publicKey, senderNonce, user1.publicKey, user2.publicKey, token, MIN_AMOUNT)
+  requestId = await api.send.transferToken(relayer.publicKey, user1.publicKey, user2.publicKey, token, MIN_AMOUNT)
   console.log('Transfer token using recipient public key. Returned hash:  ', requestId);
-  senderNonce++;
 
   // Demonstrate that address and publicKey are interchangeable, and that we don't have one function signature for each
   // and also revert the initial transfers, so we don't have runaway balances
-  requestId = await api.send.transferToken(relayer.publicKey, senderNonce, user2.publicKey, user1.address, token, MIN_AMOUNT);
+  requestId = await api.send.transferToken(relayer.publicKey, user2.publicKey, user1.address, token, MIN_AMOUNT);
   console.log('Transfer token using mixed. Returned hash:  ', requestId);
-  senderNonce++;
 
-  requestId = await api.send.transferToken(relayer.address, senderNonce, user2.address, user1.publicKey, token, MIN_AMOUNT)
+  requestId = await api.send.transferToken(relayer.address, user2.address, user1.publicKey, token, MIN_AMOUNT)
   console.log('Transfer token using recipient public key. Returned hash:  ', requestId);
-  senderNonce++;
 
   console.log('\n***Waiting for 1 minute to let the awt token expire***');
   await sleep(60000);

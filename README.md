@@ -40,23 +40,25 @@ const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
 ```
 ### Queries
 
+Note: AvN accounts can be identified by either their public key or their address. The former is represented by a 32-byte hex string. The latter is a string represented in [SS58 format](https://substrate.dev/docs/en/knowledgebase/advanced/ss58-address-format). Unless otherwise specifically noted, in the notes below, every argument that represents an AvN account can receive a value in either format.
+
 ```
 // Return the total amount of AVT in the AvN:
 let totalAvt = await api.query.getTotalAvt();
 
 
-// Return an account's AVT balance by its address or public key:
+// Return an account's AVT balance:
 const user1AvtBalance = await api.query.getAvtBalance('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH');
 const user2AvtBalance = await api.query.getAvtBalance('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e');
 
 
-// Return an account's token balance by its address or public key and Ethereum address:
+// Return an account's token balance, specified by its Ethereum address:
 const token = '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e';
 const totalAvt = await api.query.getTokenBalance('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', token);
 const totalAvt = await api.query.getTokenBalance('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', token);
 
 
-// Return the nonce of an AvN account by its address or public key:
+// Return the nonce of an AvN account:
 const user1Nonce = api.query.getAccountNonce('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH');
 const user2Nonce = api.query.getAccountNonce('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e');
 
@@ -65,9 +67,16 @@ const user2Nonce = api.query.getAccountNonce('0x30ccad92fa31a27621c5fdf872c0244d
 ### Transactions
 
 ```
-// Transfer an amount of AVT from the sender account to the destination account by address or public key:
+// Transfer an amount of AVT from the sender account to the destination account:
 const requestId1 = await api.send.transferAvt('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', '100000000000000000000');
 const requestId2 = await api.send.transferAvt('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', 10);
+
+// Transfer an amount of an ERC20 or ERC777 token from the sender account to the destination account.
+This operation uses a relayer account that the sender authorises to submit the transfer:
+
+const requestId1 = await api.send.transferToken('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh', '5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr', '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e', '100000000000000000000');
+
+const requestId2 = await api.send.transferToken('0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004', '0xbcfb2baf67c7553a9fa39d3526f697dcf84165fbef074378ec8d5d68384d7749', '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e', 10);
 
 ```
 
@@ -132,7 +141,7 @@ Returns the AVT balance of a given AvN account
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for AVT balance
+`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account to check for AVT balance
 
 **EXAMPLE**
 ```
@@ -167,7 +176,7 @@ Returns the balance of a given token for a given AvN account
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for token balance
+`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account to check for token balance
 `TOKEN ID` *[required]* - a string representing the token ID (20 bytes) of the token being checked \
 
 **EXAMPLE**
@@ -203,7 +212,7 @@ Returns the nonce of a given AvN account
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account ID (32 bytes) or SS58 address to check for nonce
+`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account to check for nonce
 
 **EXAMPLE**
 ```
@@ -240,7 +249,7 @@ Transfers the specified amount of AVT from the sender account to the destination
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the destination account ID (32 bytes) or SS58 address
+`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the destination account
 `AMOUNT` *[required]* - string integer value of the current account nonce
 
 **EXAMPLE**
@@ -262,6 +271,45 @@ curl https://AVN-API-URL/send \
   "jsonrpc": "2.0",
   "id": 5,
   "result": "0x97bf91291b28c6af9cba82b5e5aee28509cde8b27610fce543723956fa8b8bc3"
+}
+```
+
+#### transferToken
+Transfers the specified amount of an ERC20 or ERC777 token, from the sender account to the destination account, using a relayer account
+
+**REQUEST**\
+`POST https://AVN-API-URL/send`\
+
+**HEADERS**\
+`Content-Type: application/json`\
+`Authorization': bearer <awtToken>`\
+
+**REQUEST PARAMS**\
+`RELAYER ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the relayer account\
+`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the destination account\
+`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the recipient account\
+`TOKEN ADDRESS` *[required]* - hexadecimal string specifying the Ethereum address (20 bytes) of the token being transferred\
+`AMOUNT` *[required]* - string integer value of the current account nonce
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/send \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"transferToken", "params":["5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH", "5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e", "2"], "id":6}'
+```
+
+**RESULT FIELDS**\
+`REQUEST ID` - string bytes value of the request ID
+
+**BODY**
+```
+{
+\"jsonrpc": "2.0",
+\"id": 6,
+\"result": "0x97bf91291b28c6af9cba82b5e5aee28509cde8b27610fce543723956fa8b8bc3"
 }
 ```
 
@@ -287,7 +335,7 @@ curl https://AVN-API-URL/poll \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"requestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'
+    -d '{"jsonrpc":"2.0", "method":"requestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":7}'
 ```
 
 **RESULT FIELDS** \
@@ -297,7 +345,7 @@ curl https://AVN-API-URL/poll \
 ```
 {
   "jsonrpc": "2.0",
-  "id": 6,
+  "id": 7,
   "result": "finished"
 }
 ```

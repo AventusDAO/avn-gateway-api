@@ -2,13 +2,13 @@
 
 function Poll(api) {
   this.requestState = generateFunction(requestState, api);
-};
+}
 
 function requestState(api) {
   return async function(requestId) {
     return await this.postRequest(api, 'requestState', [requestId]);
   }
-};
+}
 
 function generateFunction(functionName, api) {
   return functionName(api);

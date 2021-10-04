@@ -3,7 +3,7 @@
 const common = require('./common.js');
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 
-const SIGNED_TRANSFER_SIGNATURE_CONTEXT = "authorization for transfer operation";
+const SIGNED_TRANSFER_SIGNATURE_CONTEXT = 'authorization for transfer operation';
 
 let transferToken = {
   createAuthorisationSignature:
@@ -25,7 +25,7 @@ let transferToken = {
 
       let encodedDataInHex = this.encodeSignatureData(dataToSign);
       return signData(signerSuri, encodedDataInHex);
-  },
+    },
 
   encodeSignatureData: function(params) {
     const context = common.registry.createType('Text', params.context);

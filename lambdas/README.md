@@ -9,7 +9,7 @@
 5. Include YOUR_LAMBDA in the LAMBDA array in update.js.
 
 ## Update the code on AWS
-Run 'node update.js YOUR_LAMBDA' or 'node update.js all' from the lambdas root directory.
+From the lambdas root directory run 'node update.js YOUR_LAMBDA' or 'node update.js' to update all lambdas.
 
 ### Testing
 For local testing, uncomment the 'testlocal' function at the bottom of the lambda's index.js.

@@ -349,3 +349,19 @@ curl https://AVN-API-URL/poll \
   "result": "finished"
 }
 ```
+
+## Testing
+From the root of the codebase install the dependencies:
+```
+npm install
+```
+
+Then to run all the tests:
+```
+npm run allTests
+```
+
+Or to run sub tests:
+ - `npm run apiTests`: to run all the api tests
+ - `npm run ec2Tests`: to run all the backend (ec2) tests
+ - `npm run lambdaTests`: to run all the lambda tests

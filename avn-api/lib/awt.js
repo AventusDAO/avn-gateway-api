@@ -9,7 +9,7 @@ const SIGNING_CONTEXT = 'awt_gateway_api';
 
 function generateAwtToken(suri) {
   const tokenOwner = common.keyring.addFromUri(suri);
-  const issuedAt = new Date().toUTCString();
+  const issuedAt = new Date().toISOString();
   const avnPublicKey = u8aToHex(tokenOwner.publicKey);
 
   // Encode the data to sign

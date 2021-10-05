@@ -351,17 +351,17 @@ curl https://AVN-API-URL/poll \
 ```
 
 ## Testing
-To test the gateway code, from the root of the codebase, run the following to install the dependencies:
+From the root of the codebase install the dependencies:
 ```
 npm install
 ```
 
-Once you have installed the required dependencies you can run all the tests by running the following command from the root of the codebase:
+Then to run all the tests:
 ```
 npm run allTests
 ```
 
-Alternatively, you can run the following sub tests (from the root of the codebase):
+Or to run sub tests:
  - `npm run apiTests`: to run all the api tests
  - `npm run ec2Tests`: to run all the backend (ec2) tests
  - `npm run lambdaTests`: to run all the lambda tests

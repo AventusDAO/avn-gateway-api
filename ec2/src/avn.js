@@ -71,9 +71,9 @@ async function poll(requestId) {
 }
 
 async function signAndSend(txn) {
-  try {
-    let result
+  let result
 
+  try {
     log.trace(`Encoded Transaction: ${txn}`)
     let signedTransaction = await txn.signAsync(sender, { era: 64 }) // default era is 128. using 50 or 60 rounds it to 64 in practice
 

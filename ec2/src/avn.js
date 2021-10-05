@@ -42,9 +42,9 @@ async function tx(palletName, method, params) {
 }
 
 async function proxy(palletName, method, params) {
-  log.trace('Creating inner call')
+  log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
   let innerCall = await api.tx[palletName][method](...params)
-  return await tx('tokenManager', 'proxy', innerCall)
+  return await tx(palletName, 'proxy', innerCall)
 }
 
 async function poll(requestId) {

@@ -5,23 +5,14 @@ const log4js = require('log4js')
 const fs = require('fs')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
-const { request } = require('http')
 
 const URL = config.avnUrl
 const SENDER = config.senderSuri
 let api, sender
 
 async function query(palletName, storageName, params) {
-  let result
-  try {
-    const result = await api.query[palletName][storageName](...params)
-    log.trace(`Encoded query response: ${result}`)
-    return result
-  } catch (err) {
-    log.error(`Error processing query: ${err}`)
-    result = { error: err.toString() }
-  }
-  return result
+  const result = await api.query[palletName][storageName](...params)
+  log.trace(`Encoded query response: ${result}`)
 }
 
 async function tx(palletName, method, params) {
@@ -32,18 +23,11 @@ async function tx(palletName, method, params) {
 }
 
 async function proxy(palletName, method, params) {
-  let result
-  try {
-    log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
-    let innerCall = await api.tx[palletName][method](...params)
-    const txn = await api.tx[palletName]['proxy'](innerCall)
+  log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+  let innerCall = await api.tx[palletName][method](...params)
+  const txn = await api.tx[palletName]['proxy'](innerCall)
 
-    return await signAndSend(txn)
-  } catch (err) {
-    log.error(`Failed sending proxy transaction: ${err}`)
-    result = { error: err.toString() }
-  }
-  return result
+  return await signAndSend(txn)
 }
 
 async function poll(requestId) {
@@ -90,7 +74,7 @@ async function signAndSend(txn) {
     fs.closeSync(fd)
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`)
-    result = { error: err.toString() }
+    throw err
   }
 
   return result

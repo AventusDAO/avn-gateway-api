@@ -11,35 +11,21 @@ describe('Query EC2 calls:', function() {
   })
 
   // One happy path
-  it.skip('succeeds', async () => {
-    assert(false, 'Well formed query should work');
+  it.skip('<happy path wording>', async () => {
+    assert(false, '<failure reason>');
   })
 
   // A describe block for failing tests, each testing one bad condition
-  describe('fails when', function() {
-    it.skip('Pallet name is wrong', async () => {
-      assert(false, 'Invalid pallet name should cause an error');
+  describe('<failure wording>', function() {
+    it.skip('<bad case test 1>', async () => {
+      assert(false, '<failure reason>');
     })
 
-    it.skip('Storage name is wrong', async () => {
-      assert(false, 'Invalid storage name should cause an error');
+    it.skip('<bad case test 1>', async () => {
+      assert(false, '<failure reason>');
     })
 
-    it.skip('All parameters are missing', async () => {
-      assert(false, 'Missing parameters should cause an error');
-    })
-
-    it.skip('Some parameters are missing', async () => {
-      assert(false, 'Some missing parameters should cause an error');
-    })
-
-    it.skip('Parameters have the wrong order', async () => {
-      assert(false, 'Incorrectly ordered parameters should cause an error');
-    })
-
-    it.skip('Parameters have the wrong format', async () => {
-      assert(false, 'Incorrectly formatted parameters should cause an error');
-    })
+    // ...
 
   })
 

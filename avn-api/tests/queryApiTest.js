@@ -14,21 +14,21 @@ describe('Query api calls:', function() {
   describe('getTotalAvt', function() {
 
     // One happy path
-    it.skip('succeeds', async () => {
-      assert(false, 'getTotalAvt should succeed');
+    it.skip('<happy path wording>', async () => {
+      assert(false, '<failure reason>');
     })
 
     // A describe block for failing tests, each testing one bad condition
-    describe('fails when', function() {
-      it.skip('the awt token is invalid', async () => {
-        assert(false, 'getTotalAvt should not succeed with an invalid token');
+    describe('<failure wording>', function() {
+      it.skip('<bad case test 1>', async () => {
+        assert(false, '<failure reason>');
       })
 
-      it.skip('the request is not a valid JSON-RPC call', async () => {
-        assert(false, 'Only valid JSON-RPC is allowed');
+      it.skip('<bad case test 2>', async () => {
+        assert(false, '<failure reason>');
       })
 
-      // If the query takes parameters, we should also test them
+      // ...
     })
   })
 })

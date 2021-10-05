@@ -13,6 +13,7 @@ let api, sender
 async function query(palletName, storageName, params) {
   const result = await api.query[palletName][storageName](...params)
   log.trace(`Encoded query response: ${result}`)
+  return result
 }
 
 async function tx(palletName, method, params) {

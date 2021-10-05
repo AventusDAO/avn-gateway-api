@@ -17,7 +17,6 @@ async function query(palletName, storageName, params) {
   return result
 }
 
-// for now, no proxy. Just trying to reach and send something
 async function tx(palletName, method, params) {
   log.trace(`Sending extrinsic api.tx.${palletName}.${method}`)
   const txn = await api.tx[palletName][method](...params)
@@ -40,6 +39,12 @@ async function tx(palletName, method, params) {
   }
 
   return result
+}
+
+async function proxy(palletName, method, params) {
+  log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+  let innerCall = await api.tx[palletName][method](...params)
+  return await tx(palletName, 'proxy', innerCall)
 }
 
 async function poll(requestId) {
@@ -102,5 +107,6 @@ module.exports = {
   instantiateEC2,
   query,
   tx,
+  proxy,
   poll
 }

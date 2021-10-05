@@ -70,7 +70,7 @@ async function poll(requestId) {
   return result
 }
 
-async function signAndSend(tx) {
+async function signAndSend(txn) {
   try {
     let result
 

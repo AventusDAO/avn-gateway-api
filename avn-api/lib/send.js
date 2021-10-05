@@ -14,8 +14,6 @@ function transferAvt(api) {
 }
 
 function transferToken(api, queryApi) {
-  console.log("query Api", queryApi);
-
   return async function (relayer, from, to, token, amount) {
     let nonce = await queryApi.getAccountNonce(from);
     let signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce);

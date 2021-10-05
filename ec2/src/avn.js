@@ -12,39 +12,38 @@ const SENDER = config.senderSuri
 let api, sender
 
 async function query(palletName, storageName, params) {
-  const result = await api.query[palletName][storageName](...params)
-  log.trace(`Encoded query response: ${result}`)
+  let result
+  try {
+    const result = await api.query[palletName][storageName](...params)
+    log.trace(`Encoded query response: ${result}`)
+    return result
+  } catch (err) {
+    log.error(`Error processing query: ${err}`)
+    result = { error: err.toString() }
+  }
   return result
 }
 
 async function tx(palletName, method, params) {
   log.trace(`Sending extrinsic api.tx.${palletName}.${method}`)
   const txn = await api.tx[palletName][method](...params)
-  log.trace(`Encoded Transaction: ${txn}`)
-  let signedTransaction = await txn.signAsync(sender, { era: 64 }) // default era is 128. using 50 or 60 rounds it to 64 in practice
-  log.trace('Encoded signed: %j', signedTransaction)
-  let result
-  try {
-    let receipt = await signedTransaction.send()
-    let requestId = receipt.toString()
-    result = { requestId: requestId }
 
-    let stateFilename = `state_${requestId}`
-    let fd = fs.openSync(stateFilename, 'w')
-    fs.writeSync(fd, 'Pending')
-    fs.closeSync(fd)
-  } catch (error) {
-    log.trace(`Failed sending transaction: ${error}`)
-    result = { error: error.toString() }
-  }
-
-  return result
+  return await signAndSend(txn)
 }
 
 async function proxy(palletName, method, params) {
-  log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
-  let innerCall = await api.tx[palletName][method](...params)
-  return await tx(palletName, 'proxy', innerCall)
+  let result
+  try {
+    log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+    let innerCall = await api.tx[palletName][method](...params)
+    const txn = await api.tx[palletName]['proxy'](innerCall)
+
+    return await signAndSend(txn)
+  } catch (err) {
+    log.error(`Failed sending proxy transaction: ${err}`)
+    result = { error: err.toString() }
+  }
+  return result
 }
 
 async function poll(requestId) {
@@ -54,7 +53,7 @@ async function poll(requestId) {
   try {
     fd = fs.openSync(stateFilename, 'r')
   } catch (error) {
-    log.trace(`Unknown request: ${requestId}`)
+    log.error(`Unknown request: ${requestId}`)
     result = { error: 'Bad request' }
   }
 
@@ -64,8 +63,34 @@ async function poll(requestId) {
     fs.closeSync(fd)
     result = { state: state }
   } catch (error) {
-    log.trace(`Error reading state file: ${stateFilename}`)
+    log.error(`Error reading state file: ${stateFilename}`)
     result = { error: `Unable to access request's state` }
+  }
+
+  return result
+}
+
+async function signAndSend(tx) {
+  try {
+    let result
+
+    log.trace(`Encoded Transaction: ${txn}`)
+    let signedTransaction = await txn.signAsync(sender, { era: 64 }) // default era is 128. using 50 or 60 rounds it to 64 in practice
+
+    log.trace('Encoded signed: %j', signedTransaction)
+
+    let receipt = await signedTransaction.send()
+    let requestId = receipt.toString()
+    result = { requestId: requestId }
+
+    // TODO: replace me with real code
+    let stateFilename = `state_${requestId}`
+    let fd = fs.openSync(stateFilename, 'w')
+    fs.writeSync(fd, 'Pending')
+    fs.closeSync(fd)
+  } catch (err) {
+    log.error(`Failed sending transaction: ${err}`)
+    result = { error: err.toString() }
   }
 
   return result

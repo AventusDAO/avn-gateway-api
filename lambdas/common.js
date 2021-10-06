@@ -2,7 +2,7 @@ const { decodeAddress, encodeAddress } = require('@polkadot/keyring');
 const { hexToU8a, isHex } = require('@polkadot/util');
 const bigInt = require('big-integer');
 
-function isValidAccountIDFormat(accountId) {
+function isValidAccountId(accountId) {
   try {
     encodeAddress(isHex(accountId) ? hexToU8a(accountId) : decodeAddress(accountId));
     return true;
@@ -26,7 +26,7 @@ function isValidRequestId(accountId) {
   return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
 }
 
-function isValidTokenIdFormat(tokenId) {
+function isValidTokenId(tokenId) {
   let charArray = tokenId.split('');
   if (charArray.length !== 42) return false;
   if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
@@ -34,8 +34,8 @@ function isValidTokenIdFormat(tokenId) {
 }
 
 module.exports = {
-  isValidAccountIDFormat,
+  isValidAccountId,
   isValidAmount,
   isValidRequestId,
-  isValidTokenIdFormat,
+  isValidTokenId,
 }

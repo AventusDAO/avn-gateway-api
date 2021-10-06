@@ -57,7 +57,7 @@ async function callSwitch(call, responseObject) {
       }
       break;
     case 'getAvtBalance':
-      if (common.isValidAccountIDFormat(call.params[0])) {
+      if (common.isValidAccountId(call.params[0])) {
         try {
           responseObject.result = await queryChain('system', 'account', [call.params[0]], toBigInt2);
         } catch (e) {
@@ -68,7 +68,7 @@ async function callSwitch(call, responseObject) {
       }
       break;
     case 'getTokenBalance':
-      if (common.isValidAccountIDFormat(call.params[0]) && common.isValidTokenIdFormat(call.params[1])) {
+      if (common.isValidAccountId(call.params[0]) && common.isValidTokenId(call.params[1])) {
         try {
           responseObject.result = await queryChain('tokenManager', 'balances', [[call.params[1], call.params[0]]], toBigInt);
         } catch (e) {
@@ -79,7 +79,7 @@ async function callSwitch(call, responseObject) {
       }
       break;
     case 'getAccountNonce':
-      if (common.isValidAccountIDFormat(call.params[0])) {
+      if (common.isValidAccountId(call.params[0])) {
         try {
           responseObject.result = await queryChain('tokenManager', 'nonces', [call.params[0]], toBigInt);
         } catch(e) {

@@ -59,7 +59,7 @@ async function processRequest(requestObject) {
 async function callSwitch(call, responseObject) {
   switch (call.method) {
     case 'transferAvt':
-      if (common.isValidAccountIDFormat(call.params[0]) && common.isValidAmount(call.params[1])) {
+      if (common.isValidAccountId(call.params[0]) && common.isValidAmount(call.params[1])) {
         try {
           responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]]);
         } catch (e) {
@@ -106,7 +106,7 @@ const codeFormatters = {
   balances: {
     transfer : {
       validate: function(params0, params1) {
-        return (common.isValidAccountIDFormat(params0) && common.isValidAmount(params1));
+        return (common.isValidAccountId(params0) && common.isValidAmount(params1));
       },
       encode: function(params0, params1) {
         return [params0, params1];
@@ -117,10 +117,10 @@ const codeFormatters = {
     signedTransfer: {
       validate: function(call) {
         return (
-          common.isValidAccountIDFormat(call.params.relayer)
-          && common.isValidAccountIDFormat(call.params.innerArgs.from)
-          && common.isValidAccountIDFormat(call.params.innerArgs.to)
-          && common.isValidTokenIdFormat(call.params.innerArgs.token)
+          common.isValidAccountId(call.params.relayer)
+          && common.isValidAccountId(call.params.innerArgs.from)
+          && common.isValidAccountId(call.params.innerArgs.to)
+          && common.isValidTokenId(call.params.innerArgs.token)
           && common.isValidAmount(call.params.innerArgs.amount.toString())
         );
       },

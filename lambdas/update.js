@@ -37,14 +37,14 @@ async function updateNodeModulesAndPublish(lambda) {
     commonPackageJSON: join(__dirname, 'package.json')
   }
 
-  // Get all the modules used in common.js
+  // Get all the node modules used in common.js
   const commonModules = fs.readFileSync('common.js', 'utf8').match(/(?<=require\(').*?(?='\);)/gs);
 
   // Get the common package.json and the lambda's package.json
   const commonPackageJSON = require(paths.commonPackageJSON);
   const lambdaPackageJSON = require(paths.lambdaPackageJSON);
 
-  // Add common's dependencies to the lambda's package.json
+  // Add common.js's dependencies to the lambda's package.json
   commonModules.forEach(module => lambdaPackageJSON.dependencies[module] = commonPackageJSON.dependencies[module]);
   fs.writeFileSync(paths.lambdaPackageJSON, JSON.stringify(lambdaPackageJSON, null, 2));
 
@@ -52,7 +52,7 @@ async function updateNodeModulesAndPublish(lambda) {
   const npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm';
   const child = spawn(npmCmd, ['i'], {env: process.env, cwd: paths.lambda, stdio: 'inherit'});
 
-  // Once the modules are updated, copy common.js to the lambda, reference it, and publish
+  // Once modules are updated, copy common.js into the lambda, reference in index.js, publish lambda, and revert to local setup
   child.on('exit', async () => {
     fs.copyFileSync('common.js', paths.lambdaCommonJS);
     replaceRef(paths.lambdaIndexJS, '../common.js', './common.js');

@@ -78,7 +78,7 @@ async function callSwitch(call, responseObject) {
 
       if (!formatter) {
         responseObject.error = {code:-32601, message:'Method not found'};
-      } else if (!formatter.validate(call.params)) {
+      } else if (!formatter.validate(call)) {
         responseObject.error = {code:-32602, message:'Invalid params'};
       } else {
         try {
@@ -91,8 +91,10 @@ async function callSwitch(call, responseObject) {
           }
           responseObject.result = await sendProxyTx(pallet, method, formatter.encode(proof, call.params.innerArgs));
         } catch (e) {
-        responseObject.error = {code:-32603, message:'Internal error'};
+          responseObject.error = {code:-32603, message:'Internal error'};
+        }
       }
+      break;
 
     default:
       responseObject.error = {code:-32601, message:'Method not found'};
@@ -100,9 +102,9 @@ async function callSwitch(call, responseObject) {
   return responseObject;
 }
 
-codeFormatters = {
+const codeFormatters = {
   balances: {
-    transfer = {
+    transfer : {
       validate: function(params0, params1) {
         return (isValidAccountIdFormat(params0) && isValidAmount(params1));
       },
@@ -113,13 +115,13 @@ codeFormatters = {
   },
   tokenManager: {
     signedTransfer: {
-      validate: function(params) {
+      validate: function(call) {
         return (
-          isValidAccountIdFormat(params.relayer)
-          && isValidAccountIdFormat(params.innerArgs.from)
-          && isValidAccountIdFormat(params.innerArgs.to)
-          && isValidTokenIdFormat(params.innerArgs.token)
-          && isValidAmount(params.innerArgs.amount)
+          isValidAccountIdFormat(call.params.relayer)
+          && isValidAccountIdFormat(call.params.innerArgs.from)
+          && isValidAccountIdFormat(call.params.innerArgs.to)
+          && isValidTokenIdFormat(call.params.innerArgs.token)
+          && isValidAmount(call.params.innerArgs.amount.toString())
         );
       },
       encode: function(proof, innerArgs) {

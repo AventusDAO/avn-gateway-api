@@ -30,6 +30,10 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function waitForTxToBeMined() {
+  await sleep(5000);
+}
+
 async function main() {
   const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
   await api.init();
@@ -55,6 +59,7 @@ async function main() {
   console.log('\n***TRANSACTIONS***');
   let requestId = await api.send.transferAvt(user2.address, '1');
   console.log('Transfer AVT using recipient address. Returned hash:  ', requestId);
+  await waitForTxToBeMined();
 
   console.log('\n***POLLING STATE***');
   try {
@@ -72,14 +77,18 @@ async function main() {
   console.log('\n***Demonstrating Proxied Transactions***');
   requestId = await api.send.transferToken(relayer.address, user1.address, user2.address, token, MIN_AMOUNT);
   console.log('Transfer token using recipient address. Returned hash:  ', requestId);
+  //We have to sleep to give enough time for the chain to process the transaction. Otherwise we will re-use the same nonce and get a duplicate tx error
+  await waitForTxToBeMined();
 
   requestId = await api.send.transferToken(relayer.publicKey, user1.publicKey, user2.publicKey, token, MIN_AMOUNT)
   console.log('Transfer token using recipient public key. Returned hash:  ', requestId);
+  await waitForTxToBeMined();
 
   // Demonstrate that address and publicKey are interchangeable, and that we don't have one function signature for each
   // and also revert the initial transfers, so we don't have runaway balances
   requestId = await api.send.transferToken(relayer.publicKey, user2.publicKey, user1.address, token, MIN_AMOUNT);
   console.log('Transfer token using mixed. Returned hash:  ', requestId);
+  await waitForTxToBeMined();
 
   requestId = await api.send.transferToken(relayer.address, user2.address, user1.publicKey, token, MIN_AMOUNT)
   console.log('Transfer token using recipient public key. Returned hash:  ', requestId);

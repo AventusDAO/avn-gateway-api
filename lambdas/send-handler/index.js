@@ -1,5 +1,5 @@
+const common = require('../common.js');
 const axios = require('axios');
-const bigInt = require('big-integer');
 const AVN_API_TX_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnTx';
 const AVN_API_PROXY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnProxy';
 
@@ -59,7 +59,7 @@ async function processRequest(requestObject) {
 async function callSwitch(call, responseObject) {
   switch (call.method) {
     case 'transferAvt':
-      if (isValidAccountIdFormat(call.params[0]) && isValidAmount(call.params[1])) {
+      if (common.isValidAccountIDFormat(call.params[0]) && common.isValidAmount(call.params[1])) {
         try {
           responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]]);
         } catch (e) {
@@ -106,7 +106,7 @@ const codeFormatters = {
   balances: {
     transfer : {
       validate: function(params0, params1) {
-        return (isValidAccountIdFormat(params0) && isValidAmount(params1));
+        return (common.isValidAccountIDFormat(params0) && common.isValidAmount(params1));
       },
       encode: function(params0, params1) {
         return [params0, params1];
@@ -117,11 +117,11 @@ const codeFormatters = {
     signedTransfer: {
       validate: function(call) {
         return (
-          isValidAccountIdFormat(call.params.relayer)
-          && isValidAccountIdFormat(call.params.innerArgs.from)
-          && isValidAccountIdFormat(call.params.innerArgs.to)
-          && isValidTokenIdFormat(call.params.innerArgs.token)
-          && isValidAmount(call.params.innerArgs.amount.toString())
+          common.isValidAccountIDFormat(call.params.relayer)
+          && common.isValidAccountIDFormat(call.params.innerArgs.from)
+          && common.isValidAccountIDFormat(call.params.innerArgs.to)
+          && common.isValidTokenIdFormat(call.params.innerArgs.token)
+          && common.isValidAmount(call.params.innerArgs.amount.toString())
         );
       },
       encode: function(proof, innerArgs) {
@@ -130,35 +130,6 @@ const codeFormatters = {
     }
   },
 };
-
-// Can this be brought into a common.js file?
-function isValidAccountIdFormat(accountId) {
-  let charArray = accountId.split('');
-  switch (charArray.length) {
-    case 48: // TODO: SS58 address format may not always be 48 characters - check on this
-      return charArray.every(c => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'.includes(c));
-    case 66:
-      if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
-      return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
-    default:
-      return false;
-  }
-}
-
-function isValidAmount(amount) {
-  if (amount.match(/^[0-9]+$/)) {
-    return ! bigInt(amount).isZero();
-  } else {
-    return false;
-  }
-}
-
-function isValidTokenIdFormat(tokenId) {
-  let charArray = tokenId.split('');
-  if (charArray.length !== 42) return false;
-  if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
-  return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
-}
 
 // async function testlocal() {
 //   console.log('transferAvt:', await processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));

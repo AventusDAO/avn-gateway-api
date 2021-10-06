@@ -1,3 +1,4 @@
+const common = require('../common.js');
 const axios = require('axios');
 const AVN_API_POLL_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnPoll';
 
@@ -44,7 +45,7 @@ async function processRequest(requestObject) {
 async function makeCall(call, responseObject) {
   if (call.method !== 'requestState') {
     responseObject.error = {code:-32601, message:'Method not found'};
-  } else if (isValidRequestId(call.params[0])) {
+  } else if (common.isValidRequestId(call.params[0])) {
     try {
       responseObject.result = await poll(call.params[0]);
     } catch (e) {
@@ -55,13 +56,6 @@ async function makeCall(call, responseObject) {
   }
 
   return responseObject;
-}
-
-function isValidRequestId(accountId) {
-  let charArray = accountId.split('');
-  if (charArray.length !== 66) return false;
-  if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
-  return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
 }
 
 // async function testlocal() {

@@ -49,17 +49,23 @@ async function updateNodeModulesAndPublish(lambda) {
   const npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm';
   const child = spawn(npmCmd, ['i'], {env: process.env, cwd: paths.lambda, stdio: 'inherit'});
 
-  // Once modules are updated, copy common files into lambda, reference in index.js, publish lambda, and revert to local setup
+  // Once modules are updated:
   child.on('exit', async () => {
+    // Parse any common files used in index.js
     const commonFiles = fs.readFileSync(paths.lambdaIndexJS, 'utf8').match(/(?<=require\('..\/common\/).*?(?='\))/gs) || [];
+    // Copy them into the lambda and reference in index.js
     commonFiles.forEach(file => {
-      fs.copyFileSync(join(paths.common, file), join(paths.common, file))
+      fs.copyFileSync(join(paths.common, file), join(paths.lambda, file))
       replaceRef(paths.lambdaIndexJS, '../common/'+file, './'+file);
     });
 
     // await publish(lambda);
-    // fs.unlinkSync(paths.common);
-    // replaceRef(paths.lambdaIndexJS, './common.js', '../common');
+
+    // Remove the common files from the lambda and dereference in index.js
+    commonFiles.forEach(file => {
+      fs.unlinkSync(join(paths.lambda, file));
+      replaceRef(paths.lambdaIndexJS, './'+file, '../common/'+file);
+    });
   })
 }
 

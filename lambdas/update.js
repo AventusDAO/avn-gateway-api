@@ -15,6 +15,7 @@ const LAMBDAS = [
 ];
 
 async function publish(lambda) {
+  console.log('Publishing', lambda, 'to AWS...');
   const params = {
     ZipFile: await zipdir(lambda),
     FunctionName: lambda,
@@ -22,13 +23,15 @@ async function publish(lambda) {
 
   try {
     const data = await aws.send(new UpdateFunctionCodeCommand(params));
-    console.log(lambda, 'updated successfully');
+    console.log('Published', lambda);
   } catch (err) {
     console.log(lambda, '- Error:', err);
   }
 }
 
-async function updateNodeModulesAndPublish(lambda) {
+async function prepareAndPublish(lambda) {
+  console.log('Preparing', lambda + '...         ***' );
+
   const paths = {
     lambda: join(__dirname, lambda),
     lambdaPkgJson: join(__dirname, lambda, 'package.json'),
@@ -41,27 +44,29 @@ async function updateNodeModulesAndPublish(lambda) {
   const commonPkgJson = require(paths.commonPkgJson);
   const lambdaPkgJson = require(paths.lambdaPkgJson);
 
-  // Add common.js's dependencies to the lambda's package.json
+  // Add the common dependencies to the lambda's package.json
   Object.entries(commonPkgJson.dependencies).forEach(dependency => lambdaPkgJson.dependencies[dependency[0]] = dependency[1]);
   fs.writeFileSync(paths.lambdaPkgJson, JSON.stringify(lambdaPkgJson, null, 2));
 
-  // Run npm install on the lambda
+  // Run npm install on the lambda to pudate the node modules
   const npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm';
-  const child = spawn(npmCmd, ['i'], {env: process.env, cwd: paths.lambda, stdio: 'inherit'});
+  const child = spawn(npmCmd, ['i'], {env: process.env, cwd: paths.lambda, stdio: 'ignore'});
 
-  // Once modules are updated:
+  // Once the node modules are updated:
   child.on('exit', async () => {
-    // Parse any common files used in index.js
+    // Parse any common files required by index.js
     const commonFiles = fs.readFileSync(paths.lambdaIndexJS, 'utf8').match(/(?<=require\('..\/common\/).*?(?='\))/gs) || [];
-    // Copy them into the lambda and reference in index.js
+
+    // Copy them into the lambda and re-reference them in index.js
     commonFiles.forEach(file => {
       fs.copyFileSync(join(paths.common, file), join(paths.lambda, file))
       replaceRef(paths.lambdaIndexJS, '../common/'+file, './'+file);
     });
 
-    // await publish(lambda);
+    // Publish the lambda to AWS
+    await publish(lambda);
 
-    // Remove the common files from the lambda and dereference in index.js
+    // Remove the common files from the lambda and dereference them in index.js
     commonFiles.forEach(file => {
       fs.unlinkSync(join(paths.lambda, file));
       replaceRef(paths.lambdaIndexJS, './'+file, '../common/'+file);
@@ -77,12 +82,14 @@ async function main() {
   const lambda = process.argv[2];
 
   if (lambda === undefined) {
-    LAMBDAS.forEach(async lambda => await updateNodeModulesAndPublish(lambda));
+    LAMBDAS.forEach(async lambda => await prepareAndPublish(lambda));
   } else if (LAMBDAS.includes(lambda)) {
-    updateNodeModulesAndPublish(lambda);
+    prepareAndPublish(lambda);
   } else {
     console.log('Error: no such lambda');
   }
+
+  console.log('Done');
 };
 
 if (require.main === module) main();

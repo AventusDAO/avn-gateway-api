@@ -84,7 +84,7 @@ async function main() {
   if (lambda === undefined) {
     LAMBDAS.forEach(async lambda => await prepareAndPublish(lambda));
   } else if (LAMBDAS.includes(lambda)) {
-    prepareAndPublish(lambda);
+    await prepareAndPublish(lambda);
   } else {
     console.log('Error: no such lambda');
   }

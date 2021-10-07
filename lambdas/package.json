@@ -2,9 +2,6 @@
   "name": "lambdas",
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.34.0",
-    "@polkadot/keyring": "^7.4.1",
-    "@polkadot/util": "^7.4.1",
-    "big-integer": "^1.6.49",
     "zip-dir": "^2.0.0"
   }
 }

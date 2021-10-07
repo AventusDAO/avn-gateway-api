@@ -16,6 +16,7 @@ const LAMBDAS = [
 
 async function publish(lambda) {
   console.log('Publishing', lambda, 'to AWS...');
+
   const params = {
     ZipFile: await zipdir(lambda),
     FunctionName: lambda,
@@ -23,14 +24,13 @@ async function publish(lambda) {
 
   try {
     const data = await aws.send(new UpdateFunctionCodeCommand(params));
-    console.log('Published', lambda);
   } catch (err) {
     console.log(lambda, '- Error:', err);
   }
 }
 
 async function prepareAndPublish(lambda) {
-  console.log('Preparing', lambda + '...         ***' );
+  console.log('Preparing', lambda + '...' );
 
   const paths = {
     lambda: join(__dirname, lambda),
@@ -40,11 +40,11 @@ async function prepareAndPublish(lambda) {
     commonPkgJson: join(__dirname, 'common', 'package.json')
   }
 
-  // Get the common package.json and the lambda's package.json
+  // Get the common package.json and the lambda package.json
   const commonPkgJson = require(paths.commonPkgJson);
   const lambdaPkgJson = require(paths.lambdaPkgJson);
 
-  // Add the common dependencies to the lambda's package.json
+  // Add the common dependencies to the lambda package.json
   Object.entries(commonPkgJson.dependencies).forEach(dependency => lambdaPkgJson.dependencies[dependency[0]] = dependency[1]);
   fs.writeFileSync(paths.lambdaPkgJson, JSON.stringify(lambdaPkgJson, null, 2));
 

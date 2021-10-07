@@ -88,8 +88,6 @@ async function main() {
   } else {
     console.log('Error: no such lambda');
   }
-
-  console.log('Done');
 };
 
 if (require.main === module) main();

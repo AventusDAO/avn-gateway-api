@@ -1,4 +1,4 @@
-const common = require('../common.js');
+const utils = require('../common/utils.js');
 const axios = require('axios');
 const AVN_API_POLL_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnPoll';
 
@@ -45,7 +45,7 @@ async function processRequest(requestObject) {
 async function makeCall(call, responseObject) {
   if (call.method !== 'requestState') {
     responseObject.error = {code:-32601, message:'Method not found'};
-  } else if (common.isValidRequestId(call.params[0])) {
+  } else if (utils.isValidRequestId(call.params[0])) {
     try {
       responseObject.result = await poll(call.params[0]);
     } catch (e) {

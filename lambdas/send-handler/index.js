@@ -1,4 +1,4 @@
-const common = require('../common.js');
+const utils = require('../common/utils.js');
 const axios = require('axios');
 const AVN_API_TX_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnTx';
 const AVN_API_PROXY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnProxy';
@@ -59,7 +59,7 @@ async function processRequest(requestObject) {
 async function callSwitch(call, responseObject) {
   switch (call.method) {
     case 'transferAvt':
-      if (common.isValidAccountId(call.params[0]) && common.isValidAmount(call.params[1])) {
+      if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
           responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]]);
         } catch (e) {
@@ -106,7 +106,7 @@ const codeFormatters = {
   balances: {
     transfer : {
       validate: function(params0, params1) {
-        return (common.isValidAccountId(params0) && common.isValidAmount(params1));
+        return (utils.isValidAccountId(params0) && utils.isValidAmount(params1));
       },
       encode: function(params0, params1) {
         return [params0, params1];
@@ -117,11 +117,11 @@ const codeFormatters = {
     signedTransfer: {
       validate: function(call) {
         return (
-          common.isValidAccountId(call.params.relayer)
-          && common.isValidAccountId(call.params.innerArgs.from)
-          && common.isValidAccountId(call.params.innerArgs.to)
-          && common.isValidTokenId(call.params.innerArgs.token)
-          && common.isValidAmount(call.params.innerArgs.amount.toString())
+          utils.isValidAccountId(call.params.relayer)
+          && utils.isValidAccountId(call.params.innerArgs.from)
+          && utils.isValidAccountId(call.params.innerArgs.to)
+          && utils.isValidTokenId(call.params.innerArgs.token)
+          && utils.isValidAmount(call.params.innerArgs.amount.toString())
         );
       },
       encode: function(proof, innerArgs) {

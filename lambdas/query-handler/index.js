@@ -96,11 +96,11 @@ async function callSwitch(call, responseObject) {
   return responseObject;
 }
 
-async function testlocal() {
-  console.log('getTotalAvt:', await processRequest('{"jsonrpc": "2.0", "method":"getTotalAvt", "params":[], "id":1}'));
-  console.log('getAvtBalance:', await processRequest('{"jsonrpc":"2.0", "method":"getAvtBalance", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":2}'));
-  console.log('getTokenBalance:', await processRequest('{"jsonrpc":"2.0", "method":"getTokenBalance", "params": ["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"], "id":3}'));
-  console.log('getAccountNonce:', await processRequest('{"jsonrpc":"2.0", "method":"getAccountNonce", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":4}'));
-}
-
-testlocal();
+// async function testlocal() {
+//   console.log('getTotalAvt:', await processRequest('{"jsonrpc": "2.0", "method":"getTotalAvt", "params":[], "id":1}'));
+//   console.log('getAvtBalance:', await processRequest('{"jsonrpc":"2.0", "method":"getAvtBalance", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":2}'));
+//   console.log('getTokenBalance:', await processRequest('{"jsonrpc":"2.0", "method":"getTokenBalance", "params": ["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"], "id":3}'));
+//   console.log('getAccountNonce:', await processRequest('{"jsonrpc":"2.0", "method":"getAccountNonce", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":4}'));
+// }
+//
+// testlocal();

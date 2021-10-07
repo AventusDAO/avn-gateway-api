@@ -51,10 +51,12 @@ async function updateNodeModulesAndPublish(lambda) {
 
   // Once modules are updated, copy common files into lambda, reference in index.js, publish lambda, and revert to local setup
   child.on('exit', async () => {
-    // Get all the common files used in the lambda
     const commonFiles = fs.readFileSync(paths.lambdaIndexJS, 'utf8').match(/(?<=require\('..\/common\/).*?(?='\))/gs) || [];
-    commonFiles.forEach(file => fs.copyFileSync(join(paths.common, file), paths.lambda));
-    // replaceRef(paths.lambdaIndexJS, '../common', '.');
+    commonFiles.forEach(file => {
+      fs.copyFileSync(join(paths.common, file), join(paths.common, file))
+      replaceRef(paths.lambdaIndexJS, '../common/'+file, './'+file);
+    });
+
     // await publish(lambda);
     // fs.unlinkSync(paths.common);
     // replaceRef(paths.lambdaIndexJS, './common.js', '../common');

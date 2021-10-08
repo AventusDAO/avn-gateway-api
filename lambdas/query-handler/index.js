@@ -1,3 +1,4 @@
+const utils = require('../common/utils.js');
 const axios = require('axios');
 const bigInt = require('big-integer');
 const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
@@ -56,7 +57,7 @@ async function callSwitch(call, responseObject) {
       }
       break;
     case 'getAvtBalance':
-      if (isValidAccountIDFormat(call.params[0])) {
+      if (utils.isValidAccountId(call.params[0])) {
         try {
           responseObject.result = await queryChain('system', 'account', [call.params[0]], toBigInt2);
         } catch (e) {
@@ -67,7 +68,7 @@ async function callSwitch(call, responseObject) {
       }
       break;
     case 'getTokenBalance':
-      if (isValidAccountIDFormat(call.params[0]) && isValidTokenIdFormat(call.params[1])) {
+      if (utils.isValidAccountId(call.params[0]) && utils.isValidTokenId(call.params[1])) {
         try {
           responseObject.result = await queryChain('tokenManager', 'balances', [[call.params[1], call.params[0]]], toBigInt);
         } catch (e) {
@@ -78,7 +79,7 @@ async function callSwitch(call, responseObject) {
       }
       break;
     case 'getAccountNonce':
-      if (isValidAccountIDFormat(call.params[0])) {
+      if (utils.isValidAccountId(call.params[0])) {
         try {
           responseObject.result = await queryChain('tokenManager', 'nonces', [call.params[0]], toBigInt);
         } catch(e) {
@@ -93,26 +94,6 @@ async function callSwitch(call, responseObject) {
       responseObject.error = {code:-32601, message:'Method not found'};
   }
   return responseObject;
-}
-
-function isValidAccountIDFormat(accountId) {
-  let charArray = accountId.split('');
-  switch (charArray.length) {
-    case 48: // TODO: SS58 address format may not always be 48 characters - check on this
-      return charArray.every(c => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'.includes(c));
-    case 66:
-      if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
-      return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
-    default:
-      return false;
-  }
-}
-
-function isValidTokenIdFormat(tokenId) {
-  let charArray = tokenId.split('');
-  if (charArray.length !== 42) return false;
-  if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
-  return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
 }
 
 // async function testlocal() {

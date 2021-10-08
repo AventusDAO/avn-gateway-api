@@ -2,6 +2,8 @@
   "name": "send-handler",
   "dependencies": {
     "axios": "^0.21.4",
-    "big-integer": "^1.6.49"
+    "big-integer": "^1.6.49",
+    "@polkadot/keyring": "^7.4.1",
+    "@polkadot/util": "^7.4.1"
   }
 }

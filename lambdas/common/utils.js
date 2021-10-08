@@ -20,7 +20,7 @@ function isValidRequestId(requestId) {
 }
 
 function isValidTokenId(tokenId) {
-  return isHex(requestId) && requestId.split('').length == 42;
+  return isHex(tokenId) && tokenId.split('').length == 42;
 }
 
 module.exports = {

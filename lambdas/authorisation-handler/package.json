@@ -4,9 +4,6 @@
   "dependencies": {
     "@polkadot/types": "^3.0.1",
     "@polkadot/util-crypto": "5.9.2",
-    "axios": "^0.21.4",
-    "big-integer": "^1.6.49",
-    "@polkadot/keyring": "^7.4.1",
-    "@polkadot/util": "^7.4.1"
+    "axios": "^0.21.4"
   }
 }

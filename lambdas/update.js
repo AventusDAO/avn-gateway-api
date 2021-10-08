@@ -27,8 +27,6 @@ async function publish(lambda) {
 }
 
 async function updateNodeModulesAndPublish(lambda) {
-  console.log('Updating node modules for', lambda + '...' );
-
   const paths = {
     lambda: join(__dirname, lambda),
     lambdaPkg: join(__dirname, lambda, 'package.json'),
@@ -36,6 +34,12 @@ async function updateNodeModulesAndPublish(lambda) {
     lambdaIdx: join(__dirname, lambda, 'index.js'),
     commonPkg: join(__dirname, 'common', 'package.json')
   }
+
+  // Parse any common files required by lambda index.js
+  const commonFiles = fs.readFileSync(paths.lambdaIdx, 'utf8').match(/(?<=require\('..\/common\/).*?(?='\))/gs);
+  if (commonFiles === null) return publish(lambda);
+
+  console.log('Updating node modules for', lambda + '...' );
 
   // Get the common package.json and the lambda package.json
   const commonPkg = require(paths.commonPkg);
@@ -49,9 +53,6 @@ async function updateNodeModulesAndPublish(lambda) {
   const npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm';
   const child = spawn(npmCmd, ['i'], {env: process.env, cwd: paths.lambda, stdio: 'ignore'});
   await child.on('exit', () => {console.log('Node modules for', lambda, 'updated')});
-
-  // Parse any common files required by lambda index.js
-  const commonFiles = fs.readFileSync(paths.lambdaIdx, 'utf8').match(/(?<=require\('..\/common\/).*?(?='\))/gs) || [];
 
   // Copy required common files into the lambda and re-reference them in its index.js
   commonFiles.forEach(file => {

@@ -12,25 +12,15 @@ function isValidAccountId(accountId) {
 }
 
 function isValidAmount(amount) {
-  if (amount.match(/^[0-9]+$/)) {
-    return ! bigInt(amount).isZero();
-  } else {
-    return false;
-  }
+  return amount.match(/^[0-9]+$/) && ! bigInt(amount).isZero();
 }
 
 function isValidRequestId(requestId) {
-  let charArray = requestId.split('');
-  if (charArray.length !== 66) return false;
-  if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
-  return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
+  return isHex(requestId) && requestId.split('').length == 66;
 }
 
 function isValidTokenId(tokenId) {
-  let charArray = tokenId.split('');
-  if (charArray.length !== 42) return false;
-  if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
-  return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));
+  return isHex(requestId) && requestId.split('').length == 42;
 }
 
 module.exports = {

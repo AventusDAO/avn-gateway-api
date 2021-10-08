@@ -19,8 +19,8 @@ function isValidAmount(amount) {
   }
 }
 
-function isValidRequestId(accountId) {
-  let charArray = accountId.split('');
+function isValidRequestId(requestId) {
+  let charArray = requestId.split('');
   if (charArray.length !== 66) return false;
   if (charArray.shift() !== '0' || charArray.shift() !== 'x') return false;
   return charArray.every(c => '0123456789abcdefABCDEF'.includes(c));

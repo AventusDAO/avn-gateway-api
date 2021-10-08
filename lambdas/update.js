@@ -20,7 +20,7 @@ async function publish(lambda) {
 
   try {
     const data = await aws.send(new UpdateFunctionCodeCommand(params));
-    console.log('Published', lambda);
+    console.log('Published ', lambda);
   } catch (err) {
     console.log(lambda, '- Error:', err);
   }

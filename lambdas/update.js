@@ -37,6 +37,7 @@ async function updateNodeModulesAndPublish(lambda) {
 
   // Parse any common files required by lambda index.js
   const commonFiles = fs.readFileSync(paths.lambdaIdx, 'utf8').match(/(?<=require\('..\/common\/).*?(?='\))/gs);
+  // If no common files were used then go ahead and publish as is
   if (commonFiles === null) return publish(lambda);
 
   console.log('Updating node modules for', lambda + '...' );

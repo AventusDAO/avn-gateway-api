@@ -26,8 +26,8 @@ async function publish(lambda) {
   }
 }
 
-async function prepareAndPublish(lambda) {
-  console.log('Preparing', lambda + '...' );
+async function updateNodeModulesAndPublish(lambda) {
+  console.log('Updating node modules for', lambda + '...' );
 
   const paths = {
     lambda: join(__dirname, lambda),
@@ -48,7 +48,7 @@ async function prepareAndPublish(lambda) {
   // Update the lambda node modules
   const npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm';
   const child = spawn(npmCmd, ['i'], {env: process.env, cwd: paths.lambda, stdio: 'ignore'});
-  await child.on('exit', () => {});
+  await child.on('exit', () => {console.log('Node modules for', lambda, 'updated')});
 
   // Parse any common files required by lambda index.js
   const commonFiles = fs.readFileSync(paths.lambdaIdx, 'utf8').match(/(?<=require\('..\/common\/).*?(?='\))/gs) || [];
@@ -76,9 +76,9 @@ function replaceRef(file, a, b) {
 async function main() {
   const lambda = process.argv[2];
   if (lambda === undefined) {
-    LAMBDAS.forEach(lambda => prepareAndPublish(lambda));
+    LAMBDAS.forEach(lambda => updateNodeModulesAndPublish(lambda));
   } else if (LAMBDAS.includes(lambda)) {
-    prepareAndPublish(lambda);
+    updateNodeModulesAndPublish(lambda);
   } else {
     console.log('Error: no such lambda');
   }

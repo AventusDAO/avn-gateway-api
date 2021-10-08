@@ -31,32 +31,32 @@ async function prepareAndPublish(lambda) {
 
   const paths = {
     lambda: join(__dirname, lambda),
-    lambdaPkgJson: join(__dirname, lambda, 'package.json'),
+    lambdaPkg: join(__dirname, lambda, 'package.json'),
     common: join(__dirname, 'common'),
-    lambdaIndexJS: join(__dirname, lambda, 'index.js'),
-    commonPkgJson: join(__dirname, 'common', 'package.json')
+    lambdaIdx: join(__dirname, lambda, 'index.js'),
+    commonPkg: join(__dirname, 'common', 'package.json')
   }
 
   // Get the common package.json and the lambda package.json
-  const commonPkgJson = require(paths.commonPkgJson);
-  const lambdaPkgJson = require(paths.lambdaPkgJson);
+  const commonPkg = require(paths.commonPkg);
+  const lambdaPkg = require(paths.lambdaPkg);
 
   // Add the common dependencies to the lambda package.json
-  Object.entries(commonPkgJson.dependencies).forEach(dependency => lambdaPkgJson.dependencies[dependency[0]] = dependency[1]);
-  fs.writeFileSync(paths.lambdaPkgJson, JSON.stringify(lambdaPkgJson, null, 2));
+  Object.entries(commonPkg.dependencies).forEach(([module, version] = dependency) => lambdaPkg.dependencies[module] = version);
+  fs.writeFileSync(paths.lambdaPkg, JSON.stringify(lambdaPkg, null, 2));
 
   // Update the lambda node modules
   const npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm';
   const child = spawn(npmCmd, ['i'], {env: process.env, cwd: paths.lambda, stdio: 'ignore'});
   await child.on('exit', () => {});
 
-  // Parse any common files required by index.js
-  const commonFiles = fs.readFileSync(paths.lambdaIndexJS, 'utf8').match(/(?<=require\('..\/common\/).*?(?='\))/gs) || [];
+  // Parse any common files required by lambda index.js
+  const commonFiles = fs.readFileSync(paths.lambdaIdx, 'utf8').match(/(?<=require\('..\/common\/).*?(?='\))/gs) || [];
 
   // Copy required common files into the lambda and re-reference them in its index.js
   commonFiles.forEach(file => {
     fs.copyFileSync(join(paths.common, file), join(paths.lambda, file))
-    replaceRef(paths.lambdaIndexJS, '../common/'+file, './'+file);
+    replaceRef(paths.lambdaIdx, '../common/'+file, './'+file);
   });
 
   // Publish the lambda to AWS
@@ -65,7 +65,7 @@ async function prepareAndPublish(lambda) {
   // Remove the copied common files from the lambda and dereference them in index.js
   commonFiles.forEach(file => {
     fs.unlinkSync(join(paths.lambda, file));
-    replaceRef(paths.lambdaIndexJS, './'+file, '../common/'+file);
+    replaceRef(paths.lambdaIdx, './'+file, '../common/'+file);
   });
 }
 
@@ -75,7 +75,6 @@ function replaceRef(file, a, b) {
 
 async function main() {
   const lambda = process.argv[2];
-
   if (lambda === undefined) {
     LAMBDAS.forEach(lambda => prepareAndPublish(lambda));
   } else if (LAMBDAS.includes(lambda)) {

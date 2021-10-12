@@ -1,34 +1,18 @@
-var assert = require('chai').assert;
+const assert = require('chai').assert;
+const helper = require('./helper.js');
 
-describe('Query api calls:', function() {
+describe('SendTx api calls:', async() => {
+  let api;
 
   before(async () => {
-    // Implement me if required
+    api = await helper.avnApi();
   })
 
-  after(async() => {
-    // Implement me if required
-  })
+  describe('getTotalAvt', async () => {
 
-  // One high level describe per end point
-  describe('getTotalAvt', function() {
-
-    // One happy path
-    it.skip('<happy path wording>', async () => {
-      assert(false, '<failure reason>');
+    it('gets total AVT', async () => {
+      assert.equal(helper.AVT_SUPPLY, await api.query.getTotalAvt());
     })
 
-    // A describe block for failing tests, each testing one bad condition
-    describe('<failure wording>', function() {
-      it.skip('<bad case test 1>', async () => {
-        assert(false, '<failure reason>');
-      })
-
-      it.skip('<bad case test 2>', async () => {
-        assert(false, '<failure reason>');
-      })
-
-      // ...
-    })
   })
 })

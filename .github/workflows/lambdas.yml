@@ -37,9 +37,7 @@ jobs:
       - name: Package Function
         run: |
           make package version=${{ env.PR_NUMBER }} name=${{ env.POLL }}
-      
-      - name: Upload to S3
-  
+        
   send:
     runs-on: ubuntu-latest
     name: package send function

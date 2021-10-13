@@ -1,0 +1,111 @@
+name: lambdas
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ./lambdas/*
+
+env:
+  PR_NUMBER: pr-${{ github.event.number }}
+  AUTHORISER: authoriser-handler
+  POLL: poll-handler
+  SEND: send-handler
+  QUERY: query-handler
+
+defaults:
+  run:
+    shell: bash
+    working-directory: lambdas
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    name: package poll function
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: |
+            poll-handler/package-lock.json
+            common/package-lock.json
+      
+      - name: Package Function
+        run: |
+          make package version=${{ env.PR_NUMBER }} name=${{ env.POLL }}
+      
+      - name: Upload to S3
+  
+  send:
+    runs-on: ubuntu-latest
+    name: package send function
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: |
+            send-handler/package-lock.json
+            common/package-lock.json
+      
+      - name: Package Function
+        run: |
+          make package version=${{ env.PR_NUMBER }} name=${{ env.SEND }}
+  
+  query:
+    runs-on: ubuntu-latest
+    name: package
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: |
+            query-handler/package-lock.json
+            common/package-lock.json
+      
+      - name: Package Function
+        run: |
+          make package version=${{ env.PR_NUMBER }} name=${{ env.QUERY }}
+  
+  authoriser:
+    runs-on: ubuntu-latest
+    name: package
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: |
+            authorisation-handler/package-lock.json
+            common/package-lock.json
+      
+      - name: Package Function
+        run: |
+          make package version=${{ env.PR_NUMBER }} name=${{ env.AUTHORISER }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: package
+    needs: [authoriser, query, send, poll]
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Upload to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-west-2'
+          SOURCE_DIR: "build"

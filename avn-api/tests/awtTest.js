@@ -3,7 +3,7 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 
 const TOKEN_LENGTH = 332;
-const TOKEN_LIFETIME = 30000;
+const TOKEN_LIFETIME = 60000;
 
 describe('AWT Tokens', async() => {
   let api;
@@ -27,7 +27,7 @@ describe('AWT Tokens', async() => {
     })
   })
 
-  describe('check token validity', async () => {
+  describe('token validity', async () => {
     let token;
 
     before(async () => {

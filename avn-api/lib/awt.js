@@ -4,7 +4,7 @@ const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 const common = require('./common.js');
 
 //TODO: make this configurable using a .env file or some other way
-const MAX_TOKEN_AGE_MSEC = 30000;
+const MAX_TOKEN_AGE_MSEC = 60000;
 const SIGNING_CONTEXT = 'awt_gateway_api';
 
 function generateAwtToken(suri) {

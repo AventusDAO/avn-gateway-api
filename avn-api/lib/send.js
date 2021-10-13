@@ -3,7 +3,7 @@
 const common = require('./common.js');
 const proxyApi = require('./proxy.js');
 
-const MAX_TX_PROCESSING_TIME = 3000;
+const MAX_TX_PROCESSING_TIME = 3500;
 
 function Send(api, queryApi) {
   this.transferAvt = generateFunction(transferAvt, api);

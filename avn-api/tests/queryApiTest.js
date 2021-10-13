@@ -13,6 +13,5 @@ describe('SendTx api calls:', async() => {
     it('gets total AVT', async () => {
       assert.equal(helper.AVT_SUPPLY, await api.query.getTotalAvt());
     })
-
   })
 })

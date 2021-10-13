@@ -43,8 +43,8 @@ Send.prototype.postRequest = async function(api, method, params, isRetry) {
   const response =
     (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
 
-  if (response.result) {
-    return response.result;
+  if (response.result || method !== 'proxy') {
+    return response.result || response.error.message;
   } else if (isRetry === undefined) {
     await common.sleep(MAX_TX_PROCESSING_TIME);
     return await this.postRequest(api, method, params, true);

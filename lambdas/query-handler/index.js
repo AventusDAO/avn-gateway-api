@@ -1,6 +1,5 @@
 const utils = require('../common/utils.js');
 const axios = require('axios');
-const bigInt = require('big-integer');
 const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
 
 exports.handler = async (event) => {
@@ -12,8 +11,9 @@ exports.handler = async (event) => {
 };
 
 // response formatters
-const toBigInt = (response) => bigInt(response.data).toString();
-const toBigInt2 = (response) => bigInt(response.data.data.free.replace('0x',''), 16).toString();
+const format1 = (data) => utils.toBnString(data);
+const format2 = (data) => utils.toBnString(data.data.free);
+
 
 async function queryChain(palletName, storageName, params, responseFormatter) {
   let response;
@@ -22,7 +22,7 @@ async function queryChain(palletName, storageName, params, responseFormatter) {
   } catch (e) {
     throw true;
   }
-  return response.data.errror || responseFormatter(response);
+  return response.data.error || responseFormatter(response.data);
 }
 
 async function processRequest(requestObject) {
@@ -51,7 +51,7 @@ async function callSwitch(call, responseObject) {
   switch (call.method) {
     case 'getTotalAvt':
       try {
-        responseObject.result = await queryChain('balances', 'totalIssuance', [], toBigInt);
+        responseObject.result = await queryChain('balances', 'totalIssuance', [], format1);
       } catch (e) {
         responseObject.error = {code:-32603, message:'Internal error'};
       }
@@ -59,7 +59,7 @@ async function callSwitch(call, responseObject) {
     case 'getAvtBalance':
       if (utils.isValidAccountId(call.params[0])) {
         try {
-          responseObject.result = await queryChain('system', 'account', [call.params[0]], toBigInt2);
+          responseObject.result = await queryChain('system', 'account', [call.params[0]], format2);
         } catch (e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }
@@ -70,7 +70,7 @@ async function callSwitch(call, responseObject) {
     case 'getTokenBalance':
       if (utils.isValidAccountId(call.params[0]) && utils.isValidTokenId(call.params[1])) {
         try {
-          responseObject.result = await queryChain('tokenManager', 'balances', [[call.params[1], call.params[0]]], toBigInt);
+          responseObject.result = await queryChain('tokenManager', 'balances', [[call.params[1], call.params[0]]], format1);
         } catch (e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }
@@ -81,7 +81,7 @@ async function callSwitch(call, responseObject) {
     case 'getAccountNonce':
       if (utils.isValidAccountId(call.params[0])) {
         try {
-          responseObject.result = await queryChain('tokenManager', 'nonces', [call.params[0]], toBigInt);
+          responseObject.result = await queryChain('tokenManager', 'nonces', [call.params[0]], format1);
         } catch(e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }

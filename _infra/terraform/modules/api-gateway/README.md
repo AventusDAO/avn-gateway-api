@@ -5,7 +5,7 @@ Module for the Amazon api gateway entry points to the gateway api service.
 
 | name | required | default | description |
 |------|----------|---------|-------------|
-| query\_handler\_arn | true | | The ARN of the query handler Lambda function |
-| authorisation\_handler\_arn | true | | The ARN of the authorisation handler Lambda function |
-| poll\_handler\_arn | true | | The ARN of the poll handler Lambda function |
-| send\_handler\_arn | true | | The ARN of the send handler Lambda function |
+| query\_invoke\_arn | true | | The invoke ARN of the query handler Lambda function |
+| authoriser\_invoke\_arn | true | | The invoke ARN of the authorisation handler Lambda function |
+| poll\_invoke\_arn | true | | The invoke ARN of the poll handler Lambda function |
+| send\_invoke\_arn | true | | The invoke ARN of the send handler Lambda function |

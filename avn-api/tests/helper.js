@@ -45,7 +45,7 @@ module.exports = {
   AVT_SUPPLY,
   avnApi,
   BN,
-  bnEquals
+  bnEquals,
   sleep,
   TOKEN,
 }

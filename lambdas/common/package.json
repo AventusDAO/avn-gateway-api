@@ -3,6 +3,6 @@
   "dependencies": {
     "@polkadot/keyring": "^7.4.1",
     "@polkadot/util": "^7.4.1",
-    "bn.js": "^5.2.0"
+    "big-integer": "^1.6.49"
   }
 }

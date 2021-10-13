@@ -1,9 +1,9 @@
 {
   "name": "query-handler",
   "dependencies": {
-    "@polkadot/keyring": "^7.4.1",
-    "@polkadot/util": "^7.4.1",
     "axios": "^0.21.4",
-    "bn.js": "^5.2.0"
+    "big-integer": "^1.6.49",
+    "@polkadot/keyring": "^7.4.1",
+    "@polkadot/util": "^7.4.1"
   }
 }

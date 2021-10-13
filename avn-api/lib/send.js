@@ -3,7 +3,7 @@
 const common = require('./common.js');
 const proxyApi = require('./proxy.js');
 
-const SMART_NONCE_WINDOW = 5000;
+const MAX_TX_PROCESSING_TIME = 3000;
 
 function Send(api, queryApi) {
   this.transferAvt = generateFunction(transferAvt, api);
@@ -38,20 +38,20 @@ function generateFunction(functionName, api, queryApi) {
   return functionName(api, queryApi);
 }
 
-Send.prototype.postRequest = async function(api, method, params) {
+Send.prototype.postRequest = async function(api, method, params, isRetry) {
   const endpoint = api.gateway + '/send';
   const response =
     (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
-  return response.result || this.handleRequestError(response, method, params);
-}
 
-Send.prototype.handleRequestError = function(response, method, params) {
-  if (method === 'proxy') {
-    const account = common.convertToPublicKeyIfNeeded(params.innerArgs.from);
-    this.nonceMap[account].nonce -= 1;
-    this.nonceMap[account].updated -= SMART_NONCE_WINDOW;
+  if (response.result) {
+    return response.result;
+  } else if (isRetry === undefined) {
+    await common.sleep(MAX_TX_PROCESSING_TIME);
+    return await this.postRequest(api, method, params, true);
+  } else {
+    await common.sleep(MAX_TX_PROCESSING_TIME);
+    return response.error.message;
   }
-  return response.error.message;
 }
 
 Send.prototype.smartNonce = async function(queryApi, from) {
@@ -59,7 +59,7 @@ Send.prototype.smartNonce = async function(queryApi, from) {
   const nonceData = this.nonceMap[account];
   const updated = Date.now();
 
-  const nonce = (nonceData === undefined || updated - nonceData.updated >= SMART_NONCE_WINDOW) ?
+  const nonce = (nonceData === undefined || updated - nonceData.updated >= MAX_TX_PROCESSING_TIME * 2) ?
       parseInt(await queryApi.getAccountNonce(account)) : nonceData.nonce + 1;
 
   this.nonceMap[account] = {nonce: nonce, updated: updated}

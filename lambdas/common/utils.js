@@ -23,9 +23,14 @@ function isValidTokenId(tokenId) {
   return isHex(tokenId) && tokenId.split('').length == 42;
 }
 
+function toBnString(val) {
+  return (typeof val === 'number' || !isHex(val)) ? new BN(val).toString() : new BN(val.replace('0x',''), 16).toString();
+}
+
 module.exports = {
   isValidAccountId,
   isValidAmount,
   isValidRequestId,
   isValidTokenId,
+  toBnString,
 }

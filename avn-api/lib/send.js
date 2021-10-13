@@ -54,8 +54,8 @@ Send.prototype.postRequest = async function(api, method, params, isRetry) {
   }
 }
 
-Send.prototype.smartNonce = async function(queryApi, from) {
-  const account = common.convertToPublicKeyIfNeeded(from);
+Send.prototype.smartNonce = async function(queryApi, _account) {
+  const account = common.convertToPublicKeyIfNeeded(_account);
   const nonceData = this.nonceMap[account];
   const updated = Date.now();
 

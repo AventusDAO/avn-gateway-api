@@ -10,7 +10,7 @@
     "@polkadot/types": "^3.0.1",
     "@polkadot/util-crypto": "5.9.2",
     "axios": "^0.21.4",
-    "big-integer": "^1.6.49"
+    "bn.js": "^5.2.0"
   },
   "devDependencies": {
     "eslint": "^7.32.0",

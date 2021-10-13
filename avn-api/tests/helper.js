@@ -1,5 +1,6 @@
 const AvnApi = require('../index.js');
-const BN = require('big-integer');
+const assert = require('chai').assert;
+const BN = require('bn.js');
 const GATEWAY = 'https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com';
 const TOKEN = '0x14fa2f8fadb0acec171d1d2d3aef4e4b9f4814e5';
 const AVT_SUPPLY = '5100000000000000000000';
@@ -34,11 +35,17 @@ async function avnApi() {
   return api;
 }
 
+function bnEquals(a,b) {
+  return assert.equal(new BN(a).toString(), new BN(a).toString());
+}
+
+// keep alphabetical
 module.exports = {
   ACCOUNTS,
-  BN,
+  AVT_SUPPLY,
   avnApi,
+  BN,
+  bnEquals
   sleep,
   TOKEN,
-  AVT_SUPPLY,
 }

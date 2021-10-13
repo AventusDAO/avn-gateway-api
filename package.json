@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "apiTests": "mocha ./avn-api/tests --recursive",
-    "ec2Tests": "mocha ./ec2/tests --recursive",
-    "lambdaTests": "mocha ./lambdas/tests --recursive",
+    "apiTests": "mocha --timeout 60000 ./avn-api/tests --recursive",
+    "ec2Tests": "mocha --timeout 60000 ./ec2/tests --recursive",
+    "lambdaTests": "mocha --timeout 60000 ./lambdas/tests --recursive",
     "allTests": "npm run apiTests && npm run ec2Tests && npm run lambdaTests"
   },
   "devDependencies": {

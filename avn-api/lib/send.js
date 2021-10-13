@@ -20,7 +20,6 @@ function transferAvt(api) {
 function transferToken(api, queryApi) {
   return async function (relayer, from, to, token, amount) {
     let nonce = await this.smartNonce(queryApi, from);
-
     let signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce);
 
     return await this.postRequest(api, 'proxy',
@@ -29,8 +28,9 @@ function transferToken(api, queryApi) {
         method: 'signedTransfer',
         signature,
         relayer,
-        innerArgs: { from, to, token, amount }
-      });
+        innerArgs: {from, to, token, amount}
+      }
+    );
   };
 }
 
@@ -42,7 +42,16 @@ Send.prototype.postRequest = async function(api, method, params) {
   const endpoint = api.gateway + '/send';
   const response =
     (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
-  return response.result || response.error.message;
+  return response.result || this.handleRequestError(response, method, params);
+}
+
+Send.prototype.handleRequestError = function(response, method, params) {
+  if (method === 'proxy') {
+    const account = common.convertToPublicKeyIfNeeded(params.innerArgs.from);
+    this.nonceMap[account].nonce -= 1;
+    this.nonceMap[account].updated -= SMART_NONCE_WINDOW;
+  }
+  return response.error.message;
 }
 
 Send.prototype.smartNonce = async function(queryApi, from) {
@@ -50,10 +59,10 @@ Send.prototype.smartNonce = async function(queryApi, from) {
   const nonceData = this.nonceMap[account];
   const updated = Date.now();
 
-  const nonce = (nonceData === undefined || updated - nonceData.updated > SMART_NONCE_WINDOW ) ?
+  const nonce = (nonceData === undefined || updated - nonceData.updated >= SMART_NONCE_WINDOW) ?
       parseInt(await queryApi.getAccountNonce(account)) : nonceData.nonce + 1;
 
-  this.nonceMap[account] = {nonce:nonce, updated:updated}
+  this.nonceMap[account] = {nonce: nonce, updated: updated}
   return nonce.toString();
 }
 

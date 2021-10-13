@@ -59,7 +59,7 @@ async function userHasAvtBalance(awtToken) {
   try {
     const response = await axios.post(AVN_API_QUERY_ENDPOINT, {palletName: 'system', storageName: 'account', params: [awtToken.pk]});
     const avtBalance = new BN(response.data.data.free.replace('0x',''), 16);
-    return avtBalance.geq(MIN_AVT_BALANCE);
+    return avtBalance.gte(MIN_AVT_BALANCE);
   } catch (err) {
     console.log(`Error checking AVT balance for user: ${err}`);
     return false;

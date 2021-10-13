@@ -8,17 +8,12 @@ const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazo
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const MAX_TOKEN_AGE_MSEC = 60000;
 const CLOCK_JITTER_MSEC = -15000;
-const MIN_AVT_BALANCE = new BN("100000000000000000000");
+const MIN_AVT_BALANCE = new BN('100000000000000000000');
 const AUTH_PREFIX = 'Bearer ';
 const registry = new TypeRegistry();
 
-const InvalidRequestResponse = {
-  "isAuthorized": false
-};
-
-const ValidRequestResponse = {
-  "isAuthorized": true
-};
+const InvalidRequestResponse = {isAuthorized: false};
+const ValidRequestResponse = {isAuthorized: true};
 
 exports.handler = async(event) => {
   // encapsulate all the logic to make local testing easier
@@ -26,7 +21,7 @@ exports.handler = async(event) => {
 };
 
 async function validateAwtToken(event) {
-  console.log("Authorisation lambda called");
+  console.log('Authorisation lambda called');
 
   const awtToken = getAwtTokenIfAny(event);
   if (!awtToken) {

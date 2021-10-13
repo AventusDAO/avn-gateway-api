@@ -3,6 +3,7 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const token = helper.TOKEN;
 const BN = helper.BN;
+const bnEquals = helper.bnEquals;
 
 describe('Send transactions:', async() => {
   let api;
@@ -27,8 +28,8 @@ describe('Send transactions:', async() => {
     })
 
     it('make multiple token transfers', async () => {
-      const amount = 1;
-      const numTransfers = 1; // TODO - increase when we add relayer nonce service
+      const amount = new BN(1);
+      const numTransfers = new BN(1); // TODO - increase when we add relayer nonce service
 
       for (let i=0; i < numTransfers; i++) {
         await api.send.transferToken(relayer, sender, user1, token, amount);
@@ -36,10 +37,10 @@ describe('Send transactions:', async() => {
 
       await helper.sleep(5000);
 
-      console.log(senderBalanceBefore.minus(amount * numTransfers), await api.query.getTokenBalance(sender, token));
-      console.log(recipientBalanceBefore.add(amount * numTransfers), await api.query.getTokenBalance(user1, token));
-      console.log(relayerNonceBefore.add(numTransfers), await api.query.getAccountNonce(relayer));
-      console.log(senderNonceBefore.add(numTransfers), await api.query.getAccountNonce(sender));
+      bnEquals(senderBalanceBefore.sub(amount.mul(numTransfers)), await api.query.getTokenBalance(sender, token));
+      bnEquals(recipientBalanceBefore.add(amount.mul(numTransfers)), await api.query.getTokenBalance(user1, token));
+      bnEquals(relayerNonceBefore.add(numTransfers), await api.query.getAccountNonce(relayer));
+      bnEquals(senderNonceBefore.add(numTransfers), await api.query.getAccountNonce(sender));
     })
   })
 })

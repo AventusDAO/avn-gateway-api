@@ -6,18 +6,18 @@ const BAD_REQUEST_ID = '0x000000000000000000000000000000000000000000000000000000
 
 describe('Polling api calls:', async() => {
   let api;
-  let user;
+  let recipient;
 
   before(async () => {
     api = await helper.avnApi();
-    user = accounts.user2.address;
+    recipient = accounts.user1.address;
   })
 
   describe('requestState', async () => {
     let requestId;
 
     before(async () => {
-      requestId = await api.send.transferAvt(user, 1);
+      requestId = await api.send.transferAvt(recipient, 1);
     })
 
     it('returns a pending state for a valid request ID', async () => {

@@ -15,7 +15,7 @@ describe('Proxy api calls:', async() => {
   before(async () => {
     api = await helper.avnApi();
     relayer = accounts.relayer.address;
-    sender = accounts.suri.address;
+    sender = accounts.client.address;
     recipient = accounts.user1.address;
     recipientPubKey = accounts.user1.publicKey;
   })

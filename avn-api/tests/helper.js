@@ -11,7 +11,7 @@ const ACCOUNTS = {
     address: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh',
     publicKey: '0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004'
   },
-  suri: {
+  client: { // process.env.SURI account
     mnemonic: 'rapid pet capable tooth wisdom utility child luggage never toddler gather sea',
     seed: '0x3eee10b8d28ea5a8fb165174022d637a8ec4b632c1e66472b234683a159bf6dd',
     address: '5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH',

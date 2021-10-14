@@ -1,36 +1,31 @@
-var assert = require('chai').assert;
+const assert = require('chai').assert;
+const helper = require('./helper.js');
+const accounts = helper.ACCOUNTS;
 
-describe('Polling api calls', function() {
+const BAD_REQUEST_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'
+
+describe('Polling api calls:', async() => {
+  let api;
+  let recipient;
 
   before(async () => {
-    // Implement me if required
+    api = await helper.avnApi();
+    recipient = accounts.user1.address;
   })
 
-  after(async() => {
-    // Implement me if required
-  })
+  describe('requestState', async () => {
+    let requestId;
 
-  // One happy path for standard transactions
-  it.skip('<happy path (regular transactions) wording>', async () => {
-    assert(false, '<failure reason>');
-  })
-
-  // TODO: Discuss how we want to deal with these first before writting tests
-  // One happy path for Ethereum events transactions, such as Lift, that require waiting for challenge periods
-  it.skip('<happy path (Ethereum Events transactions) wording>', async () => {
-    assert(false, '<failure reason>');
-  })
-
-  // A describe block for failing tests, each testing one bad condition
-  describe('<failure wording>', function() {
-    it.skip('<bad case test 1>', async () => {
-      assert(false, '<failure reason>');
+    before(async () => {
+      requestId = await api.send.transferAvt(recipient, 1);
     })
 
-    it.skip('<bad case test 2>', async () => {
-      assert(false, '<failure reason>');
+    it('returns a pending state for a valid request ID', async () => {
+      assert.equal(await api.poll.requestState(requestId), 'Pending');
     })
 
-    // ...
+    it('returns an error for an invalid request ID', async () => {
+      assert.equal(await api.poll.requestState(BAD_REQUEST_ID), "Unable to access request's state");
+    })
   })
 })

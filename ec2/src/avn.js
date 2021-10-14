@@ -5,10 +5,14 @@ const log4js = require('log4js')
 const fs = require('fs')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
+const { createClient } = require('redis')
 
-const URL = config.avnUrl
+const AVN_URL = config.avnUrl
+const REDIS_URL = config.redisUrl
 const SENDER = config.senderSuri
-let api, sender
+
+const SMARTNONCE_EXPIRY_IN_SECONDS = 5
+let api, redis, sender
 
 async function query(palletName, storageName, params) {
   const result = await api.query[palletName][storageName](...params)
@@ -55,12 +59,25 @@ async function poll(requestId) {
   return result
 }
 
+async function smartNonce(address) {
+  let nonce = await redis.incr(address)
+
+  if (nonce === 0) {
+    nonce = (await api.query.system.account(address)).nonce
+    await redis.setex(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce)
+  } else {
+    await redis.expire(address, SMARTNONCE_EXPIRY_IN_SECONDS)
+  }
+
+  return nonce
+}
+
 async function signAndSend(txn) {
   let result
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    let signedTransaction = await txn.signAsync(sender, { era: 64 }) // default era is 128. using 50 or 60 rounds it to 64 in practice
+    let signedTransaction = await txn.signAsync(sender, {nonce: await smartNonce(sender.address), era: 64}) // default era is 128. using 50 or 60 rounds it to 64 in practice
 
     log.trace('Encoded signed: %j', signedTransaction)
 
@@ -95,9 +112,17 @@ async function connectToAvN(url) {
     avnConnection.rpc.system.version()
   ])
 
-  log.info(`You are connected to chain ${chain} (${URL}) using ${nodeName} v${nodeVersion}\n`)
+  log.info(`You are connected to chain ${chain} (${url}) using ${nodeName} v${nodeVersion}\n`)
 
   return avnConnection
+}
+
+async function connectToRedis(url) {
+  const client = createClient({url: url})
+  client.on('error', (err) => log.info('Redis Client Error', err));
+  await client.connect()
+  log.info(`You are connected to MemoryDB Redis (${url})`)
+  return client
 }
 
 async function createAccount(suri) {
@@ -106,8 +131,11 @@ async function createAccount(suri) {
 }
 
 async function instantiateEC2() {
-  log.info(`Creating a connection to the AVN on: ${URL}`)
-  api = await connectToAvN(URL)
+  log.info(`Creating a connection to the AVN on: ${AVN_URL}`)
+  api = await connectToAvN(AVN_URL)
+
+  log.info(`Creating a connection to MemoryDB Redis on: ${REDIS_URL}`)
+  redis = await connectToRedis(REDIS_URL)
 
   sender = await createAccount(SENDER)
   log.info(`Using sender with address: ${sender.address.toString()}`)

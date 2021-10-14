@@ -10,7 +10,6 @@ const { createClient } = require('redis')
 const AVN_URL = config.avnUrl
 const REDIS_URL = config.redisUrl
 const SENDER = config.senderSuri
-
 const SMARTNONCE_EXPIRY_IN_SECONDS = 5
 let api, redis, sender
 

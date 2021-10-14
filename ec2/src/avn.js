@@ -112,7 +112,7 @@ async function connectToAvN(url) {
     avnConnection.rpc.system.version()
   ])
 
-  log.info(`You are connected to chain ${chain} (${url}) using ${nodeName} v${nodeVersion}\n`)
+  log.info(`You are connected to chain ${chain} (${URL}) using ${nodeName} v${nodeVersion}\n`)
 
   return avnConnection
 }

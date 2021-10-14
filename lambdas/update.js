@@ -78,7 +78,7 @@ function replaceRef(file, a, b) {
 
 async function main() {
   const lambda = process.argv[2];
-  if (lambda === undefined) {
+  if (lambda === 'all') {
     LAMBDAS.forEach(lambda => updateNodeModulesAndPublish(lambda));
   } else if (LAMBDAS.includes(lambda)) {
     updateNodeModulesAndPublish(lambda);

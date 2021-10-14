@@ -9,7 +9,7 @@ on:
 
 env:
   PR_NUMBER: pr-${{ github.event.number }}
-  AUTHORISER: authoriser-handler
+  AUTHORISER: authorisation-handler
   POLL: poll-handler
   SEND: send-handler
   QUERY: query-handler
@@ -31,7 +31,7 @@ jobs:
           node-version: '14'
           cache: 'npm'
           cache-dependency-path: |
-            poll-handler/package-lock.json
+            ${{ env.POLL }}/package-lock.json
             common/package-lock.json
       
       - name: Package Function
@@ -49,7 +49,7 @@ jobs:
           node-version: '14'
           cache: 'npm'
           cache-dependency-path: |
-            send-handler/package-lock.json
+            ${{ env.SEND }}/package-lock.json
             common/package-lock.json
       
       - name: Package Function
@@ -67,7 +67,7 @@ jobs:
           node-version: '14'
           cache: 'npm'
           cache-dependency-path: |
-            query-handler/package-lock.json
+            ${{ env.QUERY }}/package-lock.json
             common/package-lock.json
       
       - name: Package Function
@@ -85,7 +85,7 @@ jobs:
           node-version: '14'
           cache: 'npm'
           cache-dependency-path: |
-            authorisation-handler/package-lock.json
+            ${{ env.AUTHORISER }}/package-lock.json
             common/package-lock.json
       
       - name: Package Function

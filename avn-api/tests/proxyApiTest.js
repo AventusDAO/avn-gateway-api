@@ -4,6 +4,7 @@ const accounts = helper.ACCOUNTS;
 const token = helper.TOKEN;
 const BN = helper.BN;
 const bnEquals = helper.bnEquals;
+const BAD_TOKEN = '0x0000000000000000000000000000000000000000';
 
 const waitForTxToBeMined = async() => await helper.sleep(3500);
 
@@ -30,7 +31,7 @@ describe('Proxy api calls:', async() => {
     })
 
     it('can transfer tokens using a recipient public key', async () => {
-      const amount = new BN(1);
+      const amount = new BN(2);
       await api.send.transferToken(relayer, sender, recipientPubKey, token, amount);
       await waitForTxToBeMined();
       bnEquals(senderBalanceBefore.sub(amount), await api.query.getTokenBalance(sender, token));
@@ -39,17 +40,22 @@ describe('Proxy api calls:', async() => {
     })
 
     it('can make multiple token transfers using a recipient address', async () => {
-      const amount = new BN(2);
-      const numTransfers = new BN(5);
+      const amount = new BN(1);
+      const numTx = new BN(6);
+      const numGoodTx = numTx.sub(new BN(1));
 
-      for (let i=0; i < numTransfers; i++) {
-        await api.send.transferToken(relayer, sender, recipient, token, amount);
+      for (i = 0; i < numTx; i++) {
+        if (i === 3) {
+          assert.equal(await api.send.transferToken(relayer, sender, '0x', token, amount), 'Invalid params');
+        } else {
+          await api.send.transferToken(relayer, sender, recipient, token, amount);
+        }
       }
 
       await waitForTxToBeMined();
-      bnEquals(senderBalanceBefore.sub(amount.mul(numTransfers)), await api.query.getTokenBalance(sender, token));
-      bnEquals(recipientBalanceBefore.add(amount.mul(numTransfers)), await api.query.getTokenBalance(recipient, token));
-      bnEquals(senderNonceBefore.add(numTransfers), await api.query.getAccountNonce(sender));
+      bnEquals(senderBalanceBefore.sub(amount.mul(numGoodTx)), await api.query.getTokenBalance(sender, token));
+      bnEquals(recipientBalanceBefore.add(amount.mul(numGoodTx)), await api.query.getTokenBalance(recipient, token));
+      bnEquals(senderNonceBefore.add(numGoodTx), await api.query.getAccountNonce(sender));
     })
   })
 })

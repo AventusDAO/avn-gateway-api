@@ -3,7 +3,7 @@
 const common = require('./common.js');
 const proxyApi = require('./proxy.js');
 
-const MAX_TX_PROCESSING_TIME = 3500;
+const MAX_TX_PROCESSING_TIME = 3000;
 
 function Send(api, queryApi) {
   this.transferAvt = generateFunction(transferAvt, api);
@@ -43,15 +43,14 @@ Send.prototype.postRequest = async function(api, method, params, isRetry) {
   const response =
     (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
 
-  if (response.result || method !== 'proxy') {
-    return response.result || response.error.message;
-  } else if (isRetry === undefined) {
-    await common.sleep(MAX_TX_PROCESSING_TIME);
-    return await this.postRequest(api, method, params, true);
-  } else {
-    await common.sleep(MAX_TX_PROCESSING_TIME);
+  if (!response.result) {
+    if (method === 'proxy') {
+      await common.sleep(MAX_TX_PROCESSING_TIME);
+      return (!isRetry) ? await this.postRequest(api, method, params, true) : response.error.message;
+    }
     return response.error.message;
   }
+  return response.result;
 }
 
 Send.prototype.smartNonce = async function(queryApi, _account) {

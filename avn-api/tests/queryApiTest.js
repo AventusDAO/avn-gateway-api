@@ -1,7 +1,7 @@
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 
-describe('SendTx api calls:', async() => {
+describe('Query api calls:', async() => {
   let api;
 
   before(async () => {
@@ -10,7 +10,7 @@ describe('SendTx api calls:', async() => {
 
   describe('getTotalAvt', async () => {
 
-    it('gets total AVT', async () => {
+    it('returns total AVT supply', async () => {
       assert.equal(helper.AVT_SUPPLY, await api.query.getTotalAvt());
     })
   })

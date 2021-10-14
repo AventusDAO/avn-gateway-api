@@ -13,7 +13,7 @@ describe('Polling api calls:', async() => {
     user = accounts.user2.address;
   })
 
-  describe('request state', async () => {
+  describe('requestState', async () => {
     let requestId;
 
     before(async () => {

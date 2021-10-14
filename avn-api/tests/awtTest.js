@@ -5,7 +5,7 @@ const accounts = helper.ACCOUNTS;
 const TOKEN_LENGTH = 332;
 const TOKEN_LIFETIME = 60000;
 
-describe('AWT Tokens', async() => {
+describe('AWT authorisation', async() => {
   let api;
   let user;
 
@@ -14,7 +14,7 @@ describe('AWT Tokens', async() => {
     user = accounts.suri;
   })
 
-  describe('can generate a token', async () => {
+  describe('generateAwtToken', async () => {
 
     it('from a mnemonic', async () => {
       let token = api.awt.generateAwtToken(user.mnemonic);
@@ -27,18 +27,18 @@ describe('AWT Tokens', async() => {
     })
   })
 
-  describe('token validity', async () => {
+  describe('tokenAgeIsValid', async () => {
     let token;
 
     before(async () => {
       token = api.awt.generateAwtToken(user.mnemonic);
     })
 
-    it('is valid within lifetime', async () => {
+    it('is valid within its lifetime', async () => {
       assert.equal(api.awt.tokenAgeIsValid(token), true);
     })
 
-    it('is invalid once lifetime has passed', async () => {
+    it.skip('is invalid once lifetime expires', async () => { // Skip since it takes so long to run
       await helper.sleep(TOKEN_LIFETIME)
       assert.equal(api.awt.tokenAgeIsValid(token), false);
     })

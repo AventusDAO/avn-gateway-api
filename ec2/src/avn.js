@@ -9,7 +9,7 @@ const POLL_STATES = {
   Pending: 'Pending',
   Processed: 'Processed',
   Rejected: 'Rejected',
-  SendingFailed: 'SendingFailed',
+  SendingFailed: 'SendingFailed'
 }
 
 const URL = config.avnUrl
@@ -38,28 +38,27 @@ async function proxy(palletName, method, params) {
 }
 
 async function poll(requestId) {
-
-  if(!requestId) {
+  if (!requestId) {
     //TODO: Add more validate such as checking if we have sent that tx already (check by reading from DB)
     log.error(`Unknown request: ${requestId}`)
     return { error: 'Bad request' }
   }
 
   // TODO: Replace me with a database call
-  const axios = require('axios');
+  const axios = require('axios')
   const BLOCK_EXPLORER_URL = `https://avn.sandbox.aventus.io:3000/transactions/${requestId}`
   let result
 
   try {
-    let state;
-    let res = await axios.get(BLOCK_EXPLORER_URL);
-    log.trace(`Indexer found ${JSON.stringify(res.data.data.hits.total.value)} record(s)`);
-    const response = res.data.data.hits.hits;
+    let state
+    let res = await axios.get(BLOCK_EXPLORER_URL)
+    log.trace(`Indexer found ${JSON.stringify(res.data.data.hits.total.value)} record(s)`)
+    const response = res.data.data.hits.hits
 
-    if(response.length > 0) {
-      state = response[0]._source.isFailed === true ? POLL_STATES.Rejected : POLL_STATES.Processed;
+    if (response.length > 0) {
+      state = response[0]._source.isFailed === true ? POLL_STATES.Rejected : POLL_STATES.Processed
     } else {
-      state = POLL_STATES.Pending;
+      state = POLL_STATES.Pending
     }
 
     result = { state: state }

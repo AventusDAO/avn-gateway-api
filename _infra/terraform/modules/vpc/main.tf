@@ -36,6 +36,20 @@ resource "aws_nat_gateway" "gateway" {
   connectivity_type = "public"
   allocation_id     = aws_eip.gateway.id
   subnet_id         = aws_subnet.public_subnets["a"].id
+
+  tags = {
+    Name = "gateway-api"
+  }
+
+  depends_on = [aws_internet_gateway.gateway]
+}
+
+resource "aws_internet_gateway" "gateway" {
+  vpc_id = aws_vpc.gateway.id
+
+  tags = {
+    Name = "gateway-api"
+  }
 }
 
 resource "aws_vpc_peering_connection" "gateway_api" {

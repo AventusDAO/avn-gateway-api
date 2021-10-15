@@ -1,7 +1,7 @@
 const utils = require('../common/utils.js');
 const axios = require('axios');
 const bigInt = require('big-integer');
-const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
+const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:5000/avnQuery';
 
 exports.handler = async (event) => {
   const response = {

@@ -54,7 +54,7 @@ provider "aws" {
   region = var.peer_region
 
   assume_role {
-    role_arn = "arn:aws:iam::602004642405:role/jenkins-access"
+    role_arn = "arn:aws:iam::${var.avn_vpc_owner_id}:role/jenkins-access"
   }
 }
 

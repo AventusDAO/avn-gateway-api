@@ -1,7 +1,6 @@
 {
     "name": "msg-publisher-test",
     "dependencies": {
-        "@cloudamqp/amqp-client": "^1.1.6",
         "amqplib": "^0.8.0"
     }
 }

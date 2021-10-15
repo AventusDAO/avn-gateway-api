@@ -28,8 +28,13 @@ resource "aws_subnet" "public_subnets" {
   }
 }
 
+resource "aws_eip" "gateway" {
+  vpc = true
+}
+
 resource "aws_nat_gateway" "gateway" {
   connectivity_type = "public"
+  allocation_id     = aws_eip.gateway.id
   subnet_id         = aws_subnet.public_subnets["a"].id
 }
 

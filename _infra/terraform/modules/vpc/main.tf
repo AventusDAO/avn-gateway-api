@@ -60,7 +60,8 @@ resource "aws_vpc_peering_connection" "gateway_api" {
   auto_accept   = false
 
   tags = {
-    "Side" = "Requester"
+    Side = "Requester"
+    Name = "gateway-api-to-avn"
   }
 }
 
@@ -80,6 +81,7 @@ resource "aws_vpc_peering_connection_accepter" "peer" {
 
   tags = {
     Side = "Accepter"
+    Name = "gateway-api-to-avn"
   }
 }
 
@@ -101,4 +103,22 @@ resource "aws_vpc_peering_connection_options" "accepter" {
   accepter {
     allow_remote_vpc_dns_resolution = var.enable_dns_hostnames
   }
+}
+
+resource "aws_route_table" "gateway_to_avn" {
+  vpc_id = aws_vpc.gateway.id
+}
+
+resource "aws_route" "gateway_to_avn" {
+  route_table_id            = aws_route_table.gateway_to_avn.id
+  destination_cidr_block    = "10.90.0.0/19" #hard coded vpc from development, must be changed.
+  vpc_peering_connection_id = aws_vpc_peering_connection.gateway_api.id
+}
+
+resource "aws_route" "avn_to_gateway_private_subnets" {
+  for_each                  = var.private_zone_ips
+  provider                  = aws.avn
+  route_table_id            = "rtb-00b575bea946b34bc" #hard coded route table from development vpc, must be changed.
+  destination_cidr_block    = each.value
+  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
 }

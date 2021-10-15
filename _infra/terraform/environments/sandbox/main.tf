@@ -13,3 +13,8 @@ module "avn-gateway-api" {
   send_invoke_arn       = module.lambda_functions.invoke_arns["send-handler"]
   query_invoke_arn      = module.lambda_functions.invoke_arns["query-handler"]
 }
+
+module "vpc" {
+  source     = "../../modules/vpc"
+  avn_vpc_id = "vpc-05185e25d9db05c51"
+}

@@ -115,6 +115,12 @@ resource "aws_route" "gateway_to_avn" {
   vpc_peering_connection_id = aws_vpc_peering_connection.gateway_api.id
 }
 
+resource "aws_route_table_association" "gateway_to_avn" {
+  for_each       = var.private_zone_ips
+  subnet_id      = aws_subnet.private_subnets[each.key].id
+  route_table_id = aws_route_table.gateway_to_avn.id
+}
+
 resource "aws_route" "avn_to_gateway_private_subnets" {
   for_each                  = var.private_zone_ips
   provider                  = aws.avn

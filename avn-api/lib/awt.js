@@ -45,7 +45,7 @@ function tokenAgeIsValid(awtTokenBase64) {
     const issuedAt = new Date(awtToken.iat);
     const tokenAge = new Date() - issuedAt;
 
-    return tokenAge > 0 && tokenAge < MAX_TOKEN_AGE_MSEC;
+    return tokenAge >= 0 && tokenAge < MAX_TOKEN_AGE_MSEC;
   } catch (err) {
     console.error(`Error checking the age of the awt token: ${err}`);
     return false;

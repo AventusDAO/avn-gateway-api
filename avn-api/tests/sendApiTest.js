@@ -1,34 +1,43 @@
-var assert = require('chai').assert;
+const assert = require('chai').assert;
+const helper = require('./helper.js');
+const accounts = helper.ACCOUNTS;
+const token = helper.TOKEN;
+const BN = helper.BN;
+const bnEquals = helper.bnEquals;
 
-describe('SendTx api calls:', function() {
+const waitForTxToBeMined = async() => await helper.sleep(3500);
+
+describe('SendTx api calls:', async() => {
+  let api;
+  let relayer, sender, recipient;
 
   before(async () => {
-    // Implement me if required
+    api = await helper.avnApi();
+    relayer = accounts.relayer.address;
+    sender = accounts.client.address;
+    recipient = accounts.user1.address;
+    recipientPubKey = accounts.user1.publicKey;
   })
 
-  after(async() => {
-    // Implement me if required
-  })
+  describe('transferAVT', async () => {
+    let recipientBalanceBefore;
 
-  // One high level describe per end point
-  describe('transferAvt', function() {
-
-    // One happy path
-    it.skip('<happy path wording>', async () => {
-      assert(false, '<failure reason>');
+    beforeEach(async () => {
+      recipientBalanceBefore = new BN(await api.query.getAvtBalance(recipient));
     })
 
-    // A describe block for failing tests, each testing one bad condition
-    describe('<failure wording>', function() {
-      it.skip('<bad case test 1>', async () => {
-        assert(false, '<failure reason>');
-      })
+    it('can transfer AVT using a recipient address', async () => {
+      const amount = new BN(1);
+      await api.send.transferAvt(recipient, amount);
+      await waitForTxToBeMined();
+      bnEquals(recipientBalanceBefore.add(amount), await api.query.getAvtBalance(recipient));
+    })
 
-      it.skip('<bad case test 2>', async () => {
-        assert(false, '<failure reason>');
-      })
-
-      // ...
+    it('can transfer AVT using a recipient public key', async () => {
+      const amount = new BN(2);
+      await api.send.transferAvt(recipientPubKey, amount);
+      await waitForTxToBeMined();
+      bnEquals(recipientBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey));
     })
   })
 })

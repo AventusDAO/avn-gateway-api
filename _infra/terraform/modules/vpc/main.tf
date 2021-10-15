@@ -59,10 +59,6 @@ resource "aws_vpc_peering_connection" "gateway_api" {
   vpc_id        = aws_vpc.gateway.id
   auto_accept   = false
 
-  requester {
-    allow_remote_vpc_dns_resolution = var.enable_dns_hostnames
-  }
-
   tags = {
     "Side" = "Requester"
   }
@@ -82,11 +78,27 @@ resource "aws_vpc_peering_connection_accepter" "peer" {
   vpc_peering_connection_id = aws_vpc_peering_connection.gateway_api.id
   auto_accept               = true
 
-  accepter {
-    allow_remote_vpc_dns_resolution = var.enable_dns_hostnames
-  }
-  
   tags = {
     Side = "Accepter"
+  }
+}
+
+resource "aws_vpc_peering_connection_options" "requester" {
+  # As options can't be set until the connection has been accepted
+  # create an explicit dependency on the accepter.
+  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
+
+  requester {
+    allow_remote_vpc_dns_resolution = var.enable_dns_hostnames
+  }
+}
+
+resource "aws_vpc_peering_connection_options" "accepter" {
+  provider = aws.avn
+
+  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
+
+  accepter {
+    allow_remote_vpc_dns_resolution = var.enable_dns_hostnames
   }
 }

@@ -2,7 +2,7 @@ const AWS = require('aws-sdk');
 const sqs = new AWS.SQS({region: process.env.QUEUE_REGION});
 
 exports.handler = function(event, context) {
-    // Prepare send message parameters
+
     var params = {
         MessageBody: JSON.stringify(event),
         QueueUrl: process.env.QUEUE_URL,
@@ -10,13 +10,12 @@ exports.handler = function(event, context) {
         MessageDeduplicationId: event.MessageDeduplicationId
     };
 
-    // Send message to SQS fifo queue
     sqs.sendMessage(params, function(err,data){
         if(err) {
-            console.log('error:',"Fail Send Message" + err);
-            context.done('error', "ERROR sending message to SQS");
-        }else{
-            console.log('data:',data.MessageId);
+            console.error('sendMessage', err.stack);
+            context.done('error', 'ERROR sending messages to SQS');
+          }else{
+            console.info('data', JSON.stringify(data));
             context.done(null, JSON.stringify(data));
         }
     });

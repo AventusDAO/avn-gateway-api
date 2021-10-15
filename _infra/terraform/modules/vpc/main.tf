@@ -82,6 +82,10 @@ resource "aws_vpc_peering_connection_accepter" "peer" {
   vpc_peering_connection_id = aws_vpc_peering_connection.gateway_api.id
   auto_accept               = true
 
+  accepter {
+    allow_remote_vpc_dns_resolution = var.enable_dns_hostnames
+  }
+  
   tags = {
     Side = "Accepter"
   }

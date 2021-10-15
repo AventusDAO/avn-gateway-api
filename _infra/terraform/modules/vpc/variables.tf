@@ -4,11 +4,6 @@ variable "name" {
   default     = "gateway-api"
 }
 
-variable "region" {
-  type    = string
-  default = "eu-west-1"
-}
-
 variable "instance_tenancy" {
   type        = string
   description = "Instance launch configuration, can be one of default, dedicated or host. See https://docs.aws.amazon.com/autoscaling/ec2/userguide/auto-scaling-dedicated-instances.html"

@@ -16,5 +16,5 @@ module "avn-gateway-api" {
 
 module "vpc" {
   source     = "../../modules/vpc"
-  avn_vpc_id = "vpc-05185e25d9db05c51"
+  avn_vpc_id = "vpc-074c6e19e26ba4a23"
 }

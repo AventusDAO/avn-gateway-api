@@ -57,7 +57,7 @@ resource "aws_vpc_peering_connection" "gateway_api" {
   peer_vpc_id   = var.avn_vpc_id
   peer_region   = var.peer_region
   vpc_id        = aws_vpc.gateway.id
-  auto_accept   = false
+  auto_accept   = true
 
   requester {
     allow_remote_vpc_dns_resolution = var.enable_dns_hostnames

@@ -19,16 +19,8 @@ exports.handler = function(event) {
 function processRequest(request) {
   smClient.getSecretValue({SecretId: process.env.MQ_SECRET_ARN}, function(err, data) {
     if (err) {
-      if (err.code === 'DecryptionFailureException')
-        throw err;
-      else if (err.code === 'InternalServiceErrorException')
-        throw err;
-      else if (err.code === 'InvalidParameterException')
-        throw err;
-      else if (err.code === 'InvalidRequestException')
-        throw err;
-      else if (err.code === 'ResourceNotFoundException')
-        throw err;
+      console.error('[SECRET MANAGER] get secret value error', err.message);
+      throw err;
     } else if ('SecretString' in data) {
       const secret = JSON.parse(data.SecretString);
       sendMessage(secret.username, secret.password, 'send-txn-queue', JSON.stringify(request));

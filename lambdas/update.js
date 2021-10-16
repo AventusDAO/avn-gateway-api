@@ -13,8 +13,7 @@ const LAMBDAS = [
   'send-handler',
   'authorisation-handler',
   'msg-publisher-test',
-  'sqs-consumer-test',
-  'sqs-publisher-test'
+  'msg-consumer-test'
 ];
 
 async function publish(lambda) {

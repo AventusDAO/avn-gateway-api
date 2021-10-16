@@ -11,7 +11,7 @@ exports.handler = function(event) {
 }
 
 function processRequest(request) {
-  smClient.getSecretValue({SecretId: process.env.SECRET_ARN}, function(err, data) {
+  smClient.getSecretValue({SecretId: process.env.MQ_SECRET_ARN}, function(err, data) {
     if (err) {
       if (err.code === 'DecryptionFailureException')
         throw err;
@@ -31,7 +31,8 @@ function processRequest(request) {
 }
 
 function sendMessage(username, password, queue, message) {
-  amqp.connect(`amqps://${username}:${password}@b-c49c61d0-bac7-41e7-a2c2-7f1c2b012a77.mq.eu-west-2.amazonaws.com:5671`, function(err, conn) {
+  const url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${username}:${password}@`);
+  amqp.connect(url, function(err, conn) {
     console.info('[AMQP] connecting');
     
     if (err) {

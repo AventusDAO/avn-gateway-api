@@ -1,3 +1,9 @@
+/* Environment variables:
+* MQ_BROKER_AMQP_ENDPOINT: Use to build connection url to the RabbitMQ broker
+* MQ_SECRET_ARN: Use to fetch user credentials to build the connection url
+* SECRET_MANAGER_REGION: AWS region where the secret manager is located
+ */
+
 const AWS = require('aws-sdk');
 const amqp = require('amqplib/callback_api');
 const smClient = new AWS.SecretsManager({region: process.env.SECRET_MANAGER_REGION})

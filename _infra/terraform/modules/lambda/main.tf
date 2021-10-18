@@ -2,7 +2,7 @@ resource "aws_lambda_function" "lambda" {
   for_each      = toset(var.lambda_names)
   s3_bucket     = var.artifact_bucket
   s3_key        = "${each.key}/${each.key}-${var.service_version}.zip"
-  function_name = "${each.key}-test"
+  function_name = "${each.key}"
   role          = aws_iam_role.logging_role.arn
   handler       = "index.handler"
 
@@ -11,7 +11,7 @@ resource "aws_lambda_function" "lambda" {
 
 resource "aws_cloudwatch_log_group" "lambda" {
   for_each          = toset(var.lambda_names)
-  name              = "/aws/lambda/${each.key}-test"
+  name              = "/aws/lambda/${each.key}"
   retention_in_days = var.log_retention_period
 
   depends_on = [

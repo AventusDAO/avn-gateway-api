@@ -1,5 +1,5 @@
 const utils = require('../common/utils.js');
-const EC2 = require('../common/resources.json').ec2;
+const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
 
 exports.handler = async (event) => {

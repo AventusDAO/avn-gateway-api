@@ -137,3 +137,11 @@ resource "aws_route" "public_avn_to_gateway_private_subnets" {
   destination_cidr_block    = each.value
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
 }
+
+resource "aws_route" "public_gateway_to_private_avn_subnets" {
+  for_each                  = var.public_zone_ips
+  provider                  = aws.avn
+  route_table_id            = "rtb-0a0b61707b33e0a75" #hard coded route table from development vpc, must be changed.
+  destination_cidr_block    = each.value
+  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
+}

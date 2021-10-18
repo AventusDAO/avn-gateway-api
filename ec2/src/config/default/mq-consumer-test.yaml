@@ -1,0 +1,4 @@
+secretManagerRegion: eu-west-2
+mqSecretArn: arn:aws:secretsmanager:eu-west-2:352429414196:secret:MQAccess-3Hjv36
+mqBrokerAmqpEndpoint: amqps://b-c49c61d0-bac7-41e7-a2c2-7f1c2b012a77.mq.eu-west-2.amazonaws.com:5671
+prefetchSize: 10

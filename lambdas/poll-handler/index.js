@@ -1,6 +1,6 @@
 const utils = require('../common/utils.js');
+const EC2 = require('../common/resources.json').ec2;
 const axios = require('axios');
-const AVN_API_POLL_ENDPOINT = require('../common/resources.json').EC2+'avnPoll';
 
 exports.handler = async (event) => {
   const response = {
@@ -13,7 +13,7 @@ exports.handler = async (event) => {
 async function poll(requestId) {
   let response;
   try {
-    response = await axios.post(AVN_API_POLL_ENDPOINT, {requestId: requestId});
+    response = await axios.post(EC2 + 'avnPoll', {requestId: requestId});
   } catch (e) {
     throw true;
   }

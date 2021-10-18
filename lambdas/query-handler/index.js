@@ -1,6 +1,6 @@
 const utils = require('../common/utils.js');
+const EC2 = require('../common/resources.json').ec2;
 const axios = require('axios');
-const AVN_API_QUERY_ENDPOINT = require('../common/resources.json').EC2+'avnQuery';
 
 exports.handler = async (event) => {
   const response = {
@@ -18,7 +18,7 @@ const format2 = (data) => utils.toBnString(data.data.free);
 async function queryChain(palletName, storageName, params, responseFormatter) {
   let response;
   try {
-    response = await axios.post(AVN_API_QUERY_ENDPOINT, {palletName: palletName, storageName: storageName, params: params});
+    response = await axios.post(EC2 + 'avnQuery', {palletName: palletName, storageName: storageName, params: params});
   } catch (e) {
     throw true;
   }

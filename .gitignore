@@ -4,5 +4,4 @@
 avn-api/.eslintrc.json
 
 # Config file for AWS MQ
-./ec2/src/config/default/mqConfig.yaml
 ec2/src/config/default/mqConfig.yaml

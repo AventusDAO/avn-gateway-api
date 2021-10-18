@@ -64,3 +64,11 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
   role       = aws_iam_role.logging_role.name
   policy_arn = aws_iam_policy.lambda_logging.arn
 }
+
+resource "aws_lambda_permission" "allow_api" {
+  for_each      = toset(var.lambda_names)
+  statement_id  = "AllowAPIgatewayInvokation"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda[each.key].invoke_arn
+  principal     = "apigateway.amazonaws.com"
+}

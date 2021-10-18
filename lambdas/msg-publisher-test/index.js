@@ -61,7 +61,7 @@ function sendMessage(username, password, queue, message) {
       channel.sendToQueue(queue, Buffer.from(message), { persistent: true }, 
         function(err, ok) {
           if (err) {
-            console.error("[AMQP] sendToQueue", err);
+            console.error('[AMQP] sendToQueue', err);
             channel.connection.close();
             throw err;
           }
@@ -78,7 +78,7 @@ function sendMessage(username, password, queue, message) {
 }
 
 // async function testlocal() {
-//   console.log('transferAvt:', await processRequest("{'jsonrpc': '2.0', 'method':'transferAvt', 'params':['5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr', '2'], 'id':5}"));
+//   console.log('transferAvt:', await processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));
 // }
 
 // testlocal();

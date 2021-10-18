@@ -12,7 +12,7 @@ const REQUEST_QUEUE = 'send-txn-queue'; // TODO: Replace the hard coded queue na
 exports.handler = function(event) {
   const response = {
     statusCode: 200,
-    body: JSON.stringify(processRequest(event)) 
+    body: JSON.stringify(processRequest(event))
   };
   return response;
 }
@@ -21,10 +21,10 @@ function processRequest(request) {
   smClient.getSecretValue({SecretId: process.env.MQ_SECRET_ARN}, function(err, data) {
     if (err) {
       console.error('[SECRET MANAGER] get secret value error', err.message);
-      throw err;
+      return err.message;
     } else if ('SecretString' in data) {
       const secret = JSON.parse(data.SecretString);
-      sendMessage(secret.username, secret.password, REQUEST_QUEUE, JSON.stringify(request));
+      return sendMessage(secret.username, secret.password, REQUEST_QUEUE, JSON.stringify(request));
     }
   });
 }
@@ -33,7 +33,7 @@ function sendMessage(username, password, queue, message) {
   const url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
   amqp.connect(url, function(err, conn) {
     console.info('[AMQP] connecting');
-    
+
     if (err) {
       console.error('[AMQP] connect error', err.message);
       return err.message;
@@ -45,20 +45,20 @@ function sendMessage(username, password, queue, message) {
         return `[AMQP] connection error ${err.message}`;
       }
     });
-    
+
     console.info('[AMQP] connected');
 
     conn.createChannel(function(err, channel) {
       if (err) {
         console.error('[AMQP] channel connection error', err.message);
-        throw err;
+        return err.message;
       }
-        
+
       channel.assertQueue(queue, {
         durable: true
       });
-    
-      channel.sendToQueue(queue, Buffer.from(message), { persistent: true }, 
+
+      channel.sendToQueue(queue, Buffer.from(message), { persistent: true },
         function(err, ok) {
           if (err) {
             console.error('[AMQP] sendToQueue', err);
@@ -68,17 +68,19 @@ function sendMessage(username, password, queue, message) {
         }
       );
       console.log('Sent %s to %s', message, queue);
-      
-      conn.close();
-      console.info('[AMQP] disconnected');
-      
+
+      setTimeout(function() {
+        conn.close();
+        console.info('[AMQP] disconnected');
+      }, 500);
+
       return message;
     });
   });
 }
 
-// async function testlocal() {
-//   console.log('transferAvt:', await processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));
+// function testlocal() {
+//   console.log('transferAvt:', processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));
 // }
 
 // testlocal();

@@ -84,6 +84,12 @@ resource "aws_apigatewayv2_deployment" "default" {
   lifecycle {
     create_before_destroy = true
   }
+
+  depends_on = [
+    aws_apigatewayv2_route.poll,
+    aws_apigatewayv2_route.query,
+    aws_apigatewayv2_route.send
+  ]
 }
 
 resource "aws_apigatewayv2_stage" "default" {

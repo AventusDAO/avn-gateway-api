@@ -4,7 +4,7 @@ const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 const { cryptoWaitReady, signatureVerify } = require('@polkadot/util-crypto');
 const { TypeRegistry } = require('@polkadot/types');
 
-const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:5000/avnQuery';
+const AVN_API_QUERY_ENDPOINT = require('../common/resources.json').EC2+'avnQuery';
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const MAX_TOKEN_AGE_MSEC = 60000;
 const CLOCK_JITTER_MSEC = -15000;

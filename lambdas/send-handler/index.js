@@ -1,7 +1,7 @@
 const utils = require('../common/utils.js');
 const axios = require('axios');
-const AVN_API_TX_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:5000/avnTx';
-const AVN_API_PROXY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:5000/avnProxy';
+const AVN_API_TX_ENDPOINT = require('../common/resources.json').EC2+'avnTx';
+const AVN_API_PROXY_ENDPOINT = require('../common/resources.json').EC2+'avnProxy';
 
 exports.handler = async (event) => {
   const response = {

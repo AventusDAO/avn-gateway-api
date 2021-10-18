@@ -1,6 +1,6 @@
 const utils = require('../common/utils.js');
 const axios = require('axios');
-const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:5000/avnQuery';
+const AVN_API_QUERY_ENDPOINT = require('../common/resources.json').EC2+'avnQuery';
 
 exports.handler = async (event) => {
   const response = {

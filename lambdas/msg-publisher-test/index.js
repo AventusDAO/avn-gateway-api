@@ -92,8 +92,8 @@ function send(queue, message) {
       console.error('[AMQP] sendToQueue', err.message);
       throw err;
     }
-    console.log('Sent %s to %s', message, queue);
   });
+  console.log('Sent %s to %s', message, queue);
 }
 
 // function testlocal() {

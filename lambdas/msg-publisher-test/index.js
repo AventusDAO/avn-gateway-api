@@ -6,7 +6,8 @@
 
 const AWS = require('aws-sdk');
 const amqp = require('amqplib/callback_api');
-const smClient = new AWS.SecretsManager({region: process.env.SECRET_MANAGER_REGION})
+const smClient = new AWS.SecretsManager({region: process.env.SECRET_MANAGER_REGION});
+const REQUEST_QUEUE = 'send-txn-queue'; // TODO: Replace the hard coded queue name with an environment variable, or to be decided by the request method
 
 exports.handler = function(event) {
   const response = {
@@ -23,7 +24,7 @@ function processRequest(request) {
       throw err;
     } else if ('SecretString' in data) {
       const secret = JSON.parse(data.SecretString);
-      sendMessage(secret.username, secret.password, 'send-txn-queue', JSON.stringify(request));
+      sendMessage(secret.username, secret.password, REQUEST_QUEUE, JSON.stringify(request));
     }
   });
 }
@@ -57,7 +58,15 @@ function sendMessage(username, password, queue, message) {
         durable: true
       });
     
-      channel.sendToQueue(queue, Buffer.from(message));
+      channel.sendToQueue(queue, Buffer.from(message), { persistent: true }, 
+        function(err, ok) {
+          if (err) {
+            console.error("[AMQP] sendToQueue", err);
+            channel.connection.close();
+            throw err;
+          }
+        }
+      );
       console.log('Sent %s to %s', message, queue);
       
       conn.close();

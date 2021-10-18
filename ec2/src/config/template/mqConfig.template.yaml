@@ -1,0 +1,4 @@
+secretManagerRegion: [AWS region eg.eu-west-2]
+mqSecretArn: [AWS Secret Manager Secret ARN, eg. arn:aws:secretsmanager:{aws_region}:0123456789:secret:{ABCDEFG-012Abc}]
+mqBrokerAmqpEndpoint: [AWS RabbitMQ Broker Amqp Endpoint, eg. amqps://x-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.mq.{aws_region}.amazonaws.com:5671]
+prefetchSize: [Non-zero integer refer to the number of messages a consumer will fetch at once from the message queue, eg.10]

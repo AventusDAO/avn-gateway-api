@@ -9,6 +9,10 @@ const amqp = require('amqplib/callback_api');
 const smClient = new AWS.SecretsManager({region: process.env.SECRET_MANAGER_REGION});
 const REQUEST_QUEUE = 'send-txn-queue'; // TODO: Replace the hard coded queue name with an environment variable, or to be decided by the request method
 
+let url = null;
+let amqpConnection = null;
+let amqpChannel = null;
+
 exports.handler = function(event) {
   const response = {
     statusCode: 200,
@@ -23,14 +27,14 @@ function processRequest(request) {
       console.error('[SECRET MANAGER] get secret value error', err.message);
       return err.message;
     } else if ('SecretString' in data) {
-      const secret = JSON.parse(data.SecretString);
-      return sendMessage(secret.username, secret.password, REQUEST_QUEUE, JSON.stringify(request));
+      ({ username, password } = JSON.parse(data.SecretString));
+      url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
+      return startSendMessage(REQUEST_QUEUE, JSON.stringify(request));
     }
   });
 }
 
-function sendMessage(username, password, queue, message) {
-  const url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
+function startSendMessage(queue, message) {
   amqp.connect(url, function(err, conn) {
     console.info('[AMQP] connecting');
 
@@ -46,36 +50,49 @@ function sendMessage(username, password, queue, message) {
       }
     });
 
+    amqpConnection = conn;
     console.info('[AMQP] connected');
 
-    conn.createChannel(function(err, channel) {
+    return sendMessage(queue, message);
+  });
+}
+
+function sendMessage(queue, message) {
+  try {
+    amqpConnection.createChannel(function(err, channel) {
       if (err) {
         console.error('[AMQP] channel connection error', err.message);
-        return err.message;
+        throw err;
       }
 
       channel.assertQueue(queue, {
         durable: true
       });
 
-      channel.sendToQueue(queue, Buffer.from(message), { persistent: true },
-        function(err, ok) {
-          if (err) {
-            console.error('[AMQP] sendToQueue', err);
-            channel.connection.close();
-            throw err;
-          }
-        }
-      );
-      console.log('Sent %s to %s', message, queue);
+      amqpChannel = channel;
+      send(queue, message);
 
       setTimeout(function() {
-        conn.close();
+        amqpConnection.close();
         console.info('[AMQP] disconnected');
       }, 500);
 
       return message;
     });
+  } catch (err) {
+    return err.message;
+  }
+}
+
+function send(queue, message) {
+  amqpChannel.sendToQueue(queue, Buffer.from(message), {
+    persistent: true
+  }, function(err, ok) {
+    if (err) {
+      console.error('[AMQP] sendToQueue', err.message);
+      throw err;
+    }
+    console.log('Sent %s to %s', message, queue);
   });
 }
 

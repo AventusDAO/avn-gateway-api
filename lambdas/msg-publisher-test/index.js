@@ -30,7 +30,7 @@ function processRequest(request) {
 }
 
 function sendMessage(username, password, queue, message) {
-  const url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${username}:${password}@`);
+  const url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
   amqp.connect(url, function(err, conn) {
     console.info('[AMQP] connecting');
     
@@ -78,7 +78,7 @@ function sendMessage(username, password, queue, message) {
 }
 
 // async function testlocal() {
-//   console.log('transferAvt:', await processRequest('{'jsonrpc': '2.0', 'method':'transferAvt', 'params':['5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr', '2'], 'id':5}'));
+//   console.log('transferAvt:', await processRequest("{'jsonrpc': '2.0', 'method':'transferAvt', 'params':['5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr', '2'], 'id':5}"));
 // }
 
 // testlocal();

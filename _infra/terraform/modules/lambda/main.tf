@@ -69,6 +69,6 @@ resource "aws_lambda_permission" "allow_api" {
   for_each      = toset(var.lambda_names)
   statement_id  = "AllowAPIgatewayInvokation"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda[each.key].invoke_arn
+  function_name = aws_lambda_function.lambda[each.key].name
   principal     = "apigateway.amazonaws.com"
 }

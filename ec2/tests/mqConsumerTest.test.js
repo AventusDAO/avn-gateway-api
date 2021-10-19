@@ -16,7 +16,7 @@
 //      BeforeAll: create some test config files
 //      AfterAll: delete test config files
 //      Wrong secret arn 
-//          Run consuemr script with wrong secret arn in config file to assert error printout, messages are still in the queue
+//          Run consumer script with wrong secret arn in config file to assert error printout, messages are still in the queue
 //      Wrong secret region
 //          Run consumer script with wrong secret region in config file to assert error printout, messages are still in the queue
 //      Wrong MQ broker amqp endpoint

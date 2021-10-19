@@ -67,7 +67,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 resource "aws_lambda_permission" "allow_api" {
   for_each      = toset(var.lambda_names)
-  statement_id  = "AllowAPIgatewayInvokation"
+  statement_id  = "AllowAPIgatewayInvocation"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda[each.key].function_name
   principal     = "apigateway.amazonaws.com"

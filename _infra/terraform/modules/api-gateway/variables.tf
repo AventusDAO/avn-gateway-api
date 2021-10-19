@@ -17,3 +17,8 @@ variable "send_invoke_arn" {
   type        = string
   description = "The invoke ARN of the send handler Lambda function"
 }
+
+variable "authoriser_arn" {
+  type        = string
+  description = "The lambda arn of the authoriser"
+}

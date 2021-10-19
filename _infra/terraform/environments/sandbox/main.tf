@@ -9,6 +9,7 @@ module "lambda_functions" {
 module "avn-gateway-api" {
   source                = "../../modules/api-gateway"
   authoriser_invoke_arn = module.lambda_functions.invoke_arns["authorisation-handler"]
+  authoriser_arn        = module.lambda_functions.lambda_arns["authorisation-handler"]
   poll_invoke_arn       = module.lambda_functions.invoke_arns["poll-handler"]
   send_invoke_arn       = module.lambda_functions.invoke_arns["send-handler"]
   query_invoke_arn      = module.lambda_functions.invoke_arns["query-handler"]

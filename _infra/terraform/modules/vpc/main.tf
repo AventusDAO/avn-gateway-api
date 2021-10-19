@@ -106,8 +106,13 @@ resource "aws_vpc_peering_connection_options" "accepter" {
   }
 }
 
+# private route table
 resource "aws_route_table" "gateway_to_avn" {
   vpc_id = aws_vpc.gateway.id
+
+  tags = {
+    Name = "gateway-api-private-routes"
+  }
 }
 
 resource "aws_route" "gateway_to_avn" {
@@ -121,6 +126,34 @@ resource "aws_route_table_association" "gateway_to_avn" {
   subnet_id      = aws_subnet.private_subnets[each.key].id
   route_table_id = aws_route_table.gateway_to_avn.id
 }
+
+# Allow private instances access to the internet
+resource "aws_route_table_association" "nat_gateway" {
+  gateway_id     = aws_nat_gateway.gateway.id
+  route_table_id = aws_route_table.gateway_to_avn.id
+}
+
+# public route table
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.gateway.id
+
+  tags = {
+    Name = "gateway-api-public-routes"
+  }
+}
+
+resource "aws_route" "public_subnets_to_avn_vpc" {
+  route_table_id            = aws_route_table.public_route_table.id
+  destination_cidr_block    = "10.90.0.0/19" #hard coded vpc from development, must be changed.
+  vpc_peering_connection_id = aws_vpc_peering_connection.gateway_api.id
+}
+
+# Allow public instances access to the internet
+resource "aws_route_table_association" "internet_gateway" {
+  gateway_id     = aws_internet_gateway.gateway.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
 
 resource "aws_route" "avn_to_gateway_private_subnets" {
   for_each                  = var.private_zone_ips
@@ -138,10 +171,15 @@ resource "aws_route" "public_avn_to_gateway_private_subnets" {
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
 }
 
-resource "aws_route" "public_gateway_to_private_avn_subnets" {
+resource "aws_route" "private_avn_subnets_to_public_gateway" {
   for_each                  = var.public_zone_ips
   provider                  = aws.avn
   route_table_id            = "rtb-0a0b61707b33e0a75" #hard coded route table from development vpc, must be changed.
   destination_cidr_block    = each.value
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
 }
+
+# Add internet gateway and avn vpc to the public gateway api route tables
+# turn on lambda invoke permissions on the api gateway. See Nahu messages
+# Add nat ip to the dev security groups for port 443
+# Add london sandbox nat ip to the dev security group

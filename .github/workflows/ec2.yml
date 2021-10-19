@@ -1,0 +1,62 @@
+name: gateway-service
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ./ec2/*
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ec2
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    name: package poll function
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '15'
+          cache: 'npm'
+          cache-dependency-path: |
+            src/package-lock.json
+      
+      - name: Create tag for PR
+        if: github.event.pull_request.merged != 'true'
+        run: echo "DOCKER_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
+      
+      - name: Create tag for merge
+        if: github.event.pull_request.merged == 'true'
+        run: echo "DOCKER_TAG=latest" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.TESTNET_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.TESTNET_AWS_SECRET_ACCESS_KEY }}
+          aws-region: "eu-west-2"
+      
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        # save registry URL in env
+      - run: echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        uses: whoan/docker-build-with-cache-action@v5
+        env:
+          SHORT_IMAGE_NAME: avn-connector
+          ECR_REPOSITORY_PREFIX: gateway-api
+        with:
+          image_name: ${{ env.ECR_REPOSITORY_PREFIX }}/${{ env.SHORT_IMAGE_NAME }}
+          stages_image_name: ${{ env.ECR_REPOSITORY_PREFIX }}/${{ env.SHORT_IMAGE_NAME }}-stages
+          push_git_tag: true
+          image_tag: ${{ env.PR_NUMBER }}
+          registry: ${{ env.ECR_REGISTRY }}
+          context: ./
+          build_extra_args: --compress=true

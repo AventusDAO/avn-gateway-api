@@ -163,14 +163,6 @@ resource "aws_route" "internet_gateway" {
 }
 
 
-resource "aws_route" "avn_to_gateway_private_subnets" {
-  for_each                  = var.private_zone_ips
-  provider                  = aws.avn
-  route_table_id            = var.peer_private_route_table
-  destination_cidr_block    = each.value
-  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
-}
-
 resource "aws_route" "public_avn_to_gateway_private_subnets" {
   for_each                  = var.private_zone_ips
   provider                  = aws.avn
@@ -179,10 +171,26 @@ resource "aws_route" "public_avn_to_gateway_private_subnets" {
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
 }
 
-resource "aws_route" "private_avn_subnets_to_public_gateway" {
+resource "aws_route" "public_avn_to_gateway_public_subnets" {
   for_each                  = var.public_zone_ips
   provider                  = aws.avn
   route_table_id            = var.peer_public_route_table
+  destination_cidr_block    = each.value
+  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
+}
+
+resource "aws_route" "private_avn_to_gateway_private_subnets" {
+  for_each                  = var.private_zone_ips
+  provider                  = aws.avn
+  route_table_id            = var.peer_private_route_table
+  destination_cidr_block    = each.value
+  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
+}
+
+resource "aws_route" "private_avn_subnets_to_public_gateway" {
+  for_each                  = var.public_zone_ips
+  provider                  = aws.avn
+  route_table_id            = var.peer_private_route_table
   destination_cidr_block    = each.value
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
 }

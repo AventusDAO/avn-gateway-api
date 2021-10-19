@@ -18,6 +18,6 @@ module "avn-gateway-api" {
 module "vpc" {
   source                   = "../../modules/vpc"
   avn_vpc_id               = "vpc-074c6e19e26ba4a23"
-  peer_private_route_table = "rtb-0a0b61707b33e0a75"
-  peer_public_route_table  = "rtb-00b575bea946b34bc"
+  peer_public_route_table  = "rtb-0a0b61707b33e0a75"
+  peer_private_route_table = "rtb-00b575bea946b34bc"
 }

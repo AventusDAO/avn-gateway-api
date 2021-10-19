@@ -15,7 +15,6 @@ const POLL_STATES = {
 
 const AVN_URL = config.avnUrl
 const REDIS_URL = config.redisUrl
-const URL = config.avnUrl
 const SENDER = config.senderSuri
 const SMARTNONCE_EXPIRY_IN_SECONDS = 5
 let api, redis, sender
@@ -123,7 +122,7 @@ async function connectToAvN(url) {
     avnConnection.rpc.system.version()
   ])
 
-  log.info(`You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`)
+  log.info(`You are connected to chain ${chain} (${url}) using ${nodeName} v${nodeVersion}\n`)
 
   return avnConnection
 }

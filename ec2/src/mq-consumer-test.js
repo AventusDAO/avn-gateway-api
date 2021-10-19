@@ -68,7 +68,7 @@ function whenConnected(queue) {
     channel.assertQueue(queue, { durable: true }, function(err, _ok) {
       if (closeOnErr(err)) return;
       consume(queue);
-      console.info("consumeMessages is started");
+      console.info("MQ consumer is started");
     });
   });
 }
@@ -91,8 +91,8 @@ function consume(queue) {
   });
 }
 
-function sendRequest(message, callback) {
-  console.info("Got msg ", message.content.toString());
+function sendRequest(request, callback) {
+  console.info("Sent request", request.content.toString());
   callback(true);
 }
 

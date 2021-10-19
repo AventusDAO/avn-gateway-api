@@ -27,7 +27,7 @@ function processRequest(request) {
       console.error('[SECRET MANAGER] get secret value error', err.message);
       return err.message;
     } else if ('SecretString' in data) {
-      ({ username, password } = JSON.parse(data.SecretString));
+      let { username, password } = JSON.parse(data.SecretString);
       url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
       return startSendMessage(REQUEST_QUEUE, JSON.stringify(request));
     }
@@ -96,8 +96,15 @@ function send(queue, message) {
   console.log('Sent %s to %s', message, queue);
 }
 
-// function testlocal() {
-//   console.log('transferAvt:', processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));
+// async function testlocal(n) {
+//   for (var i = 0; i < n; i++) {
+//     console.log('transferAvt:', processRequest(`{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":${i}}`));
+//     await sleep(1000);
+//   }
 // }
 
-// testlocal();
+// function sleep(ms) {
+//   return new Promise((resolve, reject) => setTimeout(resolve, ms) )
+// }
+
+// testlocal(30);

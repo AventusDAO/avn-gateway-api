@@ -15,9 +15,12 @@
 //      Invoke lambda function with a single message to MQ, assert queue is created, and message is inserted in MQ
 //      Invoke lambda function 30 times synchronously, assert 30 messages are inserted in MQ as well
 //  - Unhappy path
-//      Wrong MQ secret
-//          Before: Update the seceret arn in environment variable to a different value
+//      Wrong secret manager aws region
+//          Before: Update the seceret manager region in environment variable to a wrong value
 //          Invoke lambda function, assert error response
-//      Wrong MQ arn
-//          Before: Update the mq arn in environment variable to a different value
+//      Wrong MQ secret arn
+//          Before: Update the MQ secret arn in environment variable to a wrong value
+//          Invoke lambda function, assert error response
+//      Wrong MQ broker amqp endpoint
+//          Before: Update the MQ broker amqp endpoint in environment variable to a wrong value
 //          Invoke lambda function, assert error response

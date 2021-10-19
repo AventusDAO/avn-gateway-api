@@ -2,12 +2,7 @@
 
 // Test Plan for msg-publisher-test lambda function
 
-// BeforeAll 
-//      Deploy a new lambda function with lambda code 
-//      Setup test environment variables
-//      Use a test queue, Assert the queue does not exist.
 // AfterAll
-//      Delete the test lambda function
 //      Delete the test queue in MQ
 
 // Test cases:

@@ -74,13 +74,13 @@ async function poll(requestId) {
 }
 
 async function smartNonce(address) {
-  let nonce = await redis.incr(address)
+  let nonce = await redis.INCR(address)
 
   if (nonce === 1) {
     nonce = (await api.query.system.account(address)).nonce
-    await redis.setex(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce)
+    await redis.SETEX(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce)
   } else {
-    await redis.expire(address, SMARTNONCE_EXPIRY_IN_SECONDS)
+    await redis.EXPIRE(address, SMARTNONCE_EXPIRY_IN_SECONDS)
   }
 
   return nonce

@@ -91,12 +91,8 @@ async function signAndSend(txn) {
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    let nonce = await smartNonce(sender.address)
-    let signedTransaction = await txn.sign(sender, { nonce })
 
-    log.trace('Encoded signed: %j', signedTransaction)
-
-    let receipt = await signedTransaction.send()
+    let receipt = await txn.signAndSend(sender, { nonce: -1 });
     let requestId = receipt.toString()
     result = { requestId: requestId }
 

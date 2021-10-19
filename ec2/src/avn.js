@@ -83,7 +83,7 @@ async function smartNonce(address) {
     await redis.EXPIRE(address, SMARTNONCE_EXPIRY_IN_SECONDS)
   }
 
-  return parseInt(nonce)
+  return nonce.toString()
 }
 
 async function signAndSend(txn) {

@@ -17,7 +17,7 @@ const AVN_URL = config.avnUrl
 const REDIS_URL = config.redisUrl
 const SENDER = config.senderSuri
 const SMARTNONCE_EXPIRY_IN_SECONDS = 5
-let api, redis, sender
+let api, redisClient, sender
 
 async function query(palletName, storageName, params) {
   const result = await api.query[palletName][storageName](...params)
@@ -75,13 +75,13 @@ async function poll(requestId) {
 
 async function smartNonce(sender) {
   let address = sender.address.toString()
-  let nonce = await redis.INCR(address)
+  let nonce = await redisClient.INCR(address)
 
   if (nonce === 1) {
     nonce = await api.rpc.system.accountNextIndex(sender);
-    await redis.SETEX(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce)
+    await redisClient.SETEX(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce)
   } else {
-    await redis.EXPIRE(address, SMARTNONCE_EXPIRY_IN_SECONDS)
+    await redisClient.EXPIRE(address, SMARTNONCE_EXPIRY_IN_SECONDS)
   }
 
   return nonce
@@ -143,7 +143,7 @@ async function instantiateEC2() {
   api = await connectToAvN(AVN_URL)
 
   log.info(`Creating a connection to MemoryDB Redis on: ${REDIS_URL}`)
-  redis = await connectToRedis(REDIS_URL)
+  redisClient = await connectToRedis(REDIS_URL)
 
   sender = await createAccount(SENDER)
   log.info(`Using sender with address: ${sender.address.toString()}`)

@@ -84,6 +84,17 @@ resource "aws_apigatewayv2_deployment" "default" {
   lifecycle {
     create_before_destroy = true
   }
+
+  depends_on = [
+    aws_apigatewayv2_route.poll,
+    aws_apigatewayv2_route.query,
+    aws_apigatewayv2_route.send
+  ]
+}
+
+resource "aws_cloudwatch_log_group" "gateway" {
+  name              = "/aws/lambda/avn-gateway-api"
+  retention_in_days = var.log_retention_period
 }
 
 resource "aws_apigatewayv2_stage" "default" {
@@ -91,4 +102,61 @@ resource "aws_apigatewayv2_stage" "default" {
   name   = "$default"
 
   auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.gateway.arn
+    format          = jsonencode({
+      httpMethod     = "$context.httpMethod"
+      ip             = "$context.identity.sourceIp"
+      protocol       = "$context.protocol"
+      requestId      = "$context.requestId"
+      requestTime    = "$context.requestTime"
+      responseLength = "$context.responseLength"
+      routeKey       = "$context.routeKey"
+      status         = "$context.status"
+    })
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.gateway
+  ]
+}
+
+resource "aws_iam_role" "invocation_role" {
+  name = "api_gateway_auth_invocation"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "apigateway.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "invocation_policy" {
+  name = "AuthoriserInvokeArn"
+  role = aws_iam_role.invocation_role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "lambda:InvokeFunction",
+      "Effect": "Allow",
+      "Resource": "${var.authoriser_arn}"
+    }
+  ]
+}
+EOF
 }

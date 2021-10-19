@@ -27,7 +27,7 @@ function processRequest(request) {
       console.error('[SECRET MANAGER] get secret value error', err.message);
       return err.message;
     } else if ('SecretString' in data) {
-      ({ username, password } = JSON.parse(data.SecretString));
+      let { username, password } = JSON.parse(data.SecretString);
       url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
       return startSendMessage(REQUEST_QUEUE, JSON.stringify(request));
     }

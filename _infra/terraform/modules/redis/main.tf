@@ -11,7 +11,7 @@ resource "aws_elasticache_cluster" "redis" {
   security_group_ids   = aws_security_group.redis.id
 }
 
-resource "aws_elasticache_replication_group" "example" {
+resource "aws_elasticache_replication_group" "redis" {
   count                         = var.replication_enabled ? 1 : 0
   automatic_failover_enabled    = true
   availability_zones            = ["${var.region}a", "${var.region}b", "${var.region}c"]
@@ -23,8 +23,8 @@ resource "aws_elasticache_replication_group" "example" {
   port                          = 6379
 }
 
-resource "aws_elasticache_subnet_group" "bar" {
-  name       = "tf-test-cache-subnet"
+resource "aws_elasticache_subnet_group" "redis" {
+  name       = "gateway-api-redis-subnet-group"
   subnet_ids = var.subnet_ids
 }
 

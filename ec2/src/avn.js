@@ -13,6 +13,7 @@ const POLL_STATES = {
   SendingFailed: 'SendingFailed'
 }
 
+const AVN_URL = config.avnUrl
 const REDIS_URL = config.redisUrl
 const URL = config.avnUrl
 const SENDER = config.senderSuri

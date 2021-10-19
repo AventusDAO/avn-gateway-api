@@ -22,3 +22,9 @@ variable "authoriser_arn" {
   type        = string
   description = "The lambda arn of the authoriser"
 }
+
+variable "log_retention_period" {
+  type        = number
+  description = "Log retention"
+  default     = 1
+}

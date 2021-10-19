@@ -92,11 +92,34 @@ resource "aws_apigatewayv2_deployment" "default" {
   ]
 }
 
+resource "aws_cloudwatch_log_group" "gateway" {
+  name              = "/aws/lambda/avn-gateway-api"
+  retention_in_days = var.log_retention_period
+}
+
 resource "aws_apigatewayv2_stage" "default" {
   api_id = aws_apigatewayv2_api.avn_gateway_api.id
   name   = "$default"
 
   auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.gateway.arn
+    format          = jsonencode({
+      httpMethod     = "$context.httpMethod"
+      ip             = "$context.identity.sourceIp"
+      protocol       = "$context.protocol"
+      requestId      = "$context.requestId"
+      requestTime    = "$context.requestTime"
+      responseLength = "$context.responseLength"
+      routeKey       = "$context.routeKey"
+      status         = "$context.status"
+    })
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.gateway
+  ]
 }
 
 resource "aws_iam_role" "invocation_role" {

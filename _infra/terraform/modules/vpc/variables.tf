@@ -58,3 +58,13 @@ variable "peer_region" {
   description = "Region of the avn blockchain VPC"
   default     = "eu-west-2"
 }
+
+variable "peer_public_route_table" {
+  type        = string
+  description = "The route table id that handles public subnet traffic in the peer VPC"
+}
+
+variable "peer_private_route_table" {
+  type        = string
+  description = "The route table id that handles private subnet traffic in the peer VPC"
+}

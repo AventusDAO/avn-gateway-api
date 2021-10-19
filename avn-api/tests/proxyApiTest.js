@@ -41,7 +41,7 @@ describe('Proxy api calls:', async() => {
 
     it('can make multiple token transfers using a recipient address', async () => {
       const amount = new BN(1);
-      const numTx = new BN(6);
+      const numTx = new BN(100);
       const numGoodTx = numTx.sub(new BN(1));
 
       for (i = 0; i < numTx; i++) {

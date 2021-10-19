@@ -73,17 +73,17 @@ async function poll(requestId) {
   return result
 }
 
-async function smartNonce(address) {
-  let nonce = await redis.INCR(address)
+async function smartNonce(sender) {
+  let nonce = await redis.INCR(sender)
 
-  if (nonce === 1) {
-    nonce = (await api.query.system.account(address)).nonce
-    await redis.SETEX(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce)
+  if (nonce == 1) {
+    nonce = await api.rpc.system.accountNextIndex(sender);
+    await redis.SETEX(sender, SMARTNONCE_EXPIRY_IN_SECONDS, nonce)
   } else {
-    await redis.EXPIRE(address, SMARTNONCE_EXPIRY_IN_SECONDS)
+    await redis.EXPIRE(sender, SMARTNONCE_EXPIRY_IN_SECONDS)
   }
 
-  return nonce.toString()
+  return parseInt(nonce)
 }
 
 async function signAndSend(txn) {
@@ -91,8 +91,9 @@ async function signAndSend(txn) {
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
+    let nonce = await smartNonce(sender)
 
-    let receipt = await txn.signAndSend(sender, { nonce: -1 });
+    let receipt = await txn.signAndSend(sender, { nonce: nonce });
     let requestId = receipt.toString()
     result = { requestId: requestId }
 

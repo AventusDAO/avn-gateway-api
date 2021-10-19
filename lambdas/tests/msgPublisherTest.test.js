@@ -1,7 +1,5 @@
 'use strict';
 
-//TODO: deploy a separate lambda function for integration test only
-
 const assert = require('assert');
 const TEST_FN_NAME = 'msg-publisher-test'; 
 const TEST_QUEUE_NAME = 'test-send-txn-queue';

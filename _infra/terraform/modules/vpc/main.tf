@@ -143,6 +143,12 @@ resource "aws_route_table" "public_route_table" {
   }
 }
 
+resource "aws_route_table_association" "public_subnets" {
+  for_each       = var.public_zone_ips
+  subnet_id      = aws_subnet.public_subnets[each.key].id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
 resource "aws_route" "public_subnets_to_avn_vpc" {
   route_table_id            = aws_route_table.public_route_table.id
   destination_cidr_block    = "10.90.0.0/19" #hard coded vpc from development, must be changed.

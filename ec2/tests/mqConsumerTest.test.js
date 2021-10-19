@@ -16,8 +16,8 @@
 //      BeforeAll: create some test config files
 //      AfterAll: delete test config files
 //      NACK(Negative Acknowledgement)
-//          Run consumer script for multiple valid messages but one invalid message, assert the negative message is still in the queue, and others are removed from queue
-//          TODO: Update consumer script to check some condition to decide ack or nack to keep or delete message from queue
+//          Run consumer script for multiple valid messages but one invalid message, assert the negative message is still in the queue, and others are removed from the queue
+//          TODO: Update consumer script to check some conditions to decide ack or nack to keep or delete the message from queue
 //      Wrong secret arn 
 //          Run consumer script with wrong secret arn in config file to assert error printout, messages are still in the queue
 //      Wrong secret region

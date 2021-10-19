@@ -2,13 +2,19 @@
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
 const config = require('multiconfig').load()
 const log4js = require('log4js')
-const fs = require('fs')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
 const { createClient } = require('redis')
 
-const AVN_URL = config.avnUrl
+const POLL_STATES = {
+  Pending: 'Pending',
+  Processed: 'Processed',
+  Rejected: 'Rejected',
+  SendingFailed: 'SendingFailed'
+}
+
 const REDIS_URL = config.redisUrl
+const URL = config.avnUrl
 const SENDER = config.senderSuri
 const SMARTNONCE_EXPIRY_IN_SECONDS = 5
 let api, redis, sender
@@ -35,24 +41,33 @@ async function proxy(palletName, method, params) {
 }
 
 async function poll(requestId) {
-  let fd, result
-
-  let stateFilename = `state_${requestId}`
-  try {
-    fd = fs.openSync(stateFilename, 'r')
-  } catch (error) {
+  if (!requestId) {
+    //TODO: Add more validate such as checking if we have sent that tx already (check by reading from DB)
     log.error(`Unknown request: ${requestId}`)
-    result = { error: 'Bad request' }
+    return { error: 'Bad request' }
   }
 
-  try {
-    let state = fs.readFileSync(fd, 'utf8')
+  // TODO: Replace me with a database call
+  const axios = require('axios')
+  const BLOCK_EXPLORER_URL = `https://avn.sandbox.aventus.io:3000/transactions/${requestId}`
+  let result
 
-    fs.closeSync(fd)
+  try {
+    let state
+    let res = await axios.get(BLOCK_EXPLORER_URL)
+    log.trace(`Indexer found ${JSON.stringify(res.data.data.hits.total.value)} record(s)`)
+    const response = res.data.data.hits.hits
+
+    if (response.length > 0) {
+      state = response[0]._source.isFailed === true ? POLL_STATES.Rejected : POLL_STATES.Processed
+    } else {
+      state = POLL_STATES.Pending
+    }
+
     result = { state: state }
   } catch (error) {
-    log.error(`Error reading state file: ${stateFilename}`)
-    result = { error: `Unable to access request's state` }
+    log.error(`Error getting transaction state for requestId ${requestId}: ${error}`)
+    throw new Error(`Unable to get transaction state for requestId: ${requestId}`)
   }
 
   return result
@@ -84,11 +99,7 @@ async function signAndSend(txn) {
     let requestId = receipt.toString()
     result = { requestId: requestId }
 
-    // TODO: replace me with real code
-    let stateFilename = `state_${requestId}`
-    let fd = fs.openSync(stateFilename, 'w')
-    fs.writeSync(fd, 'Pending')
-    fs.closeSync(fd)
+    // TODO: Add logic to store the requestId somewhere (probably a DB) so it can be used when Polling a result
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`)
     throw err

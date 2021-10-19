@@ -1,5 +1,5 @@
 resource "aws_apigatewayv2_api" "avn_gateway_api" {
-  name          = "avn-gateway-api-test"
+  name          = "avn-gateway-api"
   protocol_type = "HTTP"
 }
 

@@ -24,7 +24,20 @@ describe('Polling api calls:', async() => {
       assert.equal(await api.poll.requestState(requestId), 'Pending');
     })
 
-    it('returns an error for an invalid request ID', async () => {
+    it('returns a processed state for a valid request ID', async () => {
+      const maxPoll = 5;
+      let state;
+
+      for (i=0; i< 5; i++) {
+        await helper.sleep(10000);
+        state = await api.poll.requestState(requestId);
+        if (state === 'Processed') break;
+      }
+
+      assert.equal(state, 'Processed');
+    })
+
+    it.skip('returns an error for an invalid request ID', async () => {
       assert.equal(await api.poll.requestState(BAD_REQUEST_ID), "Unable to access request's state");
     })
   })

@@ -1,10 +1,10 @@
+const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
 const BN = require('bn.js');
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 const { cryptoWaitReady, signatureVerify } = require('@polkadot/util-crypto');
 const { TypeRegistry } = require('@polkadot/types');
 
-const AVN_API_QUERY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:3000/avnQuery';
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const MAX_TOKEN_AGE_MSEC = 60000;
 const CLOCK_JITTER_MSEC = -15000;
@@ -57,7 +57,7 @@ async function validateAwtToken(event) {
 async function userHasAvtBalance(awtToken) {
   // query the chain for balance info
   try {
-    const response = await axios.post(AVN_API_QUERY_ENDPOINT, {palletName: 'system', storageName: 'account', params: [awtToken.pk]});
+    const response = await axios.post(EC2 + 'avnQuery', {palletName: 'system', storageName: 'account', params: [awtToken.pk]});
     const avtBalance = new BN(response.data.data.free.replace('0x',''), 16);
     return avtBalance.gte(MIN_AVT_BALANCE);
   } catch (err) {

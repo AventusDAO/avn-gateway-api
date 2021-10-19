@@ -23,6 +23,7 @@ module "vpc" {
 }
 
 module "redis" {
-  source                   = "../../modules/redis"
-  replication_enabled      = false
+  source              = "../../modules/redis"
+  region              = var.region
+  replication_enabled = false
 }

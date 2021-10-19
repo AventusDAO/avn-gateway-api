@@ -13,7 +13,7 @@ resource "aws_elasticache_replication_group" "example" {
   count                         = var.replication_enabled ? 1 : 0
   automatic_failover_enabled    = true
   availability_zones            = ["${var.region}a", "${var.region}b", "${var.region}c"]
-  replication_group_id          = "gateway_api_replication_group"
+  replication_group_id          = "gateway-api-replication-group"
   replication_group_description = "Replication group for the gateway api cache"
   node_type                     = var.node_type
   number_cache_clusters         = var.replica_node_count

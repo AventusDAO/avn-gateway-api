@@ -83,7 +83,7 @@ async function smartNonce(address) {
     await redis.EXPIRE(address, SMARTNONCE_EXPIRY_IN_SECONDS)
   }
 
-  return nonce
+  return parseInt(nonce)
 }
 
 async function signAndSend(txn) {
@@ -91,7 +91,8 @@ async function signAndSend(txn) {
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    let signedTransaction = await txn.signAsync(sender, await smartNonce(sender.address))
+    let nonce = await smartNonce(sender.address)
+    let signedTransaction = await txn.sign(sender, { nonce })
 
     log.trace('Encoded signed: %j', signedTransaction)
 

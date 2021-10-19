@@ -11,7 +11,7 @@
 //  - Happy Path
 //      BeforeEach: insert 30 messages synchronously
 //      Start a single consumer script, then assert the print out messages are 1) the same as inserted ones, 2) no deuplications, 3) in FIFO order, and 4) removed from queue
-//      Start two consumer scripts, then assert in each consumer script print out, the messages are 1) from the inserted ones, 2) no deuplications, 3) in FIFO order, and 4) removed from queue
+//      Start two consumer scripts, then assert in each consumer script print out, the messages are 1) from the inserted ones, 2) no duplications, 3) in FIFO order, and 4) removed from queue
 //  - Unhappy Path:
 //      BeforeAll: create some test config files
 //      AfterAll: delete test config files

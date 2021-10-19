@@ -10,14 +10,13 @@ describe('Lambda function: msg-publisher-test', function() {
     })
 
     describe(`publish messages to MQ queue ${TEST_QUEUE_NAME}`, function() {
-        let singleTestMessage = [];
-        let thirtyTestMessages = [];
+        let testMessages = [];
 
-        describe('publish 1 message when queue does not exist', function() {
-            before(function(){
+        describe('publish multiple messages when queue does not exist', function() {
+            before(function() {
                 assertQueueNotExistInMQBroker(TEST_QUEUE_NAME);
-                singleTestMessage = generateMessages(1);
-                invokeLambdaFn(TEST_FN_NAME, singleTestMessage, TEST_QUEUE_NAME);
+                testMessages = generateMessages(30);
+                invokeLambdaFn(TEST_FN_NAME, testMessages, TEST_QUEUE_NAME);
             })
 
             describe('succeeded implies that', function() {
@@ -25,20 +24,9 @@ describe('Lambda function: msg-publisher-test', function() {
                     assertQueueExistInMQBroker(TEST_QUEUE_NAME);
                 })
 
-                it(`the new message is added to queue ${TEST_QUEUE_NAME}`, function(){
+                it(`new messages are added to queue ${TEST_QUEUE_NAME}`, function(){
                     assertMessagesInQueue(singleTestMessage, TEST_QUEUE_NAME);
                 })
-            })
-        })
-
-        describe('publish 30 messages when queue already exist', function(){
-            before(function() {
-                thirtyTestMessages = generateMessages(30);
-                invokeLambdaFn(TEST_FN_NAME, thirtyTestMessages, TEST_QUEUE_NAME);
-            })
-
-            it(`30 new messages are added to queue ${TEST_QUEUE_NAME}`, function(){
-                assertMessagesInQueue([...singleTestMessage, ...thirtyTestMessages], TEST_QUEUE_NAME);
             })
         })
     })

@@ -37,5 +37,5 @@ variable "vpc_id" {
 
 variable "subnet_ids" {
   type        = list(string)
-  description = "Subnet ids to deploy the redis cluster into."
+  description = "Subnet ids to deploy the redis cluster into"
 }

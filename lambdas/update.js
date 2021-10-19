@@ -1,5 +1,5 @@
 const { LambdaClient, UpdateFunctionCodeCommand } = require('@aws-sdk/client-lambda');
-const aws = new LambdaClient({ region: 'eu-west-2'});
+const aws = new LambdaClient({ region: 'eu-west-1'});
 const zipdir = require('zip-dir');
 const fs = require('fs');
 const resolve = require('path').resolve;

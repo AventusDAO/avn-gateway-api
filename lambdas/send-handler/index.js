@@ -1,7 +1,6 @@
 const utils = require('../common/utils.js');
+const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
-const AVN_API_TX_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:5000/avnTx';
-const AVN_API_PROXY_ENDPOINT = 'http://ec2-35-178-74-219.eu-west-2.compute.amazonaws.com:5000/avnProxy';
 
 exports.handler = async (event) => {
   const response = {
@@ -14,7 +13,7 @@ exports.handler = async (event) => {
 async function sendTx(palletName, method, params) {
   let response;
   try {
-    response = await axios.post(AVN_API_TX_ENDPOINT, {palletName: palletName, method: method, params: params});
+    response = await axios.post(EC2 + 'avnTx', {palletName: palletName, method: method, params: params});
   } catch (e) {
     console.log('sendTx Error:', e);
     throw true;
@@ -25,7 +24,7 @@ async function sendTx(palletName, method, params) {
 async function sendProxyTx(palletName, method, params) {
   let response;
   try {
-    response = await axios.post(AVN_API_PROXY_ENDPOINT, {palletName: palletName, method: method, params: params});
+    response = await axios.post(EC2 + 'avnProxy', {palletName: palletName, method: method, params: params});
   } catch (e) {
     console.log('sendProxyTx Error:', e);
     throw true;

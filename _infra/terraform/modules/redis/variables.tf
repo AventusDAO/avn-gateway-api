@@ -1,3 +1,7 @@
+variable "region" {
+  type = string
+}
+
 variable "redis_version" {
   type    = string
   default = "6.x"

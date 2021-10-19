@@ -1,5 +1,5 @@
 # avn-gateway-api - Server code
-
+ 
 ## Pre-requisite
 Before running the container, create a `log` folder with the correct permission by running the following commands from the root of the application:
 

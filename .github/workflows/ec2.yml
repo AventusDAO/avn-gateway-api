@@ -6,6 +6,11 @@ on:
       - main
     paths:
       - ./ec2/*
+  push:
+    branches:
+      - main
+    paths:
+      - ./ec2/*
 
 defaults:
   run:

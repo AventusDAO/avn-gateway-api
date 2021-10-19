@@ -10,6 +10,6 @@ endif
 
 push: package
 ifndef docker-repo
-	$(error docker-repo not defined, if doing local testing run $ docker package)
+	$(error docker-repo not defined, if doing local testing run "docker package")
 endif
 	docker push $(docker-repo):$(version)

@@ -91,7 +91,7 @@ async function signAndSend(txn) {
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    let signedTransaction = await txn.signAsync(sender, {nonce: await smartNonce(sender.address), era: 64}) // default era is 128. using 50 or 60 rounds it to 64 in practice
+    let signedTransaction = await txn.signAsync(sender, await smartNonce(sender.address))
 
     log.trace('Encoded signed: %j', signedTransaction)
 

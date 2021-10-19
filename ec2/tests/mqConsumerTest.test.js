@@ -18,6 +18,6 @@
 //      Wrong secret arn 
 //          Run consuemr script with wrong secret arn in config file to assert error printout, messages are still in the queue
 //      Wrong secret region
-//          Run consuemr script with wrong secret region in config file to assert error printout, messages are still in the queue
+//          Run consumer script with wrong secret region in config file to assert error printout, messages are still in the queue
 //      Wrong MQ broker amqp endpoint
 //          Run consumer script with wrong MQ broker amqp endpoint in config file to assert error printout, messages are still in the queue

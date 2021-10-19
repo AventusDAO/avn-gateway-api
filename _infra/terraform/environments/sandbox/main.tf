@@ -21,3 +21,8 @@ module "vpc" {
   peer_public_route_table  = "rtb-0a0b61707b33e0a75"
   peer_private_route_table = "rtb-00b575bea946b34bc"
 }
+
+module "redis" {
+  source                   = "../../modules/redis"
+  replication_enabled      = false
+}

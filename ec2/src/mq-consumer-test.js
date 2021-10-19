@@ -1,3 +1,10 @@
+// This script is started by executing command `/ec2/src$ node mq-consumer-test.js`
+// It keeps consuming messages from a message queue, and try to reconnect if a connection is closed or failed be established.
+// It receives a number of messages specified in the configuration file, then prints out each message as `Sent request [message]`,
+// and finally acknowledges the queue to delete the message.
+
+// TODO: Integrate with existing services
+
 'use strict'
 
 const config = require('multiconfig').load();

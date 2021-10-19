@@ -1,26 +1,64 @@
-// TO BE IMPLEMENTED
+'use strict';
 
-// Test Plan for msg-publisher-test lambda function
+//TODO: deploy a separate lambda function for integration test only
 
-// BeforeAll 
-//      Deploy a new lambda function with lambda code 
-//      Setup test environment variables
-//      Use a test queue, Assert the queue does not exist.
-// AfterAll
-//      Delete the test lambda function
-//      Delete the test queue in MQ
+const assert = require('assert');
+const TEST_FN_NAME = 'msg-publisher-test'; 
+const TEST_QUEUE_NAME = 'test-send-txn-queue';
 
-// Test cases:
-//  - Happy path
-//      Invoke lambda function with a single message to MQ, assert queue is created, and message is inserted in MQ
-//      Invoke lambda function 30 times synchronously, assert 30 messages are inserted in MQ as well
-//  - Unhappy path
-//      Wrong secret manager aws region
-//          Before: Update the seceret manager region in environment variable to a wrong value
+describe('Lambda function: msg-publisher-test', function() {
+    after(function() {
+        deleteQueueInMQBroker(TEST_QUEUE_NAME);
+    })
+
+    describe(`publish messages to MQ queue ${TEST_QUEUE_NAME}`, function() {
+        let singleTestMessage = [];
+        let thirtyTestMessages = [];
+
+        describe('publish 1 message when queue does not exist', function() {
+            before(function(){
+                assertQueueNotExistInMQBroker(TEST_QUEUE_NAME);
+                singleTestMessage = generateMessages(1);
+                invokeLambdaFn(TEST_FN_NAME, singleTestMessage, TEST_QUEUE_NAME);
+            })
+
+            describe('succeeded implies that', function() {
+                it(`queue ${TEST_QUEUE_NAME} is created`, function(){
+                    assertQueueExistInMQBroker(TEST_QUEUE_NAME);
+                })
+
+                it(`the new message is added to queue ${TEST_QUEUE_NAME}`, function(){
+                    assertMessagesInQueue(singleTestMessage, TEST_QUEUE_NAME);
+                })
+            })
+        })
+
+        describe('publish 30 messages when queue already exist', function(){
+            before(function() {
+                thirtyTestMessages = generateMessages(30);
+                invokeLambdaFn(TEST_FN_NAME, thirtyTestMessages, TEST_QUEUE_NAME);
+            })
+
+            it(`30 new messages are added to queue ${TEST_QUEUE_NAME}`, function(){
+                assertMessagesInQueue([...singleTestMessage, ...thirtyTestMessages], TEST_QUEUE_NAME);
+            })
+        })
+    })
+
+    describe('Fails with', function(){
+        it('wrong secret manager region', function(){
+//          Before: Update the seceret manager region in environment variable to a different value
 //          Invoke lambda function, assert error response
-//      Wrong MQ secret arn
-//          Before: Update the MQ secret arn in environment variable to a wrong value
+        })
+
+        it('wrong MQ secret arn', function(){
+//          Before: Update the seceret arn in environment variable to a different value
 //          Invoke lambda function, assert error response
-//      Wrong MQ broker amqp endpoint
-//          Before: Update the MQ broker amqp endpoint in environment variable to a wrong value
+        })
+
+        it('Wrong MQ broker amqp endpoint', function(){
+//          Before: Update the MQ broker amqp endpoint in environment variable to a different value
 //          Invoke lambda function, assert error response
+        })
+    })
+})

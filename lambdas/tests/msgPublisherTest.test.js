@@ -7,8 +7,7 @@
 
 // Test cases:
 //  - Happy path
-//      Invoke lambda function with a single message to MQ, assert queue is created, and message is inserted in MQ
-//      Invoke lambda function 30 times synchronously, assert 30 messages are inserted in MQ as well
+//      Invoke lambda function 30 times synchronously, assert assert queue is created, and 30 messages are inserted in MQ as well
 //  - Unhappy path
 //      Wrong secret manager aws region
 //          Before: Update the seceret manager region in environment variable to a wrong value

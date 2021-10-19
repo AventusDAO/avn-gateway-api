@@ -128,9 +128,10 @@ resource "aws_route_table_association" "gateway_to_avn" {
 }
 
 # Allow private instances access to the internet
-resource "aws_route_table_association" "nat_gateway" {
-  gateway_id     = aws_nat_gateway.gateway.id
-  route_table_id = aws_route_table.gateway_to_avn.id
+resource "aws_route" "nat_gateway" {
+  nat_gateway_id         = aws_nat_gateway.gateway.id
+  destination_cidr_block = "0.0.0.0/0"
+  route_table_id         = aws_route_table.gateway_to_avn.id
 }
 
 # public route table
@@ -149,9 +150,10 @@ resource "aws_route" "public_subnets_to_avn_vpc" {
 }
 
 # Allow public instances access to the internet
-resource "aws_route_table_association" "internet_gateway" {
-  gateway_id     = aws_internet_gateway.gateway.id
-  route_table_id = aws_route_table.public_route_table.id
+resource "aws_route" "internet_gateway" {
+  gateway_id             = aws_internet_gateway.gateway.id
+  destination_cidr_block = "0.0.0.0/0"
+  route_table_id         = aws_route_table.public_route_table.id
 }
 
 

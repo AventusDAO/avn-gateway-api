@@ -7,6 +7,8 @@ resource "aws_elasticache_cluster" "redis" {
   parameter_group_name = "default.redis${var.redis_version}"
   engine_version       = var.redis_version
   port                 = 6379
+  subnet_group_name    = aws_elasticache_subnet_group.redis.name
+  security_group_ids   = aws_security_group.redis.id
 }
 
 resource "aws_elasticache_replication_group" "example" {
@@ -19,4 +21,33 @@ resource "aws_elasticache_replication_group" "example" {
   number_cache_clusters         = var.replica_node_count
   parameter_group_name          = "default.redis${var.redis_version}"
   port                          = 6379
+}
+
+resource "aws_elasticache_subnet_group" "bar" {
+  name       = "tf-test-cache-subnet"
+  subnet_ids = var.subnet_ids
+}
+
+resource "aws_security_group" "redis" {
+  name = "redis"
+  description = "ElastiCache Redis Security Group"
+  vpc_id = var.vpc_id
+
+  ingress {
+    from_port = "6739"
+    to_port = "6739"
+    protocol = "tcp"
+    cidr_blocks = var.ip_whitelist
+  }
+
+  egress {
+    from_port = "0"
+    to_port = "0"
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name = "ElastiCache Redis Node"
+  }
 }

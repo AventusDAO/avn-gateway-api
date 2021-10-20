@@ -64,21 +64,29 @@ async function poll(requestId) {
   return result
 }
 
+async function getNonce(senderAddress) {
+  let nonce = await redis.getNextNonce(senderAddress)
+  if (!nonce) {
+    nonce = (await api.query.system.account(senderAddress)).nonce
+    await redis.setNonce(senderAddress, nonce)
+  } else {
+    await redis.refreshNonce(senderAddress)
+  }
+  return nonce
+}
+
 async function signAndSend(txn) {
   let result
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    let signedTransaction = await txn.signAsync(sender, { era: 64 }) // default era is 128. using 50 or 60 rounds it to 64 in practice
-
-    log.trace('Encoded signed: %j', signedTransaction)
-
-    let receipt = await signedTransaction.send()
+    let nonce = await getNonce(sender.address)
+    let receipt = await txn.signAndSend(sender, { nonce })
     let requestId = receipt.toString()
-
     result = { requestId }
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`)
+    await redis.resetNonce(sender.address)
     throw err
   }
 

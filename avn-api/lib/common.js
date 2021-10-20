@@ -32,10 +32,15 @@ function obtainClientSuri() {
   return process.env.SURI;
 }
 
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 module.exports = {
   isAccountPK,
   convertToPublicKeyIfNeeded,
   obtainClientSuri,
   keyring,
-  registry
+  registry,
+  sleep,
 };

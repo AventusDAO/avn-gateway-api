@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - ./ec2/*
+      - 'ec2/**'
   push:
     branches:
       - main
     paths:
-      - ./ec2/*
+      - 'ec2/**'
 
 defaults:
   run:
@@ -18,26 +18,30 @@ defaults:
     working-directory: ec2
 
 jobs:
-  poll:
+  connector:
     runs-on: ubuntu-latest
-    name: package poll function
+    name: package EC2 image
     steps:
       - uses: actions/checkout@v2
 
       - uses: actions/setup-node@v2
         with:
           node-version: '15'
-          cache: 'npm'
-          cache-dependency-path: |
-            src/package-lock.json
       
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Create tag for PR
         if: github.event.pull_request.merged != 'true'
         run: echo "DOCKER_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
       
       - name: Create tag for merge
         if: github.event.pull_request.merged == 'true'
-        run: echo "DOCKER_TAG=latest" >> $GITHUB_ENV
+        run: echo "DOCKER_TAG=${GITHUB_SHA::8},latest" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -61,7 +65,7 @@ jobs:
           image_name: ${{ env.ECR_REPOSITORY_PREFIX }}/${{ env.SHORT_IMAGE_NAME }}
           stages_image_name: ${{ env.ECR_REPOSITORY_PREFIX }}/${{ env.SHORT_IMAGE_NAME }}-stages
           push_git_tag: true
-          image_tag: ${{ env.PR_NUMBER }}
+          image_tag: ${{ env.DOCKER_TAG }}
           registry: ${{ env.ECR_REGISTRY }}
-          context: ./
+          context: ec2/
           build_extra_args: --compress=true

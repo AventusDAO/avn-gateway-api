@@ -1,6 +1,7 @@
 'use strict'
 const config = require('multiconfig').load()
 const avn = require('./avn')
+const redis = require('./redis')
 const express = require('express')
 const log4js = require('log4js')
 
@@ -63,4 +64,9 @@ app.listen(port, () => {
   log.info(`EC2 avn-connector listening on port ${port}`)
 })
 
-avn.instantiateEC2()
+async function instantiateEC2() {
+  await avn.connectToAvN()
+  await redis.connect()
+}
+
+instantiateEC2()

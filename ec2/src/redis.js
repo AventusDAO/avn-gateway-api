@@ -50,14 +50,14 @@ function retryStrategy(options) {
 async function connect() {
   log.info(`Attempting to connect to Redis database on ${connectionConfig.host}:${connectionConfig.port}`);
 
-  redisClient = redis.createClient(connectionConfig)
+  redisClient = redis.createClient()
 
   redisClient.on('connect'     , () => log.info('Connected to Redis database'));
   redisClient.on('reconnecting', () => log.warn('Reconnecting to Redis database'));
   redisClient.on('error'       , (err) => log.error('Redis connection error ', err));
   redisClient.on('end'         , () => log.warn('Closing Redis connection'));
 
-  await redisClient.connect()
+  await redisClient.connect(connectionConfig)
 }
 
 async function addPendingAvnTransaction(transactionHash, senderAddress, senderNonce) {

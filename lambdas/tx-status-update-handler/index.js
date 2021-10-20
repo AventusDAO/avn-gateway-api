@@ -10,15 +10,15 @@ const transactionStates = {
   Rejected: 'Rejected'
 }
 
-exports.handler = async (event) => {
+exports.handler = async (_event) => {
   const response = {
     statusCode: 200,
-    body: JSON.stringify(await processRequest(event.body))
+    body: JSON.stringify(await processRequest())
   };
   return response;
 };
 
-async function processRequest(requestObject) {
+async function processRequest() {
   try {
     const transactions = []
     // Get transactions that need resolving (i.e. that are pending)

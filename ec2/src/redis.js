@@ -93,21 +93,21 @@ function buildTransactionJson(senderAddress, senderNonce) {
 }
 
 async function getNextNonce(senderAddress) {
-  const nextNonce = await redisClient.incr(senderAddress)
+  const nextNonce = await redisClient.incr(NONCE_NAMESPACE + senderAddress)
   // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
   return (nextNonce === 1) ? undefined : nextNonce
 }
 
 async function resetNonce(senderAddress) {
-  await redisClient.decr(senderAddress)
+  await redisClient.decr(NONCE_NAMESPACE + senderAddress)
 }
 
 async function setNonce(senderAddress, nonce) {
-  await redisClient.setEx(senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString())
+  await redisClient.setEx(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString())
 }
 
 async function refreshNonce(senderAddress) {
-  await redisClient.expire(senderAddress, NONCE_EXPIRY_IN_SECONDS)
+  await redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS)
 }
 
 module.exports = {

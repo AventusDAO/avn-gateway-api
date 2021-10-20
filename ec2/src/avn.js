@@ -64,7 +64,7 @@ async function poll(requestId) {
   return result
 }
 
-async function smartNonce(senderAddress) {
+async function getNonce(senderAddress) {
   let nonce = await redis.getNextNonce(senderAddress)
   if (!nonce) {
     nonce = (await api.query.system.account(senderAddress)).nonce
@@ -80,7 +80,7 @@ async function signAndSend(txn) {
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    let nonce = await smartNonce(sender.address)
+    let nonce = await getNonce(sender.address)
     let receipt = await txn.signAndSend(sender, { nonce })
     let requestId = receipt.toString()
     result = { requestId }

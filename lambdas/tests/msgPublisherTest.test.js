@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const config = require('multiconfig').load({directory: '../../ec2/src/config/'});
+const config = require('multiconfig').load({directory: 'ec2/src/config/'});
 const amqp = require('amqplib/callback_api');
 const AWS = require('aws-sdk');
 AWS.config.update({region: config.mq.secretManagerRegion});
@@ -52,7 +52,7 @@ describe('Lambda function: msg-publisher-test', function() {
         'MQ_SECRET_ARN': config.mq.mqSecretArn,
         'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
       });
-      let response = await publishMessage(newTestMessage(31));
+      let response = await publishMessage(newTestMessage(PREFETCH_SIZE + 1));
       assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'Error');
     })
 
@@ -62,7 +62,7 @@ describe('Lambda function: msg-publisher-test', function() {
         'MQ_SECRET_ARN': 'abc',
         'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
       });
-      let response = await publishMessage(newTestMessage(32));
+      let response = await publishMessage(newTestMessage(PREFETCH_SIZE + 2));
       assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'ResourceNotFoundException');
     })
 
@@ -72,7 +72,7 @@ describe('Lambda function: msg-publisher-test', function() {
         'MQ_SECRET_ARN': config.mq.mqSecretArn,
         'SECRET_MANAGER_REGION': 'abc'
       });
-      let response = await publishMessage(newTestMessage(33));
+      let response = await publishMessage(newTestMessage(PREFETCH_SIZE + 3));
       assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'UnknownEndpoint');
     })
   })

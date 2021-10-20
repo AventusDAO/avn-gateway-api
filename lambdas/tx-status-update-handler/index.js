@@ -22,7 +22,7 @@ async function processRequest(requestObject) {
   try {
     const transactions = []
     // Get transactions that need resolving (i.e. that are pending)
-    const pendingTransactionHashs = response = await axios.get(EC2 + 'pendingTransactions');
+    const pendingTransactionHashs = await axios.get(EC2 + 'pendingTransactions');
 
     if (pendingTransactionHashs.length == 0) {
       console.log(`No pending transactions to resolve`)
@@ -56,6 +56,6 @@ async function getTransactionStatusFromIndexer(transactionHash) {
     }
 
   } catch (error) {
-    log.error(`Error getting transaction state for transaction hash ${transactionHash}: ${error}`)
+    console.error(`Error getting transaction state for transaction hash ${transactionHash}: ${error}`)
   }
 }

@@ -21,7 +21,7 @@ app.post('/avnQuery', async (req, res, next) => {
   try {
     log.trace(`request body: ${JSON.stringify(req.body)}`)
     const result = await avn.query(req.body.palletName, req.body.storageName, req.body.params)
-    res.send(result.toString())
+    res.send(JSON.stringify(result.toJSON()))
   } catch (err) {
     next(err)
   }

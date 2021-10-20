@@ -1,5 +1,5 @@
 const { LambdaClient, UpdateFunctionCodeCommand } = require('@aws-sdk/client-lambda');
-const aws = new LambdaClient({ region: 'eu-west-2'});
+const aws = new LambdaClient({ region: 'eu-west-1'});
 const zipdir = require('zip-dir');
 const fs = require('fs');
 const resolve = require('path').resolve;
@@ -12,6 +12,7 @@ const LAMBDAS = [
   'query-handler',
   'send-handler',
   'authorisation-handler',
+  'msg-publisher-test'
 ];
 
 async function publish(lambda) {
@@ -78,7 +79,7 @@ function replaceRef(file, a, b) {
 
 async function main() {
   const lambda = process.argv[2];
-  if (lambda === undefined) {
+  if (lambda === 'all') {
     LAMBDAS.forEach(lambda => updateNodeModulesAndPublish(lambda));
   } else if (LAMBDAS.includes(lambda)) {
     updateNodeModulesAndPublish(lambda);

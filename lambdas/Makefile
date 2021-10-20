@@ -7,8 +7,8 @@ endif
 ifndef name
 	$(error lambda function name must be supplied)
 endif
-	mkdir -p build/$(name)
-	cd $(name) && zip -r ../build/$(name)/$(name)-$(version) ./
+	mkdir -p build
+	zip -r build/$(name)-$(version) $(name)/ common/
 
 build:
 ifndef name

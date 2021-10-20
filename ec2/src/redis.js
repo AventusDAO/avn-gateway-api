@@ -91,7 +91,7 @@ async function getAllPendingTransactions() {
 
 async function getRandomPendingTransactions() {
   log.trace(`Returning random ${MAX_PENDING_TRANSACTIONS} pending transactions`)
-  return await redisClient.sRandMember(PENDING_TRANSACTIONS_KEY, MAX_PENDING_TRANSACTIONS)
+  return await redisClient.sRandMemberCount(PENDING_TRANSACTIONS_KEY, MAX_PENDING_TRANSACTIONS)
 }
 
 function buildTransactionJson(senderAddress, senderNonce) {

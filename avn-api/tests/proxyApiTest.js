@@ -41,21 +41,16 @@ describe('Proxy api calls:', async() => {
 
     it('can make multiple token transfers using a recipient address', async () => {
       const amount = new BN(1);
-      const numTx = new BN(6);
-      const numGoodTx = numTx.sub(new BN(1));
+      const numTx = new BN(100);
 
       for (i = 0; i < numTx; i++) {
-        if (i === 3) {
-          assert.equal(await api.send.transferToken(relayer, sender, '0x', token, amount), 'Invalid params');
-        } else {
-          await api.send.transferToken(relayer, sender, recipient, token, amount);
-        }
+        await api.send.transferToken(relayer, sender, recipient, token, amount);
       }
 
       await waitForTxToBeMined();
-      bnEquals(senderBalanceBefore.sub(amount.mul(numGoodTx)), await api.query.getTokenBalance(sender, token));
-      bnEquals(recipientBalanceBefore.add(amount.mul(numGoodTx)), await api.query.getTokenBalance(recipient, token));
-      bnEquals(senderNonceBefore.add(numGoodTx), await api.query.getAccountNonce(sender));
+      bnEquals(senderBalanceBefore.sub(amount.mul(numTx)), await api.query.getTokenBalance(sender, token));
+      bnEquals(recipientBalanceBefore.add(amount.mul(numTx)), await api.query.getTokenBalance(recipient, token));
+      bnEquals(senderNonceBefore.add(numTx), await api.query.getAccountNonce(sender));
     })
   })
 })

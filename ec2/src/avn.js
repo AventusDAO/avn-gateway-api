@@ -66,7 +66,6 @@ async function poll(requestId) {
 
 async function smartNonce(senderAddress) {
   let nonce = await redis.getNextNonce(senderAddress)
-  if (!nonce) log.trace("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
   nonce = (!nonce) ? (await api.query.system.account(senderAddress)).nonce : nonce
   await redis.updateNonce(senderAddress, nonce)
   return nonce

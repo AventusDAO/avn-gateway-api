@@ -83,7 +83,7 @@ describe('Lambda function: msg-publisher-test', function() {
 async function setup() {
   await getAmqpEndpointUrl();
   await connectToMessageBroker();
-  amqpChannel = await connectToChannel();
+  await connectToChannel();
   await updateLambdaEV(defaultEV);
   deleteQueueInMQBroker();
 }
@@ -124,7 +124,8 @@ function connectToChannel() {
   return new Promise((resolve, reject) => {
     amqpConnection.createChannel(function(err, channel) {
       if (err) throw err;
-      resolve(channel);
+      amqpChannel = channel;
+      resolve();
     });
   });
 }

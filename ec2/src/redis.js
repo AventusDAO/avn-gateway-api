@@ -98,6 +98,10 @@ async function getNextNonce(senderAddress) {
   return (nextNonce === 1) ? undefined : nextNonce
 }
 
+async function resetNonce(senderAddress) {
+  await redisClient.decr(senderAddress)
+}
+
 async function setNonce(senderAddress, nonce) {
   await redisClient.setEx(senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString())
 }
@@ -112,6 +116,7 @@ module.exports = {
   getAvnTransaction,
   getNextNonce,
   updateAvnTransactionStatus,
+  resetNonce,
   setNonce,
   refreshNonce,
   getPendingTransactions

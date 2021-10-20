@@ -60,6 +60,11 @@ async function updateAvnTransactionStatus(transactionHash, status, blockNumber) 
     throw new Error(`Transaction hash (${transactionHash}) does not exist in the database, cannot update state.`)
   }
 
+  if (![transactionStates.Processed, transactionStates.Rejected].includes(status)) {
+    log.warn(`Attempting to update transaction ${transactionHash} with an invalid status of ${status}, ignoring request`)
+    return
+  }
+
   const transaction = await redisClient.hGetAll(transactionHash)
   transaction[transactionObject.status] = status
   transaction[transactionObject.blockNumber] = blockNumber

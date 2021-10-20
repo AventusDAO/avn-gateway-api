@@ -1,30 +1,61 @@
-var assert = require('chai').assert;
+const assert = require('chai').assert;
+const helper = require('./helper.js');
+const accounts = helper.ACCOUNTS;
+const token = helper.TOKEN;
+const BN = helper.BN;
+const bnEquals = helper.bnEquals;
+const BAD_TOKEN = '0x0000000000000000000000000000000000000000';
 
-describe('Proxy api calls:', function() {
+const waitForTxToBeMined = async() => await helper.sleep(3500);
+
+describe('Proxy api calls:', async() => {
+  let api;
+  let relayer, sender, recipient;
 
   before(async () => {
-    // Implement me if required
+    api = await helper.avnApi();
+    relayer = accounts.relayer.address;
+    sender = accounts.sender.address;
+    recipient = accounts.user1.address;
+    recipientPubKey = accounts.user1.publicKey;
   })
 
-  after(async() => {
-    // Implement me if required
-  })
+  describe('transferToken', async () => {
+    let senderBalanceBefore, recipientBalanceBefore;
+    let senderNonceBefore;
 
-  // One happy path for proxy calls
-  it.skip('<happy path wording>', async () => {
-    assert(false, '<failure reason>');
-  })
-
-  // A describe block for failing tests, each testing one bad condition
-  describe('<failure wording>', function() {
-    it.skip('<bad case test 1>', async () => {
-      assert(false, '<failure reason>');
+    beforeEach(async () => {
+      senderBalanceBefore = new BN(await api.query.getTokenBalance(sender, token));
+      recipientBalanceBefore = new BN(await api.query.getTokenBalance(recipient, token));
+      senderNonceBefore = new BN(await api.query.getAccountNonce(sender));
     })
 
-    it.skip('<bad case test 2>', async () => {
-      assert(false, '<failure reason>');
+    it('can transfer tokens using a recipient public key', async () => {
+      const amount = new BN(2);
+      await api.send.transferToken(relayer, sender, recipientPubKey, token, amount);
+      await waitForTxToBeMined();
+      bnEquals(senderBalanceBefore.sub(amount), await api.query.getTokenBalance(sender, token));
+      bnEquals(recipientBalanceBefore.add(amount), await api.query.getTokenBalance(recipient, token));
+      bnEquals(senderNonceBefore.add(new BN(1)), await api.query.getAccountNonce(sender));
     })
 
-    // ...
+    it('can make multiple token transfers using a recipient address', async () => {
+      const amount = new BN(1);
+      const numTx = new BN(6);
+      const numGoodTx = numTx.sub(new BN(1));
+
+      for (i = 0; i < numTx; i++) {
+        if (i === 3) {
+          assert.equal(await api.send.transferToken(relayer, sender, '0x', token, amount), 'Invalid params');
+        } else {
+          await api.send.transferToken(relayer, sender, recipient, token, amount);
+        }
+      }
+
+      await waitForTxToBeMined();
+      bnEquals(senderBalanceBefore.sub(amount.mul(numGoodTx)), await api.query.getTokenBalance(sender, token));
+      bnEquals(recipientBalanceBefore.add(amount.mul(numGoodTx)), await api.query.getTokenBalance(recipient, token));
+      bnEquals(senderNonceBefore.add(numGoodTx), await api.query.getAccountNonce(sender));
+    })
   })
 })

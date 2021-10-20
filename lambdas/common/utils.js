@@ -1,6 +1,6 @@
 const { decodeAddress, encodeAddress } = require('@polkadot/keyring');
 const { hexToU8a, isHex } = require('@polkadot/util');
-const bigInt = require('big-integer');
+const BN = require('bn.js');
 
 function isValidAccountId(accountId) {
   try {
@@ -12,7 +12,7 @@ function isValidAccountId(accountId) {
 }
 
 function isValidAmount(amount) {
-  return amount.match(/^[0-9]+$/) && ! bigInt(amount).isZero();
+  return amount.match(/^[0-9]+$/) && ! new BN(amount).isZero();
 }
 
 function isValidRequestId(requestId) {
@@ -23,9 +23,14 @@ function isValidTokenId(tokenId) {
   return isHex(tokenId) && tokenId.split('').length == 42;
 }
 
+function toBnString(val) {
+  return (typeof val === 'number' || !isHex(val)) ? new BN(val).toString() : new BN(val.replace('0x',''), 16).toString();
+}
+
 module.exports = {
   isValidAccountId,
   isValidAmount,
   isValidRequestId,
   isValidTokenId,
+  toBnString,
 }

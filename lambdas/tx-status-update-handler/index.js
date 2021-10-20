@@ -22,14 +22,14 @@ async function processRequest() {
   try {
     const transactions = []
     // Get transactions that need resolving (i.e. that are pending)
-    const pendingTransactionHashs = await axios.get(EC2 + 'pendingTransactions');
+    const pendingTransactionHashes = (await axios.get(EC2 + 'pendingTransactions')).data;
 
-    if (pendingTransactionHashs.length == 0) {
+    if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {
       console.log(`No pending transactions to resolve`)
       return;
     }
 
-    for (const txHash of pendingTransactionHashs.slice(0, MAX_TX_TO_PROCESS)) {
+    for (const txHash of pendingTransactionHashes.slice(0, MAX_TX_TO_PROCESS)) {
       // try to get the status from the indexer
       const tx = await getTransactionStatusFromIndexer(txHash)
       if (tx) {

@@ -22,6 +22,7 @@ const transactionStates = {
 }
 
 const PENDING_TRANSACTIONS_KEY = 'PendingTransactionsList'
+const MAX_PENDING_TRANSACTIONS = 50
 const NONCE_NAMESPACE = 'Nonce.'
 const NONCE_EXPIRY_IN_SECONDS = 5
 
@@ -80,12 +81,17 @@ async function updateAvnTransactionStatus(transactionHash, status, blockNumber) 
 
 async function resolvePendingAvnTransactions(transactions) {
   for (const tx of transactions) {
-      await updateAvnTransactionStatus(tx.transactionHash, tx.status, tx.blockNumber)
+      await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
   }
 }
 
-async function getPendingTransactions() {
+async function getAllPendingTransactions() {
   return await redisClient.sMembers(PENDING_TRANSACTIONS_KEY)
+}
+
+async function getRandomPendingTransactions() {
+  log.trace(`Returning random ${MAX_PENDING_TRANSACTIONS} pending transactions`)
+  return await redisClient.sRandMember(PENDING_TRANSACTIONS_KEY, MAX_PENDING_TRANSACTIONS)
 }
 
 function buildTransactionJson(senderAddress, senderNonce) {
@@ -125,6 +131,7 @@ module.exports = {
   resetNonce,
   setNonce,
   refreshNonce,
-  getPendingTransactions,
+  getRandomPendingTransactions,
+  getAllPendingTransactions,
   resolvePendingAvnTransactions
 }

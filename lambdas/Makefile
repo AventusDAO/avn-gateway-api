@@ -15,6 +15,7 @@ ifndef name
 	$(error lambda function name must be supplied)
 endif
 	npm --prefix ./$(name) install ./$(name)
+	npm --prefix ./common install ./common
 
 clean:
 	rm -rf ./build/

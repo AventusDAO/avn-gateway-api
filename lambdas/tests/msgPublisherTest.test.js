@@ -11,6 +11,11 @@ const lambda = new AWS.Lambda();
 const TEST_FN_NAME = 'msg-publisher-test';
 const TEST_QUEUE_NAME = 'send-txn-queue';
 const PREFETCH_SIZE = 30;
+const defaultEV = {
+  'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
+  'MQ_SECRET_ARN': config.mq.mqSecretArn,
+  'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
+};
 
 let amqpEndpointUrl = null;
 let amqpConnection = null;
@@ -22,10 +27,13 @@ async function setup() {
   await getAmqpEndpointUrl();
   await connectToMessageBroker();
   amqpChannel = await connectToChannel();
-  amqpTempChannel = await connectToChannel();
+  await updateLambdaEV(defaultEV);
+  deleteQueueInMQBroker();
 }
 
-function cleanUp() {
+async function cleanUp() {
+  await updateLambdaEV(defaultEV);
+  deleteQueueInMQBroker();
   amqpConnection.close();
 }
 
@@ -97,19 +105,24 @@ function readAllMessagesFromQueue() {
 function generateTestMessages(numberOfMessages) {
   let messages = [];
   for(let i = 0; i<numberOfMessages; i++){
-    messages.push({
-      jsonrpc: "2.0", 
-      method: "transferAvt", 
-      params:["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], 
-      id: i
-    });
+    messages.push(newTestMessage(i));
   }
   testMessages = messages;
 }
 
-async function invokeLambdaFnToPublishTestMessages() {
-  for (let i = 0; i<testMessages.length; i++) {
-    await publishMessage(testMessages[i]);
+function newTestMessage(id) {
+  return {
+    jsonrpc: "2.0", 
+    method: "transferAvt", 
+    params:["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"],
+    id: id
+  }
+}
+
+async function invokeLambdaFnToPublishTestMessages(messages) {
+  for (let i = 0; i<messages.length; i++) {
+    let response = await publishMessage(messages[i]);
+    assert(!response.FunctionError);
   }
 }
 
@@ -127,22 +140,35 @@ async function publishMessage(message) {
   });
 }
 
+async function updateLambdaEV(variables) {
+  return new Promise((resolve, reject) => {
+    var params = {
+      FunctionName: TEST_FN_NAME,
+      Environment: {
+        Variables: variables
+      },
+    };
+    lambda.updateFunctionConfiguration(params, function(err, data) {
+      if (err) throw err;
+      resolve(data);
+    });
+  });
+}
+
 describe('Lambda function: msg-publisher-test', function() {
-  before(async function() {
+  before(async() => {
     await setup();
   })
 
-  after(function() {
-    deleteQueueInMQBroker();
+  after(async() => {
     cleanUp();
   })
 
   describe(`publish messages to MQ queue ${TEST_QUEUE_NAME}`, function() {
     describe('publish multiple messages when queue does not exist', async() => {
       before(async() => {
-        deleteQueueInMQBroker();
-        generateTestMessages(PREFETCH_SIZE);
-        await invokeLambdaFnToPublishTestMessages(TEST_FN_NAME);
+          generateTestMessages(PREFETCH_SIZE);
+        await invokeLambdaFnToPublishTestMessages(testMessages);
       })
 
       it(`new messages are added to queue ${TEST_QUEUE_NAME}`, async() => {
@@ -152,19 +178,34 @@ describe('Lambda function: msg-publisher-test', function() {
   })
 
   describe('Fails with', function(){
-    it('wrong secret manager region', function(){
-//          Before: Update the seceret manager region in environment variable to a different value
-//          Invoke lambda function, assert error response
-        })
-
-        it('wrong MQ secret arn', function(){
-//          Before: Update the seceret arn in environment variable to a different value
-//          Invoke lambda function, assert error response
-        })
-
-        it('Wrong MQ broker amqp endpoint', function(){
-//          Before: Update the MQ broker amqp endpoint in environment variable to a different value
-//          Invoke lambda function, assert error response
-        })
+    it('Wrong MQ broker amqp endpoint', async() => {
+      await updateLambdaEV({
+        'MQ_BROKER_AMQP_ENDPOINT': 'abc',  
+        'MQ_SECRET_ARN': config.mq.mqSecretArn,
+        'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
+      });
+      let response = await publishMessage(newTestMessage(31));
+      assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'Error');
     })
+
+    it('wrong MQ secret arn', async() => {
+      await updateLambdaEV({
+        'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
+        'MQ_SECRET_ARN': 'abc',
+        'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
+      });
+      let response = await publishMessage(newTestMessage(32));
+      assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'ResourceNotFoundException');
+    })
+
+    it('wrong secret manager region', async() => {
+      await updateLambdaEV({
+        'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
+        'MQ_SECRET_ARN': config.mq.mqSecretArn,
+        'SECRET_MANAGER_REGION': 'abc'
+      });
+      let response = await publishMessage(newTestMessage(33));
+      assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'UnknownEndpoint');
+    })
+  })
 })

@@ -64,7 +64,6 @@ app.listen(port, () => {
   log.info(`EC2 avn-connector listening on port ${port}`)
 })
 
-
 async function instantiateEC2() {
   await avn.connectToAvN()
   await redis.connect()

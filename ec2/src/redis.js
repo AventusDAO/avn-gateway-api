@@ -1,4 +1,4 @@
-const redis = require("redis")
+const redis = require('redis')
 const config = require('multiconfig').load()
 const log4js = require('log4js')
 const log = log4js.getLogger()
@@ -24,22 +24,22 @@ const transactionStates = {
 
 const PENDING_TRANSACTIONS_KEY = 'PendingTransactionsList'
 
-let redisClient;
+let redisClient
 
 function retryStrategy(options) {
-  if (options.error && options.error.code === "ECONNREFUSED") {
-      // No point retrying if the connection has been refused
-      return new Error("The server refused the connection")
+  if (options.error && options.error.code === 'ECONNREFUSED') {
+    // No point retrying if the connection has been refused
+    return new Error('The server refused the connection')
   }
 
   if (options.total_retry_time > 1000 * 60) {
-      // End reconnecting after 1 minute of retry
-      return new Error("Retry time exhausted")
+    // End reconnecting after 1 minute of retry
+    return new Error('Retry time exhausted')
   }
 
   if (options.attempt > 10) {
-      // End reconnecting after 10 attempts
-      return undefined
+    // End reconnecting after 10 attempts
+    return undefined
   }
 
   // reconnect after
@@ -47,28 +47,28 @@ function retryStrategy(options) {
 }
 
 async function connect() {
-  log.info(`Attempting to connect to Redis database on ${connectionConfig.url}`);
+  log.info(`Attempting to connect to Redis database on ${connectionConfig.url}`)
 
   redisClient = redis.createClient(connectionConfig)
 
-  redisClient.on('connect'     , () => log.info('Connected to Redis database'));
-  redisClient.on('reconnecting', () => log.warn('Reconnecting to Redis database'));
-  redisClient.on('error'       , (err) => log.error('Redis connection error ', err));
-  redisClient.on('end'         , () => log.warn('Closing Redis connection'));
+  redisClient.on('connect', () => log.info('Connected to Redis database'))
+  redisClient.on('reconnecting', () => log.warn('Reconnecting to Redis database'))
+  redisClient.on('error', err => log.error('Redis connection error ', err))
+  redisClient.on('end', () => log.warn('Closing Redis connection'))
 
   await redisClient.connect()
 }
 
 async function addPendingAvnTransaction(transactionHash, senderAddress, senderNonce) {
   if (await redisClient.exists(transactionHash)) {
-      throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
+    throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
   }
 
   await redisClient
     .multi()
     .hSet(transactionHash, buildTransactionJson(senderAddress, senderNonce))
     .sAdd(PENDING_TRANSACTIONS_KEY, transactionHash)
-    .exec();
+    .exec()
 }
 
 // Returns an empty object (not undefined or null) if key is not found
@@ -77,7 +77,7 @@ async function getAvnTransaction(transactionHash) {
 }
 
 async function updateAvnTransactionStatus(transactionHash, status, blockNumber) {
-  if (!await redisClient.exists(transactionHash)) {
+  if (!(await redisClient.exists(transactionHash))) {
     throw new Error(`Transaction hash (${transactionHash}) does not exist in the database, cannot update state.`)
   }
 
@@ -89,7 +89,7 @@ async function updateAvnTransactionStatus(transactionHash, status, blockNumber) 
     .multi()
     .hSet(transactionHash, transaction)
     .sRem(PENDING_TRANSACTIONS_KEY, transactionHash)
-    .exec();
+    .exec()
 }
 
 async function getPendingTransactions() {

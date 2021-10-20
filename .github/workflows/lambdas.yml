@@ -13,7 +13,6 @@ on:
       - 'lambdas/**'
 
 env:
-  PR_NUMBER: pr-${{ github.event.number }}
   AUTHORISER: authorisation-handler
   POLL: poll-handler
   SEND: send-handler
@@ -25,9 +24,30 @@ defaults:
     working-directory: lambdas
 
 jobs:
+  suffix:
+    runs-on: ubuntu-latest
+    name: Generate version suffix
+    outputs:
+      version: ${{ steps.suffix.outputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create version for PR
+        if: github.event.pull_request.merged != 'true'
+        run: echo "VERSION_SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+        
+      - name: Create version for merge
+        if: github.event.pull_request.merged == 'true'
+        run: echo "VERSION_SUFFIX=${GITHUB_SHA::8}" >> $GITHUB_ENV
+      
+      - name: output suffix
+        id: suffix
+        run: echo ::set-output name=version::"${{ env.VERSION_SUFFIX }}"
+
   poll:
     runs-on: ubuntu-latest
     name: package poll function
+    needs: [suffix]
     steps:
       - uses: actions/checkout@v2
 
@@ -41,7 +61,7 @@ jobs:
       
       - name: Package Function
         run: |
-          make package version=${{ env.PR_NUMBER }} name=${{ env.POLL }}
+          make package version=${{ needs.suffix.outputs.version }} name=${{ env.POLL }}
       
       - uses: actions/upload-artifact@master
         with:
@@ -51,6 +71,7 @@ jobs:
   send:
     runs-on: ubuntu-latest
     name: package send function
+    needs: [suffix]
     steps:
       - uses: actions/checkout@v2
 
@@ -64,7 +85,7 @@ jobs:
       
       - name: Package Function
         run: |
-          make package version=${{ env.PR_NUMBER }} name=${{ env.SEND }}
+          make package version=${{ needs.suffix.outputs.version }} name=${{ env.SEND }}
       
       - uses: actions/upload-artifact@master
         with:
@@ -74,6 +95,7 @@ jobs:
   query:
     runs-on: ubuntu-latest
     name: package query function
+    needs: [suffix]
     steps:
       - uses: actions/checkout@v2
 
@@ -87,7 +109,7 @@ jobs:
       
       - name: Package Function
         run: |
-          make package version=${{ env.PR_NUMBER }} name=${{ env.QUERY }}
+          make package version=${{ needs.suffix.outputs.version }} name=${{ env.QUERY }}
       
       - uses: actions/upload-artifact@master
         with:
@@ -97,6 +119,7 @@ jobs:
   authoriser:
     runs-on: ubuntu-latest
     name: package authoriser function
+    needs: [suffix]
     steps:
       - uses: actions/checkout@v2
 
@@ -110,14 +133,14 @@ jobs:
       
       - name: Package Function
         run: |
-          make package version=${{ env.PR_NUMBER }} name=${{ env.AUTHORISER }}
+          make package version=${{ needs.suffix.outputs.version }} name=${{ env.AUTHORISER }}
 
       - uses: actions/upload-artifact@master
         with:
           name: ${{ env.AUTHORISER }}
           path: lambdas/build/
 
-  deploy:
+  upload:
     runs-on: ubuntu-latest
     name: upload functions to s3
     needs: [authoriser, query, send, poll]

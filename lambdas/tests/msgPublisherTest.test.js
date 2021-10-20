@@ -23,6 +23,63 @@ let amqpChannel = null;
 let testMessages = [];
 let messagesInQueue = [];
 
+describe('Lambda function: msg-publisher-test', function() {
+  before(async() => {
+    await setup();
+  })
+
+  after(async() => {
+    await cleanUp();
+  })
+
+  describe(`publish messages to MQ queue ${TEST_QUEUE_NAME}`, function() {
+    describe('publish multiple messages when queue does not exist', async() => {
+      before(async() => {
+          generateTestMessages(PREFETCH_SIZE);
+        await invokeLambdaFnToPublishTestMessages(testMessages);
+      })
+
+      it(`new messages are added to queue ${TEST_QUEUE_NAME}`, async() => {
+        await assertMessagesInQueue(testMessages);
+      })
+    })
+  })
+
+  describe('Fails with', function(){
+    it('Wrong MQ broker amqp endpoint', async() => {
+      await updateLambdaEV({
+        'MQ_BROKER_AMQP_ENDPOINT': 'abc',  
+        'MQ_SECRET_ARN': config.mq.mqSecretArn,
+        'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
+      });
+      let response = await publishMessage(newTestMessage(31));
+      assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'Error');
+    })
+
+    it('wrong MQ secret arn', async() => {
+      await updateLambdaEV({
+        'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
+        'MQ_SECRET_ARN': 'abc',
+        'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
+      });
+      let response = await publishMessage(newTestMessage(32));
+      assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'ResourceNotFoundException');
+    })
+
+    it('wrong secret manager region', async() => {
+      await updateLambdaEV({
+        'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
+        'MQ_SECRET_ARN': config.mq.mqSecretArn,
+        'SECRET_MANAGER_REGION': 'abc'
+      });
+      let response = await publishMessage(newTestMessage(33));
+      assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'UnknownEndpoint');
+    })
+  })
+})
+
+// ----------------------------- Helper functions -------------------------------------------------
+
 async function setup() {
   await getAmqpEndpointUrl();
   await connectToMessageBroker();
@@ -154,58 +211,3 @@ async function updateLambdaEV(variables) {
     });
   });
 }
-
-describe('Lambda function: msg-publisher-test', function() {
-  before(async() => {
-    await setup();
-  })
-
-  after(async() => {
-    cleanUp();
-  })
-
-  describe(`publish messages to MQ queue ${TEST_QUEUE_NAME}`, function() {
-    describe('publish multiple messages when queue does not exist', async() => {
-      before(async() => {
-          generateTestMessages(PREFETCH_SIZE);
-        await invokeLambdaFnToPublishTestMessages(testMessages);
-      })
-
-      it(`new messages are added to queue ${TEST_QUEUE_NAME}`, async() => {
-        await assertMessagesInQueue(testMessages);
-      })
-    })
-  })
-
-  describe('Fails with', function(){
-    it('Wrong MQ broker amqp endpoint', async() => {
-      await updateLambdaEV({
-        'MQ_BROKER_AMQP_ENDPOINT': 'abc',  
-        'MQ_SECRET_ARN': config.mq.mqSecretArn,
-        'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
-      });
-      let response = await publishMessage(newTestMessage(31));
-      assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'Error');
-    })
-
-    it('wrong MQ secret arn', async() => {
-      await updateLambdaEV({
-        'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
-        'MQ_SECRET_ARN': 'abc',
-        'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
-      });
-      let response = await publishMessage(newTestMessage(32));
-      assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'ResourceNotFoundException');
-    })
-
-    it('wrong secret manager region', async() => {
-      await updateLambdaEV({
-        'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
-        'MQ_SECRET_ARN': config.mq.mqSecretArn,
-        'SECRET_MANAGER_REGION': 'abc'
-      });
-      let response = await publishMessage(newTestMessage(33));
-      assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'UnknownEndpoint');
-    })
-  })
-})

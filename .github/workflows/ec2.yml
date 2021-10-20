@@ -18,9 +18,9 @@ defaults:
     working-directory: ec2
 
 jobs:
-  poll:
+  connector:
     runs-on: ubuntu-latest
-    name: package poll function
+    name: package EC2 image
     steps:
       - uses: actions/checkout@v2
 

@@ -94,7 +94,7 @@ function buildTransactionJson(senderAddress, senderNonce) {
 
 async function getNextNonce(senderAddress) {
   const key = NONCE_NAMESPACE + senderAddress
-  const [nextNonce,]  = await redisClient.multi().incr(key).expire(key, NONCE_EXPIRY_IN_SECONDS).exec()
+  const [nextNonce, ignore]  = await redisClient.multi().incr(key).expire(key, NONCE_EXPIRY_IN_SECONDS).exec()
   // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
   return (nextNonce === 1) ? undefined : nextNonce
 }

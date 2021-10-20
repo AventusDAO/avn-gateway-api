@@ -36,8 +36,8 @@ jobs:
           node-version: '14'
           cache: 'npm'
           cache-dependency-path: |
-            ${{ env.POLL }}/package-lock.json
-            common/package-lock.json
+            lambdas/${{ env.POLL }}/package-lock.json
+            lambdas/common/package-lock.json
       
       - name: Package Function
         run: |
@@ -54,8 +54,8 @@ jobs:
           node-version: '14'
           cache: 'npm'
           cache-dependency-path: |
-            ${{ env.SEND }}/package-lock.json
-            common/package-lock.json
+            lambdas/${{ env.SEND }}/package-lock.json
+            lambdas/common/package-lock.json
       
       - name: Package Function
         run: |
@@ -72,8 +72,8 @@ jobs:
           node-version: '14'
           cache: 'npm'
           cache-dependency-path: |
-            ${{ env.QUERY }}/package-lock.json
-            common/package-lock.json
+            lambdas/${{ env.QUERY }}/package-lock.json
+            lambdas/common/package-lock.json
       
       - name: Package Function
         run: |
@@ -90,8 +90,8 @@ jobs:
           node-version: '14'
           cache: 'npm'
           cache-dependency-path: |
-            ${{ env.AUTHORISER }}/package-lock.json
-            common/package-lock.json
+            lambdas/${{ env.AUTHORISER }}/package-lock.json
+            lambdas/common/package-lock.json
       
       - name: Package Function
         run: |

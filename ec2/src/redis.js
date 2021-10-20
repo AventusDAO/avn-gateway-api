@@ -99,7 +99,8 @@ async function getPendingTransactions() {
 function buildTransactionJson(senderAddress, senderNonce) {
   const result = {}
   result[transactionObject.senderAddress] = senderAddress
-  result[transactionObject.senderNonce] = senderNonce
+  //TODO: enable this when we can pass in nonces
+  //result[transactionObject.senderNonce] = senderNonce
   result[transactionObject.status] = transactionStates.Pending
 
   return result

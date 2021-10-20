@@ -35,7 +35,7 @@ describe('Lambda function: msg-publisher-test', function() {
   describe(`publish messages to MQ queue ${TEST_QUEUE_NAME}`, function() {
     describe('publish multiple messages when queue does not exist', async() => {
       before(async() => {
-          generateTestMessages(PREFETCH_SIZE);
+        generateTestMessages(PREFETCH_SIZE);
         await invokeLambdaFnToPublishTestMessages(testMessages);
       })
 

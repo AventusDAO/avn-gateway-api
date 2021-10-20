@@ -1,0 +1,4 @@
+secretManagerRegion: $ENV:SM_AWS_REGION
+mqSecretArn: $ENV:MQ_SECRET_ARN
+mqBrokerAmqpEndpoint: $ENV:MQ_BROKER_AMQP_ENDPOINT
+prefetchSize: $ENV:PREFETCH_SIZE

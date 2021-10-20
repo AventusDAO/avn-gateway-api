@@ -4,8 +4,7 @@ const log4js = require('log4js')
 const log = log4js.getLogger()
 
 const connectionConfig = {
-  url: config.redis.redisUrl,
-  retry_strategy: retryStrategy
+  url: config.redis.redisUrl
 }
 
 const transactionObject = {
@@ -25,26 +24,6 @@ const transactionStates = {
 const PENDING_TRANSACTIONS_KEY = 'PendingTransactionsList'
 
 let redisClient
-
-function retryStrategy(options) {
-  if (options.error && options.error.code === 'ECONNREFUSED') {
-    // No point retrying if the connection has been refused
-    return new Error('The server refused the connection')
-  }
-
-  if (options.total_retry_time > 1000 * 60) {
-    // End reconnecting after 1 minute of retry
-    return new Error('Retry time exhausted')
-  }
-
-  if (options.attempt > 10) {
-    // End reconnecting after 10 attempts
-    return undefined
-  }
-
-  // reconnect after
-  return Math.min(options.attempt * 100, 3000)
-}
 
 async function connect() {
   log.info(`Attempting to connect to Redis database on ${connectionConfig.url}`)
@@ -79,6 +58,11 @@ async function getAvnTransaction(transactionHash) {
 async function updateAvnTransactionStatus(transactionHash, status, blockNumber) {
   if (!(await redisClient.exists(transactionHash))) {
     throw new Error(`Transaction hash (${transactionHash}) does not exist in the database, cannot update state.`)
+  }
+
+  if (![transactionStates.Processed, transactionStates.Rejected].includes(status)) {
+    log.warn(`Attempting to update transaction ${transactionHash} with an invalid status of ${status}, ignoring request`)
+    return
   }
 
   const transaction = await redisClient.hGetAll(transactionHash)

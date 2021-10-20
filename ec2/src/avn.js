@@ -83,7 +83,7 @@ async function smartNonce(sender) {
 
   if (nonce == 1) {
     nonce = (await api.query.system.account(sender.address)).nonce;
-    await redisClient.SETEX(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce)
+    await redisClient.SETEX(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce.toString())
   } else {
     await redisClient.EXPIRE(address, SMARTNONCE_EXPIRY_IN_SECONDS)
   }

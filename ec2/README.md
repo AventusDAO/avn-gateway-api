@@ -31,7 +31,7 @@ To stop, run:
 ./stop
 ```
 
-If everything is running correctly, you should see a similar message to this: `EC2 avn-connector listening on port 3000` (The port number could be different)
+If everything is running correctly, you should see a similar message to this: `EC2 avn-connector listening on port 5000` (The port number could be different)
 
 ## Debugging the container
 When running the container, the endpoint is accessible in the same place as running the code from the command line, ie, `localhost:port`

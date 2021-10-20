@@ -12,8 +12,8 @@ services:
       - ./log/avn-connector/:/home/www/log/
     ports:
       # TODO use a different port than 3000
-      - published: 3000
-        target: 3000
+      - published: 5000
+        target: 5000
     # Instead of a env file you can declare the enviroment variables in the "environment" section
     env_file: .env
     environment:

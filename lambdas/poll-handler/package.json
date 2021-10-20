@@ -4,6 +4,6 @@
     "axios": "^0.21.4",
     "@polkadot/keyring": "^7.4.1",
     "@polkadot/util": "^7.4.1",
-    "big-integer": "^1.6.49"
+    "bn.js": "^5.2.0"
   }
 }

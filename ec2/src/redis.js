@@ -47,7 +47,7 @@ function retryStrategy(options) {
 }
 
 async function connect() {
-  log.info(`Attempting to connect to Redis database on ${connectionConfig.redisUrl}`);
+  log.info(`Attempting to connect to Redis database on ${connectionConfig.url}`);
 
   redisClient = redis.createClient(connectionConfig)
 

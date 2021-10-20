@@ -10,16 +10,17 @@ function AvnApi(gateway, id) {
   this.id = id || 1;
   this.gateway = gateway;
   this.version = version;
+  this.awtToken;
 }
 
 AvnApi.prototype.init = async function () {
   await cryptoWaitReady();
 
-  const awtToken = Awt.generateAwtToken(process.env.SURI);
+  awtToken = Awt.generateAwtToken(process.env.SURI);
   const avnApi = {
     gateway : this.gateway,
     nextId : () => this.id++,
-    axios: () => setupAxios(awtToken, Awt)
+    axios: () => setupAxios(Awt)
   };
 
   this.query = new Query(avnApi);
@@ -28,15 +29,14 @@ AvnApi.prototype.init = async function () {
   this.awt = Awt;
 }
 
-function setupAxios(currentAwtToken, awtTokenManager) {
-  let awtToken = currentAwtToken;
-  if (!awtTokenManager.tokenAgeIsValid(currentAwtToken)) {
+function setupAxios(awtTokenManager) {
+  if (!awtTokenManager.tokenAgeIsValid(this.awtToken)) {
     console.log(" - Awt token has expired, refreshing")
-    awtToken = awtTokenManager.generateAwtToken(process.env.SURI);
+    this.awtToken = awtTokenManager.generateAwtToken(process.env.SURI);
   }
 
   // Add any middlewares here to configure global axios behaviours
-  Axios.defaults.headers.common = {'Authorization': `bearer ${awtToken}`};
+  Axios.defaults.headers.common = {'Authorization': `bearer ${this.awtToken}`};
 
   return Axios;
 }

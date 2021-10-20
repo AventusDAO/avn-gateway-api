@@ -18,7 +18,8 @@
     "axios": "^0.21.4",
     "express": "^4.17.1",
     "log4js": "^6.3.0",
-    "multiconfig": "^1.1.6"
+    "multiconfig": "^1.1.6",
+    "redis": "4.0.0-rc.3"
   },
   "devDependencies": {
     "prettier": "^1.19.1"

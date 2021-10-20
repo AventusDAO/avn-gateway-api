@@ -62,8 +62,10 @@ app.post('/avnPoll', async (req, res, next) => {
 
 app.get('/pendingTransactions', async (req, res, next) => {
   try {
-    log.trace(`request: ${req}`)
+    log.trace('request: ', req)
+    console.dir(req)
     const result = await redis.getPendingTransactions();
+    console.dir(result)
     res.send(result)
   } catch (err) {
     next(err)

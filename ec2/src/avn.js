@@ -101,9 +101,9 @@ async function connectToAvN() {
   sender = createAccount(SENDER)
 
   const [chain, nodeName, nodeVersion] = await Promise.all([
-    avnConnection.rpc.system.chain(),
-    avnConnection.rpc.system.name(),
-    avnConnection.rpc.system.version()
+    api.rpc.system.chain(),
+    api.rpc.system.name(),
+    api.rpc.system.version()
   ])
 
   log.info(`You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`)
@@ -117,7 +117,6 @@ function createAccount(suri) {
 
 module.exports = {
   connectToAvN,
-  instantiateEC2,
   query,
   tx,
   proxy,

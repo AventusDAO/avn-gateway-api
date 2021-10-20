@@ -5,7 +5,6 @@ const log4js = require('log4js')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
 const { createClient } = require('redis')
-const BN = require('bn.js');
 
 const POLL_STATES = {
   Pending: 'Pending',
@@ -78,18 +77,13 @@ async function smartNonce(sender) {
   let address = sender.address.toString()
   let nonce = await redisClient.INCR(address)
 
-  console.log('*******typeof nonce: ', typeof nonce)
-  console.log(`********Nonce: ${nonce}`)
-
-  if (nonce == 1) {
+  if (nonce === 1) {
     nonce = (await api.query.system.account(sender.address)).nonce;
     await redisClient.SETEX(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce.toString())
   } else {
     await redisClient.EXPIRE(address, SMARTNONCE_EXPIRY_IN_SECONDS)
   }
 
-  console.log(`**** BN nonce: ${new BN(nonce.toString())}`)
-  console.log(`********Final Nonce: ${nonce}`)
   return nonce
 }
 
@@ -98,8 +92,8 @@ async function signAndSend(txn) {
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    //const nonce = await smartNonce(sender)
-    let receipt = await txn.signAndSend(sender, { nonce: -1 });
+    const nonce = await smartNonce(sender)
+    let receipt = await txn.signAndSend(sender, { nonce });
     let requestId = receipt.toString()
     result = { requestId: requestId }
 

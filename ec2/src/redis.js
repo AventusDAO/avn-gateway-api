@@ -4,8 +4,7 @@ const log4js = require('log4js')
 const log = log4js.getLogger()
 
 const connectionConfig = {
-  host: config.redis.host,
-  port: config.redis.port,
+  url: config.redis.redisUrl,
   retry_strategy: retryStrategy
 }
 
@@ -48,16 +47,16 @@ function retryStrategy(options) {
 }
 
 async function connect() {
-  log.info(`Attempting to connect to Redis database on ${connectionConfig.host}:${connectionConfig.port}`);
+  log.info(`Attempting to connect to Redis database on ${connectionConfig.redisUrl}`);
 
-  redisClient = redis.createClient()
+  redisClient = redis.createClient(connectionConfig)
 
   redisClient.on('connect'     , () => log.info('Connected to Redis database'));
   redisClient.on('reconnecting', () => log.warn('Reconnecting to Redis database'));
   redisClient.on('error'       , (err) => log.error('Redis connection error ', err));
   redisClient.on('end'         , () => log.warn('Closing Redis connection'));
 
-  await redisClient.connect(connectionConfig)
+  await redisClient.connect()
 }
 
 async function addPendingAvnTransaction(transactionHash, senderAddress, senderNonce) {

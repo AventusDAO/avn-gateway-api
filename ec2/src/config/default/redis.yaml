@@ -1,2 +1,1 @@
-host: localhost
-port: 6379
+redisUrl: 172.17.0.1:6379

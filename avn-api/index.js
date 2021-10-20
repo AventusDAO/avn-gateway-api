@@ -16,6 +16,7 @@ function AvnApi(gateway, id) {
 AvnApi.prototype.init = async function () {
   await cryptoWaitReady();
 
+  this.awtToken = Awt.generateAwtToken(process.env.SURI);
   const avnApi = {
     gateway : this.gateway,
     nextId : () => this.id++,

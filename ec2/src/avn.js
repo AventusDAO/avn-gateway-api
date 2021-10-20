@@ -76,7 +76,7 @@ async function signAndSend(txn) {
     let receipt = await signedTransaction.send()
     let requestId = receipt.toString()
 
-    result = { requestId: requestId }
+    result = { requestId }
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`)
     throw err

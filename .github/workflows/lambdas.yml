@@ -42,6 +42,11 @@ jobs:
       - name: Package Function
         run: |
           make package version=${{ env.PR_NUMBER }} name=${{ env.POLL }}
+      
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.POLL }}
+          path: lambdas/build/
         
   send:
     runs-on: ubuntu-latest
@@ -60,10 +65,15 @@ jobs:
       - name: Package Function
         run: |
           make package version=${{ env.PR_NUMBER }} name=${{ env.SEND }}
+      
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.SEND }}
+          path: lambdas/build/
   
   query:
     runs-on: ubuntu-latest
-    name: package
+    name: package query function
     steps:
       - uses: actions/checkout@v2
 
@@ -78,6 +88,11 @@ jobs:
       - name: Package Function
         run: |
           make package version=${{ env.PR_NUMBER }} name=${{ env.QUERY }}
+      
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.QUERY }}
+          path: lambdas/build/
   
   authoriser:
     runs-on: ubuntu-latest
@@ -97,6 +112,11 @@ jobs:
         run: |
           make package version=${{ env.PR_NUMBER }} name=${{ env.AUTHORISER }}
 
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.AUTHORISER }}
+          path: lambdas/build/
+
   deploy:
     runs-on: ubuntu-latest
     name: upload functions to s3
@@ -104,6 +124,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
+      - uses: actions/download-artifact@master
+        with:
+          path: lambdas/build
+
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@v0.5.1
         env:

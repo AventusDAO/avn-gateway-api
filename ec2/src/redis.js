@@ -93,13 +93,17 @@ function buildTransactionJson(senderAddress, senderNonce) {
 }
 
 async function getNextNonce(senderAddress) {
-  const [nextNonce, ignore]  = await redisClient.multi().incr(senderAddress).expire(senderAddress, NONCE_EXPIRY_IN_SECONDS).exec()
+  const nextNonce = await redisClient.incr(senderAddress)
   // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
   return (nextNonce === 1) ? undefined : nextNonce
 }
 
 async function setNonce(senderAddress, nonce) {
   await redisClient.setEx(senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString())
+}
+
+async function refreshNonce(senderAddress) {
+  await redisClient.expire(senderAddress, NONCE_EXPIRY_IN_SECONDS)
 }
 
 module.exports = {
@@ -109,5 +113,6 @@ module.exports = {
   getNextNonce,
   updateAvnTransactionStatus,
   setNonce,
+  refreshNonce,
   getPendingTransactions
 }

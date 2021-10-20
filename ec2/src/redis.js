@@ -23,6 +23,8 @@ const transactionStates = {
 
 const PENDING_TRANSACTIONS_KEY = 'PendingTransactionsList'
 
+const NONCE_EXPIRY_IN_SECONDS = 5
+
 let redisClient
 
 async function connect() {
@@ -90,10 +92,21 @@ function buildTransactionJson(senderAddress, senderNonce) {
   return result
 }
 
+async function getNextNonce(senderAddress) {
+  const nextNonce = await redisClient.incr(senderAddress)
+  return (nextNonce === 1) ? undefined : nextNonce
+}
+
+async function updateNonce(senderAddress, nonce) {
+  await redisClient.setEx(senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString())
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
   getAvnTransaction,
+  getNextNonce,
   updateAvnTransactionStatus,
+  updateNonce,
   getPendingTransactions
 }

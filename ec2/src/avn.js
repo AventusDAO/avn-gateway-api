@@ -66,8 +66,10 @@ async function poll(requestId) {
 
 async function smartNonce(senderAddress) {
   let nonce = await redis.getNextNonce(senderAddress)
-  nonce = (!nonce) ? (await api.query.system.account(senderAddress)).nonce : nonce
-  await redis.updateNonce(senderAddress, nonce)
+  if (!nonce) {
+    nonce = await api.query.system.account(senderAddress)).nonce
+    await redis.setNonce(senderAddress, nonce)
+  }
   return nonce
 }
 

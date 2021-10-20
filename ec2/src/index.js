@@ -60,6 +60,26 @@ app.post('/avnPoll', async (req, res, next) => {
   }
 })
 
+app.get('/pendingTransactions', async (req, res, next) => {
+  try {
+    log.trace(`request: ${JSON.stringify(req)}`)
+    const result = await redis.getPendingTransactions();
+    res.send(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+app.post('/resolvePendingTransactions', async (req, res, next) => {
+  try {
+    log.trace(`request: ${JSON.stringify(req.body)}`)
+    const result = await redis.resolvePendingAvnTransactions(req.body.transactions)
+    res.send(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
 app.listen(port, () => {
   log.info(`EC2 avn-connector listening on port ${port}`)
 })

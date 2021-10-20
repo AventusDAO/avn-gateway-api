@@ -76,6 +76,12 @@ async function updateAvnTransactionStatus(transactionHash, status, blockNumber) 
     .exec()
 }
 
+async function resolvePendingAvnTransactions(transactions) {
+  for (const tx of transactions) {
+      await updateAvnTransactionStatus(tx.transactionHash, tx.status, tx.blockNumber)
+  }
+}
+
 async function getPendingTransactions() {
   return await redisClient.sMembers(PENDING_TRANSACTIONS_KEY)
 }
@@ -95,5 +101,6 @@ module.exports = {
   addPendingAvnTransaction,
   getAvnTransaction,
   updateAvnTransactionStatus,
-  getPendingTransactions
+  getPendingTransactions,
+  resolvePendingAvnTransactions
 }

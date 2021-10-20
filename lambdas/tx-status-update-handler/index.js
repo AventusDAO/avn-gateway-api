@@ -11,43 +11,48 @@ const transactionStates = {
 }
 
 exports.handler = async (_event) => {
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify(await processRequest())
-  };
-  return response;
+  try {
+    const response = {
+      statusCode: 200,
+      body: JSON.stringify(await processRequest())
+    };
+
+    return response;
+  } catch(err) {
+    const errorResponse = {
+      statusCode: 500,
+      error: {message: err.message}
+    }
+
+    return errorResponse
+  }
 };
 
 async function processRequest() {
-  try {
-    const transactions = []
-    // Get transactions that need resolving (i.e. that are pending)
-    const pendingTransactionHashes = (await axios.get(EC2 + 'pendingTransactions')).data;
+  const transactions = []
+  // Get transactions that need resolving (i.e. that are pending)
+  const pendingTransactionHashes = (await axios.get(EC2 + 'pendingTransactions')).data;
 
-    if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {
-      console.log(`No pending transactions to resolve`)
-      return;
-    }
-
-    for (const txHash of pendingTransactionHashes.slice(0, MAX_TX_TO_PROCESS)) {
-      // try to get the status from the indexer
-      const tx = await getTransactionStatusFromIndexer(txHash)
-      if (tx) {
-        transactions.push(tx)
-      }
-    }
-
-    // resolve them in the database
-    await axios.post(EC2 + 'resolvePendingTransactions', {transactions})
-  } catch (err) {
-    console.error(`Error resolving pending transactions: ${err}`)
+  if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {
+    console.log(`No pending transactions to resolve`)
+    return;
   }
+
+  for (const txHash of pendingTransactionHashes.slice(0, MAX_TX_TO_PROCESS)) {
+    // try to get the status from the indexer
+    const tx = await getTransactionStatusFromIndexer(txHash)
+    if (tx) {
+      transactions.push(tx)
+    }
+  }
+
+  // resolve them in the database
+  await axios.post(EC2 + 'resolvePendingTransactions', {transactions})
 }
 
 async function getTransactionStatusFromIndexer(transactionHash) {
   try {
     let res = await axios.get(`${BLOCK_EXPLORER_BASE_URL}${transactionHash}`)
-    console.log(`Indexer found ${JSON.stringify(res.data.data.hits.total.value)} record(s) for hash ${transactionHash}`)
     const response = res.data.data.hits.hits
 
     if (response.length > 0 && response[0]._source) {
@@ -55,7 +60,9 @@ async function getTransactionStatusFromIndexer(transactionHash) {
       return {transactionHash, state, blockNumber: response[0]._source.blockNumber }
     }
 
+    console.log(`Transaction hash ${transactionHash} not found in chain indexer.`)
+
   } catch (error) {
-    console.error(`Error getting transaction state for transaction hash ${transactionHash}: ${error}`)
+    throw new Error(`Error getting transaction state for transaction hash ${transactionHash}: ${error}`)
   }
 }

@@ -64,7 +64,9 @@ async function updateAvnTransactionStatus(transactionHash, status, blockNumber) 
   }
 
   if (![transactionStates.Processed, transactionStates.Rejected].includes(status)) {
-    log.warn(`Attempting to update transaction ${transactionHash} with an invalid status of ${status}, ignoring request`)
+    log.warn(
+      `Attempting to update transaction ${transactionHash} with an invalid status of ${status}, ignoring request`
+    )
     return
   }
 
@@ -81,7 +83,7 @@ async function updateAvnTransactionStatus(transactionHash, status, blockNumber) 
 
 async function resolvePendingAvnTransactions(transactions) {
   for (const tx of transactions) {
-      await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
+    await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
   }
 }
 
@@ -107,7 +109,7 @@ function buildTransactionJson(senderAddress, senderNonce) {
 async function getNextNonce(senderAddress) {
   const nextNonce = await redisClient.incr(NONCE_NAMESPACE + senderAddress)
   // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
-  return (nextNonce === 1) ? undefined : nextNonce
+  return nextNonce === 1 ? undefined : nextNonce
 }
 
 async function resetNonce(senderAddress) {

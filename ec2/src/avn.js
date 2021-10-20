@@ -5,6 +5,7 @@ const log4js = require('log4js')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
 const { createClient } = require('redis')
+const BN = require('bn.js');
 
 const POLL_STATES = {
   Pending: 'Pending',
@@ -77,6 +78,9 @@ async function smartNonce(sender) {
   let address = sender.address.toString()
   let nonce = await redisClient.INCR(address)
 
+  console.log('*******typeof nonce: ', typeof nonce)
+  console.log(`********Nonce: ${nonce}`)
+
   if (nonce == 1) {
     nonce = await api.rpc.system.accountNextIndex(sender);
     await redisClient.SETEX(address, SMARTNONCE_EXPIRY_IN_SECONDS, nonce)
@@ -84,6 +88,8 @@ async function smartNonce(sender) {
     await redisClient.EXPIRE(address, SMARTNONCE_EXPIRY_IN_SECONDS)
   }
 
+  console.log(`**** BN nonce: ${new BN(nonce.toString())}`)
+  console.log(`********Final Nonce: ${nonce}`)
   return nonce
 }
 

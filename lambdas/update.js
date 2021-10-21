@@ -1,4 +1,4 @@
-const { LambdaClient, UpdateFunctionCodeCommand } = require('@aws-sdk/client-lambda');
+const { LambdaClient, UpdateFunctionCodeCommand, UpdateFunctionConfigurationCommand } = require('@aws-sdk/client-lambda');
 const aws = new LambdaClient({ region: 'eu-west-1'});
 const zipdir = require('zip-dir');
 const fs = require('fs');
@@ -18,16 +18,18 @@ const LAMBDAS = [
 async function publish(lambda) {
   console.log('Publishing', lambda, 'to AWS...');
   const params = { ZipFile: await zipdir(lambda), FunctionName: lambda };
+  const config = { FunctionName: lambda, Description: `${lambda} - Update script deployment` }
 
   try {
     const data = await aws.send(new UpdateFunctionCodeCommand(params));
+    const updateData = await aws.send(new UpdateFunctionConfigurationCommand(config));
     console.log('Published ', lambda);
   } catch (err) {
     console.log(lambda, '- Error:', err);
   }
 }
 
-async function updateNodeModulesAndPublish(lambda) {
+async function updateNodeModulesAndPublish(lambda, consumer) {
   console.log('Updating node modules for', lambda + '...' );
 
   const paths = {
@@ -63,8 +65,8 @@ async function updateNodeModulesAndPublish(lambda) {
     replaceRef(paths.lambdaIdx, '../common/'+file, './'+file);
   });
 
-  // Publish the lambda to AWS
-  await publish(lambda);
+  // Execute consumer function (publish lambda by default or zip the lambda directories for CI)
+  await consumer(lambda)
 
   // Remove any  copied common files from the lambda and dereference them in index.js
   commonFiles.forEach(file => {
@@ -80,12 +82,16 @@ function replaceRef(file, a, b) {
 async function main() {
   const lambda = process.argv[2];
   if (lambda === 'all') {
-    LAMBDAS.forEach(lambda => updateNodeModulesAndPublish(lambda));
+    LAMBDAS.forEach(lambda => updateNodeModulesAndPublish(lambda, async (name) => publish(name)));
   } else if (LAMBDAS.includes(lambda)) {
-    updateNodeModulesAndPublish(lambda);
+    updateNodeModulesAndPublish(lambda, async (name) => publish(name));
   } else {
     console.log('Error: no such lambda');
   }
 };
 
 if (require.main === module) main();
+
+module.exports.zip = async function (lambda) {
+  updateNodeModulesAndPublish(lambda, async (directory) => zipdir(directory, { saveTo: `./build/${directory}.zip` }));
+};

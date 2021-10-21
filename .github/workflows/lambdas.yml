@@ -58,6 +58,7 @@ jobs:
           cache-dependency-path: |
             lambdas/${{ env.POLL }}/package-lock.json
             lambdas/common/package-lock.json
+            lambdas/package-lock.json
       
       - name: Package Function
         run: |
@@ -82,6 +83,7 @@ jobs:
           cache-dependency-path: |
             lambdas/${{ env.SEND }}/package-lock.json
             lambdas/common/package-lock.json
+            lambdas/package-lock.json
       
       - name: Package Function
         run: |
@@ -106,6 +108,7 @@ jobs:
           cache-dependency-path: |
             lambdas/${{ env.QUERY }}/package-lock.json
             lambdas/common/package-lock.json
+            lambdas/package-lock.json
       
       - name: Package Function
         run: |
@@ -130,6 +133,7 @@ jobs:
           cache-dependency-path: |
             lambdas/${{ env.AUTHORISER }}/package-lock.json
             lambdas/common/package-lock.json
+            lambdas/package-lock.json
       
       - name: Package Function
         run: |
@@ -163,6 +167,10 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
+    needs: [upload, version-suffix]
+    defaults:
+      run:
+        working-directory: _infra/terraform/environments/sandbox
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -172,29 +180,51 @@ jobs:
         with:
           terraform_version: 0.14.6
       
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
+          aws-region: eu-west-1
+
       - name: Terraform Init
         id: init
         run: terraform init
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color
+        run: TF_VAR_service_version=${{ needs.version-suffix.outputs.version }} terraform plan -no-color -out=plan-out.tfplan
+        continue-on-error: true
+      
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply plan-out.tfplan -no-color
         continue-on-error: true
 
       - name: Output plan
         uses: actions/github-script@v5.0.0
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+          APPLY: "terraform\n${{ steps.apply.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Initialization: \`${{ steps.init.outcome }}\`
-            #### Terraform Plan: \`${{ steps.plan.outcome }}\`
+            const output = `#### Terraform Plan: \`${{ steps.plan.outcome }}\`
 
             <details><summary>Show Plan</summary>
 
             \`\`\`\n
             ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            #### Terraform Apply: \`${{ steps.apply.outcome }}\`
+
+            <details><summary>Show Apply</summary>
+
+            \`\`\`\n
+            ${process.env.APPLY}
             \`\`\`
 
             </details>

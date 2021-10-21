@@ -13,3 +13,4 @@ From the lambdas root directory run `node update.js YOUR_LAMBDA` or `node update
 
 ### Testing
 For local testing, uncomment the testlocal() function at the bottom of the lambda's index.js.
+

@@ -77,7 +77,6 @@ async function signAndSend(txn) {
     throw err
   }
 
-  // TODO: Add nonce to addPendingAvnTransaction if available
   redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
 
   return result

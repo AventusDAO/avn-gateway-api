@@ -50,8 +50,9 @@ async function getTransactionStatusFromIndexer(transactionHash) {
     const response = res.data.data.hits.hits
 
     if (response.length > 0 && response[0]._source) {
-      const state = response[0]._source.isFailed === true ? transactionStates.Rejected : transactionStates.Processed
-      return {transactionHash, state, blockNumber: response[0]._source.blockNumber }
+      const data = response[0]._source
+      const state = data.isFailed === true ? transactionStates.Rejected : transactionStates.Processed
+      return {transactionHash, state, blockNumber: data.blockNumber }
     }
 
     console.log(`Transaction hash ${transactionHash} not found in chain indexer.`)

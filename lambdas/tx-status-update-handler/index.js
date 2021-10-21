@@ -1,7 +1,7 @@
 const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
 
-const MAX_TX_TO_PROCESS = 50
+const MAX_TX_TO_PROCESS = 100
 const BLOCK_EXPLORER_BASE_URL = `https://avn.sandbox.aventus.io:3000/transactions/`
 
 // Make sure this is kept in sync with the state names defined in ec2/src/redis.js
@@ -29,7 +29,6 @@ exports.handler = async (_event) => {
 };
 
 async function processRequest() {
-  const transactions = []
   // Get transactions that need resolving (i.e. that are pending)
   const pendingTransactionHashes = (await axios.get(EC2 + 'pendingTransactions')).data;
 
@@ -38,13 +37,8 @@ async function processRequest() {
     return;
   }
 
-  for (const txHash of pendingTransactionHashes.slice(0, MAX_TX_TO_PROCESS)) {
-    // try to get the status from the indexer
-    const tx = await getTransactionStatusFromIndexer(txHash)
-    if (tx) {
-      transactions.push(tx)
-    }
-  }
+  const txPromises = pendingTransactionHashes.slice(0, MAX_TX_TO_PROCESS).map(txHash => getTransactionStatusFromIndexer(txHash));
+  const transactions = (await Promise.allSettled(txPromises)).filter(p => p.status === 'fulfilled' && p.value !== undefined).map(p => p.value);
 
   // resolve them in the database
   await axios.post(EC2 + 'resolvePendingTransactions', {transactions})

@@ -47,7 +47,7 @@ jobs:
   poll:
     runs-on: ubuntu-latest
     name: package poll function
-    needs: [suffix]
+    needs: [version-suffix]
     steps:
       - uses: actions/checkout@v2
 
@@ -71,7 +71,7 @@ jobs:
   send:
     runs-on: ubuntu-latest
     name: package send function
-    needs: [suffix]
+    needs: [version-suffix]
     steps:
       - uses: actions/checkout@v2
 
@@ -95,7 +95,7 @@ jobs:
   query:
     runs-on: ubuntu-latest
     name: package query function
-    needs: [suffix]
+    needs: [version-suffix]
     steps:
       - uses: actions/checkout@v2
 
@@ -119,7 +119,7 @@ jobs:
   authoriser:
     runs-on: ubuntu-latest
     name: package authoriser function
-    needs: [suffix]
+    needs: [version-suffix]
     steps:
       - uses: actions/checkout@v2
 

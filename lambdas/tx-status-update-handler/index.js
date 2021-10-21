@@ -58,6 +58,6 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
       })
     }
   } catch (error) {
-    throw new Error(`Error getting transaction state for transaction hash ${transactionHash}: ${error}`)
+    throw new Error(`Error getting transaction state from indexer: ${error}`)
   }
 }

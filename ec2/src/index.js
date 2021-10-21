@@ -12,7 +12,7 @@ const app = express()
 const port = config.portNumber
 
 app.use(express.urlencoded({ extended: true }))
-app.use(express.json())
+app.use(express.json({limit: '50mb'}))
 app.use(function(err, req, res, _next) {
   log.error(`Error processing request: ${req}, \nStack: ${err.stack}`)
   res.status(500).send('Error processing request')

@@ -22,7 +22,7 @@ const transactionStates = {
 }
 
 const PENDING_TRANSACTIONS_KEY = 'PendingTransactionsList'
-const MAX_PENDING_TRANSACTIONS = 100
+const MAX_RANDOM_SELECTION_SIZE = 1000
 const NONCE_NAMESPACE = 'Nonce.'
 const NONCE_EXPIRY_IN_SECONDS = 5
 
@@ -92,8 +92,8 @@ async function getAllPendingTransactions() {
 }
 
 async function getRandomPendingTransactions() {
-  log.trace(`Returning random ${MAX_PENDING_TRANSACTIONS} pending transactions`)
-  return await redisClient.sRandMemberCount(PENDING_TRANSACTIONS_KEY, MAX_PENDING_TRANSACTIONS)
+  log.trace(`Returning random ${MAX_RANDOM_SELECTION_SIZE} pending transactions`)
+  return await redisClient.sRandMemberCount(PENDING_TRANSACTIONS_KEY, MAX_RANDOM_SELECTION_SIZE)
 }
 
 function buildTransactionJson(senderAddress, senderNonce) {

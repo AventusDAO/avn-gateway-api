@@ -1,7 +1,6 @@
 const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
 
-const MAX_TX_TO_PROCESS = 1000
 const BLOCK_EXPLORER_BASE_URL = `https://avn.sandbox.aventus.io:3000/transactions/all`
 
 // Make sure this is kept in sync with the state names defined in ec2/src/redis.js
@@ -45,10 +44,13 @@ async function processRequest() {
 
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
+    console.log(`Getting ${transactionHashes.length} transaction statuses from chain indexer`)
     let res = await axios.post(`${BLOCK_EXPLORER_BASE_URL}`, {"transactionHashes": transactionHashes})
-    const response = res.data
+    const response = res.data.data
 
     if (response && response.length > 0) {
+      console.log(`Recieved ${response.length} responses from chain indexer`)
+
       return response.map(tx => {
         return {
           transactionHash: tx.transactionHash,

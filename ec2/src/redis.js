@@ -22,7 +22,7 @@ const transactionStates = {
 }
 
 const PENDING_TRANSACTIONS_KEY = 'PendingTransactionsList'
-const MAX_PENDING_TRANSACTIONS = 50
+const MAX_PENDING_TRANSACTIONS = 100
 const NONCE_NAMESPACE = 'Nonce.'
 const NONCE_EXPIRY_IN_SECONDS = 5
 

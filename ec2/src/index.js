@@ -12,7 +12,7 @@ const app = express()
 const port = config.portNumber
 
 app.use(express.urlencoded({ extended: true }))
-app.use(express.json())
+app.use(express.json({limit: '50mb'}))
 app.use(function(err, req, res, _next) {
   log.error(`Error processing request: ${req}, \nStack: ${err.stack}`)
   res.status(500).send('Error processing request')
@@ -72,7 +72,7 @@ app.get('/pendingTransactions', async (req, res, next) => {
 
 app.post('/resolvePendingTransactions', async (req, res, next) => {
   try {
-    log.trace(`request: ${JSON.stringify(req.body)}`)
+    log.trace(`request properties: ${Object.keys(req.body)}`)
     const result = await redis.resolvePendingAvnTransactions(req.body.transactions)
     res.send(result)
   } catch (err) {

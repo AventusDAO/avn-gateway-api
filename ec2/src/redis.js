@@ -22,7 +22,7 @@ const transactionStates = {
 }
 
 const PENDING_TRANSACTIONS_KEY = 'PendingTransactionsList'
-const MAX_PENDING_TRANSACTIONS = 100
+const MAX_RANDOM_SELECTION_SIZE = 1500
 const NONCE_NAMESPACE = 'Nonce.'
 const NONCE_EXPIRY_IN_SECONDS = 5
 
@@ -58,33 +58,27 @@ async function getAvnTransaction(transactionHash) {
   return await redisClient.hGetAll(transactionHash)
 }
 
-async function updateAvnTransactionStatus(transactionHash, status, blockNumber) {
-  if (!(await redisClient.exists(transactionHash))) {
-    throw new Error(`Transaction hash (${transactionHash}) does not exist in the database, cannot update state.`)
-  }
-
-  if (![transactionStates.Processed, transactionStates.Rejected].includes(status)) {
-    log.warn(
-      `Attempting to update transaction ${transactionHash} with an invalid status of ${status}, ignoring request`
-    )
-    return
-  }
-
-  const transaction = await redisClient.hGetAll(transactionHash)
-  transaction[transactionObject.status] = status
-  transaction[transactionObject.blockNumber] = blockNumber
-
-  await redisClient
-    .multi()
-    .hSet(transactionHash, transaction)
-    .sRem(PENDING_TRANSACTIONS_KEY, transactionHash)
-    .exec()
-}
-
 async function resolvePendingAvnTransactions(transactions) {
+  log.trace(`Updating ${transactions.length} transactions`)
   for (const tx of transactions) {
-    await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
+    if (![transactionStates.Processed, transactionStates.Rejected].includes(tx.state)) {
+      log.warn(
+        `Attempting to update transaction ${tx.transactionHash} with an invalid status of ${tx.state}, ignoring request`
+      )
+      continue
+    }
+
+    const newValue = {}
+    newValue[transactionObject.status] = tx.state
+    newValue[transactionObject.blockNumber] = tx.blockNumber
+
+    await redisClient
+      .multi()
+      .hSet(tx.transactionHash, newValue)
+      .sRem(PENDING_TRANSACTIONS_KEY, tx.transactionHash)
+      .exec()
   }
+  log.trace(`Updating completed`)
 }
 
 async function getAllPendingTransactions() {
@@ -92,8 +86,8 @@ async function getAllPendingTransactions() {
 }
 
 async function getRandomPendingTransactions() {
-  log.trace(`Returning random ${MAX_PENDING_TRANSACTIONS} pending transactions`)
-  return await redisClient.sRandMemberCount(PENDING_TRANSACTIONS_KEY, MAX_PENDING_TRANSACTIONS)
+  log.trace(`Returning random ${MAX_RANDOM_SELECTION_SIZE} pending transactions`)
+  return await redisClient.sRandMemberCount(PENDING_TRANSACTIONS_KEY, MAX_RANDOM_SELECTION_SIZE)
 }
 
 function buildTransactionJson(senderAddress, senderNonce) {
@@ -128,7 +122,6 @@ module.exports = {
   addPendingAvnTransaction,
   getAvnTransaction,
   getNextNonce,
-  updateAvnTransactionStatus,
   resetNonce,
   setNonce,
   refreshNonce,

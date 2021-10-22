@@ -1,0 +1,161 @@
+name: lambdas
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'lambdas/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'lambdas/**'
+
+env:
+  AUTHORISER: authorisation-handler
+  POLL: poll-handler
+  SEND: send-handler
+  QUERY: query-handler
+
+defaults:
+  run:
+    shell: bash
+    working-directory: lambdas
+
+jobs:
+  version-suffix:
+    runs-on: ubuntu-latest
+    name: Generate version suffix
+    outputs:
+      version: ${{ steps.suffix.outputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create version for PR
+        if: github.event.pull_request.merged != 'true'
+        run: echo "VERSION_SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+        
+      - name: Create version for merge
+        if: github.event.pull_request.merged == 'true'
+        run: echo "VERSION_SUFFIX=${GITHUB_SHA::8}" >> $GITHUB_ENV
+      
+      - name: output version suffix
+        id: suffix
+        run: echo ::set-output name=version::"${{ env.VERSION_SUFFIX }}"
+
+  poll:
+    runs-on: ubuntu-latest
+    name: package poll function
+    needs: [version-suffix]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: |
+            lambdas/${{ env.POLL }}/package-lock.json
+            lambdas/common/package-lock.json
+      
+      - name: Package Function
+        run: |
+          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.POLL }}
+      
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.POLL }}
+          path: lambdas/build/
+        
+  send:
+    runs-on: ubuntu-latest
+    name: package send function
+    needs: [version-suffix]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: |
+            lambdas/${{ env.SEND }}/package-lock.json
+            lambdas/common/package-lock.json
+      
+      - name: Package Function
+        run: |
+          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.SEND }}
+      
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.SEND }}
+          path: lambdas/build/
+  
+  query:
+    runs-on: ubuntu-latest
+    name: package query function
+    needs: [version-suffix]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: |
+            lambdas/${{ env.QUERY }}/package-lock.json
+            lambdas/common/package-lock.json
+      
+      - name: Package Function
+        run: |
+          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.QUERY }}
+      
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.QUERY }}
+          path: lambdas/build/
+  
+  authoriser:
+    runs-on: ubuntu-latest
+    name: package authoriser function
+    needs: [version-suffix]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: |
+            lambdas/${{ env.AUTHORISER }}/package-lock.json
+            lambdas/common/package-lock.json
+      
+      - name: Package Function
+        run: |
+          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.AUTHORISER }}
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.AUTHORISER }}
+          path: lambdas/build/
+
+  upload:
+    runs-on: ubuntu-latest
+    name: upload functions to s3
+    needs: [authoriser, query, send, poll]
+    steps:
+      - uses: actions/checkout@v2
+      
+      - uses: actions/download-artifact@master
+        with:
+          path: lambdas/build
+
+      - name: Upload to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_ARTIFACT_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
+          AWS_REGION: 'eu-west-1'
+          SOURCE_DIR: "lambdas/build"

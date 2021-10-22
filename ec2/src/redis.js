@@ -82,46 +82,26 @@ async function updateAvnTransactionStatus(transactionHash, newValue) {
 }
 
 async function resolvePendingAvnTransactions(transactions) {
-  // for (const tx of transactions) {
-  //   //await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
-  //   const newValue = {}
-  //   newValue[transactionObject.status] = tx.state
-  //   newValue[transactionObject.blockNumber] = tx.blockNumber
+  log.trace(`Updating ${transactions.length} transactions`)
+  for (const tx of transactions) {
+    if (![transactionStates.Processed, transactionStates.Rejected].includes(tx.state)) {
+      log.warn(
+        `Attempting to update transaction ${tx.transactionHash} with an invalid status of ${tx.state}, ignoring request`
+      )
+      continue
+    }
 
-  //   await updateAvnTransactionStatus(tx.transactionHash, newValue)
-  //   // await redisClient
-  //   //   .multi()
-  //   //   .hSet(tx.transactionHash, newValue)
-  //   //   .sRem(PENDING_TRANSACTIONS_KEY, tx.transactionHash)
-  //   //   .exec()
-  // }
-
-  const txPromises = transactions.map(tx => {
     const newValue = {}
     newValue[transactionObject.status] = tx.state
     newValue[transactionObject.blockNumber] = tx.blockNumber
 
-    updateAvnTransactionStatus(tx.transactionHash, newValue)
-  })
-
-  log.trace(`${txPromises.length} promises, resolving them now`)
-
-  const r = await Promise.all(txPromises)
-
-  log.trace(`Total result: ${r.length}`)
-
-
-  // const txPromises = transactions.map(tx => updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber))
-  // log.trace(`${txPromises.length} promises, resolving them now`)
-
-  // const r = await Promise.all(txPromises)
-
-  // log.trace(`Total result: ${r.length}`)
-
-  // //TODO: Temporary logging - remove me
-  // const fulfilled = r.filter(p => p.status === 'fulfilled').length
-  // log.trace(`Fulfilled: ${fulfilled.length}`)
-  // return fulfilled
+    await redisClient
+      .multi()
+      .hSet(tx.transactionHash, newValue)
+      .sRem(PENDING_TRANSACTIONS_KEY, transactionHash)
+      .exec()
+  }
+  log.trace(`Updating completed`)
 }
 
 async function getAllPendingTransactions() {

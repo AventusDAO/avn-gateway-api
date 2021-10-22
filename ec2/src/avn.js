@@ -38,12 +38,16 @@ async function poll(requestId) {
   }
 
   try {
+    log.warn(`getting transaction status for ${requestId}`)
     let tx = redis.getAvnTransaction(requestId)
+    log.warn(`Result: ${JSON.stringify(tx)}`)
+
     if (!tx) {
       log.error(`No transaction found for requestId: ${requestId}`)
       return { error: 'Transaction not found' }
     }
 
+    log.warn(`Returning ${tx.state}`)
     return { state: tx.state }
   } catch (error) {
     log.error(`Error getting transaction state for requestId ${requestId}: ${error}`)

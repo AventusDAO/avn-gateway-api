@@ -87,11 +87,15 @@ async function resolvePendingAvnTransactions(transactions) {
   // }
 
   const txPromises = transactions.map(tx => updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber))
+  log.trace(`${txPromises.length} promises, resolving them now`)
+
   const r = await Promise.allSettled(txPromises)
+
+  log.trace(`Total result: ${r.length}`)
 
   //TODO: Temporary logging - remove me
   const fulfilled = r.filter(p => p.status === 'fulfilled').length
-  log.trace(`Total result: ${r}, fulfilled: ${fulfilled}`)
+  log.trace(`Fulfilled: ${fulfilled.length}`)
   return fulfilled
 }
 

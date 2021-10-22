@@ -134,15 +134,15 @@ const codeFormatters = {
   },
 };
 
-async function testlocal(n) {
-  for (var i = 0; i < n; i++) {
-    console.log('transferAvt:', await processRequest(`{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":${i}}`));
-    await sleep(1000);
-  }
-}
+// async function testlocal(n) {
+//   for (var i = 0; i < n; i++) {
+//     console.log('transferAvt:', await processRequest(`{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":${i}}`));
+//     await sleep(1000);
+//   }
+// }
 
-function sleep(ms) {
-  return new Promise((resolve, reject) => setTimeout(resolve, ms) )
-}
+// function sleep(ms) {
+//   return new Promise((resolve, reject) => setTimeout(resolve, ms) )
+// }
 
-testlocal(1);
+// testlocal(1);

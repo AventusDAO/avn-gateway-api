@@ -2,7 +2,6 @@ const utils = require('../common/utils');
 const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
 const MessageQueue = require('./messageQueue.js');
-const REQUEST_QUEUE = 'avnTx'; // TODO: Replace the hard coded queue name with an environment variable, or to be decided by the request method
 
 exports.handler = async (event) => {
   const response = {
@@ -12,13 +11,13 @@ exports.handler = async (event) => {
   return response;
 };
 
-async function sendTx(palletName, method, params) {
+async function sendTx(queueName, palletName, method, params) {
   let response;
   try {
     // TODO: Make message queue client reusable between each warm lambda function invocations
     let mq = new MessageQueue();
     await mq.initialise(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN);
-    response = await mq.sendMessageToMQ(REQUEST_QUEUE, {palletName: palletName, method: method, params: params});
+    response = await mq.sendMessageToMQ(queueName, {palletName: palletName, method: method, params: params});
   } catch (e) {
     console.log('sendTx Error:', e);
     throw true;
@@ -65,7 +64,7 @@ async function callSwitch(call, responseObject) {
     case 'transferAvt':
       if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
-          responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]]);
+          responseObject.result = await sendTx('avnTx', 'balances', 'transfer', [call.params[0], call.params[1]]);
         } catch (e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }

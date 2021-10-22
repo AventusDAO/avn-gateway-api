@@ -83,7 +83,16 @@ async function updateAvnTransactionStatus(transactionHash, status, blockNumber) 
 
 async function resolvePendingAvnTransactions(transactions) {
   for (const tx of transactions) {
-    await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
+    //await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
+    const newValue = {}
+    newValue[transactionObject.status] = tx.state
+    newValue[transactionObject.blockNumber] = tx.blockNumber
+
+    await redisClient
+      .multi()
+      .hSet(tx.transactionHash, newValue)
+      .sRem(PENDING_TRANSACTIONS_KEY, transactionHash)
+      .exec()
   }
 
   // const txPromises = transactions.map(tx => updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber))

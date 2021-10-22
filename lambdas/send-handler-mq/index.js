@@ -1,7 +1,7 @@
 const utils = require('../common/utils');
 const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
-const MessageQueue = require('./messageQueue.js');
+const MessageQueue = require('./messageQueue.js'); // TODO: SYS-1529 Create a lambda layer for the shared modules
 
 exports.handler = async (event) => {
   const response = {
@@ -14,7 +14,7 @@ exports.handler = async (event) => {
 async function sendTx(queueName, palletName, method, params) {
   let response;
   try {
-    // TODO: Make message queue client reusable between each warm lambda function invocations
+    // TODO: SYS-1528 Make message queue client reusable between each warm lambda function invocations
     let mq = new MessageQueue();
     await mq.initialise(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN);
     response = await mq.sendMessageToMQ(queueName, {palletName: palletName, method: method, params: params});

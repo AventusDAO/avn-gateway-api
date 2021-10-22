@@ -82,11 +82,17 @@ async function updateAvnTransactionStatus(transactionHash, status, blockNumber) 
 }
 
 async function resolvePendingAvnTransactions(transactions) {
-  for (const tx of transactions) {
-    await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
-  }
-  // const txPromises = transactions.map(tx => updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber))
-  // await Promise.allSettled(txPromises)
+  // for (const tx of transactions) {
+  //   await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
+  // }
+
+  const txPromises = transactions.map(tx => updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber))
+  const r = await Promise.allSettled(txPromises)
+
+  //TODO: Temporary logging - remove me
+  const fulfilled = r.filter(p => p.status === 'fulfilled').length
+  log.trace(`Total result: ${r}, fulfilled: ${fulfilled}`)
+  return fulfilled
 }
 
 async function getAllPendingTransactions() {

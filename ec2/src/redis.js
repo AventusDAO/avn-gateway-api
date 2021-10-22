@@ -21,8 +21,12 @@ const transactionStates = {
   SendingFailed: 'SendingFailed'
 }
 
-const PENDING_TRANSACTIONS_KEY = 'PendingTransactionsList'
-const MAX_RANDOM_SELECTION_SIZE = 1500
+const ALL_PENDING_TXS_KEY = 'PendingTransactionsList'
+const CURRENT_PENDING_TXS_BEING_CHECKED_KEY = 'cTx'
+const NEXT_PENDING_TXS_TO_CHECK_KEY = 'nTx'
+const MAX_PENDING_TX_TO_CHECK = 1500
+const CHECK_WINDOW = 10 * 1000000 // 10 seconds
+
 const NONCE_NAMESPACE = 'Nonce.'
 const NONCE_EXPIRY_IN_SECONDS = 5
 
@@ -49,7 +53,7 @@ async function addPendingAvnTransaction(transactionHash, senderAddress, senderNo
   await redisClient
     .multi()
     .hSet(transactionHash, buildTransactionJson(senderAddress, senderNonce))
-    .sAdd(PENDING_TRANSACTIONS_KEY, transactionHash)
+    .zAdd(ALL_PENDING_TXS_KEY, { value: transactionHash, score:'+inf' })
     .exec()
 }
 
@@ -75,19 +79,29 @@ async function resolvePendingAvnTransactions(transactions) {
     await redisClient
       .multi()
       .hSet(tx.transactionHash, newValue)
-      .sRem(PENDING_TRANSACTIONS_KEY, tx.transactionHash)
+      .zRem(ALL_PENDING_TXS_KEY, tx.transactionHash)
       .exec()
   }
   log.trace(`Updating completed`)
 }
 
-async function getAllPendingTransactions() {
-  return await redisClient.sMembers(PENDING_TRANSACTIONS_KEY)
-}
+async function getNextTransactionsToCheck() {
+  const redisTime = await redisClient.time()
+  const redisTimeMicro = new Date(redisTime).getTime() * 1000000 + redisTime.microseconds
+  const expiry = redisTimeMicro + (CHECK_WINDOW)
 
-async function getRandomPendingTransactions() {
-  log.trace(`Returning random ${MAX_RANDOM_SELECTION_SIZE} pending transactions`)
-  return await redisClient.sRandMemberCount(PENDING_TRANSACTIONS_KEY, MAX_RANDOM_SELECTION_SIZE)
+  const [_numExpired, _numAwaitingCheck, txToCheckNext] = await redisClient
+    .multi()
+    .zRemRangeByScore(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, 0, redisTimeMicro) // Remove the ones we have processed
+    .zDiffStore(NEXT_PENDING_TXS_TO_CHECK_KEY, [ALL_PENDING_TXS_KEY, CURRENT_PENDING_TXS_BEING_CHECKED_KEY]) // Store all remaining hashes
+    .zRange(NEXT_PENDING_TXS_TO_CHECK_KEY, 0, MAX_PENDING_TX_TO_CHECK - 1) // shrink that list based on MAX_PENDING_TX_TO_CHECK
+    .exec()
+
+  if (txToCheckNext.length > 0) {
+    await redisClient.zAdd(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, txToCheckNext.map(txHash => ({value: txHash, score: expiry})))
+  }
+
+  return txToCheckNext
 }
 
 function buildTransactionJson(senderAddress, senderNonce) {
@@ -125,7 +139,6 @@ module.exports = {
   resetNonce,
   setNonce,
   refreshNonce,
-  getRandomPendingTransactions,
-  getAllPendingTransactions,
+  getNextTransactionsToCheck,
   resolvePendingAvnTransactions
 }

@@ -72,8 +72,9 @@ app.get('/pendingTransactions', async (req, res, next) => {
 
 app.post('/resolvePendingTransactions', async (req, res, next) => {
   try {
-    log.trace(`request: ${JSON.stringify(req.body)}`)
+    log.trace(`request properties: ${Object.keys(req.body)}`)
     const result = await redis.resolvePendingAvnTransactions(req.body.transactions)
+    log.trace(`resolvePendingTransactions response: ${result}`)
     res.send(result)
   } catch (err) {
     next(err)

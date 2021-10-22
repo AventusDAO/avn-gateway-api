@@ -58,42 +58,58 @@ async function getAvnTransaction(transactionHash) {
   return await redisClient.hGetAll(transactionHash)
 }
 
-async function updateAvnTransactionStatus(transactionHash, status, blockNumber) {
-  if (!(await redisClient.exists(transactionHash))) {
-    throw new Error(`Transaction hash (${transactionHash}) does not exist in the database, cannot update state.`)
-  }
+async function updateAvnTransactionStatus(transactionHash, newValue) {
+  // if (!(await redisClient.exists(transactionHash))) {
+  //   throw new Error(`Transaction hash (${transactionHash}) does not exist in the database, cannot update state.`)
+  // }
 
-  if (![transactionStates.Processed, transactionStates.Rejected].includes(status)) {
-    log.warn(
-      `Attempting to update transaction ${transactionHash} with an invalid status of ${status}, ignoring request`
-    )
-    return
-  }
+  // if (![transactionStates.Processed, transactionStates.Rejected].includes(status)) {
+  //   log.warn(
+  //     `Attempting to update transaction ${transactionHash} with an invalid status of ${status}, ignoring request`
+  //   )
+  //   return
+  // }
 
-  const transaction = await redisClient.hGetAll(transactionHash)
-  transaction[transactionObject.status] = status
-  transaction[transactionObject.blockNumber] = blockNumber
+  // const transaction = await redisClient.hGetAll(transactionHash)
+  // transaction[transactionObject.status] = status
+  // transaction[transactionObject.blockNumber] = blockNumber
 
   await redisClient
     .multi()
-    .hSet(transactionHash, transaction)
+    .hSet(transactionHash, newValue)
     .sRem(PENDING_TRANSACTIONS_KEY, transactionHash)
     .exec()
 }
 
 async function resolvePendingAvnTransactions(transactions) {
-  for (const tx of transactions) {
-    //await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
+  // for (const tx of transactions) {
+  //   //await updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber)
+  //   const newValue = {}
+  //   newValue[transactionObject.status] = tx.state
+  //   newValue[transactionObject.blockNumber] = tx.blockNumber
+
+  //   await updateAvnTransactionStatus(tx.transactionHash, newValue)
+  //   // await redisClient
+  //   //   .multi()
+  //   //   .hSet(tx.transactionHash, newValue)
+  //   //   .sRem(PENDING_TRANSACTIONS_KEY, tx.transactionHash)
+  //   //   .exec()
+  // }
+
+  const txPromises = transactions.map(tx => {
     const newValue = {}
     newValue[transactionObject.status] = tx.state
     newValue[transactionObject.blockNumber] = tx.blockNumber
 
-    await redisClient
-      .multi()
-      .hSet(tx.transactionHash, newValue)
-      .sRem(PENDING_TRANSACTIONS_KEY, tx.transactionHash)
-      .exec()
-  }
+    updateAvnTransactionStatus(tx.transactionHash, newValue)
+  })
+
+  log.trace(`${txPromises.length} promises, resolving them now`)
+
+  const r = await Promise.all(txPromises)
+
+  log.trace(`Total result: ${r.length}`)
+
 
   // const txPromises = transactions.map(tx => updateAvnTransactionStatus(tx.transactionHash, tx.state, tx.blockNumber))
   // log.trace(`${txPromises.length} promises, resolving them now`)

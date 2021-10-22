@@ -15,6 +15,7 @@ exports.handler = async (event) => {
 async function sendTx(palletName, method, params) {
   let response;
   try {
+    // TODO: Make message queue client reusable between each warm lambda function invocations
     let mq = new MessageQueue();
     await mq.initialise(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN);
     response = await mq.sendMessageToMQ(REQUEST_QUEUE, {palletName: palletName, method: method, params: params});

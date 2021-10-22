@@ -1,7 +1,7 @@
 const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
 
-const BLOCK_EXPLORER_BASE_URL = `https://avn.sandbox.aventus.io:3000/transactions/all`
+const BLOCK_EXPLORER_BASE_URL = `https://avn.sandbox.aventus.io:3000/transactions/bulk`
 
 // Make sure this is kept in sync with the state names defined in ec2/src/redis.js
 const transactionStates = {

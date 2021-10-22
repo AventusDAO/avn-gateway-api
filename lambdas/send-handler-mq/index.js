@@ -1,4 +1,4 @@
-const utils = require('../common/utils');
+const utils = require('../common/utils.js');
 const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
 const MessageQueue = require('./messageQueue.js'); // TODO: SYS-1529 Create a lambda layer for the shared modules

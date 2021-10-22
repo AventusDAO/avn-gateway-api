@@ -91,7 +91,7 @@ async function resolvePendingAvnTransactions(transactions) {
     await redisClient
       .multi()
       .hSet(tx.transactionHash, newValue)
-      .sRem(PENDING_TRANSACTIONS_KEY, transactionHash)
+      .sRem(PENDING_TRANSACTIONS_KEY, tx.transactionHash)
       .exec()
   }
 

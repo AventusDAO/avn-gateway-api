@@ -1,5 +1,3 @@
-// const utils = require('/opt/nodejs/utils');
-// const EC2 = require('/opt/nodejs/resources.json').ec2_endpoint;
 const utils = require('../common/utils');
 const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');

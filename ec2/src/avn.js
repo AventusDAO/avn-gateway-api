@@ -33,35 +33,22 @@ async function proxy(palletName, method, params) {
 
 async function poll(requestId) {
   if (!requestId) {
-    //TODO: Add more validate such as checking if we have sent that tx already (check by reading from DB)
     log.error(`Unknown request: ${requestId}`)
     return { error: 'Bad request' }
   }
 
-  // TODO: Replace me with a database call
-  const axios = require('axios')
-  const BLOCK_EXPLORER_URL = `https://avn.sandbox.aventus.io:3000/transactions/${requestId}`
-  let result
-
   try {
-    let state
-    let res = await axios.get(BLOCK_EXPLORER_URL)
-    log.trace(`Indexer found ${JSON.stringify(res.data.data.hits.total.value)} record(s)`)
-    const response = res.data.data.hits.hits
-
-    if (response.length > 0) {
-      state = response[0]._source.isFailed === true ? 'Rejected' : 'Processed'
-    } else {
-      state = 'Pending'
+    let tx = redis.getAvnTransaction(requestId)
+    if (!tx) {
+      log.error(`No transaction found for requestId: ${requestId}`)
+      return { error: 'Transaction not found' }
     }
 
-    result = { state: state }
+    return { state: tx.state }
   } catch (error) {
     log.error(`Error getting transaction state for requestId ${requestId}: ${error}`)
     throw new Error(`Unable to get transaction state for requestId: ${requestId}`)
   }
-
-  return result
 }
 
 async function getNonce(senderAddress) {
@@ -76,11 +63,11 @@ async function getNonce(senderAddress) {
 }
 
 async function signAndSend(txn) {
-  let result
+  let result, nonce
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    let nonce = await getNonce(sender.address)
+    nonce = await getNonce(sender.address)
     let receipt = await txn.signAndSend(sender, { nonce })
     let requestId = receipt.toString()
     result = { requestId }
@@ -90,8 +77,7 @@ async function signAndSend(txn) {
     throw err
   }
 
-  // TODO: Add nonce to addPendingAvnTransaction if available
-  redis.addPendingAvnTransaction(result.requestId, sender.address.toString())
+  redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
 
   return result
 }

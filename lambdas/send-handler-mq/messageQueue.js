@@ -12,14 +12,14 @@ MessageQueue.prototype.initialise = async function(sm_region, secret_arn) {
     const sm = new SecretsManager(sm_region);
     const url = await sm.getSecret(secret_arn);
     this.amqpConnection = await connectToBroker(url);
-    this.amqpChannel = await createChannel(this.amqpConnection);
 }
 
 MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persistent = true) {
   const self = this;
+  const amqpChannel = await createChannel(this.amqpConnection);
   return await new Promise((resolve, reject) => {
-    self.amqpChannel.assertQueue(queue, { durable: true });
-    self.amqpChannel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
+    amqpChannel.assertQueue(queue, { durable: true });
+    amqpChannel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
       persistent: persistent
     }, function(err, ok) {
       if (err) {

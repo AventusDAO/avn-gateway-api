@@ -2,8 +2,10 @@
 const config = require('multiconfig').load()
 const avn = require('./avn')
 const redis = require('./redis')
+const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
 const log4js = require('log4js')
+
 
 log4js.configure(config.log4Js)
 const log = log4js.getLogger()
@@ -53,6 +55,8 @@ app.post('/avnProxy', async (req, res, next) => {
 app.post('/avnPoll', async (req, res, next) => {
   try {
     log.trace(`request body: ${JSON.stringify(req.body)}`)
+    await txStatusPoller.resolvePendingTransactionsState()
+
     const result = await avn.poll(req.body.requestId)
     res.send(result)
   } catch (err) {

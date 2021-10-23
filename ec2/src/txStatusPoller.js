@@ -9,11 +9,12 @@ const params = {
 async function resolvePendingTransactionsState() {
   // You shouldn't hard-code your keys in production!
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html
-  // AWS.config.update({
-  //   accessKeyId: 'AWSAccessKeyId',
-  //   secretAccessKey: 'AWSAccessKeySecret',
-  //   region: 'eu-west-1',
-  // });
+
+  AWS.config.update({
+    // accessKeyId: 'AWSAccessKeyId',
+    // secretAccessKey: 'AWSAccessKeySecret',
+    region: 'eu-west-1',
+  });
 
   AWS.config.getCredentials(function(err) {
     if (err) log.error(err.stack);

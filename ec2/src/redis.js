@@ -49,7 +49,6 @@ async function connect() {
   redisClient.on('end', () => log.warn('Closing Redis connection'))
 
   await redisClient.connect()
-  redisClient.getTime()
 }
 
 function getKey(key) {

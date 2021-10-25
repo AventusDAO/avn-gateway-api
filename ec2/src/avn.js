@@ -82,7 +82,7 @@ async function signAndSend(txn) {
   }
 
   log.warn(`Adding to Redis`)
-  redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
+  await redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
 
   return result
 }

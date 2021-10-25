@@ -59,11 +59,15 @@ async function addPendingAvnTransaction(transactionHash, senderAddress, senderNo
     throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
   }
 
-  await redisClient
+  log.trace(`Adding pending transaction hash for ${transactionHash} for ${senderAddress} - ${senderNonce}`)
+
+  const [x,y] = await redisClient
     .multi()
     .hSet(transactionHash, buildTransactionJson(senderAddress, senderNonce))
     .zAdd(ALL_PENDING_TXS_KEY, { value: transactionHash, score:'+inf' })
     .exec()
+
+  log.trace(`Adding completed: ${x}, ${y}`)
 }
 
 // Returns an empty object (not undefined or null) if key is not found

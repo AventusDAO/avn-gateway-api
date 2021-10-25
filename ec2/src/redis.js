@@ -71,7 +71,7 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
     .exec()
 
   log.trace(`Adding completed for hash ${_transactionHash}: ${x}, ${y}`)
-  const newTx = getAvnTransaction(_transactionHash)
+  const newTx = await getAvnTransaction(_transactionHash)
   log.trace(`Tx details: ${JSON.stringify(newTx)}`)
 }
 
@@ -91,7 +91,7 @@ async function getAvnTransaction(_transactionHash) {
 }
 
 async function resolvePendingAvnTransactions(transactions) {
-  log.trace(`Updating ${transactions.length} transactions`)
+  log.trace(`Updating ${transactions ? transactions.length : 0} transactions`)
   for (const tx of transactions) {
     const transactionHash = getKey(tx.transactionHash)
 

@@ -62,35 +62,17 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
     throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
   }
 
-  log.trace(`Adding pending transaction hash for ${transactionHash} for ${senderAddress} - ${senderNonce}`)
-
-  const [x,y] = await redisClient
+  await redisClient
     .multi()
     .hSet(transactionHash, buildTransactionJson(senderAddress, senderNonce))
     .zAdd(ALL_PENDING_TXS_KEY, { value: _transactionHash, score:'+inf' })
     .exec()
-
-  log.trace(`Adding completed for hash ${_transactionHash}: ${x}, ${y}`)
-  const newTx = await getAvnTransaction(_transactionHash)
-  log.trace(`Tx details: ${JSON.stringify(newTx)}`)
 }
 
 // Returns an empty object (not undefined or null) if key is not found
 async function getAvnTransaction(_transactionHash) {
   const transactionHash = getKey(_transactionHash)
-
-  log.trace(`\nGetting tx details for: ${_transactionHash} using hash: ${transactionHash}`)
-
-  if (await redisClient.exists(transactionHash)) {
-    console.log(`${transactionHash} exists`)
-  } else {
-    console.log(`${transactionHash} DOES NOT exist`)
-  }
-
-  const r = await redisClient.hGetAll(transactionHash)
-  log.trace(`----> Result: ${JSON.stringify(r)}\n`)
-
-  return r
+  return await redisClient.hGetAll(transactionHash)
 }
 
 async function resolvePendingAvnTransactions(transactions) {
@@ -114,15 +96,12 @@ async function resolvePendingAvnTransactions(transactions) {
     newValue[transactionObject.status] = tx.state
     newValue[transactionObject.blockNumber] = tx.blockNumber
 
-    log.trace(`New value for ${tx.transactionHash}: ${JSON.stringify(newValue)}`)
-
     await redisClient
       .multi()
       .hSet(transactionHash, newValue)
       .zRem(ALL_PENDING_TXS_KEY, tx.transactionHash)
       .exec()
   }
-  log.trace(`Updating completed`)
 }
 
 async function getNextTransactionsToCheck() {
@@ -140,7 +119,7 @@ async function getNextTransactionsToCheck() {
     await redisClient.zAdd(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, txToCheckNext.map(txHash => ({value: txHash, score: expiry})))
   }
 
-  log.warn(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext}\n\n`)
+  log.trace(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext}\n\n`)
   return txToCheckNext
 }
 
@@ -149,8 +128,6 @@ function buildTransactionJson(senderAddress, senderNonce) {
   result[transactionObject.senderAddress] = senderAddress
   result[transactionObject.senderNonce] = senderNonce || ''
   result[transactionObject.status] = transactionStates.Pending
-
-  log.trace(`buildTransactionJson: ${JSON.stringify(result)}`)
   return result
 }
 

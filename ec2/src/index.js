@@ -6,7 +6,6 @@ const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
 const log4js = require('log4js')
 
-
 log4js.configure(config.log4Js)
 const log = log4js.getLogger()
 
@@ -59,10 +58,6 @@ app.post('/avnPoll', async (req, res, next) => {
     txStatusPoller.resolvePendingTransactionsState()
 
     const result = await avn.poll(req.body.requestId)
-
-    log.trace(`avnPoll response: ${result}`)
-    log.trace(`avnPoll response: ${JSON.stringify(result)}`)
-
     res.send(result)
   } catch (err) {
     next(err)

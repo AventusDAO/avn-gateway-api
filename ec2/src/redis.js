@@ -7,9 +7,8 @@ const connectionConfig = {
   rootNodes: [{
     url: config.redis.redisUrl,
     socket: {
-      tls: {
-        checkServerIdentity: () => undefined
-      }
+      tls: true,
+      checkServerIdentity: () => undefined
     },
     tls: {
       checkServerIdentity: () => undefined
@@ -54,6 +53,8 @@ async function connect() {
 
   console.log(`***** Connecting now`)
   await redisClient.connect()
+
+  console.log(JSON.stringify(redisClient))
 
   console.log(`***** Testing connection`)
   const nonce = await getNextNonce('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh')
@@ -130,8 +131,10 @@ function buildTransactionJson(senderAddress, senderNonce) {
 }
 
 async function getNextNonce(senderAddress) {
+  console.log('getNextNonce')
   const nextNonce = await redisClient.incr(NONCE_NAMESPACE + senderAddress)
   // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
+  console.log('returing getNextNonce')
   return nextNonce === 1 ? undefined : nextNonce
 }
 

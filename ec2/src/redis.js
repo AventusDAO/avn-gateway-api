@@ -5,10 +5,7 @@ const log = log4js.getLogger()
 
 const connectionConfig = {
   rootNodes: [{
-    url: config.redis.redisUrl,
-    socket: {
-      tls: true
-    }
+    url: config.redis.redisUrl
   }]
 }
 
@@ -50,7 +47,7 @@ async function connect() {
   console.log(`***** Connecting now`)
   await redisClient.connect()
 
-  console.log(JSON.stringify(redisClient))
+  console.dir(redisClient)
 
   console.log(`***** Testing connection`)
   const nonce = await getNextNonce('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh')

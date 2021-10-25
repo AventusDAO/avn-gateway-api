@@ -39,9 +39,11 @@ describe('Proxy api calls:', async() => {
       bnEquals(senderNonceBefore.add(new BN(1)), await api.query.getAccountNonce(sender));
     })
 
-    it('can make multiple token transfers using a recipient address', async () => {
+    it('can make multiple token transfers using a recipient address', async function() {
+      this.timeout(400000); //increase the timeout of this test (https://mochajs.org/#test-level)
+
       const amount = new BN(1);
-      const numTx = new BN(10);
+      const numTx = new BN(50);
 
       for (i = 0; i < numTx; i++) {
         await api.send.transferToken(relayer, sender, recipient, token, amount);

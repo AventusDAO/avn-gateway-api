@@ -9,16 +9,17 @@
 
 const config = require('multiconfig').load();
 const amqp = require('amqplib/callback_api');
+const avn = require('./avn');
 const AWS = require('aws-sdk');
 const logger = require('log4js').configure(config.log4Js).getLogger();
 const smClient = new AWS.SecretsManager({region: config.mq.secretManagerRegion});
-const REQUEST_QUEUE = 'send-txn-queue'; // TODO: Replace the hard coded queue name with an environment variable, or to be decided by the request method
 
 let url = null;
 let amqpConn = null;
 let amqpChannel = null;
 
-function start() {
+async function start() {
+  await avn.instantiateEC2()
   smClient.getSecretValue({SecretId: config.mq.mqSecretArn}, function(err, data) {
     if (err) {
       logger.error('[SECRET MANAGER] get secret value error', err.message);
@@ -26,7 +27,7 @@ function start() {
     } else if ('SecretString' in data) {
       let { username, password } = JSON.parse(data.SecretString);
       url = config.mq.mqBrokerAmqpEndpoint.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
-      consumeMessages(REQUEST_QUEUE);
+      consumeMessages(config.mq.mqAvnTxnQueue);
     }
   });
 };
@@ -99,9 +100,17 @@ function consume(queue) {
   });
 }
 
-function sendRequest(request, callback) {
-  logger.trace("Sent request", request.content.toString());
-  callback(true);
+async function sendRequest(req, callback) {
+  try {
+    const request = JSON.parse(req.content.toString());
+    logger.trace(`request body: ${JSON.stringify(request)}`);
+    const result = await avn.tx(request.palletName, request.method, request.params);
+    logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`);
+    callback(true);
+  } catch (err) {
+    // TODO: SYS-1530 Ack(delete)/Nack(keep) the messages based on error type when sending txns to AVN
+    callback(false);
+  }
 }
 
 function closeOnErr(err) {

@@ -64,7 +64,7 @@ async function callSwitch(call, responseObject) {
     case 'transferAvt':
       if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
-          responseObject.result = await sendTx('avnTx', 'balances', 'transfer', [call.params[0], call.params[1]]);
+          responseObject.result = await sendTx(process.env.MQ_AVN_TX_QUEUE, 'balances', 'transfer', [call.params[0], call.params[1]]);
         } catch (e) {
           responseObject.error = {code:-32603, message:'Internal error'};
         }

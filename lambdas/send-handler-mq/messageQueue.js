@@ -75,10 +75,6 @@ function createChannel(conn) {
         throw err;
       }
 
-      channel.assertQueue('avnTx', {
-        durable: true
-      });
-
       console.info('[AMQP] channel created');
 
       resolve(channel);

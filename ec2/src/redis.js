@@ -70,7 +70,7 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
     .zAdd(ALL_PENDING_TXS_KEY, { value: _transactionHash, score:'+inf' })
     .exec()
 
-  log.trace(`Adding completed: ${x}, ${y}`)
+  log.trace(`Adding completed for hash ${_transactionHash}: ${x}, ${y}`)
   const newTx = getAvnTransaction(_transactionHash)
   log.trace(`Tx details: ${JSON.stringify(newTx)}`)
 }
@@ -78,6 +78,15 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
 // Returns an empty object (not undefined or null) if key is not found
 async function getAvnTransaction(_transactionHash) {
   const transactionHash = getKey(_transactionHash)
+
+  if (await redisClient.exists(transactionHash)) {
+    console.log(`${transactionHash} exists`)
+  } else {
+    console.log(`${transactionHash} DOES NOT exist`)
+  }
+
+  log.trace(`Getting tx details for: ${_transactionHash} using hash: ${transactionHash}`)
+
   return await redisClient.hGetAll(transactionHash)
 }
 
@@ -133,6 +142,7 @@ function buildTransactionJson(senderAddress, senderNonce) {
   result[transactionObject.senderNonce] = senderNonce || ''
   result[transactionObject.status] = transactionStates.Pending
 
+  log.trace(`buildTransactionJson: ${JSON.stringify(result)}`)
   return result
 }
 

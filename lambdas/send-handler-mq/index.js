@@ -12,17 +12,16 @@ exports.handler = async (event) => {
 };
 
 async function sendTx(queueName, palletName, method, params) {
-  let response;
   try {
     // TODO: SYS-1528 Make message queue client reusable between each warm lambda function invocations
     let mq = new MessageQueue();
     await mq.initialise(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN);
-    response = await mq.sendMessageToMQ(queueName, {palletName: palletName, method: method, params: params});
+    // TODO: SYS-1425 Create a global ID to return as response result.
+    return await mq.sendMessageToMQ(queueName, {palletName: palletName, method: method, params: params});
   } catch (e) {
-    console.error('sendTx Error:', e);
-    throw true;
+    console.error('sendTx Error:', e.message);
+    return e.message;
   }
-  return response.data.error || response.data.requestId;
 }
 
 async function sendProxyTx(palletName, method, params) {

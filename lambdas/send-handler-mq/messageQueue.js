@@ -18,23 +18,20 @@ MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persiste
   const self = this;
   const amqpChannel = await createChannel(this.amqpConnection);
   return await new Promise((resolve, reject) => {
-    amqpChannel.assertQueue(queue, { durable: true });
-    amqpChannel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
-      persistent: persistent
-    }, function(err, ok) {
-      if (err) {
-        console.error('[AMQP] sendToQueue', err.message);
-        reject(err);
-      }
-      if (ok) {
-        console.info('Sent %s to %s', message, queue);
-        setTimeout(function() {
-          amqpConnection.close();
-          console.info('[AMQP] disconnected');
-        }, 500);
+    try {
+      amqpChannel.assertQueue(queue, { durable: true });
+      amqpChannel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
+        persistent: persistent
+      });
+      console.info('Sent %s to %s', JSON.stringify(message), queue);
+      setTimeout(function() {
+        self.amqpConnection.close();
+        console.info('[AMQP] disconnected');
         resolve(message);
-      }
-    });
+      }, 500);
+    } catch (e) {
+      reject(e.message);
+    }
   })
 }
 

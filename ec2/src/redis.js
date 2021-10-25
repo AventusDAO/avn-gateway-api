@@ -5,7 +5,10 @@ const log = log4js.getLogger()
 
 const connectionConfig = {
   rootNodes: [{
-    url: config.redis.redisUrl
+    url: config.redis.redisUrl,
+    socket: {
+      tls: true
+    }
   }]
 }
 

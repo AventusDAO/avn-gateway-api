@@ -19,7 +19,7 @@ async function sendTx(queueName, palletName, method, params) {
     await mq.initialise(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN);
     response = await mq.sendMessageToMQ(queueName, {palletName: palletName, method: method, params: params});
   } catch (e) {
-    console.log('sendTx Error:', e);
+    console.error('sendTx Error:', e);
     throw true;
   }
   return response.data.error || response.data.requestId;
@@ -30,7 +30,7 @@ async function sendProxyTx(palletName, method, params) {
   try {
     response = await axios.post(EC2 + 'avnProxy', {palletName: palletName, method: method, params: params});
   } catch (e) {
-    console.log('sendProxyTx Error:', e);
+    console.error('sendProxyTx Error:', e);
     throw true;
   }
   return response.data.requestId;
@@ -43,7 +43,7 @@ async function processRequest(requestObject) {
   try {
     call = JSON.parse(requestObject);
   } catch (e) {
-    console.log('error processing request object', e);
+    console.error('error processing request object', e);
     responseObject.error = {code:-32700, message:'Parse error'};
     responseObject.id = null;
     return responseObject;
@@ -136,7 +136,7 @@ const codeFormatters = {
 
 // async function testlocal(n) {
 //   for (var i = 0; i < n; i++) {
-//     console.log('transferAvt:', await processRequest(`{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":${i}}`));
+//     console.info('transferAvt:', await processRequest(`{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":${i}}`));
 //     await sleep(1000);
 //   }
 // }

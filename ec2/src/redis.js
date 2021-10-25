@@ -24,7 +24,7 @@ const transactionStates = {
 const ALL_PENDING_TXS_KEY = 'PendingTransactionsList'
 const CURRENT_PENDING_TXS_BEING_CHECKED_KEY = 'cTx'
 const NEXT_PENDING_TXS_TO_CHECK_KEY = 'nTx'
-const MAX_PENDING_TX_TO_CHECK = 1500
+const MAX_PENDING_TX_TO_CHECK = 10
 const CHECK_WINDOW = 10 * 1000000 // 10 seconds
 
 const NONCE_NAMESPACE = 'Nonce.'
@@ -101,6 +101,7 @@ async function getNextTransactionsToCheck() {
     await redisClient.zAdd(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, txToCheckNext.map(txHash => ({value: txHash, score: expiry})))
   }
 
+  log.warn(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext}\n\n`)
   return txToCheckNext
 }
 

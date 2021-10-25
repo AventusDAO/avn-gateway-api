@@ -55,7 +55,8 @@ app.post('/avnProxy', async (req, res, next) => {
 app.post('/avnPoll', async (req, res, next) => {
   try {
     log.trace(`request body: ${JSON.stringify(req.body)}`)
-    await txStatusPoller.resolvePendingTransactionsState()
+    // the await is removed on purpose here
+    txStatusPoller.resolvePendingTransactionsState()
 
     const result = await avn.poll(req.body.requestId)
     res.send(result)

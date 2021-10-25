@@ -70,7 +70,9 @@ async function signAndSend(txn) {
   try {
     log.trace(`Encoded Transaction: ${txn}`)
     nonce = await getNonce(sender.address)
+    log.warn(`Signing and sending: ${nonce}`)
     let receipt = await txn.signAndSend(sender, { nonce })
+    log.warn(`Tx sent, receipt: ${receipt}`)
     let requestId = receipt.toString()
     result = { requestId }
   } catch (err) {
@@ -79,6 +81,7 @@ async function signAndSend(txn) {
     throw err
   }
 
+  log.warn(`Adding to Redis`)
   redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
 
   return result

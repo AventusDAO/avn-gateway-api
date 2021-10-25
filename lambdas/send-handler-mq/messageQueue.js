@@ -35,11 +35,6 @@ MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persiste
         resolve(message);
       }
     });
-    console.log('Sent %s to %s', JSON.stringify(message), queue);
-    setTimeout(function() {
-      self.amqpConnection.close();
-      console.info('[AMQP] disconnected');
-    }, 500);
   })
 }
 

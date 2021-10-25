@@ -94,7 +94,12 @@ async function getAvnTransaction(_transactionHash) {
 }
 
 async function resolvePendingAvnTransactions(transactions) {
-  log.trace(`Updating ${transactions ? transactions.length : 0} transactions`)
+  if (!transactions) {
+    log.trace(`No transactions to update`)
+    return
+  }
+
+  log.trace(`Updating ${transactions.length} transactions`)
   for (const tx of transactions) {
     const transactionHash = getKey(tx.transactionHash)
 

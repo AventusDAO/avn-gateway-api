@@ -46,7 +46,7 @@ async function poll(requestId) {
       return { error: 'Transaction not found' }
     }
 
-    log.warn(`Status: ${tx.status}`)
+    log.warn(`Status: ${JSON.stringify(tx)}`)
     return { state: tx.status }
   } catch (error) {
     log.error(`Error getting transaction state for requestId ${requestId}: ${error}`)

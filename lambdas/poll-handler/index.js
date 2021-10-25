@@ -48,7 +48,9 @@ async function makeCall(call, responseObject) {
   } else if (utils.isValidRequestId(call.params[0])) {
     try {
       responseObject.result = await poll(call.params[0]);
+      console.log(`responseObject.result: ${JSON.stringify(responseObject.result)}`)
     } catch (e) {
+      console.log(`Error details: ${e}`)
       responseObject.error = {code:-32603, message:'Internal error'};
     }
   } else {

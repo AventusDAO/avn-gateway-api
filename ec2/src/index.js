@@ -59,6 +59,10 @@ app.post('/avnPoll', async (req, res, next) => {
     txStatusPoller.resolvePendingTransactionsState()
 
     const result = await avn.poll(req.body.requestId)
+
+    log.trace(`avnPoll response: ${result}`)
+    log.trace(`avnPoll response: ${JSON.stringify(result)}`)
+
     res.send(result)
   } catch (err) {
     next(err)

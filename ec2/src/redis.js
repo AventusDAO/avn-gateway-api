@@ -43,6 +43,8 @@ async function connect() {
   redisClient.on('end', () => log.warn('Closing Redis connection'))
 
   await redisClient.connect()
+  const nonce = getNextNonce(sender.address)
+  console.log(`***** Nonce: ${nonce}`)
 }
 
 async function addPendingAvnTransaction(transactionHash, senderAddress, senderNonce) {

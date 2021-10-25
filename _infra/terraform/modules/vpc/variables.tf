@@ -42,6 +42,18 @@ variable "public_zone_ips" {
   }
 }
 
+variable "private_subnet_additional_tags" {
+  description = "tags for private subnet" 
+  type        = map
+  default     = {}
+}
+
+variable "public_subnet_additional_tags" {
+  description = "tags for public subnet" 
+  type        = map
+  default     = {}
+}
+
 variable "avn_vpc_owner_id" {
   type        = string
   description = "AWS account ID of the VPC used by the avn blockchain"

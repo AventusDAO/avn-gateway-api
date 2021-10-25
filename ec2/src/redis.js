@@ -43,7 +43,7 @@ async function connect() {
   redisClient.on('end', () => log.warn('Closing Redis connection'))
 
   await redisClient.connect()
-  const nonce = getNextNonce(sender.address)
+  const nonce = getNextNonce('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh')
   console.log(`***** Nonce: ${nonce}`)
 }
 

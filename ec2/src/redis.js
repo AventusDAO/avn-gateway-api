@@ -95,6 +95,8 @@ async function resolvePendingAvnTransactions(transactions) {
     newValue[transactionObject.status] = tx.state
     newValue[transactionObject.blockNumber] = tx.blockNumber
 
+    log.trace(`New value for ${tx.transactionHash}: ${JSON.stringify(newValue)}`)
+
     await redisClient
       .multi()
       .hSet(transactionHash, newValue)

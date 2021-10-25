@@ -79,15 +79,18 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
 async function getAvnTransaction(_transactionHash) {
   const transactionHash = getKey(_transactionHash)
 
+  log.trace(`\nGetting tx details for: ${_transactionHash} using hash: ${transactionHash}`)
+
   if (await redisClient.exists(transactionHash)) {
     console.log(`${transactionHash} exists`)
   } else {
     console.log(`${transactionHash} DOES NOT exist`)
   }
 
-  log.trace(`Getting tx details for: ${_transactionHash} using hash: ${transactionHash}`)
+  const r = await redisClient.hGetAll(transactionHash)
+  log.trace(`----> Result: ${JSON.stringify(r)}\n`)
 
-  return await redisClient.hGetAll(transactionHash)
+  return r
 }
 
 async function resolvePendingAvnTransactions(transactions) {

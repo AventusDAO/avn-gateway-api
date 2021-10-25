@@ -132,7 +132,6 @@ function deleteQueueInMQBroker() {
 }
 
 async function assertMessagesInQueue(messages, messagesInQueue) {
-  amqpChannel.prefetch(PREFETCH_SIZE);
   for(let i = 0; i< messages.length; i++) {
     assert.deepEqual(messages[i], messagesInQueue[i]);
   }
@@ -148,7 +147,8 @@ function readAllMessagesFromQueue() {
       amqpChannel.consume(TEST_QUEUE_NAME, function (msg) {
         msg = msg.content.toString();
         messagesInQueue.push(JSON.parse(msg));
-        if (messageCount === ++messageCounter) {
+        messageCounter += 1;
+        if (messageCount === messageCounter) {
           resolve(messagesInQueue);
         }
       }, {

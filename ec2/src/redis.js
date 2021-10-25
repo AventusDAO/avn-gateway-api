@@ -71,6 +71,8 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
     .exec()
 
   log.trace(`Adding completed: ${x}, ${y}`)
+  const newTx = getAvnTransaction(_transactionHash)
+  log.trace(`Tx details: ${JSON.stringify(newTx)}`)
 }
 
 // Returns an empty object (not undefined or null) if key is not found

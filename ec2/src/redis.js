@@ -23,9 +23,13 @@ const transactionStates = {
   SendingFailed: 'SendingFailed'
 }
 
-const ALL_PENDING_TXS_KEY = 'PendingTransactionsList'
-const CURRENT_PENDING_TXS_BEING_CHECKED_KEY = 'cTx'
-const NEXT_PENDING_TXS_TO_CHECK_KEY = 'nTx'
+// This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
+const SLOT_PREFIX = '{gateway}:'
+
+const ALL_PENDING_TXS_KEY = `${SLOT_PREFIX}PendingTransactionsList`
+const CURRENT_PENDING_TXS_BEING_CHECKED_KEY = `${SLOT_PREFIX}cTx`
+const NEXT_PENDING_TXS_TO_CHECK_KEY = `${SLOT_PREFIX}nTx`
+
 const MAX_PENDING_TX_TO_CHECK = 10
 const CHECK_WINDOW = 10 * 1000000 // 10 seconds
 
@@ -44,17 +48,16 @@ async function connect() {
   redisClient.on('error', err => log.error('Redis connection error ', err))
   redisClient.on('end', () => log.warn('Closing Redis connection'))
 
-  console.log(`***** Connecting now`)
   await redisClient.connect()
-
-  console.dir(redisClient)
-
-  console.log(`***** Testing connection`)
-  const nonce = await getNextNonce('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh')
-  console.log(`***** Nonce: ${nonce}`)
 }
 
-async function addPendingAvnTransaction(transactionHash, senderAddress, senderNonce) {
+function getKey(key) {
+  return `${SLOT_PREFIX}${key}`
+}
+
+async function addPendingAvnTransaction(_transactionHash, senderAddress, senderNonce) {
+  const transactionHash = getKey(_transactionHash)
+
   if (await redisClient.exists(transactionHash)) {
     throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
   }
@@ -64,23 +67,26 @@ async function addPendingAvnTransaction(transactionHash, senderAddress, senderNo
   const [x,y] = await redisClient
     .multi()
     .hSet(transactionHash, buildTransactionJson(senderAddress, senderNonce))
-    .zAdd(ALL_PENDING_TXS_KEY, { value: transactionHash, score:'+inf' })
+    .zAdd(ALL_PENDING_TXS_KEY, { value: tx.transactionHash, score:'+inf' })
     .exec()
 
   log.trace(`Adding completed: ${x}, ${y}`)
 }
 
 // Returns an empty object (not undefined or null) if key is not found
-async function getAvnTransaction(transactionHash) {
+async function getAvnTransaction(_transactionHash) {
+  const transactionHash = getKey(_transactionHash)
   return await redisClient.hGetAll(transactionHash)
 }
 
 async function resolvePendingAvnTransactions(transactions) {
   log.trace(`Updating ${transactions.length} transactions`)
   for (const tx of transactions) {
+    const transactionHash = getKey(tx.transactionHash)
+
     if (![transactionStates.Processed, transactionStates.Rejected].includes(tx.state)) {
       log.warn(
-        `Attempting to update transaction ${tx.transactionHash} with an invalid status of ${tx.state}, ignoring request`
+        `Attempting to update transaction ${transactionHash} with an invalid status of ${tx.state}, ignoring request`
       )
       continue
     }
@@ -91,7 +97,7 @@ async function resolvePendingAvnTransactions(transactions) {
 
     await redisClient
       .multi()
-      .hSet(tx.transactionHash, newValue)
+      .hSet(transactionHash, newValue)
       .zRem(ALL_PENDING_TXS_KEY, tx.transactionHash)
       .exec()
   }
@@ -128,10 +134,8 @@ function buildTransactionJson(senderAddress, senderNonce) {
 }
 
 async function getNextNonce(senderAddress) {
-  console.log('getNextNonce')
   const nextNonce = await redisClient.incr(NONCE_NAMESPACE + senderAddress)
   // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
-  console.log('returing getNextNonce')
   return nextNonce === 1 ? undefined : nextNonce
 }
 

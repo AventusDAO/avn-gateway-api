@@ -4,7 +4,9 @@ const log4js = require('log4js')
 const log = log4js.getLogger()
 
 const connectionConfig = {
-  url: config.redis.redisUrl
+  rootNodes: [{
+    url: config.redis.redisUrl
+  }]
 }
 
 const transactionObject = {
@@ -35,7 +37,7 @@ let redisClient
 async function connect() {
   log.info(`Attempting to connect to Redis database on ${connectionConfig.url}`)
 
-  redisClient = redis.createClient(connectionConfig)
+  redisClient = redis.createCluster(connectionConfig)
 
   redisClient.on('connect', () => log.info('Connected to Redis database'))
   redisClient.on('reconnecting', () => log.warn('Reconnecting to Redis database'))

@@ -11,7 +11,7 @@ const lambda = new AWS.Lambda();
 const TEST_FN_NAME = 'msg-publisher-test';
 const TEST_QUEUE_NAME = 'send-txn-queue';
 const PREFETCH_SIZE = 30;
-const defaultEV = {
+const defaultEnvironmentVariable = {
   'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
   'MQ_SECRET_ARN': config.mq.mqSecretArn,
   'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
@@ -47,7 +47,7 @@ describe('Lambda function: msg-publisher-test', function() {
 
   describe('Fails with', function(){
     it('Wrong MQ broker amqp endpoint', async() => {
-      await updateLambdaEV({
+      await updateLambdaEnvironmentVariable({
         'MQ_BROKER_AMQP_ENDPOINT': 'abc',  
         'MQ_SECRET_ARN': config.mq.mqSecretArn,
         'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
@@ -57,7 +57,7 @@ describe('Lambda function: msg-publisher-test', function() {
     })
 
     it('wrong MQ secret arn', async() => {
-      await updateLambdaEV({
+      await updateLambdaEnvironmentVariable({
         'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
         'MQ_SECRET_ARN': 'abc',
         'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
@@ -67,7 +67,7 @@ describe('Lambda function: msg-publisher-test', function() {
     })
 
     it('wrong secret manager region', async() => {
-      await updateLambdaEV({
+      await updateLambdaEnvironmentVariable({
         'MQ_BROKER_AMQP_ENDPOINT': config.mq.mqBrokerAmqpEndpoint,
         'MQ_SECRET_ARN': config.mq.mqSecretArn,
         'SECRET_MANAGER_REGION': 'abc'
@@ -84,12 +84,12 @@ async function setup() {
   const url = await getAmqpEndpointUrl();
   amqpConnection = await connectToMessageBroker(url);
   amqpChannel = await connectToChannel(amqpConnection);
-  await updateLambdaEV(defaultEV);
+  await updateLambdaEnvironmentVariable(defaultEnvironmentVariable);
   deleteQueueInMQBroker();
 }
 
 async function cleanUp() {
-  await updateLambdaEV(defaultEV);
+  await updateLambdaEnvironmentVariable(defaultEnvironmentVariable);
   deleteQueueInMQBroker();
   amqpConnection.close();
 }
@@ -196,7 +196,7 @@ async function publishMessage(message) {
   });
 }
 
-async function updateLambdaEV(variables) {
+async function updateLambdaEnvironmentVariable(variables) {
   return new Promise((resolve, reject) => {
     var params = {
       FunctionName: TEST_FN_NAME,

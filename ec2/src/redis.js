@@ -7,11 +7,7 @@ const connectionConfig = {
   rootNodes: [{
     url: config.redis.redisUrl,
     socket: {
-      tls: true,
-      checkServerIdentity: () => undefined
-    },
-    tls: {
-      checkServerIdentity: () => undefined
+      tls: true
     }
   }]
 }

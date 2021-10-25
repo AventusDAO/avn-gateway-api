@@ -116,6 +116,7 @@ async function getNextTransactionsToCheck() {
     .exec()
 
   if (txToCheckNext.length > 0) {
+    // TODO: check if its possible to do this in the "multi()" above
     await redisClient.zAdd(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, txToCheckNext.map(txHash => ({value: txHash, score: expiry})))
   }
 

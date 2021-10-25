@@ -67,7 +67,7 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
   const [x,y] = await redisClient
     .multi()
     .hSet(transactionHash, buildTransactionJson(senderAddress, senderNonce))
-    .zAdd(ALL_PENDING_TXS_KEY, { value: tx.transactionHash, score:'+inf' })
+    .zAdd(ALL_PENDING_TXS_KEY, { value: _transactionHash, score:'+inf' })
     .exec()
 
   log.trace(`Adding completed: ${x}, ${y}`)

@@ -35,7 +35,7 @@ const NONCE_EXPIRY_IN_SECONDS = 5
 let redisClient
 
 async function connect() {
-  log.info(`Attempting to connect to Redis database on ${connectionConfig.url}`)
+  log.info(`Attempting to connect to Redis database on ${connectionConfig.rootNodes[0].url}`)
 
   redisClient = redis.createCluster(connectionConfig)
 
@@ -44,7 +44,10 @@ async function connect() {
   redisClient.on('error', err => log.error('Redis connection error ', err))
   redisClient.on('end', () => log.warn('Closing Redis connection'))
 
+  console.log(`***** Connecting now`)
   await redisClient.connect()
+
+  console.log(`***** Testing connection`)
   const nonce = await getNextNonce('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh')
   console.log(`***** Nonce: ${nonce}`)
 }

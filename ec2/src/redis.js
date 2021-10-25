@@ -31,7 +31,7 @@ const CURRENT_PENDING_TXS_BEING_CHECKED_KEY = `${SLOT_PREFIX}cTx`
 const NEXT_PENDING_TXS_TO_CHECK_KEY = `${SLOT_PREFIX}nTx`
 
 const MAX_PENDING_TX_TO_CHECK = 10
-const CHECK_WINDOW = 10 * 1000000 // 10 seconds
+const CHECK_WINDOW = 10 * 1000 // 10 seconds
 
 const NONCE_NAMESPACE = 'Nonce.'
 const NONCE_EXPIRY_IN_SECONDS = 5
@@ -49,6 +49,7 @@ async function connect() {
   redisClient.on('end', () => log.warn('Closing Redis connection'))
 
   await redisClient.connect()
+  redisClient.getTime()
 }
 
 function getKey(key) {
@@ -105,13 +106,12 @@ async function resolvePendingAvnTransactions(transactions) {
 }
 
 async function getNextTransactionsToCheck() {
-  const redisTime = await redisClient.time()
-  const redisTimeMicro = new Date(redisTime).getTime() * 1000000 + redisTime.microseconds
-  const expiry = redisTimeMicro + (CHECK_WINDOW)
+  const redisTime = Date.now()
+  const expiry = redisTime + CHECK_WINDOW
 
   const [_numExpired, _numAwaitingCheck, txToCheckNext] = await redisClient
     .multi()
-    .zRemRangeByScore(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, 0, redisTimeMicro) // Remove the ones we have processed
+    .zRemRangeByScore(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, 0, redisTime) // Remove the ones we have processed
     .zDiffStore(NEXT_PENDING_TXS_TO_CHECK_KEY, [ALL_PENDING_TXS_KEY, CURRENT_PENDING_TXS_BEING_CHECKED_KEY]) // Store all remaining hashes
     .zRange(NEXT_PENDING_TXS_TO_CHECK_KEY, 0, MAX_PENDING_TX_TO_CHECK - 1) // shrink that list based on MAX_PENDING_TX_TO_CHECK
     .exec()

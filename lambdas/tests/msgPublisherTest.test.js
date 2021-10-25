@@ -17,11 +17,8 @@ const defaultEV = {
   'SECRET_MANAGER_REGION': config.mq.secretManagerRegion
 };
 
-let amqpEndpointUrl = null;
 let amqpConnection = null;
 let amqpChannel = null;
-let testMessages = [];
-let messagesInQueue = [];
 
 describe('Lambda function: msg-publisher-test', function() {
   before(async() => {
@@ -34,13 +31,16 @@ describe('Lambda function: msg-publisher-test', function() {
 
   describe(`publish messages to MQ queue ${TEST_QUEUE_NAME}`, function() {
     describe('publish multiple messages when queue does not exist', async() => {
+      let testMessages = [];
+
       before(async() => {
-        generateTestMessages(PREFETCH_SIZE);
+        testMessages = generateTestMessages(PREFETCH_SIZE);
         await invokeLambdaFnToPublishTestMessages(testMessages);
       })
 
       it(`new messages are added to queue ${TEST_QUEUE_NAME}`, async() => {
-        await assertMessagesInQueue(testMessages);
+        const messagesInQueue = await readAllMessagesFromQueue();
+        await assertMessagesInQueue(testMessages, messagesInQueue);
       })
     })
   })
@@ -81,9 +81,9 @@ describe('Lambda function: msg-publisher-test', function() {
 // ----------------------------- Helper functions -------------------------------------------------
 
 async function setup() {
-  await getAmqpEndpointUrl();
-  await connectToMessageBroker();
-  await connectToChannel();
+  const url = await getAmqpEndpointUrl();
+  amqpConnection = await connectToMessageBroker(url);
+  amqpChannel = await connectToChannel(amqpConnection);
   await updateLambdaEV(defaultEV);
   deleteQueueInMQBroker();
 }
@@ -100,32 +100,29 @@ function getAmqpEndpointUrl() {
       if (err) throw err;
       if ('SecretString' in data) {
         let { username, password } = JSON.parse(data.SecretString);
-        amqpEndpointUrl = config.mq.mqBrokerAmqpEndpoint.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
-        resolve();
+        resolve(config.mq.mqBrokerAmqpEndpoint.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`));
       }
     });
   });
 }
 
-function connectToMessageBroker() {
+function connectToMessageBroker(url) {
   return new Promise((resolve, reject) => {
-    amqp.connect(amqpEndpointUrl, function(err, conn) {
+    amqp.connect(url, function(err, conn) {
       if (err) throw err;
       conn.on('error', function(err) {
         throw err;
       });
-      amqpConnection = conn;
-      resolve();
+      resolve(conn);
     });
   });
 }
 
-function connectToChannel() {
+function connectToChannel(conn) {
   return new Promise((resolve, reject) => {
-    amqpConnection.createChannel(function(err, channel) {
+    conn.createChannel(function(err, channel) {
       if (err) throw err;
-      amqpChannel = channel;
-      resolve();
+      resolve(channel);
     });
   });
 }
@@ -134,9 +131,8 @@ function deleteQueueInMQBroker() {
   amqpChannel.deleteQueue(TEST_QUEUE_NAME);
 }
 
-async function assertMessagesInQueue(messages) {
+async function assertMessagesInQueue(messages, messagesInQueue) {
   amqpChannel.prefetch(PREFETCH_SIZE);
-  await readAllMessagesFromQueue();
   for(let i = 0; i< messages.length; i++) {
     assert.deepEqual(messages[i], messagesInQueue[i]);
   }
@@ -145,13 +141,15 @@ async function assertMessagesInQueue(messages) {
 function readAllMessagesFromQueue() {
   return new Promise((resolve, reject) => {
     let messageCounter = 0;
+    let messagesInQueue = [];
+
     amqpChannel.assertQueue(TEST_QUEUE_NAME, {durable: true}, (error2, response) => {
       const messageCount = response.messageCount;
       amqpChannel.consume(TEST_QUEUE_NAME, function (msg) {
         msg = msg.content.toString();
         messagesInQueue.push(JSON.parse(msg));
         if (messageCount === ++messageCounter) {
-          resolve();
+          resolve(messagesInQueue);
         }
       }, {
         noAck: true
@@ -165,7 +163,7 @@ function generateTestMessages(numberOfMessages) {
   for(let i = 0; i<numberOfMessages; i++){
     messages.push(newTestMessage(i));
   }
-  testMessages = messages;
+  return messages;
 }
 
 function newTestMessage(id) {

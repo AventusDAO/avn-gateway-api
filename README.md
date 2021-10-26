@@ -339,7 +339,7 @@ curl https://AVN-API-URL/poll \
 ```
 
 **RESULT FIELDS** \
-`STATUS` - string detailing the current state ('pending', 'pending and lost', 'finished', 'errored', 'unknown')
+`STATUS` - string detailing the current status ('pending', 'pending and lost', 'finished', 'errored', 'unknown')
 
 **BODY**
 ```

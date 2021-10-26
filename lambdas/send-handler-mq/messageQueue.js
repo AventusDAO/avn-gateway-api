@@ -15,7 +15,7 @@ MessageQueue.prototype.getMqConnectionUrl = async function() {
 }
 
 MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persistent = true) {
-  const amqpConnection = await connectToBroker(this.getMqConnectionUrl());
+  const amqpConnection = await connectToBroker(await this.getMqConnectionUrl());
   const amqpChannel = await createChannel(amqpConnection);
   return await new Promise((resolve, reject) => {
     try {

@@ -7,7 +7,7 @@ exports.handler = async (event) => {
   try {
     return {
       statusCode: 200,
-      body: JSON.stringify(await processRequest())
+      body: JSON.stringify(await processRequest(event.body))
     };
   } catch(err) {
     return {

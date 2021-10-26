@@ -1,5 +1,5 @@
 {
-  "name": "send-handler",
+  "name": "tx-status-update-handler",
   "dependencies": {
     "@polkadot/keyring": "^7.4.1",
     "@polkadot/util": "^7.4.1",

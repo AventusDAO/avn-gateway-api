@@ -1,4 +1,5 @@
 ## Create a new lambda function
+
 1. Create YOUR_LAMBDA as a basic lambda function via the AWS console.
 2. Attach to an API Gateway route as required.
 3. Add a new folder in the lambdas directory titled YOUR_LAMBDA and include:
@@ -13,3 +14,4 @@ From the lambdas root directory run `node update.js YOUR_LAMBDA` or `node update
 
 ### Testing
 For local testing, uncomment the testlocal() function at the bottom of the lambda's index.js.
+

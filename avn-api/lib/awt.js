@@ -40,6 +40,8 @@ function encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt) {
 }
 
 function tokenAgeIsValid(awtTokenBase64) {
+  if (!awtTokenBase64) return false;
+
   try {
     const awtToken = JSON.parse(Buffer.from(awtTokenBase64, 'base64').toString('ascii'));
     const issuedAt = new Date(awtToken.iat);

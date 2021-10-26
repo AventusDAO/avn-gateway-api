@@ -38,13 +38,14 @@ async function poll(requestId) {
   }
 
   try {
-    let tx = redis.getAvnTransaction(requestId)
+    let tx = await redis.getAvnTransaction(requestId)
+
     if (!tx) {
       log.error(`No transaction found for requestId: ${requestId}`)
       return { error: 'Transaction not found' }
     }
 
-    return { state: tx.state }
+    return { state: tx.status }
   } catch (error) {
     log.error(`Error getting transaction state for requestId ${requestId}: ${error}`)
     throw new Error(`Unable to get transaction state for requestId: ${requestId}`)
@@ -77,7 +78,7 @@ async function signAndSend(txn) {
     throw err
   }
 
-  redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
+  await redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
 
   return result
 }

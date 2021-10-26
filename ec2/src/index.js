@@ -2,6 +2,7 @@
 const config = require('multiconfig').load()
 const avn = require('./avn')
 const redis = require('./redis')
+const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
 const log4js = require('log4js')
 
@@ -53,6 +54,9 @@ app.post('/avnProxy', async (req, res, next) => {
 app.post('/avnPoll', async (req, res, next) => {
   try {
     log.trace(`request body: ${JSON.stringify(req.body)}`)
+    // the await is removed on purpose here
+    txStatusPoller.resolvePendingTransactionsState()
+
     const result = await avn.poll(req.body.requestId)
     res.send(result)
   } catch (err) {
@@ -63,7 +67,7 @@ app.post('/avnPoll', async (req, res, next) => {
 app.get('/pendingTransactions', async (req, res, next) => {
   try {
     log.trace('pendingTransactions invoked')
-    const result = await redis.getRandomPendingTransactions()
+    const result = await redis.getNextTransactionsToCheck()
     res.send(result)
   } catch (err) {
     next(err)

@@ -1,0 +1,11 @@
+{
+  "name": "send-handler-mq",
+  "dependencies": {
+    "@polkadot/keyring": "^7.4.1",
+    "@polkadot/util": "^7.4.1",
+    "amqplib": "^0.8.0",
+    "aws-sdk": "^2.1012.0",
+    "axios": "^0.21.4",
+    "bn.js": "^5.2.0"
+  }
+}

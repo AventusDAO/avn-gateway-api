@@ -4,18 +4,23 @@ const axios = require('axios');
 const MessageQueue = require('./messageQueue.js'); // TODO: SYS-1529 Create a lambda layer for the shared modules
 
 exports.handler = async (event) => {
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify(await processRequest(event.body))
-  };
-  return response;
+  try {
+    return {
+      statusCode: 200,
+      body: JSON.stringify(await processRequest())
+    };
+  } catch(err) {
+    return {
+      statusCode: 500,
+      error: {message: err.message}
+    }
+  }
 };
 
 async function sendTx(queueName, palletName, method, params) {
   try {
     // TODO: SYS-1528 Make message queue client reusable between each warm lambda function invocations
-    let mq = new MessageQueue();
-    await mq.initialise(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN);
+    let mq = new MessageQueue(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN);
     // TODO: SYS-1425 Create a global ID to return as response result.
     return await mq.sendMessageToMQ(queueName, {palletName: palletName, method: method, params: params});
   } catch (e) {

@@ -193,7 +193,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: TF_VAR_service_version=${{ needs.version-suffix.outputs.version }} terraform plan -no-color -out=plan-out.tfplan
+        run: TF_VAR_service_version=${{ needs.version-suffix.outputs.version }} terraform plan -no-color -out=plan-out.tfplan -target=module.lambda_functions
         continue-on-error: true
       
       - name: Terraform Apply

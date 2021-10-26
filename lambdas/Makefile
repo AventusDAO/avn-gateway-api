@@ -16,7 +16,7 @@ ifndef name
 	$(error lambda function name must be supplied)
 endif
 	mkdir -p build
-	zip -r build/$(name)-$(version) $(name)/ common/
+	node -e 'require("./update").zip("$(name)")'
 
 build: ## compiles a lambda function along with the common folder $ make build name=<lambda_name>
 ifndef name
@@ -24,6 +24,7 @@ ifndef name
 endif
 	npm --prefix ./$(name) install ./$(name)
 	npm --prefix ./common install ./common
+	npm install
 
 clean: ## destroys the build folder
 	rm -rf ./build/

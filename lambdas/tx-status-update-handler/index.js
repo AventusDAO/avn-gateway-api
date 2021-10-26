@@ -54,12 +54,12 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
       return response.map(tx => {
         return {
           transactionHash: tx.transactionHash,
-          state: tx.isFailed === true ? transactionStates.Rejected : transactionStates.Processed,
+          status: tx.isFailed === true ? transactionStates.Rejected : transactionStates.Processed,
           blockNumber: tx.blockNumber
         }
       })
     }
   } catch (error) {
-    throw new Error(`Error getting transaction state from indexer: ${error}`)
+    throw new Error(`Error getting transaction status from indexer: ${error}`)
   }
 }

@@ -85,15 +85,15 @@ async function resolvePendingAvnTransactions(transactions) {
   for (const tx of transactions) {
     const transactionHash = getKey(tx.transactionHash)
 
-    if (![transactionStates.Processed, transactionStates.Rejected].includes(tx.state)) {
+    if (![transactionStates.Processed, transactionStates.Rejected].includes(tx.status)) {
       log.warn(
-        `Attempting to update transaction ${transactionHash} with an invalid status of ${tx.state}, ignoring request`
+        `Attempting to update transaction ${transactionHash} with an invalid status of ${tx.status}, ignoring request`
       )
       continue
     }
 
     const newValue = {}
-    newValue[transactionObject.status] = tx.state
+    newValue[transactionObject.status] = tx.status
     newValue[transactionObject.blockNumber] = tx.blockNumber
 
     await redisClient

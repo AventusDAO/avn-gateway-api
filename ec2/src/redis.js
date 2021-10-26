@@ -16,7 +16,7 @@ const transactionObject = {
   blockNumber: 'blockNumber'
 }
 
-const transactionStates = {
+const transactionStatus = {
   Pending: 'Pending',
   Processed: 'Processed',
   Rejected: 'Rejected',
@@ -85,7 +85,7 @@ async function resolvePendingAvnTransactions(transactions) {
   for (const tx of transactions) {
     const transactionHash = getKey(tx.transactionHash)
 
-    if (![transactionStates.Processed, transactionStates.Rejected].includes(tx.status)) {
+    if (![transactionStatus.Processed, transactionStatus.Rejected].includes(tx.status)) {
       log.warn(
         `Attempting to update transaction ${transactionHash} with an invalid status of ${tx.status}, ignoring request`
       )
@@ -128,7 +128,7 @@ function buildTransactionJson(senderAddress, senderNonce) {
   const result = {}
   result[transactionObject.senderAddress] = senderAddress
   result[transactionObject.senderNonce] = senderNonce || ''
-  result[transactionObject.status] = transactionStates.Pending
+  result[transactionObject.status] = transactionStatus.Pending
   return result
 }
 

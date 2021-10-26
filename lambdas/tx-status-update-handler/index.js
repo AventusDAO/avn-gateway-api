@@ -4,7 +4,7 @@ const axios = require('axios');
 const BLOCK_EXPLORER_BASE_URL = `https://avn.sandbox.aventus.io:3000/transactions/bulk`
 
 // Make sure this is kept in sync with the state names defined in ec2/src/redis.js
-const transactionStates = {
+const transactionStatus = {
   Processed: 'Processed',
   Rejected: 'Rejected'
 }
@@ -54,7 +54,7 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
       return response.map(tx => {
         return {
           transactionHash: tx.transactionHash,
-          status: tx.isFailed === true ? transactionStates.Rejected : transactionStates.Processed,
+          status: tx.isFailed === true ? transactionStatus.Rejected : transactionStatus.Processed,
           blockNumber: tx.blockNumber
         }
       })

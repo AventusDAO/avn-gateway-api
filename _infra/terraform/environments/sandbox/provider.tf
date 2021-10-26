@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
     encrypt                = true
-    bucket                 = "tf-state-avn-1"
+    bucket                 = "terraform-state-avn-gateway-api-sandbox"
     key                    = "env:/sandbox/gateway-api/terraform.tfstate"
-    region                 = "eu-west-2"
+    region                 = "eu-west-1"
     skip_region_validation = "true"
   }
 
@@ -19,8 +19,4 @@ terraform {
 
 provider "aws" {
   region = var.region
-
-  assume_role {
-    role_arn = "arn:aws:iam::352429414196:role/jenkins-access"
-  }
 }

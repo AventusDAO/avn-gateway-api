@@ -49,6 +49,7 @@ async function makeCall(call, responseObject) {
     try {
       responseObject.result = await poll(call.params[0]);
     } catch (e) {
+      console.log(`Error details: ${e}`)
       responseObject.error = {code:-32603, message:'Internal error'};
     }
   } else {

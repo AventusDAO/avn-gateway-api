@@ -18,6 +18,7 @@ describe('Polling api calls:', async() => {
 
     before(async () => {
       requestId = await api.send.transferAvt(recipient, 1);
+      console.log(`polling requestId: ${requestId}`)
     })
 
     it('returns a pending state for a valid request ID', async () => {
@@ -28,10 +29,11 @@ describe('Polling api calls:', async() => {
       const maxPoll = 5;
       let state;
 
-      for (i=0; i< 5; i++) {
-        await helper.sleep(10000);
+      for (i = 0; i < 10; i ++) {
+        await helper.sleep(3000);
         state = await api.poll.requestState(requestId);
         if (state === 'Processed') break;
+        console.log(`   Current state: ${state}`)
       }
 
       assert.equal(state, 'Processed');

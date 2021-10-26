@@ -4,7 +4,9 @@ const log4js = require('log4js')
 const log = log4js.getLogger()
 
 const connectionConfig = {
-  url: config.redis.redisUrl
+  rootNodes: [{
+    url: config.redis.redisUrl
+  }]
 }
 
 const transactionObject = {
@@ -21,17 +23,25 @@ const transactionStates = {
   SendingFailed: 'SendingFailed'
 }
 
-const PENDING_TRANSACTIONS_KEY = 'PendingTransactionsList'
-const MAX_RANDOM_SELECTION_SIZE = 1500
+// This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
+const SLOT_PREFIX = '{gateway}:'
+
+const ALL_PENDING_TXS_KEY = `${SLOT_PREFIX}PendingTransactionsList`
+const CURRENT_PENDING_TXS_BEING_CHECKED_KEY = `${SLOT_PREFIX}cTx`
+const NEXT_PENDING_TXS_TO_CHECK_KEY = `${SLOT_PREFIX}nTx`
+
+const MAX_PENDING_TX_TO_CHECK = 10
+const CHECK_WINDOW = 10 * 1000 // 10 seconds
+
 const NONCE_NAMESPACE = 'Nonce.'
 const NONCE_EXPIRY_IN_SECONDS = 5
 
 let redisClient
 
 async function connect() {
-  log.info(`Attempting to connect to Redis database on ${connectionConfig.url}`)
+  log.info(`Attempting to connect to Redis database on ${connectionConfig.rootNodes[0].url}`)
 
-  redisClient = redis.createClient(connectionConfig)
+  redisClient = redis.createCluster(connectionConfig)
 
   redisClient.on('connect', () => log.info('Connected to Redis database'))
   redisClient.on('reconnecting', () => log.warn('Reconnecting to Redis database'))
@@ -41,7 +51,13 @@ async function connect() {
   await redisClient.connect()
 }
 
-async function addPendingAvnTransaction(transactionHash, senderAddress, senderNonce) {
+function getKey(key) {
+  return `${SLOT_PREFIX}${key}`
+}
+
+async function addPendingAvnTransaction(_transactionHash, senderAddress, senderNonce) {
+  const transactionHash = getKey(_transactionHash)
+
   if (await redisClient.exists(transactionHash)) {
     throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
   }
@@ -49,21 +65,29 @@ async function addPendingAvnTransaction(transactionHash, senderAddress, senderNo
   await redisClient
     .multi()
     .hSet(transactionHash, buildTransactionJson(senderAddress, senderNonce))
-    .sAdd(PENDING_TRANSACTIONS_KEY, transactionHash)
+    .zAdd(ALL_PENDING_TXS_KEY, { value: _transactionHash, score:'+inf' })
     .exec()
 }
 
 // Returns an empty object (not undefined or null) if key is not found
-async function getAvnTransaction(transactionHash) {
+async function getAvnTransaction(_transactionHash) {
+  const transactionHash = getKey(_transactionHash)
   return await redisClient.hGetAll(transactionHash)
 }
 
 async function resolvePendingAvnTransactions(transactions) {
+  if (!transactions) {
+    log.trace(`No transactions to update`)
+    return
+  }
+
   log.trace(`Updating ${transactions.length} transactions`)
   for (const tx of transactions) {
+    const transactionHash = getKey(tx.transactionHash)
+
     if (![transactionStates.Processed, transactionStates.Rejected].includes(tx.state)) {
       log.warn(
-        `Attempting to update transaction ${tx.transactionHash} with an invalid status of ${tx.state}, ignoring request`
+        `Attempting to update transaction ${transactionHash} with an invalid status of ${tx.state}, ignoring request`
       )
       continue
     }
@@ -74,20 +98,30 @@ async function resolvePendingAvnTransactions(transactions) {
 
     await redisClient
       .multi()
-      .hSet(tx.transactionHash, newValue)
-      .sRem(PENDING_TRANSACTIONS_KEY, tx.transactionHash)
+      .hSet(transactionHash, newValue)
+      .zRem(ALL_PENDING_TXS_KEY, tx.transactionHash)
       .exec()
   }
-  log.trace(`Updating completed`)
 }
 
-async function getAllPendingTransactions() {
-  return await redisClient.sMembers(PENDING_TRANSACTIONS_KEY)
-}
+async function getNextTransactionsToCheck() {
+  const redisTime = Date.now()
+  const expiry = redisTime + CHECK_WINDOW
 
-async function getRandomPendingTransactions() {
-  log.trace(`Returning random ${MAX_RANDOM_SELECTION_SIZE} pending transactions`)
-  return await redisClient.sRandMemberCount(PENDING_TRANSACTIONS_KEY, MAX_RANDOM_SELECTION_SIZE)
+  const [_numExpired, _numAwaitingCheck, txToCheckNext] = await redisClient
+    .multi()
+    .zRemRangeByScore(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, 0, redisTime) // Remove the ones we have processed
+    .zDiffStore(NEXT_PENDING_TXS_TO_CHECK_KEY, [ALL_PENDING_TXS_KEY, CURRENT_PENDING_TXS_BEING_CHECKED_KEY]) // Store all remaining hashes
+    .zRange(NEXT_PENDING_TXS_TO_CHECK_KEY, 0, MAX_PENDING_TX_TO_CHECK - 1) // shrink that list based on MAX_PENDING_TX_TO_CHECK
+    .exec()
+
+  if (txToCheckNext.length > 0) {
+    // TODO: check if its possible to do this in the "multi()" above
+    await redisClient.zAdd(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, txToCheckNext.map(txHash => ({value: txHash, score: expiry})))
+  }
+
+  log.trace(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext}\n\n`)
+  return txToCheckNext
 }
 
 function buildTransactionJson(senderAddress, senderNonce) {
@@ -95,7 +129,6 @@ function buildTransactionJson(senderAddress, senderNonce) {
   result[transactionObject.senderAddress] = senderAddress
   result[transactionObject.senderNonce] = senderNonce || ''
   result[transactionObject.status] = transactionStates.Pending
-
   return result
 }
 
@@ -125,7 +158,6 @@ module.exports = {
   resetNonce,
   setNonce,
   refreshNonce,
-  getRandomPendingTransactions,
-  getAllPendingTransactions,
+  getNextTransactionsToCheck,
   resolvePendingAvnTransactions
 }

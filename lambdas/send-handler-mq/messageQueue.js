@@ -5,17 +5,19 @@ const SecretsManager = require('./secretsManager.js'); // TODO: Review and repla
 
 module.exports = MessageQueue;
 
-function MessageQueue(secretsManagerRegion, secretArn) {
+function MessageQueue(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint) {
   this.secretsManager = new SecretsManager(secretsManagerRegion);
   this.secretArn = secretArn;
+  this.mqBrokerAmqpEndpoint = mqBrokerAmqpEndpoint;
 }
 
 MessageQueue.prototype.getMqConnectionUrl = async function() {
-    return await this.secretsManager.getSecret(this.secretArn);
+  const secret = await this.secretsManager.getSecret(this.secretArn);
+  return this.mqBrokerAmqpEndpoint.replace('amqps://', `amqps://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`);
 }
 
 MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persistent = true) {
-  const amqpConnection = await connectToBroker(await this.getMqConnectionUrl());
+  const amqpConnection = await connectToMessageBroker(await this.getMqConnectionUrl());
   const amqpChannel = await createChannel(amqpConnection);
   return await new Promise((resolve, reject) => {
     try {
@@ -35,7 +37,7 @@ MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persiste
   })
 }
 
-function connectToBroker(url) {
+function connectToMessageBroker(url) {
   return new Promise((resolve, reject) => {
     amqp.connect(url, function(err, conn) {
       console.info('[AMQP] connecting');
@@ -64,6 +66,14 @@ function createChannel(conn) {
         console.error('[AMQP] channel connection error', err.message);
         throw err;
       }
+
+      channel.on("error", function(err) {
+        console.error("[AMQP] channel error", err.message);
+      });
+  
+      channel.on("close", function() {
+        console.info("[AMQP] channel closed");
+      });
 
       console.info('[AMQP] channel created');
 

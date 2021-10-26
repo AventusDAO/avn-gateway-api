@@ -4,6 +4,7 @@ module "lambda_functions" {
   region               = var.region
   artifact_bucket      = "avn-lambda-artifacts-sandbox"
   log_retention_period = 1
+  service_version      = var.service_version
 }
 
 module "avn-gateway-api" {

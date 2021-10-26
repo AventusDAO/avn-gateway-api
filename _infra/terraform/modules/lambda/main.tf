@@ -5,6 +5,7 @@ resource "aws_lambda_function" "lambda" {
   function_name = each.key
   role          = aws_iam_role.logging_role.arn
   handler       = "index.handler"
+  description   = "${each.key} - Deployed by Terraform" 
 
   runtime = var.lambda_runtime
 }

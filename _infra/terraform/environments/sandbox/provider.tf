@@ -5,10 +5,7 @@ terraform {
     key                    = "env:/sandbox/gateway-api/terraform.tfstate"
     region                 = "eu-west-1"
     skip_region_validation = "true"
-
-    assume_role {
-      role_arn = "arn:aws:iam::352429414196:role/jenkins-access"
-    }
+    role_arn               = "arn:aws:iam::352429414196:role/jenkins-access"
   }
 
   required_version = ">= 0.14"

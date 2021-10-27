@@ -39,7 +39,7 @@ async function poll(requestId) {
 
   try {
     let tx = await redis.getAvnTransaction(requestId)
-
+log.error('CHECK ME!!!!!:', JSON.stringify(tx))
     if (!tx) {
       log.error(`No transaction found for requestId: ${requestId}`)
       return { error: 'Transaction not found' }

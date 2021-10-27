@@ -1,8 +1,9 @@
 
 locals {
-  name            = "avn-gateway-api"
+  name            = "stargate"
   cluster_version = "1.21"
   region          = "eu-west-1"
+  account_id      = "352429414196"
 }
 
 module "lambda_functions" {
@@ -39,24 +40,6 @@ module "vpc" {
   }
 }
 
-module "redis" {
-  source              = "../../modules/redis"
-  region              = var.region
-  replication_enabled = false
-  vpc_id              = module.vpc.vpc_id
-  subnet_ids          = module.vpc.private_subnets
-  ip_whitelist        = module.vpc.public_subnet_ips
-}
-
-# module "eks" {
-#   source                    = "../../modules/eks"
-#   cluster_name              = "gateway-api"
-#   vpc_id                    = module.vpc.vpc_id
-#   public_access_cidrs       = ["0.0.0.0/0"]
-#   worker_cidrs              = module.vpc.private_subnet_ips
-#   subnet_ids                = module.vpc.private_subnets
-# }
-
 data "aws_eks_cluster" "eks" {
   name = module.eks.cluster_id
 }
@@ -83,7 +66,7 @@ module "eks" {
   cluster_endpoint_public_access  = true
 
   node_groups = {
-    gateway-api-ng = {
+    stargate = {
       create_launch_template = true
 
       disk_size       = 20
@@ -105,4 +88,12 @@ module "eks" {
       }
     }
   }
+
+  map_roles = [
+    {
+      rolearn  = "arn:aws:iam::${local.account_id}:role/AWSReservedSSO_AdministratorAccess_a2b4587f5d23a564"
+      username = "adminuser:{{SessionName}}"
+      groups   = ["system:masters"]
+    },
+  ]
 }

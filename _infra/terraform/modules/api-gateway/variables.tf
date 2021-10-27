@@ -28,3 +28,9 @@ variable "log_retention_period" {
   description = "Log retention"
   default     = 1
 }
+
+variable "auth_cache_duration" {
+  type        = number
+  description = "Authorizer cache duration in seconds"
+  default     = 300
+}

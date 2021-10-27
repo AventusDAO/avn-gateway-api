@@ -14,6 +14,7 @@ module "avn-gateway-api" {
   poll_invoke_arn       = module.lambda_functions.invoke_arns["poll-handler"]
   send_invoke_arn       = module.lambda_functions.invoke_arns["send-handler"]
   query_invoke_arn      = module.lambda_functions.invoke_arns["query-handler"]
+  auth_cache_duration   = 60
 }
 
 module "vpc" {

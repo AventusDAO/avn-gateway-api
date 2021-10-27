@@ -37,6 +37,65 @@ MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persiste
   })
 }
 
+MessageQueue.prototype.processMessagesFromMq = async function(queue, messageWorker) {
+  amqp.connect(await this.getMqConnectionUrl(), function(err, conn) {
+    console.info('[AMQP] connecting');
+
+    if (err) {
+      console.error('[AMQP] connect error', err.message);
+      return setTimeout(processMessagesFromMq, 1000);
+    }
+
+    conn.on('error', function(err) {
+      if (err.message !== '[AMQP] connection closing') {
+        console.error('[AMQP] connection error', err.message);
+      }
+    });
+
+    conn.on("close", function() {
+      console.error("[AMQP] reconnecting");
+      return setTimeout(processMessagesFromMq, 1000);
+    });
+
+    console.info('[AMQP] connected');
+
+    whenConnected(conn, queue, messageWorker);
+  });
+}
+
+async function whenConnected(conn, queue, messageWorker) {
+  const amqpChannel = await createChannel(conn);
+  amqpChannel.assertQueue(queue, { durable: true });
+
+  console.info("MQ message processor is started");
+  while(true) {
+    await processMessage(amqpChannel, queue, messageWorker);
+  }
+}
+
+async function processMessage(channel, queue, messageWorker) {
+  return await new Promise((resolve, reject) => {
+    channel.get(queue, { 
+      noAck: false 
+    }, function(err, message) {
+      if (err) channel.reject(message, true);
+      if (message) {
+        const msg = JSON.parse(message.content.toString());
+        messageWorker(msg, function(ok, requeue) {
+          if (ok){
+            channel.ack(message);
+            resolve(message);
+          } else {
+            const allUpTo = false;
+            channel.nack(message, allUpTo, requeue);
+            reject()
+          }
+        });
+      }
+    });
+  });
+}
+
 function connectToMessageBroker(url) {
   return new Promise((resolve, reject) => {
     amqp.connect(url, function(err, conn) {

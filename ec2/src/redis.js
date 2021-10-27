@@ -28,8 +28,7 @@ const PENDING_TX_KEY = {
 }
 
 const MAX_PENDING_TX_TO_CHECK = 100
-const PENDING_TX_CHECKING_WINDOW = 10 * 1000 // 10 seconds
-
+const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10
 const NONCE_EXPIRY_IN_SECONDS = 5
 
 let redisClient
@@ -112,7 +111,7 @@ async function resolvePendingAvnTransactions(transactions) {
 }
 
 async function getNextTransactionsToCheck() {
-  const expiry = Date.now() + PENDING_TX_CHECKING_WINDOW
+  const expiry = Date.now() + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000
 
   const [_numExpired, _numAwaitingCheck, txToCheckNext] = await redisClient
   .multi()

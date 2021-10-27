@@ -44,7 +44,7 @@ async function connect() {
 
 
   new Redis(config.redis.redisUrl)
-  log.info('Connected to Redis database:', redisClient.hello().map((e,i) => i%2 == 0 ?  e+':': e+', ').join('')
+  log.info('Connected to Redis database:', redisClient.hello().map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys:2,

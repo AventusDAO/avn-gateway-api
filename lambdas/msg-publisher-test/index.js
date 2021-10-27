@@ -25,7 +25,7 @@ function processRequest(request) {
   smClient.getSecretValue({SecretId: process.env.MQ_SECRET_ARN}, function(err, data) {
     if (err) {
       console.error('[SECRET MANAGER] get secret value error', err.message);
-      return err.message;
+      throw err;
     } else if ('SecretString' in data) {
       let { username, password } = JSON.parse(data.SecretString);
       url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
@@ -40,13 +40,13 @@ function startSendMessage(queue, message) {
 
     if (err) {
       console.error('[AMQP] connect error', err.message);
-      return err.message;
+      throw err;
     }
 
     conn.on('error', function(err) {
       if (err.message !== '[AMQP] connection closing') {
         console.error('[AMQP] connection error', err.message);
-        return `[AMQP] connection error ${err.message}`;
+        throw err;
       }
     });
 
@@ -80,7 +80,7 @@ function sendMessage(queue, message) {
       return message;
     });
   } catch (err) {
-    return err.message;
+    throw err;
   }
 }
 

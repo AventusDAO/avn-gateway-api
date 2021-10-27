@@ -91,6 +91,8 @@ async function processMessage(channel, queue, messageWorker) {
             reject()
           }
         });
+      } else { 
+        resolve() /* empty queue */
       }
     });
   });

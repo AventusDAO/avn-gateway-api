@@ -42,7 +42,6 @@ async function connect() {
     }
   ]);
 
-
   new Redis(config.redis.redisUrl)
   log.info('Connected to Redis database:',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
 

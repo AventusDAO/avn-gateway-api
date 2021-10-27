@@ -10,7 +10,7 @@
 const config = require('multiconfig').load();
 const avn = require('./avn');
 const redis = require('./redis')
-const logger = require('log4js').configure(config.log4Js).getLogger();
+const log = require('log4js').configure(config.log4Js).getLogger();
 const MessageQueue = require('../../lambdas/send-handler-mq/messageQueue.js');
 
 async function start() {
@@ -19,7 +19,8 @@ async function start() {
   let mq = new MessageQueue(
     config.mq.secretManagerRegion, 
     config.mq.mqSecretArn,
-    config.mq.mqBrokerAmqpEndpoint
+    config.mq.mqBrokerAmqpEndpoint,
+    log
   );
   await mq.processMessagesFromMq( 
     config.mq.mqAvnTxnQueue,
@@ -29,22 +30,15 @@ async function start() {
 
 async function sendAvnTxn(request, callback) {
   try {
-    logger.trace(`request body: ${JSON.stringify(request)}`);
+    log.trace(`request body: ${JSON.stringify(request)}`);
     const result = await avn.tx(request.palletName, request.method, request.params);
-    logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`);
+    log.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`);
     callback(true);
   } catch (err) {
     // TODO: SYS-1530 Requeue or drop the messages based on error type when sending txns to AVN
     const requeue = true;
     callback(false, requeue);
   }
-}
-
-function closeOnErr(err) {
-  if (!err) return false;
-  logger.error("[AMQP] error", err);
-  amqpConn.close();
-  return true;
 }
 
 start();

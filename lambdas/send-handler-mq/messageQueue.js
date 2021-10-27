@@ -9,10 +9,11 @@ const SecretsManager = require('./secretsManager.js'); // TODO: Review and repla
 
 module.exports = MessageQueue;
 
-function MessageQueue(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint) {
+function MessageQueue(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, log) {
   this.secretsManager = new SecretsManager(secretsManagerRegion);
   this.secretArn = secretArn;
   this.mqBrokerAmqpEndpoint = mqBrokerAmqpEndpoint;
+  this.log = log;
 }
 
 MessageQueue.prototype.getMqConnectionUrl = async function() {
@@ -21,18 +22,19 @@ MessageQueue.prototype.getMqConnectionUrl = async function() {
 }
 
 MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persistent = true) {
-  const amqpConnection = await connectToMessageBroker(await this.getMqConnectionUrl());
-  const amqpChannel = await createChannel(amqpConnection);
+  const log = this.log;
+  const amqpConnection = await connectToMessageBroker(await this.getMqConnectionUrl(), log);
+  const amqpChannel = await createChannel(amqpConnection, log);
   return await new Promise((resolve, reject) => {
     try {
       amqpChannel.assertQueue(queue, { durable: true });
       amqpChannel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
         persistent: persistent
       });
-      console.info('Sent %s to %s', JSON.stringify(message), queue);
+      log.info('Sent %s to %s', JSON.stringify(message), queue);
       setTimeout(function() {
         amqpConnection.close();
-        console.info('[AMQP] connection closed');
+        log.info('[AMQP] connection closed');
         resolve(message);
       }, 500);
     } catch (e) {
@@ -42,36 +44,37 @@ MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persiste
 }
 
 MessageQueue.prototype.processMessagesFromMq = async function(queue, messageWorker) {
+  const log = this.log;
   amqp.connect(await this.getMqConnectionUrl(), function(err, conn) {
-    console.info('[AMQP] connecting');
+    log.info('[AMQP] connecting');
 
     if (err) {
-      console.error('[AMQP] connect error', err.message);
+      log.error('[AMQP] connect error', err.message);
       return setTimeout(processMessagesFromMq, 1000);
     }
 
     conn.on('error', function(err) {
       if (err.message !== '[AMQP] connection closing') {
-        console.error('[AMQP] connection error', err.message);
+        log.error('[AMQP] connection error', err.message);
       }
     });
 
     conn.on("close", function() {
-      console.error("[AMQP] reconnecting");
+      log.error("[AMQP] reconnecting");
       return setTimeout(processMessagesFromMq, 1000);
     });
 
-    console.info('[AMQP] connected');
+    log.info('[AMQP] connected');
 
-    whenConnected(conn, queue, messageWorker);
+    whenConnected(conn, queue, messageWorker, log);
   });
 }
 
-async function whenConnected(conn, queue, messageWorker) {
-  const amqpChannel = await createChannel(conn);
+async function whenConnected(conn, queue, messageWorker, log) {
+  const amqpChannel = await createChannel(conn, log);
   amqpChannel.assertQueue(queue, { durable: true });
 
-  console.info("MQ message processor is started");
+  log.info("MQ message processor is started");
   while(true) {
     await processMessage(amqpChannel, queue, messageWorker);
   }
@@ -102,45 +105,45 @@ async function processMessage(channel, queue, messageWorker) {
   });
 }
 
-function connectToMessageBroker(url) {
+function connectToMessageBroker(url, log) {
   return new Promise((resolve, reject) => {
     amqp.connect(url, function(err, conn) {
-      console.info('[AMQP] connecting');
+      log.info('[AMQP] connecting');
 
       if (err) {
-        console.error('[AMQP] connect error', err.message);
+        log.error('[AMQP] connect error', err.message);
         return err.message;
       }
   
       conn.on('error', function(err) {
-        console.error('[AMQP] connection error', err.message);
+        log.error('[AMQP] connection error', err.message);
         return `[AMQP] connection error ${err.message}`;
       });
   
-      console.info('[AMQP] connected');
+      log.info('[AMQP] connected');
 
       resolve(conn);
     });
   });
 }
   
-function createChannel(conn) {
+function createChannel(conn, log) {
   return new Promise((resolve, reject) => {
     conn.createChannel(function(err, channel) {
       if (err) {
-        console.error('[AMQP] channel connection error', err.message);
+        log.error('[AMQP] channel connection error', err.message);
         throw err;
       }
 
       channel.on("error", function(err) {
-        console.error("[AMQP] channel error", err.message);
+        log.error("[AMQP] channel error", err.message);
       });
   
       channel.on("close", function() {
-        console.info("[AMQP] channel closed");
+        log.info("[AMQP] channel closed");
       });
 
-      console.info('[AMQP] channel created');
+      log.info('[AMQP] channel created');
 
       resolve(channel);
     });

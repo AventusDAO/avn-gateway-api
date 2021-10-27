@@ -1,13 +1,7 @@
-const redis = require('redis')
+const Redis = require('ioredis')
 const config = require('multiconfig').load()
 const log4js = require('log4js')
 const log = log4js.getLogger()
-
-const connectionConfig = {
-  rootNodes: [{
-    url: config.redis.redisUrl
-  }]
-}
 
 const transactionObject = {
   senderAddress: 'senderAddress',
@@ -25,30 +19,48 @@ const transactionStatus = {
 
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:'
+const NONCE_NAMESPACE = 'Nonce.'
 
-const ALL_PENDING_TXS_KEY = `${SLOT_PREFIX}PendingTransactionsList`
-const CURRENT_PENDING_TXS_BEING_CHECKED_KEY = `${SLOT_PREFIX}cTx`
-const NEXT_PENDING_TXS_TO_CHECK_KEY = `${SLOT_PREFIX}nTx`
+const PENDING_TX_KEY = {
+  ALL: `${SLOT_PREFIX}aTx`,
+  CHECKING: `${SLOT_PREFIX}cTx`,
+  NEXT: `${SLOT_PREFIX}nTx`
+}
 
 const MAX_PENDING_TX_TO_CHECK = 100
-const CHECK_WINDOW = 10 * 1000 // 10 seconds
-
-const NONCE_NAMESPACE = 'Nonce.'
+const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10
 const NONCE_EXPIRY_IN_SECONDS = 5
 
 let redisClient
 
 async function connect() {
-  log.info(`Attempting to connect to Redis database on ${connectionConfig.rootNodes[0].url}`)
+  log.info(`Attempting to connect to Redis database on ${config.redis.redisUrl}:${config.redis.redisPort}`)
+  redisClient = new Redis.Cluster([
+    {
+      port: config.redis.redisPort,
+      host: config.redis.redisUrl,
+    }
+  ]);
 
-  redisClient = redis.createCluster(connectionConfig)
+  new Redis(config.redis.redisUrl)
+  log.info('Connected to Redis database\n        -',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
 
-  redisClient.on('connect', () => log.info('Connected to Redis database'))
-  redisClient.on('reconnecting', () => log.warn('Reconnecting to Redis database'))
-  redisClient.on('error', err => log.error('Redis connection error ', err))
-  redisClient.on('end', () => log.warn('Closing Redis connection'))
-
-  await redisClient.connect()
+  redisClient.defineCommand('nextzsubset', {
+    numberOfKeys:2,
+    lua: `local subset = redis.call('ZRANGE', KEYS[1], 0, ARGV[1]-1)
+          local subsetCopy = {unpack(subset)}
+          if table.getn(subset) > 0 then
+            for i=1,table.getn(subset)
+              do table.insert(subset, i*2-1, ARGV[2])
+            end
+            table.insert(subset, 1, 'ZADD')
+            table.insert(subset, 2, KEYS[2])
+            redis.call(unpack(subset))
+            return subsetCopy
+          else
+            return {}
+          end`
+  })
 }
 
 function getKey(key) {
@@ -64,15 +76,16 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
 
   await redisClient
     .multi()
-    .hSet(transactionHash, buildTransactionJson(senderAddress, senderNonce))
-    .zAdd(ALL_PENDING_TXS_KEY, { value: _transactionHash, score:'+inf' })
+    .hset(transactionHash, buildTransactionJson(senderAddress, senderNonce))
+    .zadd(PENDING_TX_KEY.ALL, '+inf', _transactionHash)
     .exec()
 }
 
-// Returns an empty object (not undefined or null) if key is not found
+// Returns null if key is not found
 async function getAvnTransaction(_transactionHash) {
   const transactionHash = getKey(_transactionHash)
-  return await redisClient.hGetAll(transactionHash)
+  const result = await redisClient.hgetall(transactionHash)
+  return Object.keys(result).length === 0 ? undefined : result
 }
 
 async function resolvePendingAvnTransactions(transactions) {
@@ -98,30 +111,25 @@ async function resolvePendingAvnTransactions(transactions) {
 
     await redisClient
       .multi()
-      .hSet(transactionHash, newValue)
-      .zRem(ALL_PENDING_TXS_KEY, tx.transactionHash)
+      .hset(transactionHash, newValue)
+      .zrem(PENDING_TX_KEY.ALL, tx.transactionHash)
       .exec()
   }
 }
 
 async function getNextTransactionsToCheck() {
-  const redisTime = Date.now()
-  const expiry = redisTime + CHECK_WINDOW
+  const timeNow = Date.now()
+  const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000
 
   const [_numExpired, _numAwaitingCheck, txToCheckNext] = await redisClient
-    .multi()
-    .zRemRangeByScore(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, 0, redisTime) // Remove the ones we have processed
-    .zDiffStore(NEXT_PENDING_TXS_TO_CHECK_KEY, [ALL_PENDING_TXS_KEY, CURRENT_PENDING_TXS_BEING_CHECKED_KEY]) // Store all remaining hashes
-    .zRange(NEXT_PENDING_TXS_TO_CHECK_KEY, 0, MAX_PENDING_TX_TO_CHECK - 1) // shrink that list based on MAX_PENDING_TX_TO_CHECK
-    .exec()
+  .multi()
+  .zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow) // Expire any transactions that have been being checked for too long
+  .zdiffstore(PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING) // Get transactions that are not currently being checked
+  .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
+  .exec()
 
-  if (txToCheckNext.length > 0) {
-    // TODO: check if its possible to do this in the "multi()" above
-    await redisClient.zAdd(CURRENT_PENDING_TXS_BEING_CHECKED_KEY, txToCheckNext.map(txHash => ({value: txHash, score: expiry})))
-  }
-
-  log.trace(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext}\n\n`)
-  return txToCheckNext
+  log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`)
+  return txToCheckNext[1]
 }
 
 function buildTransactionJson(senderAddress, senderNonce) {
@@ -143,7 +151,7 @@ async function resetNonce(senderAddress) {
 }
 
 async function setNonce(senderAddress, nonce) {
-  await redisClient.setEx(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString())
+  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString())
 }
 
 async function refreshNonce(senderAddress) {

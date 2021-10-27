@@ -86,7 +86,8 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
 // Returns null if key is not found
 async function getAvnTransaction(_transactionHash) {
   const transactionHash = getKey(_transactionHash)
-  return await redisClient.hgetall(transactionHash)
+  const result = await redisClient.hgetall(transactionHash)
+  return Object.keys(result).length === 0 ? undefined : result
 }
 
 async function resolvePendingAvnTransactions(transactions) {

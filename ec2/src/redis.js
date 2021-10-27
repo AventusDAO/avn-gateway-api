@@ -27,7 +27,7 @@ const PENDING_TX_KEY = {
   NEXT: `${SLOT_PREFIX}nTx`
 }
 
-const MAX_PENDING_TX_TO_CHECK = 100
+const MAX_PENDING_TX_TO_CHECK = 10
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10
 const NONCE_EXPIRY_IN_SECONDS = 5
 
@@ -121,7 +121,7 @@ async function getNextTransactionsToCheck() {
   .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
   .exec()
 
-  log.trace(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext[1]}\n\n`)
+  log.trace(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext[1]}\n`)
   return txToCheckNext[1]
 }
 

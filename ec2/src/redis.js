@@ -16,7 +16,7 @@ const transactionObject = {
   blockNumber: 'blockNumber'
 }
 
-const transactionStates = {
+const transactionStatus = {
   Pending: 'Pending',
   Processed: 'Processed',
   Rejected: 'Rejected',
@@ -30,7 +30,7 @@ const ALL_PENDING_TXS_KEY = `${SLOT_PREFIX}PendingTransactionsList`
 const CURRENT_PENDING_TXS_BEING_CHECKED_KEY = `${SLOT_PREFIX}cTx`
 const NEXT_PENDING_TXS_TO_CHECK_KEY = `${SLOT_PREFIX}nTx`
 
-const MAX_PENDING_TX_TO_CHECK = 10
+const MAX_PENDING_TX_TO_CHECK = 100
 const CHECK_WINDOW = 10 * 1000 // 10 seconds
 
 const NONCE_NAMESPACE = 'Nonce.'
@@ -85,15 +85,15 @@ async function resolvePendingAvnTransactions(transactions) {
   for (const tx of transactions) {
     const transactionHash = getKey(tx.transactionHash)
 
-    if (![transactionStates.Processed, transactionStates.Rejected].includes(tx.state)) {
+    if (![transactionStatus.Processed, transactionStatus.Rejected].includes(tx.status)) {
       log.warn(
-        `Attempting to update transaction ${transactionHash} with an invalid status of ${tx.state}, ignoring request`
+        `Attempting to update transaction ${transactionHash} with an invalid status of ${tx.status}, ignoring request`
       )
       continue
     }
 
     const newValue = {}
-    newValue[transactionObject.status] = tx.state
+    newValue[transactionObject.status] = tx.status
     newValue[transactionObject.blockNumber] = tx.blockNumber
 
     await redisClient
@@ -128,7 +128,7 @@ function buildTransactionJson(senderAddress, senderNonce) {
   const result = {}
   result[transactionObject.senderAddress] = senderAddress
   result[transactionObject.senderNonce] = senderNonce || ''
-  result[transactionObject.status] = transactionStates.Pending
+  result[transactionObject.status] = transactionStatus.Pending
   return result
 }
 

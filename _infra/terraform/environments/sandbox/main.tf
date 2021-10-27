@@ -22,12 +22,3 @@ module "vpc" {
   peer_public_route_table  = "rtb-0a0b61707b33e0a75"
   peer_private_route_table = "rtb-00b575bea946b34bc"
 }
-
-module "redis" {
-  source              = "../../modules/redis"
-  region              = var.region
-  replication_enabled = false
-  vpc_id              = module.vpc.vpc_id
-  subnet_ids          = module.vpc.private_subnets
-  ip_whitelist        = module.vpc.public_subnet_ips
-}

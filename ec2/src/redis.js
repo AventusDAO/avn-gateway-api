@@ -128,7 +128,7 @@ async function getNextTransactionsToCheck() {
   .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
   .exec()
 
-  log.trace(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext[1]}\n`)
+  log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`)
   return txToCheckNext[1]
 }
 

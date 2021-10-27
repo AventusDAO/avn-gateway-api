@@ -35,7 +35,15 @@ let redisClient
 
 async function connect() {
   log.info(`Attempting to connect to Redis database on ${config.redis.redisUrl}`)
-  redisClient = new Redis(config.redis.redisUrl)
+  redisClient = new Redis.Cluster([
+    {
+      port: 6379,
+      host: "gateway-api-no-enc.yv2zxv.clustercfg.memorydb.eu-west-1.amazonaws.com",
+    }
+  ]);
+
+
+    new Redis(config.redis.redisUrl)
   const hello = await redisClient.hello()
   log.info('Connected to Redis database:', hello)
 

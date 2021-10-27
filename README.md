@@ -85,7 +85,7 @@ const requestId2 = await api.send.transferToken('0x9c2bfffc466eb9c1bad0d8393df93
 ```
 // Get the current state of a previously sent transaction:
 const requestId3 = await api.send.transferAvt('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', 100);
-const state = await api.poll.requestState(requestId);
+const status = await api.poll.requestState(requestId);
 
 ```
 
@@ -339,7 +339,7 @@ curl https://AVN-API-URL/poll \
 ```
 
 **RESULT FIELDS** \
-`STATE` - string detailing the current state ('pending', 'pending and lost', 'finished', 'errored', 'unknown')
+`STATUS` - string detailing the current status ('pending', 'pending and lost', 'finished', 'errored', 'unknown')
 
 **BODY**
 ```

@@ -21,26 +21,26 @@ describe('Polling api calls:', async() => {
       console.log(`polling requestId: ${requestId}`)
     })
 
-    it('returns a pending state for a valid request ID', async () => {
+    it('returns a pending status for a valid request ID', async () => {
       assert.equal(await api.poll.requestState(requestId), 'Pending');
     })
 
-    it('returns a processed state for a valid request ID', async () => {
+    it('returns a processed status for a valid request ID', async () => {
       const maxPoll = 5;
-      let state;
+      let status;
 
       for (i = 0; i < 10; i ++) {
         await helper.sleep(3000);
-        state = await api.poll.requestState(requestId);
-        if (state === 'Processed') break;
-        console.log(`   Current state: ${state}`)
+        status = await api.poll.requestState(requestId);
+        if (status === 'Processed') break;
+        console.log(`   Current status: ${status}`)
       }
 
-      assert.equal(state, 'Processed');
+      assert.equal(status, 'Processed');
     })
 
     it.skip('returns an error for an invalid request ID', async () => {
-      assert.equal(await api.poll.requestState(BAD_REQUEST_ID), "Unable to access request's state");
+      assert.equal(await api.poll.requestState(BAD_REQUEST_ID), "Unable to access request's status");
     })
   })
 })

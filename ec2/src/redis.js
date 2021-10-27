@@ -43,9 +43,9 @@ async function connect() {
   ]);
 
 
-    new Redis(config.redis.redisUrl)
+  new Redis(config.redis.redisUrl)
   const hello = await redisClient.hello()
-  log.info('Connected to Redis database:', hello)
+  log.info('Connected to Redis database:', hello.server, hello.version)
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys:2,

@@ -3,10 +3,6 @@
 const amqp = require('amqplib/callback_api');
 const SecretsManager = require('./secretsManager.js'); // TODO: Review and replace SM with alternatives if needed
 
-// TODO: Fix the logger used by the caller:
-//   lambda function is using console to log
-//   ec2 script is using log4js
-
 module.exports = MessageQueue;
 
 function MessageQueue(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, log) {

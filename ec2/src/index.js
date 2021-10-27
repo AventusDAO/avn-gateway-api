@@ -10,7 +10,7 @@ log4js.configure(config.log4Js)
 const log = log4js.getLogger()
 
 const app = express()
-const port = config.portNumber
+const port = config.avnPort
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json({limit: '50mb'}))

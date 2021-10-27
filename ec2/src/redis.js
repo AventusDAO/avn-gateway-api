@@ -34,11 +34,11 @@ const NONCE_EXPIRY_IN_SECONDS = 5
 let redisClient
 
 async function connect() {
-  log.info(`Attempting to connect to Redis database on ${config.redis.redisUrl}`)
+  log.info(`Attempting to connect to Redis database on ${config.redis.redisUrl}:${config.redis.redisPort}`)
   redisClient = new Redis.Cluster([
     {
-      port: 6379,
-      host: "gateway-api-no-enc.yv2zxv.clustercfg.memorydb.eu-west-1.amazonaws.com",
+      port: config.redis.redisPort,
+      host: config.redis.redisUrl,
     }
   ]);
 

@@ -1,5 +1,6 @@
 terraform {
   backend "s3" {
+    encrypt                = true
     bucket                 = "terraform-state-avn-gateway-api-sandbox"
     key                    = "env:/sandbox/gateway-api/terraform.tfstate"
     region                 = "eu-west-1"

@@ -2,6 +2,10 @@
 
 const AWS = require('aws-sdk');
 
+// TODO: Fix the logger used by the caller:
+//   lambda function is using console to log
+//   ec2 script is using log4js
+
 module.exports = SecretsManager;
 
 function SecretsManager(region) {

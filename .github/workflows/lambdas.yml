@@ -187,53 +187,53 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
           aws-region: eu-west-1
 
-      - name: Terraform Init
-        id: init
-        run: terraform init
+      # - name: Terraform Init
+      #   id: init
+      #   run: terraform init
 
-      - name: Terraform Plan
-        id: plan
-        run: TF_VAR_service_version=${{ needs.version-suffix.outputs.version }} terraform plan -no-color -out=plan-out.tfplan
-        continue-on-error: true
+      # - name: Terraform Plan
+      #   id: plan
+      #   run: TF_VAR_service_version=${{ needs.version-suffix.outputs.version }} terraform plan -no-color -out=plan-out.tfplan -target=module.lambda_functions
+      #   continue-on-error: true
       
-      - name: Terraform Apply
-        id: apply
-        run: terraform apply plan-out.tfplan -no-color
-        continue-on-error: true
+      # - name: Terraform Apply
+      #   id: apply
+      #   run: terraform apply plan-out.tfplan -no-color
+      #   continue-on-error: true
 
-      - name: Output plan
-        uses: actions/github-script@v5.0.0
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-          APPLY: "terraform\n${{ steps.apply.outputs.stdout }}"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Terraform Plan: \`${{ steps.plan.outcome }}\`
+      # - name: Output plan
+      #   uses: actions/github-script@v5.0.0
+      #   env:
+      #     PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+      #     APPLY: "terraform\n${{ steps.apply.outputs.stdout }}"
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     script: |
+      #       const output = `#### Terraform Plan: \`${{ steps.plan.outcome }}\`
 
-            <details><summary>Show Plan</summary>
+      #       <details><summary>Show Plan</summary>
 
-            \`\`\`\n
-            ${process.env.PLAN}
-            \`\`\`
+      #       \`\`\`\n
+      #       ${process.env.PLAN}
+      #       \`\`\`
 
-            </details>
+      #       </details>
 
-            #### Terraform Apply: \`${{ steps.apply.outcome }}\`
+      #       #### Terraform Apply: \`${{ steps.apply.outcome }}\`
 
-            <details><summary>Show Apply</summary>
+      #       <details><summary>Show Apply</summary>
 
-            \`\`\`\n
-            ${process.env.APPLY}
-            \`\`\`
+      #       \`\`\`\n
+      #       ${process.env.APPLY}
+      #       \`\`\`
 
-            </details>
+      #       </details>
 
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+      #       *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: output
+      #       })

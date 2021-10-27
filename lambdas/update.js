@@ -11,6 +11,7 @@ const LAMBDAS = [
   'poll-handler',
   'query-handler',
   'send-handler',
+  'send-handler-mq',
   'authorisation-handler',
   'msg-publisher-test',
   'tx-status-update-handler'

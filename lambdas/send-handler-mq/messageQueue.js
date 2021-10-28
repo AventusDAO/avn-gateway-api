@@ -19,8 +19,7 @@ MessageQueue.prototype.getMqConnectionUrl = async function() {
 
 MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persistent = true) {
   const log = this.log;
-  const amqpConnection = await connectToMessageBroker(await this.getMqConnectionUrl(), log);
-  const amqpChannel = await createChannel(amqpConnection, log);
+  const amqpChannel = await createChannel(this.amqpConnection, log);
   return await new Promise((resolve, reject) => {
     try {
       amqpChannel.assertQueue(queue, { durable: true });
@@ -28,11 +27,11 @@ MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persiste
         persistent: persistent
       });
       log.info('Sent %s to %s', JSON.stringify(message), queue);
-      setTimeout(function() {
-        amqpConnection.close();
-        log.info('[AMQP] connection closed');
-        resolve(message);
-      }, 500);
+
+      amqpChannel.close();
+      log.info("[AMQP] channel closed");
+
+      resolve(message);
     } catch (e) {
       reject(e.message);
     }
@@ -77,7 +76,7 @@ async function whenConnected(conn, queue, messageWorker, log) {
 }
 
 async function processMessage(channel, queue, messageWorker) {
-  return await new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     channel.get(queue, { 
       noAck: false 
     }, function(err, message) {
@@ -87,7 +86,7 @@ async function processMessage(channel, queue, messageWorker) {
         messageWorker(msg, function(ok, requeue) {
           if (ok){
             channel.ack(message);
-            resolve(message);
+            resolve();
           } else {
             const allUpTo = false;
             channel.nack(message, allUpTo, requeue);
@@ -101,24 +100,27 @@ async function processMessage(channel, queue, messageWorker) {
   });
 }
 
-function connectToMessageBroker(url, log) {
-  return new Promise((resolve, reject) => {
+MessageQueue.prototype.connectToMessageBroker = async function() {
+  const url = await this.getMqConnectionUrl();
+  const log = this.log;
+  let self = this;
+  await new Promise((resolve, reject) => {
     amqp.connect(url, function(err, conn) {
       log.info('[AMQP] connecting');
 
       if (err) {
         log.error('[AMQP] connect error', err.message);
-        return err.message;
+        reject();
       }
   
       conn.on('error', function(err) {
         log.error('[AMQP] connection error', err.message);
-        return `[AMQP] connection error ${err.message}`;
+        reject();
       });
   
       log.info('[AMQP] connected');
-
-      resolve(conn);
+      self.amqpConnection = conn;
+      resolve();
     });
   });
 }

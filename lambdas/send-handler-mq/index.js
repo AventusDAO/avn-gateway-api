@@ -3,6 +3,8 @@ const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
 const MessageQueue = require('./messageQueue.js'); // TODO: SYS-1529 Create a lambda layer for the shared modules
 
+// TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
+// otherwise review the leakage of global variables in lambdas
 let mq;
 const connectToMQ = async () => {
   if (!mq || !mq.amqpConnection) {

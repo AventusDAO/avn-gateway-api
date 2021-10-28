@@ -19,7 +19,7 @@ const transactionStatus = {
 
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:'
-const NONCE_NAMESPACE = 'Nonce.'
+const NONCE_NAMESPACE = 'n.'
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,

@@ -26,13 +26,13 @@ async function tx(palletName, method, params) {
 
 async function proxy(palletName, method, params) {
   hrTime = process.hrtime()
-  console.log('B', hrTime[0] * 1000000 + hrTime[1] / 1000)
+  console.log('B', hrTime[0] * 1000000 + hrTime[1] / 1000000)
   let innerCall = await api.tx[palletName][method](...params)
   hrTime = process.hrtime()
-  console.log('C', hrTime[0] * 1000000 + hrTime[1] / 1000)
+  console.log('C', hrTime[0] * 1000000 + hrTime[1] / 1000000)
   const txn = await api.tx[palletName]['proxy'](innerCall)
   hrTime = process.hrtime()
-  console.log('D', hrTime[0] * 1000000 + hrTime[1] / 1000)
+  console.log('D', hrTime[0] * 1000000 + hrTime[1] / 1000000)
 
   return await signAndSend(txn)
 }
@@ -74,13 +74,13 @@ async function signAndSend(txn) {
 
   try {
     hrTime = process.hrtime()
-    console.log('E', hrTime[0] * 1000000 + hrTime[1] / 1000)
+    console.log('E', hrTime[0] * 1000000 + hrTime[1] / 1000000)
     nonce = await getNonce(sender.address)
     hrTime = process.hrtime()
-    console.log('F', hrTime[0] * 1000000 + hrTime[1] / 1000)
+    console.log('F', hrTime[0] * 1000000 + hrTime[1] / 1000000)
     let receipt = await txn.signAndSend(sender, { nonce })
     hrTime = process.hrtime()
-    console.log('G', hrTime[0] * 1000000 + hrTime[1] / 1000)
+    console.log('G', hrTime[0] * 1000000 + hrTime[1] / 1000000)
     let requestId = receipt.toString()
     result = { requestId }
   } catch (err) {
@@ -89,11 +89,11 @@ async function signAndSend(txn) {
     throw err
   }
   hrTime = process.hrtime()
-  console.log('H', hrTime[0] * 1000000 + hrTime[1] / 1000)
+  console.log('H', hrTime[0] * 1000000 + hrTime[1] / 1000000)
 
   await redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
   hrTime = process.hrtime()
-  console.log('L', hrTime[0] * 1000000 + hrTime[1] / 1000)
+  console.log('L', hrTime[0] * 1000000 + hrTime[1] / 1000000)
   return result
 }
 

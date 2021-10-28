@@ -102,7 +102,6 @@ async function resolvePendingAvnTransactions(transactions) {
     return
   }
 
-  log.trace(`Updating ${transactions.length} transactions`)
   for (const tx of transactions) {
     const transactionHash = getKey(tx.transactionHash)
 
@@ -136,7 +135,6 @@ async function getNextTransactionsToCheck() {
   .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
   .exec()
 
-  log.trace(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext[1]}\n`)
   return txToCheckNext[1]
 }
 

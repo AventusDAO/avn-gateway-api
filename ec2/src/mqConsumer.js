@@ -24,7 +24,7 @@ async function connectToMQ() {
 }
 
 function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqAvnTxnQueue) {
-  this.secretsManager = new SecretsManager(secretsManagerRegion)
+  this.secretsManager = new SecretsManager(secretsManagerRegion, logger)
   this.secretArn = secretArn
   this.mqBrokerAmqpEndpoint = mqBrokerAmqpEndpoint
   this.queue = mqAvnTxnQueue

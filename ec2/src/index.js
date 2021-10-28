@@ -89,6 +89,8 @@ app.listen(port, () => {
 })
 
 async function instantiateEC2() {
+  const numCPUs = require('os').cpus().length;
+  log.info('NUMBER OF CPUs', numCPUs)
   await avn.connectToAvN()
   await redis.connect()
 }

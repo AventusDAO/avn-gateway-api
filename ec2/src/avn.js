@@ -56,9 +56,9 @@ async function getNonce(senderAddress) {
   let nonce = await redis.getNextNonce(senderAddress)
   if (!nonce) {
     nonce = (await api.query.system.account(senderAddress)).nonce
-    redis.setNonce(senderAddress, nonce)
+    await redis.setNonce(senderAddress, nonce)
   } else {
-    redis.refreshNonce(senderAddress)
+    await redis.refreshNonce(senderAddress)
   }
   return nonce
 }

@@ -90,7 +90,7 @@ async function signAndSend(txn) {
     nonce = await getNonce(sender.address)
     hrTime = process.hrtime()
     console.log('I', hrTime[0] * 1000000000 + hrTime[1])
-    let receipt = await txn.signAndSend(sender, { nonce })
+    let receipt = await txn.signAndSend(sender, { nonce: nonce })
     hrTime = process.hrtime()
     console.log('J', hrTime[0] * 1000000000 + hrTime[1])
     let requestId = receipt.toString()

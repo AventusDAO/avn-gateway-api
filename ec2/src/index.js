@@ -4,6 +4,7 @@ const avn = require('./avn')
 const redis = require('./redis')
 const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
+const cluster = require('cluster')
 const log4js = require('log4js')
 
 log4js.configure(config.log4Js)
@@ -84,13 +85,23 @@ app.post('/resolvePendingTransactions', async (req, res, next) => {
   }
 })
 
-app.listen(port, () => {
-  log.info(`EC2 avn-connector listening on port ${port}`)
-})
+if (cluster.isMaster) {
+  log.info(`EC2 Master ${process.pid} is running`)
+
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork()
+  }
+
+  cluster.on('exit', (worker, code, signal) => {
+    log.info(`worker ${worker.process.pid} died`)
+  })
+} else {
+  app.listen(port, () => {
+    log.info(`EC2 avn-connector listening on port ${port}`)
+  })
+}
 
 async function instantiateEC2() {
-  const numCPUs = require('os').cpus().length;
-  log.info('NUMBER OF CPUs', numCPUs)
   await avn.connectToAvN()
   await redis.connect()
 }

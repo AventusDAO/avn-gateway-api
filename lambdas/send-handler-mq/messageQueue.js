@@ -41,7 +41,7 @@ MessageQueue.prototype.sendMessageToMQ = async function(queue, message, persiste
   })
 }
 
-MessageQueue.prototype.processMessagesFromMq = async function(queue, messageWorker) {
+MessageQueue.prototype.processMessagesFromMq = async function(queue, messageWorkerFn) {
   amqp.connect(await this.getMqConnectionUrl(), function(err, conn) {
     console.info('[AMQP] connecting');
 
@@ -63,21 +63,21 @@ MessageQueue.prototype.processMessagesFromMq = async function(queue, messageWork
 
     console.info('[AMQP] connected');
 
-    whenConnected(conn, queue, messageWorker);
+    whenConnected(conn, queue, messageWorkerFn);
   });
 }
 
-async function whenConnected(conn, queue, messageWorker) {
+async function whenConnected(conn, queue, messageWorkerFn) {
   const amqpChannel = await createChannel(conn);
   amqpChannel.assertQueue(queue, { durable: true });
 
   console.info("MQ message processor is started");
   while(true) {
-    await processMessage(amqpChannel, queue, messageWorker);
+    await processMessage(amqpChannel, queue, messageWorkerFn);
   }
 }
 
-async function processMessage(channel, queue, messageWorker) {
+async function processMessage(channel, queue, messageWorkerFn) {
   return await new Promise((resolve, reject) => {
     channel.get(queue, { 
       noAck: false 
@@ -85,7 +85,7 @@ async function processMessage(channel, queue, messageWorker) {
       if (err) channel.reject(message, true);
       if (message) {
         const msg = JSON.parse(message.content.toString());
-        messageWorker(msg, function(ok, requeue) {
+        messageWorkerFn(msg, function(ok, requeue) {
           if (ok){
             channel.ack(message);
             resolve(message);

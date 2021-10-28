@@ -5,6 +5,7 @@ const log4js = require('log4js')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
 const redis = require('./redis')
+let hrTime
 
 const AVN_URL = config.avnUrl
 const SENDER = config.senderSuri

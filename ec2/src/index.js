@@ -5,6 +5,7 @@ const redis = require('./redis')
 const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
 const log4js = require('log4js')
+let hrTime
 
 log4js.configure(config.log4Js)
 const log = log4js.getLogger()

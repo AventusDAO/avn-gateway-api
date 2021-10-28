@@ -2,7 +2,7 @@ const Redis = require('ioredis')
 const config = require('multiconfig').load()
 const log4js = require('log4js')
 const log = log4js.getLogger()
-
+let hrTime
 const transactionObject = {
   senderAddress: 'senderAddress',
   senderNonce: 'senderNonce',

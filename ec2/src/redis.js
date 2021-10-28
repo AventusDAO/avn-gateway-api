@@ -42,8 +42,9 @@ async function connect() {
     }
   ]);
 
+
   new Redis(config.redis.redisUrl)
-  log.info('Connected to Redis database\n        -',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
+  log.info('Connected to Redis database:',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys:2,
@@ -68,7 +69,11 @@ function getKey(key) {
 }
 
 async function addPendingAvnTransaction(_transactionHash, senderAddress, senderNonce) {
+  hrTime = process.hrtime()
+  console.log('I', hrTime[0] * 1000000 + hrTime[1] / 1000)
   const transactionHash = getKey(_transactionHash)
+  hrTime = process.hrtime()
+  console.log('J', hrTime[0] * 1000000 + hrTime[1] / 1000)
 
   if (await redisClient.exists(transactionHash)) {
     throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
@@ -79,6 +84,9 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
     .hset(transactionHash, buildTransactionJson(senderAddress, senderNonce))
     .zadd(PENDING_TX_KEY.ALL, '+inf', _transactionHash)
     .exec()
+
+    hrTime = process.hrtime()
+    console.log('K', hrTime[0] * 1000000 + hrTime[1] / 1000)
 }
 
 // Returns null if key is not found
@@ -128,7 +136,7 @@ async function getNextTransactionsToCheck() {
   .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
   .exec()
 
-  log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`)
+  log.trace(`\n\ngetNextTransactionsToCheck result: ${txToCheckNext[1]}\n`)
   return txToCheckNext[1]
 }
 

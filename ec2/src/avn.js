@@ -24,9 +24,14 @@ async function tx(palletName, method, params) {
 }
 
 async function proxy(palletName, method, params) {
-  log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+  hrTime = process.hrtime()
+  console.log('B', hrTime[0] * 1000000 + hrTime[1] / 1000)
   let innerCall = await api.tx[palletName][method](...params)
+  hrTime = process.hrtime()
+  console.log('C', hrTime[0] * 1000000 + hrTime[1] / 1000)
   const txn = await api.tx[palletName]['proxy'](innerCall)
+  hrTime = process.hrtime()
+  console.log('D', hrTime[0] * 1000000 + hrTime[1] / 1000)
 
   return await signAndSend(txn)
 }
@@ -67,9 +72,14 @@ async function signAndSend(txn) {
   let result, nonce
 
   try {
-    log.trace(`Encoded Transaction: ${txn}`)
+    hrTime = process.hrtime()
+    console.log('E', hrTime[0] * 1000000 + hrTime[1] / 1000)
     nonce = await getNonce(sender.address)
+    hrTime = process.hrtime()
+    console.log('F', hrTime[0] * 1000000 + hrTime[1] / 1000)
     let receipt = await txn.signAndSend(sender, { nonce })
+    hrTime = process.hrtime()
+    console.log('G', hrTime[0] * 1000000 + hrTime[1] / 1000)
     let requestId = receipt.toString()
     result = { requestId }
   } catch (err) {
@@ -77,9 +87,12 @@ async function signAndSend(txn) {
     await redis.resetNonce(sender.address)
     throw err
   }
+  hrTime = process.hrtime()
+  console.log('H', hrTime[0] * 1000000 + hrTime[1] / 1000)
 
   await redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
-
+  hrTime = process.hrtime()
+  console.log('L', hrTime[0] * 1000000 + hrTime[1] / 1000)
   return result
 }
 

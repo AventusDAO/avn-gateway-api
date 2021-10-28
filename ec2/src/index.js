@@ -42,9 +42,11 @@ app.post('/avnTx', async (req, res, next) => {
 
 app.post('/avnProxy', async (req, res, next) => {
   try {
-    log.trace(`request body: ${JSON.stringify(req.body)}`)
+    hrTime = process.hrtime()
+    console.log('A', hrTime[0] * 1000000 + hrTime[1] / 1000)
     const result = await avn.proxy(req.body.palletName, req.body.method, req.body.params)
-    log.info(`Proxy request sent with ID: ${result.requestId}`)
+    hrTime = process.hrtime()
+    console.log('M', hrTime[0] * 1000000 + hrTime[1] / 1000)
     res.send(result)
   } catch (err) {
     next(err)

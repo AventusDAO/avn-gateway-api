@@ -7,6 +7,8 @@ const express = require('express')
 const cluster = require('cluster')
 const log4js = require('log4js')
 
+const numCPUs = require('os').cpus().length
+
 log4js.configure(config.log4Js)
 const log = log4js.getLogger()
 

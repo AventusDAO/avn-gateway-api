@@ -47,8 +47,10 @@ app.post('/avnProxy', async (req, res, next) => {
     console.log('A', hrTime[0] * 1000000000 + hrTime[1])
     const result = await avn.proxy(req.body.palletName, req.body.method, req.body.params)
     hrTime = process.hrtime()
-    console.log('M', hrTime[0] * 1000000000 + hrTime[1])
+    console.log('P', hrTime[0] * 1000000000 + hrTime[1])
     res.send(result)
+    hrTime = process.hrtime()
+    console.log('Q', hrTime[0] * 1000000000 + hrTime[1])
   } catch (err) {
     next(err)
   }

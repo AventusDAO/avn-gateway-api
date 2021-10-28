@@ -59,13 +59,25 @@ async function poll(requestId) {
 }
 
 async function getNonce(senderAddress) {
+  hrTime = process.hrtime()
+  console.log('F', hrTime[0] * 1000000000 + hrTime[1])
   let nonce = await redis.getNextNonce(senderAddress)
+  hrTime = process.hrtime()
+  console.log('G', hrTime[0] * 1000000000 + hrTime[1])
   if (!nonce) {
+    hrTime = process.hrtime()
+    console.log('G1', hrTime[0] * 1000000000 + hrTime[1])
     nonce = (await api.query.system.account(senderAddress)).nonce
+    hrTime = process.hrtime()
+    console.log('G2', hrTime[0] * 1000000000 + hrTime[1])
     await redis.setNonce(senderAddress, nonce)
+    hrTime = process.hrtime()
+    console.log('G3', hrTime[0] * 1000000000 + hrTime[1])
   } else {
     await redis.refreshNonce(senderAddress)
   }
+  hrTime = process.hrtime()
+  console.log('H', hrTime[0] * 1000000000 + hrTime[1])
   return nonce
 }
 
@@ -77,10 +89,10 @@ async function signAndSend(txn) {
     console.log('E', hrTime[0] * 1000000000 + hrTime[1])
     nonce = await getNonce(sender.address)
     hrTime = process.hrtime()
-    console.log('F', hrTime[0] * 1000000000 + hrTime[1])
+    console.log('I', hrTime[0] * 1000000000 + hrTime[1])
     let receipt = await txn.signAndSend(sender, { nonce })
     hrTime = process.hrtime()
-    console.log('G', hrTime[0] * 1000000000 + hrTime[1])
+    console.log('J', hrTime[0] * 1000000000 + hrTime[1])
     let requestId = receipt.toString()
     result = { requestId }
   } catch (err) {
@@ -89,11 +101,11 @@ async function signAndSend(txn) {
     throw err
   }
   hrTime = process.hrtime()
-  console.log('H', hrTime[0] * 1000000000 + hrTime[1])
+  console.log('K', hrTime[0] * 1000000000 + hrTime[1])
 
   await redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
   hrTime = process.hrtime()
-  console.log('L', hrTime[0] * 1000000000 + hrTime[1])
+  console.log('O', hrTime[0] * 1000000000 + hrTime[1])
   return result
 }
 

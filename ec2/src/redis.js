@@ -70,10 +70,10 @@ function getKey(key) {
 
 async function addPendingAvnTransaction(_transactionHash, senderAddress, senderNonce) {
   hrTime = process.hrtime()
-  console.log('I', hrTime[0] * 1000000000 + hrTime[1])
+  console.log('L', hrTime[0] * 1000000000 + hrTime[1])
   const transactionHash = getKey(_transactionHash)
   hrTime = process.hrtime()
-  console.log('J', hrTime[0] * 1000000000 + hrTime[1])
+  console.log('M', hrTime[0] * 1000000000 + hrTime[1])
 
   if (await redisClient.exists(transactionHash)) {
     throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
@@ -86,7 +86,7 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
     .exec()
 
     hrTime = process.hrtime()
-    console.log('K', hrTime[0] * 1000000000 + hrTime[1])
+    console.log('N', hrTime[0] * 1000000000 + hrTime[1])
 }
 
 // Returns null if key is not found

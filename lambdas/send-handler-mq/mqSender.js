@@ -26,11 +26,6 @@ MQSender.prototype.sendMessageToMQ = async function(queue, message, persistent =
         persistent: persistent
       })
       console.info('Sent %s to %s', JSON.stringify(message), queue)
-      setTimeout(function() {
-        amqpConnection.close()
-        console.info('[AMQP] connection closed')
-        resolve(message)
-      }, 500)
     } catch (e) {
       reject(e.message)
     }

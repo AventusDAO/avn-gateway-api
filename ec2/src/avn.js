@@ -58,7 +58,7 @@ async function getNonce(senderAddress) {
     nonce = (await api.query.system.account(senderAddress)).nonce
     await redis.setNonce(senderAddress, nonce)
   } else {
-    await redis.refreshNonce(senderAddress)
+    redis.refreshNonce(senderAddress)
   }
   return nonce
 }
@@ -78,7 +78,7 @@ async function signAndSend(txn) {
     throw err
   }
 
-  await redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
+  redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
 
   return result
 }

@@ -12,6 +12,18 @@ module "lambda_functions" {
   artifact_bucket      = "avn-lambda-artifacts-sandbox"
   log_retention_period = 1
   service_version      = var.service_version
+
+  lambda_functions = {
+    authorisation-handler = {
+      env_vars = {
+        MAX_TOKEN_AGE_MSEC = 60000
+        MIN_AVT_BALANCE    = "100000000000000000000"
+      }
+    }
+    send-handler = {}
+    poll-handler  = {}
+    query-handler = {}
+  }
 }
 
 module "avn-gateway-api" {

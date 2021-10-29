@@ -148,6 +148,7 @@ const codeFormatters = {
 };
 
 // async function testlocal(n) {
+//   await connectToMQ();
 //   for (var i = 0; i < n; i++) {
 //     console.info('transferAvt:', await processRequest(`{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":${i}}`));
 //     await sleep(1000);

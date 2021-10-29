@@ -61,6 +61,7 @@ async function connect() {
             return {}
           end`
   })
+  console.log(await redisClient.flushall())
 }
 
 function getKey(key) {

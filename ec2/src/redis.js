@@ -154,8 +154,8 @@ async function setNonce(senderAddress, nonce) {
   await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString())
 }
 
-async function refreshNonce(senderAddress) {
-  await redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS)
+function refreshNonce(senderAddress) {
+  redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS)
 }
 
 module.exports = {

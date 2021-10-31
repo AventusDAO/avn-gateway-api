@@ -1,7 +1,7 @@
 const utils = require('../common/utils.js');
 const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
-const MessageQueue = require('./messageQueue.js'); // TODO: SYS-1529 Create a lambda layer for the shared modules
+const MQSender = require('./mqSender.js'); // TODO: SYS-1529 Create a lambda layer for the shared modules
 
 exports.handler = async (event) => {
   try {
@@ -20,9 +20,9 @@ exports.handler = async (event) => {
 async function sendTx(queueName, palletName, method, params) {
   try {
     // TODO: SYS-1528 Make message queue client reusable between each warm lambda function invocations
-    let mq = new MessageQueue(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN);
+    let mqSender = new MQSender(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN, process.env.MQ_BROKER_AMQP_ENDPOINT);
     // TODO: SYS-1425 Create a global ID to return as response result.
-    return await mq.sendMessageToMQ(queueName, {palletName: palletName, method: method, params: params});
+    return await mqSender.sendMessageToMQ(queueName, {palletName: palletName, method: method, params: params});
   } catch (e) {
     console.error('sendTx Error:', e.message);
     return e.message;

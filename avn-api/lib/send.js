@@ -41,7 +41,7 @@ function generateFunction(functionName, api, queryApi) {
 Send.prototype.postRequest = async function(api, method, params, isRetry) {
   const endpoint = api.gateway + '/send';
   const response =
-    (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
+    (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.uuid(), method: method, params: params})).data;
 
   if (!response.result) {
     if (method === 'proxy') {

@@ -2,6 +2,8 @@ const utils = require('../common/utils.js');
 const EC2 = require('../common/resources.json').ec2_endpoint;
 const axios = require('axios');
 
+let userRequestId;
+
 exports.handler = async (event) => {
   const response = {
     statusCode: 200,
@@ -13,9 +15,9 @@ exports.handler = async (event) => {
 async function sendTx(palletName, method, params) {
   let response;
   try {
-    response = await axios.post(EC2 + 'avnTx', {palletName: palletName, method: method, params: params});
+    response = await axios.post(EC2 + 'avnTx', { userRequestId, palletName, method, params });
   } catch (e) {
-    console.log('sendTx Error:', e);
+    utils.logError(userRequestId, 'sendTx avnTx', e);
     throw true;
   }
   return response.data.error || response.data.requestId;
@@ -24,9 +26,9 @@ async function sendTx(palletName, method, params) {
 async function sendProxyTx(palletName, method, params) {
   let response;
   try {
-    response = await axios.post(EC2 + 'avnProxy', {palletName: palletName, method: method, params: params});
+    response = await axios.post(EC2 + 'avnProxy', { userRequestId, palletName, method, params });
   } catch (e) {
-    console.log('sendProxyTx Error:', e);
+    utils.logError(userRequestId, 'sendProxyTx avnProxy', e);
     throw true;
   }
   return response.data.requestId;
@@ -39,19 +41,22 @@ async function processRequest(requestObject) {
   try {
     call = JSON.parse(requestObject);
   } catch (e) {
-    console.log('error processing request object', e);
+    utils.logError(null, 'processRequest parse JSON', e)
     responseObject.error = {code:-32700, message:'Parse error'};
     responseObject.id = null;
     return responseObject;
   }
 
+  userRequestId = call.id;
+
   if (typeof call.method !== 'string') {
+    utils.logError(userRequestId, 'processRequest method type', call.method)
     responseObject.error = {code:-32600, message:'Invalid Request'};
   } else {
     responseObject = await callSwitch(call, responseObject);
   }
 
-  responseObject.id = call.id;
+  responseObject.id = userRequestId;
   return responseObject;
 }
 
@@ -62,9 +67,11 @@ async function callSwitch(call, responseObject) {
         try {
           responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]]);
         } catch (e) {
+          utils.logError(userRequestId, 'transferAvt sendTx', e);
           responseObject.error = {code:-32603, message:'Internal error'};
         }
       } else {
+        utils.logError(userRequestId, 'transferAvt invalid params', call.params);
         responseObject.error = {code:-32602, message:'Invalid params'};
       }
       break;
@@ -76,8 +83,10 @@ async function callSwitch(call, responseObject) {
       let formatter = codeFormatters[pallet][method];
 
       if (!formatter) {
+        utils.logError(userRequestId, 'proxy method not found', call);
         responseObject.error = {code:-32601, message:'Method not found'};
       } else if (!formatter.validate(call)) {
+        utils.logError(userRequestId, 'proxy invalid params', call.params);
         responseObject.error = {code:-32602, message:'Invalid params'};
       } else {
         try {
@@ -90,12 +99,14 @@ async function callSwitch(call, responseObject) {
           }
           responseObject.result = await sendProxyTx(pallet, method, formatter.encode(proof, call.params.innerArgs));
         } catch (e) {
+          utils.logError(userRequestId, 'proxy sendProxyTx', e);
           responseObject.error = {code:-32603, message:'Internal error'};
         }
       }
       break;
 
     default:
+      utils.logError(userRequestId, 'callSwitch method not found', method)
       responseObject.error = {code:-32601, message:'Method not found'};
   }
   return responseObject;

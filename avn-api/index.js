@@ -5,9 +5,9 @@ const Query = require('./lib/query.js');
 const Send = require('./lib/send.js');
 const Poll = require('./lib/poll.js');
 const Awt = require('./lib/awt.js');
+const { v4: uuidv4 } = require('uuid');
 
-function AvnApi(gateway, id) {
-  this.id = id || 1;
+function AvnApi(gateway) {
   this.gateway = gateway;
   this.version = version;
   this.awtToken;
@@ -19,7 +19,7 @@ AvnApi.prototype.init = async function () {
   awtToken = Awt.generateAwtToken(process.env.SURI);
   const avnApi = {
     gateway : this.gateway,
-    nextId : () => this.id++,
+    uuid : () => uuidv4(),
     axios: () => setupAxios(Awt)
   };
 

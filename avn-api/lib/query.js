@@ -37,7 +37,7 @@ function generateFunction(functionName, api) {
 
 Query.prototype.postRequest = async function(api, method, params) {
   const endpoint = api.gateway + '/query';
-  const response = (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.nextId(), method: method, params: params})).data;
+  const response = (await api.axios().post(endpoint, {jsonrpc: '2.0', id: api.uuid(), method: method, params: params})).data;
   return response.result || response.error.message;
 }
 

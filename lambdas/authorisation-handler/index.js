@@ -1,4 +1,5 @@
 const EC2 = require('../common/resources.json').ec2_endpoint;
+const utils = require('../common/utils.js');
 const axios = require('axios');
 const BN = require('bn.js');
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
@@ -15,7 +16,14 @@ const registry = new TypeRegistry();
 const InvalidRequestResponse = {isAuthorized: false};
 const ValidRequestResponse = {isAuthorized: true};
 
+let userRequestId;
+
 exports.handler = async(event) => {
+  try {
+    userRequestId = (JSON.parse(event.body)).id;
+  } catch (e) {
+    userRequestId = null;
+  }
   // encapsulate all the logic to make local testing easier
   return await validateAwtToken(event);
 };
@@ -24,26 +32,8 @@ async function validateAwtToken(event) {
   console.log('Authorisation lambda called');
 
   const awtToken = getAwtTokenIfAny(event);
-  if (!awtToken) {
-    console.log(`Token is missing or not correctly formatted`);
-    return InvalidRequestResponse;
-  }
 
-  // check the age of the token
-  if (tokenAgeIsValid(awtToken) !== true) {
-    console.log(`Token is either expired or issued in the future`);
-    return InvalidRequestResponse;
-  }
-
-  // check the signature
-  if (await isSignatureValid(awtToken) !== true) {
-    console.log(`The avnPublicKey signature is not valid`);
-    return InvalidRequestResponse;
-  }
-
-  // check the user balance on the chain
-  if (await userHasAvtBalance(awtToken) !== true) {
-    console.log(`User does not have enough balance to use the avn gateway api`);
+  if (!awtToken || !tokenAgeIsValid(awtToken) || !(await isSignatureValid(awtToken)) || !(await userHasAvtBalance(awtToken)) {
     return InvalidRequestResponse;
   }
 
@@ -61,7 +51,7 @@ async function userHasAvtBalance(awtToken) {
     const avtBalance = new BN(response.data.data.free.replace('0x',''), 16);
     return avtBalance.gte(MIN_AVT_BALANCE);
   } catch (err) {
-    console.log(`Error checking AVT balance for user: ${err}`);
+    utils.logError(userRequestId, 'userHasAvtBalance', err);
     return false;
   }
 }
@@ -75,7 +65,7 @@ async function isSignatureValid(awtToken) {
     const verificationResult = signatureVerify(encodedAvnPublicKey, awtToken.sig, awtToken.pk);
     return verificationResult.isValid;
   } catch (err) {
-    console.error(`Error verifying awt token signature: ${err}`);
+    utils.logError(userRequestId, 'isSignatureValid', err);
     return false;
   }
 }
@@ -87,7 +77,7 @@ function tokenAgeIsValid(token) {
 
     return tokenAge >= CLOCK_JITTER_MSEC && tokenAge < MAX_TOKEN_AGE_MSEC;
   } catch (err) {
-    console.error(`Error checking the age of the awt token: ${err}`);
+    utils.logError(userRequestId, 'tokenAgeIsValid', err);
     return false;
   }
 }
@@ -100,7 +90,7 @@ function getAwtTokenIfAny(event) {
       return JSON.parse(decodedToken);
     }
   } catch (err) {
-    console.error(`Error extracting awt token from request: ${err}`);
+    utils.logError(userRequestId, 'getAwtTokenIfAny', err);
     return null;
   }
 }

@@ -10,6 +10,8 @@ describe('Polling api calls:', async() => {
 
   before(async () => {
     api = await helper.avnApi();
+    relayer = accounts.relayer.address;
+    sender = accounts.sender.address;
     recipient = accounts.user1.address;
   })
 
@@ -17,7 +19,7 @@ describe('Polling api calls:', async() => {
     let requestId;
 
     before(async () => {
-      requestId = await api.send.transferAvt(recipient, 1);
+      requestId = await api.send.transferAvt(relayer, sender, recipient, 1);
       console.log(`polling requestId: ${requestId}`)
     })
 

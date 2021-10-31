@@ -1,6 +1,7 @@
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
+const BN = helper.BN;
 
 const BAD_REQUEST_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
@@ -19,8 +20,11 @@ describe('Polling api calls:', async() => {
     let requestId, invalidRequestId;
 
     before(async () => {
+      const senderAvtBalance = await api.query.getAvtBalance(sender);
+      const badTransferAmount = new BN(senderAvtBalance).add(new BN(90000000000000000000));
+
       requestId = await api.send.transferAvt(relayer, sender, recipient, 1);
-      invalidRequestId = await api.send.transferAvt(relayer, sender, recipient, "9000000000000000000000000");
+      invalidRequestId = await api.send.transferAvt(relayer, sender, recipient, badTransferAmount);
       console.log(`Valid requestId: ${requestId}, Invalid requestId: ${invalidRequestId}`)
     })
 
@@ -29,7 +33,6 @@ describe('Polling api calls:', async() => {
     })
 
     it('returns a rejected status when a transaction fails to be executed', async () => {
-      const maxPoll = 5;
       let status;
 
       for (i = 0; i < 10; i ++) {
@@ -43,7 +46,6 @@ describe('Polling api calls:', async() => {
     })
 
     it('returns a processed status for a valid request ID', async () => {
-      const maxPoll = 5;
       let status;
 
       for (i = 0; i < 10; i ++) {

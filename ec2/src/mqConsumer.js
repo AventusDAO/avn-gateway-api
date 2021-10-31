@@ -11,7 +11,7 @@ const amqp = require('amqplib/callback_api');
 const avn = require('./avn')
 const config = require('multiconfig').load()
 const logger = require('log4js').configure(config.log4Js).getLogger()
-const SecretsManager = require('../../lambdas/send-handler-mq/secretsManager.js'); // TODO: Review and replace SM with alternatives if needed
+const SecretsManager = require('./secretsManager.js'); // TODO: Review and replace SM with alternatives if needed
 
 async function connectToMQ() {
   let mqConsumer = new MQConsumer(
@@ -74,8 +74,8 @@ async function whenConnected(conn, queue) {
 
 async function processMessage(channel, queue) {
   return await new Promise((resolve, reject) => {
-    channel.get(queue, { 
-      noAck: false 
+    channel.get(queue, {
+      noAck: false
     }, function(err, message) {
       if (err) channel.reject(message, true)
       if (message) {
@@ -90,7 +90,7 @@ async function processMessage(channel, queue) {
             reject()
           }
         })
-      } else { 
+      } else {
         resolve() /* empty queue */
       }
     })
@@ -108,7 +108,7 @@ function createChannel(conn) {
       channel.on("error", function(err) {
         logger.error("[AMQP] channel error", err.message)
       })
-  
+
       channel.on("close", function() {
         logger.info("[AMQP] channel closed")
       })

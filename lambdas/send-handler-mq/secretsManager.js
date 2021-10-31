@@ -2,6 +2,10 @@
 
 const AWS = require('aws-sdk');
 
+// TODO: Fix the logger used by the caller:
+//   lambda function is using console to log
+//   ec2 script is using log4js
+
 module.exports = SecretsManager;
 
 function SecretsManager(region) {
@@ -16,9 +20,8 @@ SecretsManager.prototype.getSecret = async function(secretId) {
         console.error('[SECRET MANAGER] get secret value error', err.message);
         reject(err);
       } else if ('SecretString' in data) {
-        const { username, password } = JSON.parse(data.SecretString);
-        const url = process.env.MQ_BROKER_AMQP_ENDPOINT.replace('amqps://', `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`);
-        resolve(url);
+        const secret = JSON.parse(data.SecretString);
+        resolve(secret);
       }
     });
   }) 

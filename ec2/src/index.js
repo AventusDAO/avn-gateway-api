@@ -2,6 +2,7 @@
 const config = require('multiconfig').load()
 const avn = require('./avn')
 const redis = require('./redis')
+const mqConsumer = require('./mqConsumer')
 const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
 const log4js = require('log4js')
@@ -91,6 +92,7 @@ app.listen(port, () => {
 async function instantiateEC2() {
   await avn.connectToAvN()
   await redis.connect()
+  await mqConsumer.connectToMQ()
 }
 
 instantiateEC2()

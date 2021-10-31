@@ -11,16 +11,16 @@ const amqp = require('amqplib/callback_api');
 const avn = require('./avn')
 const config = require('multiconfig').load()
 const logger = require('log4js').configure(config.log4Js).getLogger()
-const SecretsManager = require('./secretsManager.js'); // TODO: Review and replace SM with alternatives if needed
+const SecretsManager = require('../../lambdas/send-handler-mq/secretsManager.js'); // TODO: Review and replace SM with alternatives if needed
 
 async function connectToMQ() {
-  // let mqConsumer = new MQConsumer(
-  //   config.mq.secretManagerRegion,
-  //   config.mq.mqSecretArn,
-  //   config.mq.mqBrokerAmqpEndpoint,
-  //   config.mq.mqAvnTxnQueue
-  // )
-  // await mqConsumer.processMessagesFromMq()
+  let mqConsumer = new MQConsumer(
+    config.mq.secretManagerRegion,
+    config.mq.mqSecretArn,
+    config.mq.mqBrokerAmqpEndpoint,
+    config.mq.mqAvnTxnQueue
+  )
+  await mqConsumer.processMessagesFromMq()
 }
 
 function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqAvnTxnQueue) {

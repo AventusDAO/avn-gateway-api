@@ -28,14 +28,14 @@ describe('SendTx api calls:', async() => {
 
     it('can transfer AVT using a recipient address', async () => {
       const amount = new BN(1);
-      await api.send.transferAvt(recipient, amount);
+      await api.send.transferAvt(relayer, sender, recipient, amount);
       await waitForTxToBeMined();
       bnEquals(recipientBalanceBefore.add(amount), await api.query.getAvtBalance(recipient));
     })
 
     it('can transfer AVT using a recipient public key', async () => {
       const amount = new BN(2);
-      await api.send.transferAvt(recipientPubKey, amount);
+      await api.send.transferAvt(relayer, sender, recipientPubKey, amount);
       await waitForTxToBeMined();
       bnEquals(recipientBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey));
     })

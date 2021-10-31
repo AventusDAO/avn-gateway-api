@@ -14,17 +14,17 @@ function Send(api, queryApi, avtContractAddress) {
 
 function transferAvt(api, queryApi) {
   return async function (relayer, from, to, amount) {
-    return await proxyTokenTransfer(api, queryApi, relayer, from, to, this.avtContractAddress, amount);
+    return await this.proxyTokenTransfer(api, queryApi, relayer, from, to, this.avtContractAddress, amount);
   };
 }
 
 function transferToken(api, queryApi) {
   return async function (relayer, from, to, token, amount) {
-    return await proxyTokenTransfer(api, queryApi, relayer, from, to, token, amount);
+    return await this.proxyTokenTransfer(api, queryApi, relayer, from, to, token, amount);
   };
 }
 
-function proxyTokenTransfer(api, queryApi, relayer, from, to, token, amount) {
+Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from, to, token, amount) {
   let nonce = await this.smartNonce(queryApi, from);
   let signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce);
 

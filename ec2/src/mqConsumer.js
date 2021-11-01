@@ -86,7 +86,8 @@ async function processMessage(channel, queue) {
             channel.ack(message)
             resolve()
           } else {
-            channel.nack(message, allUpTo, !message.fields.redelivered) // TODO: Retry for more than once, such as 3 times
+            // TODO: Retry for more than once, such as 3 times with delay between each
+            channel.nack(message, allUpTo, !message.fields.redelivered)
             reject()
           }
         })

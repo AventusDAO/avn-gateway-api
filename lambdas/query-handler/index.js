@@ -89,7 +89,13 @@ async function callSwitch(call, responseObject) {
         responseObject.error = {code:-32602, message:'Invalid params'};
       }
       break;
-
+    case 'getAvtContractAddress':
+      try {
+        responseObject.result = await queryChain('tokenManager', 'aVTTokenContract', [], (res) => res.toString());
+      } catch (e) {
+        responseObject.error = {code:-32603, message:'Internal error'};
+      }
+      break;
     default:
       responseObject.error = {code:-32601, message:'Method not found'};
   }

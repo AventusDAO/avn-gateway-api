@@ -24,7 +24,7 @@ async function connectToMQ() {
 }
 
 function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqAvnTxnQueue) {
-  this.secretsManager = new SecretsManager(secretsManagerRegion)
+  this.secretsManager = new SecretsManager(secretsManagerRegion, logger)
   this.secretArn = secretArn
   this.mqBrokerAmqpEndpoint = mqBrokerAmqpEndpoint
   this.queue = mqAvnTxnQueue
@@ -73,7 +73,7 @@ async function whenConnected(conn, queue) {
 }
 
 async function processMessage(channel, queue) {
-  return await new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     channel.get(queue, { 
       noAck: false 
     }, function(err, message) {
@@ -83,7 +83,7 @@ async function processMessage(channel, queue) {
         sendAvnTxn(msg, function(ok, requeue) {
           if (ok){
             channel.ack(message)
-            resolve(message)
+            resolve()
           } else {
             const allUpTo = false
             channel.nack(message, allUpTo, requeue)

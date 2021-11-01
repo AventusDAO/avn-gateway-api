@@ -6,7 +6,7 @@ const SecretsManager = require('./secretsManager.js') // TODO: Review and replac
 module.exports = MQSender
 
 function MQSender(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint) {
-  this.secretsManager = new SecretsManager(secretsManagerRegion)
+  this.secretsManager = new SecretsManager(secretsManagerRegion, console)
   this.secretArn = secretArn
   this.mqBrokerAmqpEndpoint = mqBrokerAmqpEndpoint
 }

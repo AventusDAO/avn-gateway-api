@@ -123,7 +123,7 @@ function createChannel(conn) {
 async function sendAvnTxn(request, callback) {
   try {
     logger.trace(`Request body: ${JSON.stringify(request)}`)
-    const result = await avn.tx(request.palletName + 'w', request.method, request.params)
+    const result = await avn.tx(request.palletName, request.method, request.params)
     logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`)
     callback(true)
   } catch (err) {

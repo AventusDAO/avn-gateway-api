@@ -1,1 +1,2 @@
 redisUrl: $ENV:REDIS_URL
+redisPort: $ENV:REDIS_PORT

@@ -13,9 +13,10 @@ resource "aws_subnet" "private_subnets" {
   vpc_id     = aws_vpc.gateway.id
   cidr_block = each.value
 
-  tags = {
-    Name = "${var.name}-private-${each.key}"
-  }
+  tags = merge(
+    {"Name": "${var.name}-private-${each.key}"},
+    var.private_subnet_additional_tags
+  )
 }
 
 resource "aws_subnet" "public_subnets" {
@@ -24,9 +25,10 @@ resource "aws_subnet" "public_subnets" {
   cidr_block              = each.value
   map_public_ip_on_launch = each.key == "a"
 
-  tags = {
-    Name = "${var.name}-public-${each.key}"
-  }
+  tags = merge(
+      {"Name": "${var.name}-public-${each.key}"},
+      var.public_subnet_additional_tags
+    )
 }
 
 resource "aws_eip" "gateway" {

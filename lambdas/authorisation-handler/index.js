@@ -21,8 +21,9 @@ let userRequestId;
 exports.handler = async(event) => {
   try {
     userRequestId = (JSON.parse(event.body)).id;
-  } catch (e) {
+  } catch (err) {
     userRequestId = null;
+    utils.logError('failed to parse JSON', userRequestId, 'authorisation-handler.parse', err);
   }
   // encapsulate all the logic to make local testing easier
   return await validateAwtToken(event);
@@ -33,7 +34,18 @@ async function validateAwtToken(event) {
 
   const awtToken = getAwtTokenIfAny(event);
 
-  if (!awtToken || !tokenAgeIsValid(awtToken) || !(await isSignatureValid(awtToken)) || !(await userHasAvtBalance(awtToken)) {
+  if (tokenAgeIsValid(awtToken) !== true) {
+    console.log(`Token is either expired or issued in the future`);
+    return InvalidRequestResponse;
+  }
+
+  if (await isSignatureValid(awtToken) !== true) {
+    console.log(`The avnPublicKey signature is not valid`);
+    return InvalidRequestResponse;
+  }
+
+  if (await userHasAvtBalance(awtToken) !== true) {
+    console.log(`User does not have enough balance to use the avn gateway api`);
     return InvalidRequestResponse;
   }
 
@@ -51,7 +63,7 @@ async function userHasAvtBalance(awtToken) {
     const avtBalance = new BN(response.data.data.free.replace('0x',''), 16);
     return avtBalance.gte(MIN_AVT_BALANCE);
   } catch (err) {
-    utils.logError(userRequestId, 'userHasAvtBalance', err);
+    utils.logError('failed to check user AVT balance', userRequestId, 'authorisation-handler.userHasAvtBalance', err);
     return false;
   }
 }
@@ -65,7 +77,7 @@ async function isSignatureValid(awtToken) {
     const verificationResult = signatureVerify(encodedAvnPublicKey, awtToken.sig, awtToken.pk);
     return verificationResult.isValid;
   } catch (err) {
-    utils.logError(userRequestId, 'isSignatureValid', err);
+    utils.logError('failed to verify user signature', userRequestId, 'authorisation-handler.isSignatureValid', err);
     return false;
   }
 }
@@ -77,7 +89,7 @@ function tokenAgeIsValid(token) {
 
     return tokenAge >= CLOCK_JITTER_MSEC && tokenAge < MAX_TOKEN_AGE_MSEC;
   } catch (err) {
-    utils.logError(userRequestId, 'tokenAgeIsValid', err);
+    utils.logError('failed to check AWT age', userRequestId, 'authorisation-handler.tokenAgeIsValid', err);
     return false;
   }
 }
@@ -90,7 +102,7 @@ function getAwtTokenIfAny(event) {
       return JSON.parse(decodedToken);
     }
   } catch (err) {
-    utils.logError(userRequestId, 'getAwtTokenIfAny', err);
+    utils.logError('failed to extract AWT', userRequestId, 'authorisation-handler.getAwtTokenIfAny', err);
     return null;
   }
 }

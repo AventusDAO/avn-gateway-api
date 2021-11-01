@@ -16,9 +16,8 @@ async function sendTx(palletName, method, params) {
   let response;
   try {
     response = await axios.post(EC2 + 'avnTx', { userRequestId, palletName, method, params });
-  } catch (e) {
-    utils.logError(userRequestId, 'sendTx avnTx', e);
-    throw true;
+  } catch (err) {
+    throw err;
   }
   return response.data.error || response.data.requestId;
 }
@@ -27,9 +26,8 @@ async function sendProxyTx(palletName, method, params) {
   let response;
   try {
     response = await axios.post(EC2 + 'avnProxy', { userRequestId, palletName, method, params });
-  } catch (e) {
-    utils.logError(userRequestId, 'sendProxyTx avnProxy', e);
-    throw true;
+  } catch (err) {
+    throw err;
   }
   return response.data.requestId;
 }
@@ -40,8 +38,8 @@ async function processRequest(requestObject) {
 
   try {
     call = JSON.parse(requestObject);
-  } catch (e) {
-    utils.logError(null, 'processRequest parse JSON', e)
+  } catch (err) {
+    utils.logError('failed to parse JSON', null, 'send-handler.processRequest.parse', err)
     responseObject.error = {code:-32700, message:'Parse error'};
     responseObject.id = null;
     return responseObject;
@@ -50,7 +48,7 @@ async function processRequest(requestObject) {
   userRequestId = call.id;
 
   if (typeof call.method !== 'string') {
-    utils.logError(userRequestId, 'processRequest method type', call.method)
+    utils.logError('method type must be string', userRequestId, 'send-handler.processRequest.method', call.method)
     responseObject.error = {code:-32600, message:'Invalid Request'};
   } else {
     responseObject = await callSwitch(call, responseObject);
@@ -66,12 +64,12 @@ async function callSwitch(call, responseObject) {
       if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
           responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]]);
-        } catch (e) {
-          utils.logError(userRequestId, 'transferAvt sendTx', e);
+        } catch (err) {
+          utils.logError('failed to send transaction', userRequestId, 'send-handler.transferAvt.sendTx', err);
           responseObject.error = {code:-32603, message:'Internal error'};
         }
       } else {
-        utils.logError(userRequestId, 'transferAvt invalid params', call.params);
+        utils.logError('invalid params', userRequestId, 'send-handler.transferAvt.params', call.params);
         responseObject.error = {code:-32602, message:'Invalid params'};
       }
       break;
@@ -83,10 +81,10 @@ async function callSwitch(call, responseObject) {
       let formatter = codeFormatters[pallet][method];
 
       if (!formatter) {
-        utils.logError(userRequestId, 'proxy method not found', call);
+        utils.logError('method not found', userRequestId, 'send-handler.proxy.method', call);
         responseObject.error = {code:-32601, message:'Method not found'};
       } else if (!formatter.validate(call)) {
-        utils.logError(userRequestId, 'proxy invalid params', call.params);
+        utils.logError('invalid params', userRequestId, 'send-handler.proxy.params', call.params);
         responseObject.error = {code:-32602, message:'Invalid params'};
       } else {
         try {
@@ -98,15 +96,15 @@ async function callSwitch(call, responseObject) {
             }
           }
           responseObject.result = await sendProxyTx(pallet, method, formatter.encode(proof, call.params.innerArgs));
-        } catch (e) {
-          utils.logError(userRequestId, 'proxy sendProxyTx', e);
+        } catch (err) {
+          utils.logError('failed to send proxy transaction', userRequestId, 'send-handler.proxy.sendProxyTx', err);
           responseObject.error = {code:-32603, message:'Internal error'};
         }
       }
       break;
 
     default:
-      utils.logError(userRequestId, 'callSwitch method not found', method)
+      utils.logError('method not found', userRequestId, 'send-handler.callSwitch.default', method)
       responseObject.error = {code:-32601, message:'Method not found'};
   }
   return responseObject;

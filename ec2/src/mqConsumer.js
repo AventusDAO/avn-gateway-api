@@ -18,16 +18,16 @@ async function connectToMQ() {
     config.mq.secretManagerRegion,
     config.mq.mqSecretArn,
     config.mq.mqBrokerAmqpEndpoint,
-    config.mq.mqAvnTxnQueue
+    config.mq.components
   )
   await mqConsumer.processMessagesFromMq()
 }
 
-function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqAvnTxnQueue) {
+function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqComponents) {
   this.secretsManager = new SecretsManager(secretsManagerRegion, logger)
   this.secretArn = secretArn
   this.mqBrokerAmqpEndpoint = mqBrokerAmqpEndpoint
-  this.mqAvnTxnQueue = mqAvnTxnQueue
+  this.mqComponents = mqComponents
 }
 
 MQConsumer.prototype.getMqConnectionUrl = async function() {
@@ -58,18 +58,35 @@ MQConsumer.prototype.processMessagesFromMq = async function() {
 
     logger.info('[AMQP] connected')
 
-    whenConnected(conn, self.mqAvnTxnQueue)
+    whenConnected(conn, self.mqComponents)
   })
 }
 
-async function whenConnected(conn, queue) {
+async function whenConnected(conn, components) {
   const amqpChannel = await createChannel(conn)
-  amqpChannel.assertQueue(queue, { durable: true })
 
+  assertMqComponents(amqpChannel, components)
+  logger.info('[AMQP] elements are ready')
+
+  const { avnTxQueue } = components
   logger.info('MQ message processor is started')
   while(true) {
-    await processMessage(amqpChannel, queue).catch((_err) => {})
+    await processMessage(amqpChannel, avnTxQueue).catch((_err) => {})
   }
+}
+
+async function assertMqComponents(channel, components) {
+  const {avnTxQueue, deadLetterQueue, deadLetterExchange, deadLetterKey} = components
+
+  channel.assertExchange(deadLetterExchange, 'direct')
+  channel.assertQueue(avnTxQueue, {
+    durable: true,
+    messageTtl: config.mq.avnTxMsgTtl,
+    deadLetterExchange: deadLetterExchange,
+    deadLetterRoutingKey: deadLetterKey
+  })
+  channel.assertQueue(deadLetterQueue, { durable: true })
+  channel.bindQueue(deadLetterQueue, deadLetterExchange, deadLetterKey)
 }
 
 async function processMessage(channel, queue) {

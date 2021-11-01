@@ -19,3 +19,9 @@ output "public_subnet_ips" {
     for subnet in aws_subnet.public_subnets : subnet.cidr_block
   ])
 }
+
+output "private_subnet_ips" {
+  value = toset([
+    for subnet in aws_subnet.private_subnets : subnet.cidr_block
+  ])
+}

@@ -45,10 +45,10 @@ async function poll(requestId) {
       return { error: 'Transaction not found' }
     }
 
-    return { state: tx.status }
+    return { status: tx.status }
   } catch (error) {
-    log.error(`Error getting transaction state for requestId ${requestId}: ${error}`)
-    throw new Error(`Unable to get transaction state for requestId: ${requestId}`)
+    log.error(`Error getting transaction status for requestId ${requestId}: ${error}`)
+    throw new Error(`Unable to get transaction status for requestId: ${requestId}`)
   }
 }
 
@@ -58,7 +58,7 @@ async function getNonce(senderAddress) {
     nonce = (await api.query.system.account(senderAddress)).nonce
     await redis.setNonce(senderAddress, nonce)
   } else {
-    await redis.refreshNonce(senderAddress)
+    redis.refreshNonce(senderAddress)
   }
   return nonce
 }
@@ -78,7 +78,7 @@ async function signAndSend(txn) {
     throw err
   }
 
-  await redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
+  redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
 
   return result
 }

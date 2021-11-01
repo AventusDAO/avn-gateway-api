@@ -2,8 +2,8 @@ const AvnApi = require('../index.js');
 const assert = require('chai').assert;
 const BN = require('bn.js');
 const GATEWAY = 'https://4ayax6s3pg.execute-api.eu-west-1.amazonaws.com';
-const TOKEN = '0x14fa2f8fadb0acec171d1d2d3aef4e4b9f4814e5';
-const AVT_SUPPLY = '105098505078338785032490';
+const TOKEN = '0x7e5bb9f3c94637ca804b9f7e86be703d668d349f';
+const AVT_SUPPLY = '5100000000000000000000';
 
 const ACCOUNTS = {
   relayer: {

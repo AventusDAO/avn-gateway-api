@@ -3,6 +3,8 @@ const config = require('multiconfig').load()
 const log4js = require('log4js')
 const log = log4js.getLogger()
 
+const isLocal = config.redis.redisUrl == 'localhost';
+
 const transactionObject = {
   senderAddress: 'senderAddress',
   senderNonce: 'senderNonce',
@@ -35,14 +37,14 @@ let redisClient
 
 async function connect() {
   log.info(`Attempting to connect to Redis database on ${config.redis.redisUrl}:${config.redis.redisPort}`)
-  redisClient = new Redis.Cluster([
+  redisClient = isLocal ? new Redis() : new Redis.Cluster([
     {
       port: config.redis.redisPort,
       host: config.redis.redisUrl,
     }
   ]);
 
-  log.info('Connected to Redis database\n        -',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
+  if (!isLocal) log.info('Connected to Redis database\n        -',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys:2,

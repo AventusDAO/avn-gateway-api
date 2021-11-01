@@ -1,5 +1,4 @@
 const EC2 = require('../common/resources.json').ec2_endpoint;
-const utils = require('../common/utils.js');
 const axios = require('axios');
 const BN = require('bn.js');
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
@@ -16,15 +15,7 @@ const registry = new TypeRegistry();
 const InvalidRequestResponse = {isAuthorized: false};
 const ValidRequestResponse = {isAuthorized: true};
 
-let userRequestId;
-
 exports.handler = async(event) => {
-  try {
-    userRequestId = (JSON.parse(event.body)).id;
-  } catch (err) {
-    userRequestId = null;
-    utils.logError('failed to parse JSON', userRequestId, 'authorisation-handler.parse', err);
-  }
   // encapsulate all the logic to make local testing easier
   return await validateAwtToken(event);
 };
@@ -63,7 +54,7 @@ async function userHasAvtBalance(awtToken) {
     const avtBalance = new BN(response.data.data.free.replace('0x',''), 16);
     return avtBalance.gte(MIN_AVT_BALANCE);
   } catch (err) {
-    utils.logError('failed to check user AVT balance', userRequestId, 'authorisation-handler.userHasAvtBalance', err);
+    console.error('failed to check user AVT balance', err);
     return false;
   }
 }
@@ -77,7 +68,7 @@ async function isSignatureValid(awtToken) {
     const verificationResult = signatureVerify(encodedAvnPublicKey, awtToken.sig, awtToken.pk);
     return verificationResult.isValid;
   } catch (err) {
-    utils.logError('failed to verify user signature', userRequestId, 'authorisation-handler.isSignatureValid', err);
+    console.error('failed to verify user signature', err);
     return false;
   }
 }
@@ -89,7 +80,7 @@ function tokenAgeIsValid(token) {
 
     return tokenAge >= CLOCK_JITTER_MSEC && tokenAge < MAX_TOKEN_AGE_MSEC;
   } catch (err) {
-    utils.logError('failed to check AWT age', userRequestId, 'authorisation-handler.tokenAgeIsValid', err);
+    console.error('failed to check AWT age', err);
     return false;
   }
 }
@@ -102,7 +93,7 @@ function getAwtTokenIfAny(event) {
       return JSON.parse(decodedToken);
     }
   } catch (err) {
-    utils.logError('failed to extract AWT', userRequestId, 'authorisation-handler.getAwtTokenIfAny', err);
+    console.error('failed to extract AWT', err);
     return null;
   }
 }

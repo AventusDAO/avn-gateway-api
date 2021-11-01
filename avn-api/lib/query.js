@@ -5,6 +5,7 @@ function Query(api) {
   this.getAvtBalance = generateFunction(getAvtBalance, api);
   this.getTokenBalance = generateFunction(getTokenBalance, api);
   this.getAccountNonce = generateFunction(getAccountNonce, api);
+  this.getAvtContractAddress = generateFunction(getAvtContractAddress, api);
 }
 
 function getTotalAvt(api) {
@@ -28,6 +29,12 @@ function getTokenBalance(api) {
 function getAccountNonce(api) {
   return async function(account) {
     return await this.postRequest(api, 'getAccountNonce', [account]);
+  }
+}
+
+function getAvtContractAddress(api) {
+  return async function() {
+    return await this.postRequest(api, 'getAvtContractAddress', []);
   }
 }
 

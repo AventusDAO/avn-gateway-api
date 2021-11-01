@@ -74,7 +74,6 @@ async function whenConnected(conn, queue) {
 
 async function processMessage(channel, queue) {
   const allUpTo = false // Just this message
-  const requeue = true // TODO: Retry for a configurable times, default value 3
   await new Promise((resolve, reject) => {
     channel.get(queue, {
       noAck: false 
@@ -87,7 +86,7 @@ async function processMessage(channel, queue) {
             channel.ack(message)
             resolve()
           } else {
-            channel.nack(message, allUpTo, requeue)
+            channel.nack(message, allUpTo, !message.fields.redelivered) // TODO: Retry for more than once, such as 3 times
             reject()
           }
         })

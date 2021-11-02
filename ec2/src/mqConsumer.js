@@ -93,7 +93,7 @@ async function processMessage(channel, queue) {
   const allUpTo = false // Just this message
   await new Promise((resolve, reject) => {
     channel.get(queue, {
-      noAck: false 
+      noAck: false
     }, function(err, message) {
       if (err) channel.nack(message, allUpTo, requeue)
       if (message) {
@@ -108,7 +108,7 @@ async function processMessage(channel, queue) {
             reject()
           }
         })
-      } else { 
+      } else {
         resolve() /* empty queue */
       }
     })

@@ -8,8 +8,9 @@ const AWS = require('aws-sdk');
 
 module.exports = SecretsManager;
 
-function SecretsManager(region) {
+function SecretsManager(region, log) {
   this.smClient = new AWS.SecretsManager({region: region});
+  this.log = log;
 }
 
 SecretsManager.prototype.getSecret = async function(secretId) {
@@ -17,12 +18,12 @@ SecretsManager.prototype.getSecret = async function(secretId) {
   return await new Promise((resolve, reject) => {
     self.smClient.getSecretValue({SecretId: secretId}, function(err, data) {
       if (err) {
-        console.error('[SECRET MANAGER] get secret value error', err.message);
-        reject(err);
+        self.log.error('[SECRET MANAGER] get secret value error', err.message);
+        throw err;
       } else if ('SecretString' in data) {
         const secret = JSON.parse(data.SecretString);
         resolve(secret);
       }
     });
-  }) 
+  })
 }

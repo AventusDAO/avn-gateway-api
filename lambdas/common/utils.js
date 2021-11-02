@@ -27,7 +27,12 @@ function toBnString(val) {
   return (typeof val === 'number' || !isHex(val)) ? new BN(val).toString() : new BN(val.replace('0x',''), 16).toString();
 }
 
+function logError(msg, id, reference, data) {
+  console.error('Error:', msg, ':User request ID:', id, ':Error ref:', reference, ':Error data:', JSON.stringify(data));
+}
+
 module.exports = {
+  logError,
   isValidAccountId,
   isValidAmount,
   isValidRequestId,

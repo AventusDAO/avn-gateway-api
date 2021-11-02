@@ -67,6 +67,30 @@ function getKey(key) {
   return `${SLOT_PREFIX}${key}`
 }
 
+async function addAvnTransaction(_transactionHash, transactionData) {
+  const transactionHash = getKey(_transactionHash)
+
+  if (await redisClient.exists(transactionHash)) {
+    throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
+  }
+
+  await redisClient
+    .multi()
+    .hset(transactionHash, transactionData)
+    .zadd(PENDING_TX_KEY.ALL, '+inf', _transactionHash)
+    .exec()
+}
+
+async function addFailedAvnTransaction(_transactionHash, senderAddress, senderNonce) {
+  const transactionHash = getKey(_transactionHash)
+
+  if (await redisClient.exists(transactionHash)) {
+    throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
+  }
+
+  await redisClient.hset(transactionHash, buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed))
+}
+
 async function addPendingAvnTransaction(_transactionHash, senderAddress, senderNonce) {
   const transactionHash = getKey(_transactionHash)
 
@@ -76,7 +100,7 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
 
   await redisClient
     .multi()
-    .hset(transactionHash, buildTransactionJson(senderAddress, senderNonce))
+    .hset(transactionHash, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
     .zadd(PENDING_TX_KEY.ALL, '+inf', _transactionHash)
     .exec()
 }
@@ -132,11 +156,11 @@ async function getNextTransactionsToCheck() {
   return txToCheckNext[1]
 }
 
-function buildTransactionJson(senderAddress, senderNonce) {
+function buildTransactionJson(senderAddress, senderNonce, status) {
   const result = {}
   result[transactionObject.senderAddress] = senderAddress
   result[transactionObject.senderNonce] = senderNonce || ''
-  result[transactionObject.status] = transactionStatus.Pending
+  result[transactionObject.status] = status
   return result
 }
 
@@ -161,6 +185,7 @@ function refreshNonce(senderAddress) {
 module.exports = {
   connect,
   addPendingAvnTransaction,
+  addFailedAvnTransaction,
   getAvnTransaction,
   getNextNonce,
   resetNonce,

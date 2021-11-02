@@ -63,15 +63,18 @@ MQConsumer.prototype.processMessagesFromMq = async function() {
 }
 
 async function whenConnected(conn, components) {
-  const amqpChannel = await createChannel(conn)
-
-  assertMqComponents(amqpChannel, components)
-  logger.info('[AMQP] elements are ready')
-
-  const { avnTxQueue } = components
-  logger.info('MQ message processor has started')
   while(true) {
-    await processMessage(amqpChannel, avnTxQueue).catch((_err) => {})
+    const amqpChannel = await createChannel(conn)
+
+    assertMqComponents(amqpChannel, components)
+    logger.info('[AMQP] elements are ready')
+  
+    const { avnTxQueue } = components
+
+    logger.info('MQ message processor has started')
+    while(true) {
+      await processMessage(amqpChannel, avnTxQueue).catch((_err) => {})
+    }
   }
 }
 

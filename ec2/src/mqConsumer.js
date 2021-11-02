@@ -7,11 +7,11 @@
 
 'use strict'
 
-const amqp = require('amqplib/callback_api');
+const amqp = require('amqplib/callback_api')
 const avn = require('./avn')
 const config = require('multiconfig').load()
 const logger = require('log4js').configure(config.log4Js).getLogger()
-const SecretsManager = require('../../lambdas/send-handler-mq/secretsManager.js'); // TODO: Review and replace SM with alternatives if needed
+const SecretsManager = require('./secretsManager')
 
 async function connectToMQ() {
   let mqConsumer = new MQConsumer(
@@ -31,8 +31,8 @@ function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqCom
 }
 
 MQConsumer.prototype.getMqConnectionUrl = async function() {
-  const secret = await this.secretsManager.getSecret(this.secretArn);
-  return this.mqBrokerAmqpEndpoint.replace('amqps://', `amqps://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`);
+  const secret = await this.secretsManager.getSecret(this.secretArn)
+  return this.mqBrokerAmqpEndpoint.replace('amqps://', `amqps://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`)
 }
 
 MQConsumer.prototype.processMessagesFromMq = async function() {

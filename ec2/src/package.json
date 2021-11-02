@@ -11,6 +11,7 @@
     "format": "npm run pretty:fix"
   },
   "dependencies": {
+    "@aws-sdk/client-lambda": "^3.39.0",
     "@aws-sdk/client-secrets-manager": "^3.39.0",
     "@polkadot/api": "^3.4.1",
     "@polkadot/types": "^3.4.1",

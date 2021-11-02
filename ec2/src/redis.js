@@ -37,6 +37,7 @@ let redisClient
 
 async function connect() {
   log.info(`Attempting to connect to Redis database on ${config.redis.redisUrl}:${config.redis.redisPort}`)
+
   redisClient = isLocal ? new Redis() : new Redis.Cluster([
     {
       port: config.redis.redisPort,
@@ -44,7 +45,9 @@ async function connect() {
     }
   ]);
 
-  if (!isLocal) log.info('Connected to Redis database\n        -',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
+  if (!isLocal) {
+    log.info('Connected to Redis database:\n',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
+  }
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys:2,

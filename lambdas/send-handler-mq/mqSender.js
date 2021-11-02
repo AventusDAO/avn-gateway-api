@@ -20,7 +20,6 @@ MQSender.prototype.sendMessageToMQ = async function(queue, message, persistent =
   const amqpChannel = await createChannel(this.amqpConnection)
   return await new Promise((resolve, reject) => {
     try {
-      amqpChannel.assertQueue(queue, { durable: true })
       amqpChannel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
         persistent: persistent
       })

@@ -34,16 +34,14 @@ const NONCE_EXPIRY_IN_SECONDS = 5
 let redisClient
 
 async function connect() {
-  log.info(`Attempting to connect to Redis database on ${config.redis.redisUrl}:${config.redis.redisPort}`)
-  redisClient = new Redis.Cluster([
-    {
-      port: config.redis.redisPort,
-      host: config.redis.redisUrl,
-    }
-  ]);
 
-  new Redis(config.redis.redisUrl)
-  log.info('Connected to Redis database\n        -',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
+  if ('redis' in config) {
+    log.info(`Attempting to connect to Redis database on ${config.redis.url}:${config.redis.port}`)
+    redisClient = new Redis.Cluster([{port: config.redis.port, host: config.redis.url}])
+    log.info('Connected to Redis database:\n',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
+  } else {
+    redisClient = new Redis()
+  }
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys:2,

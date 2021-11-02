@@ -1,0 +1,9 @@
+secretManagerRegion: $ENV:SM_AWS_REGION
+mqSecretArn: $ENV:MQ_SECRET_ARN
+mqBrokerAmqpEndpoint: $ENV:MQ_BROKER_AMQP_ENDPOINT
+components:
+  avnTxQueue: $ENV:AVN_TX_QUEUE
+  avnTxMsgTtl: $ENV:AVN_TX_MSG_TTL
+  deadLetterQueue: $ENV:DEAD_LETTER_QUEUE
+  deadLetterExchange: $ENV:DEAD_LETTER_EXCHANGE
+  deadLetterKey: $ENV:DEAD_LETTER_KEY

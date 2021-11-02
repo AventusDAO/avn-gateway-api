@@ -1,2 +1,2 @@
-redisUrl: $ENV:REDIS_URL
-redisPort: $ENV:REDIS_PORT
+url: $ENV:REDIS_URL
+port: $ENV:REDIS_PORT

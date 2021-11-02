@@ -18,16 +18,16 @@ async function connectToMQ() {
     config.mq.secretManagerRegion,
     config.mq.mqSecretArn,
     config.mq.mqBrokerAmqpEndpoint,
-    config.mq.mqAvnTxnQueue
+    config.mq.components
   )
   await mqConsumer.processMessagesFromMq()
 }
 
-function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqAvnTxnQueue) {
+function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqComponents) {
   this.secretsManager = new SecretsManager(secretsManagerRegion, logger)
   this.secretArn = secretArn
   this.mqBrokerAmqpEndpoint = mqBrokerAmqpEndpoint
-  this.queue = mqAvnTxnQueue
+  this.mqComponents = mqComponents
 }
 
 MQConsumer.prototype.getMqConnectionUrl = async function() {
@@ -36,13 +36,13 @@ MQConsumer.prototype.getMqConnectionUrl = async function() {
 }
 
 MQConsumer.prototype.processMessagesFromMq = async function() {
-  const queue = this.queue
+  const self = this;
   amqp.connect(await this.getMqConnectionUrl(), function(err, conn) {
     logger.info('[AMQP] connecting')
 
     if (err) {
       logger.error('[AMQP] connect error', err.message)
-      return setTimeout(processMessagesFromMq, 1000)
+      return setTimeout(self.processMessagesFromMq, 1000)
     }
 
     conn.on('error', function(err) {
@@ -51,46 +51,64 @@ MQConsumer.prototype.processMessagesFromMq = async function() {
       }
     })
 
-    conn.on("close", function() {
-      logger.error("[AMQP] reconnecting")
-      return setTimeout(processMessagesFromMq, 1000)
+    conn.on('close', function() {
+      logger.error('[AMQP] reconnecting')
+      return setTimeout(self.processMessagesFromMq, 1000)
     })
 
     logger.info('[AMQP] connected')
 
-    whenConnected(conn, queue)
+    whenConnected(conn, self.mqComponents)
   })
 }
 
-async function whenConnected(conn, queue) {
+async function whenConnected(conn, components) {
   const amqpChannel = await createChannel(conn)
-  amqpChannel.assertQueue(queue, { durable: true })
 
-  logger.info("MQ message processor is started")
+  assertMqComponents(amqpChannel, components)
+  logger.info('[AMQP] elements are ready')
+
+  const { avnTxQueue } = components
+  logger.info('MQ message processor has started')
   while(true) {
-    await processMessage(amqpChannel, queue)
+    await processMessage(amqpChannel, avnTxQueue).catch((_err) => {})
   }
 }
 
+async function assertMqComponents(channel, components) {
+  const {avnTxQueue, deadLetterQueue, deadLetterExchange, deadLetterKey} = components
+
+  channel.assertExchange(deadLetterExchange, 'direct')
+  channel.assertQueue(avnTxQueue, {
+    durable: true,
+    messageTtl: config.mq.avnTxMsgTtl,
+    deadLetterExchange: deadLetterExchange,
+    deadLetterRoutingKey: deadLetterKey
+  })
+  channel.assertQueue(deadLetterQueue, { durable: true })
+  channel.bindQueue(deadLetterQueue, deadLetterExchange, deadLetterKey)
+}
+
 async function processMessage(channel, queue) {
+  const allUpTo = false // Just this message
   await new Promise((resolve, reject) => {
-    channel.get(queue, { 
-      noAck: false 
+    channel.get(queue, {
+      noAck: false
     }, function(err, message) {
-      if (err) channel.reject(message, true)
+      if (err) channel.nack(message, allUpTo, requeue)
       if (message) {
         const msg = JSON.parse(message.content.toString())
-        sendAvnTxn(msg, function(ok, requeue) {
+        sendAvnTxn(msg, function(ok) {
           if (ok){
             channel.ack(message)
             resolve()
           } else {
-            const allUpTo = false
-            channel.nack(message, allUpTo, requeue)
+            // TODO: Retry for more than once, such as 3 times with delay between each
+            channel.nack(message, allUpTo, !message.fields.redelivered)
             reject()
           }
         })
-      } else { 
+      } else {
         resolve() /* empty queue */
       }
     })
@@ -105,12 +123,12 @@ function createChannel(conn) {
         throw err
       }
 
-      channel.on("error", function(err) {
-        logger.error("[AMQP] channel error", err.message)
+      channel.on('error', function(err) {
+        logger.error('[AMQP] channel error', err.message)
       })
   
-      channel.on("close", function() {
-        logger.info("[AMQP] channel closed")
+      channel.on('close', function() {
+        logger.info('[AMQP] channel closed')
       })
 
       logger.info('[AMQP] channel created')
@@ -122,14 +140,13 @@ function createChannel(conn) {
 
 async function sendAvnTxn(request, callback) {
   try {
-    logger.trace(`request body: ${JSON.stringify(request)}`)
+    logger.trace(`Request body: ${JSON.stringify(request)}`)
     const result = await avn.tx(request.palletName, request.method, request.params)
     logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`)
     callback(true)
   } catch (err) {
-    // TODO: SYS-1530 Requeue or drop the messages based on error type when sending txns to AVN
-    const requeue = true
-    callback(false, requeue)
+    logger.error('sendAvnTxn err', err.message)
+    callback(false)
   }
 }
 

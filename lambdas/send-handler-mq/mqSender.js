@@ -68,12 +68,12 @@ function createChannel(conn) {
         throw err
       }
 
-      channel.on("error", function(err) {
-        console.error("[AMQP] channel error", err.message)
+      channel.on('error', function(err) {
+        console.error('[AMQP] channel error', err.message)
       })
   
-      channel.on("close", function() {
-        console.info("[AMQP] channel closed")
+      channel.on('close', function() {
+        console.info('[AMQP] channel closed')
       })
 
       console.info('[AMQP] channel created')

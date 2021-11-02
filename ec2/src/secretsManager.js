@@ -18,6 +18,8 @@ SecretsManager.prototype.getSecret = async function(secretId) {
     if ('SecretString' in response) {
       const secret = JSON.parse(response.SecretString)
       return secret
+    } else {
+      throw Error('SecretString not found in response')
     }
   } catch (error) {
     logger.error('[SECRET MANAGER] get secret value error', error.message)

@@ -1,61 +1,61 @@
-const utils = require('../common/utils.js');
-const EC2 = require('../common/resources.json').ec2_endpoint;
-const axios = require('axios');
+const utils = require('../common/utils.js')
+const EC2 = require('../common/resources.json').ec2_endpoint
+const axios = require('axios')
 
-let userRequestId;
+let userRequestId
 
-exports.handler = async (event) => {
+exports.handler = async event => {
   const response = {
     statusCode: 200,
     body: JSON.stringify(await processRequest(event.body))
-  };
-  return response;
-};
+  }
+  return response
+}
 
 async function sendTx(palletName, method, params) {
-  let response;
+  let response
   try {
-    response = await axios.post(EC2 + 'avnTx', { userRequestId, palletName, method, params });
+    response = await axios.post(EC2 + 'avnTx', { userRequestId, palletName, method, params })
   } catch (err) {
-    throw err;
+    throw err
   }
-  return response.data.error || response.data.requestId;
+  return response.data.error || response.data.requestId
 }
 
 async function sendProxyTx(palletName, method, params) {
-  let response;
+  let response
   try {
-    response = await axios.post(EC2 + 'avnProxy', { userRequestId, palletName, method, params });
+    response = await axios.post(EC2 + 'avnProxy', { userRequestId, palletName, method, params })
   } catch (err) {
-    throw err;
+    throw err
   }
-  return response.data.requestId;
+  return response.data.requestId
 }
 
 async function processRequest(requestObject) {
-  let responseObject = {jsonrpc: '2.0'};
-  let call;
+  let responseObject = { jsonrpc: '2.0' }
+  let call
 
   try {
-    call = JSON.parse(requestObject);
+    call = JSON.parse(requestObject)
   } catch (err) {
     utils.logError('failed to parse JSON', null, 'send-handler.processRequest.parse', err)
-    responseObject.error = {code:-32700, message:'Parse error'};
-    responseObject.id = null;
-    return responseObject;
+    responseObject.error = { code: -32700, message: 'Parse error' }
+    responseObject.id = null
+    return responseObject
   }
 
-  userRequestId = call.id;
+  userRequestId = call.id
 
   if (typeof call.method !== 'string') {
     utils.logError('method type must be string', userRequestId, 'send-handler.processRequest.method', call.method)
-    responseObject.error = {code:-32600, message:'Invalid Request'};
+    responseObject.error = { code: -32600, message: 'Invalid Request' }
   } else {
-    responseObject = await callSwitch(call, responseObject);
+    responseObject = await callSwitch(call, responseObject)
   }
 
-  responseObject.id = userRequestId;
-  return responseObject;
+  responseObject.id = userRequestId
+  return responseObject
 }
 
 async function callSwitch(call, responseObject) {
@@ -63,29 +63,29 @@ async function callSwitch(call, responseObject) {
     case 'transferAvt':
       if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
-          responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]]);
+          responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]])
         } catch (err) {
-          utils.logError('failed to send transaction', userRequestId, 'send-handler.transferAvt.sendTx', err);
-          responseObject.error = {code:-32603, message:'Internal error'};
+          utils.logError('failed to send transaction', userRequestId, 'send-handler.transferAvt.sendTx', err)
+          responseObject.error = { code: -32603, message: 'Internal error' }
         }
       } else {
-        utils.logError('invalid params', userRequestId, 'send-handler.transferAvt.params', call.params);
-        responseObject.error = {code:-32602, message:'Invalid params'};
+        utils.logError('invalid params', userRequestId, 'send-handler.transferAvt.params', call.params)
+        responseObject.error = { code: -32602, message: 'Invalid params' }
       }
-      break;
+      break
 
     case 'proxy':
-      let pallet = call.params.pallet;
-      let method = call.params.method;
+      let pallet = call.params.pallet
+      let method = call.params.method
 
-      let formatter = codeFormatters[pallet][method];
+      let formatter = codeFormatters[pallet][method]
 
       if (!formatter) {
-        utils.logError('method not found', userRequestId, 'send-handler.proxy.method', call);
-        responseObject.error = {code:-32601, message:'Method not found'};
+        utils.logError('method not found', userRequestId, 'send-handler.proxy.method', call)
+        responseObject.error = { code: -32601, message: 'Method not found' }
       } else if (!formatter.validate(call)) {
-        utils.logError('invalid params', userRequestId, 'send-handler.proxy.params', call.params);
-        responseObject.error = {code:-32602, message:'Invalid params'};
+        utils.logError('invalid params', userRequestId, 'send-handler.proxy.params', call.params)
+        responseObject.error = { code: -32602, message: 'Invalid params' }
       } else {
         try {
           let proof = {
@@ -95,49 +95,49 @@ async function callSwitch(call, responseObject) {
               Sr25519: call.params.signature
             }
           }
-          responseObject.result = await sendProxyTx(pallet, method, formatter.encode(proof, call.params.innerArgs));
+          responseObject.result = await sendProxyTx(pallet, method, formatter.encode(proof, call.params.innerArgs))
         } catch (err) {
-          utils.logError('failed to send proxy transaction', userRequestId, 'send-handler.proxy.sendProxyTx', err);
-          responseObject.error = {code:-32603, message:'Internal error'};
+          utils.logError('failed to send proxy transaction', userRequestId, 'send-handler.proxy.sendProxyTx', err)
+          responseObject.error = { code: -32603, message: 'Internal error' }
         }
       }
-      break;
+      break
 
     default:
       utils.logError('method not found', userRequestId, 'send-handler.callSwitch.default', method)
-      responseObject.error = {code:-32601, message:'Method not found'};
+      responseObject.error = { code: -32601, message: 'Method not found' }
   }
-  return responseObject;
+  return responseObject
 }
 
 const codeFormatters = {
   balances: {
-    transfer : {
+    transfer: {
       validate: function(params0, params1) {
-        return (utils.isValidAccountId(params0) && utils.isValidAmount(params1));
+        return utils.isValidAccountId(params0) && utils.isValidAmount(params1)
       },
       encode: function(params0, params1) {
-        return [params0, params1];
+        return [params0, params1]
       }
-    },
+    }
   },
   tokenManager: {
     signedTransfer: {
       validate: function(call) {
         return (
-          utils.isValidAccountId(call.params.relayer)
-          && utils.isValidAccountId(call.params.innerArgs.from)
-          && utils.isValidAccountId(call.params.innerArgs.to)
-          && utils.isValidTokenId(call.params.innerArgs.token)
-          && utils.isValidAmount(call.params.innerArgs.amount.toString())
-        );
+          utils.isValidAccountId(call.params.relayer) &&
+          utils.isValidAccountId(call.params.innerArgs.from) &&
+          utils.isValidAccountId(call.params.innerArgs.to) &&
+          utils.isValidTokenId(call.params.innerArgs.token) &&
+          utils.isValidAmount(call.params.innerArgs.amount.toString())
+        )
       },
       encode: function(proof, innerArgs) {
-        return [proof, innerArgs.from, innerArgs.to, innerArgs.token, innerArgs.amount];
+        return [proof, innerArgs.from, innerArgs.to, innerArgs.token, innerArgs.amount]
       }
     }
-  },
-};
+  }
+}
 
 // async function testlocal() {
 //   console.log('transferAvt:', await processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));

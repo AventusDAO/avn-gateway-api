@@ -1,5 +1,5 @@
-const EC2 = require('../common/resources.json').ec2_endpoint;
-const axios = require('axios');
+const EC2 = require('../common/resources.json').ec2_endpoint
+const axios = require('axios')
 
 const BLOCK_EXPLORER_BASE_URL = `https://avn.sandbox.aventus.io:3000/transactions/bulk`
 
@@ -9,23 +9,23 @@ const transactionStatus = {
   Rejected: 'Rejected'
 }
 
-exports.handler = async (_event) => {
+exports.handler = async _event => {
   try {
     const response = {
       statusCode: 200,
       body: JSON.stringify(await processRequest())
-    };
+    }
 
-    return response;
-  } catch(err) {
+    return response
+  } catch (err) {
     const errorResponse = {
       statusCode: 500,
-      error: {message: err.message}
+      error: { message: err.message }
     }
 
     return errorResponse
   }
-};
+}
 
 async function processRequest() {
   // Get transactions that need resolving (i.e. that are pending)
@@ -33,19 +33,19 @@ async function processRequest() {
 
   if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {
     console.log(`No pending transactions to resolve`)
-    return;
+    return
   }
 
   const transactions = await getTransactionsStatusFromIndexer(pendingTransactionHashes)
 
   // resolve them in the database
-  await axios.post(EC2 + 'resolvePendingTransactions', {transactions})
+  await axios.post(EC2 + 'resolvePendingTransactions', { transactions })
 }
 
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
     console.log(`Getting ${transactionHashes.length} transaction statuses from chain indexer`)
-    let res = await axios.post(`${BLOCK_EXPLORER_BASE_URL}`, {"transactionHashes": transactionHashes})
+    let res = await axios.post(`${BLOCK_EXPLORER_BASE_URL}`, { transactionHashes: transactionHashes })
     const response = res.data.data
 
     if (response && response.length > 0) {

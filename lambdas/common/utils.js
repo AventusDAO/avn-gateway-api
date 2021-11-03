@@ -1,34 +1,34 @@
-const { decodeAddress, encodeAddress } = require('@polkadot/keyring');
-const { hexToU8a, isHex } = require('@polkadot/util');
-const BN = require('bn.js');
+const { decodeAddress, encodeAddress } = require('@polkadot/keyring')
+const { hexToU8a, isHex } = require('@polkadot/util')
+const BN = require('bn.js')
 
 function isValidAccountId(accountId) {
   try {
-    encodeAddress(isHex(accountId) ? hexToU8a(accountId) : decodeAddress(accountId));
-    return true;
+    encodeAddress(isHex(accountId) ? hexToU8a(accountId) : decodeAddress(accountId))
+    return true
   } catch (error) {
-    return false;
+    return false
   }
 }
 
 function isValidAmount(amount) {
-  return amount.match(/^[0-9]+$/) && ! new BN(amount).isZero();
+  return amount.match(/^[0-9]+$/) && !new BN(amount).isZero()
 }
 
 function isValidRequestId(requestId) {
-  return isHex(requestId) && requestId.split('').length == 66;
+  return isHex(requestId) && requestId.split('').length == 66
 }
 
 function isValidTokenId(tokenId) {
-  return isHex(tokenId) && tokenId.split('').length == 42;
+  return isHex(tokenId) && tokenId.split('').length == 42
 }
 
 function toBnString(val) {
-  return (typeof val === 'number' || !isHex(val)) ? new BN(val).toString() : new BN(val.replace('0x',''), 16).toString();
+  return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString()
 }
 
 function logError(msg, id, reference, data) {
-  console.error('Error:', msg, ':User request ID:', id, ':Error ref:', reference, ':Error data:', JSON.stringify(data));
+  console.error('Error:', msg, ':User request ID:', id, ':Error ref:', reference, ':Error data:', JSON.stringify(data))
 }
 
 module.exports = {
@@ -37,5 +37,5 @@ module.exports = {
   isValidAmount,
   isValidRequestId,
   isValidTokenId,
-  toBnString,
+  toBnString
 }

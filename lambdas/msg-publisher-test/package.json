@@ -1,6 +1,6 @@
 {
-    "name": "msg-publisher-test",
-    "dependencies": {
-        "amqplib": "^0.8.0"
-    }
+  "name": "msg-publisher-test",
+  "dependencies": {
+    "amqplib": "^0.8.0"
+  }
 }

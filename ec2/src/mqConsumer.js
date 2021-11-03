@@ -63,7 +63,6 @@ MQConsumer.prototype.processMessagesFromMq = async function() {
 }
 
 async function whenConnected(conn, components) {
-  while(true) {
     const amqpChannel = await createChannel(conn)
 
     assertMqComponents(amqpChannel, components)
@@ -75,7 +74,6 @@ async function whenConnected(conn, components) {
     while(true) {
       await processMessage(amqpChannel, avnTxQueue).catch((_err) => {})
     }
-  }
 }
 
 async function assertMqComponents(channel, components) {
@@ -132,6 +130,7 @@ function createChannel(conn) {
   
       channel.on('close', function() {
         logger.info('[AMQP] channel closed')
+        reject()
       })
 
       logger.info('[AMQP] channel created')

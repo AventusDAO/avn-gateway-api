@@ -60,7 +60,7 @@ async function connect() {
           end`
   })
 
-  console.log("FLUSH!", await redisClient.flushall())\
+  console.log("FLUSH!", await redisClient.flushall())
 }
 
 function getKey(key) {

@@ -75,8 +75,8 @@ async function signAndSend(txn) {
     result = { requestId }
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`)
-    await redis.addFailedAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
     await redis.resetNonce(sender.address)
+    await redis.addFailedAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
     throw err
   }
 

@@ -12,12 +12,12 @@ let api, sender
 
 async function query(palletName, storageName, params) {
   const result = await api.query[palletName][storageName](...params)
-  log.trace(`Encoded query response: ${result}`)
+  // log.trace(`Encoded query response: ${result}`)
   return result
 }
 
 async function tx(palletName, method, params) {
-  log.trace(`Sending extrinsic api.tx.${palletName}.${method}`)
+  // log.trace(`Sending extrinsic api.tx.${palletName}.${method}`)
   const txn = await api.tx[palletName][method](...params)
 
   return await signAndSend(txn)
@@ -71,9 +71,17 @@ async function signAndSend(txn) {
     nonce = await getNonce(sender.address)
     let hrTime = process.hrtime()
     const before = hrTime[0] * 1000000000 + hrTime[1]
-    let receipt = await txn.signAndSend(sender, { nonce })
+    // let receipt = await txn.signAndSend(sender, { nonce })
+    let signedTx.send = await txn.signAsync(sender, { nonce })
     hrTime = process.hrtime()
-    console.log('TIME NS ---------', (hrTime[0] * 1000000000 + hrTime[1]) - before)
+    const mid = hrTime[0] * 1000000000 + hrTime[1]
+    let receipt = await signedTx.send()
+
+    hrTime = process.hrtime()
+    const end = hrTime[0] * 1000000000 + hrTime[1]
+    console.log('TIME NS  SIGN,', mid - before)
+    console.log('TIME NS  SEND,', end - mid)
+    console.log('TIME NS TOTAL,', end - before)
     let requestId = receipt.toString()
     result = { requestId }
   } catch (err) {

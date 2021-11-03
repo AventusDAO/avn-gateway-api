@@ -69,13 +69,14 @@ async function signAndSend(txn) {
   try {
     log.trace(`Encoded Transaction: ${txn}`)
     nonce = await getNonce(sender.address)
-    let receipt = await txn.signAndSend(sender, { nonce })
+    let signedTx = await txn.signAsync(sender, { nonce })
+    let receipt = await signedTx.send()
     let requestId = receipt.toString()
     result = { requestId }
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`)
-    await redis.addFailedAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
     await redis.resetNonce(sender.address)
+    await redis.addFailedAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
     throw err
   }
 

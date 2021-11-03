@@ -67,9 +67,13 @@ async function signAndSend(txn) {
   let result, nonce
 
   try {
-    log.trace(`Encoded Transaction: ${txn}`)
+    // log.trace(`Encoded Transaction: ${txn}`)
     nonce = await getNonce(sender.address)
+    let hrTime = process.hrtime()
+    const before = hrTime[0] * 1000000000 + hrTime[1]
     let receipt = await txn.signAndSend(sender, { nonce })
+    hrTime = process.hrtime()
+    console.log('TIME NS ---------', (hrTime[0] * 1000000000 + hrTime[1]) - before)
     let requestId = receipt.toString()
     result = { requestId }
   } catch (err) {

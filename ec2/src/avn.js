@@ -72,7 +72,7 @@ async function signAndSend(txn) {
     let hrTime = process.hrtime()
     const before = hrTime[0] * 1000000000 + hrTime[1]
     // let receipt = await txn.signAndSend(sender, { nonce })
-    let signedTx.send = await txn.signAsync(sender, { nonce })
+    let signedTx = await txn.signAsync(sender, { nonce })
     hrTime = process.hrtime()
     const mid = hrTime[0] * 1000000000 + hrTime[1]
     let receipt = await signedTx.send()

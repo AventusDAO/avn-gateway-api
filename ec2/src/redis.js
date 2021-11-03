@@ -59,8 +59,6 @@ async function connect() {
             return {}
           end`
   })
-
-  console.log("FLUSH!", await redisClient.flushall())
 }
 
 function getKey(key) {

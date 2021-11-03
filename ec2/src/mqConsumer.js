@@ -142,26 +142,26 @@ async function trySendAvnTx(channel, message) {
   let retries = 0
 
   while (retries <= avnTxRetryCount) {
-    if (await sendAvnTx(JSON.parse(message.content.toString()))) {
+    try {
+      await sendAvnTx(JSON.parse(message.content.toString()))
       return true
-    } else if (retries < avnTxRetryCount) {
+    } catch (err) {
+      if (retries == avnTxRetryCount) 
+      logger.error('sendAvnTx err', err.message)
+    }
+    if (retries < avnTxRetryCount) {
       await new Promise(resolve => setTimeout(resolve, avnTxRetryDelay));
     }
     retries++
   }
+
   return false
 }
 
 async function sendAvnTx(request) {
-  try {
-    logger.trace(`Request body: ${JSON.stringify(request)}`)
-    const result = await avn.tx(request.palletName, request.method, request.params)
-    logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`)
-    return true
-  } catch (err) {
-    logger.error('sendAvnTx err', err.message)
-    return false
-  }
+  logger.trace(`Request body: ${JSON.stringify(request)}`)
+  const result = await avn.tx(request.palletName, request.method, request.params)
+  logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`)
 }
 
 module.exports = { connectToMQ }

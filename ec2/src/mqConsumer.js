@@ -82,7 +82,6 @@ async function assertMqComponents(channel, components) {
   channel.assertExchange(deadLetterExchange, 'direct')
   channel.assertQueue(avnTxQueue, {
     durable: true,
-    messageTtl: config.mq.avnTxMsgTtl,
     deadLetterExchange: deadLetterExchange,
     deadLetterRoutingKey: deadLetterKey
   })
@@ -92,25 +91,23 @@ async function assertMqComponents(channel, components) {
 
 async function processMessage(channel, queue) {
   const allUpTo = false // Just this message
+  const requeue = false // Drop to dead letter queue
+
   await new Promise((resolve, reject) => {
     channel.get(queue, {
       noAck: false
-    }, function(err, message) {
+    }, async function(err, message) {
       if (err) channel.nack(message, allUpTo, requeue)
-      if (message) {
-        const msg = JSON.parse(message.content.toString())
-        sendAvnTxn(msg, function(ok) {
-          if (ok){
-            channel.ack(message)
-            resolve()
-          } else {
-            // TODO: Retry for more than once, such as 3 times with delay between each
-            channel.nack(message, allUpTo, !message.fields.redelivered)
-            reject()
-          }
-        })
-      } else {
-        resolve() /* empty queue */
+      if (!message) resolve() /* empty queue */
+      else {
+        const ok = await trySendAvnTx(channel, message)
+        if (ok) {
+          channel.ack(message)
+          resolve()
+        } else {
+          channel.nack(message, allUpTo, requeue)
+          reject()
+        }
       }
     })
   })
@@ -140,15 +137,30 @@ function createChannel(conn) {
   })
 }
 
-async function sendAvnTxn(request, callback) {
+async function trySendAvnTx(channel, message) {
+  const {avnTxRetryCount, avnTxRetryDelay} = config.mq.components
+  let retries = 0
+
+  while (retries <= avnTxRetryCount) {
+    if (await sendAvnTx(JSON.parse(message.content.toString()))) {
+      return true
+    } else {
+      retries++
+    }
+    await new Promise(resolve => setTimeout(resolve, avnTxRetryDelay));
+  }
+  return false
+}
+
+async function sendAvnTx(request) {
   try {
     logger.trace(`Request body: ${JSON.stringify(request)}`)
     const result = await avn.tx(request.palletName, request.method, request.params)
     logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`)
-    callback(true)
+    return true
   } catch (err) {
-    logger.error('sendAvnTxn err', err.message)
-    callback(false)
+    logger.error('sendAvnTx err', err.message)
+    return false
   }
 }
 

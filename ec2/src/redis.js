@@ -143,13 +143,14 @@ async function getNextTransactionsToCheck() {
   const timeNow = Date.now()
   const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000
 
-  const [_numExpired, _numAwaitingCheck, txToCheckNext] = await redisClient
+  const [_numExpired, numAwaitingCheck, txToCheckNext] = await redisClient
   .multi()
   .zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow) // Expire any transactions that have been being checked for too long
   .zdiffstore(PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING) // Get transactions that are not currently being checked
   .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
   .exec()
 
+  log.trace(`Transactions awaiting check: ${numAwaitingCheck[1]}\n`)
   log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`)
   return txToCheckNext[1]
 }

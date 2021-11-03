@@ -43,18 +43,16 @@ function generateFunction(functionName, api, queryApi) {
 
 Send.prototype.postRequest = async function(api, method, params, isRetry) {
   const endpoint = api.gateway + '/send'
-  const response = (
-    await api.axios().post(endpoint, { jsonrpc: '2.0', id: api.uuid(), method: method, params: params })
-  ).data
+  const response = await api.axios().post(endpoint, { jsonrpc: '2.0', id: api.uuid(), method: method, params: params })
 
-  if (!response.result) {
+  if (!response.data.result) {
     if (method === 'proxy') {
       await common.sleep(MAX_TX_PROCESSING_TIME)
-      return !isRetry ? await this.postRequest(api, method, params, true) : response.error.message
+      return !isRetry ? await this.postRequest(api, method, params, true) : response.data.error.message
     }
-    return response.error.message
+    return response.data.error.message
   }
-  return response.result
+  return response.data.result
 }
 
 Send.prototype.smartNonce = async function(queryApi, _account) {

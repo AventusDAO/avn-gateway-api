@@ -144,10 +144,11 @@ async function trySendAvnTx(channel, message) {
   while (retries <= avnTxRetryCount) {
     if (await sendAvnTx(JSON.parse(message.content.toString()))) {
       return true
+    } else if (retries < avnTxRetryCount) {
+      await new Promise(resolve => setTimeout(resolve, avnTxRetryDelay));
     } else {
       retries++
     }
-    await new Promise(resolve => setTimeout(resolve, avnTxRetryDelay));
   }
   return false
 }

@@ -1,25 +1,43 @@
 const utils = require('../common/utils.js')
 const EC2 = require('../common/resources.json').ec2_endpoint
 const axios = require('axios')
+const MQSender = require('./mqSender.js')
 
+// TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
+let mqSender
 let userRequestId
 
+const connectToMQ = async () => {
+  if (!mqSender || !mqSender.amqpConnection) {
+    mqSender = new MQSender(
+      process.env.SECRET_MANAGER_REGION,
+      process.env.MQ_SECRET_ARN,
+      process.env.MQ_BROKER_AMQP_ENDPOINT
+    )
+    await mqSender.connectToMessageBroker()
+  }
+}
 exports.handler = async event => {
-  const response = {
+  try {
+    await connectToMQ()
+    return {
     statusCode: 200,
     body: JSON.stringify(await processRequest(event.body))
   }
-  return response
+  } catch (err) {
+    return {
+      statusCode: 500,
+      error: { message: err.message }
+    }
+  }
 }
 
-async function sendTx(palletName, method, params) {
-  let response
+async function sendTx(queueName, palletName, method, params) {
   try {
-    response = await axios.post(EC2 + 'avnTx', { userRequestId, palletName, method, params })
+    return await mqSender.sendMessageToMQ(queueName, { userRequestId, palletName, method, params })
   } catch (err) {
     throw err
   }
-  return response.data.error || response.data.requestId
 }
 
 async function sendProxyTx(palletName, method, params) {
@@ -63,7 +81,10 @@ async function callSwitch(call, responseObject) {
     case 'transferAvt':
       if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
-          responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]])
+          responseObject.result = await sendTx(process.env.MQ_AVN_TX_QUEUE, 'balances', 'transfer', [
+            call.params[0],
+            call.params[1]
+          ])
         } catch (err) {
           utils.logError('failed to send transaction', userRequestId, 'send-handler.transferAvt.sendTx', err)
           responseObject.error = { code: -32603, message: 'Internal error' }

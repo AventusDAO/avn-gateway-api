@@ -11,7 +11,7 @@ function SecretsManager(region) {
 }
 
 SecretsManager.prototype.getSecret = async function(secretId) {
-  const params = { secretId: secretId }
+  const params = { SecretId: secretId }
   const command = new GetSecretValueCommand(params)
   try {
     const response = await this.smClient.send(command)

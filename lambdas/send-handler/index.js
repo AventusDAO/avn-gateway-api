@@ -1,6 +1,4 @@
 const utils = require('../common/utils.js')
-const EC2 = require('../common/resources.json').ec2_endpoint
-const axios = require('axios')
 const MQSender = require('./mqSender.js')
 
 // TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy

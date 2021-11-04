@@ -53,6 +53,14 @@ module "vpc" {
   }
 }
 
+module "rabbitmq" {
+  source              = "../../modules/rabbitmq"
+  vpc_id              = module.vpc.vpc_id
+  subnet_ids          = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
+  instance_type       = "mq.t3.micro"
+  publicly_accessible = true
+}
+
 data "aws_eks_cluster" "eks" {
   name = module.eks.cluster_id
 }

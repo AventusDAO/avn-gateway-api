@@ -3,8 +3,6 @@
 // It receives a number of messages specified in the configuration file, then prints out each message as `Sent request [message]`,
 // and finally acknowledges the queue to delete the message.
 
-// TODO: Replace the service listening to avnTx post
-
 'use strict'
 
 const amqp = require('amqplib/callback_api')

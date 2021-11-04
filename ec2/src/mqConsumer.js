@@ -97,7 +97,10 @@ async function processMessage(channel, queue) {
     channel.get(queue, {
       noAck: false
     }, async function(err, message) {
-      if (err) channel.nack(message, allUpTo, requeue)
+      if (err) {
+        channel.nack(message, allUpTo, requeue)
+        reject()
+      }
       if (!message) resolve() /* empty queue */
       else {
         const ok = await trySendAvnTx(channel, message)

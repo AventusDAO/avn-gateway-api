@@ -34,17 +34,19 @@ const NONCE_EXPIRY_IN_SECONDS = 5
 let redisClient
 
 async function connect() {
-
   if ('redis' in config) {
     log.info(`Attempting to connect to Redis database on ${config.redis.url}:${config.redis.port}`)
-    redisClient = new Redis.Cluster([{port: config.redis.port, host: config.redis.url}])
-    log.info('Connected to Redis database:\n',(await redisClient.hello()).map((e,i) => i%2 == 0 ?  e+':': e+', ').join(''))
+    redisClient = new Redis.Cluster([{ port: config.redis.port, host: config.redis.url }])
+    log.info(
+      'Connected to Redis database:\n',
+      (await redisClient.hello()).map((e, i) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')
+    )
   } else {
     redisClient = new Redis()
   }
 
   redisClient.defineCommand('nextzsubset', {
-    numberOfKeys:2,
+    numberOfKeys: 2,
     lua: `local subset = redis.call('ZRANGE', KEYS[1], 0, ARGV[1]-1)
           local subsetCopy = {unpack(subset)}
           if table.getn(subset) > 0 then
@@ -86,7 +88,10 @@ async function addFailedAvnTransaction(_transactionHash, senderAddress, senderNo
     throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
   }
 
-  await redisClient.hset(transactionHash, buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed))
+  await redisClient.hset(
+    transactionHash,
+    buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed)
+  )
 }
 
 async function addPendingAvnTransaction(_transactionHash, senderAddress, senderNonce) {
@@ -144,11 +149,11 @@ async function getNextTransactionsToCheck() {
   const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000
 
   const [_numExpired, numAwaitingCheck, txToCheckNext] = await redisClient
-  .multi()
-  .zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow) // Expire any transactions that have been being checked for too long
-  .zdiffstore(PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING) // Get transactions that are not currently being checked
-  .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
-  .exec()
+    .multi()
+    .zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow) // Expire any transactions that have been being checked for too long
+    .zdiffstore(PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING) // Get transactions that are not currently being checked
+    .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
+    .exec()
 
   log.trace(`Transactions awaiting check: ${numAwaitingCheck[1]}\n`)
   log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`)

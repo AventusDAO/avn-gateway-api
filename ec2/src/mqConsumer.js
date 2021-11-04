@@ -69,6 +69,7 @@ async function whenConnected(conn, components) {
   logger.info('[AMQP] elements are ready')
 
   const { avnTxQueue } = components
+
   logger.info('MQ message processor has started')
   while(true) {
     await processMessage(amqpChannel, avnTxQueue).catch((_err) => {})
@@ -129,6 +130,7 @@ function createChannel(conn) {
   
       channel.on('close', function() {
         logger.info('[AMQP] channel closed')
+        reject()
       })
 
       logger.info('[AMQP] channel created')

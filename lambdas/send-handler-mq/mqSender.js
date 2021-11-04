@@ -20,16 +20,20 @@ MQSender.prototype.sendMessageToMQ = async function(queue, message, persistent =
   const amqpChannel = await createChannel(this.amqpConnection)
   return await new Promise((resolve, reject) => {
     try {
-      amqpChannel.assertQueue(queue, { durable: true })
-      amqpChannel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
-        persistent: persistent
+      amqpChannel.checkQueue(queue, function(err, ok) {
+        if (err) throw Error(`queue '${queue}' does not exist`)
+        if (ok) {
+          amqpChannel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
+            persistent: persistent
+          })
+          console.info('Sent %s to %s', JSON.stringify(message), queue)
+    
+          amqpChannel.close()
+          console.info("[AMQP] channel closed")
+    
+          resolve(message)
+        }
       })
-      console.info('Sent %s to %s', JSON.stringify(message), queue)
-
-      amqpChannel.close()
-      console.info("[AMQP] channel closed")
-
-      resolve(message)
     } catch (e) {
       reject(e.message)
     }

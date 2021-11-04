@@ -23,7 +23,7 @@ resource "aws_subnet" "public_subnets" {
   for_each                = var.public_zone_ips
   vpc_id                  = aws_vpc.gateway.id
   cidr_block              = each.value
-  map_public_ip_on_launch = each.key == "a"
+  map_public_ip_on_launch = true
 
   tags = merge(
       {"Name": "${var.name}-public-${each.key}"},

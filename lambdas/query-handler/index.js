@@ -2,8 +2,6 @@ const utils = require('../common/utils.js')
 const EC2 = require('../common/resources.json').ec2_endpoint
 const axios = require('axios')
 
-let userRequestId
-
 exports.handler = async event => {
   const response = {
     statusCode: 200,
@@ -16,10 +14,10 @@ exports.handler = async event => {
 const format1 = data => utils.toBnString(data)
 const format2 = data => utils.toBnString(data.data.free)
 
-async function queryChain(palletName, storageName, params, responseFormatter) {
+async function queryChain(callId, palletName, storageName, params, responseFormatter) {
   let response
   try {
-    response = await axios.post(EC2 + 'avnQuery', { userRequestId, palletName, storageName, params })
+    response = await axios.post(EC2 + 'avnQuery', { callId, palletName, storageName, params })
   } catch (err) {
     throw err
   }
@@ -39,16 +37,14 @@ async function processRequest(requestObject) {
     return responseObject
   }
 
-  userRequestId = call.id
-
   if (typeof call.method !== 'string') {
-    utils.logError('method type must be string', userRequestId, 'query-handler.processRequest.method', call.method)
+    utils.logError('method type must be string', call.id, 'query-handler.processRequest.method', call.method)
     responseObject.error = { code: -32600, message: 'Invalid Request' }
   } else {
     responseObject = await callSwitch(call, responseObject)
   }
 
-  responseObject.id = userRequestId
+  responseObject.id = call.id
   return responseObject
 }
 
@@ -56,22 +52,22 @@ async function callSwitch(call, responseObject) {
   switch (call.method) {
     case 'getTotalAvt':
       try {
-        responseObject.result = await queryChain('balances', 'totalIssuance', [], format1)
+        responseObject.result = await queryChain(call.id, 'balances', 'totalIssuance', [], format1)
       } catch (err) {
-        utils.logError('failed to query chain', userRequestId, 'query-handler.getTotalAvt.queryChain', err)
+        utils.logError('failed to query chain', call.id, 'query-handler.getTotalAvt.queryChain', err)
         responseObject.error = { code: -32603, message: 'Internal error' }
       }
       break
     case 'getAvtBalance':
       if (utils.isValidAccountId(call.params[0])) {
         try {
-          responseObject.result = await queryChain('system', 'account', [call.params[0]], format2)
+          responseObject.result = await queryChain(call.id, 'system', 'account', [call.params[0]], format2)
         } catch (err) {
-          utils.logError('failed to query chain', userRequestId, 'query-handler.getAvtBalance.queryChain', err)
+          utils.logError('failed to query chain', call.id, 'query-handler.getAvtBalance.queryChain', err)
           responseObject.error = { code: -32603, message: 'Internal error' }
         }
       } else {
-        utils.logError('invalid account ID', userRequestId, 'query-handler.getAvtBalance.params', call.params[0])
+        utils.logError('invalid account ID', call.id, 'query-handler.getAvtBalance.params', call.params[0])
         responseObject.error = { code: -32602, message: 'Invalid params' }
       }
       break
@@ -79,42 +75,43 @@ async function callSwitch(call, responseObject) {
       if (utils.isValidAccountId(call.params[0]) && utils.isValidTokenId(call.params[1])) {
         try {
           responseObject.result = await queryChain(
+            call.id,
             'tokenManager',
             'balances',
             [[call.params[1], call.params[0]]],
             format1
           )
         } catch (err) {
-          utils.logError('failed to query chain', userRequestId, 'query-handler.getTokenBalance.queryChain', err)
+          utils.logError('failed to query chain', call.id, 'query-handler.getTokenBalance.queryChain', err)
           responseObject.error = { code: -32603, message: 'Internal error' }
         }
       } else {
-        utils.logError('invalid params', userRequestId, 'query-handler.getTokenBalance.params', call.params)
+        utils.logError('invalid params', call.id, 'query-handler.getTokenBalance.params', call.params)
         responseObject.error = { code: -32602, message: 'Invalid params' }
       }
       break
     case 'getAccountNonce':
       if (utils.isValidAccountId(call.params[0])) {
         try {
-          responseObject.result = await queryChain('tokenManager', 'nonces', [call.params[0]], format1)
+          responseObject.result = await queryChain(call.id, 'tokenManager', 'nonces', [call.params[0]], format1)
         } catch (err) {
-          utils.logError('failed to query chain', userRequestId, 'query-handler.getAccountNonce.queryChain', err)
+          utils.logError('failed to query chain', call.id, 'query-handler.getAccountNonce.queryChain', err)
           responseObject.error = { code: -32603, message: 'Internal error' }
         }
       } else {
-        utils.logError('invalid account ID', userRequestId, 'query-handler.getAccountNonce.params', call.params[0])
+        utils.logError('invalid account ID', call.id, 'query-handler.getAccountNonce.params', call.params[0])
         responseObject.error = { code: -32602, message: 'Invalid params' }
       }
       break
     case 'getAvtContractAddress':
       try {
-        responseObject.result = await queryChain('tokenManager', 'aVTTokenContract', [], res => res.toString())
+        responseObject.result = await queryChain(call.id, 'tokenManager', 'aVTTokenContract', [], res => res.toString())
       } catch (e) {
         responseObject.error = { code: -32603, message: 'Internal error' }
       }
       break
     default:
-      utils.logError('method not found', userRequestId, 'query-handler.callSwitch.default', method)
+      utils.logError('method not found', call.id, 'query-handler.callSwitch.default', method)
       responseObject.error = { code: -32601, message: 'Method not found' }
   }
   return responseObject

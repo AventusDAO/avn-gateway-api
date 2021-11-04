@@ -2,8 +2,6 @@ const utils = require('../common/utils.js')
 const EC2 = require('../common/resources.json').ec2_endpoint
 const axios = require('axios')
 
-let userRequestId
-
 exports.handler = async event => {
   const response = {
     statusCode: 200,
@@ -12,20 +10,20 @@ exports.handler = async event => {
   return response
 }
 
-async function sendTx(palletName, method, params) {
+async function sendTx(callId, palletName, method, params) {
   let response
   try {
-    response = await axios.post(EC2 + 'avnTx', { userRequestId, palletName, method, params })
+    response = await axios.post(EC2 + 'avnTx', { callId, palletName, method, params })
   } catch (err) {
     throw err
   }
   return response.data.error || response.data.requestId
 }
 
-async function sendProxyTx(palletName, method, params) {
+async function sendProxyTx(callId, palletName, method, params) {
   let response
   try {
-    response = await axios.post(EC2 + 'avnProxy', { userRequestId, palletName, method, params })
+    response = await axios.post(EC2 + 'avnProxy', { callId, palletName, method, params })
   } catch (err) {
     throw err
   }
@@ -45,16 +43,14 @@ async function processRequest(requestObject) {
     return responseObject
   }
 
-  userRequestId = call.id
-
   if (typeof call.method !== 'string') {
-    utils.logError('method type must be string', userRequestId, 'send-handler.processRequest.method', call.method)
+    utils.logError('method type must be string', call.id, 'send-handler.processRequest.method', call.method)
     responseObject.error = { code: -32600, message: 'Invalid Request' }
   } else {
     responseObject = await callSwitch(call, responseObject)
   }
 
-  responseObject.id = userRequestId
+  responseObject.id = call.id
   return responseObject
 }
 
@@ -63,13 +59,13 @@ async function callSwitch(call, responseObject) {
     case 'transferAvt':
       if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
-          responseObject.result = await sendTx('balances', 'transfer', [call.params[0], call.params[1]])
+          responseObject.result = await sendTx(call.id, 'balances', 'transfer', [call.params[0], call.params[1]])
         } catch (err) {
-          utils.logError('failed to send transaction', userRequestId, 'send-handler.transferAvt.sendTx', err)
+          utils.logError('failed to send transaction', call.id, 'send-handler.transferAvt.sendTx', err)
           responseObject.error = { code: -32603, message: 'Internal error' }
         }
       } else {
-        utils.logError('invalid params', userRequestId, 'send-handler.transferAvt.params', call.params)
+        utils.logError('invalid params', call.id, 'send-handler.transferAvt.params', call.params)
         responseObject.error = { code: -32602, message: 'Invalid params' }
       }
       break
@@ -81,10 +77,10 @@ async function callSwitch(call, responseObject) {
       let formatter = codeFormatters[pallet][method]
 
       if (!formatter) {
-        utils.logError('method not found', userRequestId, 'send-handler.proxy.method', call)
+        utils.logError('method not found', call.id, 'send-handler.proxy.method', call)
         responseObject.error = { code: -32601, message: 'Method not found' }
       } else if (!formatter.validate(call)) {
-        utils.logError('invalid params', userRequestId, 'send-handler.proxy.params', call.params)
+        utils.logError('invalid params', call.id, 'send-handler.proxy.params', call.params)
         responseObject.error = { code: -32602, message: 'Invalid params' }
       } else {
         try {
@@ -95,16 +91,21 @@ async function callSwitch(call, responseObject) {
               Sr25519: call.params.signature
             }
           }
-          responseObject.result = await sendProxyTx(pallet, method, formatter.encode(proof, call.params.innerArgs))
+          responseObject.result = await sendProxyTx(
+            call.id,
+            pallet,
+            method,
+            formatter.encode(proof, call.params.innerArgs)
+          )
         } catch (err) {
-          utils.logError('failed to send proxy transaction', userRequestId, 'send-handler.proxy.sendProxyTx', err)
+          utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxy.sendProxyTx', err)
           responseObject.error = { code: -32603, message: 'Internal error' }
         }
       }
       break
 
     default:
-      utils.logError('method not found', userRequestId, 'send-handler.callSwitch.default', method)
+      utils.logError('method not found', call.id, 'send-handler.callSwitch.default', method)
       responseObject.error = { code: -32601, message: 'Method not found' }
   }
   return responseObject

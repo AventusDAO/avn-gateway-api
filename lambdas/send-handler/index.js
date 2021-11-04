@@ -5,7 +5,6 @@ const MQSender = require('./mqSender.js')
 
 // TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
 let mqSender
-
 let userRequestId
 
 const connectToMQ = async () => {
@@ -34,22 +33,12 @@ exports.handler = async event => {
   }
 }
 
-async function sendTx(queueName, palletName, method, params) {
+async function sendTx(txType, queueName, palletName, method, params) {
   try {
-    return await mqSender.sendMessageToMQ(queueName, { userRequestId, palletName, method, params })
+    return await mqSender.sendMessageToMQ(queueName, { userRequestId, txType, palletName, method, params })
   } catch (err) {
     throw err
   }
-}
-
-async function sendProxyTx(palletName, method, params) {
-  let response
-  try {
-    response = await axios.post(EC2 + 'avnProxy', { userRequestId, palletName, method, params })
-  } catch (err) {
-    throw err
-  }
-  return response.data.requestId
 }
 
 async function processRequest(requestObject) {
@@ -83,7 +72,7 @@ async function callSwitch(call, responseObject) {
     case 'transferAvt':
       if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
-          responseObject.result = await sendTx(process.env.MQ_AVN_TX_QUEUE, 'balances', 'transfer', [
+          responseObject.result = await sendTx('avnTx', process.env.MQ_AVN_TX_QUEUE, 'balances', 'transfer', [
             call.params[0],
             call.params[1]
           ])
@@ -118,7 +107,7 @@ async function callSwitch(call, responseObject) {
               Sr25519: call.params.signature
             }
           }
-          responseObject.result = await sendProxyTx(pallet, method, formatter.encode(proof, call.params.innerArgs))
+          responseObject.result = await sendTx('avnProxy', pallet, method, formatter.encode(proof, call.params.innerArgs))
         } catch (err) {
           utils.logError('failed to send proxy transaction', userRequestId, 'send-handler.proxy.sendProxyTx', err)
           responseObject.error = { code: -32603, message: 'Internal error' }

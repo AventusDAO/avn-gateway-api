@@ -104,7 +104,7 @@ async function callSwitch(call, responseObject) {
               Sr25519: call.params.signature
             }
           }
-          responseObject.result = await sendTx('avnProxy', pallet, method, formatter.encode(proof, call.params.innerArgs))
+          responseObject.result = await sendTx('avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, formatter.encode(proof, call.params.innerArgs))
         } catch (err) {
           utils.logError('failed to send proxy transaction', userRequestId, 'send-handler.proxy.sendProxyTx', err)
           responseObject.error = { code: -32603, message: 'Internal error' }

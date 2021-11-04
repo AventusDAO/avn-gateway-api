@@ -3,7 +3,8 @@
     "apiTests": "mocha --timeout 100000 ./avn-api/tests --recursive",
     "ec2Tests": "mocha --timeout 100000 ./ec2/tests --recursive",
     "lambdaTests": "mocha --timeout 60000 ./lambdas/tests --recursive",
-    "allTests": "npm run apiTests && npm run ec2Tests && npm run lambdaTests"
+    "allTests": "npm run apiTests && npm run ec2Tests && npm run lambdaTests",
+    "format": "npm --prefix ./avn-api run format && npm --prefix ./ec2/src run format && npm --prefix ./lambdas run format"
   },
   "devDependencies": {
     "chai": "^4.3.4",

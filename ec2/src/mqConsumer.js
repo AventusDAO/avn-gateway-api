@@ -8,7 +8,9 @@
 const amqp = require('amqplib/callback_api')
 const avn = require('./avn')
 const config = require('multiconfig').load()
-const logger = require('log4js').configure(config.log4Js).getLogger()
+const logger = require('log4js')
+  .configure(config.log4Js)
+  .getLogger()
 const SecretsManager = require('./secretsManager')
 
 async function connectToMQ() {
@@ -30,11 +32,14 @@ function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqCom
 
 MQConsumer.prototype.getMqConnectionUrl = async function() {
   const secret = await this.secretsManager.getSecret(this.secretArn)
-  return this.mqBrokerAmqpEndpoint.replace('amqps://', `amqps://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`)
+  return this.mqBrokerAmqpEndpoint.replace(
+    'amqps://',
+    `amqps://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`
+  )
 }
 
 MQConsumer.prototype.processMessagesFromMq = async function() {
-  const self = this;
+  const self = this
   amqp.connect(await this.getMqConnectionUrl(), function(err, conn) {
     logger.info('[AMQP] connecting')
 
@@ -69,13 +74,13 @@ async function whenConnected(conn, components) {
   const { avnTxQueue } = components
 
   logger.info('MQ message processor has started')
-  while(true) {
-    await processMessage(amqpChannel, avnTxQueue).catch((_err) => {})
+  while (true) {
+    await processMessage(amqpChannel, avnTxQueue).catch(_err => {})
   }
 }
 
 async function assertMqComponents(channel, components) {
-  const {avnTxQueue, deadLetterQueue, deadLetterExchange, deadLetterKey} = components
+  const { avnTxQueue, deadLetterQueue, deadLetterExchange, deadLetterKey } = components
 
   channel.assertExchange(deadLetterExchange, 'direct')
   channel.assertQueue(avnTxQueue, {
@@ -92,25 +97,29 @@ async function processMessage(channel, queue) {
   const requeue = false // Drop to dead letter queue
 
   await new Promise((resolve, reject) => {
-    channel.get(queue, {
-      noAck: false
-    }, async function(err, message) {
-      if (err) {
-        channel.nack(message, allUpTo, requeue)
-        reject()
-      } else if (!message) {
-        resolve() /* empty queue */
-      } else {
-        try {
-          await trySendAvnTx(message)
-          channel.ack(message)
-          resolve()
-        } catch (err) {
+    channel.get(
+      queue,
+      {
+        noAck: false
+      },
+      async function(err, message) {
+        if (err) {
           channel.nack(message, allUpTo, requeue)
           reject()
+        } else if (!message) {
+          resolve() /* empty queue */
+        } else {
+          try {
+            await trySendAvnTx(message)
+            channel.ack(message)
+            resolve()
+          } catch (err) {
+            channel.nack(message, allUpTo, requeue)
+            reject()
+          }
         }
       }
-    })
+    )
   })
 }
 
@@ -125,7 +134,7 @@ function createChannel(conn) {
       channel.on('error', function(err) {
         logger.error('[AMQP] channel error', err.message)
       })
-  
+
       channel.on('close', function() {
         logger.info('[AMQP] channel closed')
         reject()
@@ -139,7 +148,7 @@ function createChannel(conn) {
 }
 
 async function trySendAvnTx(message) {
-  const {avnTxRetryCount, avnTxRetryDelay} = config.mq.components
+  const { avnTxRetryCount, avnTxRetryDelay } = config.mq.components
   let retries = 0
 
   while (retries <= avnTxRetryCount) {

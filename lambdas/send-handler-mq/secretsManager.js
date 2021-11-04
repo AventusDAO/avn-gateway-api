@@ -1,6 +1,6 @@
 'use strict'
 
-const { SecretsManagerClient, GetSecretValueCommand } = require("@aws-sdk/client-secrets-manager")
+const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager')
 
 module.exports = SecretsManager
 

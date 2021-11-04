@@ -5,6 +5,7 @@ const MQSender = require('./mqSender.js')
 
 // TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
 let mqSender
+
 let userRequestId
 
 const connectToMQ = async () => {
@@ -17,13 +18,14 @@ const connectToMQ = async () => {
     await mqSender.connectToMessageBroker()
   }
 }
+
 exports.handler = async event => {
   try {
     await connectToMQ()
     return {
-    statusCode: 200,
-    body: JSON.stringify(await processRequest(event.body))
-  }
+      statusCode: 200,
+      body: JSON.stringify(await processRequest(event.body))
+    }
   } catch (err) {
     return {
       statusCode: 500,
@@ -160,8 +162,16 @@ const codeFormatters = {
   }
 }
 
-// async function testlocal() {
-//   console.log('transferAvt:', await processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));
-// }
-//
-// testlocal();
+async function testlocal(n) {
+  await connectToMQ()
+  for (var i = 0; i < n; i++) {
+    console.info('transferAvt:', await processRequest(`{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":${i}}`))
+    await sleep(1000)
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve, reject) => setTimeout(resolve, ms) )
+}
+
+testlocal(1)

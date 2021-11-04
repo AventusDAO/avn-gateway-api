@@ -3,7 +3,8 @@ mqSecretArn: $ENV:MQ_SECRET_ARN
 mqBrokerAmqpEndpoint: $ENV:MQ_BROKER_AMQP_ENDPOINT
 components:
   avnTxQueue: $ENV:AVN_TX_QUEUE
-  avnTxMsgTtl: $ENV:AVN_TX_MSG_TTL
+  avnTxRetryCount: $ENV:AVN_TX_RETRY_COUNT
+  avnTxRetryDelay: $ENV:AVN_TX_RESEND_DELAY
   deadLetterQueue: $ENV:DEAD_LETTER_QUEUE
   deadLetterExchange: $ENV:DEAD_LETTER_EXCHANGE
   deadLetterKey: $ENV:DEAD_LETTER_KEY

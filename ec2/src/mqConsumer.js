@@ -100,14 +100,14 @@ async function processMessage(channel, queue) {
       if (err) {
         channel.nack(message, allUpTo, requeue)
         reject()
-      }
-      if (!message) resolve() /* empty queue */
-      else {
-        const ok = await trySendAvnTx(channel, message)
-        if (ok) {
+      } else if (!message) {
+        resolve() /* empty queue */
+      } else {
+        try {
+          await trySendAvnTx(message)
           channel.ack(message)
           resolve()
-        } else {
+        } catch (err) {
           channel.nack(message, allUpTo, requeue)
           reject()
         }
@@ -140,25 +140,25 @@ function createChannel(conn) {
   })
 }
 
-async function trySendAvnTx(channel, message) {
+async function trySendAvnTx(message) {
   const {avnTxRetryCount, avnTxRetryDelay} = config.mq.components
   let retries = 0
 
   while (retries <= avnTxRetryCount) {
     try {
-      await sendAvnTx(JSON.parse(message.content.toString()))
-      return true
+      return await sendAvnTx(JSON.parse(message.content.toString()))
     } catch (err) {
-      if (retries == avnTxRetryCount) 
-      logger.error('sendAvnTx err', err.message)
-    }
-    if (retries < avnTxRetryCount) {
-      await new Promise(resolve => setTimeout(resolve, avnTxRetryDelay));
-    }
-    retries++
-  }
+      retries++
 
-  return false
+      if (retries <= avnTxRetryCount) {
+        logger.trace(`sendAvnTx failed ${retries} time(s), retrying again. Error: ${err.message}`)
+        await new Promise(resolve => setTimeout(resolve, avnTxRetryDelay))
+      } else {
+        logger.error('sendAvnTx err', err.message)
+        throw err
+      }
+    }
+  }
 }
 
 async function sendAvnTx(request) {

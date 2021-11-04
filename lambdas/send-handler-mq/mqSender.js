@@ -32,7 +32,7 @@ MQSender.prototype.sendMessageToMQ = async function(queue, message, persistent =
           console.info('Sent %s to %s', JSON.stringify(message), queue)
 
           amqpChannel.close()
-          console.info("[AMQP] channel closed")
+          console.info('[AMQP] channel closed')
 
           resolve(message)
         }

@@ -1,8 +1,10 @@
 'use strict'
 
 const config = require('multiconfig').load()
-const logger = require('log4js').configure(config.log4Js).getLogger()
-const { SecretsManagerClient, GetSecretValueCommand } = require("@aws-sdk/client-secrets-manager")
+const logger = require('log4js')
+  .configure(config.log4Js)
+  .getLogger()
+const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager')
 
 module.exports = SecretsManager
 

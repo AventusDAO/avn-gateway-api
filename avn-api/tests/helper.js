@@ -1,9 +1,9 @@
-const AvnApi = require('../index.js');
-const assert = require('chai').assert;
-const BN = require('bn.js');
-const GATEWAY = 'https://4ayax6s3pg.execute-api.eu-west-1.amazonaws.com';
-const TOKEN = '0x7e5bb9f3c94637ca804b9f7e86be703d668d349f';
-const AVT_SUPPLY = '5100000000000000000000';
+const AvnApi = require('../index.js')
+const assert = require('chai').assert
+const BN = require('bn.js')
+const GATEWAY = 'https://4ayax6s3pg.execute-api.eu-west-1.amazonaws.com'
+const TOKEN = '0x7e5bb9f3c94637ca804b9f7e86be703d668d349f'
+const AVT_SUPPLY = '5100000000000000000000'
 
 const ACCOUNTS = {
   relayer: {
@@ -11,7 +11,8 @@ const ACCOUNTS = {
     address: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh',
     publicKey: '0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004'
   },
-  sender: { // process.env.SURI account
+  sender: {
+    // process.env.SURI account
     mnemonic: 'rapid pet capable tooth wisdom utility child luggage never toddler gather sea',
     seed: '0x3eee10b8d28ea5a8fb165174022d637a8ec4b632c1e66472b234683a159bf6dd',
     address: '5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH',
@@ -28,21 +29,21 @@ const ACCOUNTS = {
     seed: '0x197bcdc6a4f99683346ada29b1ec2beb62aafffff487a55070a9c9e13d36d86a',
     address: '5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF',
     publicKey: '0xa05dc0c30b73e2d3f3d3542c2389adb40e96f87233c2f93d06a46973dd1c3972'
-  },
+  }
 }
 
 async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 async function avnApi() {
-  const api = new AvnApi(GATEWAY);
-  await api.init();
-  return api;
+  const api = new AvnApi(GATEWAY)
+  await api.init()
+  return api
 }
 
-function bnEquals(a,b) {
-  return assert.equal(new BN(a).toString(), new BN(b).toString());
+function bnEquals(a, b) {
+  return assert.equal(new BN(a).toString(), new BN(b).toString())
 }
 
 // keep alphabetical
@@ -53,5 +54,5 @@ module.exports = {
   BN,
   bnEquals,
   sleep,
-  TOKEN,
+  TOKEN
 }

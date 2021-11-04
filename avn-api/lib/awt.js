@@ -1,32 +1,32 @@
-'use strict';
+'use strict'
 
-const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
-const common = require('./common.js');
+const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
+const common = require('./common.js')
 
 //TODO: make this configurable using a .env file or some other way
-const MAX_TOKEN_AGE_MSEC = 60000;
-const SIGNING_CONTEXT = 'awt_gateway_api';
+const MAX_TOKEN_AGE_MSEC = 60000
+const SIGNING_CONTEXT = 'awt_gateway_api'
 
 function generateAwtToken(suri) {
-  const tokenOwner = common.keyring.addFromUri(suri);
-  const issuedAt = new Date().toISOString();
-  const avnPublicKey = u8aToHex(tokenOwner.publicKey);
+  const tokenOwner = common.keyring.addFromUri(suri)
+  const issuedAt = new Date().toISOString()
+  const avnPublicKey = u8aToHex(tokenOwner.publicKey)
 
   // Encode the data to sign
-  const encodedData = encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt);
+  const encodedData = encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt)
 
   // Sign the avnPublicKey of the token owner
-  const signature = tokenOwner.sign(encodedData);
+  const signature = tokenOwner.sign(encodedData)
 
   // generate the token - base64 encoded
   const payload = {
     pk: avnPublicKey,
     iat: issuedAt,
     sig: u8aToHex(signature)
-  };
+  }
 
-  const payloadBuff = new Buffer.from(JSON.stringify(payload));
-  return payloadBuff.toString('base64');
+  const payloadBuff = new Buffer.from(JSON.stringify(payload))
+  return payloadBuff.toString('base64')
 }
 
 function encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt) {
@@ -34,27 +34,27 @@ function encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt) {
     common.registry.createType('Text', SIGNING_CONTEXT).toU8a(false),
     common.registry.createType('AccountId', hexToU8a(avnPublicKey)).toU8a(true),
     common.registry.createType('Text', issuedAt).toU8a(false)
-  );
+  )
 
-  return u8aToHex(encodedData);
+  return u8aToHex(encodedData)
 }
 
 function tokenAgeIsValid(awtTokenBase64) {
-  if (!awtTokenBase64) return false;
+  if (!awtTokenBase64) return false
 
   try {
-    const awtToken = JSON.parse(Buffer.from(awtTokenBase64, 'base64').toString('ascii'));
-    const issuedAt = new Date(awtToken.iat);
-    const tokenAge = new Date() - issuedAt;
+    const awtToken = JSON.parse(Buffer.from(awtTokenBase64, 'base64').toString('ascii'))
+    const issuedAt = new Date(awtToken.iat)
+    const tokenAge = new Date() - issuedAt
 
-    return tokenAge >= 0 && tokenAge < MAX_TOKEN_AGE_MSEC;
+    return tokenAge >= 0 && tokenAge < MAX_TOKEN_AGE_MSEC
   } catch (err) {
-    console.error(`Error checking the age of the awt token: ${err}`);
-    return false;
+    console.error(`Error checking the age of the awt token: ${err}`)
+    return false
   }
 }
 
 module.exports = {
   generateAwtToken,
   tokenAgeIsValid
-};
+}

@@ -1,65 +1,65 @@
-const assert = require('chai').assert;
-const helper = require('./helper.js');
-const accounts = helper.ACCOUNTS;
-const BN = helper.BN;
+const assert = require('chai').assert
+const helper = require('./helper.js')
+const accounts = helper.ACCOUNTS
+const BN = helper.BN
 
 const BAD_REQUEST_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
-describe('Polling api calls:', async() => {
-  let api;
-  let recipient;
+describe('Polling api calls:', async () => {
+  let api
+  let recipient
 
   before(async () => {
-    api = await helper.avnApi();
-    relayer = accounts.relayer.address;
-    sender = accounts.sender.address;
-    recipient = accounts.user1.address;
+    api = await helper.avnApi()
+    relayer = accounts.relayer.address
+    sender = accounts.sender.address
+    recipient = accounts.user1.address
   })
 
   describe('requestState', async () => {
-    let requestId, invalidRequestId;
+    let requestId, invalidRequestId
 
     before(async () => {
-      const senderAvtBalance = await api.query.getAvtBalance(sender);
-      const badTransferAmount = (new BN(senderAvtBalance).add(new BN("90000000000000000000"))).toString();
+      const senderAvtBalance = await api.query.getAvtBalance(sender)
+      const badTransferAmount = new BN(senderAvtBalance).add(new BN('90000000000000000000')).toString()
 
-      requestId = await api.send.transferAvt(relayer, sender, recipient, 1);
-      invalidRequestId = await api.send.transferAvt(relayer, sender, recipient, badTransferAmount);
+      requestId = await api.send.transferAvt(relayer, sender, recipient, 1)
+      invalidRequestId = await api.send.transferAvt(relayer, sender, recipient, badTransferAmount)
       console.log(`Valid requestId: ${requestId}, Invalid requestId: ${invalidRequestId}`)
     })
 
     it('returns a pending status for a valid request ID', async () => {
-      assert.equal(await api.poll.requestState(requestId), 'Pending');
+      assert.equal(await api.poll.requestState(requestId), 'Pending')
     })
 
     it('returns a rejected status when a transaction fails to be executed', async () => {
-      let status;
+      let status
 
-      for (i = 0; i < 10; i ++) {
-        await helper.sleep(3000);
-        status = await api.poll.requestState(invalidRequestId);
-        if (status === 'Rejected') break;
+      for (i = 0; i < 10; i++) {
+        await helper.sleep(3000)
+        status = await api.poll.requestState(invalidRequestId)
+        if (status === 'Rejected') break
         console.log(`   Current status (invalid request): ${status}`)
       }
 
-      assert.equal(status, 'Rejected');
+      assert.equal(status, 'Rejected')
     })
 
     it('returns a processed status for a valid request ID', async () => {
-      let status;
+      let status
 
-      for (i = 0; i < 10; i ++) {
-        await helper.sleep(3000);
-        status = await api.poll.requestState(requestId);
-        if (status === 'Processed') break;
+      for (i = 0; i < 10; i++) {
+        await helper.sleep(3000)
+        status = await api.poll.requestState(requestId)
+        if (status === 'Processed') break
         console.log(`   Current status (valid request): ${status}`)
       }
 
-      assert.equal(status, 'Processed');
+      assert.equal(status, 'Processed')
     })
 
     it.skip('returns an error for an invalid request ID', async () => {
-      assert.equal(await api.poll.requestState(BAD_REQUEST_ID), "Unable to access request's status");
+      assert.equal(await api.poll.requestState(BAD_REQUEST_ID), "Unable to access request's status")
     })
   })
 })

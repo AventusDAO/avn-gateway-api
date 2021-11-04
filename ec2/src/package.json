@@ -6,8 +6,8 @@
   "description": "Connects to the AVN and keeps connection in memory",
   "scripts": {
     "start": "node index.js",
-    "pretty": "prettier --config ../.prettierrc.json --check '**/*.{js,json}'",
-    "pretty:fix": "prettier --config ../.prettierrc.json --write '**/*.{js,json}'",
+    "pretty": "prettier --config ../.prettierrc.json --check \"**/*.{js,json}\"",
+    "pretty:fix": "prettier --config ../.prettierrc.json --write \"**/*.{js,json}\"",
     "format": "npm run pretty:fix"
   },
   "dependencies": {

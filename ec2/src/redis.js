@@ -67,20 +67,6 @@ function getKey(key) {
   return `${SLOT_PREFIX}${key}`
 }
 
-async function addAvnTransaction(_transactionHash, transactionData) {
-  const transactionHash = getKey(_transactionHash)
-
-  if (await redisClient.exists(transactionHash)) {
-    throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
-  }
-
-  await redisClient
-    .multi()
-    .hset(transactionHash, transactionData)
-    .zadd(PENDING_TX_KEY.ALL, '+inf', _transactionHash)
-    .exec()
-}
-
 async function addFailedAvnTransaction(_transactionHash, senderAddress, senderNonce) {
   const transactionHash = getKey(_transactionHash)
 
@@ -94,8 +80,8 @@ async function addFailedAvnTransaction(_transactionHash, senderAddress, senderNo
   )
 }
 
-async function addPendingAvnTransaction(_transactionHash, senderAddress, senderNonce) {
-  const transactionHash = getKey(_transactionHash)
+async function addPendingAvnTransaction(requestId, rawTransactionHash, senderAddress, senderNonce) {
+  const transactionHash = getKey(rawTransactionHash)
 
   if (await redisClient.exists(transactionHash)) {
     throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
@@ -104,7 +90,8 @@ async function addPendingAvnTransaction(_transactionHash, senderAddress, senderN
   await redisClient
     .multi()
     .hset(transactionHash, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
-    .zadd(PENDING_TX_KEY.ALL, '+inf', _transactionHash)
+    .zadd(PENDING_TX_KEY.ALL, '+inf', rawTransactionHash)
+    .set(requestId, rawTransactionHash)
     .exec()
 }
 
@@ -160,6 +147,10 @@ async function getNextTransactionsToCheck() {
   return txToCheckNext[1]
 }
 
+async function getTransactionHashByRequestId(requestId) {
+  await redisClient.get(requestId)
+}
+
 function buildTransactionJson(senderAddress, senderNonce, status) {
   const result = {}
   result[transactionObject.senderAddress] = senderAddress
@@ -196,5 +187,6 @@ module.exports = {
   setNonce,
   refreshNonce,
   getNextTransactionsToCheck,
-  resolvePendingAvnTransactions
+  resolvePendingAvnTransactions,
+  getTransactionHashByRequestId
 }

@@ -90,7 +90,7 @@ async function signAndSend(requestId, txn) {
     throw err
   }
 
-  redis.addPendingAvnTransaction(requestId, result.transactionHash, sender.address.toString(), nonce.toString())
+  await redis.addPendingAvnTransaction(requestId, result.transactionHash, sender.address.toString(), nonce.toString())
 
   return result
 }

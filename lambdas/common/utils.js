@@ -1,6 +1,7 @@
 const { decodeAddress, encodeAddress } = require('@polkadot/keyring')
 const { hexToU8a, isHex } = require('@polkadot/util')
 const BN = require('bn.js')
+const { validate: uuidValidate } = require('uuid')
 
 function isValidAccountId(accountId) {
   try {
@@ -15,8 +16,8 @@ function isValidAmount(amount) {
   return amount.match(/^[0-9]+$/) && !new BN(amount).isZero()
 }
 
-function isValidRequestId(requestId) {
-  return isHex(requestId) && requestId.split('').length == 66
+function isValidUUID(requestId) {
+  return uuidValidate(requestId)
 }
 
 function isValidTokenId(tokenId) {
@@ -35,7 +36,7 @@ module.exports = {
   logError,
   isValidAccountId,
   isValidAmount,
-  isValidRequestId,
   isValidTokenId,
+  isValidUUID,
   toBnString
 }

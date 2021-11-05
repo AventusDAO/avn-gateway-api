@@ -48,7 +48,7 @@ async function makeCall(call, responseObject) {
   if (call.method !== 'requestState') {
     utils.logError("method must be 'requestState'", call.id, 'poll-handler.makeCall.method', call.method)
     responseObject.error = { code: -32601, message: 'Method not found' }
-  } else if (utils.isValidRequestId(call.params[0])) {
+  } else if (utils.isValidUUID(call.params[0])) {
     try {
       responseObject.result = await poll(call.id, call.params[0])
     } catch (err) {

@@ -1,4 +1,4 @@
-const utils = require('../common/utils.js')
+const utils = require('../layer/utils.js')
 const MQSender = require('./mqSender.js')
 
 // TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy

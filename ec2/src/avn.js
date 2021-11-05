@@ -39,8 +39,12 @@ async function poll(requestId) {
   }
 
   try {
+    log.info("Poll ", requestId)
+
     if (!isTransactionHash(requestId)) {
+      log.info("getting txHash for ", requestId)
       requestId = await redis.getTransactionHashByRequestId(requestId)
+      log.info("txHash: ", requestId)
     }
 
     let tx = await redis.getAvnTransaction(requestId)
@@ -90,6 +94,7 @@ async function signAndSend(requestId, txn) {
     throw err
   }
 
+  log.info("addPendingAvnTransaction: ", requestId, result.transactionHash)
   redis.addPendingAvnTransaction(requestId, result.transactionHash, sender.address.toString(), nonce.toString())
 
   return result

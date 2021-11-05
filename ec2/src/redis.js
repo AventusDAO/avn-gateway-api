@@ -75,10 +75,10 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   }
 
   await redisClient
-  .multi()
-  .hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed))
-  .set(requestId, txHashOrRequestId)
-  .exec()
+    .multi()
+    .hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed))
+    .set(requestId, txHashOrRequestId)
+    .exec()
 }
 
 async function addPendingAvnTransaction(requestId, rawTransactionHash, senderAddress, senderNonce) {

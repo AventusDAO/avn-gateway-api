@@ -95,7 +95,7 @@ async function signAndSend(requestId, txn) {
   }
 
   log.info(`addPendingAvnTransaction: ${requestId}, ${result.transactionHash}`)
-  redis.addPendingAvnTransaction(requestId, result.transactionHash, sender.address.toString(), nonce.toString())
+  await redis.addPendingAvnTransaction(requestId, result.transactionHash, sender.address.toString(), nonce.toString())
 
   return result
 }

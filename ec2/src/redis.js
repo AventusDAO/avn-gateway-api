@@ -97,6 +97,9 @@ async function addPendingAvnTransaction(requestId, transactionHash, senderAddres
     .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
     .set(requestIdKey, transactionHash)
     .exec()
+
+    log.info(`**** Getting requestId mapping: ${await redisClient.get(requestIdKey)}`)
+
 }
 
 // Returns null if txHashOrRequestIdKey is not found

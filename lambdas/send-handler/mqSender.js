@@ -52,11 +52,13 @@ MQSender.prototype.connectToMessageBroker = async function() {
 
       if (err) {
         console.error('[AMQP] connect error', err.message)
+        self.amqpConnected = false
         reject()
       }
 
       conn.on('error', function(err) {
         console.error('[AMQP] connection error', err.message)
+        self.amqpConnected = false
         reject()
       })
 

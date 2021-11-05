@@ -170,7 +170,7 @@ async function trySendAvnTx(message) {
 
 async function sendAvnTx(request) {
   logger.trace(`Request body: ${JSON.stringify(request)}`)
-  const { requestId, txType, palletName, method, params } = request
+  const { callId, txType, palletName, method, params } = request
   let result = null
 
   switch(txType) {

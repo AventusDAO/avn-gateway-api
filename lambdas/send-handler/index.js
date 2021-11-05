@@ -1,33 +1,41 @@
 const utils = require('../common/utils.js')
-const EC2 = require('../common/resources.json').ec2_endpoint
-const axios = require('axios')
+const MQSender = require('./mqSender.js')
+
+// TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
+let mqSender
+const connectToMQ = async () => {
+  if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
+    mqSender = new MQSender(
+      process.env.SECRET_MANAGER_REGION,
+      process.env.MQ_SECRET_ARN,
+      process.env.MQ_BROKER_AMQP_ENDPOINT
+    )
+    await mqSender.connectToMessageBroker()
+  }
+}
 
 exports.handler = async event => {
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify(await processRequest(event.body))
+  try {
+    await connectToMQ()
+    return {
+      statusCode: 200,
+      body: JSON.stringify(await processRequest(event.body))
+    }
+  } catch (err) {
+    return {
+      statusCode: 500,
+      error: { message: err.message },
+      body: JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32603, message: 'Internal error' } })
+    }
   }
-  return response
 }
 
-async function sendTx(callId, palletName, method, params) {
-  let response
+async function sendTx(callId, txType, queueName, palletName, method, params) {
   try {
-    response = await axios.post(EC2 + 'avnTx', { callId, palletName, method, params })
+    return await mqSender.sendMessageToMQ(queueName, { callId, txType, palletName, method, params })
   } catch (err) {
     throw err
   }
-  return response.data.error || response.data.requestId
-}
-
-async function sendProxyTx(callId, palletName, method, params) {
-  let response
-  try {
-    response = await axios.post(EC2 + 'avnProxy', { callId, palletName, method, params })
-  } catch (err) {
-    throw err
-  }
-  return response.data.requestId
 }
 
 async function processRequest(requestObject) {
@@ -59,7 +67,17 @@ async function callSwitch(call, responseObject) {
     case 'transferAvt':
       if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
-          responseObject.result = await sendTx(call.id, 'balances', 'transfer', [call.params[0], call.params[1]])
+          responseObject.result = await sendTx(
+            call.id,
+            'avnTx',
+            process.env.MQ_AVN_TX_QUEUE,
+            'balances',
+            'transfer', 
+            [
+              call.params[0],
+              call.params[1]
+            ]
+          )
         } catch (err) {
           utils.logError('failed to send transaction', call.id, 'send-handler.transferAvt.sendTx', err)
           responseObject.error = { code: -32603, message: 'Internal error' }
@@ -91,8 +109,10 @@ async function callSwitch(call, responseObject) {
               Sr25519: call.params.signature
             }
           }
-          responseObject.result = await sendProxyTx(
+          responseObject.result = await sendTx(
             call.id,
+            'avnProxy',
+            process.env.MQ_AVN_TX_QUEUE,
             pallet,
             method,
             formatter.encode(proof, call.params.innerArgs)
@@ -140,8 +160,16 @@ const codeFormatters = {
   }
 }
 
-// async function testlocal() {
-//   console.log('transferAvt:', await processRequest('{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'));
+// async function testlocal(n) {
+//   await connectToMQ()
+//   for (var i = 0; i < n; i++) {
+//     console.info('transferAvt:', await processRequest(`{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":${i}}`))
+//     await sleep(1000)
+//   }
 // }
-//
-// testlocal();
+
+// function sleep(ms) {
+//   return new Promise((resolve, reject) => setTimeout(resolve, ms) )
+// }
+
+// testlocal(1)

@@ -3,8 +3,6 @@
 // It receives a number of messages specified in the configuration file, then prints out each message as `Sent request [message]`,
 // and finally acknowledges the queue to delete the message.
 
-// TODO: Replace the service listening to avnTx post
-
 'use strict'
 
 const amqp = require('amqplib/callback_api')
@@ -172,8 +170,21 @@ async function trySendAvnTx(message) {
 
 async function sendAvnTx(request) {
   logger.trace(`Request body: ${JSON.stringify(request)}`)
-  const result = await avn.tx(request.palletName, request.method, request.params)
-  logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`)
+  const { callId, txType, palletName, method, params } = request
+  let result = null
+
+  switch(txType) {
+    case 'avnTx':
+      result = await avn.tx(palletName, method, params)
+      logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`)
+      break
+    case 'avnProxy':
+      result = await avn.proxy(palletName, method, params)
+      logger.info(`Proxy request sent with ID: ${result.requestId}`)
+      break
+    default:
+      throw Error('Transaction type not supported')
+  }
 }
 
 module.exports = { connectToMQ }

@@ -1,9 +1,10 @@
 {
   "name": "send-handler",
   "dependencies": {
-    "axios": "^0.21.4",
+    "@aws-sdk/client-secrets-manager": "^3.39.0",
     "@polkadot/keyring": "^7.4.1",
     "@polkadot/util": "^7.4.1",
+    "amqplib": "^0.8.0",
     "bn.js": "^5.2.0"
   }
 }

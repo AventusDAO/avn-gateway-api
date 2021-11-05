@@ -4,7 +4,7 @@ const MQSender = require('./mqSender.js')
 // TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
 let mqSender
 const connectToMQ = async () => {
-  if (!mqSender || !mqSender.amqpConnection) {
+  if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
     mqSender = new MQSender(
       process.env.SECRET_MANAGER_REGION,
       process.env.MQ_SECRET_ARN,
@@ -24,7 +24,8 @@ exports.handler = async event => {
   } catch (err) {
     return {
       statusCode: 500,
-      error: { message: err.message }
+      error: { message: err.message },
+      body: JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32603, message: 'Internal error' } })
     }
   }
 }
@@ -71,7 +72,7 @@ async function callSwitch(call, responseObject) {
             'avnTx',
             process.env.MQ_AVN_TX_QUEUE,
             'balances',
-            'transfer', 
+            'transfer',
             [
               call.params[0],
               call.params[1]

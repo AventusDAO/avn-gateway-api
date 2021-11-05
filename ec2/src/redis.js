@@ -90,16 +90,12 @@ async function addPendingAvnTransaction(requestId, transactionHash, senderAddres
     throw new Error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`)
   }
 
-  log.info(`addPendingAvnTransaction: requestId=${requestIdKey}`)
   await redisClient
     .multi()
     .hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
     .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
     .set(requestIdKey, transactionHash)
     .exec()
-
-    log.info(`**** Getting requestId mapping: ${await getTransactionHashByRequestId(requestId)}`)
-
 }
 
 // Returns null if txHashOrRequestIdKey is not found
@@ -156,8 +152,6 @@ async function getNextTransactionsToCheck() {
 
 async function getTransactionHashByRequestId(requestId) {
   const requestIdKey = getKey(requestId)
-  log.info(`getTransactionHashByRequestId: requestId=${requestIdKey}`)
-
   return await redisClient.get(requestIdKey)
 }
 

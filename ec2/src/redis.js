@@ -67,17 +67,19 @@ function getKey(key) {
   return `${SLOT_PREFIX}${key}`
 }
 
-async function addFailedAvnTransaction(_transactionHash, senderAddress, senderNonce) {
-  const transactionHash = getKey(_transactionHash)
+// key: this is either an avn transaction hash or a requestId
+async function addFailedAvnTransaction(requestId, rawkey, senderAddress, senderNonce) {
+  const key = getKey(rawkey)
 
-  if (await redisClient.exists(transactionHash)) {
-    throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
+  if (await redisClient.exists(key)) {
+    throw new Error(`Key (${key}) exists already, cannot add duplicate value.`)
   }
 
-  await redisClient.hset(
-    transactionHash,
-    buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed)
-  )
+  await redisClient
+  .multi()
+  .hset(key, buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed))
+  .set(requestId, rawkey)
+  .exec()
 }
 
 async function addPendingAvnTransaction(requestId, rawTransactionHash, senderAddress, senderNonce) {
@@ -96,9 +98,9 @@ async function addPendingAvnTransaction(requestId, rawTransactionHash, senderAdd
 }
 
 // Returns null if key is not found
-async function getAvnTransaction(_transactionHash) {
-  const transactionHash = getKey(_transactionHash)
-  const result = await redisClient.hgetall(transactionHash)
+async function getAvnTransaction(rawkey) {
+  const key = getKey(rawkey)
+  const result = await redisClient.hgetall(key)
   return Object.keys(result).length === 0 ? undefined : result
 }
 

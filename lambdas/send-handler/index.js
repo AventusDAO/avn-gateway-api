@@ -22,22 +22,10 @@ exports.handler = async (event, context) => {
       body: JSON.stringify(await processRequest(event.body, context.awsRequestId))
     }
   } catch (err) {
-    let id = null
-    try {
-      id = JSON.parse(requestObject).id
-      utils.logError('failed to connect to MQ', id, 'send-handler.exports.handler.connectToMQ', err)
-    } catch (err2) {
-      utils.logError(
-        'failed to connect to MQ, failed to parse JSON',
-        id,
-        'send-handler.exports.handler.connectToMQ.parse',
-        err2
-      )
-    }
     return {
       statusCode: 500,
       error: { message: err.message },
-      body: JSON.stringify({ jsonrpc: '2.0', id: id, error: { code: -32603, message: 'Internal error' } })
+      body: JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32603, message: 'Internal error' } })
     }
   }
 }

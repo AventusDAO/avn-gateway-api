@@ -98,7 +98,7 @@ async function addPendingAvnTransaction(requestId, transactionHash, senderAddres
     .set(requestIdKey, transactionHash)
     .exec()
 
-    log.info(`**** Getting requestId mapping: ${await redisClient.get(requestIdKey)}`)
+    log.info(`**** Getting requestId mapping: ${await getTransactionHashByRequestId(requestId)}`)
 
 }
 
@@ -158,7 +158,7 @@ async function getTransactionHashByRequestId(requestId) {
   const requestIdKey = getKey(requestId)
   log.info(`getTransactionHashByRequestId: requestId=${requestIdKey}`)
 
-  await redisClient.get(requestIdKey)
+  return await redisClient.get(requestIdKey)
 }
 
 function buildTransactionJson(senderAddress, senderNonce, status) {

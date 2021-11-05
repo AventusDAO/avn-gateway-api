@@ -62,8 +62,8 @@ MQSender.prototype.connectToMessageBroker = async function() {
         reject()
       })
 
-      conn.on("close", function() {
-        console.error("[AMQP] connection closed");
+      conn.on('close', function() {
+        console.error('[AMQP] connection closed')
         self.amqpConnected = false
         reject()
       })

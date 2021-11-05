@@ -11,13 +11,7 @@ const join = require('path').join
 const { spawn } = require('child-process-async')
 const os = require('os')
 
-const LAMBDAS = [
-  'poll-handler',
-  'query-handler',
-  'send-handler',
-  'authorisation-handler',
-  'tx-status-update-handler'
-]
+const LAMBDAS = ['poll-handler', 'query-handler', 'send-handler', 'authorisation-handler', 'tx-status-update-handler']
 
 async function publish(lambda) {
   console.log('Publishing', lambda, 'to AWS...')

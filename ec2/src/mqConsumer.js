@@ -173,7 +173,7 @@ async function sendAvnTx(request) {
   const { callId, txType, palletName, method, params } = request
   let result = null
 
-  switch(txType) {
+  switch (txType) {
     case 'avnTx':
       result = await avn.tx(palletName, method, params)
       logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`)

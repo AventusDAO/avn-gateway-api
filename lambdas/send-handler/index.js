@@ -14,31 +14,43 @@ const connectToMQ = async () => {
   }
 }
 
-exports.handler = async event => {
+exports.handler = async (event, context) => {
   try {
     await connectToMQ()
     return {
       statusCode: 200,
-      body: JSON.stringify(await processRequest(event.body))
+      body: JSON.stringify(await processRequest(event.body, context.awsRequestId))
     }
   } catch (err) {
+    let id = null
+    try {
+      id = JSON.parse(requestObject).id
+      utils.logError('failed to connect to MQ', id, 'send-handler.exports.handler.connectToMQ', err)
+    } catch (err2) {
+      utils.logError(
+        'failed to connect to MQ, failed to parse JSON',
+        id,
+        'send-handler.exports.handler.connectToMQ.parse',
+        err2
+      )
+    }
     return {
       statusCode: 500,
       error: { message: err.message },
-      body: JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32603, message: 'Internal error' } })
+      body: JSON.stringify({ jsonrpc: '2.0', id: id, error: { code: -32603, message: 'Internal error' } })
     }
   }
 }
 
-async function sendTx(callId, txType, queueName, palletName, method, params) {
+async function sendTx(requestId, txType, queueName, palletName, method, params) {
   try {
-    return await mqSender.sendMessageToMQ(queueName, { callId, txType, palletName, method, params })
+    return await mqSender.sendMessageToMQ(queueName, { requestId, txType, palletName, method, params })
   } catch (err) {
     throw err
   }
 }
 
-async function processRequest(requestObject) {
+async function processRequest(requestObject, requestId) {
   let responseObject = { jsonrpc: '2.0' }
   let call
 
@@ -51,32 +63,31 @@ async function processRequest(requestObject) {
     return responseObject
   }
 
+  console.info('CALLID_REQUESTID:', call.id + ':' + requestId)
+
   if (typeof call.method !== 'string') {
     utils.logError('method type must be string', call.id, 'send-handler.processRequest.method', call.method)
     responseObject.error = { code: -32600, message: 'Invalid Request' }
   } else {
-    responseObject = await callSwitch(call, responseObject)
+    responseObject = await callSwitch(call, responseObject, requestId)
   }
 
   responseObject.id = call.id
   return responseObject
 }
 
-async function callSwitch(call, responseObject) {
+async function callSwitch(call, responseObject, requestId) {
   switch (call.method) {
     case 'transferAvt':
       if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
         try {
           responseObject.result = await sendTx(
-            call.id,
+            requestId,
             'avnTx',
             process.env.MQ_AVN_TX_QUEUE,
             'balances',
-            'transfer', 
-            [
-              call.params[0],
-              call.params[1]
-            ]
+            'transfer',
+            [call.params[0], call.params[1]]
           )
         } catch (err) {
           utils.logError('failed to send transaction', call.id, 'send-handler.transferAvt.sendTx', err)
@@ -110,7 +121,7 @@ async function callSwitch(call, responseObject) {
             }
           }
           responseObject.result = await sendTx(
-            call.id,
+            requestId,
             'avnProxy',
             process.env.MQ_AVN_TX_QUEUE,
             pallet,

@@ -4,7 +4,7 @@ const MQSender = require('./mqSender.js')
 // TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
 let mqSender
 const connectToMQ = async () => {
-  if (!mqSender || !mqSender.amqpConnection) {
+  if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
     mqSender = new MQSender(
       process.env.SECRET_MANAGER_REGION,
       process.env.MQ_SECRET_ARN,

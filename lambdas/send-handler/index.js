@@ -24,7 +24,8 @@ exports.handler = async event => {
   } catch (err) {
     return {
       statusCode: 500,
-      error: { message: err.message }
+      error: { message: err.message },
+      body: JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32603, message: 'Internal error' } })
     }
   }
 }

@@ -69,6 +69,7 @@ function getKey(key) {
 
 async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce) {
   const txHashOrRequestIdKey = getKey(txHashOrRequestId)
+  const requestIdKey = getKey(requestId)
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
     throw new Error(`Key (${txHashOrRequestIdKey}) exists already, cannot add duplicate value.`)
@@ -77,12 +78,13 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   await redisClient
     .multi()
     .hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed))
-    .set(requestId, txHashOrRequestId)
+    .set(requestIdKey, txHashOrRequestId)
     .exec()
 }
 
 async function addPendingAvnTransaction(requestId, transactionHash, senderAddress, senderNonce) {
   const transactionHashKey = getKey(transactionHash)
+  const requestIdKey = getKey(requestId)
 
   if (await redisClient.exists(transactionHashKey)) {
     throw new Error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`)
@@ -92,7 +94,7 @@ async function addPendingAvnTransaction(requestId, transactionHash, senderAddres
     .multi()
     .hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
     .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
-    .set(requestId, transactionHash)
+    .set(requestIdKey, transactionHash)
     .exec()
 }
 
@@ -149,7 +151,8 @@ async function getNextTransactionsToCheck() {
 }
 
 async function getTransactionHashByRequestId(requestId) {
-  await redisClient.get(requestId)
+  const requestIdKey = getKey(requestId)
+  await redisClient.get(requestIdKey)
 }
 
 function buildTransactionJson(senderAddress, senderNonce, status) {

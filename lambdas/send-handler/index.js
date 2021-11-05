@@ -72,7 +72,7 @@ async function callSwitch(call, responseObject) {
             'avnTx',
             process.env.MQ_AVN_TX_QUEUE,
             'balances',
-            'transfer', 
+            'transfer',
             [
               call.params[0],
               call.params[1]

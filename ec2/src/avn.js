@@ -1,5 +1,6 @@
 'use strict'
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
+const { isHex } = require('@polkadot/util')
 const config = require('multiconfig').load()
 const log4js = require('log4js')
 const log = log4js.getLogger()
@@ -16,19 +17,19 @@ async function query(palletName, storageName, params) {
   return result
 }
 
-async function tx(palletName, method, params) {
+async function tx(requestId, palletName, method, params) {
   log.trace(`Sending extrinsic api.tx.${palletName}.${method}`)
   const txn = await api.tx[palletName][method](...params)
 
-  return await signAndSend(txn)
+  return await signAndSend(requestId, txn)
 }
 
-async function proxy(palletName, method, params) {
+async function proxy(requestId, palletName, method, params) {
   log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
   let innerCall = await api.tx[palletName][method](...params)
   const txn = await api.tx[palletName]['proxy'](innerCall)
 
-  return await signAndSend(txn)
+  return await signAndSend(requestId, txn)
 }
 
 async function poll(requestId) {
@@ -38,6 +39,10 @@ async function poll(requestId) {
   }
 
   try {
+    if (!isTransactionHash(requestId)) {
+      requestId = await redis.getTransactionHashByRequestId(requestId)
+    }
+
     let tx = await redis.getAvnTransaction(requestId)
 
     if (!tx) {
@@ -63,7 +68,7 @@ async function getNonce(senderAddress) {
   return nonce
 }
 
-async function signAndSend(txn) {
+async function signAndSend(requestId, txn) {
   let result, nonce
 
   try {
@@ -71,16 +76,21 @@ async function signAndSend(txn) {
     nonce = await getNonce(sender.address)
     let signedTx = await txn.signAsync(sender, { nonce })
     let receipt = await signedTx.send()
-    let requestId = receipt.toString()
-    result = { requestId }
+    result = { transactionHash: receipt.toString() }
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`)
     await redis.resetNonce(sender.address)
-    await redis.addFailedAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
+
+    // If we failed to get a true transaction hash, use the requestId as key
+    if(!result || !result.transactionHash) {
+      result.transactionHash = requestId
+    }
+    await redis.addFailedAvnTransaction(requestId, result.transactionHash, sender.address.toString(), nonce.toString())
+
     throw err
   }
 
-  redis.addPendingAvnTransaction(result.requestId, sender.address.toString(), nonce.toString())
+  redis.addPendingAvnTransaction(requestId, result.transactionHash, sender.address.toString(), nonce.toString())
 
   return result
 }
@@ -110,6 +120,10 @@ async function connectToAvN() {
 function createAccount(suri) {
   const keyring = new Keyring({ type: 'sr25519' })
   return keyring.addFromUri(suri)
+}
+
+function isTransactionHash(requestId) {
+  return isHex(requestId) && requestId.split('').length == 66
 }
 
 module.exports = {

@@ -20,7 +20,7 @@ const defaultEnvironmentVariable = {
 let amqpConnection = null
 let amqpChannel = null
 
-describe('Lambda function: msg-publisher-test', function() {
+xdescribe('Lambda function: msg-publisher-test', function() {
   before(async () => {
     await setup()
   })

@@ -14,7 +14,10 @@ function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
       const pk = keyring.decodeAddress(accountAddressOrPublicKey)
       return u8aToHex(pk)
     } catch (error) {
-      console.error('Expected SS58 address (eg: "5FbUQ...") or hex public key (eg: "0x9c2bf..."), received:', accountAddressOrPublicKey)
+      console.error(
+        'Expected SS58 address (eg: "5FbUQ...") or hex public key (eg: "0x9c2bf..."), received:',
+        accountAddressOrPublicKey
+      )
       return null
     }
   }

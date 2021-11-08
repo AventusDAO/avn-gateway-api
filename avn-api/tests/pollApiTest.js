@@ -11,6 +11,7 @@ describe('Polling api calls:', async () => {
 
   before(async () => {
     api = await helper.avnApi()
+    console.log(api)
     relayer = accounts.relayer.address
     sender = accounts.sender.address
     recipient = accounts.user1.address

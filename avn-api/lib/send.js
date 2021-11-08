@@ -25,8 +25,8 @@ function transferToken(api, queryApi) {
 }
 
 Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from, to, token, amount) {
-  let nonce = await this.smartNonce(queryApi, from)
-  let signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce)
+  const nonce = await this.smartNonce(queryApi, from)
+  const signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce)
 
   return await this.postRequest(api, 'proxy', {
     pallet: 'tokenManager',

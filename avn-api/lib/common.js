@@ -15,7 +15,7 @@ function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
       return u8aToHex(pk)
     } catch {
       const msg = 'Expected SS58 address (eg: "5FbUQ...") or hex public key (eg: "0x9c2bf..."), received:'
-      console.error('Error -', msg, accountAddressOrPublicKey)
+      console.error('Error -', msg, accountAddressOrPublicKey, error)
       return null
     }
   }

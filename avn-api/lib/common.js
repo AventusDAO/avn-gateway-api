@@ -3,20 +3,19 @@
 const { isHex, u8aToHex } = require('@polkadot/util')
 const { TypeRegistry } = require('@polkadot/types')
 const { Keyring } = require('@polkadot/keyring')
-
 const registry = new TypeRegistry()
-let keyring = new Keyring({ type: 'sr25519' })
+const keyring = new Keyring({ type: 'sr25519' })
 
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
   if (isAccountPK(accountAddressOrPublicKey)) {
     return accountAddressOrPublicKey
   } else {
     try {
-      let pk = keyring.decodeAddress(accountAddressOrPublicKey)
+      const pk = keyring.decodeAddress(accountAddressOrPublicKey)
       return u8aToHex(pk)
     } catch (error) {
-      // TODO: handle this better
-      console.log('Error converting invalid address', error)
+      const msg = 'Expected SS58 address (eg: "5FbUQ...") or hex public key (eg: "0x9c2bf..."), received:'
+      console.error('Error -', msg, accountAddressOrPublicKey, error)
       return null
     }
   }

@@ -3,7 +3,6 @@
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
 const common = require('./common.js')
 
-//TODO: make this configurable using a .env file or some other way
 const MAX_TOKEN_AGE_MSEC = 60000
 const SIGNING_CONTEXT = 'awt_gateway_api'
 
@@ -11,14 +10,9 @@ function generateAwtToken(suri) {
   const tokenOwner = common.keyring.addFromUri(suri)
   const issuedAt = new Date().toISOString()
   const avnPublicKey = u8aToHex(tokenOwner.publicKey)
-
-  // Encode the data to sign
   const encodedData = encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt)
-
-  // Sign the avnPublicKey of the token owner
   const signature = tokenOwner.sign(encodedData)
 
-  // generate the token - base64 encoded
   const payload = {
     pk: avnPublicKey,
     iat: issuedAt,

@@ -1,18 +1,18 @@
 'use strict'
 
-const common = require('./common.js')
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
+const common = require('./common.js')
 
 const SIGNED_TRANSFER_SIGNATURE_CONTEXT = 'authorization for transfer operation'
 
-let transferToken = {
+const transferToken = {
   createAuthorisationSignature: function(relayer, from, to, token, amount, nonce) {
-    let signerSuri = common.obtainClientSuri()
-    let relayerPublicKey = common.convertToPublicKeyIfNeeded(relayer)
-    let senderPublicKey = common.convertToPublicKeyIfNeeded(from)
-    let recipientPublicKey = common.convertToPublicKeyIfNeeded(to)
+    const signerSuri = common.obtainClientSuri()
+    const relayerPublicKey = common.convertToPublicKeyIfNeeded(relayer)
+    const senderPublicKey = common.convertToPublicKeyIfNeeded(from)
+    const recipientPublicKey = common.convertToPublicKeyIfNeeded(to)
 
-    let dataToSign = {
+    const dataToSign = {
       context: SIGNED_TRANSFER_SIGNATURE_CONTEXT,
       relayer: relayerPublicKey,
       from: senderPublicKey,
@@ -22,7 +22,7 @@ let transferToken = {
       nonce: nonce
     }
 
-    let encodedDataInHex = this.encodeSignatureData(dataToSign)
+    const encodedDataInHex = this.encodeSignatureData(dataToSign)
     return signData(signerSuri, encodedDataInHex)
   },
 
@@ -51,7 +51,7 @@ let transferToken = {
 
 function signData(signerSuri, encodedData) {
   const signer = common.keyring.addFromUri(signerSuri)
-  let signature = u8aToHex(signer.sign(encodedData))
+  const signature = u8aToHex(signer.sign(encodedData))
   return signature
 }
 

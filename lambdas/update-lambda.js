@@ -15,8 +15,6 @@ const { spawn } = require('child-process-async')
 const os = require('os')
 const zipdir = require('zip-dir')
 
-let layers
-
 // TODO:
 // Update lambda test scripts
 
@@ -31,6 +29,7 @@ async function main() {
     lambda: join(__dirname, lambda),
     lambdaIdx: join(__dirname, lambda, 'index.js'),
     lambdaPkg: join(__dirname, lambda, 'package.json'),
+    layer: join(__dirname, 'layer'),
     layerPkg: join(__dirname, 'layer/nodejs/package.json')
   }
 
@@ -38,32 +37,31 @@ async function main() {
   await installNpmModules(lambda, paths.lambda)
   const usesLambdaLayer = await updateDependenciesReferences(paths.lambdaIdx)
   if (usesLambdaLayer) {
-    layers = await getLambdaLayer(lambda, 'common')
+    layers = await getLambdaLayer(lambda, 'common-layer', paths.layer)
   }
   await publishSourceCode(lambda, layers)
 }
 
-async function getLambdaLayer(lambda, layerName) {
+async function getLambdaLayer(lambda, layerName, layerPath) {
   const functionDetails = await aws.send(new GetFunctionCommand({ FunctionName: lambda }))
   if (!functionDetails.Configuration?.Layers)
   {
     layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
-    if (layer) {
+    if (layer.Layers.length > 0) {
+      // If there are changes in layer code or modules, run update-layer.js first
       return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
     } else {
-      return [await createLambdaLayer(layerName)]
+      const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
+      return [LayerVersionArn]
     }
   }
 }
  
-async function createLambdaLayer(layerName) {
-  // TODO: install layer modules 
-  // TODO: Create a zip file for the layer  
+async function createLambdaLayer(layerName, layerPath) {
+  await installNpmModules(layerName, layerPath)
   await aws.send(new PublishLayerVersionCommand({
     LayerName: layerName,
-    Content: {
-      ZipFile: base64Encode(zipFile)
-    }
+    Content: { ZipFile: await zipdir(layerPath) }
   }))
 }
 

@@ -1,22 +1,30 @@
 #!/usr/bin/env node
 
+/*
+  Description: 
+    This script publishes any changes made within the lambda function folder to the corresponding AWS lambda function.
+    It first cleans up node modules in a lambda function, removes any dependencies already defined in the layer folder.
+    Then it installs all lambda function dependencies, creates a zip file containing all files within the lambda folder, 
+    and publishes it to the AWS lambda function with a lambda layer if it is required by index.js.
+    TODO -> if the lambda layer is required by any lambda function files
+    If the changes are made within the layer folder, please run update-layer.js instead
+    In order to use the testlocal function at the end of each lambda function's index.js file, please run update-local.js first
+    TODO -> Update update.js and rename it to update-local.js, so it only merges layer dependencies and files into the lambda function,
+    and installs all the dependencies. Update all require statement URIs from /opt/nodejs to ../layer/nodejs/
+*/
+
 const {
   LambdaClient,
   GetFunctionCommand,
   ListLayersCommand,
-  PublishLayerVersionCommand,
   UpdateFunctionCodeCommand,
   UpdateFunctionConfigurationCommand
 } = require('@aws-sdk/client-lambda')
 const aws = new LambdaClient({ region: 'eu-west-1' })
 const fs = require('fs')
 const join = require('path').join
-const { spawn } = require('child-process-async')
-const os = require('os')
 const zipdir = require('zip-dir')
-
-// TODO:
-// Update lambda test scripts
+const { installNpmModules, createLambdaLayer } = require('./update-layer.js')
 
 async function main() {
   const lambda = process.argv[2]
@@ -39,7 +47,8 @@ async function main() {
   if (usesLambdaLayer) {
     layers = await getLambdaLayer(lambda, 'common-layer', paths.layer)
   }
-  await publishSourceCode(lambda, layers)
+  await publishDescriptionAndLayer(lambda, layers)
+  await publishSourceCode(lambda)
 }
 
 async function getLambdaLayer(lambda, layerName, layerPath) {
@@ -48,32 +57,37 @@ async function getLambdaLayer(lambda, layerName, layerPath) {
   {
     layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
     if (layer.Layers.length > 0) {
-      // If there are changes in layer code or modules, run update-layer.js first
       return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
     } else {
+      await installNpmModules(layerName, layerPath)
       const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
       return [LayerVersionArn]
     }
   }
 }
- 
-async function createLambdaLayer(layerName, layerPath) {
-  await installNpmModules(layerName, layerPath)
-  await aws.send(new PublishLayerVersionCommand({
-    LayerName: layerName,
-    Content: { ZipFile: await zipdir(layerPath) }
-  }))
+
+async function publishDescriptionAndLayer(lambda, layers) {
+  try {
+    console.log('Publishing Description and Layer for lambda function ', lambda, 'to AWS...')
+    await aws.send(new UpdateFunctionConfigurationCommand({
+      FunctionName: lambda,
+      Description: `${lambda} - Update script deployment`,
+      Layers: layers
+    }))
+    console.log('Description and Layer are Published', lambda)
+  } catch (err) {
+    console.log(lambda, '- Error:', err)
+  }
 }
 
-async function publishSourceCode(lambda, layers) {
-  console.log('Publishing', lambda, 'to AWS...')
-  const params = { ZipFile: await zipdir(lambda), FunctionName: lambda }
-  const config = { FunctionName: lambda, Description: `${lambda} - Update script deployment`, Layers: layers }
-
+async function publishSourceCode(lambda) {
   try {
-    await aws.send(new UpdateFunctionConfigurationCommand(config))
-    await aws.send(new UpdateFunctionCodeCommand(params))
-    console.log('Published ', lambda)
+    console.log('Publishing', lambda, 'to AWS...')
+    await aws.send(new UpdateFunctionCodeCommand({
+      ZipFile: await zipdir(lambda),
+      FunctionName: lambda
+    }))
+    console.log('Source Code is Published ', lambda)
   } catch (err) {
     console.log(lambda, '- Error:', err)
   }
@@ -97,14 +111,6 @@ async function updateDependenciesReferences(lambdaIdxPath) {
       })
     })
   })
-}
-
-async function installNpmModules(lambda, lambdaPath) {
-   const npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm'
-   const child = spawn(npmCmd, ['i'], { env: process.env, cwd: lambdaPath, stdio: 'ignore' })
-   await child.on('exit', () => {
-     console.log('Node modules for', lambda, 'updated')
-   })
 }
 
 function removeDependenciesAlreadyInLayer(paths) {

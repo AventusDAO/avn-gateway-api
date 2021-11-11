@@ -4,11 +4,6 @@ variable "service_version" {
   default     = "latest"
 }
 
-variable "region" {
-  type    = string
-  default = "eu-west-2"
-}
-
 variable "artifact_bucket" {
   type        = string
   description = "S3 bucket that stores the lambda artifacts"
@@ -35,4 +30,9 @@ variable "lambda_functions" {
     "send-handler": {},
     "query-handler": {}
   }
+}
+
+variable "rabbit_secret_arn" {
+  type        = string
+  description = "ARN of the rabbit user/password secret"
 }

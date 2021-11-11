@@ -22,6 +22,10 @@ resource "aws_apigatewayv2_route" "poll" {
   target             = "integrations/${aws_apigatewayv2_integration.poll.id}"
   authorizer_id      = aws_apigatewayv2_authorizer.authoriser.id
   authorization_type = "CUSTOM"
+
+  depends_on = [
+    aws_apigatewayv2_route.query
+  ]
 }
 
 resource "aws_apigatewayv2_integration" "send" {
@@ -64,6 +68,10 @@ resource "aws_apigatewayv2_route" "query" {
   target             = "integrations/${aws_apigatewayv2_integration.query.id}"
   authorizer_id      = aws_apigatewayv2_authorizer.authoriser.id
   authorization_type = "CUSTOM"
+
+  depends_on = [
+    aws_apigatewayv2_integration.send
+  ]
 }
 
 resource "aws_apigatewayv2_authorizer" "authoriser" {
@@ -155,7 +163,7 @@ resource "aws_iam_role_policy" "invocation_policy" {
     {
       "Action": "lambda:InvokeFunction",
       "Effect": "Allow",
-      "Resource": "${var.authoriser_arn}"
+      "Resource": "${var.authoriser_invoke_arn}"
     }
   ]
 }

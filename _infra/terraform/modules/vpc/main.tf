@@ -1,3 +1,5 @@
+data "aws_region" "current" {}
+
 resource "aws_vpc" "gateway" {
   cidr_block           = var.vpc_cidr_block
   instance_tenancy     = var.instance_tenancy
@@ -9,9 +11,10 @@ resource "aws_vpc" "gateway" {
 }
 
 resource "aws_subnet" "private_subnets" {
-  for_each   = var.private_zone_ips
-  vpc_id     = aws_vpc.gateway.id
-  cidr_block = each.value
+  for_each          = var.private_zone_ips
+  availability_zone = "${data.aws_region.current.name}${each.key}"
+  vpc_id            = aws_vpc.gateway.id
+  cidr_block        = each.value
 
   tags = merge(
     {"Name": "${var.name}-private-${each.key}"},

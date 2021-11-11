@@ -1,0 +1,29 @@
+environment: sandbox
+
+deployment:
+  image: 
+    repo: 189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/avn-connector
+    tag: latest
+    pullPolicy: Always
+  
+  server:
+    port: 5000
+
+  replicas: 2
+  rollingUpdate:
+    maxSurge: 25%
+    maxUnavailable: 20%
+  
+  resources: {}
+
+ingress:
+  class: alb
+
+  domain: localhost
+
+  tls:
+    enabled: false
+  
+service:
+  type: ClusterIP
+  port: 8080

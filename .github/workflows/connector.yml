@@ -1,4 +1,4 @@
-name: gateway-service
+name: avn-connector
 
 on:
   pull_request:
@@ -20,7 +20,7 @@ defaults:
 jobs:
   connector:
     runs-on: ubuntu-latest
-    name: package EC2 image
+    name: package avn-connector image
     steps:
       - uses: actions/checkout@v2
 
@@ -36,11 +36,11 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Create tag for PR
-        if: github.event.pull_request.merged != 'true'
+        if: github.ref != 'refs/heads/main'
         run: echo "DOCKER_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
       
       - name: Create tag for merge
-        if: github.event.pull_request.merged == 'true'
+        if: github.ref == 'refs/heads/main'
         run: echo "DOCKER_TAG=${GITHUB_SHA::8},latest" >> $GITHUB_ENV
 
       - name: Configure AWS credentials

@@ -1,4 +1,9 @@
-#!/usr/bin/env node
+/*
+  Description:
+    This script publish a new version of a lambda layer on AWS with the following steps:
+      1. Install all dependencies declared in layer/nodejs/package.json file
+      2. Create a new version of the lambda layer in AWS with a zip file contains all files within the lambdas/nodejs/ folder
+*/
 
 const {
   LambdaClient,
@@ -11,15 +16,16 @@ const { spawn } = require('child-process-async')
 const os = require('os')
 const zipdir = require('zip-dir')
 
+const LAYER_NAME = 'common-layer'
+
 async function main() {
   try {
     const paths = {
       layerPath: join(__dirname, 'layer'),
       layerNodejsPath: join(__dirname, 'layer/nodejs')
     }
-    const layerName = 'common-layer'
-    await installNpmModules(layerName, paths.layerNodejsPath)
-    const { LayerVersionArn } = await createLambdaLayer(layerName, paths.layerPath)
+    await installNpmModules(LAYER_NAME, paths.layerNodejsPath)
+    await createLambdaLayer(LAYER_NAME, paths.layerPath)
   } catch (err) {
     console.log('Updating lambda layer failed', err.message)
   }
@@ -57,6 +63,7 @@ async function createLambdaLayer(layerName, layerPath) {
 if (require.main === module) main()
 
 module.exports = {
+  LAYER_NAME,
   installNpmModules,
   createLambdaLayer,
   publishLambdaLayer

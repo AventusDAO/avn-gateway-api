@@ -1,15 +1,15 @@
-#!/usr/bin/env node
-
 /*
-  Description: 
+  Description:
     This script publishes any changes made within the lambda function folder to the corresponding AWS lambda function.
-    It first cleans up node modules in a lambda function, removes any dependencies already defined in the layer folder.
-    Then it installs all lambda function dependencies, creates a zip file containing all files within the lambda folder, 
-    and publishes it to the AWS lambda function with a lambda layer if it is required by any lambda function .js files.
-    If the changes are made within the layer folder, please run update-layer.js instead
-    In order to use the testlocal function at the end of each lambda function's index.js file, please run update-local.js first
-    TODO -> Update update.js and rename it to update-local.js, so it only merges layer dependencies and files into the lambda function,
-    and installs all the dependencies. Update all require statement URIs from /opt/nodejs to ../layer/nodejs/
+
+    It contains the following steps:
+      1. Clean up node modules in a lambda function, remove any dependencies already defined in the layer folder.
+      2. Install all lambda function dependencies defined in the package.json file within lambda function folder
+      3. Compress all files within the lambda function folder into a zip file and publish it to the AWS lambda function with a lambda layer if it is required by the lambda function files.
+
+    Note:
+      * If there are changes also made in the layer folder, please run update-layer.js first
+      * In order to use the testlocal function at the end of each lambda function's index.js file, please run update-local.js before executing the local test
 */
 
 const {
@@ -22,7 +22,12 @@ const aws = new LambdaClient({ region: 'eu-west-1' })
 const fs = require('fs')
 const { join, extname } = require('path')
 const zipdir = require('zip-dir')
-const { installNpmModules, createLambdaLayer, publishLambdaLayer } = require('./update-layer.js')
+const {
+  LAYER_NAME,
+  installNpmModules,
+  createLambdaLayer,
+  publishLambdaLayer
+} = require('./update-layer.js')
 
 const LAMBDAS = [
   'poll-handler',
@@ -65,7 +70,7 @@ async function updateNodeModulesAndPublish(lambda) {
 
   await updateNodeModules(lambda, paths)
   const usesLambdaLayer = await updateRequirePathsInLambdaFiles(paths.lambda)
-  const layers = usesLambdaLayer ? await getLambdaLayer(lambda, 'common-layer', paths.layer) : null
+  const layers = usesLambdaLayer ? await getLambdaLayer(lambda, LAYER_NAME, paths.layer) : null
   await publish(lambda, layers)
 }
 
@@ -166,3 +171,8 @@ async function publishSourceCode(lambda) {
 }
 
 if (require.main === module) main()
+
+module.exports = {
+  LAMBDAS,
+  getAllFilesPaths
+}

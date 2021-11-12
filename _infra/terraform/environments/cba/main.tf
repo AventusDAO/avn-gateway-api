@@ -20,7 +20,7 @@ module "lambda_functions" {
     }
     send-handler = {
       subnet_ids         = module.vpc.private_subnets
-      security_group_ids = [module.rabbitmq.rabbit_security_group]
+      security_group_ids = module.rabbitmq.rabbit_security_group
       env_vars           = {
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
         MQ_SECRET_ARN           = module.rabbitmq.secret_arn

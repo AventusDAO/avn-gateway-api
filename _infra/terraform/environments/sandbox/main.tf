@@ -1,17 +1,16 @@
 
 locals {
-  name            = "stargate"
+  name            = "avn-gateway"
   cluster_version = "1.21"
-  region          = "eu-west-1"
   account_id      = "352429414196"
 }
 
 module "lambda_functions" {
   source               = "../../modules/lambda"
-  region               = var.region
   artifact_bucket      = "avn-lambda-artifacts-sandbox"
   log_retention_period = 1
   service_version      = var.service_version
+  rabbit_secret_arn    = module.rabbitmq.secret_arn
 
   lambda_functions = {
     authorisation-handler = {
@@ -20,10 +19,22 @@ module "lambda_functions" {
         MIN_AVT_BALANCE    = "100000000000000000000"
       }
     }
-    send-handler = {}
+    send-handler = {
+      env_vars           = {
+        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
+        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
+        MQ_AVN_TX_QUEUE         = "avnTx"
+        SECRET_MANAGER_REGION   = var.region
+      }
+    }
     poll-handler  = {}
     query-handler = {}
   }
+
+  depends_on = [
+    module.vpc,
+    module.rabbitmq
+  ]
 }
 
 module "avn-gateway-api" {
@@ -59,6 +70,9 @@ module "rabbitmq" {
   subnet_ids          = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
   instance_type       = "mq.t3.micro"
   publicly_accessible = true
+  depends_on = [
+    module.vpc
+  ]
 }
 
 data "aws_eks_cluster" "eks" {
@@ -78,16 +92,18 @@ provider "kubernetes" {
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
 
-  cluster_version = local.cluster_version
-  cluster_name    = local.name
-  vpc_id          = module.vpc.vpc_id
-  subnets         = module.vpc.private_subnets
+  cluster_version   = local.cluster_version
+  cluster_name      = local.name
+  vpc_id            = module.vpc.vpc_id
+  subnets           = module.vpc.private_subnets
+  enable_irsa       = true
+  workers_role_name = local.name
 
   cluster_endpoint_private_access = true
   cluster_endpoint_public_access  = true
 
   node_groups = {
-    stargate = {
+    avn-gateway = {
       create_launch_template = true
 
       disk_size       = 20
@@ -116,5 +132,16 @@ module "eks" {
       username = "adminuser:{{SessionName}}"
       groups   = ["system:masters"]
     },
+  ]
+}
+
+module "k8s_service_account_permissions" {
+  source = "../../modules/k8s-service-account-permissions"
+
+  oidc_provider     = module.eks.oidc_provider_arn
+  rabbit_secret_arn = module.rabbitmq.secret_arn
+
+  depends_on = [
+    module.eks
   ]
 }

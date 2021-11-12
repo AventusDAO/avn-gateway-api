@@ -67,51 +67,41 @@ function getKey(key) {
   return `${SLOT_PREFIX}${key}`
 }
 
-async function addAvnTransaction(_transactionHash, transactionData) {
-  const transactionHash = getKey(_transactionHash)
+async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce) {
+  const txHashOrRequestIdKey = getKey(txHashOrRequestId)
+  const requestIdKey = getKey(requestId)
 
-  if (await redisClient.exists(transactionHash)) {
-    throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
+  if (await redisClient.exists(txHashOrRequestIdKey)) {
+    throw new Error(`Key (${txHashOrRequestIdKey}) exists already, cannot add duplicate value.`)
   }
 
   await redisClient
     .multi()
-    .hset(transactionHash, transactionData)
-    .zadd(PENDING_TX_KEY.ALL, '+inf', _transactionHash)
+    .hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed))
+    .set(requestIdKey, txHashOrRequestId)
     .exec()
 }
 
-async function addFailedAvnTransaction(_transactionHash, senderAddress, senderNonce) {
-  const transactionHash = getKey(_transactionHash)
+async function addPendingAvnTransaction(requestId, transactionHash, senderAddress, senderNonce) {
+  const transactionHashKey = getKey(transactionHash)
+  const requestIdKey = getKey(requestId)
 
-  if (await redisClient.exists(transactionHash)) {
-    throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
-  }
-
-  await redisClient.hset(
-    transactionHash,
-    buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed)
-  )
-}
-
-async function addPendingAvnTransaction(_transactionHash, senderAddress, senderNonce) {
-  const transactionHash = getKey(_transactionHash)
-
-  if (await redisClient.exists(transactionHash)) {
-    throw new Error(`Transaction hash (${transactionHash}) exists already, cannot add duplicate value.`)
+  if (await redisClient.exists(transactionHashKey)) {
+    throw new Error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`)
   }
 
   await redisClient
     .multi()
-    .hset(transactionHash, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
-    .zadd(PENDING_TX_KEY.ALL, '+inf', _transactionHash)
+    .hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
+    .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
+    .set(requestIdKey, transactionHash)
     .exec()
 }
 
-// Returns null if key is not found
-async function getAvnTransaction(_transactionHash) {
-  const transactionHash = getKey(_transactionHash)
-  const result = await redisClient.hgetall(transactionHash)
+// Returns null if txHashOrRequestIdKey is not found
+async function getAvnTransaction(txHashOrRequestId) {
+  const txHashOrRequestIdKey = getKey(txHashOrRequestId)
+  const result = await redisClient.hgetall(txHashOrRequestIdKey)
   return Object.keys(result).length === 0 ? undefined : result
 }
 
@@ -123,11 +113,11 @@ async function resolvePendingAvnTransactions(transactions) {
 
   log.trace(`Updating ${transactions.length} transactions`)
   for (const tx of transactions) {
-    const transactionHash = getKey(tx.transactionHash)
+    const transactionHashKey = getKey(tx.transactionHash)
 
     if (![transactionStatus.Processed, transactionStatus.Rejected].includes(tx.status)) {
       log.warn(
-        `Attempting to update transaction ${transactionHash} with an invalid status of ${tx.status}, ignoring request`
+        `Attempting to update transaction ${transactionHashKey} with an invalid status of ${tx.status}, ignoring request`
       )
       continue
     }
@@ -138,7 +128,7 @@ async function resolvePendingAvnTransactions(transactions) {
 
     await redisClient
       .multi()
-      .hset(transactionHash, newValue)
+      .hset(transactionHashKey, newValue)
       .zrem(PENDING_TX_KEY.ALL, tx.transactionHash)
       .exec()
   }
@@ -158,6 +148,11 @@ async function getNextTransactionsToCheck() {
   log.trace(`Transactions awaiting check: ${numAwaitingCheck[1]}\n`)
   log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`)
   return txToCheckNext[1]
+}
+
+async function getTransactionHashByRequestId(requestId) {
+  const requestIdKey = getKey(requestId)
+  return await redisClient.get(requestIdKey)
 }
 
 function buildTransactionJson(senderAddress, senderNonce, status) {
@@ -196,5 +191,6 @@ module.exports = {
   setNonce,
   refreshNonce,
   getNextTransactionsToCheck,
-  resolvePendingAvnTransactions
+  resolvePendingAvnTransactions,
+  getTransactionHashByRequestId
 }

@@ -25,8 +25,8 @@ function transferToken(api, queryApi) {
 }
 
 Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from, to, token, amount) {
-  let nonce = await this.smartNonce(queryApi, from)
-  let signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce)
+  const nonce = await this.smartNonce(queryApi, from)
+  const signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce)
 
   return await this.postRequest(api, 'proxy', {
     pallet: 'tokenManager',
@@ -41,18 +41,10 @@ function generateFunction(functionName, api, queryApi) {
   return functionName(api, queryApi)
 }
 
-Send.prototype.postRequest = async function(api, method, params, isRetry) {
+Send.prototype.postRequest = async function(api, method, params) {
   const endpoint = api.gateway + '/send'
   const response = await api.axios().post(endpoint, { jsonrpc: '2.0', id: api.uuid(), method: method, params: params })
-
-  if (!response.data.result) {
-    if (method === 'proxy') {
-      await common.sleep(MAX_TX_PROCESSING_TIME)
-      return !isRetry ? await this.postRequest(api, method, params, true) : response.data.error.message
-    }
-    return response.data.error.message
-  }
-  return response.data.result
+  return response.data.result || response.data.error.message
 }
 
 Send.prototype.smartNonce = async function(queryApi, _account) {

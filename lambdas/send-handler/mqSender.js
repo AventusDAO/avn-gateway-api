@@ -34,7 +34,7 @@ MQSender.prototype.sendMessageToMQ = async function(queue, message, persistent =
           amqpChannel.close()
           console.info('[AMQP] channel closed')
 
-          resolve(message)
+          resolve(message.requestId)
         }
       })
     } catch (e) {
@@ -62,8 +62,8 @@ MQSender.prototype.connectToMessageBroker = async function() {
         reject()
       })
 
-      conn.on("close", function() {
-        console.error("[AMQP] connection closed");
+      conn.on('close', function() {
+        console.error('[AMQP] connection closed')
         self.amqpConnected = false
         reject()
       })

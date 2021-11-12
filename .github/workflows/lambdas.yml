@@ -1,11 +1,6 @@
 name: lambdas
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'lambdas/**'
   push:
     branches:
       - main
@@ -17,6 +12,7 @@ env:
   POLL: poll-handler
   SEND: send-handler
   QUERY: query-handler
+  TX_STATUS: tx-status-update-handler
 
 defaults:
   run:
@@ -31,13 +27,8 @@ jobs:
       version: ${{ steps.suffix.outputs.version }}
     steps:
       - uses: actions/checkout@v2
-
-      - name: Create version for PR
-        if: ${{ !github.event.pull_request.merged }}
-        run: echo "VERSION_SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
         
-      - name: Create version for merge
-        if: ${{ github.event.pull_request.merged }}
+      - name: Create github sha short version
         run: echo "VERSION_SUFFIX=${GITHUB_SHA::8}" >> $GITHUB_ENV
       
       - name: output version suffix
@@ -142,6 +133,31 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: ${{ env.AUTHORISER }}
+          path: lambdas/build/
+  
+  transaction:
+    runs-on: ubuntu-latest
+    name: package transaction status update function
+    needs: [version-suffix]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: |
+            lambdas/${{ env.TX_STATUS }}/package-lock.json
+            lambdas/common/package-lock.json
+            lambdas/package-lock.json
+      
+      - name: Package Function
+        run: |
+          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.TX_STATUS }}
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ env.TX_STATUS }}
           path: lambdas/build/
 
   upload:

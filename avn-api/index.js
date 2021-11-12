@@ -1,11 +1,11 @@
 const { cryptoWaitReady } = require('@polkadot/util-crypto')
+const { v4: uuidv4 } = require('uuid')
 const Axios = require('axios')
-const version = require('./package.json').version
 const Query = require('./lib/query.js')
 const Send = require('./lib/send.js')
 const Poll = require('./lib/poll.js')
 const Awt = require('./lib/awt.js')
-const { v4: uuidv4 } = require('uuid')
+const version = require('./package.json').version
 
 function AvnApi(gateway) {
   this.gateway = gateway
@@ -25,7 +25,6 @@ AvnApi.prototype.init = async function() {
 
   this.query = new Query(avnApi)
   const avtContractAddress = await this.query.getAvtContractAddress(avnApi)
-
   this.send = new Send(avnApi, this.query, avtContractAddress)
   this.poll = new Poll(avnApi)
   this.awt = Awt
@@ -39,7 +38,6 @@ function setupAxios(awtTokenManager) {
 
   // Add any middlewares here to configure global axios behaviours
   Axios.defaults.headers.common = { Authorization: `bearer ${this.awtToken}` }
-
   return Axios
 }
 

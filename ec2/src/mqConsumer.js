@@ -170,17 +170,17 @@ async function trySendAvnTx(message) {
 
 async function sendAvnTx(request) {
   logger.trace(`Request body: ${JSON.stringify(request)}`)
-  const { callId, txType, palletName, method, params } = request
+  const { requestId, txType, palletName, method, params } = request
   let result = null
 
-  switch(txType) {
+  switch (txType) {
     case 'avnTx':
-      result = await avn.tx(palletName, method, params)
-      logger.info(`Request sent with ID: ${result.requestId} and received result: ${JSON.stringify(result)}`)
+      result = await avn.tx(requestId, palletName, method, params)
+      logger.info(`Request sent with ID: ${requestId} and received result: ${JSON.stringify(result)}`)
       break
     case 'avnProxy':
-      result = await avn.proxy(palletName, method, params)
-      logger.info(`Proxy request sent with ID: ${result.requestId}`)
+      result = await avn.proxy(requestId, palletName, method, params)
+      logger.info(`Proxy request sent with ID: ${requestId} and received result: ${JSON.stringify(result)}`)
       break
     default:
       throw Error('Transaction type not supported')

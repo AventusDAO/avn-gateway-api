@@ -16,14 +16,13 @@ const {
   LambdaClient,
   GetFunctionCommand,
   ListLayersCommand,
-  UpdateFunctionCodeCommand,
-  UpdateFunctionConfigurationCommand
+  UpdateFunctionCodeCommand
 } = require('@aws-sdk/client-lambda')
 const aws = new LambdaClient({ region: 'eu-west-1' })
 const fs = require('fs')
 const { join, extname } = require('path')
 const zipdir = require('zip-dir')
-const { installNpmModules, createLambdaLayer } = require('./update-layer.js')
+const { installNpmModules, createLambdaLayer, publishLambdaLayer } = require('./update-layer.js')
 
 async function main() {
   const lambda = process.argv[2]
@@ -119,21 +118,10 @@ async function getLambdaLayer(lambda, layerName, layerPath) {
 
 async function publish(lambda, layers) {
   console.log('Publishing', lambda, 'to AWS...')
-  await publishDescriptionAndLayer(lambda, layers)
+  const description = `${lambda} - Update script deployment`
+  await publishLambdaLayer(lambda, description, layers)
   await publishSourceCode(lambda)
   console.log('Published', lambda)
-}
-
-async function publishDescriptionAndLayer(lambda, layers) {
-  try {
-    await aws.send(new UpdateFunctionConfigurationCommand({
-      FunctionName: lambda,
-      Description: `${lambda} - Update script deployment`,
-      Layers: layers
-    }))
-  } catch (err) {
-    console.log(lambda, '- Error:', err)
-  }
 }
 
 async function publishSourceCode(lambda) {

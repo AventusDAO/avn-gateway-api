@@ -24,11 +24,26 @@ const { join, extname } = require('path')
 const zipdir = require('zip-dir')
 const { installNpmModules, createLambdaLayer, publishLambdaLayer } = require('./update-layer.js')
 
+const LAMBDAS = [
+  'poll-handler',
+  'query-handler',
+  'send-handler',
+  'authorisation-handler',
+  'tx-status-update-handler'
+]
+
 async function main() {
   const lambda = process.argv[2]
-  if (!lambda) {
-    console.log('lambda name is required')
-    process.exit(1)
+  const lambdas = lambda === 'all' ? LAMBDAS : [lambda]
+  await Promise.all(lambdas.map(async (lambda) => {
+    await updateNodeModulesAndPublish(lambda)
+  }))
+}
+
+async function updateNodeModulesAndPublish(lambda) {
+  if (!LAMBDAS.includes(lambda)) {
+    console.log('Error: no such lambda', lambda)
+    return
   }
 
   const paths = {

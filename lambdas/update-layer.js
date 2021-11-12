@@ -11,29 +11,18 @@ const { spawn } = require('child-process-async')
 const os = require('os')
 const zipdir = require('zip-dir')
 
-const LAMBDAS = [
-  'poll-handler',
-  'query-handler',
-  'send-handler',
-  'authorisation-handler',
-  'tx-status-update-handler'
-]
-
 async function main() {
-  const paths = {
-    layerPath: join(__dirname, 'layer'),
-    layerNodejsPath: join(__dirname, 'layer/nodejs')
+  try {
+    const paths = {
+      layerPath: join(__dirname, 'layer'),
+      layerNodejsPath: join(__dirname, 'layer/nodejs')
+    }
+    const layerName = 'common-layer'
+    await installNpmModules(layerName, paths.layerNodejsPath)
+    const { LayerVersionArn } = await createLambdaLayer(layerName, paths.layerPath)
+  } catch (err) {
+    console.log('Updating lambda layer failed', err.message)
   }
-  const layerName = 'common-layer'
-  await installNpmModules(layerName, paths.layerNodejsPath)
-  const { LayerVersionArn } = await createLambdaLayer(layerName, paths.layerPath)
-  await updateLambdaFunctionAssociatedLayer(LayerVersionArn)
-}
-
-async function updateLambdaFunctionAssociatedLayer(layerVersionArn) {
-  await Promise.all(LAMBDAS.map(async (lambda) => {
-    await publishLambdaLayer(lambda, `${lambda} - Update layer deployment`, [layerVersionArn])
-  }))
 }
 
 async function publishLambdaLayer(lambda, description, layers) {

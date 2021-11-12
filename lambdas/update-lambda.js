@@ -5,8 +5,7 @@
     This script publishes any changes made within the lambda function folder to the corresponding AWS lambda function.
     It first cleans up node modules in a lambda function, removes any dependencies already defined in the layer folder.
     Then it installs all lambda function dependencies, creates a zip file containing all files within the lambda folder, 
-    and publishes it to the AWS lambda function with a lambda layer if it is required by index.js.
-    TODO -> if the lambda layer is required by any lambda function files
+    and publishes it to the AWS lambda function with a lambda layer if it is required by any lambda function .js files.
     If the changes are made within the layer folder, please run update-layer.js instead
     In order to use the testlocal function at the end of each lambda function's index.js file, please run update-local.js first
     TODO -> Update update.js and rename it to update-local.js, so it only merges layer dependencies and files into the lambda function,
@@ -22,7 +21,7 @@ const {
 } = require('@aws-sdk/client-lambda')
 const aws = new LambdaClient({ region: 'eu-west-1' })
 const fs = require('fs')
-const join = require('path').join
+const { join, extname } = require('path')
 const zipdir = require('zip-dir')
 const { installNpmModules, createLambdaLayer } = require('./update-layer.js')
 
@@ -41,14 +40,66 @@ async function main() {
     layerPkg: join(__dirname, 'layer/nodejs/package.json')
   }
 
-  removeDependenciesAlreadyInLayer(paths)
+  removeLayerDependencies(paths)
   await installNpmModules(lambda, paths.lambda)
-  const usesLambdaLayer = await updateDependenciesReferences(paths.lambdaIdx)
-  if (usesLambdaLayer) {
-    layers = await getLambdaLayer(lambda, 'common-layer', paths.layer)
-  }
-  await publishDescriptionAndLayer(lambda, layers)
-  await publishSourceCode(lambda)
+  const usesLambdaLayer = await updateRequirePathsInLambdaFiles(paths.lambda)
+  const layers = usesLambdaLayer ? await getLambdaLayer(lambda, 'common-layer', paths.layer) : null
+  await publish(lambda, layers)
+}
+
+function removeLayerDependencies(paths) {
+  const lambdaPkg = require(paths.lambdaPkg)
+  const layerPkg = require(paths.layerPkg)
+  
+  Object.entries(layerPkg.dependencies).forEach(
+    ([module, _version] = dependency) => {
+      if (lambdaPkg.dependencies[module])
+        delete lambdaPkg.dependencies[module]
+    }
+  )
+  fs.writeFileSync(paths.lambdaPkg, JSON.stringify(lambdaPkg, null, 2))
+}
+
+async function updateRequirePathsInLambdaFiles(lambdaPath) {
+  const lambdaFilesPaths = getAllFilesPaths(lambdaPath)
+  await Promise.all(lambdaFilesPaths.map(async (lambdaFilePath) => {
+    await updateRequirePathsInFile(lambdaFilePath)
+  }))
+}
+
+function getAllFilesPaths(dirPath, foundFiles) {
+  files = fs.readdirSync(dirPath)
+  foundFiles = foundFiles || []
+  files.forEach(function(file) {
+    if (file !== 'node_modules') {
+      if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+        foundFiles = getAllFilesPaths(dirPath + "/" + file, foundFiles)
+      } else if (extname(file).toLowerCase() === '.js') {
+        foundFiles.push(join(dirPath, "/", file))
+      }
+    }
+  })
+  return foundFiles
+}
+
+async function updateRequirePathsInFile(filePath) {
+  return await new Promise((resolve, reject) => {
+    fs.readFile(filePath, 'utf8', function (err, fileBody) {
+      if (err) {
+        console.log(err)
+        reject(err)
+      }
+      var updatedFileBody = fileBody.replace(/..\/layer\//gs, '/opt/nodejs/');
+  
+      fs.writeFile(filePath, updatedFileBody, 'utf8', function (err) {
+        if (err) {
+          console.log(err)
+          reject(err)
+        }
+        resolve(updatedFileBody.includes('\/opt\/nodejs\/'))
+      })
+    })
+  })
 }
 
 async function getLambdaLayer(lambda, layerName, layerPath) {
@@ -66,15 +117,20 @@ async function getLambdaLayer(lambda, layerName, layerPath) {
   }
 }
 
+async function publish(lambda, layers) {
+  console.log('Publishing', lambda, 'to AWS...')
+  await publishDescriptionAndLayer(lambda, layers)
+  await publishSourceCode(lambda)
+  console.log('Published', lambda)
+}
+
 async function publishDescriptionAndLayer(lambda, layers) {
   try {
-    console.log('Publishing Description and Layer for lambda function ', lambda, 'to AWS...')
     await aws.send(new UpdateFunctionConfigurationCommand({
       FunctionName: lambda,
       Description: `${lambda} - Update script deployment`,
       Layers: layers
     }))
-    console.log('Description and Layer are Published', lambda)
   } catch (err) {
     console.log(lambda, '- Error:', err)
   }
@@ -82,48 +138,13 @@ async function publishDescriptionAndLayer(lambda, layers) {
 
 async function publishSourceCode(lambda) {
   try {
-    console.log('Publishing', lambda, 'to AWS...')
     await aws.send(new UpdateFunctionCodeCommand({
       ZipFile: await zipdir(lambda),
       FunctionName: lambda
     }))
-    console.log('Source Code is Published ', lambda)
   } catch (err) {
     console.log(lambda, '- Error:', err)
   }
-}
-
-async function updateDependenciesReferences(lambdaIdxPath) {
-  return await new Promise((resolve, reject) => {
-    fs.readFile(lambdaIdxPath, 'utf8', function (err, fileBody) {
-      if (err) {
-        console.log(err)
-        reject(err)
-      }
-      var updatedFileBody = fileBody.replace(/..\/layer\//gs, '/opt/nodejs/');
-  
-      fs.writeFile(lambdaIdxPath, updatedFileBody, 'utf8', function (err) {
-        if (err) {
-          console.log(err)
-          reject(err)
-        }
-        resolve(updatedFileBody.includes('\/opt\/nodejs\/'))
-      })
-    })
-  })
-}
-
-function removeDependenciesAlreadyInLayer(paths) {
-  const lambdaPkg = require(paths.lambdaPkg)
-  const layerPkg = require(paths.layerPkg)
-  
-  Object.entries(layerPkg.dependencies).forEach(
-    ([module, _version] = dependency) => {
-      if (lambdaPkg.dependencies[module])
-        delete lambdaPkg.dependencies[module]
-    }
-  )
-  fs.writeFileSync(paths.lambdaPkg, JSON.stringify(lambdaPkg, null, 2))
 }
 
 if (require.main === module) main()

@@ -1,4 +1,4 @@
-const EC2 = require('../common/resources.json').ec2_endpoint
+const EC2 = require('../layer/nodejs/resources.json').ec2_endpoint
 const axios = require('axios')
 const BN = require('bn.js')
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')

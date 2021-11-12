@@ -33,16 +33,20 @@ const LAMBDAS = [
 ]
 
 async function main() {
-  const lambda = process.argv[2]
-  const lambdas = lambda === 'all' ? LAMBDAS : [lambda]
-  await Promise.all(lambdas.map(async (lambda) => {
-    await updateNodeModulesAndPublish(lambda)
-  }))
+  try {
+    const lambda = process.argv[2]
+    const lambdas = lambda === 'all' ? LAMBDAS : [lambda]
+    await Promise.all(lambdas.map(async (lambda) => {
+      await updateNodeModulesAndPublish(lambda)
+    }))
+  } catch (err) {
+    console.log('***** Updating Failed:', err.message)
+  }
 }
 
 async function updateNodeModulesAndPublish(lambda) {
   if (!LAMBDAS.includes(lambda)) {
-    console.log('Error: no such lambda', lambda)
+    console.log('***** Error: no such lambda', lambda)
     return
   }
 
@@ -54,17 +58,28 @@ async function updateNodeModulesAndPublish(lambda) {
     layerPkg: join(__dirname, 'layer/nodejs/package.json')
   }
 
-  removeLayerDependencies(paths)
-  await installNpmModules(lambda, paths.lambda)
+  if (!fs.existsSync(paths.lambda)) {
+    console.error(`***** ${lambda} source code is not found`)
+    return
+  }
+
+  await updateNodeModules(lambda, paths)
   const usesLambdaLayer = await updateRequirePathsInLambdaFiles(paths.lambda)
   const layers = usesLambdaLayer ? await getLambdaLayer(lambda, 'common-layer', paths.layer) : null
   await publish(lambda, layers)
 }
 
+async function updateNodeModules(lambda, paths) {
+  const lambdaHasDependencies = paths.lambdaPkg?.dependencies?.length > 0
+  if (lambdaHasDependencies) {
+    removeLayerDependencies(paths)
+    await installNpmModules(lambda, paths.lambda)
+  }
+}
+
 function removeLayerDependencies(paths) {
   const lambdaPkg = require(paths.lambdaPkg)
   const layerPkg = require(paths.layerPkg)
-  
   Object.entries(layerPkg.dependencies).forEach(
     ([module, _version] = dependency) => {
       if (lambdaPkg.dependencies[module])

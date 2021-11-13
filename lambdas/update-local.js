@@ -1,17 +1,18 @@
 /*
   Description:
-    This script installs all dependencies for both layer and lambda function, and updates all URIs 
-    for files shared in the layer folder from /opt/nodejs/ to ../layer/nodejs/
+    This script merges layer dependencies into lambda function dependencies list, 
+    and updates all layer file URIs from /opt/nodejs/ to ../layer/nodejs/ in lambda function files
 */
 
 const fs = require('fs')
 const join = require('path').join
 const { LAMBDAS, getAllFilesPaths } = require('./update-lambda.js')
-const { LAYER_NAME, installNpmModules } = require('./update-layer.js')
+const { installNpmModules } = require('./update-layer.js')
 
 async function updateNodeModulesAndFiles(lambda) {
-  const layerPath = join(__dirname, 'layer')
-  await installNpmModules(LAYER_NAME, layerPath)
+  const layerPkg = join(__dirname, 'layer/nodejs/package.json')
+  const lambdaPkg = join(__dirname, lambda, 'package.json')
+  mergeLayerDependencies(layerPkg, lambdaPkg)
 
   const lambdaPath = join(__dirname, lambda)
   await installNpmModules(lambda, lambdaPath)
@@ -20,6 +21,16 @@ async function updateNodeModulesAndFiles(lambda) {
   lambdaFilesPaths.forEach(filePath => {
     replaceRef(filePath, '/opt/nodejs', '../layer/nodejs')
   })
+}
+
+function mergeLayerDependencies(layerPkgPath, lambdaPkgPath) {
+  const layerPkg = require(layerPkgPath)
+  const lambdaPkg = require(lambdaPkgPath)
+
+  Object.entries(layerPkg.dependencies).forEach(
+    ([module, version] = dependency) => (lambdaPkg.dependencies[module] = version)
+  )
+  fs.writeFileSync(lambdaPkgPath, JSON.stringify(lambdaPkg, null, 2))
 }
 
 function replaceRef(file, a, b) {

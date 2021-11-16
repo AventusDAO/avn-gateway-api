@@ -26,10 +26,10 @@ function getAllFilesPaths(dirPath, foundFiles) {
   foundFiles = foundFiles || []
   files.forEach(function(file) {
     if (file !== 'node_modules') {
-      if (fs.statSync(dirPath + "/" + file).isDirectory()) {
-        foundFiles = getAllFilesPaths(dirPath + "/" + file, foundFiles)
-      } else if (extname(file).toLowerCase() === '.js') {
+      if (extname(file).toLowerCase() === '.js') {
         foundFiles.push(join(dirPath, "/", file))
+      } else if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+        foundFiles = getAllFilesPaths(dirPath + "/" + file, foundFiles)
       }
     }
   })

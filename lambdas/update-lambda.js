@@ -5,7 +5,8 @@
     It contains the following steps:
       1. Clean up node modules in a lambda function, remove any dependencies already defined in the layer folder.
       2. Install all lambda function dependencies defined in the package.json file within lambda function folder
-      3. Compress all files within the lambda function folder into a zip file and publish it to the AWS lambda function with a lambda layer if it is required by the lambda function files.
+      3. Compress all files within the lambda function folder into a zip file and publish it to the AWS lambda function
+      4. Attach or update the lambda layer to the latest version if it is required by the lambda function files.
 
     Note:
       * If there are changes also made in the layer folder, please run update-layer.js first
@@ -20,14 +21,10 @@ const {
 } = require('@aws-sdk/client-lambda')
 const aws = new LambdaClient({ region: 'eu-west-1' })
 const fs = require('fs')
-const { join, extname } = require('path')
+const { join } = require('path')
 const zipdir = require('zip-dir')
-const {
-  LAYER_NAME,
-  installNpmModules,
-  createLambdaLayer,
-  publishLambdaLayer
-} = require('./update-layer.js')
+const { LAYER_NAME, createLambdaLayer, publishLambdaLayer } = require('./update-layer.js')
+const { installPkgDependencies, getAllFilesPaths } = require('./utils.js')
 
 const LAMBDAS = [
   'poll-handler',
@@ -69,82 +66,49 @@ async function updateNodeModulesAndPublish(lambda) {
   }
 
   await updateNodeModules(lambda, paths)
-  const usesLambdaLayer = await updateRequirePathsInLambdaFiles(paths.lambda)
+  const lambdaFilesPaths = getAllFilesPaths(paths.lambda)
+  const usesLambdaLayer = await updateRequirePathsInLambdaFiles(lambdaFilesPaths)
   const layers = usesLambdaLayer ? await getLambdaLayer(lambda, LAYER_NAME, paths.layer) : null
   await publish(lambda, layers)
 }
 
 async function updateNodeModules(lambda, paths) {
-  const lambdaHasDependencies = paths.lambdaPkg?.dependencies?.length > 0
-  if (lambdaHasDependencies) {
-    removeLayerDependencies(paths)
-    await installNpmModules(lambda, paths.lambda)
+  let lambdaPkg = require(paths.lambdaPkg)
+  if (lambdaPkg.dependencies) {
+    const layerPkg = require(paths.layerPkg)
+    Object.entries(layerPkg.dependencies).forEach(
+      ([module, _version] = dependency) => {
+        if (lambdaPkg.dependencies[module])
+          delete lambdaPkg.dependencies[module]
+      }
+    )
+    fs.writeFileSync(paths.lambdaPkg, JSON.stringify(lambdaPkg, null, 2))
+    await installPkgDependencies(lambda, paths.lambda)
   }
 }
 
-function removeLayerDependencies(paths) {
-  const lambdaPkg = require(paths.lambdaPkg)
-  const layerPkg = require(paths.layerPkg)
-  Object.entries(layerPkg.dependencies).forEach(
-    ([module, _version] = dependency) => {
-      if (lambdaPkg.dependencies[module])
-        delete lambdaPkg.dependencies[module]
-    }
-  )
-  fs.writeFileSync(paths.lambdaPkg, JSON.stringify(lambdaPkg, null, 2))
-}
-
-async function updateRequirePathsInLambdaFiles(lambdaPath) {
-  const lambdaFilesPaths = getAllFilesPaths(lambdaPath)
+async function updateRequirePathsInLambdaFiles(lambdaFilesPaths) {
+  const layerPath = '/opt/nodejs/'
+  let usesLambdaLayer = false
   await Promise.all(lambdaFilesPaths.map(async (lambdaFilePath) => {
-    await updateRequirePathsInFile(lambdaFilePath)
+    const fileBody = await fs.readFileSync(lambdaFilePath, 'utf8')
+    const updatedFileBody = fileBody.replace(/..\/layer\/nodejs\//gs, layerPath)
+    if (!usesLambdaLayer && updatedFileBody.includes(layerPath))
+      usesLambdaLayer = true
+    fs.writeFileSync(lambdaFilePath, updatedFileBody, 'utf8')
   }))
-}
-
-function getAllFilesPaths(dirPath, foundFiles) {
-  files = fs.readdirSync(dirPath)
-  foundFiles = foundFiles || []
-  files.forEach(function(file) {
-    if (file !== 'node_modules') {
-      if (fs.statSync(dirPath + "/" + file).isDirectory()) {
-        foundFiles = getAllFilesPaths(dirPath + "/" + file, foundFiles)
-      } else if (extname(file).toLowerCase() === '.js') {
-        foundFiles.push(join(dirPath, "/", file))
-      }
-    }
-  })
-  return foundFiles
-}
-
-async function updateRequirePathsInFile(filePath) {
-  return await new Promise((resolve, reject) => {
-    fs.readFile(filePath, 'utf8', function (err, fileBody) {
-      if (err) {
-        console.log(err)
-        reject(err)
-      }
-      var updatedFileBody = fileBody.replace(/..\/layer\//gs, '/opt/nodejs/');
-  
-      fs.writeFile(filePath, updatedFileBody, 'utf8', function (err) {
-        if (err) {
-          console.log(err)
-          reject(err)
-        }
-        resolve(updatedFileBody.includes('\/opt\/nodejs\/'))
-      })
-    })
-  })
+  return usesLambdaLayer
 }
 
 async function getLambdaLayer(lambda, layerName, layerPath) {
   const functionDetails = await aws.send(new GetFunctionCommand({ FunctionName: lambda }))
-  if (!functionDetails.Configuration?.Layers)
+  if (functionDetails.Configuration?.Layers)
   {
     layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
     if (layer.Layers.length > 0) {
       return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
     } else {
-      await installNpmModules(layerName, layerPath)
+      await installPkgDependencies(layerName, layerPath)
       const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
       return [LayerVersionArn]
     }
@@ -173,6 +137,5 @@ async function publishSourceCode(lambda) {
 if (require.main === module) main()
 
 module.exports = {
-  LAMBDAS,
-  getAllFilesPaths
+  LAMBDAS
 }

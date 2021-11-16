@@ -35,41 +35,39 @@ const LAMBDAS = [
 ]
 
 async function main() {
-  try {
-    const lambda = process.argv[2]
-    const lambdas = lambda === 'all' ? LAMBDAS : [lambda]
-    await Promise.all(lambdas.map(async (lambda) => {
-      await updateNodeModulesAndPublish(lambda)
-    }))
-  } catch (err) {
-    console.log('***** Updating Failed:', err.message)
-  }
+  const lambda = process.argv[2]
+  const lambdas = lambda === 'all' ? LAMBDAS : [lambda]
+  await Promise.allSettled(lambdas.map(async (lambda) => {
+    await updateNodeModulesAndPublish(lambda)
+  }))
 }
 
 async function updateNodeModulesAndPublish(lambda) {
-  if (!LAMBDAS.includes(lambda)) {
-    console.log('***** Error: no such lambda', lambda)
-    return
-  }
+  try {
+    if (!LAMBDAS.includes(lambda))
+      throw Error('no such lambda', lambda)
+  
+    const paths = {
+      lambda: join(__dirname, lambda),
+      lambdaIdx: join(__dirname, lambda, 'index.js'),
+      lambdaPkg: join(__dirname, lambda, 'package.json'),
+      layer: join(__dirname, 'layer'),
+      layerPkg: join(__dirname, 'layer/nodejs/package.json')
+    }
+  
+    if (!fs.existsSync(paths.lambda))
+      throw Error(`${lambda} source code is not found`)
+  
+    await updateNodeModules(lambda, paths)
+    const lambdaFilesPaths = getAllFilesPaths(paths.lambda)
+    const usesLambdaLayer = await updateRequirePathsInLambdaFiles(lambdaFilesPaths)
+    const layers = usesLambdaLayer ? await getLambdaLayer(lambda, LAYER_NAME, paths.layer) : null
+    await publish(lambda, layers)
 
-  const paths = {
-    lambda: join(__dirname, lambda),
-    lambdaIdx: join(__dirname, lambda, 'index.js'),
-    lambdaPkg: join(__dirname, lambda, 'package.json'),
-    layer: join(__dirname, 'layer'),
-    layerPkg: join(__dirname, 'layer/nodejs/package.json')
+    console.log(`==== Lambda function ${lambda} is successfully published`)
+  } catch (err) {
+    console.log(`**** Failed to publish lambda function ${lambda} with error: ${err.message}`)
   }
-
-  if (!fs.existsSync(paths.lambda)) {
-    console.error(`***** ${lambda} source code is not found`)
-    return
-  }
-
-  await updateNodeModules(lambda, paths)
-  const lambdaFilesPaths = getAllFilesPaths(paths.lambda)
-  const usesLambdaLayer = await updateRequirePathsInLambdaFiles(lambdaFilesPaths)
-  const layers = usesLambdaLayer ? await getLambdaLayer(lambda, LAYER_NAME, paths.layer) : null
-  await publish(lambda, layers)
 }
 
 async function updateNodeModules(lambda, paths) {

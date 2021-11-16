@@ -1,3 +1,8 @@
+locals {
+  oidc_arn_prefix = split("/", var.oidc_provider)[0]
+  oidc_url        = trimprefix(var.oidc_provider, "${local.oidc_arn_prefix}/")
+}
+
 resource "aws_iam_policy" "avn_connector_rabbit_secret_access" {
   name        = "avn-connector"
   path        = "/"
@@ -36,7 +41,8 @@ resource "aws_iam_role" "avn_connector" {
         }
         Condition = {
           StringEquals = {
-            "${var.oidc_provider}:sub": "system:serviceaccount:${each.key}:avn-connector"
+            "${local.oidc_url}:sub": "system:serviceaccount:${each.key}:avn-connector",
+            "${local.oidc_url}:aud": "sts.amazonaws.com"
           }
         }
       },

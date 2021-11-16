@@ -37,8 +37,8 @@ const LAMBDAS = [
 async function main() {
   const lambda = process.argv[2]
   const lambdas = lambda === 'all' ? LAMBDAS : [lambda]
-  await Promise.allSettled(lambdas.map(async (lambda) => {
-    await updateNodeModulesAndPublish(lambda)
+  await Promise.allSettled(lambdas.map((lambda) => {
+    updateNodeModulesAndPublish(lambda)
   }))
 }
 

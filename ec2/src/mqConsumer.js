@@ -75,7 +75,9 @@ async function whenConnected(conn, components) {
 
   logger.info('MQ message processor has started')
   while (true) {
-    await processMessage(amqpChannel, avnTxQueue).catch(_err => {})
+    await processMessage(amqpChannel, avnTxQueue).catch(_err => {
+      logger.error(`Error processing message: ${err}`)
+    })
   }
 }
 
@@ -105,7 +107,7 @@ async function processMessage(channel, queue) {
       async function(err, message) {
         if (err) {
           channel.nack(message, allUpTo, requeue)
-          reject()
+          reject(err)
         } else if (!message) {
           resolve() /* empty queue */
         } else {
@@ -115,7 +117,7 @@ async function processMessage(channel, queue) {
             resolve()
           } catch (err) {
             channel.nack(message, allUpTo, requeue)
-            reject()
+            reject(err)
           }
         }
       }

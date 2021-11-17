@@ -115,7 +115,7 @@ async function callSwitch(call, responseObject, requestId) {
             recipient: call.params.relayer,
             amount: GATEWAY_USAGE_FEE, // Using this here means the signature validation will fail if the user signed a different amount
             signature: {
-              Sr25519: call.params.feeSignature
+              Sr25519: call.params.gatewayFeeSignature
             }
           }
 
@@ -169,7 +169,7 @@ const codeFormatters = {
           utils.isValidAccountId(call.params.innerArgs.to) &&
           utils.isValidTokenId(call.params.innerArgs.token) &&
           utils.isValidAmount(call.params.innerArgs.amount.toString()) &&
-          !utils.isNullOrEmptyString(call.params.feeSignature)
+          !utils.isNullOrEmptyString(call.params.gatewayFeeSignature)
         )
       },
       encode: function(proof, innerArgs) {

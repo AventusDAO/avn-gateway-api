@@ -69,13 +69,12 @@ Send.prototype.smartNonce = async function(queryApi, _account, nonceType) {
   if (!this.nonceMap[account]) this.nonceMap[account] = { proxy: {}, payment: {} }
   const nonceData = this.nonceMap[account]
   const updated = Date.now()
-
   let nonce
 
   switch (nonceType) {
     case NONCE_TYPE.proxy:
       nonce =
-        !nonceData.proxy.nonce || nonceData.proxy.updated >= MAX_TX_PROCESSING_TIME * 2
+        nonceData.proxy.nonce === undefined || updated - nonceData.proxy.updated >= MAX_TX_PROCESSING_TIME * 2
           ? parseInt(await queryApi.getAccountNonce(account))
           : nonceData.proxy.nonce + 1
 
@@ -84,7 +83,7 @@ Send.prototype.smartNonce = async function(queryApi, _account, nonceType) {
 
     case NONCE_TYPE.payment:
       nonce =
-        !nonceData.payment.nonce || nonceData.payment.updated >= MAX_TX_PROCESSING_TIME * 2
+        nonceData.payment.nonce === undefined || updated - nonceData.payment.updated >= MAX_TX_PROCESSING_TIME * 2
           ? parseInt(await queryApi.getAccountPaymentNonce(account))
           : nonceData.payment.nonce + 1
 

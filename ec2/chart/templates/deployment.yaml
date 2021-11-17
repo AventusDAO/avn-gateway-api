@@ -21,6 +21,7 @@ spec:
         appVersion: {{ .Chart.AppVersion }}
         helmVersion: {{ .Chart.Version }}
     spec:
+      serviceAccount: avn-connector
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.deployment.image.repo }}:{{ .Values.deployment.image.tag }}"
@@ -31,5 +32,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Chart.Name }}
+          env:
+            - name: NODE_ENV
+              value: docker
           resources:
             {{- toYaml .Values.deployment.resources | nindent 12 }}

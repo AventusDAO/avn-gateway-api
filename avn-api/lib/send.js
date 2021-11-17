@@ -85,7 +85,7 @@ Send.prototype.smartNonce = async function(queryApi, _account, nonceType) {
     case NONCE_TYPE.payment:
       nonce =
         !nonceData.payment.nonce || nonceData.payment.updated >= MAX_TX_PROCESSING_TIME * 2
-          ? parseInt(await queryApi.getAccountNonce(account))
+          ? parseInt(await queryApi.getAccountPaymentNonce(account))
           : nonceData.payment.nonce + 1
 
       this.nonceMap[account].payment = { nonce: nonce, updated: updated }

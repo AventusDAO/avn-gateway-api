@@ -75,9 +75,7 @@ async function whenConnected(conn, components) {
 
   logger.info('MQ message processor has started')
   while (true) {
-    await processMessage(amqpChannel, avnTxQueue).catch(err => {
-      logger.error(`Error processing message: ${err}`)
-    })
+    await processMessage(amqpChannel, avnTxQueue).catch(_err => {})
   }
 }
 
@@ -99,23 +97,29 @@ async function processMessage(channel, queue) {
   const requeue = false // Drop to dead letter queue
 
   await new Promise((resolve, reject) => {
-    channel.get(queue, { noAck: false }, async function(err, message) {
-      if (err) {
-        channel.nack(message, allUpTo, requeue)
-        reject(err)
-      } else if (!message) {
-        resolve() /* empty queue */
-      } else {
-        try {
-          await trySendAvnTx(message)
-          channel.ack(message)
-          resolve()
-        } catch (err) {
+    channel.get(
+      queue,
+      {
+        noAck: false
+      },
+      async function(err, message) {
+        if (err) {
           channel.nack(message, allUpTo, requeue)
-          reject(err)
+          reject()
+        } else if (!message) {
+          resolve() /* empty queue */
+        } else {
+          try {
+            await trySendAvnTx(message)
+            channel.ack(message)
+            resolve()
+          } catch (err) {
+            channel.nack(message, allUpTo, requeue)
+            reject()
+          }
         }
       }
-    })
+    )
   })
 }
 
@@ -166,22 +170,17 @@ async function trySendAvnTx(message) {
 
 async function sendAvnTx(request) {
   logger.trace(`Request body: ${JSON.stringify(request)}`)
+  const { requestId, txType, palletName, method, params, paymentAuthorisation } = request
   let result = null
 
-  switch (request.txType) {
+  switch (txType) {
     case 'avnTx':
-      result = await avn.tx(request.requestId, request.palletName, request.method, request.params)
-      logger.info(`Request sent with ID: ${request.requestId} and received result: ${JSON.stringify(result)}`)
+      result = await avn.tx(requestId, palletName, method, params)
+      logger.info(`Request sent with ID: ${requestId} and received result: ${JSON.stringify(result)}`)
       break
     case 'avnProxy':
-      result = await avn.proxy(
-        request.requestId,
-        request.palletName,
-        request.method,
-        request.params,
-        request.paymentAuthorisation
-      )
-      logger.info(`Proxy request sent with ID: ${request.requestId} and received result: ${JSON.stringify(result)}`)
+      result = await avn.proxy(requestId, palletName, method, params, paymentAuthorisation)
+      logger.info(`Proxy request sent with ID: ${requestId} and received result: ${JSON.stringify(result)}`)
       break
     default:
       throw Error('Transaction type not supported')

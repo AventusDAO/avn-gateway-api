@@ -7,7 +7,7 @@ const bnEquals = helper.bnEquals
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000'
 const fee = new BN(helper.GATEWAY_FEE_IN_AVT)
 
-const waitForTxToBeMined = async () => await helper.sleep(3500)
+const waitForTxToBeMined = async () => await helper.sleep(5000)
 
 describe('Proxy api calls:', async () => {
   let api
@@ -26,16 +26,21 @@ describe('Proxy api calls:', async () => {
     let senderNonceBefore
 
     beforeEach(async () => {
+      console.log("BEFORE", await api.query.getAvtBalance(sender))
       senderBalanceBefore = new BN(await api.query.getTokenBalance(sender, token))
       recipientBalanceBefore = new BN(await api.query.getTokenBalance(recipient, token))
       senderNonceBefore = new BN(await api.query.getAccountNonce(sender))
+    })
+
+    afterEach(async () => {
+      console.log("AFTER", await api.query.getAvtBalance(sender))
     })
 
     it('can transfer tokens using a recipient public key', async () => {
       const amount = new BN(2)
       await api.send.transferToken(relayer, sender, recipientPubKey, token, amount)
       await waitForTxToBeMined()
-      bnEquals(senderBalanceBefore.sub(amount).sub(fee), await api.query.getTokenBalance(sender, token))
+      bnEquals(senderBalanceBefore.sub(amount), await api.query.getTokenBalance(sender, token))
       bnEquals(recipientBalanceBefore.add(amount), await api.query.getTokenBalance(recipient, token))
       bnEquals(senderNonceBefore.add(new BN(1)), await api.query.getAccountNonce(sender))
     })
@@ -44,14 +49,14 @@ describe('Proxy api calls:', async () => {
       this.timeout(400000) //increase the timeout of this test (https://mochajs.org/#test-level)
 
       const amount = new BN(1)
-      const numTx = new BN(3)
+      const numTx = new BN(50)
 
       for (i = 0; i < numTx; i++) {
         await api.send.transferToken(relayer, sender, recipient, token, amount)
       }
 
       await waitForTxToBeMined()
-      bnEquals(senderBalanceBefore.sub(amount.mul(numTx)).sub(fee.mul(numTx)), await api.query.getTokenBalance(sender, token))
+      bnEquals(senderBalanceBefore.sub(amount.mul(numTx)), await api.query.getTokenBalance(sender, token))
       bnEquals(recipientBalanceBefore.add(amount.mul(numTx)), await api.query.getTokenBalance(recipient, token))
       bnEquals(senderNonceBefore.add(numTx), await api.query.getAccountNonce(sender))
     })

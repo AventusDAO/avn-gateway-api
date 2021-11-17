@@ -26,27 +26,22 @@ const zipdir = require('zip-dir')
 const { LAYER_NAME, createLambdaLayer, publishLambdaLayer } = require('./update-layer.js')
 const { installPkgDependencies, getAllFilesPaths } = require('./utils.js')
 
-const LAMBDAS = [
-  'poll-handler',
-  'query-handler',
-  'send-handler',
-  'authorisation-handler',
-  'tx-status-update-handler'
-]
+const LAMBDAS = ['poll-handler', 'query-handler', 'send-handler', 'authorisation-handler', 'tx-status-update-handler']
 
 async function main() {
   const lambda = process.argv[2]
   const lambdas = lambda === 'all' ? LAMBDAS : [lambda]
-  await Promise.allSettled(lambdas.map((lambda) => {
-    updateNodeModulesAndPublish(lambda)
-  }))
+  await Promise.allSettled(
+    lambdas.map(lambda => {
+      updateNodeModulesAndPublish(lambda)
+    })
+  )
 }
 
 async function updateNodeModulesAndPublish(lambda) {
   try {
-    if (!LAMBDAS.includes(lambda))
-      throw Error('no such lambda', lambda)
-  
+    if (!LAMBDAS.includes(lambda)) throw Error('no such lambda', lambda)
+
     const paths = {
       lambda: join(__dirname, lambda),
       lambdaIdx: join(__dirname, lambda, 'index.js'),
@@ -54,15 +49,19 @@ async function updateNodeModulesAndPublish(lambda) {
       layer: join(__dirname, 'layer'),
       layerPkg: join(__dirname, 'layer/nodejs/package.json')
     }
-  
-    if (!fs.existsSync(paths.lambda))
-      throw Error(`${lambda} source code is not found`)
-  
+
+    if (!fs.existsSync(paths.lambda)) throw Error(`${lambda} source code is not found`)
+
     await updateNodeModules(lambda, paths)
     const lambdaFilesPaths = getAllFilesPaths(paths.lambda)
-    const usesLambdaLayer = await updateRequirePathsInLambdaFiles(lambdaFilesPaths)
-    const layers = usesLambdaLayer ? await getLambdaLayer(lambda, LAYER_NAME, paths.layer) : null
+    const usesLambdaLayer = await updateRequirePathsInLambdaFiles(
+      lambdaFilesPaths,
+      /..\/layer\/nodejs\//gs,
+      '/opt/nodejs/'
+    )
+    const layers = usesLambdaLayer ? await getLambdaLayer(LAYER_NAME, paths.layer) : null
     await publish(lambda, layers)
+    await updateRequirePathsInLambdaFiles(lambdaFilesPaths, /\/opt\/nodejs\//gs, '../layer/nodejs/')
 
     console.log(`==== Lambda function ${lambda} is successfully published`)
   } catch (err) {
@@ -74,42 +73,35 @@ async function updateNodeModules(lambda, paths) {
   let lambdaPkg = require(paths.lambdaPkg)
   if (lambdaPkg.dependencies) {
     const layerPkg = require(paths.layerPkg)
-    Object.entries(layerPkg.dependencies).forEach(
-      ([module, _version] = dependency) => {
-        if (lambdaPkg.dependencies[module])
-          delete lambdaPkg.dependencies[module]
-      }
-    )
+    Object.entries(layerPkg.dependencies).forEach(([module, _version] = dependency) => {
+      if (lambdaPkg.dependencies[module]) delete lambdaPkg.dependencies[module]
+    })
     fs.writeFileSync(paths.lambdaPkg, JSON.stringify(lambdaPkg, null, 2))
     await installPkgDependencies(lambda, paths.lambda)
   }
 }
 
-async function updateRequirePathsInLambdaFiles(lambdaFilesPaths) {
-  const layerPath = '/opt/nodejs/'
+async function updateRequirePathsInLambdaFiles(lambdaFilesPaths, replaceRegEx, newPath) {
   let usesLambdaLayer = false
-  await Promise.all(lambdaFilesPaths.map(async (lambdaFilePath) => {
-    const fileBody = await fs.readFileSync(lambdaFilePath, 'utf8')
-    const updatedFileBody = fileBody.replace(/..\/layer\/nodejs\//gs, layerPath)
-    if (!usesLambdaLayer && updatedFileBody.includes(layerPath))
-      usesLambdaLayer = true
-    fs.writeFileSync(lambdaFilePath, updatedFileBody, 'utf8')
-  }))
+  await Promise.all(
+    lambdaFilesPaths.map(async lambdaFilePath => {
+      const fileBody = await fs.readFileSync(lambdaFilePath, 'utf8')
+      const updatedFileBody = fileBody.replace(replaceRegEx, newPath)
+      if (!usesLambdaLayer && updatedFileBody.includes(newPath)) usesLambdaLayer = true
+      fs.writeFileSync(lambdaFilePath, updatedFileBody, 'utf8')
+    })
+  )
   return usesLambdaLayer
 }
 
-async function getLambdaLayer(lambda, layerName, layerPath) {
-  const functionDetails = await aws.send(new GetFunctionCommand({ FunctionName: lambda }))
-  if (functionDetails.Configuration?.Layers)
-  {
-    layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
-    if (layer.Layers.length > 0) {
-      return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
-    } else {
-      await installPkgDependencies(layerName, layerPath)
-      const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
-      return [LayerVersionArn]
-    }
+async function getLambdaLayer(layerName, layerPath) {
+  layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
+  if (layer.Layers.length > 0) {
+    return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
+  } else {
+    await installPkgDependencies(layerName, layerPath)
+    const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
+    return [LayerVersionArn]
   }
 }
 
@@ -123,10 +115,12 @@ async function publish(lambda, layers) {
 
 async function publishSourceCode(lambda) {
   try {
-    await aws.send(new UpdateFunctionCodeCommand({
-      ZipFile: await zipdir(lambda),
-      FunctionName: lambda
-    }))
+    await aws.send(
+      new UpdateFunctionCodeCommand({
+        ZipFile: await zipdir(lambda),
+        FunctionName: lambda
+      })
+    )
   } catch (err) {
     console.log(lambda, '- Error:', err)
   }

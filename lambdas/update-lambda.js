@@ -54,9 +54,14 @@ async function updateNodeModulesAndPublish(lambda) {
 
     await updateNodeModules(lambda, paths)
     const lambdaFilesPaths = getAllFilesPaths(paths.lambda)
-    const usesLambdaLayer = await updateRequirePathsInLambdaFiles(lambdaFilesPaths)
-    const layers = usesLambdaLayer ? await getLambdaLayer(lambda, LAYER_NAME, paths.layer) : null
+    const usesLambdaLayer = await updateRequirePathsInLambdaFiles(
+      lambdaFilesPaths,
+      /..\/layer\/nodejs\//gs,
+      '/opt/nodejs/'
+    )
+    const layers = usesLambdaLayer ? await getLambdaLayer(LAYER_NAME, paths.layer) : null
     await publish(lambda, layers)
+    await updateRequirePathsInLambdaFiles(lambdaFilesPaths, /\/opt\/nodejs\//gs, '../layer/nodejs/')
 
     console.log(`==== Lambda function ${lambda} is successfully published`)
   } catch (err) {
@@ -76,31 +81,27 @@ async function updateNodeModules(lambda, paths) {
   }
 }
 
-async function updateRequirePathsInLambdaFiles(lambdaFilesPaths) {
-  const layerPath = '/opt/nodejs/'
+async function updateRequirePathsInLambdaFiles(lambdaFilesPaths, replaceRegEx, newPath) {
   let usesLambdaLayer = false
   await Promise.all(
     lambdaFilesPaths.map(async lambdaFilePath => {
       const fileBody = await fs.readFileSync(lambdaFilePath, 'utf8')
-      const updatedFileBody = fileBody.replace(/..\/layer\/nodejs\//gs, layerPath)
-      if (!usesLambdaLayer && updatedFileBody.includes(layerPath)) usesLambdaLayer = true
+      const updatedFileBody = fileBody.replace(replaceRegEx, newPath)
+      if (!usesLambdaLayer && updatedFileBody.includes(newPath)) usesLambdaLayer = true
       fs.writeFileSync(lambdaFilePath, updatedFileBody, 'utf8')
     })
   )
   return usesLambdaLayer
 }
 
-async function getLambdaLayer(lambda, layerName, layerPath) {
-  const functionDetails = await aws.send(new GetFunctionCommand({ FunctionName: lambda }))
-  if (functionDetails.Configuration?.Layers) {
-    layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
-    if (layer.Layers.length > 0) {
-      return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
-    } else {
-      await installPkgDependencies(layerName, layerPath)
-      const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
-      return [LayerVersionArn]
-    }
+async function getLambdaLayer(layerName, layerPath) {
+  layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
+  if (layer.Layers.length > 0) {
+    return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
+  } else {
+    await installPkgDependencies(layerName, layerPath)
+    const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
+    return [LayerVersionArn]
   }
 }
 

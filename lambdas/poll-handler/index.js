@@ -1,6 +1,7 @@
 const utils = require('../layer/nodejs/utils.js')
-const EC2 = require('../layer/nodejs/resources.json').ec2_endpoint
 const axios = require('axios')
+
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 
 exports.handler = async event => {
   const response = {
@@ -13,7 +14,7 @@ exports.handler = async event => {
 async function poll(callId, requestId) {
   let response
   try {
-    response = await axios.post(EC2 + 'avnPoll', { callId, requestId })
+    response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
   } catch (err) {
     throw err
   }

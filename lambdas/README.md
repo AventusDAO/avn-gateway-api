@@ -31,7 +31,7 @@ node update-lambda.js all #update all lambdas
 
 ### Local Testing
 From the lambdas root directory run 
-1. Replace `/opt/nodejs/` with `../layer/nodejs` in all files and install npm modules by running
+1. Replace `/opt/nodejs/` with `../layer/nodejs` in all files if there are any and install npm modules by running
    ```
    node update-local.js YOUR_LAMBDA
    ```

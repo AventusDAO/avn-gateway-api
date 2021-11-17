@@ -24,10 +24,10 @@ async function tx(requestId, palletName, method, params) {
   return await signAndSend(requestId, txn)
 }
 
-async function proxy(requestId, palletName, method, params) {
+async function proxy(requestId, palletName, method, params, paymentAuthorisation) {
   log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
   let innerCall = await api.tx[palletName][method](...params)
-  const txn = await api.tx[palletName]['proxy'](innerCall)
+  const txn = await api.tx.avnProxy.proxy(innerCall, paymentAuthorisation)
 
   return await signAndSend(requestId, txn)
 }

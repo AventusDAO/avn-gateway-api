@@ -28,12 +28,19 @@ function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString()
 }
 
+function isNullOrEmptyString(value) {
+  return value
+    ? value.replace(/\s/g, '').length == 0
+    : true
+}
+
 function logError(msg, callId, reference, data) {
   console.error('Error:', msg, ':User call ID:', callId, ':Error ref:', reference, ':Error data:', JSON.stringify(data))
 }
 
 module.exports = {
   logError,
+  isNullOrEmptyString,
   isValidAccountId,
   isValidAmount,
   isValidTokenId,

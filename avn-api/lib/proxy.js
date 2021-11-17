@@ -3,6 +3,7 @@
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
 const common = require('./common.js')
 
+const PAYMENT_CONTEXT = 'authorization for proxy payment'
 const SIGNED_TRANSFER_SIGNATURE_CONTEXT = 'authorization for transfer operation'
 
 const transferToken = {
@@ -49,6 +50,39 @@ const transferToken = {
   }
 }
 
+function generatePaymentAuthorisationSignature(payee, amount, proxyProof, paymentNonce) {
+  const payerSuri = common.obtainClientSuri()
+  const context = common.registry.createType('Text', PAYMENT_CONTEXT);
+  const EncodedPayee = common.registry.createType('AccountId', payee);
+  const encodedAmount = common.registry.createType('Balance', amount);
+  const encodedProof = encodeProxyProof(proxyProof);
+  const encodedPaymentNonce = common.registry.createType('u64', paymentNonce);
+
+  const encoded_params = u8aConcat(
+    context.toU8a(false),
+    encodedProof.toU8a(false),
+    EncodedPayee.toU8a(true),
+    encodedAmount.toU8a(true),
+    encodedPaymentNonce.toU8a(true)
+  );
+
+  const encodedDataInHex = u8aToHex(encoded_params);
+  return signData(payerSuri, encodedDataInHex)
+}
+
+// Because we don't have a connecting api (with access to the custom types), we can't create a proof object automatically
+function encodeProxyProof(proxyProof) {
+  const signer = registry.createType('AccountId', proxyProof.signer);
+  const relayer = registry.createType('AccountId', proxyProof.relayer);
+  const signature = registry.createType('MultiSignature', proxyProof.signature);
+
+  return u8aConcat(
+    signer.toU8a(true),
+    relayer.toU8a(true),
+    signature.toU8a(false)
+  );
+}
+
 function signData(signerSuri, encodedData) {
   const signer = common.keyring.addFromUri(signerSuri)
   const signature = u8aToHex(signer.sign(encodedData))
@@ -56,5 +90,6 @@ function signData(signerSuri, encodedData) {
 }
 
 module.exports = {
-  transferToken
+  transferToken,
+  generatePaymentAuthorisationSignature
 }

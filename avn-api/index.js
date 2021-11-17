@@ -7,6 +7,8 @@ const Poll = require('./lib/poll.js')
 const Awt = require('./lib/awt.js')
 const version = require('./package.json').version
 
+const GATEWAY_FEE_IN_AVT = '1000000000000000' //1 AVT
+
 function AvnApi(gateway) {
   this.gateway = gateway
   this.version = version
@@ -19,13 +21,14 @@ AvnApi.prototype.init = async function() {
   awtToken = Awt.generateAwtToken(process.env.SURI)
   const avnApi = {
     gateway: this.gateway,
+    gatewayUsageFee: GATEWAY_FEE_IN_AVT,
     uuid: () => uuidv4(),
     axios: () => setupAxios(Awt)
   }
 
   this.query = new Query(avnApi)
   const avtContractAddress = await this.query.getAvtContractAddress(avnApi)
-  this.send = new Send(avnApi, this.query, avtContractAddress)
+  this.send = new Send(avnApi, this.query, avtContractAddress, GATEWAY_FEE_IN_AVT)
   this.poll = new Poll(avnApi)
   this.awt = Awt
 }

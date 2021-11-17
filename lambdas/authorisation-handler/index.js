@@ -1,10 +1,10 @@
-const EC2 = require('../layer/nodejs/resources.json').ec2_endpoint
 const axios = require('axios')
 const BN = require('bn.js')
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
 const { cryptoWaitReady, signatureVerify } = require('@polkadot/util-crypto')
 const { TypeRegistry } = require('@polkadot/types')
 
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 const SIGNING_CONTEXT = 'awt_gateway_api'
 const MAX_TOKEN_AGE_MSEC = 60000
 const CLOCK_JITTER_MSEC = -15000
@@ -50,7 +50,7 @@ async function validateAwtToken(event) {
 async function userHasAvtBalance(awtToken) {
   // query the chain for balance info
   try {
-    const response = await axios.post(EC2 + 'avnQuery', {
+    const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
       palletName: 'system',
       storageName: 'account',
       params: [awtToken.pk]

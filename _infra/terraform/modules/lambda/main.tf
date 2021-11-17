@@ -1,6 +1,6 @@
 locals {
   lambdas = { for k, v in var.lambda_functions : k => {
-      env_vars           = flatten([lookup(v, "env_vars", [])])
+      env_vars           = flatten([lookup(v, "env_vars", []), var.avn_connector_endpoint])
       subnet_ids         = lookup(v, "subnet_ids", [])
       security_group_ids = lookup(v, "security_group_ids", [])
     } 

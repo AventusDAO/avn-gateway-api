@@ -1,4 +1,4 @@
-const utils = require('../common/utils.js')
+const utils = require('../layer/nodejs/utils.js')
 const MQSender = require('./mqSender.js')
 
 const GATEWAY_USAGE_FEE = '1000000000000000'

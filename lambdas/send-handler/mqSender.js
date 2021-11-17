@@ -1,7 +1,7 @@
 'use strict'
 
 const amqp = require('amqplib/callback_api')
-const SecretsManager = require('./secretsManager.js') // TODO: Review and replace SM with alternatives if needed
+const SecretsManager = require('./secretsManager.js')
 
 module.exports = MQSender
 

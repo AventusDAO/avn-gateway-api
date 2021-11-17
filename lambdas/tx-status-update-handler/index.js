@@ -1,4 +1,4 @@
-const EC2 = require('../common/resources.json').ec2_endpoint
+const EC2 = require('../layer/nodejs/resources.json').ec2_endpoint
 const axios = require('axios')
 
 const BLOCK_EXPLORER_BASE_URL = `https://avn.sandbox.aventus.io:3000/transactions/bulk`

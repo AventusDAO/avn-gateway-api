@@ -5,6 +5,7 @@ const token = helper.TOKEN
 const BN = helper.BN
 const bnEquals = helper.bnEquals
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000'
+const fee = new BN(helper.GATEWAY_FEE_IN_AVT)
 
 const waitForTxToBeMined = async () => await helper.sleep(3500)
 
@@ -34,7 +35,7 @@ describe('Proxy api calls:', async () => {
       const amount = new BN(2)
       await api.send.transferToken(relayer, sender, recipientPubKey, token, amount)
       await waitForTxToBeMined()
-      bnEquals(senderBalanceBefore.sub(amount), await api.query.getTokenBalance(sender, token))
+      bnEquals(senderBalanceBefore.sub(amount).sub(fee), await api.query.getTokenBalance(sender, token))
       bnEquals(recipientBalanceBefore.add(amount), await api.query.getTokenBalance(recipient, token))
       bnEquals(senderNonceBefore.add(new BN(1)), await api.query.getAccountNonce(sender))
     })
@@ -50,7 +51,7 @@ describe('Proxy api calls:', async () => {
       }
 
       await waitForTxToBeMined()
-      bnEquals(senderBalanceBefore.sub(amount.mul(numTx)), await api.query.getTokenBalance(sender, token))
+      bnEquals(senderBalanceBefore.sub(amount.mul(numTx)).sub(fee.mul(numTx)), await api.query.getTokenBalance(sender, token))
       bnEquals(recipientBalanceBefore.add(amount.mul(numTx)), await api.query.getTokenBalance(recipient, token))
       bnEquals(senderNonceBefore.add(numTx), await api.query.getAccountNonce(sender))
     })

@@ -99,17 +99,13 @@ async function updateRequirePathsInLambdaFiles(lambdaFilesPaths) {
 }
 
 async function getLambdaLayer(lambda, layerName, layerPath) {
-  const functionDetails = await aws.send(new GetFunctionCommand({ FunctionName: lambda }))
-  if (functionDetails.Configuration?.Layers)
-  {
-    layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
-    if (layer.Layers.length > 0) {
-      return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
-    } else {
-      await installPkgDependencies(layerName, layerPath)
-      const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
-      return [LayerVersionArn]
-    }
+  layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
+  if (layer.Layers.length > 0) {
+    return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
+  } else {
+    await installPkgDependencies(layerName, layerPath)
+    const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
+    return [LayerVersionArn]
   }
 }
 

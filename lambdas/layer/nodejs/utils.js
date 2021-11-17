@@ -29,9 +29,7 @@ function toBnString(val) {
 }
 
 function isNullOrEmptyString(value) {
-  return value
-    ? value.replace(/\s/g, '').length == 0
-    : true
+  return value ? value.replace(/\s/g, '').length == 0 : true
 }
 
 function logError(msg, callId, reference, data) {

@@ -174,7 +174,13 @@ async function sendAvnTx(request) {
       logger.info(`Request sent with ID: ${requestId} and received result: ${JSON.stringify(result)}`)
       break
     case 'avnProxy':
-      result = await avn.proxy(request.requestId, request.palletName, request.method, request.params, request.paymentAuthorisation)
+      result = await avn.proxy(
+        request.requestId,
+        request.palletName,
+        request.method,
+        request.params,
+        request.paymentAuthorisation
+      )
       logger.info(`Proxy request sent with ID: ${requestId} and received result: ${JSON.stringify(result)}`)
       break
     default:

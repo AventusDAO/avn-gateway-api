@@ -103,19 +103,19 @@ async function callSwitch(call, responseObject) {
         responseObject.error = { code: -32602, message: 'Invalid params' }
       }
       break
-      case 'getAccountPaymentNonce':
-        if (utils.isValidAccountId(call.params[0])) {
-          try {
-            responseObject.result = await queryChain(call.id, 'avnProxy', 'paymentNonces', [call.params[0]], format1)
-          } catch (err) {
-            utils.logError('failed to query chain', call.id, 'query-handler.getAccountPaymentNonce.queryChain', err)
-            responseObject.error = { code: -32603, message: 'Internal error' }
-          }
-        } else {
-          utils.logError('invalid account ID', call.id, 'query-handler.getAccountPaymentNonce.params', call.params[0])
-          responseObject.error = { code: -32602, message: 'Invalid params' }
+    case 'getAccountPaymentNonce':
+      if (utils.isValidAccountId(call.params[0])) {
+        try {
+          responseObject.result = await queryChain(call.id, 'avnProxy', 'paymentNonces', [call.params[0]], format1)
+        } catch (err) {
+          utils.logError('failed to query chain', call.id, 'query-handler.getAccountPaymentNonce.queryChain', err)
+          responseObject.error = { code: -32603, message: 'Internal error' }
         }
-        break
+      } else {
+        utils.logError('invalid account ID', call.id, 'query-handler.getAccountPaymentNonce.params', call.params[0])
+        responseObject.error = { code: -32602, message: 'Invalid params' }
+      }
+      break
     case 'getAvtContractAddress':
       try {
         responseObject.result = await queryChain(call.id, 'tokenManager', 'aVTTokenContract', [], res => res.toString())

@@ -7,6 +7,7 @@ const Poll = require('./lib/poll.js')
 const Awt = require('./lib/awt.js')
 const version = require('./package.json').version
 
+// TODO - Remove this and replace with getter before releasing to public github / NPM
 const GATEWAY_FEE_IN_AVT = '1000000000000000' //1 AVT
 
 function AvnApi(gateway) {

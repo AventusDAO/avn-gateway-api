@@ -27,9 +27,9 @@ function getAllFilesPaths(dirPath, foundFiles) {
   files.forEach(function(file) {
     if (file !== 'node_modules') {
       if (extname(file).toLowerCase() === '.js') {
-        foundFiles.push(join(dirPath, "/", file))
-      } else if (fs.statSync(dirPath + "/" + file).isDirectory()) {
-        foundFiles = getAllFilesPaths(dirPath + "/" + file, foundFiles)
+        foundFiles.push(join(dirPath, '/', file))
+      } else if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+        foundFiles = getAllFilesPaths(dirPath + '/' + file, foundFiles)
       }
     }
   })

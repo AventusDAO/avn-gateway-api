@@ -32,21 +32,25 @@ async function main() {
 
 async function publishLambdaLayer(lambda, description, layers) {
   try {
-    await aws.send(new UpdateFunctionConfigurationCommand({
-      FunctionName: lambda,
-      Description: description,
-      Layers: layers
-    }))
+    await aws.send(
+      new UpdateFunctionConfigurationCommand({
+        FunctionName: lambda,
+        Description: description,
+        Layers: layers
+      })
+    )
   } catch (err) {
     console.log(lambda, '- Error:', err)
   }
 }
 
 async function createLambdaLayer(layerName, layerPath) {
-  const response = await aws.send(new PublishLayerVersionCommand({
-    LayerName: layerName,
-    Content: { ZipFile: await zipdir(layerPath) }
-  }))
+  const response = await aws.send(
+    new PublishLayerVersionCommand({
+      LayerName: layerName,
+      Content: { ZipFile: await zipdir(layerPath) }
+    })
+  )
   console.log(`Lambda layer ${layerName} is updated to version ${response.Version}`)
   return response
 }

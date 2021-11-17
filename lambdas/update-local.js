@@ -1,7 +1,8 @@
 /*
   Description:
     This script merges layer dependencies into lambda function dependencies list, 
-    and updates all layer file URIs from /opt/nodejs/ to ../layer/nodejs/ in lambda function files
+    and updates all layer file URIs from /opt/nodejs/ to ../layer/nodejs/ in lambda 
+    function files if there are any
 */
 
 const join = require('path').join

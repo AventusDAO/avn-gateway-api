@@ -24,6 +24,7 @@ resource "aws_subnet" "private_subnets" {
 
 resource "aws_subnet" "public_subnets" {
   for_each                = var.public_zone_ips
+  availability_zone       = "${data.aws_region.current.name}${each.key}"
   vpc_id                  = aws_vpc.gateway.id
   cidr_block              = each.value
   map_public_ip_on_launch = true

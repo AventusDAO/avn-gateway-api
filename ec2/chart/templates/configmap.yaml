@@ -5,4 +5,4 @@ kind: ConfigMap
 metadata:
   name: {{ .Chart.Name }}
 data:
-  {{- (.Files.Glob $environment).AsConfig | nindent 2 }}   
+  {{- .Files.Get $environment | toString | nindent 2 }}

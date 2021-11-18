@@ -111,7 +111,7 @@ async function callSwitch(call, responseObject, requestId) {
 
           let params = {
             proxyParams: [proof, innerArgs.from, innerArgs.to, innerArgs.token, innerArgs.amount],
-            gatewayPaymentDetails: {
+            paymentDetails: {
               signer: call.params.innerArgs.from,
               relayer: call.params.relayer,
               proxyProof: proof,

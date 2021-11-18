@@ -37,7 +37,13 @@ const { replaceRef, mergePkgDependencies, installPkgDependencies, getAllFilesPat
 
 const TARGETS = ['layer', 'lambda', 'local']
 const LAYER_NAME = 'common-layer'
-const LAMBDAS = ['poll-handler', 'query-handler', 'send-handler-layer', 'authorisation-handler', 'tx-status-update-handler']
+const LAMBDAS = [
+  'poll-handler',
+  'query-handler',
+  'send-handler-layer',
+  'authorisation-handler',
+  'tx-status-update-handler'
+]
 
 async function main() {
   const target = process.argv[2]
@@ -60,8 +66,8 @@ async function main() {
     case 'lambda':
       await Promise.allSettled(
         lambdas.map(lambda => {
-          LAMBDAS.includes(lambda) ? 
-            updateNodeModulesAndPublish(lambda)
+          LAMBDAS.includes(lambda)
+            ? updateNodeModulesAndPublish(lambda)
             : console.log('Error: no such lambda %s', lambda)
         })
       )
@@ -69,9 +75,7 @@ async function main() {
     case 'local':
       await Promise.allSettled(
         lambdas.map(lambda => {
-          LAMBDAS.includes(lambda) ? 
-            updateNodeModulesAndFiles(lambda)
-            : console.log('Error: no such lambda %s', lambda)
+          LAMBDAS.includes(lambda) ? updateNodeModulesAndFiles(lambda) : console.log('Error: no such lambda %s', lambda)
         })
       )
       break

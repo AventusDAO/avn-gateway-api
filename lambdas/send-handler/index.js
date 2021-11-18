@@ -115,7 +115,7 @@ async function callSwitch(call, responseObject, requestId) {
               signer: call.params.innerArgs.from,
               relayer: call.params.relayer,
               proxyProof: proof,
-              feeSignature: call.params.gatewayFeeSignature,
+              gatewayFeeSignature: call.params.gatewayFeeSignature,
               paymentNonce: call.params.paymentNonce
             }
           }

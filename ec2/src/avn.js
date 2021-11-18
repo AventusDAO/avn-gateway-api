@@ -93,18 +93,18 @@ async function verfiyPaymentDetails(p) {
   )
 
   const hexEncodedData = utils.u8aToHex(encodedData)
-  const { isValid } = signatureVerify(hexEncodedData, p.feeSignature, p.signer)
+  const { isValid } = signatureVerify(hexEncodedData, p.gatewayFeeSignature, p.signer)
 
   if (isValid) {
     return {
       recipient: p.relayer,
       amount: gatewayFee,
       signature: {
-        Sr25519: p.feeSignature
+        Sr25519: p.gatewayFeeSignature
       }
     }
   } else {
-    throw new Error(`Invalid signature ${p.feeSignature}`)
+    throw new Error(`Invalid gateway fee signature ${p.gatewayFeeSignature}`)
   }
 }
 

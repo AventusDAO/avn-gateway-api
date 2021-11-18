@@ -1,7 +1,8 @@
 
 locals {
-  name       = "avn-gateway"
-  account_id = "602004642405"
+  name                   = "avn-gateway"
+  account_id             = "602004642405"
+  avn_connector_endpoint = "http://ec2-63-33-195-249.eu-west-1.compute.amazonaws.com:5000/"
 }
 
 module "lambda_functions" {
@@ -14,8 +15,9 @@ module "lambda_functions" {
   lambda_functions = {
     authorisation-handler = {
       env_vars = {
-        MAX_TOKEN_AGE_MSEC = 60000
-        MIN_AVT_BALANCE    = "100000000000000000000"
+        MAX_TOKEN_AGE_MSEC     = 60000
+        MIN_AVT_BALANCE        = "100000000000000000000"
+        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
       }
     }
     send-handler = {
@@ -28,8 +30,21 @@ module "lambda_functions" {
         SECRET_MANAGER_REGION   = var.region
       }
     }
-    poll-handler  = {}
-    query-handler = {}
+    poll-handler  = {
+      env_vars = {
+        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
+      }
+    }
+    query-handler = {
+      env_vars = {
+        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
+      }
+    }
+    tx-status-update-handler = {
+      env_vars = {
+        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
+      }
+    }
   }
 
   depends_on = [

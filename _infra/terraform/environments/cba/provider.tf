@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     encrypt                = true
     bucket                 = "tf-state-avn-1"
-    key                    = "env:/cba/gateway-api/terraform.tfstate"
+    key                    = "env:/cba/gateway-api/state.tfstate"
     region                 = "eu-west-2"
     skip_region_validation = "true"
   }

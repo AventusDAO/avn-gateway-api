@@ -26,10 +26,6 @@ function transferToken(api, queryApi) {
   }
 }
 
-function generateFunction(functionName, api, queryApi) {
-  return functionName(api, queryApi)
-}
-
 Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from, to, token, amount) {
   const nonce = await this.smartNonce(queryApi, from, NONCE_TYPE.proxy)
   const signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce)
@@ -63,6 +59,10 @@ Send.prototype.postRequest = async function(api, method, params) {
   const endpoint = api.gateway + '/send'
   const response = await api.axios().post(endpoint, { jsonrpc: '2.0', id: api.uuid(), method: method, params: params })
   return response.data.result || response.data.error.message
+}
+
+function generateFunction(functionName, api, queryApi) {
+  return functionName(api, queryApi)
 }
 
 Send.prototype.smartNonce = async function(queryApi, _account, nonceType) {

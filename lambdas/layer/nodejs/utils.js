@@ -45,6 +45,7 @@ module.exports = {
   isNullOrEmptyString,
   isValidAccountId,
   isValidAmount,
+  isValidNonce,
   isValidTokenId,
   isValidUUID,
   toBnString

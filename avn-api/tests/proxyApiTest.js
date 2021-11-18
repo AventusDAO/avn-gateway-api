@@ -26,14 +26,14 @@ describe('Proxy api calls:', async () => {
     let senderNonceBefore
 
     beforeEach(async () => {
-      console.log("BEFORE", await api.query.getAvtBalance(sender))
+      console.log('BEFORE', await api.query.getAvtBalance(sender))
       senderBalanceBefore = new BN(await api.query.getTokenBalance(sender, token))
       recipientBalanceBefore = new BN(await api.query.getTokenBalance(recipient, token))
       senderNonceBefore = new BN(await api.query.getAccountNonce(sender))
     })
 
     afterEach(async () => {
-      console.log("AFTER", await api.query.getAvtBalance(sender))
+      console.log('AFTER', await api.query.getAvtBalance(sender))
     })
 
     it('can transfer tokens using a recipient public key', async () => {

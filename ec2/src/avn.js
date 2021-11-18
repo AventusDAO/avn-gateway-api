@@ -86,7 +86,7 @@ async function verifyPaymentDetails(p) {
 
   const encodedData = u8aConcat(
     context.toU8a(false),
-    encodedProof.toU8a(true),
+    encodedProof.toU8a(false),
     encodedPayee.toU8a(true),
     encodedAmount.toU8a(true),
     encodedPaymentNonce.toU8a(true)

@@ -26,17 +26,20 @@ async function tx(requestId, palletName, method, params) {
 }
 
 async function proxy(requestId, palletName, method, params) {
+  let paymentInfo
+
   try {
     log.trace('Verifying payment details')
     const paymentInfo = await verifyPaymentDetails(params.paymentDetails)
-    log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
-    let innerCall = await api.tx[palletName][method](...params.proxyParams)
-    const txn = await api.tx.avnProxy.proxy(innerCall, paymentInfo)
-    return await signAndSend(requestId, txn)
   } catch (error) {
-    log.error(`Invalid fee payment authorisation for ${requestId}: ${error}`)
-    return { error: 'Invalid fee payment authorisation' }
+    log.error(`Invalid fee authorisation for ${requestId}: ${error}`)
+    return { error: 'Invalid fee authorisation' }
   }
+
+  log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+  let innerCall = await api.tx[palletName][method](...params.proxyParams)
+  const txn = await api.tx.avnProxy.proxy(innerCall, paymentInfo)
+  return await signAndSend(requestId, txn)
 }
 
 async function poll(requestId) {

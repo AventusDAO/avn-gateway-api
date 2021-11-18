@@ -109,11 +109,14 @@ async function callSwitch(call, responseObject, requestId) {
             }
           }
 
-          let uncheckedPaymentAuthorisation = { // the amount is populated by the avn-connector after verification
-            recipient: call.params.relayer,
-            paymentNonce: call.params.paymentNonce,
-            signature: {
-              Sr25519: call.params.gatewayFeeSignature
+          let params = {
+            proxyParams: [proof, innerArgs.from, innerArgs.to, innerArgs.token, innerArgs.amount],
+            gatewayPaymentDetails: {
+              signer: call.params.innerArgs.from,
+              relayer: call.params.relayer,
+              proxyProof: proof,
+              feeSignature: call.params.gatewayFeeSignature,
+              paymentNonce: call.params.paymentNonce
             }
           }
 
@@ -123,8 +126,7 @@ async function callSwitch(call, responseObject, requestId) {
             process.env.MQ_AVN_TX_QUEUE,
             pallet,
             method,
-            formatter.encode(proof, call.params.innerArgs),
-            uncheckedPaymentAuthorisation
+            params
           )
         } catch (err) {
           utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxy.sendProxyTx', err)
@@ -145,9 +147,6 @@ const codeFormatters = {
     transfer: {
       validate: function(params0, params1) {
         return utils.isValidAccountId(params0) && utils.isValidAmount(params1)
-      },
-      encode: function(params0, params1) {
-        return [params0, params1]
       }
     }
   },
@@ -163,9 +162,6 @@ const codeFormatters = {
           utils.isValidNonce(call.params.paymentNonce.toString()) &&
           !utils.isNullOrEmptyString(call.params.gatewayFeeSignature)
         )
-      },
-      encode: function(proof, innerArgs) {
-        return [proof, innerArgs.from, innerArgs.to, innerArgs.token, innerArgs.amount]
       }
     }
   }

@@ -106,6 +106,11 @@ const common_types = {
     relayer: 'AccountId',
     signature: 'MultiSignature'
   },
+  PaymentInfo: {
+    recipient: 'AccountId',
+    amount: 'Balance',
+    signature: 'MultiSignature'
+  },
   EthTransactionType: {
     _enum: {
       PublishRoot: 'PublishRootData',

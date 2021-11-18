@@ -26,18 +26,19 @@ async function tx(requestId, palletName, method, params) {
   return await signAndSend(requestId, txn)
 }
 
-async function proxy(requestId, palletName, method, params, uncheckedPaymentAuthorisation) {
+async function proxy(requestId, palletName, method, params) {
   log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+
   let paymentAuthorisation
 
   try {
-    paymentAuthorisation = await verfiyPaymentAuthorisation(params, uncheckedPaymentAuthorisation)
+    paymentAuthorisation = await verfiyPaymentDetails(params.paymentDetails)
   } catch (error) {
     log.error(`Invalid payment authorisation for ${requestId}: ${error}`)
     return { error: 'Invalid payment authorisation' }
   }
 
-  let innerCall = await api.tx[palletName][method](...params)
+  let innerCall = await api.tx[palletName][method](...params.proxyParams)
   const txn = await api.tx.avnProxy.proxy(innerCall, paymentAuthorisation)
 
   return await signAndSend(requestId, txn)
@@ -79,19 +80,14 @@ async function getNonce(senderAddress) {
   return nonce
 }
 
-async function verfiyPaymentAuthorisation(params, paymentAuthorisation) {
-  const proxyProof = params[0]
-  const sender = params[1]
-  const relayer = paymentAuthorisation.recipient
-  const paymentSignature = paymentAuthorisation.signature.Sr25519
-  const paymentNonce = paymentAuthorisation.paymentNonce
-  const gatewayFee = await getGatewayFee(sender, relayer)
+async function verfiyPaymentDetails(p) {
+  const gatewayFee = await getGatewayFee(p.signer, p.relayer)
 
   const context = api.createType('Text', 'authorization for proxy payment')
-  const encodedProof = api.createType('Proof', proxyProof)
-  const encodedPayee = api.createType('AccountId', relayer)
+  const encodedProof = api.createType('Proof', p.proxyProof)
+  const encodedPayee = api.createType('AccountId', p.relayer)
   const encodedAmount = api.createType('Balance', gatewayFee)
-  const encodedPaymentNonce = api.createType('u64', paymentNonce)
+  const encodedPaymentNonce = api.createType('u64', p.paymentNonce)
 
   const encodedData = utils.u8aConcat(
     context.toU8a(false),
@@ -102,14 +98,18 @@ async function verfiyPaymentAuthorisation(params, paymentAuthorisation) {
   )
 
   const hexEncodedData = utils.u8aToHex(encodedData)
-  const { isValid } = signatureVerify(hexEncodedData, paymentSignature, sender)
+  const { isValid } = signatureVerify(hexEncodedData, p.feeSignature, p.signer)
 
   if (isValid) {
-    delete paymentAuthorisation.paymentNonce
-    paymentAuthorisation.amount = gatewayFee
-    return paymentAuthorisation
+    return {
+      recipient: p.relayer,
+      amount: gatewayFee,
+      signature: {
+        Sr25519: p.feeSignature
+      }
+    }
   } else {
-    throw new Error(`Invalid signature ${paymentSignature}`)
+    throw new Error(`Invalid signature ${p.feeSignature}`)
   }
 }
 

@@ -172,7 +172,7 @@ async function trySendAvnTx(message) {
 
 async function sendAvnTx(request) {
   logger.trace(`Request body: ${JSON.stringify(request)}`)
-  const { requestId, txType, palletName, method, params, paymentAuthorisation } = request
+  const { requestId, txType, palletName, method, params } = request
   let result = null
 
   switch (txType) {
@@ -181,7 +181,7 @@ async function sendAvnTx(request) {
       logger.info(`Request sent with ID: ${requestId} and received result: ${JSON.stringify(result)}`)
       break
     case 'avnProxy':
-      result = await avn.proxy(requestId, palletName, method, params, paymentAuthorisation)
+      result = await avn.proxy(requestId, palletName, method, params)
       logger.info(`Proxy request sent with ID: ${requestId} and received result: ${JSON.stringify(result)}`)
       break
     default:

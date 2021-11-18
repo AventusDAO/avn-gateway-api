@@ -6,12 +6,12 @@ const proxyApi = require('./proxy.js')
 const MAX_TX_PROCESSING_TIME = 3000
 const NONCE_TYPE = { proxy: 0, payment: 1 }
 
-function Send(api, queryApi, avtContractAddress, gatewayUsageFee) {
+function Send(api, queryApi, avtContractAddress, gatewayFee) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi)
   this.transferToken = generateFunction(transferToken, api, queryApi)
   this.nonceMap = {}
   this.avtContractAddress = avtContractAddress
-  this.gatewayUsageFee = gatewayUsageFee
+  this.gatewayFee = gatewayFee
 }
 
 function transferAvt(api, queryApi) {
@@ -39,7 +39,7 @@ Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from,
   const paymentNonce = await this.smartNonce(queryApi, from, NONCE_TYPE.payment)
   const gatewayFeeSignature = proxyApi.generatePaymentAuthorisationSignature(
     relayer,
-    this.gatewayUsageFee,
+    this.gatewayFee,
     proxyProof,
     paymentNonce
   )

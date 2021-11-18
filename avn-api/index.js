@@ -22,7 +22,7 @@ AvnApi.prototype.init = async function() {
   awtToken = Awt.generateAwtToken(process.env.SURI)
   const avnApi = {
     gateway: this.gateway,
-    gatewayUsageFee: GATEWAY_FEE_IN_AVT,
+    gatewayFee: GATEWAY_FEE_IN_AVT,
     uuid: () => uuidv4(),
     axios: () => setupAxios(Awt)
   }

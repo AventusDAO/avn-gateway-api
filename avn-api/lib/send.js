@@ -33,7 +33,7 @@ Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from,
   const gatewayFeeSignature = proxyApi.generatePaymentAuthorisationSignature(
     from,
     relayer,
-    signature
+    signature,
     api.gatewayFee,
     paymentNonce
   )

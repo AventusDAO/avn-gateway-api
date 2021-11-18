@@ -1,5 +1,4 @@
 'use strict'
-
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
 const { isHex, u8aToHex, u8aConcat } = require('@polkadot/util')
 const { signatureVerify } = require('@polkadot/util-crypto')
@@ -27,21 +26,17 @@ async function tx(requestId, palletName, method, params) {
 }
 
 async function proxy(requestId, palletName, method, params) {
-  log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
-
-  let paymentAuthorisation
-
   try {
-    paymentAuthorisation = await verfiyPaymentDetails(params.paymentDetails)
+    log.trace('Verifying payment details')
+    const paymentInfo = await verfiyPaymentDetails(params.paymentDetails)
+    log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+    let innerCall = await api.tx[palletName][method](...params.proxyParams)
+    const txn = await api.tx.avnProxy.proxy(innerCall, paymentInfo)
+    return await signAndSend(requestId, txn)
   } catch (error) {
     log.error(`Invalid payment authorisation for ${requestId}: ${error}`)
     return { error: 'Invalid payment authorisation' }
   }
-
-  let innerCall = await api.tx[palletName][method](...params.proxyParams)
-  const txn = await api.tx.avnProxy.proxy(innerCall, paymentAuthorisation)
-
-  return await signAndSend(requestId, txn)
 }
 
 async function poll(requestId) {

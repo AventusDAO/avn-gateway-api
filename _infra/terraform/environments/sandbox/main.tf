@@ -1,8 +1,9 @@
 
 locals {
-  name            = "avn-gateway"
-  cluster_version = "1.21"
-  account_id      = "352429414196"
+  name                   = "avn-gateway"
+  cluster_version        = "1.21"
+  account_id             = "352429414196"
+  avn_connector_endpoint = "http://ec2-52-31-84-43.eu-west-1.compute.amazonaws.com:5000/"
 }
 
 module "lambda_functions" {
@@ -15,20 +16,29 @@ module "lambda_functions" {
   lambda_functions = {
     authorisation-handler = {
       env_vars = {
-        MAX_TOKEN_AGE_MSEC = 60000
-        MIN_AVT_BALANCE    = "100000000000000000000"
+        MAX_TOKEN_AGE_MSEC     = 60000
+        MIN_AVT_BALANCE        = "100000000000000000000"
+        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
       }
     }
     send-handler = {
-      env_vars           = {
+      env_vars = {
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
         MQ_SECRET_ARN           = module.rabbitmq.secret_arn
         MQ_AVN_TX_QUEUE         = "avnTx"
         SECRET_MANAGER_REGION   = var.region
       }
     }
-    poll-handler  = {}
-    query-handler = {}
+    poll-handler = {
+      env_vars = {
+        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
+      }
+    }
+    query-handler = {
+      env_vars = {
+        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
+      }
+    }
   }
 
   depends_on = [

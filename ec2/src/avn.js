@@ -34,8 +34,8 @@ async function proxy(requestId, palletName, method, params) {
     const txn = await api.tx.avnProxy.proxy(innerCall, paymentInfo)
     return await signAndSend(requestId, txn)
   } catch (error) {
-    log.error(`Invalid payment authorisation for ${requestId}: ${error}`)
-    return { error: 'Invalid payment authorisation' }
+    log.error(`Invalid fee payment authorisation for ${requestId}: ${error}`)
+    return { error: 'Invalid fee payment authorisation' }
   }
 }
 
@@ -104,7 +104,7 @@ async function verfiyPaymentDetails(p) {
       }
     }
   } else {
-    throw new Error(`Invalid gateway fee signature ${p.gatewayFeeSignature}`)
+    throw new Error(`Invalid signature ${p.gatewayFeeSignature}`)
   }
 }
 

@@ -109,7 +109,7 @@ async function callSwitch(call, responseObject, requestId) {
             }
           }
 
-          let paymentAuthorisation = {
+          let uncheckedPaymentAuthorisation = { // the amount is populated by the avn-connector after verification
             recipient: call.params.relayer,
             paymentNonce: call.params.paymentNonce,
             signature: {
@@ -124,7 +124,7 @@ async function callSwitch(call, responseObject, requestId) {
             pallet,
             method,
             formatter.encode(proof, call.params.innerArgs),
-            paymentAuthorisation
+            uncheckedPaymentAuthorisation
           )
         } catch (err) {
           utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxy.sendProxyTx', err)

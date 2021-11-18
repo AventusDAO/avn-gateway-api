@@ -26,10 +26,12 @@ async function tx(requestId, palletName, method, params) {
   return await signAndSend(requestId, txn)
 }
 
-async function proxy(requestId, palletName, method, params, paymentAuthorisation) {
+async function proxy(requestId, palletName, method, params, uncheckedPaymentAuthorisation) {
   log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+  let paymentAuthorisation
+
   try {
-    paymentAuthorisation = await verifyPayment(params, paymentAuthorisation)
+    paymentAuthorisation = await verfiyPaymentAuthorisation(params, uncheckedPaymentAuthorisation)
   } catch (error) {
     log.error(`Invalid payment authorisation for ${requestId}: ${error}`)
     return { error: 'Invalid payment authorisation' }
@@ -77,7 +79,7 @@ async function getNonce(senderAddress) {
   return nonce
 }
 
-async function verifyPayment(params, paymentAuthorisation) {
+async function verfiyPaymentAuthorisation(params, paymentAuthorisation) {
   const proxyProof = params[0]
   const sender = params[1]
   const relayer = paymentAuthorisation.recipient

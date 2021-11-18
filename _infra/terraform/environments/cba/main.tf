@@ -96,7 +96,7 @@ module "vpc" {
 module "rabbitmq" {
   source          = "../../modules/rabbitmq"
   vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.private_subnets
+  subnet_ids      = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
   deployment_mode = "CLUSTER_MULTI_AZ"
   depends_on = [
     module.vpc

@@ -1,6 +1,8 @@
 'use strict'
+
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
-const { isHex } = require('@polkadot/util')
+const { isHex, u8aToHex, u8aConcat } = require('@polkadot/util')
+const { signatureVerify } = require('@polkadot/util-crypto')
 const config = require('multiconfig').load()
 const log4js = require('log4js')
 const log = log4js.getLogger()
@@ -26,6 +28,13 @@ async function tx(requestId, palletName, method, params) {
 
 async function proxy(requestId, palletName, method, params, paymentAuthorisation) {
   log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+  try {
+    paymentAuthorisation = verifyPayment(params, paymentAuthorisation)
+  } catch (error) {
+    log.error(`Invalid payment authorisation for ${requestId}: ${error}`)
+    return { error: 'Invalid payment authorisation' }
+  }
+
   let innerCall = await api.tx[palletName][method](...params)
   const txn = await api.tx.avnProxy.proxy(innerCall, paymentAuthorisation)
 
@@ -66,6 +75,49 @@ async function getNonce(senderAddress) {
     redis.refreshNonce(senderAddress)
   }
   return nonce
+}
+
+function verifyPayment(params, paymentAuthorisation) {
+  const proxyProof = params[0]
+  const sender = params[1]
+  const relayer = paymentAuthorisation.recipient
+  const paymentSignature = paymentAuthorisation.signature.Sr25519
+  const paymentNonce = paymentAuthorisation.paymentNonce
+  const gatewayFee = await getGatewayFee()
+
+  const context = api.createType('Text', 'authorization for proxy payment')
+  const encodedProof = u8aConcat(
+    api.createType('AccountId', sender).toU8a(true),
+    api.createType('AccountId', relayer).toU8a(true),
+    api.createType('MultiSignature', proxyProof).toU8a(false)
+  )
+  const encodedPayee = api.createType('AccountId', relayer)
+  const encodedAmount = api.createType('Balance', gatewayFee)
+  const encodedPaymentNonce = api.createType('u64', paymentNonce)
+
+  const encodedData = utils.u8aConcat(
+    context.toU8a(false),
+    encodedProof,
+    encodedPayee.toU8a(true),
+    encodedAmount.toU8a(true),
+    encodedPaymentNonce.toU8a(true)
+  )
+
+  const hexEncodedData = utils.u8aToHex(encodedData)
+  const { isValid } = signatureVerify(hexEncodedData, paymentSignature, sender)
+
+  if (isValid) {
+    delete paymentAuthorisation.paymentNonce
+    paymentAuthorisation.amount = gatewayFee
+    return paymentAuthorisation
+  } else {
+    throw new Error(`Invalid signature ${paymentSignature}`)
+  }
+}
+
+async function getGatewayFee(sender, relayer) {
+  // TODO - get from redis
+  return '1000000000000000'
 }
 
 async function signAndSend(requestId, txn) {

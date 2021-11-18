@@ -16,6 +16,10 @@ function isValidAmount(amount) {
   return amount.match(/^[0-9]+$/) && !new BN(amount).isZero()
 }
 
+function isValidNonce(nonce) {
+  return nonce.match(/^[0-9]+$/)
+}
+
 function isValidUUID(requestId) {
   return uuidValidate(requestId)
 }

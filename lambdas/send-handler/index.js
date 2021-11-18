@@ -1,8 +1,6 @@
 const utils = require('../layer/nodejs/utils.js')
 const MQSender = require('./mqSender.js')
 
-const GATEWAY_USAGE_FEE = '1000000000000000'
-
 // TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
 let mqSender
 const connectToMQ = async () => {
@@ -113,19 +111,12 @@ async function callSwitch(call, responseObject, requestId) {
 
           let paymentAuthorisation = {
             recipient: call.params.relayer,
-            amount: GATEWAY_USAGE_FEE, // Using this here means the signature validation will fail if the user signed a different amount
+            paymentNonce: call.params.paymentNonce,
             signature: {
               Sr25519: call.params.gatewayFeeSignature
             }
           }
 
-          /*
-            TODO: decide where to validate the payment signature.
-            Not validating could leave the relayer open for abuse by an attacker because the relayer can keep sending transactions that will
-            always fail to be charged by sending a bad signature or an incorrect amount. Some options are:
-              - validating it here is slow and would require cryptoWaitReady() which is even slow to call for every call of the lambda
-              - validating it in the backend will mean we can't keep it generic as we do now. It would have to know about the arguments so it can encode and validate the data
-          */
           responseObject.result = await sendTx(
             requestId,
             'avnProxy',
@@ -169,6 +160,7 @@ const codeFormatters = {
           utils.isValidAccountId(call.params.innerArgs.to) &&
           utils.isValidTokenId(call.params.innerArgs.token) &&
           utils.isValidAmount(call.params.innerArgs.amount.toString()) &&
+          utils.isValidNonce(call.params.paymentNonce.toString()) &&
           !utils.isNullOrEmptyString(call.params.gatewayFeeSignature)
         )
       },

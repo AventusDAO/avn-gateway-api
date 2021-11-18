@@ -54,7 +54,8 @@ Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from,
     signature,
     relayer,
     innerArgs: { from, to, token, amount },
-    gatewayFeeSignature
+    gatewayFeeSignature,
+    paymentNonce
   })
 }
 

@@ -23,8 +23,8 @@ const transferToken = {
       nonce: nonce
     }
 
-    const encodedDataInHex = this.encodeSignatureData(dataToSign)
-    return signData(signerSuri, encodedDataInHex)
+    const hexEncodedData = this.encodeSignatureData(dataToSign)
+    return signData(signerSuri, hexEncodedData)
   },
 
   encodeSignatureData: function(params) {
@@ -36,7 +36,7 @@ const transferToken = {
     const amount_obj = common.registry.createType('u128', params.amount)
     const nonce_obj = common.registry.createType('u64', params.nonce)
 
-    const encoded_params = u8aConcat(
+    const encodedData = u8aConcat(
       context.toU8a(false),
       relayer_obj.toU8a(true),
       from_obj.toU8a(true),
@@ -46,7 +46,7 @@ const transferToken = {
       nonce_obj.toU8a(true)
     )
 
-    return u8aToHex(encoded_params)
+    return u8aToHex(encodedData)
   }
 }
 
@@ -58,7 +58,7 @@ function generatePaymentAuthorisationSignature(payee, amount, proxyProof, paymen
   const encodedProof = encodeProxyProof(proxyProof)
   const encodedPaymentNonce = common.registry.createType('u64', paymentNonce)
 
-  const encoded_params = u8aConcat(
+  const encodedData = u8aConcat(
     context.toU8a(false),
     encodedProof,
     encodedPayee.toU8a(true),
@@ -66,8 +66,8 @@ function generatePaymentAuthorisationSignature(payee, amount, proxyProof, paymen
     encodedPaymentNonce.toU8a(true)
   )
 
-  const encodedDataInHex = u8aToHex(encoded_params)
-  return signData(payerSuri, encodedDataInHex)
+  const hexEncodedData = u8aToHex(encodedData)
+  return signData(payerSuri, hexEncodedData)
 }
 
 // Because we don't have a connecting api (with access to the custom types), we can't create a proof object automatically

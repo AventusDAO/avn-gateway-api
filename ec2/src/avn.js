@@ -28,7 +28,7 @@ async function tx(requestId, palletName, method, params) {
 async function proxy(requestId, palletName, method, params) {
   try {
     log.trace('Verifying payment details')
-    const paymentInfo = await verfiyPaymentDetails(params.paymentDetails)
+    const paymentInfo = await verifyPaymentDetails(params.paymentDetails)
     log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
     let innerCall = await api.tx[palletName][method](...params.proxyParams)
     const txn = await api.tx.avnProxy.proxy(innerCall, paymentInfo)
@@ -75,7 +75,7 @@ async function getNonce(senderAddress) {
   return nonce
 }
 
-async function verfiyPaymentDetails(p) {
+async function verifyPaymentDetails(p) {
   const gatewayFee = await getGatewayFee(p.signer, p.relayer)
 
   const context = api.createType('Text', 'authorization for proxy payment')

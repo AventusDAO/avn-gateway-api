@@ -84,7 +84,7 @@ async function verifyPaymentDetails(p) {
   const encodedAmount = api.createType('Balance', gatewayFee)
   const encodedPaymentNonce = api.createType('u64', p.paymentNonce)
 
-  const encodedData = utils.u8aConcat(
+  const encodedData = u8aConcat(
     context.toU8a(false),
     encodedProof.toU8a(true),
     encodedPayee.toU8a(true),
@@ -92,7 +92,7 @@ async function verifyPaymentDetails(p) {
     encodedPaymentNonce.toU8a(true)
   )
 
-  const hexEncodedData = utils.u8aToHex(encodedData)
+  const hexEncodedData = u8aToHex(encodedData)
   const { isValid } = signatureVerify(hexEncodedData, p.gatewayFeeSignature, p.signer)
 
   if (isValid) {

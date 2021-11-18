@@ -5,7 +5,7 @@ const token = helper.TOKEN
 const BN = helper.BN
 const bnEquals = helper.bnEquals
 
-const waitForTxToBeMined = async () => await helper.sleep(5000)
+const waitForTxToBeMined = async () => await helper.sleep(3500)
 
 describe('SendTx api calls:', async () => {
   let api

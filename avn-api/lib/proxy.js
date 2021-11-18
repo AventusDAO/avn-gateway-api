@@ -50,18 +50,26 @@ const transferToken = {
   }
 }
 
-function generatePaymentAuthorisationSignature(payee, amount, proxyProof, paymentNonce) {
+function generatePaymentAuthorisationSignature(from, relayer, signature, amount, paymentNonce) {
+  const proxyProof = {
+    signer: from,
+    relayer: relayer,
+    signature: {
+      Sr25519: signature
+    }
+  }
+
   const payerSuri = common.obtainClientSuri()
   const context = common.registry.createType('Text', PAYMENT_CONTEXT)
-  const encodedPayee = common.registry.createType('AccountId', payee)
+  const encodedProxyProof = encodeProxyProof(proxyProof)
+  const encodedRelayer = common.registry.createType('AccountId', relayer)
   const encodedAmount = common.registry.createType('Balance', amount)
-  const encodedProof = encodeProxyProof(proxyProof)
   const encodedPaymentNonce = common.registry.createType('u64', paymentNonce)
 
   const encodedData = u8aConcat(
     context.toU8a(false),
-    encodedProof,
-    encodedPayee.toU8a(true),
+    encodedProxyProof,
+    encodedRelayer.toU8a(true),
     encodedAmount.toU8a(true),
     encodedPaymentNonce.toU8a(true)
   )

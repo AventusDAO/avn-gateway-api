@@ -29,18 +29,12 @@ function transferToken(api, queryApi) {
 Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from, to, token, amount) {
   const nonce = await this.smartNonce(queryApi, from, NONCE_TYPE.proxy)
   const signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce)
-  const proxyProof = {
-    signer: from,
-    relayer: relayer,
-    signature: {
-      Sr25519: signature
-    }
-  }
   const paymentNonce = await this.smartNonce(queryApi, from, NONCE_TYPE.payment)
   const gatewayFeeSignature = proxyApi.generatePaymentAuthorisationSignature(
+    from,
     relayer,
-    this.gatewayFee,
-    proxyProof,
+    signature
+    api.gatewayFee,
     paymentNonce
   )
 

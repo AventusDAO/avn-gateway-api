@@ -55,14 +55,14 @@ Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from,
   })
 }
 
+function generateFunction(functionName, api, queryApi) {
+  return functionName(api, queryApi)
+}
+
 Send.prototype.postRequest = async function(api, method, params) {
   const endpoint = api.gateway + '/send'
   const response = await api.axios().post(endpoint, { jsonrpc: '2.0', id: api.uuid(), method: method, params: params })
   return response.data.result || response.data.error.message
-}
-
-function generateFunction(functionName, api, queryApi) {
-  return functionName(api, queryApi)
 }
 
 Send.prototype.smartNonce = async function(queryApi, _account, nonceType) {

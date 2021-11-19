@@ -270,6 +270,8 @@ const common_types = {
     recipient_t1_address: 'H160',
     rate: 'RoyaltyRate'
   },
+  Address: 'LookupSource',
+  LookupSource: 'IndicesLookupSource',
   NftSaleType: {
     _enum: ['Unknown', 'Ethereum', 'Fiat']
   },

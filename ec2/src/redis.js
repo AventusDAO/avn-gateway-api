@@ -41,9 +41,6 @@ async function connect() {
       'Connected to Redis database:\n',
       (await redisClient.hello()).map((e, i) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')
     )
-    log.info("FLUSHING")
-    await redisClient.flushall()
-    log.info("FLUSHED")
   } else {
     redisClient = new Redis()
   }

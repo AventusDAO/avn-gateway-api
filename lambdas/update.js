@@ -37,13 +37,7 @@ const { replaceRef, mergePkgDependencies, installPkgDependencies, getAllFilesPat
 
 const TARGETS = ['layer', 'lambda', 'local']
 const LAYER_NAME = 'common-layer'
-const LAMBDAS = [
-  'poll-handler',
-  'query-handler',
-  'send-handler',
-  'authorisation-handler',
-  'tx-status-update-handler'
-]
+const LAMBDAS = ['poll-handler', 'query-handler', 'send-handler', 'authorisation-handler', 'tx-status-update-handler']
 
 async function main() {
   const target = process.argv[2]

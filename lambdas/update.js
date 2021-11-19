@@ -40,7 +40,7 @@ const LAYER_NAME = 'common-layer'
 const LAMBDAS = [
   'poll-handler',
   'query-handler',
-  'send-handler-layer',
+  'send-handler',
   'authorisation-handler',
   'tx-status-update-handler'
 ]

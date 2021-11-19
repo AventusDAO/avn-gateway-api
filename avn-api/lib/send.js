@@ -4,36 +4,59 @@ const common = require('./common.js')
 const proxyApi = require('./proxy.js')
 
 const MAX_TX_PROCESSING_TIME = 3000
+const NONCE_TYPE = { proxy: 0, payment: 1 }
 
-function Send(api, queryApi, avtContractAddress) {
+function Send(api, queryApi, avtContractAddress, gatewayFee) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi)
   this.transferToken = generateFunction(transferToken, api, queryApi)
   this.nonceMap = {}
   this.avtContractAddress = avtContractAddress
+  this.gatewayFee = gatewayFee
 }
 
 function transferAvt(api, queryApi) {
-  return async function(relayer, from, to, amount) {
-    return await this.proxyTokenTransfer(api, queryApi, relayer, from, to, this.avtContractAddress, amount)
+  return async function(relayer, signer, recipient, amount) {
+    return await this.proxyTokenTransfer(api, queryApi, relayer, signer, recipient, this.avtContractAddress, amount)
   }
 }
 
 function transferToken(api, queryApi) {
-  return async function(relayer, from, to, token, amount) {
-    return await this.proxyTokenTransfer(api, queryApi, relayer, from, to, token, amount)
+  return async function(relayer, signer, recipient, token, amount) {
+    return await this.proxyTokenTransfer(api, queryApi, relayer, signer, recipient, token, amount)
   }
 }
 
-Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from, to, token, amount) {
-  const nonce = await this.smartNonce(queryApi, from)
-  const signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce)
+Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, signer, recipient, token, amount) {
+  const proxyNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy)
+  const proxyTokenTransferSignature = proxyApi.createProxyTokenTransferSignature(
+    relayer,
+    signer,
+    recipient,
+    token,
+    amount,
+    proxyNonce
+  )
+
+  const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
+  const feePaymentSignature = proxyApi.createFeePaymentSignature(
+    relayer,
+    signer,
+    proxyTokenTransferSignature,
+    api.gatewayFee,
+    paymentNonce
+  )
 
   return await this.postRequest(api, 'proxy', {
     pallet: 'tokenManager',
     method: 'signedTransfer',
-    signature,
     relayer,
-    innerArgs: { from, to, token, amount }
+    signer,
+    recipient,
+    token,
+    amount,
+    proxyTokenTransferSignature,
+    feePaymentSignature,
+    paymentNonce
   })
 }
 
@@ -47,17 +70,36 @@ Send.prototype.postRequest = async function(api, method, params) {
   return response.data.result || response.data.error.message
 }
 
-Send.prototype.smartNonce = async function(queryApi, _account) {
+Send.prototype.smartNonce = async function(queryApi, _account, nonceType) {
   const account = common.convertToPublicKeyIfNeeded(_account)
+  if (!this.nonceMap[account]) this.nonceMap[account] = { proxy: {}, payment: {} }
   const nonceData = this.nonceMap[account]
   const updated = Date.now()
+  let nonce
 
-  const nonce =
-    nonceData === undefined || updated - nonceData.updated >= MAX_TX_PROCESSING_TIME * 2
-      ? parseInt(await queryApi.getAccountNonce(account))
-      : nonceData.nonce + 1
+  switch (nonceType) {
+    case NONCE_TYPE.proxy:
+      nonce =
+        nonceData.proxy.nonce === undefined || updated - nonceData.proxy.updated >= MAX_TX_PROCESSING_TIME * 2
+          ? parseInt(await queryApi.getAccountNonce(account))
+          : nonceData.proxy.nonce + 1
 
-  this.nonceMap[account] = { nonce: nonce, updated: updated }
+      this.nonceMap[account].proxy = { nonce: nonce, updated: updated }
+      break
+
+    case NONCE_TYPE.payment:
+      nonce =
+        nonceData.payment.nonce === undefined || updated - nonceData.payment.updated >= MAX_TX_PROCESSING_TIME * 2
+          ? parseInt(await queryApi.getAccountPaymentNonce(account))
+          : nonceData.payment.nonce + 1
+
+      this.nonceMap[account].payment = { nonce: nonce, updated: updated }
+      break
+
+    default:
+      throw new Error(`Invalid nonce type (${nonceType}) provided`)
+  }
+
   return nonce.toString()
 }
 

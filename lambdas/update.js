@@ -2,7 +2,7 @@
   Description:
     This script can update a lambda layer, a lambda function on AWS, and a lambda function to support local test
     And it can be executed as:
-    
+
     `node update.js [target] [lambda_function]`
 
     target: layer
@@ -18,7 +18,7 @@
       4. Attach or update the lambda layer to the latest version if it is required by the lambda function files.
 
     target: local [all | lambda_function]
-      merges layer dependencies into all lambda function or a single lambda function's dependencies list, 
+      merges layer dependencies into all lambda function or a single lambda function's dependencies list,
       and updates all layer file URIs from /opt/nodejs/ to ../layer/nodejs/ in lambda function files if there is any
 */
 
@@ -94,16 +94,8 @@ async function updateNodeModulesAndPublish(lambda) {
 
     await updateNodeModules(lambda, paths)
     const lambdaFilesPaths = getAllFilesPaths(paths.lambda)
-    await updateRequirePathsInLambdaFiles(
-      lambdaFilesPaths,
-      /..\/layer\/nodejs\//gs,
-      '/opt/nodejs/'
-    )
-    const layerRequired = await isLayerRequired(
-      lambdaFilesPaths,
-      '/opt/nodejs/',
-      paths.layerPkg
-    )
+    await updateRequirePathsInLambdaFiles(lambdaFilesPaths, /..\/layer\/nodejs\//gs, '/opt/nodejs/')
+    const layerRequired = await isLayerRequired(lambdaFilesPaths, '/opt/nodejs/', paths.layerPkg)
     const layers = layerRequired ? await getLambdaLayer(LAYER_NAME, paths.layer) : null
     await publish(lambda, layers)
     await updateRequirePathsInLambdaFiles(lambdaFilesPaths, /\/opt\/nodejs\//gs, '../layer/nodejs/')

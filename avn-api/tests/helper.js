@@ -1,9 +1,10 @@
 const AvnApi = require('../index.js')
 const assert = require('chai').assert
 const BN = require('bn.js')
-const GATEWAY = 'https://4ayax6s3pg.execute-api.eu-west-1.amazonaws.com'
-const TOKEN = '0x7e5bb9f3c94637ca804b9f7e86be703d668d349f'
+const GATEWAY = 'https://xtu17iggv4.execute-api.eu-west-1.amazonaws.com'
+const TOKEN = '0x81f8e50c0d69aaf39925aff8c975f77e7444c8f2'
 const AVT_SUPPLY = '5100000000000000000000'
+const GATEWAY_FEE_IN_AVT = '1000000000000000'
 
 const ACCOUNTS = {
   relayer: {
@@ -53,6 +54,7 @@ module.exports = {
   avnApi,
   BN,
   bnEquals,
+  GATEWAY_FEE_IN_AVT,
   sleep,
   TOKEN
 }

@@ -5,7 +5,7 @@ They are located within the `./lambdas/layer/nodejs/` directory. Once they are p
 
 In order to create or update a lambda layer, from the lambdas root directory:
 ```
-$node ./update-layer.js
+$node ./update.js layer
 ```
 
 ## Create a new lambda function
@@ -22,18 +22,18 @@ $node ./update-layer.js
 ## Update the code on AWS
 From the lambdas root directory run 
 ```
-node update-lambda.js YOUR_LAMBDA
+node update.js lambda YOUR_LAMBDA
 ```
 or
 ```
-node update-lambda.js all #update all lambdas
+node update.js lambda all #update all lambdas
 ```
 
 ### Local Testing
 From the lambdas root directory run 
 1. Replace `/opt/nodejs/` with `../layer/nodejs` in all files if there are any and install npm modules by running
    ```
-   node update-local.js YOUR_LAMBDA
+   node update.js local YOUR_LAMBDA
    ```
 2. Uncomment the testlocal() function at the bottom of the lambda's index.js.
 3. Execute testlocal() function as

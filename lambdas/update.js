@@ -187,7 +187,7 @@ async function createLambdaLayer(layerName, layerPath) {
       Content: { ZipFile: await zipdir(layerPath) }
     })
   )
-  console.log(`Lambda layer ${layerName} is updated to version ${response.Version}`)
+  console.log(`Lambda layer ${layerName} updated to version ${response.Version}`)
   return response
 }
 

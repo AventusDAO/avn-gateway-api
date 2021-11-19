@@ -36,8 +36,3 @@ variable "rabbit_secret_arn" {
   type        = string
   description = "ARN of the rabbit user/password secret"
 }
-
-variable "avn_connector_endpoint" {
-  type        = string
-  description = "Endpoint of the avn connector"
-}

@@ -107,7 +107,7 @@ async function processMessage(channel, queue) {
       async function(err, message) {
         if (err) {
           channel.nack(message, allUpTo, requeue)
-          reject(err)
+          reject()
         } else if (!message) {
           resolve() /* empty queue */
         } else {
@@ -117,7 +117,7 @@ async function processMessage(channel, queue) {
             resolve()
           } catch (err) {
             channel.nack(message, allUpTo, requeue)
-            reject(err)
+            reject()
           }
         }
       }

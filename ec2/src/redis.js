@@ -43,6 +43,7 @@ async function connect() {
     )
   } else {
     redisClient = new Redis()
+    await redisClient.flushall()
   }
 
   redisClient.defineCommand('nextzsubset', {

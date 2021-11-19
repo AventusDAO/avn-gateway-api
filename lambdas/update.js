@@ -1,6 +1,6 @@
 /*
   Description:
-    This script could update a lambda layer, a lambda function on AWS, and a lambda function to support local test
+    This script can update a lambda layer, a lambda function on AWS, and a lambda function to support local test
     And it can be executed as:
     
     `node update.js [target] [lambda_function]`

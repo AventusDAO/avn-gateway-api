@@ -75,9 +75,7 @@ async function whenConnected(conn, components) {
 
   logger.info('MQ message processor has started')
   while (true) {
-    await processMessage(amqpChannel, avnTxQueue).catch(err => {
-      logger.error(`Error processing message: ${err}`)
-    })
+    await processMessage(amqpChannel, avnTxQueue).catch(_err => {})
   }
 }
 

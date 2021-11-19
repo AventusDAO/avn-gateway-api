@@ -27,14 +27,14 @@ function transferToken(api, queryApi) {
 }
 
 Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, signer, recipient, token, amount) {
-  const nonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy)
+  const proxyNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy)
   const proxyTokenTransferSignature = proxyApi.createProxyTokenTransferSignature(
     relayer,
     signer,
     recipient,
     token,
     amount,
-    nonce
+    proxyNonce
   )
 
   const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)

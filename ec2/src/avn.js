@@ -27,9 +27,9 @@ async function tx(requestId, palletName, method, params) {
 
 async function proxy(requestId, palletName, method, params) {
   let paymentInfo
+  log.trace('Verifying payment details')
 
   try {
-    log.trace('Verifying payment details')
     const paymentInfo = await verifyPaymentDetails(params.paymentDetails)
   } catch (error) {
     log.error(`Invalid fee authorisation for ${requestId}: ${error}`)

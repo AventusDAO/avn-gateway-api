@@ -135,7 +135,6 @@ async function resolvePendingAvnTransactions(transactions) {
 }
 
 async function getNextTransactionsToCheck() {
-  await redisClient.flushall()
   const timeNow = Date.now()
   const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000
 

@@ -2,12 +2,12 @@ const assert = require('chai').assert
 const helper = require('./helper.js')
 const accounts = helper.ACCOUNTS
 const token = helper.TOKEN
-const gatewayFee = helper.GATEWAY_FEE_IN_AVT
 const BN = helper.BN
 const bnEquals = helper.bnEquals
+const gatewayFee = new BN(helper.GATEWAY_FEE_IN_AVT)
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000'
 
-const waitForTxToBeMined = async () => await helper.sleep(5000)
+const waitForTxToBeMined = async () => await helper.sleep(6000)
 
 describe('Proxy api calls:', async () => {
   let api
@@ -22,7 +22,7 @@ describe('Proxy api calls:', async () => {
   })
 
   describe('transferToken', async () => {
-    let senderTokenBalanceBefore, recipientBalanceBefore
+    let senderAvtBalanceBefore, senderTokenBalanceBefore, recipientBalanceBefore
     let senderNonceBefore
 
     beforeEach(async () => {
@@ -36,27 +36,27 @@ describe('Proxy api calls:', async () => {
       const amount = new BN(2)
       await api.send.transferToken(relayer, sender, recipientPubKey, token, amount)
       await waitForTxToBeMined()
-      bnEquals(senderAvtBalanceBefore.sub(gatewayFee), await api.query.getAvtBalance(sender))
-      bnEquals(senderTokenBalanceBefore.sub(amount), await api.query.getTokenBalance(sender, token))
-      bnEquals(recipientBalanceBefore.add(amount), await api.query.getTokenBalance(recipient, token))
-      bnEquals(senderNonceBefore.add(new BN(1)), await api.query.getAccountNonce(sender))
+      bnEquals(senderTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(sender, token)))
+      bnEquals(recipientBalanceBefore.add(amount), new BN(await api.query.getTokenBalance(recipient, token)))
+      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)))
+      bnEquals(senderAvtBalanceBefore.sub(gatewayFee), new BN(await api.query.getAvtBalance(sender)))
     })
 
     it('can make multiple token transfers using a recipient address', async function() {
       this.timeout(400000) //increase the timeout of this test (https://mochajs.org/#test-level)
 
       const amount = new BN(1)
-      const numTx = new BN(10)
+      const numTx = new BN(23)
 
       for (i = 0; i < numTx; i++) {
         await api.send.transferToken(relayer, sender, recipient, token, amount)
       }
 
       await waitForTxToBeMined()
-      bnEquals(senderAvtBalanceBefore.sub(gatewayFee.mul(numTx)), await api.query.getAvtBalance(sender))
-      bnEquals(senderTokenBalanceBefore.sub(amount.mul(numTx)), await api.query.getTokenBalance(sender, token))
-      bnEquals(recipientBalanceBefore.add(amount.mul(numTx)), await api.query.getTokenBalance(recipient, token))
-      bnEquals(senderNonceBefore.add(numTx), await api.query.getAccountNonce(sender))
+      bnEquals(senderTokenBalanceBefore.sub(amount.mul(numTx)), new BN(await api.query.getTokenBalance(sender, token)))
+      bnEquals(recipientBalanceBefore.add(amount.mul(numTx)), new BN(await api.query.getTokenBalance(recipient, token)))
+      bnEquals(senderNonceBefore.add(numTx), new BN(await api.query.getAccountNonce(sender)))
+      bnEquals(senderAvtBalanceBefore.sub(gatewayFee.mul(numTx)), new BN(await api.query.getAvtBalance(sender)))
     })
   })
 })

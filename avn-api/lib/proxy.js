@@ -1,5 +1,5 @@
 'use strict'
-const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
+const { u8aToHex, u8aConcat } = require('@polkadot/util')
 const common = require('./common.js')
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
@@ -51,10 +51,10 @@ function createFeePaymentSignature(_relayer, signer, proxySignature, gatewayFee,
 
 function encodeProxyTokenTransferSignatureData(params) {
   const context = common.registry.createType('Text', params.context)
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer))
-  const encodedSigner = common.registry.createType('AccountId', hexToU8a(params.signer))
-  const encodedRecipient = common.registry.createType('AccountId', hexToU8a(params.recipient))
-  const encodedToken = common.registry.createType('H160', hexToU8a(params.token))
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer)
+  const encodedSigner = common.registry.createType('AccountId', params.signer)
+  const encodedRecipient = common.registry.createType('AccountId', params.recipient)
+  const encodedToken = common.registry.createType('H160', params.token)
   const encodedAmount = common.registry.createType('u128', params.amount)
   const encodedNonce = common.registry.createType('u64', params.proxyNonce)
 
@@ -74,7 +74,7 @@ function encodeProxyTokenTransferSignatureData(params) {
 function encodeFeePaymentSignatureData(params) {
   const context = common.registry.createType('Text', params.context)
   const encodedProxyTokenTransferProof = encodeProxyTokenTransferProof(params.proxyProof)
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer))
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer)
   const encodedGatewayFee = common.registry.createType('Balance', params.gatewayFee)
   const encodedPaymentNonce = common.registry.createType('u64', params.paymentNonce)
 

@@ -29,10 +29,9 @@ async function tx(requestId, palletName, method, params) {
 
 async function proxy(requestId, palletName, method, params) {
   let paymentInfo
-  log.trace('Verifying payment details')
 
   try {
-    const paymentInfo = await verifyPaymentDetails(params.paymentDetails)
+    paymentInfo = await verifyPaymentAuthorisation(params.paymentDetails)
   } catch (error) {
     log.error(`Invalid fee authorisation for ${requestId}: ${error}`)
     return { error: 'Invalid fee authorisation' }
@@ -80,7 +79,9 @@ async function getNonce(senderAddress) {
   return nonce
 }
 
-async function verifyPaymentDetails(p) {
+async function verifyPaymentAuthorisation(p) {
+  log.trace('Verifying fee payment authorisation')
+
   const gatewayFee = await getGatewayFee(p.signer, p.relayer)
   const context = api.createType('Text', FEE_PAYMENT_CONTEXT)
   const encodedProxyTokenTransferProof = api.createType('Proof', p.proxyTokenTransferProof)
@@ -100,7 +101,7 @@ async function verifyPaymentDetails(p) {
   const { isValid } = signatureVerify(hexEncodedData, p.feePaymentSignature, p.signer)
 
   if (isValid) {
-    log.trace('Payment details verified')
+    log.trace('Fee payment authorisation verified')
     return {
       recipient: p.relayer,
       amount: gatewayFee,
@@ -109,7 +110,7 @@ async function verifyPaymentDetails(p) {
       }
     }
   } else {
-    throw new Error(`Invalid signature ${p.feePaymentSignature}`)
+    throw new Error(`Invalid fee payment signature ${p.feePaymentSignature}`)
   }
 }
 

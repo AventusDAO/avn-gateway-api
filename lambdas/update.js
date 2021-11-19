@@ -94,16 +94,8 @@ async function updateNodeModulesAndPublish(lambda) {
 
     await updateNodeModules(lambda, paths)
     const lambdaFilesPaths = getAllFilesPaths(paths.lambda)
-    await updateRequirePathsInLambdaFiles(
-      lambdaFilesPaths,
-      /..\/layer\/nodejs\//gs,
-      '/opt/nodejs/'
-    )
-    const layerRequired = await isLayerRequired(
-      lambdaFilesPaths,
-      '/opt/nodejs/',
-      paths.layerPkg
-    )
+    await updateRequirePathsInLambdaFiles(lambdaFilesPaths, /..\/layer\/nodejs\//gs, '/opt/nodejs/')
+    const layerRequired = await isLayerRequired(lambdaFilesPaths, '/opt/nodejs/', paths.layerPkg)
     const layers = layerRequired ? await getLambdaLayer(LAYER_NAME, paths.layer) : null
     await publish(lambda, layers)
     await updateRequirePathsInLambdaFiles(lambdaFilesPaths, /\/opt\/nodejs\//gs, '../layer/nodejs/')

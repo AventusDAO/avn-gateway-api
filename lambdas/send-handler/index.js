@@ -158,8 +158,8 @@ const codeFormatters = {
           utils.isValidAccountId(call.params.innerArgs.from) &&
           utils.isValidAccountId(call.params.innerArgs.to) &&
           utils.isValidTokenId(call.params.innerArgs.token) &&
-          utils.isValidAmount(call.params.innerArgs.amount.toString()) &&
-          utils.isValidNonce(call.params.paymentNonce.toString()) &&
+          utils.isValidAmount(call.params.innerArgs.amount) &&
+          utils.isValidNonce(call.params.paymentNonce) &&
           !utils.isNullOrEmptyString(call.params.gatewayFeeSignature)
         )
       }

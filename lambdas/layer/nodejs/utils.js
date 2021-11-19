@@ -3,6 +3,10 @@ const { hexToU8a, isHex } = require('@polkadot/util')
 const BN = require('bn.js')
 const { validate: uuidValidate } = require('uuid')
 
+function isPositiveInteger(n) {
+  return n >>> 0 === parseFloat(n)
+}
+
 function isValidAccountId(accountId) {
   try {
     encodeAddress(isHex(accountId) ? hexToU8a(accountId) : decodeAddress(accountId))
@@ -13,11 +17,11 @@ function isValidAccountId(accountId) {
 }
 
 function isValidAmount(amount) {
-  return amount.match(/^[0-9]+$/) && !new BN(amount).isZero()
+  return isPositiveInteger(amount) && !new BN(amount).isZero()
 }
 
 function isValidNonce(nonce) {
-  return nonce.match(/^[0-9]+$/)
+  return isPositiveInteger(nonce)
 }
 
 function isValidUUID(requestId) {

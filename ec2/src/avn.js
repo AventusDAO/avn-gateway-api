@@ -80,34 +80,33 @@ async function getNonce(senderAddress) {
 
 async function verifyPaymentDetails(p) {
   const gatewayFee = await getGatewayFee(p.signer, p.relayer)
-
   const context = api.createType('Text', 'authorization for proxy payment')
-  const encodedProxyProof = api.createType('Proof', p.proxyProof)
+  const encodedProxyTokenTransferProof = api.createType('Proof', p.proxyTokenTransferProof)
   const encodedRelayer = api.createType('AccountId', p.relayer)
-  const encodedAmount = api.createType('Balance', gatewayFee)
+  const encodedGatewayFee = api.createType('Balance', gatewayFee)
   const encodedPaymentNonce = api.createType('u64', p.paymentNonce)
 
   const encodedData = u8aConcat(
     context.toU8a(false),
-    encodedProxyProof.toU8a(false),
+    encodedProxyTokenTransferProof.toU8a(false),
     encodedRelayer.toU8a(true),
-    encodedAmount.toU8a(true),
+    encodedGatewayFee.toU8a(true),
     encodedPaymentNonce.toU8a(true)
   )
 
   const hexEncodedData = u8aToHex(encodedData)
-  const { isValid } = signatureVerify(hexEncodedData, p.paymentSignature, p.signer)
+  const { isValid } = signatureVerify(hexEncodedData, p.feePaymentSignature, p.signer)
 
   if (isValid) {
     return {
       recipient: p.relayer,
       amount: gatewayFee,
       signature: {
-        Sr25519: p.paymentSignature
+        Sr25519: p.feePaymentSignature
       }
     }
   } else {
-    throw new Error(`Invalid signature ${p.paymentSignature}`)
+    throw new Error(`Invalid signature ${p.feePaymentSignature}`)
   }
 }
 

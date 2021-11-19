@@ -32,12 +32,12 @@ function isValidTokenId(tokenId) {
   return isHex(tokenId) && tokenId.split('').length == 42
 }
 
-function toBnString(val) {
-  return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString()
+function isValidSignatureFormat(signature) {
+  return isHex(signature)
 }
 
-function isNullOrEmptyString(value) {
-  return value ? value.replace(/\s/g, '').length == 0 : true
+function toBnString(val) {
+  return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString()
 }
 
 function logError(msg, callId, reference, data) {
@@ -46,10 +46,10 @@ function logError(msg, callId, reference, data) {
 
 module.exports = {
   logError,
-  isNullOrEmptyString,
   isValidAccountId,
   isValidAmount,
   isValidNonce,
+  isValidSignatureFormat,
   isValidTokenId,
   isValidUUID,
   toBnString

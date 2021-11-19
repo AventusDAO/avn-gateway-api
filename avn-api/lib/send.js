@@ -15,25 +15,25 @@ function Send(api, queryApi, avtContractAddress, gatewayFee) {
 }
 
 function transferAvt(api, queryApi) {
-  return async function(relayer, from, to, amount) {
-    return await this.proxyTokenTransfer(api, queryApi, relayer, from, to, this.avtContractAddress, amount)
+  return async function(relayer, signer, recipient, amount) {
+    return await this.proxyTokenTransfer(api, queryApi, relayer, signer, recipient, this.avtContractAddress, amount)
   }
 }
 
 function transferToken(api, queryApi) {
-  return async function(relayer, from, to, token, amount) {
-    return await this.proxyTokenTransfer(api, queryApi, relayer, from, to, token, amount)
+  return async function(relayer, signer, recipient, token, amount) {
+    return await this.proxyTokenTransfer(api, queryApi, relayer, signer, recipient, token, amount)
   }
 }
 
-Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from, to, token, amount) {
-  const nonce = await this.smartNonce(queryApi, from, NONCE_TYPE.proxy)
-  const signature = proxyApi.transferToken.createAuthorisationSignature(relayer, from, to, token, amount, nonce)
-  const paymentNonce = await this.smartNonce(queryApi, from, NONCE_TYPE.payment)
-  const gatewayFeeSignature = proxyApi.generatePaymentAuthorisationSignature(
-    from,
+Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, signer, recipient, token, amount) {
+  const nonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy)
+  const proxySignature = proxyApi.transferToken.createAuthorisationSignature(relayer, signer, recipient, token, amount, nonce)
+  const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
+  const paymentSignature = proxyApi.generatePaymentAuthorisationSignature(
+    signer,
     relayer,
-    signature,
+    proxySignature,
     api.gatewayFee,
     paymentNonce
   )
@@ -41,10 +41,13 @@ Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, from,
   return await this.postRequest(api, 'proxy', {
     pallet: 'tokenManager',
     method: 'signedTransfer',
-    signature,
     relayer,
-    innerArgs: { from, to, token, amount },
-    gatewayFeeSignature,
+    signer,
+    recipient,
+    token,
+    amount,
+    proxySignature,
+    paymentSignature,
     paymentNonce
   })
 }

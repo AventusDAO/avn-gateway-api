@@ -4,6 +4,7 @@ const BN = require('bn.js')
 const GATEWAY = 'https://xtu17iggv4.execute-api.eu-west-1.amazonaws.com'
 const TOKEN = '0x81f8e50c0d69aaf39925aff8c975f77e7444c8f2'
 const AVT_SUPPLY = '5100000000000000000000'
+const GATEWAY_FEE_IN_AVT = new BN('1000000000000000')
 
 const ACCOUNTS = {
   relayer: {

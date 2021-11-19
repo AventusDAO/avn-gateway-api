@@ -36,10 +36,11 @@ Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, signe
     amount,
     nonce
   )
+
   const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
   const feePaymentSignature = proxyApi.createFeePaymentSignature(
-    signer,
     relayer,
+    signer,
     proxyTokenTransferSignature,
     api.gatewayFee,
     paymentNonce

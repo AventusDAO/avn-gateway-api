@@ -21,37 +21,31 @@ function createProxyTokenTransferSignature(_relayer, _signer, _recipient, token,
     proxyNonce
   }
 
-  const hexEncodedData = this.encodeProxyTokenTransferSignatureData(dataToSign)
+  const hexEncodedData = encodeProxyTokenTransferSignatureData(dataToSign)
   return signData(signerSuri, hexEncodedData)
 }
 
-function createFeePaymentSignature(signer, _relayer, proxyTokenTransferSignature, amount, paymentNonce) {
+function createFeePaymentSignature(_relayer, signer, proxySignature, gatewayFee, paymentNonce) {
   const signerSuri = common.obtainClientSuri()
   const relayer = common.convertToPublicKeyIfNeeded(_relayer)
 
-  const proxyTokenTransferProof = {
+  const proxyProof = {
     signer,
     relayer,
     signature: {
-      Sr25519: proxyTokenTransferSignature
+      Sr25519: proxySignature
     }
   }
 
-  const context = common.registry.createType('Text', PAYMENT_CONTEXT)
-  const encodedProxyTokenTransferProof = encodeProxyTokenTransferProof(proxyTokenTransferProof)
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(relayer))
-  const encodedAmount = common.registry.createType('Balance', amount)
-  const encodedPaymentNonce = common.registry.createType('u64', paymentNonce)
+  const dataToSign = {
+    context: PAYMENT_CONTEXT,
+    proxyProof,
+    relayer,
+    gatewayFee,
+    proxyNonce
+  }
 
-  const encodedData = u8aConcat(
-    context.toU8a(false),
-    encodedProxyTokenTransferProof,
-    encodedRelayer.toU8a(true),
-    encodedAmount.toU8a(true),
-    encodedPaymentNonce.toU8a(true)
-  )
-
-  const hexEncodedData = u8aToHex(encodedData)
+  const hexEncodedData = encodeFeePaymentSignatureData(dataToSign)
   return signData(signerSuri, hexEncodedData)
 }
 
@@ -72,6 +66,24 @@ function encodeProxyTokenTransferSignatureData(params) {
     encodedToken.toU8a(true),
     encodedAmount.toU8a(true),
     encodedNonce.toU8a(true)
+  )
+
+  return u8aToHex(encodedData)
+}
+
+function encodeFeePaymentSignatureData(params) {
+  const context = common.registry.createType('Text', params.context)
+  const encodedProxyTokenTransferProof = encodeProxyTokenTransferProof(params.proxyProof)
+  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer))
+  const encodedGatewayFee = common.registry.createType('Balance', params.gatewayFee)
+  const encodedPaymentNonce = common.registry.createType('u64', params.paymentNonce)
+
+  const encodedData = u8aConcat(
+    context.toU8a(false),
+    encodedProxyTokenTransferProof,
+    encodedRelayer.toU8a(true),
+    encodedGatewayFee.toU8a(true),
+    encodedPaymentNonce.toU8a(true)
   )
 
   return u8aToHex(encodedData)

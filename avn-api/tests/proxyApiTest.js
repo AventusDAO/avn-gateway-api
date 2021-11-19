@@ -7,7 +7,7 @@ const BN = helper.BN
 const bnEquals = helper.bnEquals
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000'
 
-const waitForTxToBeMined = async () => await helper.sleep(3500)
+const waitForTxToBeMined = async () => await helper.sleep(5000)
 
 describe('Proxy api calls:', async () => {
   let api
@@ -46,7 +46,7 @@ describe('Proxy api calls:', async () => {
       this.timeout(400000) //increase the timeout of this test (https://mochajs.org/#test-level)
 
       const amount = new BN(1)
-      const numTx = new BN(10)
+      const numTx = new BN(50)
 
       for (i = 0; i < numTx; i++) {
         await api.send.transferToken(relayer, sender, recipient, token, amount)

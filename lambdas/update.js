@@ -94,12 +94,17 @@ async function updateNodeModulesAndPublish(lambda) {
 
     await updateNodeModules(lambda, paths)
     const lambdaFilesPaths = getAllFilesPaths(paths.lambda)
-    const usesLambdaLayer = await updateRequirePathsInLambdaFiles(
+    await updateRequirePathsInLambdaFiles(
       lambdaFilesPaths,
       /..\/layer\/nodejs\//gs,
       '/opt/nodejs/'
     )
-    const layers = usesLambdaLayer ? await getLambdaLayer(LAYER_NAME, paths.layer) : null
+    const layerRequired = await isLayerRequired(
+      lambdaFilesPaths,
+      '/opt/nodejs/',
+      paths.layerPkg
+    )
+    const layers = layerRequired ? await getLambdaLayer(LAYER_NAME, paths.layer) : null
     await publish(lambda, layers)
     await updateRequirePathsInLambdaFiles(lambdaFilesPaths, /\/opt\/nodejs\//gs, '../layer/nodejs/')
 
@@ -122,16 +127,26 @@ async function updateNodeModules(lambda, paths) {
 }
 
 async function updateRequirePathsInLambdaFiles(lambdaFilesPaths, replaceRegEx, newPath) {
-  let usesLambdaLayer = false
   await Promise.all(
     lambdaFilesPaths.map(async lambdaFilePath => {
       const fileBody = await fs.readFileSync(lambdaFilePath, 'utf8')
       const updatedFileBody = fileBody.replace(replaceRegEx, newPath)
-      if (!usesLambdaLayer && updatedFileBody.includes(newPath)) usesLambdaLayer = true
       fs.writeFileSync(lambdaFilePath, updatedFileBody, 'utf8')
     })
   )
-  return usesLambdaLayer
+}
+
+async function isLayerRequired(lambdaFilesPaths, layerPath, layerPkgPath) {
+  let layerRequired = false
+  const layerDependencies = Object.keys(require(layerPkgPath).dependencies)
+  const layerResources = [layerPath].concat(layerDependencies)
+  await Promise.all(
+    lambdaFilesPaths.map(async lambdaFilePath => {
+      const fileBody = await fs.readFileSync(lambdaFilePath, 'utf8')
+      if (!layerRequired && layerResources.some(res => fileBody.includes(res))) layerRequired = true
+    })
+  )
+  return layerRequired
 }
 
 async function getLambdaLayer(layerName, layerPath) {

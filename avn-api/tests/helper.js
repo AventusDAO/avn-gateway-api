@@ -54,6 +54,7 @@ module.exports = {
   avnApi,
   BN,
   bnEquals,
+  GATEWAY_FEE_IN_AVT,
   sleep,
   TOKEN
 }

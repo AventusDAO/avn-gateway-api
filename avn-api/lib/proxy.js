@@ -2,8 +2,8 @@
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
 const common = require('./common.js')
 
-const PAYMENT_CONTEXT = 'authorization for proxy payment'
-const SIGNED_TRANSFER_SIGNATURE_CONTEXT = 'authorization for transfer operation'
+const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
+const PROXY_TOKEN_TRANSFER_CONTEXT = 'authorization for transfer operation'
 
 function createProxyTokenTransferSignature(_relayer, _signer, _recipient, token, amount, proxyNonce) {
   const signerSuri = common.obtainClientSuri()
@@ -12,7 +12,7 @@ function createProxyTokenTransferSignature(_relayer, _signer, _recipient, token,
   const recipient = common.convertToPublicKeyIfNeeded(_recipient)
 
   const dataToSign = {
-    context: SIGNED_TRANSFER_SIGNATURE_CONTEXT,
+    context: PROXY_TOKEN_TRANSFER_CONTEXT,
     relayer,
     signer,
     recipient,
@@ -38,11 +38,11 @@ function createFeePaymentSignature(_relayer, signer, proxySignature, gatewayFee,
   }
 
   const dataToSign = {
-    context: PAYMENT_CONTEXT,
+    context: FEE_PAYMENT_CONTEXT,
     proxyProof,
     relayer,
     gatewayFee,
-    proxyNonce
+    paymentNonce
   }
 
   const hexEncodedData = encodeFeePaymentSignatureData(dataToSign)

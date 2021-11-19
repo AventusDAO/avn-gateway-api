@@ -10,6 +10,8 @@ const redis = require('./redis')
 
 const AVN_URL = config.avnUrl
 const SENDER = config.senderSuri
+const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
+
 let api, sender
 
 async function query(palletName, storageName, params) {
@@ -80,7 +82,7 @@ async function getNonce(senderAddress) {
 
 async function verifyPaymentDetails(p) {
   const gatewayFee = await getGatewayFee(p.signer, p.relayer)
-  const context = api.createType('Text', 'authorization for proxy payment')
+  const context = api.createType('Text', FEE_PAYMENT_CONTEXT)
   const encodedProxyTokenTransferProof = api.createType('Proof', p.proxyTokenTransferProof)
   const encodedRelayer = api.createType('AccountId', p.relayer)
   const encodedGatewayFee = api.createType('Balance', gatewayFee)
@@ -98,6 +100,7 @@ async function verifyPaymentDetails(p) {
   const { isValid } = signatureVerify(hexEncodedData, p.feePaymentSignature, p.signer)
 
   if (isValid) {
+    log.trace('Payment details verified')
     return {
       recipient: p.relayer,
       amount: gatewayFee,

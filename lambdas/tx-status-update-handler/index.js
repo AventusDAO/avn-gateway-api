@@ -1,7 +1,7 @@
 const axios = require('axios')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
-const BLOCK_EXPLORER_BASE_URL = `https://avn.sandbox.aventus.io:3000/transactions/bulk`
+const BLOCK_EXPLORER_BASE_URL = 'https://avn.gateway.aventus.io:3000/transactions/bulk'
 
 // Make sure this is kept in sync with the state names defined in ec2/src/redis.js
 const transactionStatus = {
@@ -32,7 +32,7 @@ async function processRequest() {
   const pendingTransactionHashes = (await axios.get(AVN_CONNECTOR_ENDPOINT + 'pendingTransactions')).data
 
   if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {
-    console.log(`No pending transactions to resolve`)
+    console.log('No pending transactions to resolve')
     return
   }
 

@@ -104,6 +104,19 @@ async function callSwitch(call, responseObject) {
         responseObject.error = { code: -32602, message: 'Invalid params' }
       }
       break
+    case 'getAccountPaymentNonce':
+      if (utils.isValidAccountId(call.params[0])) {
+        try {
+          responseObject.result = await queryChain(call.id, 'avnProxy', 'paymentNonces', [call.params[0]], format1)
+        } catch (err) {
+          utils.logError('failed to query chain', call.id, 'query-handler.getAccountPaymentNonce.queryChain', err)
+          responseObject.error = { code: -32603, message: 'Internal error' }
+        }
+      } else {
+        utils.logError('invalid account ID', call.id, 'query-handler.getAccountPaymentNonce.params', call.params[0])
+        responseObject.error = { code: -32602, message: 'Invalid params' }
+      }
+      break
     case 'getAvtContractAddress':
       try {
         responseObject.result = await queryChain(call.id, 'tokenManager', 'aVTTokenContract', [], res => res.toString())
@@ -123,6 +136,7 @@ async function callSwitch(call, responseObject) {
 //   console.log('getAvtBalance:', await processRequest('{"jsonrpc":"2.0", "method":"getAvtBalance", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":2}'));
 //   console.log('getTokenBalance:', await processRequest('{"jsonrpc":"2.0", "method":"getTokenBalance", "params": ["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"], "id":3}'));
 //   console.log('getAccountNonce:', await processRequest('{"jsonrpc":"2.0", "method":"getAccountNonce", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":4}'));
+//   console.log('getAccountPaymentNonce:', await processRequest('{"jsonrpc":"2.0", "method":"getAccountPaymentNonce", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":5}'));
 // }
 //
 // testlocal();

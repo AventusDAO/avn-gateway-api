@@ -13,7 +13,11 @@ function isValidAccountId(accountId) {
 }
 
 function isValidAmount(amount) {
-  return amount.match(/^[0-9]+$/) && !new BN(amount).isZero()
+  return /^\d+$/.test(amount) && !new BN(amount).isZero()
+}
+
+function isValidNonce(nonce) {
+  return /^\d+$/.test(nonce) && new BN(nonce).lt(new BN('ffffffffffffffff', 16))
 }
 
 function isValidUUID(requestId) {
@@ -22,6 +26,10 @@ function isValidUUID(requestId) {
 
 function isValidTokenId(tokenId) {
   return isHex(tokenId) && tokenId.split('').length == 42
+}
+
+function isValidSignatureFormat(signature) {
+  return isHex(signature)
 }
 
 function toBnString(val) {
@@ -36,6 +44,8 @@ module.exports = {
   logError,
   isValidAccountId,
   isValidAmount,
+  isValidNonce,
+  isValidSignatureFormat,
   isValidTokenId,
   isValidUUID,
   toBnString

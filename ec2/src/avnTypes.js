@@ -36,7 +36,7 @@ const common_types = {
       LogAddedValidator: 'AddedValidatorData',
       LogLifted: 'LiftedData',
       EmptyEvent: '{}',
-      LogNftMinted: 'NftMintedData',
+      LogNftMinted: 'NftMintData',
       LogNftTransferTo: 'NftTransferToData',
       LogNftCancelListing: 'NftCancelListingData',
       LogNftCancelBatchListing: 'NftCancelBatchListingData'
@@ -54,10 +54,11 @@ const common_types = {
     amount: 'u128',
     nonce: 'U256'
   },
-  NftMintedData: {
+  NftMintData: {
     batch_id: 'U256',
     t2_owner_public_key: 'H256',
-    op_id: 'u64'
+    op_id: 'u64',
+    t1_contract_issuer: 'H160'
   },
   NftTransferToData: {
     nft_id: 'U256',
@@ -70,14 +71,6 @@ const common_types = {
   },
   NftCancelBatchListingData: {
     batch_id: 'U256'
-  },
-  MarketplaceId: 'u32',
-  EthereumContracts: {
-    _enum: {
-      ValidatorsManager: '{}',
-      Lifting: '{}',
-      NftMarketplace: 'MarketplaceId'
-    }
   },
   ValidEvents: {
     _enum: ['AddedValidator', 'Lifted', 'NftMint', 'NftTransferTo', 'NftCancelListing', 'NftCancelBatchListing']
@@ -104,6 +97,11 @@ const common_types = {
   Proof: {
     signer: 'AccountId',
     relayer: 'AccountId',
+    signature: 'MultiSignature'
+  },
+  PaymentInfo: {
+    recipient: 'AccountId',
+    amount: 'Balance',
     signature: 'MultiSignature'
   },
   EthTransactionType: {
@@ -272,7 +270,15 @@ const common_types = {
   },
   MinterTier1Address: 'H160',
   OpId: 'u64',
-  NftUniqueId: 'U256'
+  TotalSupply: 'u64',
+  MarketplaceId: 'u32',
+  EthereumContracts: {
+    _enum: {
+      ValidatorsManager: '{}',
+      Lifting: '{}',
+      NftMarketplace: 'MarketplaceId'
+    }
+  }
 }
 
 module.exports = {

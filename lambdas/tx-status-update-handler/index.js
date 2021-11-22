@@ -39,7 +39,7 @@ async function processRequest() {
   const transactions = await getTransactionsStatusFromIndexer(pendingTransactionHashes)
 
   // resolve them in the database
-  await axios.post(EC2 + 'resolvePendingTransactions', { transactions })
+  await axios.post(AVN_CONNECTOR_ENDPOINT + 'resolvePendingTransactions', { transactions })
 }
 
 async function getTransactionsStatusFromIndexer(transactionHashes) {

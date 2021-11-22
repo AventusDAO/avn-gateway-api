@@ -5,6 +5,7 @@ avn-api/.eslintrc.json
 .terraform/
 .terraform.lock.hcl
 *.zip
+*.tgz
 
 # Config file for AWS MQ
 ec2/src/config/default/mq.yaml

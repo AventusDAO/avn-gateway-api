@@ -73,14 +73,14 @@ function encodeProxyTransferSignatureData(params) {
 
 function encodeFeePaymentSignatureData(params) {
   const context = common.registry.createType('Text', params.context)
-  const encodedProxyTransferProof = encodeProxyTransferProof(params.proxyProof)
+  const encodedProxyProof = encodeProxyProof(params.proxyProof)
   const encodedRelayer = common.registry.createType('AccountId', params.relayer)
   const encodedGatewayFee = common.registry.createType('Balance', params.gatewayFee)
   const encodedPaymentNonce = common.registry.createType('u64', params.paymentNonce)
 
   const encodedData = u8aConcat(
     context.toU8a(false),
-    encodedProxyTransferProof,
+    encodedProxyProof,
     encodedRelayer.toU8a(true),
     encodedGatewayFee.toU8a(true),
     encodedPaymentNonce.toU8a(true)
@@ -89,7 +89,7 @@ function encodeFeePaymentSignatureData(params) {
   return u8aToHex(encodedData)
 }
 
-function encodeProxyTransferProof(params) {
+function encodeProxyProof(params) {
   const signer = common.registry.createType('AccountId', params.signer)
   const relayer = common.registry.createType('AccountId', params.relayer)
   const signature = common.registry.createType('MultiSignature', params.signature)

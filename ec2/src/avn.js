@@ -84,14 +84,14 @@ async function verifyPaymentAuthorisation(p) {
 
   const gatewayFee = await getGatewayFee()
   const context = api.createType('Text', FEE_PAYMENT_CONTEXT)
-  const encodedProxyTransferProof = api.createType('Proof', p.proxyTransferProof)
+  const encodedProxyProof = api.createType('Proof', p.proxyProof)
   const encodedRelayer = api.createType('AccountId', p.relayer)
   const encodedGatewayFee = api.createType('Balance', gatewayFee)
   const encodedPaymentNonce = api.createType('u64', p.paymentNonce)
 
   const encodedData = u8aConcat(
     context.toU8a(false),
-    encodedProxyTransferProof.toU8a(false),
+    encodedProxyProof.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedGatewayFee.toU8a(true),
     encodedPaymentNonce.toU8a(true)

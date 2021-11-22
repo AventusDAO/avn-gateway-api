@@ -113,7 +113,7 @@ async function callSwitch(call, responseObject, requestId) {
         utils.logError('invalid params', call.id, 'send-handler.proxy.params', call.params)
         responseObject.error = { code: -32602, message: 'Invalid params' }
       } else {
-        const proxyTransferProof = {
+        const proxyProof = {
           signer,
           relayer,
           signature: {
@@ -122,11 +122,11 @@ async function callSwitch(call, responseObject, requestId) {
         }
 
         const params = {
-          proxyParams: [proxyTransferProof, signer, recipient, token, amount],
+          proxyParams: [proxyProof, signer, recipient, token, amount],
           paymentDetails: {
             signer,
             relayer,
-            proxyTransferProof,
+            proxyProof,
             feePaymentSignature,
             paymentNonce
           }

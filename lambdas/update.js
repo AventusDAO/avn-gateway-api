@@ -23,6 +23,7 @@
 */
 
 const {
+  DeleteLayerVersionCommand,
   LambdaClient,
   ListLayersCommand,
   PublishLayerVersionCommand,
@@ -52,7 +53,8 @@ async function main() {
           layerNodejsPath: join(__dirname, 'layer/nodejs')
         }
         await installPkgDependencies(LAYER_NAME, paths.layerNodejsPath)
-        await createLambdaLayer(LAYER_NAME, paths.layerPath)
+        const layer = await createLambdaLayer(LAYER_NAME, paths.layerPath)
+        await cleanUpOldLayerVersions(LAYER_NAME, layer.Version)
       } catch (err) {
         console.log('Updating lambda layer failed', err.message)
       }
@@ -204,6 +206,17 @@ async function createLambdaLayer(layerName, layerPath) {
   )
   console.log(`Lambda layer ${layerName} updated to version ${response.Version}`)
   return response
+}
+
+async function cleanUpOldLayerVersions(layerName, version) {
+  while (--version > 0) {
+    await aws.send(
+      new DeleteLayerVersionCommand({
+        LayerName: layerName,
+        VersionNumber: version
+      })
+    )
+  }
 }
 
 async function updateNodeModulesAndFiles(lambda) {

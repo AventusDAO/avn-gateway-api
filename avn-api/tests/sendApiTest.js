@@ -4,8 +4,9 @@ const accounts = helper.ACCOUNTS
 const token = helper.TOKEN
 const BN = helper.BN
 const bnEquals = helper.bnEquals
+const gatewayFee = new BN(helper.GATEWAY_FEE_IN_AVT)
 
-const waitForTxToBeMined = async () => await helper.sleep(5000)
+const waitForTxToBeMined = async () => await helper.sleep(3500)
 
 describe('SendTx api calls:', async () => {
   let api
@@ -20,24 +21,27 @@ describe('SendTx api calls:', async () => {
   })
 
   describe('transferAVT', async () => {
-    let recipientBalanceBefore
+    let senderAvtBalanceBefore, recipientAvtBalanceBefore
 
     beforeEach(async () => {
-      recipientBalanceBefore = new BN(await api.query.getAvtBalance(recipient))
+      senderAvtBalanceBefore = new BN(await api.query.getAvtBalance(sender))
+      recipientAvtBalanceBefore = new BN(await api.query.getAvtBalance(recipient))
     })
 
     it('can transfer AVT using a recipient address', async () => {
       const amount = new BN(1)
       await api.send.transferAvt(relayer, sender, recipient, amount)
       await waitForTxToBeMined()
-      bnEquals(recipientBalanceBefore.add(amount), await api.query.getAvtBalance(recipient))
+      bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient))
+      bnEquals(senderAvtBalanceBefore.sub(gatewayFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
     })
 
     it('can transfer AVT using a recipient public key', async () => {
       const amount = new BN(2)
       await api.send.transferAvt(relayer, sender, recipientPubKey, amount)
       await waitForTxToBeMined()
-      bnEquals(recipientBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey))
+      bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey))
+      bnEquals(senderAvtBalanceBefore.sub(gatewayFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
     })
   })
 })

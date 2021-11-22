@@ -95,7 +95,7 @@ async function callSwitch(call, responseObject, requestId) {
       const recipient = call.params.recipient
       const token = call.params.token
       const amount = call.params.amount
-      const proxyTokenTransferSignature = call.params.proxyTokenTransferSignature
+      const proxyTransferSignature = call.params.proxyTransferSignature
       const feePaymentSignature = call.params.feePaymentSignature
       const paymentNonce = call.params.paymentNonce
 
@@ -106,27 +106,27 @@ async function callSwitch(call, responseObject, requestId) {
         utils.isValidTokenId(token) &&
         utils.isValidAmount(amount) &&
         utils.isValidNonce(paymentNonce) &&
-        utils.isValidSignatureFormat(proxyTokenTransferSignature) &&
+        utils.isValidSignatureFormat(proxyTransferSignature) &&
         utils.isValidSignatureFormat(feePaymentSignature)
 
       if (!validParams) {
         utils.logError('invalid params', call.id, 'send-handler.proxy.params', call.params)
         responseObject.error = { code: -32602, message: 'Invalid params' }
       } else {
-        const proxyTokenTransferProof = {
+        const proxyTransferProof = {
           signer,
           relayer,
           signature: {
-            Sr25519: proxyTokenTransferSignature
+            Sr25519: proxyTransferSignature
           }
         }
 
         const params = {
-          proxyParams: [proxyTokenTransferProof, signer, recipient, token, amount],
+          proxyParams: [proxyTransferProof, signer, recipient, token, amount],
           paymentDetails: {
             signer,
             relayer,
-            proxyTokenTransferProof,
+            proxyTransferProof,
             feePaymentSignature,
             paymentNonce
           }

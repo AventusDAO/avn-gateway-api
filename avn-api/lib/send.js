@@ -16,19 +16,19 @@ function Send(api, queryApi, avtContractAddress, gatewayFee) {
 
 function transferAvt(api, queryApi) {
   return async function(relayer, signer, recipient, amount) {
-    return await this.proxyTokenTransfer(api, queryApi, relayer, signer, recipient, this.avtContractAddress, amount)
+    return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, this.avtContractAddress, amount)
   }
 }
 
 function transferToken(api, queryApi) {
   return async function(relayer, signer, recipient, token, amount) {
-    return await this.proxyTokenTransfer(api, queryApi, relayer, signer, recipient, token, amount)
+    return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, token, amount)
   }
 }
 
-Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, signer, recipient, token, amount) {
+Send.prototype.proxyTransfer = async function(api, queryApi, relayer, signer, recipient, token, amount) {
   const proxyNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy)
-  const proxyTokenTransferSignature = proxyApi.createProxyTokenTransferSignature(
+  const proxyTransferSignature = proxyApi.createProxyTransferSignature(
     relayer,
     signer,
     recipient,
@@ -41,7 +41,7 @@ Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, signe
   const feePaymentSignature = proxyApi.createFeePaymentSignature(
     relayer,
     signer,
-    proxyTokenTransferSignature,
+    proxyTransferSignature,
     api.gatewayFee,
     paymentNonce
   )
@@ -54,7 +54,7 @@ Send.prototype.proxyTokenTransfer = async function(api, queryApi, relayer, signe
     recipient,
     token,
     amount,
-    proxyTokenTransferSignature,
+    proxyTransferSignature,
     feePaymentSignature,
     paymentNonce
   })

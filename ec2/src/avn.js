@@ -82,16 +82,16 @@ async function getNonce(senderAddress) {
 async function verifyPaymentAuthorisation(p) {
   log.trace('Verifying fee payment authorisation')
 
-  const gatewayFee = await getGatewayFee(p.signer, p.relayer)
+  const gatewayFee = await getGatewayFee()
   const context = api.createType('Text', FEE_PAYMENT_CONTEXT)
-  const encodedProxyTokenTransferProof = api.createType('Proof', p.proxyTokenTransferProof)
+  const encodedProxyTransferProof = api.createType('Proof', p.proxyTransferProof)
   const encodedRelayer = api.createType('AccountId', p.relayer)
   const encodedGatewayFee = api.createType('Balance', gatewayFee)
   const encodedPaymentNonce = api.createType('u64', p.paymentNonce)
 
   const encodedData = u8aConcat(
     context.toU8a(false),
-    encodedProxyTokenTransferProof.toU8a(false),
+    encodedProxyTransferProof.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedGatewayFee.toU8a(true),
     encodedPaymentNonce.toU8a(true)
@@ -114,7 +114,7 @@ async function verifyPaymentAuthorisation(p) {
   }
 }
 
-async function getGatewayFee(sender, relayer) {
+async function getGatewayFee() {
   // TODO - get from redis
   return '1000000000000000'
 }

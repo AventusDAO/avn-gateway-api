@@ -3,16 +3,16 @@ const { u8aToHex, u8aConcat } = require('@polkadot/util')
 const common = require('./common.js')
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
-const PROXY_TOKEN_TRANSFER_CONTEXT = 'authorization for transfer operation'
+const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation'
 
-function createProxyTokenTransferSignature(_relayer, _signer, _recipient, token, amount, proxyNonce) {
+function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, proxyNonce) {
   const signerSuri = common.obtainClientSuri()
   const relayer = common.convertToPublicKeyIfNeeded(_relayer)
   const signer = common.convertToPublicKeyIfNeeded(_signer)
   const recipient = common.convertToPublicKeyIfNeeded(_recipient)
 
   const dataToSign = {
-    context: PROXY_TOKEN_TRANSFER_CONTEXT,
+    context: PROXY_TRANSFER_CONTEXT,
     relayer,
     signer,
     recipient,
@@ -21,7 +21,7 @@ function createProxyTokenTransferSignature(_relayer, _signer, _recipient, token,
     proxyNonce
   }
 
-  const hexEncodedData = encodeProxyTokenTransferSignatureData(dataToSign)
+  const hexEncodedData = encodeProxyTransferSignatureData(dataToSign)
   return signData(signerSuri, hexEncodedData)
 }
 
@@ -49,7 +49,7 @@ function createFeePaymentSignature(_relayer, signer, proxySignature, gatewayFee,
   return signData(signerSuri, hexEncodedData)
 }
 
-function encodeProxyTokenTransferSignatureData(params) {
+function encodeProxyTransferSignatureData(params) {
   const context = common.registry.createType('Text', params.context)
   const encodedRelayer = common.registry.createType('AccountId', params.relayer)
   const encodedSigner = common.registry.createType('AccountId', params.signer)
@@ -73,14 +73,14 @@ function encodeProxyTokenTransferSignatureData(params) {
 
 function encodeFeePaymentSignatureData(params) {
   const context = common.registry.createType('Text', params.context)
-  const encodedProxyTokenTransferProof = encodeProxyTokenTransferProof(params.proxyProof)
+  const encodedProxyTransferProof = encodeProxyTransferProof(params.proxyProof)
   const encodedRelayer = common.registry.createType('AccountId', params.relayer)
   const encodedGatewayFee = common.registry.createType('Balance', params.gatewayFee)
   const encodedPaymentNonce = common.registry.createType('u64', params.paymentNonce)
 
   const encodedData = u8aConcat(
     context.toU8a(false),
-    encodedProxyTokenTransferProof,
+    encodedProxyTransferProof,
     encodedRelayer.toU8a(true),
     encodedGatewayFee.toU8a(true),
     encodedPaymentNonce.toU8a(true)
@@ -89,7 +89,7 @@ function encodeFeePaymentSignatureData(params) {
   return u8aToHex(encodedData)
 }
 
-function encodeProxyTokenTransferProof(params) {
+function encodeProxyTransferProof(params) {
   const signer = common.registry.createType('AccountId', params.signer)
   const relayer = common.registry.createType('AccountId', params.relayer)
   const signature = common.registry.createType('MultiSignature', params.signature)
@@ -104,5 +104,5 @@ function signData(signerSuri, encodedData) {
 
 module.exports = {
   createFeePaymentSignature,
-  createProxyTokenTransferSignature
+  createProxyTransferSignature
 }

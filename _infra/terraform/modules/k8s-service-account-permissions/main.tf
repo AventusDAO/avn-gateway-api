@@ -3,10 +3,14 @@ locals {
   oidc_url        = trimprefix(var.oidc_provider, "${local.oidc_arn_prefix}/")
 }
 
+data "aws_lambda_function" "tx_handler" {
+  function_name = "tx-status-update-handler"
+}
+
 resource "aws_iam_policy" "avn_connector_rabbit_secret_access" {
   name        = "avn-connector"
   path        = "/"
-  description = "avn-connector permission to acceess rabbit credentials"
+  description = "avn-connector permissions for rabbit secret access and lambda invoke"
 
   policy = <<EOF
 {
@@ -17,6 +21,13 @@ resource "aws_iam_policy" "avn_connector_rabbit_secret_access" {
         "secretsmanager:GetSecretValue"
       ],
       "Resource": "${var.rabbit_secret_arn}",
+      "Effect": "Allow"
+    },
+    {
+      "Action": [
+        "lambda:InvokeFunction"
+      ],
+      "Resource": "${data.aws_lambda_function.tx_handler.invoke_arn}",
       "Effect": "Allow"
     }
   ]

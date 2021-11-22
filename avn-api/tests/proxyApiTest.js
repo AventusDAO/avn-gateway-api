@@ -56,7 +56,10 @@ describe('Proxy api calls:', async () => {
 
       await waitForTxToBeMined()
       bnEquals(senderTokenBalanceBefore.sub(amount.mul(numTx)), new BN(await api.query.getTokenBalance(sender, token)))
-      bnEquals(recipientTokenBalanceBefore.add(amount.mul(numTx)), new BN(await api.query.getTokenBalance(recipient, token)))
+      bnEquals(
+        recipientTokenBalanceBefore.add(amount.mul(numTx)),
+        new BN(await api.query.getTokenBalance(recipient, token))
+      )
       bnEquals(senderNonceBefore.add(numTx), new BN(await api.query.getAccountNonce(sender)))
       bnEquals(senderAvtBalanceBefore.sub(gatewayFee.mul(numTx)), new BN(await api.query.getAvtBalance(sender)))
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(gatewayFee.mul(numTx))))

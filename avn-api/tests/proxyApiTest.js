@@ -7,7 +7,7 @@ const bnEquals = helper.bnEquals
 const gatewayFee = new BN(helper.GATEWAY_FEE_IN_AVT)
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000'
 
-const waitForTxToBeMined = async () => await helper.sleep(6000)
+const waitForTxToBeMined = async () => await helper.sleep(3500)
 
 describe('Proxy api calls:', async () => {
   let api

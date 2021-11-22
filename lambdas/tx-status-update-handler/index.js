@@ -1,7 +1,7 @@
 const axios = require('axios')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
-const BLOCK_EXPLORER_BASE_URL = `https://avn.sandbox.aventus.io:3000/transactions/bulk`
+const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL
 
 // Make sure this is kept in sync with the state names defined in ec2/src/redis.js
 const transactionStatus = {
@@ -45,7 +45,7 @@ async function processRequest() {
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
     console.log(`Getting ${transactionHashes.length} transaction statuses from chain indexer`)
-    let res = await axios.post(`${BLOCK_EXPLORER_BASE_URL}`, { transactionHashes: transactionHashes })
+    let res = await axios.post(`${BLOCK_EXPLORER_BASE_URL}/transactions/bulk`, { transactionHashes: transactionHashes })
     const response = res.data.data
 
     if (response && response.length > 0) {

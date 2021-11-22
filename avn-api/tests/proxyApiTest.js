@@ -7,7 +7,7 @@ const bnEquals = helper.bnEquals
 const gatewayFee = new BN(helper.GATEWAY_FEE_IN_AVT)
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000'
 
-const waitForTxToBeMined = async () => await helper.sleep(3500)
+const waitForTxToBeMined = async () => await helper.sleep(5000)
 
 describe('Proxy api calls:', async () => {
   let api
@@ -22,13 +22,14 @@ describe('Proxy api calls:', async () => {
   })
 
   describe('transferToken', async () => {
-    let senderAvtBalanceBefore, senderTokenBalanceBefore, recipientBalanceBefore
+    let senderAvtBalanceBefore, relayerAvtBalanceBefore, senderTokenBalanceBefore, recipientTokenBalanceBefore
     let senderNonceBefore
 
     beforeEach(async () => {
       senderAvtBalanceBefore = new BN(await api.query.getAvtBalance(sender))
       senderTokenBalanceBefore = new BN(await api.query.getTokenBalance(sender, token))
-      recipientBalanceBefore = new BN(await api.query.getTokenBalance(recipient, token))
+      recipientTokenBalanceBefore = new BN(await api.query.getTokenBalance(recipient, token))
+      relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer))
       senderNonceBefore = new BN(await api.query.getAccountNonce(sender))
     })
 
@@ -37,9 +38,10 @@ describe('Proxy api calls:', async () => {
       await api.send.transferToken(relayer, sender, recipientPubKey, token, amount)
       await waitForTxToBeMined()
       bnEquals(senderTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(sender, token)))
-      bnEquals(recipientBalanceBefore.add(amount), new BN(await api.query.getTokenBalance(recipient, token)))
+      bnEquals(recipientTokenBalanceBefore.add(amount), new BN(await api.query.getTokenBalance(recipient, token)))
       bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)))
       bnEquals(senderAvtBalanceBefore.sub(gatewayFee), new BN(await api.query.getAvtBalance(sender)))
+      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(gatewayFee)))
     })
 
     it('can make multiple token transfers using a recipient address', async function() {
@@ -54,9 +56,10 @@ describe('Proxy api calls:', async () => {
 
       await waitForTxToBeMined()
       bnEquals(senderTokenBalanceBefore.sub(amount.mul(numTx)), new BN(await api.query.getTokenBalance(sender, token)))
-      bnEquals(recipientBalanceBefore.add(amount.mul(numTx)), new BN(await api.query.getTokenBalance(recipient, token)))
+      bnEquals(recipientTokenBalanceBefore.add(amount.mul(numTx)), new BN(await api.query.getTokenBalance(recipient, token)))
       bnEquals(senderNonceBefore.add(numTx), new BN(await api.query.getAccountNonce(sender)))
       bnEquals(senderAvtBalanceBefore.sub(gatewayFee.mul(numTx)), new BN(await api.query.getAvtBalance(sender)))
+      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(gatewayFee.mul(numTx))))
     })
   })
 })

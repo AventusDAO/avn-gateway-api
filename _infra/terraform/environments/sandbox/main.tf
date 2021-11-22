@@ -157,6 +157,7 @@ module "k8s_service_account_permissions" {
   rabbit_secret_arn = module.rabbitmq.secret_arn
 
   depends_on = [
-    module.eks
+    module.eks,
+    module.lambda_functions
   ]
 }

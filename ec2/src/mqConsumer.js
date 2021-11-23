@@ -44,7 +44,7 @@ async function processMessagesFromMq(mqConsumer) {
 
     if (err) {
       logger.error('[AMQP] connect error', err.message)
-      return setTimeout(processMessagesFromMq(mqConsumer), 1000)
+      return setTimeout(processMessagesFromMq, 1000, mqConsumer)
     }
 
     conn.on('error', function(err) {
@@ -55,15 +55,13 @@ async function processMessagesFromMq(mqConsumer) {
 
     conn.on('close', function() {
       logger.error('[AMQP] reconnecting')
-      return setTimeout(processMessagesFromMq(mqConsumer), 1000)
+      return setTimeout(processMessagesFromMq, 1000, mqConsumer)
     })
 
     logger.info('[AMQP] connected')
 
     whenConnected(conn, mqConsumer.mqComponents)
   })
-
-  return Promise.resolve()
 }
 
 async function whenConnected(conn, components) {

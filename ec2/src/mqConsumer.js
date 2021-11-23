@@ -39,7 +39,7 @@ MQConsumer.prototype.getMqConnectionUrl = async function() {
 }
 
 MQConsumer.prototype.processMessagesFromMq = async function(self) {
-  amqp.connect(await this.getMqConnectionUrl(), function(err, conn) {
+  amqp.connect(await self.getMqConnectionUrl(), function(err, conn) {
     logger.info('[AMQP] connecting')
 
     if (err) {

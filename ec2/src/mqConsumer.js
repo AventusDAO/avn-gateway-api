@@ -20,7 +20,7 @@ async function connectToMQ() {
     config.mq.mqBrokerAmqpEndpoint,
     config.mq.components
   )
-  await mqConsumer.processMessagesFromMq(this)
+  await processMessagesFromMq(mqConsumer)
 }
 
 function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqComponents) {
@@ -38,13 +38,13 @@ MQConsumer.prototype.getMqConnectionUrl = async function() {
   )
 }
 
-MQConsumer.prototype.processMessagesFromMq = async function(self) {
-  amqp.connect(await self.getMqConnectionUrl(), function(err, conn) {
+async function processMessagesFromMq(mqConsumer) {
+  amqp.connect(await mqConsumer.getMqConnectionUrl(), function(err, conn) {
     logger.info('[AMQP] connecting')
 
     if (err) {
       logger.error('[AMQP] connect error', err.message)
-      return setTimeout(self.processMessagesFromMq(self), 1000)
+      return setTimeout(await processMessagesFromMq(mqConsumer), 1000)
     }
 
     conn.on('error', function(err) {
@@ -55,12 +55,12 @@ MQConsumer.prototype.processMessagesFromMq = async function(self) {
 
     conn.on('close', function() {
       logger.error('[AMQP] reconnecting')
-      return setTimeout(self.processMessagesFromMq(self), 1000)
+      return setTimeout(await processMessagesFromMq(mqConsumer), 1000)
     })
 
     logger.info('[AMQP] connected')
 
-    whenConnected(conn, self.mqComponents)
+    whenConnected(conn, mqConsumer.mqComponents)
   })
 }
 

@@ -41,7 +41,7 @@ jobs:
       
       - name: Create tag for merge
         if: github.ref == 'refs/heads/main'
-        run: echo "DOCKER_TAG=${GITHUB_SHA::8},latest" >> $GITHUB_ENV
+        run: echo "DOCKER_TAG=${GITHUB_SHA::7},latest" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1

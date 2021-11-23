@@ -25,6 +25,7 @@ function isAccountPK(accountString) {
   return isHex(accountString) && accountString.slice(0, 2) === '0x' && accountString.slice(2).length === 64
 }
 
+// TODO - allow this to handle multiple local accounts
 function obtainClientSuri() {
   return process.env.SURI
 }

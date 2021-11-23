@@ -21,10 +21,11 @@ describe('Polling api calls:', async () => {
 
     before(async () => {
       const senderAvtBalance = await api.query.getAvtBalance(sender)
-      const badTransferAmount = new BN(senderAvtBalance).add(new BN('90000000000000000000')).toString()
+      const validAmount = new BN('1')
+      const invalidAmount = new BN(senderAvtBalance).add(new BN('1')).toString()
 
-      requestId = await api.send.transferAvt(relayer, sender, recipient, 1)
-      invalidRequestId = await api.send.transferAvt(relayer, sender, recipient, badTransferAmount)
+      requestId = await api.send.transferAvt(relayer, sender, recipient, validAmount)
+      invalidRequestId = await api.send.transferAvt(relayer, sender, recipient, invalidAmount)
       console.log(`Valid requestId: ${requestId}, Invalid requestId: ${invalidRequestId}`)
     })
 

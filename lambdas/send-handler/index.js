@@ -88,33 +88,58 @@ async function callSwitch(call, responseObject, requestId) {
       break
 
     case 'proxy':
-      let pallet = call.params.pallet
-      let method = call.params.method
+      const pallet = call.params.pallet
+      const method = call.params.method
+      const relayer = call.params.relayer
+      const signer = call.params.signer
+      const recipient = call.params.recipient
+      const token = call.params.token
+      const amount = call.params.amount
+      const proxyTransferSignature = call.params.proxyTransferSignature
+      const feePaymentSignature = call.params.feePaymentSignature
+      const paymentNonce = call.params.paymentNonce
 
-      let formatter = codeFormatters[pallet][method]
+      const validParams =
+        utils.isValidAccountId(relayer) &&
+        utils.isValidAccountId(signer) &&
+        utils.isValidAccountId(recipient) &&
+        utils.isValidTokenId(token) &&
+        utils.isValidAmount(amount) &&
+        utils.isValidNonce(paymentNonce) &&
+        utils.isValidSignatureFormat(proxyTransferSignature) &&
+        utils.isValidSignatureFormat(feePaymentSignature)
 
-      if (!formatter) {
-        utils.logError('method not found', call.id, 'send-handler.proxy.method', call)
-        responseObject.error = { code: -32601, message: 'Method not found' }
-      } else if (!formatter.validate(call)) {
+      if (!validParams) {
         utils.logError('invalid params', call.id, 'send-handler.proxy.params', call.params)
         responseObject.error = { code: -32602, message: 'Invalid params' }
       } else {
-        try {
-          let proof = {
-            signer: call.params.innerArgs.from,
-            relayer: call.params.relayer,
-            signature: {
-              Sr25519: call.params.signature
-            }
+        const proxyProof = {
+          signer,
+          relayer,
+          signature: {
+            Sr25519: proxyTransferSignature
           }
+        }
+
+        const params = {
+          proxyParams: [proxyProof, signer, recipient, token, amount],
+          paymentDetails: {
+            signer,
+            relayer,
+            proxyProof,
+            feePaymentSignature,
+            paymentNonce
+          }
+        }
+
+        try {
           responseObject.result = await sendTx(
             requestId,
             'avnProxy',
             process.env.MQ_AVN_TX_QUEUE,
             pallet,
             method,
-            formatter.encode(proof, call.params.innerArgs)
+            params
           )
         } catch (err) {
           utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxy.sendProxyTx', err)
@@ -128,35 +153,6 @@ async function callSwitch(call, responseObject, requestId) {
       responseObject.error = { code: -32601, message: 'Method not found' }
   }
   return responseObject
-}
-
-const codeFormatters = {
-  balances: {
-    transfer: {
-      validate: function(params0, params1) {
-        return utils.isValidAccountId(params0) && utils.isValidAmount(params1)
-      },
-      encode: function(params0, params1) {
-        return [params0, params1]
-      }
-    }
-  },
-  tokenManager: {
-    signedTransfer: {
-      validate: function(call) {
-        return (
-          utils.isValidAccountId(call.params.relayer) &&
-          utils.isValidAccountId(call.params.innerArgs.from) &&
-          utils.isValidAccountId(call.params.innerArgs.to) &&
-          utils.isValidTokenId(call.params.innerArgs.token) &&
-          utils.isValidAmount(call.params.innerArgs.amount.toString())
-        )
-      },
-      encode: function(proof, innerArgs) {
-        return [proof, innerArgs.from, innerArgs.to, innerArgs.token, innerArgs.amount]
-      }
-    }
-  }
 }
 
 // async function testlocal(n) {

@@ -1,9 +1,10 @@
 const AvnApi = require('../index.js')
 const assert = require('chai').assert
 const BN = require('bn.js')
-const GATEWAY = 'https://4ayax6s3pg.execute-api.eu-west-1.amazonaws.com'
-const TOKEN = '0x7e5bb9f3c94637ca804b9f7e86be703d668d349f'
+const GATEWAY = 'https://xtu17iggv4.execute-api.eu-west-1.amazonaws.com'
+const TOKEN = '0x81f8e50c0d69aaf39925aff8c975f77e7444c8f2'
 const AVT_SUPPLY = '5100000000000000000000'
+const GATEWAY_FEE_IN_AVT = '1000000000000000'
 
 const ACCOUNTS = {
   relayer: {
@@ -12,23 +13,22 @@ const ACCOUNTS = {
     publicKey: '0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004'
   },
   sender: {
-    // process.env.SURI account
-    mnemonic: 'rapid pet capable tooth wisdom utility child luggage never toddler gather sea',
-    seed: '0x3eee10b8d28ea5a8fb165174022d637a8ec4b632c1e66472b234683a159bf6dd',
-    address: '5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH',
-    publicKey: '0xbcfb2baf67c7553a9fa39d3526f697dcf84165fbef074378ec8d5d68384d7749'
-  },
-  user1: {
     mnemonic: 'cabbage bone maid dentist sniff load shaft portion flavor gym shine debris',
-    seed: '0x079306effc5d804326b4740ef12da0d126a993d31eaff519ac6d183a4a4e652a',
+    seed: '0x079306effc5d804326b4740ef12da0d126a993d31eaff519ac6d183a4a4e652a', // process.env.SURI
     address: '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr',
     publicKey: '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e'
   },
-  user2: {
+  user1: {
     mnemonic: 'skate almost song wood lake giant stomach pupil know ugly check image',
     seed: '0x197bcdc6a4f99683346ada29b1ec2beb62aafffff487a55070a9c9e13d36d86a',
     address: '5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF',
     publicKey: '0xa05dc0c30b73e2d3f3d3542c2389adb40e96f87233c2f93d06a46973dd1c3972'
+  },
+  avnValidator: {
+    mnemonic: 'rapid pet capable tooth wisdom utility child luggage never toddler gather sea',
+    seed: '0x3eee10b8d28ea5a8fb165174022d637a8ec4b632c1e66472b234683a159bf6dd',
+    address: '5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH',
+    publicKey: '0xbcfb2baf67c7553a9fa39d3526f697dcf84165fbef074378ec8d5d68384d7749'
   }
 }
 
@@ -53,6 +53,7 @@ module.exports = {
   avnApi,
   BN,
   bnEquals,
+  GATEWAY_FEE_IN_AVT,
   sleep,
   TOKEN
 }

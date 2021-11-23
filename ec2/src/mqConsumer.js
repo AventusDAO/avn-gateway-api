@@ -62,6 +62,8 @@ async function processMessagesFromMq(mqConsumer) {
 
     whenConnected(conn, mqConsumer.mqComponents)
   })
+
+  return Promise.resolve()
 }
 
 async function whenConnected(conn, components) {

@@ -1,11 +1,7 @@
 const axios = require('axios')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
-<<<<<<< HEAD
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL
-=======
-const BLOCK_EXPLORER_BASE_URL = 'https://avn.stargate.aventus.io:3000/transactions/bulk'
->>>>>>> main
 
 // Make sure this is kept in sync with the state names defined in ec2/src/redis.js
 const transactionStatus = {

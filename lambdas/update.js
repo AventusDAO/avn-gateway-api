@@ -39,6 +39,7 @@ const LAMBDAS = ['poll-handler', 'query-handler', 'send-handler', 'authorisation
 async function main() {
   const target = process.argv[2]
   const lambda = process.argv[3]
+  const zip = process.argv[4] || "false"
   const lambdas = lambda === 'all' ? LAMBDAS : [lambda]
 
   switch (target) {
@@ -49,8 +50,8 @@ async function main() {
           layerNodejsPath: join(__dirname, 'layer/nodejs')
         }
         await installPkgDependencies(LAYER_NAME, paths.layerNodejsPath)
-        const layer = await createLambdaLayer(LAYER_NAME, paths.layerPath)
-        await cleanUpOldLayerVersions(LAYER_NAME, layer.Version)
+        const layer = await createLambdaLayer(LAYER_NAME, paths.layerPath, zip === "true")
+        await cleanUpOldLayerVersions(LAYER_NAME, layer.Version, zip === "true")
       } catch (err) {
         console.log('Updating lambda layer failed', err.message)
       }
@@ -59,7 +60,7 @@ async function main() {
       await Promise.allSettled(
         lambdas.map(lambda => {
           LAMBDAS.includes(lambda)
-            ? updateNodeModulesAndPublish(lambda)
+            ? updateNodeModulesAndPublish(lambda, zip === "true")
             : console.log('Error: no such lambda %s', lambda)
         })
       )
@@ -76,7 +77,7 @@ async function main() {
   }
 }
 
-async function updateNodeModulesAndPublish(lambda) {
+async function updateNodeModulesAndPublish(lambda, zip) {
   try {
     if (!LAMBDAS.includes(lambda)) throw Error('no such lambda', lambda)
 
@@ -94,8 +95,8 @@ async function updateNodeModulesAndPublish(lambda) {
     const lambdaFilesPaths = getAllFilesPaths(paths.lambda)
     await updateRequirePathsInLambdaFiles(lambdaFilesPaths, /..\/layer\/nodejs\//gs, '/opt/nodejs/')
     const layerRequired = await isLayerRequired(lambdaFilesPaths, '/opt/nodejs/', paths.layerPkg)
-    const layers = layerRequired ? await getLambdaLayer(LAYER_NAME, paths.layer) : null
-    await publish(lambda, layers)
+    const layers = layerRequired ? await getLambdaLayer(LAYER_NAME, paths.layer, zip) : null
+    await publish(lambda, layers, zip)
     await updateRequirePathsInLambdaFiles(lambdaFilesPaths, /\/opt\/nodejs\//gs, '../layer/nodejs/')
 
     console.log(`==== Lambda function ${lambda} is successfully published`)
@@ -139,65 +140,82 @@ async function isLayerRequired(lambdaFilesPaths, layerPath, layerPkgPath) {
   return layerRequired
 }
 
-async function getLambdaLayer(layerName, layerPath) {
+async function getLambdaLayer(layerName, layerPath, zip) {
   layer = await aws.send(new ListLayersCommand({ LayerName: layerName }))
   if (layer.Layers.length > 0) {
     return [layer.Layers[0].LatestMatchingVersion.LayerVersionArn]
   } else {
     await installPkgDependencies(layerName, layerPath)
-    const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath)
+    const { LayerVersionArn } = await createLambdaLayer(layerName, layerPath, zip)
     return [LayerVersionArn]
   }
 }
 
-async function publish(lambda, layers) {
+async function publish(lambda, layers, zip) {
   console.log('Publishing', lambda, 'to AWS...')
   const description = `${lambda} - Update script deployment`
-  await publishLambdaLayer(lambda, description, layers)
-  await publishSourceCode(lambda)
+  await publishLambdaLayer(lambda, description, layers, zip)
+  await publishSourceCode(lambda, zip)
   console.log('Published', lambda)
 }
 
-async function publishSourceCode(lambda) {
-  try {
-    await aws.send(
-      new UpdateFunctionCodeCommand({
-        ZipFile: await zipdir(lambda),
-        FunctionName: lambda
-      })
-    )
-  } catch (err) {
-    console.log(lambda, '- Error:', err)
-  }
-}
-
-async function publishLambdaLayer(lambda, description, layers) {
-  try {
-    await aws.send(
-      new UpdateFunctionConfigurationCommand({
-        FunctionName: lambda,
-        Description: description,
-        Layers: layers
-      })
-    )
-  } catch (err) {
-    console.log(lambda, '- Error:', err)
-  }
-}
-
-async function createLambdaLayer(layerName, layerPath) {
-  const response = await aws.send(
-    new PublishLayerVersionCommand({
-      LayerName: layerName,
-      Content: { ZipFile: await zipdir(layerPath) }
+async function publishSourceCode(lambda, zip) {
+  if (zip) {
+    console.log("Zipping Lambda")
+    await zipdir(lambda, { 
+      saveTo: `./build/${lambda}.zip` 
     })
-  )
-  console.log(`Lambda layer ${layerName} updated to version ${response.Version}`)
-  return response
+  } else {
+    try {
+      await aws.send(
+        new UpdateFunctionCodeCommand({
+          ZipFile: await zipdir(lambda),
+          FunctionName: lambda
+        })
+      )
+    } catch (err) {
+      console.log(lambda, '- Error:', err)
+    }
+  }  
 }
 
-async function cleanUpOldLayerVersions(layerName, version) {
-  while (--version > 0) {
+async function publishLambdaLayer(lambda, description, layers, zip) {
+  if (!zip) {
+    try {
+      await aws.send(
+        new UpdateFunctionConfigurationCommand({
+          FunctionName: lambda,
+          Description: description,
+          Layers: layers
+        })
+      )
+    } catch (err) {
+      console.log(lambda, '- Error:', err)
+    }
+  }
+}
+
+async function createLambdaLayer(layerName, layerPath, zip) {
+  if (zip) {
+    console.log("Zipping layer")
+    await zipdir(layerPath, { 
+      saveTo: `./build/${layerName}.zip` 
+    })
+    return {}
+  } else {
+    const response = await aws.send(
+      new PublishLayerVersionCommand({
+        LayerName: layerName,
+        Content: { ZipFile: await zipdir(layerPath) }
+      })
+    )
+    console.log(`Lambda layer ${layerName} updated to version ${response.Version}`)
+    return response
+  }
+}
+
+async function cleanUpOldLayerVersions(layerName, version, zip) {
+  while (!zip && --version > 0) {
     await aws.send(
       new DeleteLayerVersionCommand({
         LayerName: layerName,

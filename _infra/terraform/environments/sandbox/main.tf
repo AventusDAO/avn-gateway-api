@@ -4,6 +4,7 @@ locals {
   cluster_version        = "1.21"
   account_id             = "352429414196"
   avn_connector_endpoint = "http://a909aee94198341598a0d104802f3ce8-167584775.eu-west-1.elb.amazonaws.com:8080/"
+  block_explorer_url     = "https://avn.stargate.aventus.io:3000"
 }
 
 module "lambda_functions" {
@@ -41,7 +42,8 @@ module "lambda_functions" {
     }
     tx-status-update-handler = {
       env_vars = {
-        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
+        AVN_CONNECTOR_ENDPOINT  = local.avn_connector_endpoint
+        BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
       }
     }
   }

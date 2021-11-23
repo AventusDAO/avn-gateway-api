@@ -6,9 +6,9 @@ const { TypeRegistry } = require('@polkadot/types')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 const SIGNING_CONTEXT = 'awt_gateway_api'
-const MAX_TOKEN_AGE_MSEC = 60000
+const MAX_TOKEN_AGE_MSEC = process.env.MAX_TOKEN_AGE_MSEC
 const CLOCK_JITTER_MSEC = -15000
-const MIN_AVT_BALANCE = new BN('100000000000000000000')
+const MIN_AVT_BALANCE = new BN(process.env.MIN_AVT_BALANCE)
 const AUTH_PREFIX = 'Bearer '
 const registry = new TypeRegistry()
 

@@ -2,21 +2,17 @@
   Description:
     This script can update a lambda layer, a lambda function on AWS, and a lambda function to support local test
     And it can be executed as:
-
     `node update.js [target] [lambda_function]`
-
     target: layer
       publish a new version of a lambda layer on AWS with the following steps:
       1. Install all dependencies declared in layer/nodejs/package.json file
       2. Create a new version of the lambda layer in AWS with a zip file contains all files within the lambdas/nodejs/ folder
-
     target: lambda [all | lambda_function]
       publish all lambda functions or a single lambda function with the following steps:
       1. Clean up node modules in a lambda function, remove any dependencies already defined in the layer folder.
       2. Install all lambda function dependencies defined in the package.json file within lambda function folder
       3. Compress all files within the lambda function folder into a zip file and publish it to the AWS lambda function
       4. Attach or update the lambda layer to the latest version if it is required by the lambda function files.
-
     target: local [all | lambda_function]
       merges layer dependencies into all lambda function or a single lambda function's dependencies list,
       and updates all layer file URIs from /opt/nodejs/ to ../layer/nodejs/ in lambda function files if there is any

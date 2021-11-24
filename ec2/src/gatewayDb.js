@@ -15,9 +15,6 @@ const defaultFees = {}
 let db
 
 async function connect() {
-
-  console.log(`Config: ${JSON.stringify(config, null, 2)}`)
-
   let mongoUri = `mongodb://${config.mongo.username}:${config.mongo.password}@${config.mongo.server}`
 
   if (mongoUri.includes('?') == false && mongoUri.endsWith('/') == false) {
@@ -28,7 +25,7 @@ async function connect() {
   // make numbers look like numbers (without quotes)
   for (const key of Object.keys(options)) {
     if (!isNaN(parseFloat(options[key]))) {
-      options[key] = _.toNumber(options[key])
+      options[key] = parseInt(options[key])
     } else if (options[key] === 'true') {
       options[key] = true
     } else if (options[key] === 'false') {

@@ -18,10 +18,10 @@ async function connect() {
   let mongoUri = `mongodb://${config.mongo.username}:${config.mongo.password}@${config.mongo.server}`
 
   if (mongoUri.includes('?') == false && mongoUri.endsWith('/') == false) {
-    mongoUri = `${mongoUri}/${this.config.mongo.database}`
+    mongoUri = `${mongoUri}/${config.mongo.database}`
   }
 
-  let options = Object.fromEntries(this.config.mongo.options.split('&').map(item => item.split('=')))
+  let options = Object.fromEntries(config.mongo.options.split('&').map(item => item.split('=')))
   // make numbers look like numbers (without quotes)
   for (const key of Object.keys(options)) {
     if (!isNaN(parseFloat(options[key]))) {
@@ -49,7 +49,7 @@ async function connect() {
   let client = await mongoClient.connect(mongoUri, options)
 
   //Set the global variable
-  db = client.db(this.config.mongo.database)
+  db = client.db(config.mongo.database)
   log.info('Connected to DocumentDB')
 
   // Do other initialisations

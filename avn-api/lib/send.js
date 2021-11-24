@@ -13,8 +13,8 @@ const TX_TYPE = {
 function Send(api, queryApi, avtContractAddress) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi)
   this.transferToken = generateFunction(transferToken, api, queryApi)
-  this.nonceMap = {}
   this.avtContractAddress = avtContractAddress
+  this.nonceMap = {}
   this.feesMap = {}
 }
 
@@ -52,7 +52,7 @@ Send.prototype.proxyTransfer = async function(api, queryApi, relayer, signer, re
     paymentNonce
   )
 
-  const response = await this.postRequest(api, TX_TYPE[transactionType], {
+  const response = await this.postRequest(api, transactionType, {
     pallet: 'tokenManager',
     method: 'signedTransfer',
     relayer,

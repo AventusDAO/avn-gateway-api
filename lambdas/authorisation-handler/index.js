@@ -1,14 +1,10 @@
+const utils = require('../layer/nodejs/utils.js')
 const axios = require('axios')
-const BN = require('bn.js')
-const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
-const { cryptoWaitReady, signatureVerify } = require('@polkadot/util-crypto')
-const { TypeRegistry } = require('@polkadot/types')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
-const SIGNING_CONTEXT = 'awt_gateway_api'
 const MAX_TOKEN_AGE_MSEC = process.env.MAX_TOKEN_AGE_MSEC
 const CLOCK_JITTER_MSEC = -15000
-const MIN_AVT_BALANCE = new BN(process.env.MIN_AVT_BALANCE)
+const MIN_AVT_BALANCE = new utils.BN(process.env.MIN_AVT_BALANCE)
 const AUTH_PREFIX = 'Bearer '
 const registry = new TypeRegistry()
 
@@ -25,18 +21,18 @@ async function validateAwtToken(event) {
 
   const awtToken = getAwtTokenIfAny(event)
 
-  if (tokenAgeIsValid(awtToken) !== true) {
-    console.log(`Token is either expired or issued in the future`)
+  if (!tokenAgeIsValid(awtToken)) {
+    console.log('Token is either expired or issued in the future')
     return InvalidRequestResponse
   }
 
-  if ((await isSignatureValid(awtToken)) !== true) {
-    console.log(`The avnPublicKey signature is not valid`)
+  if (!utils.verifyAwtTokenSignature(awtToken.pk, awtToken.iat, awtToken.sig)) {
+    console.log('The avnPublicKey signature is not valid')
     return InvalidRequestResponse
   }
 
-  if ((await userHasAvtBalance(awtToken)) !== true) {
-    console.log(`User does not have enough balance to use the avn gateway api`)
+  if (!(await userHasAvtBalance(awtToken))) {
+    console.log('User does not have enough balance to use the avn gateway api')
     return InvalidRequestResponse
   }
 
@@ -55,24 +51,10 @@ async function userHasAvtBalance(awtToken) {
       storageName: 'account',
       params: [awtToken.pk]
     })
-    const avtBalance = new BN(response.data.data.free.replace('0x', ''), 16)
+    const avtBalance = new utils.BN(response.data.data.free.replace('0x', ''), 16)
     return avtBalance.gte(MIN_AVT_BALANCE)
   } catch (err) {
     console.error('failed to check user AVT balance', err)
-    return false
-  }
-}
-
-async function isSignatureValid(awtToken) {
-  try {
-    // run this await code after as much validation as possible
-    await cryptoWaitReady()
-
-    const encodedAvnPublicKey = encodeAvnPublicKeyForVerification(awtToken.pk, awtToken.iat)
-    const verificationResult = signatureVerify(encodedAvnPublicKey, awtToken.sig, awtToken.pk)
-    return verificationResult.isValid
-  } catch (err) {
-    console.error('failed to verify user signature', err)
     return false
   }
 }
@@ -100,14 +82,4 @@ function getAwtTokenIfAny(event) {
     console.error('failed to extract AWT', err)
     return null
   }
-}
-
-function encodeAvnPublicKeyForVerification(avnPublicKey, issuedAt) {
-  const encodedData = u8aConcat(
-    registry.createType('Text', SIGNING_CONTEXT).toU8a(false),
-    registry.createType('AccountId', hexToU8a(avnPublicKey)).toU8a(true),
-    registry.createType('Text', issuedAt).toU8a(false)
-  )
-
-  return u8aToHex(encodedData)
 }

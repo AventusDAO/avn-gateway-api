@@ -6,6 +6,7 @@ const registry = new TypeRegistry()
 const BN = require('bn.js')
 const { validate: uuidValidate } = require('uuid')
 
+const SIGNING_CONTEXT = 'awt_gateway_api'
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
 
 function isValidAccountId(accountId) {
@@ -45,7 +46,22 @@ function logError(msg, callId, reference, data) {
   console.error('Error:', msg, ':User call ID:', callId, ':Error ref:', reference, ':Error data:', JSON.stringify(data))
 }
 
-async function verifyFeePaymentAuthorisation(
+function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
+  const encodedContext = registry.createType('Text', SIGNING_CONTEXT)
+  const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey))
+  const encodedIssuedAt = registry.createType('Text', issuedAt)
+
+  const encodedData = u8aConcat(
+    encodedContext.toU8a(false),
+    encodedPublicKey.toU8a(true),
+    encodedIssuedAt.toU8a(false)
+  )
+
+  const hexEncodedData = u8aToHex(encodedData)
+  return signatureVerify(hexEncodedData, signature, publicKey).isValid
+}
+
+async function verifyFeePaymentSignature(
   signer,
   relayer,
   relayerFee,
@@ -53,14 +69,14 @@ async function verifyFeePaymentAuthorisation(
   feePaymentSignature,
   paymentNonce
 ) {
-  const context = registry.createType('Text', FEE_PAYMENT_CONTEXT)
+  const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT)
   const encodedProxyProof = registry.createType('Proof', proxyProof)
   const encodedRelayer = registry.createType('AccountId', relayer)
   const encodedRelayerFee = registry.createType('Balance', relayerFee)
   const encodedPaymentNonce = registry.createType('u64', paymentNonce)
 
   const encodedData = u8aConcat(
-    context.toU8a(false),
+    encodedContext.toU8a(false),
     encodedProxyProof.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedRelayerFee.toU8a(true),
@@ -72,6 +88,7 @@ async function verifyFeePaymentAuthorisation(
 }
 
 module.exports = {
+  BN,
   logError,
   isValidAccountId,
   isValidAmount,
@@ -80,5 +97,6 @@ module.exports = {
   isValidTokenId,
   isValidUUID,
   toBnString,
-  verifyFeePaymentAuthorisation
+  verifyAwtTokenSignature,
+  verifyFeePaymentSignature
 }

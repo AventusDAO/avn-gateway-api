@@ -135,7 +135,7 @@ async function callSwitch(call, responseObject, requestId) {
           }
         }
 
-        const paymentIsAuthorised = utils.verifyFeePaymentAuthorisation(
+        const paymentIsAuthorised = utils.verifyFeePaymentSignature(
           signer,
           relayer,
           relayerFee,

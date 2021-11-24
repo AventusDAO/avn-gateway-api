@@ -2,7 +2,7 @@
 const config = require('multiconfig').load()
 const avn = require('./avn')
 const redis = require('./redis')
-const gateway = require('./gateway')
+const gatewayDb = require('./gatewayDb')
 const mqConsumer = require('./mqConsumer')
 const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
@@ -75,7 +75,7 @@ app.post('/resolvePendingTransactions', async (req, res, next) => {
 app.get('/fees', async (req, res, next) => {
   try {
     log.trace(`fees request body: ${JSON.stringify(req.body)}`)
-    const result = await gateway.getFees(req.body)
+    const result = await gatewayDb.getFees(req.body)
     res.send(result)
   } catch (err) {
     next(err)
@@ -90,7 +90,7 @@ async function instantiateEC2() {
   await avn.connectToAvN()
   await redis.connect()
   await mqConsumer.connectToMQ()
-  await gateway.connect()
+  await gatewayDb.connect()
 }
 
 instantiateEC2()

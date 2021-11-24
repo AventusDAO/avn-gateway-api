@@ -70,12 +70,17 @@ async function collectionExists(db, collectionName) {
   return (await db.listCollections().toArray()).some((col) => col.name.toLowerCase() === collectionName.toLowerCase());
 }
 
+// transactionType and senderAddress are optional
 async function getFees(relayerAddress, transactionType, senderAddress) {
+  if (!relayerAddress) { throw new Error(`Relayer address is a mandatory field`)}
+
+
   // Implement me
   return {}
 }
 
 module.exports = {
   connect,
-  getFees
+  getFees,
+  TransactionType
 }

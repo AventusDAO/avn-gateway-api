@@ -44,7 +44,7 @@ async function connect() {
 
   if (options.sslValidate == true) {
     //Specify the Amazon DocumentDB cert
-    const ca = [fs.readFileSync(path.resolve(__dirname, '../res/rds-combined-ca-bundle.pem'))]
+    const ca = [fs.readFileSync(path.resolve(__dirname, '/res/rds-combined-ca-bundle.pem'))]
     options.sslCA = ca
   }
 

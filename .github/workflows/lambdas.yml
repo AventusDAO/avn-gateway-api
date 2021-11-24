@@ -1,7 +1,7 @@
 name: lambdas
 
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths:
@@ -72,28 +72,15 @@ jobs:
           make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.TX_STATUS }}
           make package-layer version=${{ needs.version-suffix.outputs.version }} 
       
-      - uses: actions/upload-artifact@master
-        with:
-          path: lambdas/build/
-     
-  upload:
-    runs-on: ubuntu-latest
-    name: upload functions to s3
-    needs: [package]
-    steps:
-      - uses: actions/checkout@v2
-      
-      - uses: actions/download-artifact@master
-        with:
-          path: lambdas/build
-      
-      - run: |
-          cp build/artifact/${{ env.POLL }}*.zip build/artifact/${{ env.POLL }}-latest.zip
-          cp build/artifact/${{ env.SEND }}*.zip build/artifact/${{ env.SEND }}-latest.zip
-          cp build/artifact/${{ env.QUERY }}*.zip build/artifact/${{ env.QUERY }}-latest.zip
-          cp build/artifact/${{ env.AUTHORISER }}*.zip build/artifact/${{ env.AUTHORISER }}-latest.zip
-          cp build/artifact/${{ env.TX_STATUS }}*.zip build/artifact/${{ env.TX_STATUS }}-latest.zip
-          cp build/artifact/${{ env.LAYER }}*.zip build/artifact/${{ env.LAYER }}-latest.zip
+      - name: create latest version alongside git short sha
+        run: |
+          cp build/${{ env.POLL }}/${{ env.POLL }}*.zip build/${{ env.POLL }}/${{ env.POLL }}-latest.zip
+          cp build/${{ env.SEND }}/${{ env.SEND }}*.zip build/${{ env.SEND }}/${{ env.SEND }}-latest.zip
+          cp build/${{ env.QUERY }}/${{ env.QUERY }}*.zip build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip
+          cp build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}*.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip
+          cp build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}*.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip
+          cp build/${{ env.LAYER }}/${{ env.LAYER }}*.zip build/${{ env.LAYER }}/${{ env.LAYER }}-latest.zip
+          ls -l build/
 
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@v0.5.1

@@ -1,0 +1,8 @@
+server: dev.cluster-cogskmw8wlom.us-east-2.docdb.amazonaws.com:27017/?ssl=true
+
+# https://mongodb.github.io/node-mongodb-native/3.6/api/MongoClient.html#.connect
+options: useUnifiedTopology=true&minPoolSize=1&wtimeout=10000&useNewUrlParser=true&sslValidate=true
+
+database: avn-gateway
+username: docdb_dev_user
+password: replaceMe

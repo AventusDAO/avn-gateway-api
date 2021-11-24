@@ -36,7 +36,7 @@ app.post('/avnPoll', async (req, res, next) => {
     // the await is removed on purpose here
     txStatusPoller.resolvePendingTransactionsState()
 
-    console.log('req.body.requestId', req.body.requestId)
+    console.log('**** req.body.requestId:', req.body.requestId)
     const result = await avn.poll(req.body.requestId)
     res.send(result)
   } catch (err) {

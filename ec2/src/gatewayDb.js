@@ -15,6 +15,9 @@ const defaultFees = {}
 let db
 
 async function connect() {
+
+  console.log(`Config: ${JSON.stringify(config, null, 2)}`)
+
   let mongoUri = `mongodb://${config.mongo.username}:${config.mongo.password}@${config.mongo.server}`
 
   if (mongoUri.includes('?') == false && mongoUri.endsWith('/') == false) {

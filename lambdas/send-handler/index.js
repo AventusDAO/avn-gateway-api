@@ -87,7 +87,9 @@ async function callSwitch(call, responseObject, requestId) {
       }
       break
 
-    case 'proxy':
+    case 'proxyAvtTransfer':
+    case 'proxyTokenTransfer':
+      const transactionType = call.method
       const pallet = call.params.pallet
       const method = call.params.method
       const relayer = call.params.relayer
@@ -110,7 +112,7 @@ async function callSwitch(call, responseObject, requestId) {
         utils.isValidSignatureFormat(feePaymentSignature)
 
       if (!validParams) {
-        utils.logError('invalid params', call.id, 'send-handler.proxy.params', call.params)
+        utils.logError('invalid params', call.id, 'send-handler.proxyTransfer.params', call.params)
         responseObject.error = { code: -32602, message: 'Invalid params' }
       } else {
         const proxyProof = {
@@ -121,29 +123,54 @@ async function callSwitch(call, responseObject, requestId) {
           }
         }
 
-        const params = {
-          proxyParams: [proxyProof, signer, recipient, token, amount],
-          paymentDetails: {
-            signer,
-            relayer,
-            proxyProof,
-            feePaymentSignature,
-            paymentNonce
+        const relayerFee = (
+          await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, signer, transactionType })
+        ).data
+
+        const paymentInfo = {
+          recipient: relayer,
+          amount: relayerFee,
+          signature: {
+            Sr25519: feePaymentSignature
           }
         }
 
-        try {
-          responseObject.result = await sendTx(
-            requestId,
-            'avnProxy',
-            process.env.MQ_AVN_TX_QUEUE,
-            pallet,
-            method,
-            params
+        const paymentIsAuthorised = utils.verifyFeePaymentAuthorisation(
+          signer,
+          relayer,
+          fee,
+          proxyProof,
+          feePaymentSignature,
+          paymentNonce
+        )
+
+        if (paymentIsAuthorised) {
+          const params = {
+            proxyParams: [proxyProof, signer, recipient, token, amount],
+            paymentInfo
+          }
+
+          try {
+            responseObject.result = await sendTx(
+              requestId,
+              'avnProxy',
+              process.env.MQ_AVN_TX_QUEUE,
+              pallet,
+              method,
+              params
+            )
+          } catch (err) {
+            utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyTransfer.sendProxyTx', err)
+            responseObject.error = { code: -32603, message: 'Internal error' }
+          }
+        } else {
+          utils.logError(
+            'invalid fee authorisation',
+            call.id,
+            'send-handler.proxyTransfer.verifyPaymentAuthorisation',
+            feePaymentSignature
           )
-        } catch (err) {
-          utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxy.sendProxyTx', err)
-          responseObject.error = { code: -32603, message: 'Internal error' }
+          responseObject.error = { code: -32602, message: 'Invalid params' }
         }
       }
       break

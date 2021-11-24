@@ -25,7 +25,7 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
   return signData(signerSuri, hexEncodedData)
 }
 
-function createFeePaymentSignature(_relayer, signer, proxySignature, gatewayFee, paymentNonce) {
+function createFeePaymentSignature(_relayer, signer, proxySignature, relayerFee, paymentNonce) {
   const signerSuri = common.obtainClientSuri()
   const relayer = common.convertToPublicKeyIfNeeded(_relayer)
 
@@ -41,7 +41,7 @@ function createFeePaymentSignature(_relayer, signer, proxySignature, gatewayFee,
     context: FEE_PAYMENT_CONTEXT,
     proxyProof,
     relayer,
-    gatewayFee,
+    relayerFee,
     paymentNonce
   }
 
@@ -75,14 +75,14 @@ function encodeFeePaymentSignatureData(params) {
   const context = common.registry.createType('Text', params.context)
   const encodedProxyProof = encodeProxyProof(params.proxyProof)
   const encodedRelayer = common.registry.createType('AccountId', params.relayer)
-  const encodedGatewayFee = common.registry.createType('Balance', params.gatewayFee)
+  const encodedRelayerFee = common.registry.createType('Balance', params.relayerFee)
   const encodedPaymentNonce = common.registry.createType('u64', params.paymentNonce)
 
   const encodedData = u8aConcat(
     context.toU8a(false),
     encodedProxyProof,
     encodedRelayer.toU8a(true),
-    encodedGatewayFee.toU8a(true),
+    encodedRelayerFee.toU8a(true),
     encodedPaymentNonce.toU8a(true)
   )
 

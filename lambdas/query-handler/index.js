@@ -120,7 +120,18 @@ async function callSwitch(call, responseObject) {
     case 'getAvtContractAddress':
       try {
         responseObject.result = await queryChain(call.id, 'tokenManager', 'aVTTokenContract', [], res => res.toString())
-      } catch (e) {
+      } catch (err) {
+        utils.logError('failed to query chain', call.id, 'query-handler.getAvtContractAddress.query', err)
+        responseObject.error = { code: -32603, message: 'Internal error' }
+      }
+      break
+    case 'getRelayerFees':
+      try {
+        const relayer = call.params[0]
+        const user = call.params[1]
+        responseObject.result = (await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user })).data
+      } catch (err) {
+        utils.logError('failed to call avn-connector', call.id, 'query-handler.getRelayerFees', err)
         responseObject.error = { code: -32603, message: 'Internal error' }
       }
       break

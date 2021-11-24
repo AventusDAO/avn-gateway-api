@@ -17,9 +17,9 @@ endif
 ifndef zip
 	$(eval zip=true)
 endif
-	mkdir -p build
+	mkdir -p build/$(name)
 	node update.js lambda $(name) $(zip)
-	# mv build/$(name).zip build/$(name)-$(version).zip
+	mv build/$(name).zip build/$(name)/$(name)-$(version).zip
 
 package-layer: ## - package the lambda layer into a zip file $ make package-layer version=<version_no>
 ifndef version
@@ -29,11 +29,11 @@ endif
 ifndef zip
 	$(eval zip=true)
 endif
-	mkdir -p build
 	$(eval name=common-layer)
+	mkdir -p build/$(name)
 	npm --prefix ./layer/nodejs install ./layer/nodejs
 	node update.js layer $(name) $(zip)
-	# mv build/$(name).zip build/$(name)-$(version).zip
+	mv build/$(name).zip build/$(name)/$(name)-$(version).zip
 
 build: ## compiles a lambda function along with the common folder $ make build name=<lambda_name>
 ifndef name

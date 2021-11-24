@@ -51,7 +51,7 @@ async function main() {
         }
         await installPkgDependencies(LAYER_NAME, paths.layerNodejsPath)
         const layer = await createLambdaLayer(LAYER_NAME, paths.layerPath, zip === 'true')
-        await cleanUpOldLayerVersions(LAYER_NAME, layer.Version, zip)
+        await cleanUpOldLayerVersions(LAYER_NAME, layer.Version, zip === 'true')
       } catch (err) {
         console.log('Updating lambda layer failed', err.message)
       }

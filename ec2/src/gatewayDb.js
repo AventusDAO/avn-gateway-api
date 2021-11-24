@@ -2,6 +2,8 @@
 const mongoClient = require('mongodb').MongoClient
 const config = require('multiconfig').load()
 const log = require('log4js').getLogger()
+const fs = require('fs')
+const path = require("path")
 
 const FEES_COLLECTION_NAME = 'fees'
 const DEFAULT_RELAYER_FEE = '1000000000000000' //0.001 AVT

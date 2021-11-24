@@ -51,24 +51,13 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey))
   const encodedIssuedAt = registry.createType('Text', issuedAt)
 
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedPublicKey.toU8a(true),
-    encodedIssuedAt.toU8a(false)
-  )
+  const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false))
 
   const hexEncodedData = u8aToHex(encodedData)
   return signatureVerify(hexEncodedData, signature, publicKey).isValid
 }
 
-async function verifyFeePaymentSignature(
-  signer,
-  relayer,
-  relayerFee,
-  proxyProof,
-  feePaymentSignature,
-  paymentNonce
-) {
+async function verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT)
   const encodedProxyProof = registry.createType('Proof', proxyProof)
   const encodedRelayer = registry.createType('AccountId', relayer)

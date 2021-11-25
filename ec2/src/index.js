@@ -72,7 +72,7 @@ app.post('/resolvePendingTransactions', async (req, res, next) => {
   }
 })
 
-app.get('/relayerFees', async (req, res, next) => {
+post.get('/relayerFees', async (req, res, next) => {
   try {
     log.trace(`fees request body: ${JSON.stringify(req.body)}`)
     const result = await gatewayDb.getFees(req.body.relayer, req.body.user, req.body.transactionType)

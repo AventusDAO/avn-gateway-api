@@ -6,7 +6,12 @@ describe('Query api calls:', async () => {
   let api
   let relayer, user
 
-  let expectedFees = {
+  const expectedDefaultFees = {
+    proxyAvtTransfer: '1000000000000000',
+    proxyTokenTransfer: '1000000000000000'
+  }
+
+  const expectedUserFees = {
     proxyAvtTransfer: '1000000000000000',
     proxyTokenTransfer: '1000000000000000'
   }
@@ -24,14 +29,19 @@ describe('Query api calls:', async () => {
   })
 
   describe('getRelayerFees', async () => {
-    it('returns relayer fees for a user', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer, user)
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedFees))
+    it('returns default fees for a relayer', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer)
+      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedDefaultFees))
     })
-    xit('returns the relayer fee for a user for a transaction type', async () => {
-      const txType = 'proxyAvtTransfer'
-      const returnedFees = await api.query.getRelayerFees(relayer, user, txType)
-      assert.equal(returnedFees, expectedFees[txType])
+
+    it('returns fees for a specific user', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer, user)
+      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees))
+    })
+    xit('returns the fee for a specific user and transaction type', async () => {
+      const transactionType = 'proxyAvtTransfer'
+      const returnedFees = await api.query.getRelayerFees(relayer, user, transactionType)
+      assert.equal(returnedFees, expectedUserFees[transactionType])
     })
   })
 })

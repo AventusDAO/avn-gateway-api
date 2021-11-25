@@ -6,6 +6,7 @@ const fs = require('fs')
 const path = require("path")
 
 const FEES_COLLECTION_NAME = 'fees'
+const USER_FEES_COLLECTION_NAME = 'userFees'
 const DEFAULT_RELAYER_FEE = '1000000000000000' //0.001 AVT
 
 const TransactionType = {
@@ -35,8 +36,6 @@ async function connect() {
     }
   }
 
-  log.info(`[Remove me] - Connection string: ${mongoUri}`)
-
   // mask user credentials
   log.info(
     'Connecting to DocumentDB: %s. Options: %s.',
@@ -49,8 +48,6 @@ async function connect() {
     const ca = [fs.readFileSync(path.resolve(__dirname, './res/rds-combined-ca-bundle.pem'))]
     options.sslCA = ca
   }
-
-  log.info(`[Remove me] - Options: ${JSON.stringify(options, null, 2)}`)
 
   let client = await mongoClient.connect(mongoUri, options)
 
@@ -71,6 +68,7 @@ function setupDefaultFees() {
 async function createCollections(db) {
   log.info(`Creating db collections`)
   await createFeesCollectionIfRequired(db)
+  await createUserFeesCollectionIfRequired(db)
 }
 
 async function createFeesCollectionIfRequired(db) {
@@ -84,6 +82,18 @@ async function createFeesCollectionIfRequired(db) {
   }
 }
 
+async function createUserFeesCollectionIfRequired(db) {
+  let exists = await collectionExists(db, USER_FEES_COLLECTION_NAME)
+
+  if (!exists) {
+    log.trace(`  - Creating ${USER_FEES_COLLECTION_NAME} db collection`)
+    const collection = db.createCollection(USER_FEES_COLLECTION_NAME)
+    log.trace(` - Creating unique indexes`)
+    await collection.createIndex({ relayer: 1, user: 1 }, { unique: true })
+  }
+}
+
+
 async function collectionExists(db, collectionName) {
   return (await db.listCollections().toArray()).some(col => col.name.toLowerCase() === collectionName.toLowerCase())
 }
@@ -93,6 +103,8 @@ async function getFees(relayerAddress, userAddress, transactionType) {
   if (!relayerAddress) {
     throw new Error(`Relayer address is a mandatory field`)
   }
+
+  //*** This will be implemented in the next PR ***/
 
   // const feesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress }).limit(1);
 

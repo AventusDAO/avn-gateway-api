@@ -47,8 +47,8 @@ function getAvtContractAddress(api) {
 }
 
 function getRelayerFees(api) {
-  return async function(relayer, user) {
-    return await this.postRequest(api, 'getRelayerFees', [relayer, user])
+  return async function(relayer, user, transactionType) {
+    return await this.postRequest(api, 'getRelayerFees', [relayer, user, transactionType])
   }
 }
 

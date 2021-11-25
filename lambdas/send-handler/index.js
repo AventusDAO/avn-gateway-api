@@ -167,7 +167,7 @@ async function callSwitch(call, responseObject, requestId) {
           utils.logError(
             'invalid fee authorisation',
             call.id,
-            'send-handler.proxyTransfer.verifyPaymentAuthorisation',
+            'send-handler.proxyTransfer.verifyFeePaymentSignature',
             feePaymentSignature
           )
           responseObject.error = { code: -32602, message: 'Invalid params' }

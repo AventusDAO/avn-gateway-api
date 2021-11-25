@@ -1,5 +1,8 @@
 const utils = require('../layer/nodejs/utils.js')
+const axios = require('axios')
 const MQSender = require('./mqSender.js')
+
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 
 // TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
 let mqSender
@@ -123,9 +126,15 @@ async function callSwitch(call, responseObject, requestId) {
           }
         }
 
-        const relayerFee = (
-          await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, signer, transactionType })
-        ).data
+        let relayerFee
+
+        try {
+          response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user:signer, transactionType })
+          relayerFee = response.data
+        } catch (err) {
+          utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyTransfer.relayerFees', err)
+          responseObject.error = { code: -32603, message: 'Internal error' }
+        }
 
         const paymentInfo = {
           recipient: relayer,

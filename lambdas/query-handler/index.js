@@ -130,7 +130,8 @@ async function callSwitch(call, responseObject) {
         const relayer = call.params[0]
         const user = call.params[1]
         const transactionType = call.params[2]
-        responseObject.result = (await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })).data
+        const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
+        responseObject.result = response.data
       } catch (err) {
         utils.logError('failed to call avn-connector', call.id, 'query-handler.getRelayerFees', err)
         responseObject.error = { code: -32603, message: 'Internal error' }

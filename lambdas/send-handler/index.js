@@ -129,8 +129,12 @@ async function callSwitch(call, responseObject, requestId) {
         let relayerFee
 
         try {
-          response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user:signer, transactionType })
-          relayerFee = response.data
+          const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
+            relayer,
+            user: signer,
+            transactionType
+          })
+          relayerFee = response.data[transactionType]
         } catch (err) {
           utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyTransfer.relayerFees', err)
           responseObject.error = { code: -32603, message: 'Internal error' }

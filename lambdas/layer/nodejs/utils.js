@@ -50,30 +50,33 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
   const encodedContext = registry.createType('Text', SIGNING_CONTEXT)
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey))
   const encodedIssuedAt = registry.createType('Text', issuedAt)
-
   const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false))
-
-  const hexEncodedData = u8aToHex(encodedData)
-  return signatureVerify(hexEncodedData, signature, publicKey).isValid
+  return signatureVerify(u8aToHex(encodedData), signature, publicKey).isValid
 }
 
-async function verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+function verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT)
-  const encodedProxyProof = registry.createType('Proof', proxyProof)
+  const encodedProxyProof = encodeProxyProof(proxyProof)
   const encodedRelayer = registry.createType('AccountId', relayer)
   const encodedRelayerFee = registry.createType('Balance', relayerFee)
   const encodedPaymentNonce = registry.createType('u64', paymentNonce)
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
-    encodedProxyProof.toU8a(false),
+    encodedProxyProof,
     encodedRelayer.toU8a(true),
     encodedRelayerFee.toU8a(true),
     encodedPaymentNonce.toU8a(true)
   )
 
-  const hexEncodedData = u8aToHex(encodedData)
-  return signatureVerify(hexEncodedData, feePaymentSignature, signer).isValid
+  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, signer).isValid
+}
+
+function encodeProxyProof(params) {
+  const signer = registry.createType('AccountId', params.signer)
+  const relayer = registry.createType('AccountId', params.relayer)
+  const signature = registry.createType('MultiSignature', params.signature)
+  return u8aConcat(signer.toU8a(true), relayer.toU8a(true), signature.toU8a(false))
 }
 
 module.exports = {

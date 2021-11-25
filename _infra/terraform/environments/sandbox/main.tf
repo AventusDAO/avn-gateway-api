@@ -24,6 +24,7 @@ module "lambda_functions" {
     }
     send-handler = {
       env_vars = {
+        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
         MQ_SECRET_ARN           = module.rabbitmq.secret_arn
         MQ_AVN_TX_QUEUE         = "avnTx"

@@ -3,7 +3,7 @@ locals {
   name                   = "avn-gateway"
   cluster_version        = "1.21"
   account_id             = "352429414196"
-  avn_connector_endpoint = "http://a909aee94198341598a0d104802f3ce8-167584775.eu-west-1.elb.amazonaws.com:8080/"
+  avn_connector_endpoint = "http://a909aee94198341598a0d104802f3ce8-616661976.eu-west-1.elb.amazonaws.com:8080/"
   block_explorer_url     = "https://avn.stargate.aventus.io:3000"
 }
 
@@ -29,11 +29,13 @@ module "lambda_functions" {
         MQ_AVN_TX_QUEUE         = "avnTx"
         SECRET_MANAGER_REGION   = var.region
       }
+      timeout = 4
     }
     poll-handler = {
       env_vars = {
         AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
       }
+      timeout = 4
     }
     query-handler = {
       env_vars = {
@@ -146,6 +148,11 @@ module "eks" {
   map_roles = [
     {
       rolearn  = "arn:aws:iam::${local.account_id}:role/AWSReservedSSO_AdministratorAccess_a2b4587f5d23a564"
+      username = "adminuser:{{SessionName}}"
+      groups   = ["system:masters"]
+    },
+    {
+      rolearn  = "arn:aws:iam::${local.account_id}:role/jenkins-access"
       username = "adminuser:{{SessionName}}"
       groups   = ["system:masters"]
     },

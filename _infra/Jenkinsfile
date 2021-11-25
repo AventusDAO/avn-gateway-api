@@ -1,0 +1,142 @@
+pipeline {
+  environment {
+    environment = "sandbox"
+  }
+
+  parameters {
+    choice(name: 'terraform_target', choices: ['none', 'all', 'lambda_functions', 'eks', 'api-gateway', 'vpc', 'k8s_service_account_permissions', 'rabbitmq'], description: 'Apply specific terraform module targets.')
+    string(name: 'additional_terraform_args', defaultValue: '', description: 'Supply additional terraform arguments, The environment can be destroyed by supplying the arg -destroy', trim: true)
+    choice(name: 'apply_third_party_charts', choices: ['false', 'true'], description: 'Apply third party helm charts to kubernetes')
+    choice(name: 'new_environment', choices: ['false', 'true'], description: 'Apply a new environment, if true then the VPC will be built before the rest of the infrastructure.')
+  }
+
+  agent any
+
+  stages {
+    stage("Initialise VPC plan") {
+      when {
+        expression {
+            return env.new_environment == 'true';
+        }
+      }
+      steps {
+        dir("_infra/terraform/environments/${env.environment}") {
+          sh "terraform init"
+          sh "terraform plan -target module.vpc -out=plan-out-vpc.tfplan -no-color"
+        }
+      }
+    }
+
+    stage("Apply VPC") {
+      when {
+        beforeInput true
+        expression {
+            return env.new_environment == 'true';
+        }
+      }
+      input {
+        message "Proceed with VPC apply"
+      }
+      steps {
+        dir("_infra/terraform/environments/${env.environment}") {
+          sh "terraform init"
+          sh "terraform apply plan-out-vpc.tfplan -no-color"
+        }
+      }
+    }
+
+    stage("Terraform plan") {
+      when {
+        expression {
+            return env.terraform_target != 'none';
+        }
+      }
+      steps {
+        dir("_infra/terraform/environments/${env.environment}") {
+          terraformPlan()
+        }
+      }
+    }
+
+    stage("Terraform Apply") {
+      when {
+        beforeInput true
+        expression {
+            return env.terraform_target != 'none';
+        }
+      }
+      input {
+        message "Proceed with Terraform apply"
+      }
+      steps {
+        dir("_infra/terraform/environments/${env.environment}") {
+          terraformApply()
+        }
+      }
+    }
+    
+    stage("Deploy third party helm charts") {
+      when {
+        expression {
+            return env.apply_third_party_charts == 'true' && env.additional_terraform_args != '-destroy';
+        }
+      }
+      steps {
+        withAWS(roleAccount:accountId(), role:'jenkins-access') {
+          generateContext("avn-gateway", "kube-system")
+          sh "helm dep up _infra/cluster/aws-lb-controller"
+          sh "helm upgrade --install lb-controller _infra/cluster/aws-lb-controller"
+        }
+      }
+    }
+
+    stage("Deploy avn-connector") {
+      when {
+        expression {
+            return env.additional_terraform_args != '-destroy';
+        }
+      }
+      steps {
+        withAWS(roleAccount:accountId(), role:'jenkins-access') {
+          generateContext("avn-gateway", "dev")
+          sh "kubectl create ns dev || true"
+          sh "helm template ec2/chart --set service.type=LoadBalancer | kubectl apply -f -"
+        }
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}
+
+def generateContext(String clusterName, String namespace) {
+  def id = accountId()
+  sh "aws eks --region eu-west-1 update-kubeconfig --name ${clusterName}"
+  sh "kubectl config set-context arn:aws:eks:eu-west-1:${id}:cluster/${clusterName} --namespace ${namespace}"
+  sh "kubectl config use-context arn:aws:eks:eu-west-1:${id}:cluster/${clusterName}"
+}
+
+def terraformPlan() {
+  sh "terraform init"
+  if ( env.terraform_target == 'all' ) {
+    sh "terraform plan -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
+  } else {
+    sh "terraform plan -target module.${env.terraform_target} -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
+  }
+}
+
+def terraformApply() {
+  sh "terraform init"
+  sh "terraform apply plan-out.tfplan -no-color"
+}
+
+def accountId() {
+  def environmentMap = [
+    sandbox: "352429414196",
+    cba: "602004642405"
+  ]
+  return environmentMap[env.environment]
+}

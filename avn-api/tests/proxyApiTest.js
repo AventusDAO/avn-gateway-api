@@ -42,6 +42,7 @@ describe('Proxy api calls:', async () => {
       bnEquals(recipientTokenBalanceBefore.add(amount), new BN(await api.query.getTokenBalance(recipient, token)))
       bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)))
       bnEquals(senderAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(sender)))
+      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)))
     })
 
@@ -63,6 +64,7 @@ describe('Proxy api calls:', async () => {
       )
       bnEquals(senderNonceBefore.add(numTx), new BN(await api.query.getAccountNonce(sender)))
       bnEquals(senderAvtBalanceBefore.sub(relayerFee.mul(numTx)), new BN(await api.query.getAvtBalance(sender)))
+      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee.mul(numTx))))
     })
   })

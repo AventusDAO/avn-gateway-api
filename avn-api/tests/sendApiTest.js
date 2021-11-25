@@ -36,6 +36,7 @@ describe('SendTx api calls:', async () => {
       await waitForTxToBeMined()
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient))
       bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
+      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)))
     })
 
@@ -45,6 +46,7 @@ describe('SendTx api calls:', async () => {
       await waitForTxToBeMined()
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey))
       bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
+      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)))
     })
   })

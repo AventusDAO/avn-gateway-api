@@ -1,5 +1,6 @@
 const assert = require('chai').assert
 const helper = require('./helper.js')
+const accounts = helper.ACCOUNTS
 
 describe('Query api calls:', async () => {
   let api

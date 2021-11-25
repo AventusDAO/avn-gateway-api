@@ -6,6 +6,11 @@ describe('Query api calls:', async () => {
   let api
   let relayer, user
 
+  let expectedFees = {
+    proxyAvtTransfer: '1000000000000000',
+    proxyTokenTransfer: '1000000000000000'
+  }
+
   before(async () => {
     api = await helper.avnApi()
     relayer = accounts.relayer.address
@@ -20,10 +25,13 @@ describe('Query api calls:', async () => {
 
   describe('getRelayerFees', async () => {
     it('returns relayer fees for a user', async () => {
-      console.log(await api.query.getRelayerFees(relayer, user))
+      const returnedFees = await api.query.getRelayerFees(relayer, user)
+      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedFees))
     })
-    it('returns the relayer fee for a user for a transaction type', async () => {
-      console.log(await api.query.getRelayerFees(relayer, user, 'proxyAvtTransfer'))
+    xit('returns the relayer fee for a user for a transaction type', async () => {
+      const txType = 'proxyAvtTransfer'
+      const returnedFees = await api.query.getRelayerFees(relayer, user, txType)
+      assert.equal(returnedFees, expectedFees[txType])
     })
   })
 })

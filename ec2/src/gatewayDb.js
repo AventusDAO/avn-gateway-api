@@ -35,6 +35,8 @@ async function connect() {
     }
   }
 
+  log.info(`[Remove me] - Connection string: ${mongoUri}`)
+
   // mask user credentials
   log.info(
     'Connecting to DocumentDB: %s. Options: %s.',
@@ -47,6 +49,8 @@ async function connect() {
     const ca = [fs.readFileSync(path.resolve(__dirname, './res/rds-combined-ca-bundle.pem'))]
     options.sslCA = ca
   }
+
+  log.info(`[Remove me] - Options: ${JSON.stringify(options, null, 2)}`)
 
   let client = await mongoClient.connect(mongoUri, options)
 

@@ -6,7 +6,6 @@ const MAX_TOKEN_AGE_MSEC = process.env.MAX_TOKEN_AGE_MSEC
 const CLOCK_JITTER_MSEC = -15000
 const MIN_AVT_BALANCE = new utils.BN(process.env.MIN_AVT_BALANCE)
 const AUTH_PREFIX = 'Bearer '
-const registry = new TypeRegistry()
 
 const InvalidRequestResponse = { isAuthorized: false }
 const ValidRequestResponse = { isAuthorized: true }

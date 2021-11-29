@@ -2,8 +2,6 @@
   "name": "authorisation-handler",
   "version": "0.1.0",
   "dependencies": {
-    "@polkadot/types": "^3.0.1",
-    "@polkadot/util-crypto": "5.9.2",
     "axios": "^0.21.4"
   }
 }

@@ -7,6 +7,7 @@ function Query(api) {
   this.getAccountNonce = generateFunction(getAccountNonce, api)
   this.getAccountPaymentNonce = generateFunction(getAccountPaymentNonce, api)
   this.getAvtContractAddress = generateFunction(getAvtContractAddress, api)
+  this.getRelayerFees = generateFunction(getRelayerFees, api)
 }
 
 function getTotalAvt(api) {
@@ -42,6 +43,12 @@ function getAccountPaymentNonce(api) {
 function getAvtContractAddress(api) {
   return async function() {
     return await this.postRequest(api, 'getAvtContractAddress', [])
+  }
+}
+
+function getRelayerFees(api) {
+  return async function(relayer, user, transactionType) {
+    return await this.postRequest(api, 'getRelayerFees', [relayer, user, transactionType])
   }
 }
 

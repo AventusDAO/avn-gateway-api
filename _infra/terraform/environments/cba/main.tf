@@ -24,7 +24,10 @@ module "lambda_functions" {
       }
     }
     send-handler = {
-      env_vars = {
+      subnet_ids         = module.vpc.private_subnets
+      security_group_ids = [module.rabbitmq.rabbit_security_group]
+      env_vars           = {
+        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
         MQ_SECRET_ARN           = module.rabbitmq.secret_arn
         MQ_AVN_TX_QUEUE         = "avnTx"

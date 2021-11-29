@@ -1,8 +1,11 @@
 
 locals {
   name                   = "avn-gateway"
+  environment            = "cba"
+  cluster_version        = "1.21"
   account_id             = "602004642405"
   avn_connector_endpoint = "http://ec2-63-33-195-249.eu-west-1.compute.amazonaws.com:5000/"
+  block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
 }
 
 module "lambda_functions" {
@@ -30,11 +33,13 @@ module "lambda_functions" {
         MQ_AVN_TX_QUEUE         = "avnTx"
         SECRET_MANAGER_REGION   = var.region
       }
+      timeout = 4
     }
-    poll-handler  = {
+    poll-handler = {
       env_vars = {
         AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
       }
+      timeout = 4
     }
     query-handler = {
       env_vars = {
@@ -43,7 +48,8 @@ module "lambda_functions" {
     }
     tx-status-update-handler = {
       env_vars = {
-        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
+        AVN_CONNECTOR_ENDPOINT  = local.avn_connector_endpoint
+        BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
       }
     }
   }
@@ -101,5 +107,82 @@ module "rabbitmq" {
   deployment_mode = "CLUSTER_MULTI_AZ"
   depends_on = [
     module.vpc
+  ]
+}
+
+data "aws_eks_cluster" "eks" {
+  name = module.eks.cluster_id
+}
+
+data "aws_eks_cluster_auth" "eks" {
+  name = module.eks.cluster_id
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.eks.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.eks.token
+}
+
+module "eks" {
+  source          = "terraform-aws-modules/eks/aws"
+
+  cluster_version   = local.cluster_version
+  cluster_name      = local.name
+  vpc_id            = module.vpc.vpc_id
+  subnets           = module.vpc.private_subnets
+  enable_irsa       = true
+  workers_role_name = local.name
+
+  cluster_endpoint_private_access = true
+  cluster_endpoint_public_access  = true
+
+  node_groups = {
+    avn-gateway = {
+      create_launch_template = true
+
+      disk_size       = 20
+      disk_type       = "gp3"
+
+      desired_capacity = 1
+      max_capacity     = 10
+      min_capacity     = 1
+
+      instance_types = ["t3.medium"]
+      capacity_type  = "ON_DEMAND"
+      k8s_labels = {
+        Environment = "${local.environment}"
+        GithubRepo  = "avn-gateway-api"
+        GithubOrg   = "Aventus-Network-Services"
+      }
+      update_config = {
+        max_unavailable = 1
+      }
+    }
+  }
+
+  map_roles = [
+    {
+      rolearn  = "arn:aws:iam::${local.account_id}:role/AWSReservedSSO_AdministratorAccess_d1d8f8e0733b5134"
+      username = "adminuser:{{SessionName}}"
+      groups   = ["system:masters"]
+    },
+    {
+      rolearn  = "arn:aws:iam::${local.account_id}:role/jenkins-access"
+      username = "adminuser:{{SessionName}}"
+      groups   = ["system:masters"]
+    },
+  ]
+}
+
+module "k8s_service_account_permissions" {
+  source = "../../modules/k8s-service-account-permissions"
+
+  oidc_provider     = module.eks.oidc_provider_arn
+  rabbit_secret_arn = module.rabbitmq.secret_arn
+
+  depends_on = [
+    module.eks,
+    module.lambda_functions
   ]
 }

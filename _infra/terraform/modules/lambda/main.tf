@@ -5,6 +5,7 @@ locals {
       ])
       subnet_ids         = lookup(v, "subnet_ids", [])
       security_group_ids = lookup(v, "security_group_ids", [])
+      timeout            = lookup(v, "timeout", 3)
     } 
   }
 }
@@ -21,6 +22,7 @@ resource "aws_lambda_function" "lambda" {
   description   = "${each.key} - ${var.service_version} - Deployed by Terraform" 
   runtime       = var.lambda_runtime
   layers        = [aws_lambda_layer_version.common_layer.arn]
+  timeout       = local.lambdas[each.key]["timeout"]
 
   dynamic "environment" {
     for_each = each.value["env_vars"]

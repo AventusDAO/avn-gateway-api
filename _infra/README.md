@@ -1,20 +1,14 @@
 ## Infrastructure deployment
-The infrastructure can be deployed to a new environment following this process:
+The infrastructure can be deployed to a new/current environment following this process:
 
-- Go to the terraform plan job for the [avn-gateway / Sandbox] [here](https://jenkins.test.aventus.io/view/Sandbox/job/sandbox-gateway-api-plan/)
-- click `build with parameters` and select the target `vpc`. This will build the vpc first, a prerequisite for everything else.
-![gateway plan for VPC](./gateway-plan.png)
-- go to the [terraform apply job](https://jenkins.test.aventus.io/view/Sandbox/job/sandbox-gateway-api-apply/) and run the pipeline. You don't need to set any config here beyond the branch
-- go back to the [plan phase](https://jenkins.test.aventus.io/view/Sandbox/job/sandbox-gateway-api-plan/) and run the pipeline again but target `all`. This will apply everything else on top of the VPC.
-- run the apply job once more to create all other infrastructure.
-- Create a kubernetes context by running the following commands. Be sure to set the correct account id and cluster name.
-  - `aws eks --region eu-west-1 update-kubeconfig --name avn-gateway`
-  - `kubectl config set-context arn:aws:eks:eu-west-1:352429414196:cluster/avn-gateway --namespace kube-system`
-  - `kubectl config use-context arn:aws:eks:eu-west-1:352429414196:cluster/avn-gateway-api`
-- navigate to the [aws loadbalancer chart](cluster/aws-lb-controller) and run:
-  - `helm dep up`
-  - `kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"`
-  - `helm install aws-lb .`
-- navigate to the ec2 [chart](../ec2/chart) and run:
-  - `helm template . | kubectl apply -f -`
-The manual kubernetes steps are here until the pipelines have been put in place.
+Go to the avn-gateway-sandbox-infrastructure job [here](https://jenkins.test.aventus.io/view/Sandbox/job/avn-gateway-sandbox-infrastructure/). You will see a list of branches, if your branch isnt there then click on `Scan multibranch pipeline now` and it should appear.
+
+The pipeline is capable of building the entire infrastructure and deploying all relevant resources, if you click on a specific branch (usually `main`) then you can build the project by clicking `build with parameters`. This example is for the branch `SYS-1479-create-jenkinsfile`:
+![The infrastructure pipeline](./infrastructure.png)
+  1. `terraform_target`: This can target a specific terraform module. The option of `all` and `none` will run the entire terraform script or ignore it completely.
+  2. `additional_terraform_args`: Supply additional terraform commandline arguments, Eg. `-destroy` will run a destroy plan. If the infrastructure is being destroyed then subsequent kubernetes steps will be ignored.
+  3. `apply_third_party_charts`: `true` if you want to deploy the third party helm charts to kubernetes, The Third party charts include the aws-loadbalancer-controller, cert-manager, external-secrets-manager etc.
+  4. `new_environment`: `true` if you want to create a new environment. The only difference is that this step will launch the terraform plan/apply for the `vpc` module before running a plan/apply on the rest of the infrastructure. Running the VPC module before everything else if required for a new environment. You can set this to `true` for a current environment and without issue (nothing will be destroyed).
+
+The pipeline will run a terraform plan and will wait for user input to proceed. Be sure to check that the terraform plan is OK before proceeding - if it is not then you can click abort which will abort the pipeline.
+![Wait for user input](./pipeline-wait.png)

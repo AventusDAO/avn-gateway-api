@@ -16,7 +16,7 @@ pipeline {
       steps {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           generateContext("avn-gateway", "dev")
-          sh "helm template ec2/chart --set deployment.image.tag=${env.avn_connector_tag} --set service.type=LoadBalancer | kubectl apply -f -"
+          sh "helm template ec2/chart --set deployment.image.tag=${env.image_tag} --set service.type=LoadBalancer | kubectl apply -f -"
         }
       }
     }

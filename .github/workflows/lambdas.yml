@@ -1,7 +1,7 @@
 name: lambdas
 
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths:
@@ -38,7 +38,7 @@ jobs:
 
   package:
     runs-on: ubuntu-latest
-    name: package poll function
+    name: package lambda functions
     needs: [version-suffix]
     steps:
       - uses: actions/checkout@v2
@@ -56,6 +56,13 @@ jobs:
             lambdas/layer/nodejs/package-lock.json
             lambdas/package-lock.json
       
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
+          aws-region: eu-west-1
+
       - name: Package Function
         run: |
           make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.POLL }}
@@ -65,35 +72,21 @@ jobs:
           make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.TX_STATUS }}
           make package-layer version=${{ needs.version-suffix.outputs.version }} 
       
-      - uses: actions/upload-artifact@master
-        with:
-          path: lambdas/build/
-     
-  upload:
-    runs-on: ubuntu-latest
-    name: upload functions to s3
-    needs: [package]
-    steps:
-      - uses: actions/checkout@v2
-      
-      - uses: actions/download-artifact@master
-        with:
-          path: lambdas/build
-      
-      - run: |
-          cp lambdas/build/${{ env.POLL }}*.zip lambdas/build/${{ env.POLL }}-latest.zip
-          cp lambdas/build/${{ env.SEND }}*.zip lambdas/build/${{ env.SEND }}-latest.zip
-          cp lambdas/build/${{ env.QUERY }}*.zip lambdas/build/${{ env.QUERY }}-latest.zip
-          cp lambdas/build/${{ env.AUTHORISER }}*.zip lambdas/build/${{ env.AUTHORISER }}-latest.zip
-          cp lambdas/build/${{ env.TX_STATUS }}*.zip lambdas/build/${{ env.TX_STATUS }}-latest.zip
-          cp lambdas/build/${{ env.LAYER }}*.zip lambdas/build/${{ env.LAYER }}-latest.zip
-          ls -l lambdas/build
+      - name: create latest version alongside git short sha
+        run: |
+          cp build/${{ env.POLL }}/${{ env.POLL }}*.zip build/${{ env.POLL }}/${{ env.POLL }}-latest.zip
+          cp build/${{ env.SEND }}/${{ env.SEND }}*.zip build/${{ env.SEND }}/${{ env.SEND }}-latest.zip
+          cp build/${{ env.QUERY }}/${{ env.QUERY }}*.zip build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip
+          cp build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}*.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip
+          cp build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}*.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip
+          cp build/${{ env.LAYER }}/${{ env.LAYER }}*.zip build/${{ env.LAYER }}/${{ env.LAYER }}-latest.zip
+          ls -l build/
 
-      # - name: Upload to S3
-      #   uses: jakejarvis/s3-sync-action@v0.5.1
-      #   env:
-      #     AWS_S3_BUCKET: ${{ secrets.AWS_ARTIFACT_BUCKET }}
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
-      #     AWS_REGION: 'eu-west-1'
-      #     SOURCE_DIR: "lambdas/build"
+      - name: Upload to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_ARTIFACT_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
+          AWS_REGION: 'eu-west-1'
+          SOURCE_DIR: "lambdas/build"

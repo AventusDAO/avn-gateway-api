@@ -5,13 +5,17 @@ const proxyApi = require('./proxy.js')
 
 const MAX_TX_PROCESSING_TIME = 3000
 const NONCE_TYPE = { proxy: 0, payment: 1 }
+const TX_TYPE = {
+  ProxyAvtTransfer: 'proxyAvtTransfer',
+  ProxyTokenTransfer: 'proxyTokenTransfer'
+}
 
-function Send(api, queryApi, avtContractAddress, gatewayFee) {
+function Send(api, queryApi, avtContractAddress) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi)
   this.transferToken = generateFunction(transferToken, api, queryApi)
-  this.nonceMap = {}
   this.avtContractAddress = avtContractAddress
-  this.gatewayFee = gatewayFee
+  this.nonceMap = {}
+  this.feesMap = {}
 }
 
 function transferAvt(api, queryApi) {
@@ -26,7 +30,7 @@ function transferToken(api, queryApi) {
   }
 }
 
-Send.prototype.proxyTransfer = async function(api, queryApi, relayer, signer, recipient, token, amount) {
+Send.prototype.proxyTransfer = async function(api, queryApi, relayer, signer, recipient, token, amount, isRetry) {
   const proxyNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy)
   const proxyTransferSignature = proxyApi.createProxyTransferSignature(
     relayer,
@@ -38,15 +42,17 @@ Send.prototype.proxyTransfer = async function(api, queryApi, relayer, signer, re
   )
 
   const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
+  const transactionType = token === this.avtContractAddress ? TX_TYPE.ProxyAvtTransfer : TX_TYPE.ProxyTokenTransfer
+  const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
   const feePaymentSignature = proxyApi.createFeePaymentSignature(
     relayer,
     signer,
     proxyTransferSignature,
-    api.gatewayFee,
+    relayerFee,
     paymentNonce
   )
 
-  return await this.postRequest(api, 'proxy', {
+  const response = await this.postRequest(api, transactionType, {
     pallet: 'tokenManager',
     method: 'signedTransfer',
     relayer,
@@ -58,6 +64,12 @@ Send.prototype.proxyTransfer = async function(api, queryApi, relayer, signer, re
     feePaymentSignature,
     paymentNonce
   })
+
+  if (!response && !isRetry) {
+    await this.proxyTransfer(api, queryApi, relayer, signer, recipient, token, amount, true)
+  }
+
+  return response
 }
 
 function generateFunction(functionName, api, queryApi) {
@@ -101,6 +113,12 @@ Send.prototype.smartNonce = async function(queryApi, _account, nonceType) {
   }
 
   return nonce.toString()
+}
+
+Send.prototype.getRelayerFee = async function(queryApi, relayer, user, transactionType) {
+  if (!this.feesMap[relayer]) this.feesMap[relayer] = {}
+  if (!this.feesMap[relayer][user]) this.feesMap[relayer][user] = await queryApi.getRelayerFees(relayer, user)
+  return this.feesMap[relayer][user][transactionType]
 }
 
 module.exports = Send

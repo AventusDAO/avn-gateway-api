@@ -39,7 +39,7 @@ const LAMBDAS = ['poll-handler', 'query-handler', 'send-handler', 'authorisation
 async function main() {
   const target = process.argv[2]
   const lambda = process.argv[3]
-  const zip = process.argv[4] || "false"
+  const zip = process.argv[4] || 'false'
   const lambdas = lambda === 'all' ? LAMBDAS : [lambda]
 
   switch (target) {
@@ -50,8 +50,8 @@ async function main() {
           layerNodejsPath: join(__dirname, 'layer/nodejs')
         }
         await installPkgDependencies(LAYER_NAME, paths.layerNodejsPath)
-        const layer = await createLambdaLayer(LAYER_NAME, paths.layerPath, zip === "true")
-        await cleanUpOldLayerVersions(LAYER_NAME, layer.Version, zip)
+        const layer = await createLambdaLayer(LAYER_NAME, paths.layerPath, zip === 'true')
+        await cleanUpOldLayerVersions(LAYER_NAME, layer.Version, zip === 'true')
       } catch (err) {
         console.log('Updating lambda layer failed', err.message)
       }
@@ -60,7 +60,7 @@ async function main() {
       await Promise.allSettled(
         lambdas.map(lambda => {
           LAMBDAS.includes(lambda)
-            ? updateNodeModulesAndPublish(lambda, zip === "true")
+            ? updateNodeModulesAndPublish(lambda, zip === 'true')
             : console.log('Error: no such lambda %s', lambda)
         })
       )
@@ -161,9 +161,9 @@ async function publish(lambda, layers, zip) {
 
 async function publishSourceCode(lambda, zip) {
   if (zip) {
-    console.log("Zipping Lambda")
-    await zipdir(lambda, { 
-      saveTo: `./build/${lambda}.zip` 
+    console.log('Zipping Lambda')
+    await zipdir(lambda, {
+      saveTo: `./build/${lambda}.zip`
     })
   } else {
     try {
@@ -176,7 +176,7 @@ async function publishSourceCode(lambda, zip) {
     } catch (err) {
       console.log(lambda, '- Error:', err)
     }
-  }  
+  }
 }
 
 async function publishLambdaLayer(lambda, description, layers, zip) {
@@ -197,9 +197,9 @@ async function publishLambdaLayer(lambda, description, layers, zip) {
 
 async function createLambdaLayer(layerName, layerPath, zip) {
   if (zip) {
-    console.log("Zipping layer")
-    await zipdir(layerPath, { 
-      saveTo: `./build/${layerName}.zip` 
+    console.log('Zipping layer')
+    await zipdir(layerPath, {
+      saveTo: `./build/${layerName}.zip`
     })
     return {}
   } else {

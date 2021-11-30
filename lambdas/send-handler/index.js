@@ -69,27 +69,6 @@ async function processRequest(requestObject, requestId) {
 
 async function callSwitch(call, responseObject, requestId) {
   switch (call.method) {
-    case 'transferAvt':
-      if (utils.isValidAccountId(call.params[0]) && utils.isValidAmount(call.params[1])) {
-        try {
-          responseObject.result = await sendTx(
-            requestId,
-            'avnTx',
-            process.env.MQ_AVN_TX_QUEUE,
-            'balances',
-            'transfer',
-            [call.params[0], call.params[1]]
-          )
-        } catch (err) {
-          utils.logError('failed to send transaction', call.id, 'send-handler.transferAvt.sendTx', err)
-          responseObject.error = { code: -32603, message: 'Internal error' }
-        }
-      } else {
-        utils.logError('invalid params', call.id, 'send-handler.transferAvt.params', call.params)
-        responseObject.error = { code: -32602, message: 'Invalid params' }
-      }
-      break
-
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':
       const transactionType = call.method
@@ -195,17 +174,3 @@ async function callSwitch(call, responseObject, requestId) {
   }
   return responseObject
 }
-
-// async function testlocal(n) {
-//   await connectToMQ()
-//   for (var i = 0; i < n; i++) {
-//     console.info('transferAvt:', await processRequest(`{"jsonrpc": "2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":${i}}`))
-//     await sleep(1000)
-//   }
-// }
-
-// function sleep(ms) {
-//   return new Promise((resolve, reject) => setTimeout(resolve, ms) )
-// }
-
-// testlocal(1)

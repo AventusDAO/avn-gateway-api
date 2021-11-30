@@ -18,14 +18,6 @@ async function query(palletName, storageName, params) {
   return result
 }
 
-// TODO: remove this function and any references to it - Next PR
-async function tx(requestId, palletName, method, params) {
-  log.trace(`Sending extrinsic api.tx.${palletName}.${method}`)
-  // const txn = await api.tx[palletName][method](...params)
-
-  // return await signAndSend(requestId, txn)
-}
-
 async function proxy(requestId, palletName, method, params) {
   log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
   let innerCall = await api.tx[palletName][method](...params.proxyParams)

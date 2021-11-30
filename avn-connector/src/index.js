@@ -83,14 +83,14 @@ app.post('/relayerFees', async (req, res, next) => {
 })
 
 app.listen(port, () => {
-  log.info(`EC2 avn-connector listening on port ${port}`)
+  log.info(`AvN connector listening on port ${port}`)
 })
 
-async function instantiateEC2() {
+async function instantiateConnector() {
   await avn.connectToAvN()
   await redis.connect()
   await mqConsumer.connectToMQ()
   await gatewayDb.connect()
 }
 
-instantiateEC2()
+instantiateConnector()

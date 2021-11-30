@@ -27,7 +27,8 @@ async function connect() {
   let options = Object.fromEntries(config.mongo.options.split('&').map(item => item.split('=')))
   // make numbers look like numbers (without quotes)
   for (const key of Object.keys(options)) {
-    if (!isNaN(parseFloat(options[key]))) {
+    //TODO: extract this check into a utility function (maybe call it `isNumber`)
+    if (!isNaN(parseInt(options[key]))) {
       options[key] = parseInt(options[key])
     } else if (options[key] === 'true') {
       options[key] = true

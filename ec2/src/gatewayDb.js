@@ -97,23 +97,32 @@ async function collectionExists(db, collectionName) {
   return (await db.listCollections().toArray()).some(col => col.name.toLowerCase() === collectionName.toLowerCase())
 }
 
-// transactionType and senderAddress are optional
-async function getFees(relayerAddress, userAddress) {
+// userAddress and transactionType are optional
+async function getFees(relayerAddress, userAddress, transactionType) {
+  if (transactionType && !TransactionType[transactionType]) {
+    throw new Error(`Invalid transaction type ${transactionType} found. Allowed values are ${Object.values(TransactionType)}`)
+  }
+
+  const relayerFees = await getRelayerFees(relayerAddress)
+  const userFees = await getUserFeesIfAny(relayerAddress, userAddress)
+
+  const fees = { ...defaultFees, ...relayerFees, ...userFees}
+
+  return transactionType ? fees[transactionType] : fees
+}
+
+async function getRelayerFees(relayerAddress) {
   if (!relayerAddress) {
     throw new Error(`Relayer address is a mandatory field`)
   }
 
-  const feesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress }).limit(1);
+  const relayerFeesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress }).limit(1);
 
-  if (await feesCursor.hasNext()) {
-    const relayerFees =  await feesCursor.next()
-    const userFees = await getUserFeesIfAny(relayerAddress, userAddress)
-    // Apply additional filtering based on transactionType and senderAddress
-
-    return { ...defaultFees, ...relayerFees.fees, ...userFees.fees}
+  if (await relayerFeesCursor.hasNext()) {
+    return (await relayerFeesCursor.next()).fees
   }
 
-  return defaultFees
+  return undefined
 }
 
 async function getUserFeesIfAny(relayerAddress, userAddress) {
@@ -125,7 +134,7 @@ async function getUserFeesIfAny(relayerAddress, userAddress) {
   const userFeesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress, "user": userAddress }).limit(1);
 
   if (await userFeesCursor.hasNext()) {
-    return (await feesCursor.next()).fees;
+    return (await userFeesCursor.next()).fees;
   }
 
   return undefined

@@ -2,6 +2,7 @@
 const config = require('multiconfig').load()
 const avn = require('./avn')
 const redis = require('./redis')
+const gatewayDb = require('./gatewayDb')
 const mqConsumer = require('./mqConsumer')
 const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
@@ -20,9 +21,17 @@ app.use(function(err, req, res, _next) {
   res.status(500).send('Error processing request')
 })
 
+app.get('/health', async (req, res, next) => {
+  try {
+    res.send({})
+  } catch (err) {
+    next(err)
+  }
+})
+
 app.post('/avnQuery', async (req, res, next) => {
   try {
-    log.trace(`request body: ${JSON.stringify(req.body)}`)
+    log.trace(`avnQuery request body: ${JSON.stringify(req.body)}`)
     const result = await avn.query(req.body.palletName, req.body.storageName, req.body.params)
     res.send(JSON.stringify(result.toJSON()))
   } catch (err) {
@@ -32,7 +41,7 @@ app.post('/avnQuery', async (req, res, next) => {
 
 app.post('/avnPoll', async (req, res, next) => {
   try {
-    log.trace(`request body: ${JSON.stringify(req.body)}`)
+    log.trace(`avnPoll request body: ${JSON.stringify(req.body)}`)
     // the await is removed on purpose here
     txStatusPoller.resolvePendingTransactionsState()
 
@@ -55,8 +64,18 @@ app.get('/pendingTransactions', async (req, res, next) => {
 
 app.post('/resolvePendingTransactions', async (req, res, next) => {
   try {
-    log.trace(`request properties: ${Object.keys(req.body)}`)
+    log.trace(`resolvePendingTransactions request properties: ${Object.keys(req.body)}`)
     const result = await redis.resolvePendingAvnTransactions(req.body.transactions)
+    res.send(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+app.post('/relayerFees', async (req, res, next) => {
+  try {
+    log.trace(`fees request body: ${JSON.stringify(req.body)}`)
+    const result = await gatewayDb.getFees(req.body.relayer, req.body.user, req.body.transactionType)
     res.send(result)
   } catch (err) {
     next(err)
@@ -71,6 +90,7 @@ async function instantiateConnector() {
   await avn.connectToAvN()
   await redis.connect()
   await mqConsumer.connectToMQ()
+  await gatewayDb.connect()
 }
 
 instantiateConnector()

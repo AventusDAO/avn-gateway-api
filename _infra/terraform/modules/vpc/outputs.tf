@@ -25,3 +25,11 @@ output "private_subnet_ips" {
     for subnet in aws_subnet.private_subnets : subnet.cidr_block
   ])
 }
+
+output "primary_subnet" {
+  value = {
+    ip                = var.private_zone_ips["a"]
+    availability_zone = "${data.aws_region.current.name}a"
+    id                = {for subnet in aws_subnet.private_subnets : subnet.cidr_block => subnet.id}[var.private_zone_ips["a"]]
+  }
+}

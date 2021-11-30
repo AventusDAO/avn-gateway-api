@@ -52,8 +52,10 @@ pipeline {
         }
       }
       steps {
-        dir("_infra/terraform/environments/${env.environment}") {
-          terraformPlan()
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}") {
+            terraformPlan()
+          }
         }
       }
     }
@@ -69,8 +71,10 @@ pipeline {
         message "Proceed with Terraform apply"
       }
       steps {
-        dir("_infra/terraform/environments/${env.environment}") {
-          terraformApply()
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}") {
+            terraformApply()
+          }
         }
       }
     }

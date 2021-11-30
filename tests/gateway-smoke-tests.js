@@ -20,7 +20,7 @@ describe('AVN Gateway Smoke Tests', function() {
     assert(senderBalance)
   })
 
-  it('transfer AVT', async () => {
+  it('proxy AVT transfer', async () => {
     const amount = new BN('1')
     requestId = await api.send.transferAvt(relayer, sender, recipient, amount)
     await waitForTxToBeMined()

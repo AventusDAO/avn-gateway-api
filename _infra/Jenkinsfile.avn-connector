@@ -1,6 +1,6 @@
 pipeline {
   environment {
-    avn_connector_path = "ec2"
+    avn_connector_path = "avn-connector"
   }
 
   parameters {

@@ -9,10 +9,8 @@ const avn_types = require('./avnTypes')
 const redis = require('./redis')
 
 const AVN_URL = config.avnUrl
-const SENDER = config.senderSuri
-const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
 
-let api, sender
+let api
 
 async function query(palletName, storageName, params) {
   const result = await api.query[palletName][storageName](...params)
@@ -20,18 +18,19 @@ async function query(palletName, storageName, params) {
   return result
 }
 
+// TODO: remove this function and any references to it - Next PR
 async function tx(requestId, palletName, method, params) {
   log.trace(`Sending extrinsic api.tx.${palletName}.${method}`)
-  const txn = await api.tx[palletName][method](...params)
+  // const txn = await api.tx[palletName][method](...params)
 
-  return await signAndSend(requestId, txn)
+  // return await signAndSend(requestId, txn)
 }
 
 async function proxy(requestId, palletName, method, params) {
   log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
   let innerCall = await api.tx[palletName][method](...params.proxyParams)
   const txn = await api.tx.avnProxy.proxy(innerCall, params.paymentInfo)
-  return await signAndSend(requestId, txn)
+  return await signAndSend(requestId, params.relayerAddress, txn)
 }
 
 async function poll(requestId) {
@@ -70,36 +69,46 @@ async function getNonce(senderAddress) {
   return nonce
 }
 
-async function getGatewayFee() {
-  // TODO - get from redis
-  return '1000000000000000'
-}
+async function signAndSend(requestId, relayerAddress, txn) {
+  let result, nonce, relayer
 
-async function signAndSend(requestId, txn) {
-  let result, nonce
+  try {
+    log.trace(`Getting relayer account for address: ${relayerAddress}`)
+    relayer = await getRelayerAccount(relayerAddress)
+  } catch {
+    log.error(`Error getting relayer account for: ${relayerAddress}`)
+    throw
+  }
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    nonce = await getNonce(sender.address)
-    let signedTx = await txn.signAsync(sender, { nonce })
+    nonce = await getNonce(relayer.address)
+    let signedTx = await txn.signAsync(relayer, { nonce })
     let receipt = await signedTx.send()
     result = { transactionHash: receipt.toString() }
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`)
-    await redis.resetNonce(sender.address)
+    await redis.resetNonce(relayer.address)
 
     // If we failed to get a true transaction hash, use the requestId as key
     if (!result || !result.transactionHash) {
       result.transactionHash = requestId
     }
-    await redis.addFailedAvnTransaction(requestId, result.transactionHash, sender.address.toString(), nonce.toString())
+    await redis.addFailedAvnTransaction(requestId, result.transactionHash, relayer.address.toString(), nonce.toString())
 
     throw err
   }
 
-  await redis.addPendingAvnTransaction(requestId, result.transactionHash, sender.address.toString(), nonce.toString())
+  await redis.addPendingAvnTransaction(requestId, result.transactionHash, relayer.address.toString(), nonce.toString())
 
   return result
+}
+
+async function getRelayerAccount(relayerAddress) {
+  // TODO: Replace me with a call to Vault or some other secret management tool AND remove `senderSuri` from config
+  const relayerSuri = config.senderSuri
+
+  return createAccount(relayerSuri)
 }
 
 async function connectToAvN() {
@@ -112,8 +121,6 @@ async function connectToAvN() {
     typesSpec: avn_types.nodeTypes
   })
 
-  sender = createAccount(SENDER)
-
   const [chain, nodeName, nodeVersion] = await Promise.all([
     api.rpc.system.chain(),
     api.rpc.system.name(),
@@ -121,7 +128,6 @@ async function connectToAvN() {
   ])
 
   log.info(`You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`)
-  log.info(`Relayer address: ${sender.address.toString()}`)
 }
 
 function createAccount(suri) {

@@ -160,6 +160,7 @@ async function callSwitch(call, responseObject, requestId) {
         if (paymentIsAuthorised) {
           const params = {
             proxyParams: [proxyProof, signer, recipient, token, amount],
+            relayerAddress: relayer,
             paymentInfo
           }
 

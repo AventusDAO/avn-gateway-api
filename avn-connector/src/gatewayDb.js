@@ -94,31 +94,51 @@ async function createUserFeesCollectionIfRequired(db) {
   }
 }
 
-
 async function collectionExists(db, collectionName) {
   return (await db.listCollections().toArray()).some(col => col.name.toLowerCase() === collectionName.toLowerCase())
 }
 
-// transactionType and senderAddress are optional
+// userAddress and transactionType are optional
 async function getFees(relayerAddress, userAddress, transactionType) {
+  if (transactionType && !TransactionType[transactionType]) {
+    throw new Error(`Invalid transaction type ${transactionType} found. Allowed values are ${Object.values(TransactionType)}`)
+  }
+
+  const relayerFees = await getRelayerFees(relayerAddress)
+  const userFees = await getUserFeesIfAny(relayerAddress, userAddress)
+
+  const fees = { ...defaultFees, ...relayerFees, ...userFees}
+
+  return transactionType ? fees[transactionType] : fees
+}
+
+async function getRelayerFees(relayerAddress) {
   if (!relayerAddress) {
     throw new Error(`Relayer address is a mandatory field`)
   }
 
-  //*** This will be implemented in the next PR ***/
+  const relayerFeesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress }).limit(1);
 
-  // const feesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress }).limit(1);
+  if (await relayerFeesCursor.hasNext()) {
+    return (await relayerFeesCursor.next()).fees
+  }
 
-  // if (await feesCursor.hasNext()) {
-  //   const fees =  await feesCursor.next();
-  //   // Apply additional filtering based on transactionType and senderAddress
+  return undefined
+}
 
-  //   return
-  // }
+async function getUserFeesIfAny(relayerAddress, userAddress) {
+  if (!relayerAddress || !userAddress) {
+    log.trace(`Relayer address or User address is missing. RelayerAddress: ${relayerAddress}, UserAddress: ${userAddress}`)
+    return undefined
+  }
 
-  // return undefined;
+  const userFeesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress, "user": userAddress }).limit(1);
 
-  return defaultFees
+  if (await userFeesCursor.hasNext()) {
+    return (await userFeesCursor.next()).fees;
+  }
+
+  return undefined
 }
 
 module.exports = {

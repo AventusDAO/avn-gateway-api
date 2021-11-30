@@ -71,106 +71,169 @@ async function callSwitch(call, responseObject, requestId) {
   switch (call.method) {
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':
-      const transactionType = call.method
-      const pallet = call.params.pallet
-      const method = call.params.method
-      const relayer = call.params.relayer
-      const signer = call.params.signer
-      const recipient = call.params.recipient
-      const token = call.params.token
-      const amount = call.params.amount
-      const proxyTransferSignature = call.params.proxyTransferSignature
-      const feePaymentSignature = call.params.feePaymentSignature
-      const paymentNonce = call.params.paymentNonce
-
-      const validParams =
-        utils.isValidAccountId(relayer) &&
-        utils.isValidAccountId(signer) &&
-        utils.isValidAccountId(recipient) &&
-        utils.isValidTokenId(token) &&
-        utils.isValidAmount(amount) &&
-        utils.isValidNonce(paymentNonce) &&
-        utils.isValidSignatureFormat(proxyTransferSignature) &&
-        utils.isValidSignatureFormat(feePaymentSignature)
-
-      if (!validParams) {
-        utils.logError('invalid params', call.id, 'send-handler.proxyTransfer.params', call.params)
-        responseObject.error = { code: -32602, message: 'Invalid params' }
-      } else {
-        const proxyProof = {
-          signer,
-          relayer,
-          signature: {
-            Sr25519: proxyTransferSignature
-          }
-        }
-
-        let relayerFee
-
-        try {
-          const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
-            relayer,
-            user: signer,
-            transactionType
-          })
-          relayerFee = response.data[transactionType]
-        } catch (err) {
-          utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyTransfer.relayerFees', err)
-          responseObject.error = { code: -32603, message: 'Internal error' }
-        }
-
-        const paymentInfo = {
-          recipient: relayer,
-          amount: relayerFee,
-          signature: {
-            Sr25519: feePaymentSignature
-          }
-        }
-
-        const paymentIsAuthorised = utils.verifyFeePaymentSignature(
-          signer,
-          relayer,
-          relayerFee,
-          proxyProof,
-          feePaymentSignature,
-          paymentNonce
-        )
-
-        if (paymentIsAuthorised) {
-          const params = {
-            proxyParams: [proxyProof, signer, recipient, token, amount],
-            relayerAddress: relayer,
-            paymentInfo
-          }
-
-          try {
-            responseObject.result = await sendTx(
-              requestId,
-              'avnProxy',
-              process.env.MQ_AVN_TX_QUEUE,
-              pallet,
-              method,
-              params
-            )
-          } catch (err) {
-            utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyTransfer.sendProxyTx', err)
-            responseObject.error = { code: -32603, message: 'Internal error' }
-          }
-        } else {
-          utils.logError(
-            'invalid fee authorisation',
-            call.id,
-            'send-handler.proxyTransfer.verifyFeePaymentSignature',
-            feePaymentSignature
-          )
-          responseObject.error = { code: -32602, message: 'Invalid params' }
-        }
-      }
+      await processProxyTransfer(call, responseObject, requestId)
       break
-
+    case 'proxyMintSingleNft':
+      await processProxyMintSingleNft(call, responseObject, requestId)
+      break
     default:
       utils.logError('method not found', call.id, 'send-handler.callSwitch.default', method)
       responseObject.error = { code: -32601, message: 'Method not found' }
   }
   return responseObject
+}
+
+async function processProxyTransfer(call, responseObject, requestId) {
+  const transactionType = call.method
+  const pallet = call.params.pallet
+  const method = call.params.method
+  const relayer = call.params.relayer
+  const signer = call.params.signer
+  const recipient = call.params.recipient
+  const token = call.params.token
+  const amount = call.params.amount
+  const proxyTransferSignature = call.params.proxyTransferSignature
+  const feePaymentSignature = call.params.feePaymentSignature
+  const paymentNonce = call.params.paymentNonce
+
+  const validParams =
+    utils.isValidAccountId(relayer) &&
+    utils.isValidAccountId(signer) &&
+    utils.isValidAccountId(recipient) &&
+    utils.isValidEthereumAddress(token) &&
+    utils.isValidAmount(amount) &&
+    utils.isValidNonce(paymentNonce) &&
+    utils.isValidSignatureFormat(proxyTransferSignature) &&
+    utils.isValidSignatureFormat(feePaymentSignature)
+
+  if (!validParams) {
+    utils.logError('invalid params', call.id, 'send-handler.proxyTransfer.params', call.params)
+    responseObject.error = { code: -32602, message: 'Invalid params' }
+    return
+  }
+
+  const proxyProof = getProxyProof(signer, relayer, proxyTransferSignature)
+
+  let relayerFee
+  try {
+    relayerFee = await getRelayerFees(relayer, signer, transactionType)
+  } catch (err) {
+    utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyTransfer.relayerFees', err)
+    responseObject.error = { code: -32603, message: 'Internal error' }
+    return
+  }
+
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  if (paymentInfo) {
+    const params = {
+      proxyParams: [proxyProof, signer, recipient, token, amount],
+      relayerAddress: relayer,
+      paymentInfo
+    }
+
+    try {
+      responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
+    } catch (err) {
+      utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyTransfer.sendProxyTx', err)
+      responseObject.error = { code: -32603, message: 'Internal error' }
+    }
+  } else {
+    utils.logError('invalid fee authorisation', call.id, 'send-handler.proxyTransfer.verifyFeePaymentSignature', feePaymentSignature)
+    responseObject.error = { code: -32602, message: 'Invalid params' }
+  }
+}
+
+async function processProxyMintSingleNft(call, responseObject, requestId) {
+  const transactionType = call.method
+  const pallet = call.params.pallet
+  const method = call.params.method
+  const relayer = call.params.relayer
+  const signer = call.params.signer
+  const externalRef = call.params.externalRef
+  const royalties = call.params.royalties
+  const t1Authority = call.params.t1Authority
+  const proxyMintSignature = call.params.proxyMintSignature
+  const feePaymentSignature = call.params.feePaymentSignature
+  const paymentNonce = call.params.paymentNonce
+
+  const validParams =
+    utils.isValidAccountId(relayer) &&
+    utils.isValidAccountId(signer) &&
+    !utils.isNullOrEmptyString(externalRef) &&
+    utils.isValidEthereumAddress(t1Authority) &&
+    utils.isValidArray(royalties) &&
+    utils.isValidNonce(paymentNonce) &&
+    utils.isValidSignatureFormat(proxyMintSignature) &&
+    utils.isValidSignatureFormat(feePaymentSignature)
+
+  if (!validParams) {
+    utils.logError('invalid params', call.id, 'send-handler.proxyMintSingleNft.params', call.params)
+    responseObject.error = { code: -32602, message: 'Invalid params' }
+    return
+  }
+
+  const proxyProof = getProxyProof(signer, relayer, proxyMintSignature)
+
+  let relayerFee
+  try {
+    relayerFee = await getRelayerFees(relayer, signer, transactionType)
+  } catch (err) {
+    utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyMintSingleNft.relayerFees', err)
+    responseObject.error = { code: -32603, message: 'Internal error' }
+    return
+  }
+
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  if (paymentInfo) {
+    const params = {
+      proxyParams: [proxyProof, signer, externalRef, royalties, t1Authority],
+      relayerAddress: relayer,
+      paymentInfo
+    }
+
+    try {
+      responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
+    } catch (err) {
+      utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyMintSingleNft.sendProxyTx', err)
+      responseObject.error = { code: -32603, message: 'Internal error' }
+    }
+  } else {
+    utils.logError('invalid fee authorisation', call.id, 'send-handler.proxyMintSingleNft.verifyFeePaymentSignature', feePaymentSignature)
+    responseObject.error = { code: -32602, message: 'Invalid params' }
+  }
+}
+
+async function getRelayerFees(relayer, signer, transactionType) {
+  const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
+    relayer,
+    user: signer,
+    transactionType
+  })
+  return response.data[transactionType]
+}
+
+function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+  const paymentIsAuthorised = utils.verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+
+  if (!paymentIsAuthorised) {
+    return undefined
+  }
+
+  return {
+    recipient: relayer,
+    amount: relayerFee,
+    signature: {
+      Sr25519: feePaymentSignature
+    }
+  }
+}
+
+function getProxyProof(signer, relayer, proxySignature) {
+  return {
+    signer,
+    relayer,
+    signature: {
+      Sr25519: proxySignature
+    }
+  }
 }

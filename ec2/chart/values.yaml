@@ -16,15 +16,10 @@ deployment:
     maxUnavailable: 20%
   
   resources: {}
-
-ingress:
-  class: alb
-
-  domain: localhost
-
-  tls:
-    enabled: false
   
 service:
   type: ClusterIP
   port: 8080
+  
+  # Assign an eip if the service type is LoadBalancer
+  eip_allocation_id: ""

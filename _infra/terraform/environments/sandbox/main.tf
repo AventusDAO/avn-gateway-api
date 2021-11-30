@@ -1,9 +1,10 @@
 
 locals {
   name                   = "avn-gateway"
+  environment            = "sandbox"
   cluster_version        = "1.21"
   account_id             = "352429414196"
-  avn_connector_endpoint = "http://a909aee94198341598a0d104802f3ce8-616661976.eu-west-1.elb.amazonaws.com:8080/"
+  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
   block_explorer_url     = "https://avn.stargate.aventus.io:3000"
 }
 
@@ -84,6 +85,12 @@ module "vpc" {
   }
 }
 
+module "dns" {
+  source      = "../../modules/dns"
+  vpc_id      = module.vpc.vpc_id
+  environment = local.environment
+}
+
 module "rabbitmq" {
   source              = "../../modules/rabbitmq"
   vpc_id              = module.vpc.vpc_id
@@ -136,7 +143,7 @@ module "eks" {
       instance_types = ["t3.medium"]
       capacity_type  = "ON_DEMAND"
       k8s_labels = {
-        Environment = "sandbox"
+        Environment = local.environment
         GithubRepo  = "avn-gateway-api"
         GithubOrg   = "Aventus-Network-Services"
       }

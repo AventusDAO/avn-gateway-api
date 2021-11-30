@@ -4,7 +4,7 @@ locals {
   environment            = "cba"
   cluster_version        = "1.21"
   account_id             = "602004642405"
-  avn_connector_endpoint = "http://ec2-63-33-195-249.eu-west-1.compute.amazonaws.com:5000/"
+  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
 }
 
@@ -98,6 +98,12 @@ module "vpc" {
     "kubernetes.io/cluster/${local.name}" = "shared"
     "kubernetes.io/role/elb"              = "1"
   }
+}
+
+module "dns" {
+  source      = "../../modules/dns"
+  vpc_id      = module.vpc.vpc_id
+  environment = local.environment
 }
 
 module "rabbitmq" {

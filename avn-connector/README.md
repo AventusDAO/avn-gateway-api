@@ -51,3 +51,11 @@ While in DEV mode, to deploy a new version on the EC2 instance, you should:
  - Stop the containers by running `./stop` from the `docker` folder
  - Get the latest version of the code from github by running `git pull` from anywhere in the `avn-gateway-api` folder. This will pull from `main` by default
  - Start the containers by running `./start` from the `docker` folder
+
+ ## Fees
+ To insert test fees data in documentDB, from `avn-connector/src`, run:
+ ```
+  npm run insertTestFees
+ ```
+
+ This script attempts to insert a hardcoded test fees data. If this data exists already, the script will print a message and exits without changing anything.

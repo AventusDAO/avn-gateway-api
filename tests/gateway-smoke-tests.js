@@ -3,8 +3,6 @@ const helper = require('../avn-api/tests/helper')
 const accounts = helper.ACCOUNTS
 const BN = helper.BN
 
-const waitForTxToBeMined = async () => await helper.sleep(5000)
-
 describe('AVN Gateway Smoke Tests', function() {
   let api, relayer, sender, recipient
 

@@ -1,9 +1,6 @@
 pipeline {
-  environment {
-    environment = "sandbox"
-  }
-
   parameters {
+    choice(name: 'environment', choices: ['sandbox', 'cba'], description: 'Chose the environment to deploy to.')
     choice(name: 'terraform_target', choices: ['none', 'all', 'lambda_functions', 'eks', 'api-gateway', 'vpc', 'k8s_service_account_permissions', 'rabbitmq'], description: 'Apply specific terraform module targets.')
     string(name: 'additional_terraform_args', defaultValue: '', description: 'Supply additional terraform arguments, The environment can be destroyed by supplying the arg -destroy', trim: true)
     choice(name: 'apply_third_party_charts', choices: ['false', 'true'], description: 'Apply third party helm charts to kubernetes')

@@ -90,7 +90,7 @@ async function instantiateConnector() {
   await avn.connectToAvN()
   await redis.connect()
   await mqConsumer.connectToMQ()
-  await gatewayDb.connect()
+  await gatewayDb.init()
 }
 
 instantiateConnector()

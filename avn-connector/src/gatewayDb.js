@@ -16,7 +16,7 @@ const TransactionType = {
 }
 
 const defaultFees = {}
-let db
+let db, client
 
 async function connect() {
   let mongoUri = `mongodb://${config.mongo.username}:${config.mongo.password}@${config.mongo.server}`
@@ -51,11 +51,18 @@ async function connect() {
     options.sslCA = ca
   }
 
-  let client = await mongoClient.connect(mongoUri, options)
+  client = await mongoClient.connect(mongoUri, options)
 
   //Set the global variable
   db = client.db(config.mongo.database)
   log.info('Connected to DocumentDB')
+
+  return db
+}
+
+async function init() {
+  // Connect to documentDB
+  await connect()
 
   // Do other initialisations
   await createCollections(db)
@@ -79,8 +86,8 @@ async function createFeesCollectionIfRequired(db) {
 
   if (!exists) {
     log.trace(`  - Creating ${FEES_COLLECTION_NAME} db collection`)
-    const collection = db.createCollection(FEES_COLLECTION_NAME)
-    log.trace(` - Creating unique indexes`)
+    const collection = await db.createCollection(FEES_COLLECTION_NAME)
+    log.trace(`  - Creating unique indexes`)
     await collection.createIndex({ relayer: 1 }, { unique: true })
   }
 }
@@ -90,8 +97,8 @@ async function createUserFeesCollectionIfRequired(db) {
 
   if (!exists) {
     log.trace(`  - Creating ${USER_FEES_COLLECTION_NAME} db collection`)
-    const collection = db.createCollection(USER_FEES_COLLECTION_NAME)
-    log.trace(` - Creating unique indexes`)
+    const collection = await db.createCollection(USER_FEES_COLLECTION_NAME)
+    log.trace(`  - Creating unique indexes`)
     await collection.createIndex({ relayer: 1, user: 1 }, { unique: true })
   }
 }
@@ -146,5 +153,9 @@ async function getUserFeesIfAny(relayerAddress, userAddress) {
 module.exports = {
   connect,
   getFees,
-  TransactionType
+  init,
+  databaseClient: () => client,
+  TransactionType,
+  FEES_COLLECTION_NAME,
+  USER_FEES_COLLECTION_NAME
 }

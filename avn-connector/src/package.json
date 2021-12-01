@@ -8,7 +8,9 @@
     "start": "node index.js",
     "pretty": "prettier --config ../.prettierrc.json --check \"**/*.{js,json}\"",
     "pretty:fix": "prettier --config ../.prettierrc.json --write \"**/*.{js,json}\"",
-    "format": "npm run pretty:fix"
+    "format": "npm run pretty:fix",
+    "ssh": "ssh -N -L 27017:172.16.12.33:27017 ubuntu@18.135.125.46",
+    "insertTestFees": "concurrently \"npm run ssh\" \"node scripts/insertTestFees.js\" --kill-others"
   },
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.39.0",
@@ -19,10 +21,11 @@
     "express": "^4.17.1",
     "ioredis": "^4.28.0",
     "log4js": "^6.3.0",
-    "multiconfig": "^1.1.6",
-    "mongodb": "^3.6.4"
+    "mongodb": "^3.6.4",
+    "multiconfig": "^1.1.6"
   },
   "devDependencies": {
+    "concurrently": "^6.2.0",
     "prettier": "^1.19.1"
   }
 }

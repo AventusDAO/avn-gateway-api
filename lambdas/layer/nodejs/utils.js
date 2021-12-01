@@ -1,7 +1,13 @@
 const { decodeAddress, encodeAddress } = require('@polkadot/keyring')
-const { hexToU8a, isHex } = require('@polkadot/util')
+const { hexToU8a, isHex, u8aToHex, u8aConcat } = require('@polkadot/util')
+const { signatureVerify } = require('@polkadot/util-crypto')
+const { TypeRegistry } = require('@polkadot/types')
+const registry = new TypeRegistry()
 const BN = require('bn.js')
 const { validate: uuidValidate } = require('uuid')
+
+const SIGNING_CONTEXT = 'awt_gateway_api'
+const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
 
 function isValidAccountId(accountId) {
   try {
@@ -40,7 +46,41 @@ function logError(msg, callId, reference, data) {
   console.error('Error:', msg, ':User call ID:', callId, ':Error ref:', reference, ':Error data:', JSON.stringify(data))
 }
 
+function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
+  const encodedContext = registry.createType('Text', SIGNING_CONTEXT)
+  const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey))
+  const encodedIssuedAt = registry.createType('Text', issuedAt)
+  const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false))
+  return signatureVerify(u8aToHex(encodedData), signature, publicKey).isValid
+}
+
+function verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+  const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT)
+  const encodedProxyProof = encodeProxyProof(proxyProof)
+  const encodedRelayer = registry.createType('AccountId', relayer)
+  const encodedRelayerFee = registry.createType('Balance', relayerFee)
+  const encodedPaymentNonce = registry.createType('u64', paymentNonce)
+
+  const encodedData = u8aConcat(
+    encodedContext.toU8a(false),
+    encodedProxyProof,
+    encodedRelayer.toU8a(true),
+    encodedRelayerFee.toU8a(true),
+    encodedPaymentNonce.toU8a(true)
+  )
+
+  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, signer).isValid
+}
+
+function encodeProxyProof(params) {
+  const signer = registry.createType('AccountId', params.signer)
+  const relayer = registry.createType('AccountId', params.relayer)
+  const signature = registry.createType('MultiSignature', params.signature)
+  return u8aConcat(signer.toU8a(true), relayer.toU8a(true), signature.toU8a(false))
+}
+
 module.exports = {
+  BN,
   logError,
   isValidAccountId,
   isValidAmount,
@@ -48,5 +88,7 @@ module.exports = {
   isValidSignatureFormat,
   isValidTokenId,
   isValidUUID,
-  toBnString
+  toBnString,
+  verifyAwtTokenSignature,
+  verifyFeePaymentSignature
 }

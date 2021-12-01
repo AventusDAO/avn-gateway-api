@@ -1,0 +1,48 @@
+pipeline {
+  environment {
+    avn_connector_path = "avn-connector"
+  }
+
+  parameters {
+    choice(name: 'environment', choices: ['sandbox', 'cba'], description: 'Deploy to which environment?')
+    string(name: 'image_tag', defaultValue: 'latest', description: 'Docker tag of the avn-connector', trim: true)
+  }
+
+  agent any
+
+  stages {
+    stage("Deploy avn-connector") {
+      when {
+        expression {
+            return env.additional_terraform_args != '-destroy';
+        }
+      }
+      steps {
+        withAWS(roleAccount:accountId(), role:'jenkins-access') {
+          generateContext("avn-gateway", "dev")
+          sh "helm template ${env.avn_connector_path}/chart --set deployment.image.tag=${env.image_tag} --set service.type=LoadBalancer | kubectl apply -f -"
+        }
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}
+
+def generateContext(String clusterName, String namespace) {
+  def id = accountId()
+  sh "aws eks --region eu-west-1 update-kubeconfig --name ${clusterName}"
+  sh "kubectl config set-context arn:aws:eks:eu-west-1:${id}:cluster/${clusterName} --namespace ${namespace}"
+  sh "kubectl config use-context arn:aws:eks:eu-west-1:${id}:cluster/${clusterName}"
+}
+
+def accountId() {
+  def environmentMap = [
+    sandbox: "352429414196",
+    cba: "602004642405"
+  ]
+  return environmentMap[env.environment]
+}

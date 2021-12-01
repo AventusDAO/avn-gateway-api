@@ -5,6 +5,7 @@ locals {
       ])
       subnet_ids         = lookup(v, "subnet_ids", [])
       security_group_ids = lookup(v, "security_group_ids", [])
+      timeout            = lookup(v, "timeout", 3)
     } 
   }
 }
@@ -18,8 +19,10 @@ resource "aws_lambda_function" "lambda" {
   function_name = each.key
   role          = aws_iam_role.lambda_role[each.key].arn
   handler       = "index.handler"
-  description   = "${each.key} - Deployed by Terraform" 
+  description   = "${each.key} - ${var.service_version} - Deployed by Terraform" 
   runtime       = var.lambda_runtime
+  layers        = [aws_lambda_layer_version.common_layer.arn]
+  timeout       = local.lambdas[each.key]["timeout"]
 
   dynamic "environment" {
     for_each = each.value["env_vars"]
@@ -36,6 +39,14 @@ resource "aws_lambda_function" "lambda" {
       subnet_ids         = each.value["subnet_ids"]
     }
   }
+}
+
+resource "aws_lambda_layer_version" "common_layer" {
+  layer_name = "common-layer"
+  s3_bucket  = var.artifact_bucket
+  s3_key     = "common-layer/common-layer-${var.service_version}.zip"
+
+  compatible_runtimes = [var.lambda_runtime]
 }
 
 resource "aws_cloudwatch_log_group" "lambda" {

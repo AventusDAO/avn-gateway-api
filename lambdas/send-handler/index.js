@@ -140,7 +140,7 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
   const validParams =
     utils.isValidAccountId(relayer) &&
     utils.isValidAccountId(signer) &&
-    !utils.isNullOrEmptyString(externalRef) &&
+    utils.isValidString(externalRef) &&
     utils.isValidEthereumAddress(t1Authority) &&
     utils.isValidArray(royalties) &&
     utils.isValidNonce(paymentNonce) &&

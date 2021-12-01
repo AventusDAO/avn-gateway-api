@@ -109,7 +109,7 @@ async function collectionExists(db, collectionName) {
 
 // userAddress and transactionType are optional
 async function getFees(relayerAddress, userAddress, transactionType) {
-  if (transactionType && !TransactionType[transactionType]) {
+  if (transactionType && !Object.values(TransactionType).includes(transactionType)) {
     throw new Error(
       `Invalid transaction type ${transactionType} found. Allowed values are ${Object.values(TransactionType)}`
     )
@@ -149,7 +149,7 @@ async function getUserFeesIfAny(relayerAddress, userAddress) {
   }
 
   const userFeesCursor = await db
-    .collection(FEES_COLLECTION_NAME)
+    .collection(USER_FEES_COLLECTION_NAME)
     .find({ relayer: relayerAddress, user: userAddress })
     .limit(1)
 

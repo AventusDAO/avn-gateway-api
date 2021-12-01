@@ -1,5 +1,4 @@
-const axios = require('axios')
-
+const utils = require('../layer/nodejs/utils.js')
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL
 
@@ -29,7 +28,7 @@ exports.handler = async _event => {
 
 async function processRequest() {
   // Get transactions that need resolving (i.e. that are pending)
-  const pendingTransactionHashes = (await axios.get(AVN_CONNECTOR_ENDPOINT + 'pendingTransactions')).data
+  const pendingTransactionHashes = (await utils.axios.get(AVN_CONNECTOR_ENDPOINT + 'pendingTransactions')).data
 
   if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {
     console.log('No pending transactions to resolve')
@@ -39,13 +38,13 @@ async function processRequest() {
   const transactions = await getTransactionsStatusFromIndexer(pendingTransactionHashes)
 
   // resolve them in the database
-  await axios.post(AVN_CONNECTOR_ENDPOINT + 'resolvePendingTransactions', { transactions })
+  await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'resolvePendingTransactions', { transactions })
 }
 
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
     console.log(`Getting ${transactionHashes.length} transaction statuses from chain indexer`)
-    let res = await axios.post(`${BLOCK_EXPLORER_BASE_URL}/transactions/bulk`, { transactionHashes })
+    let res = await utils.axios.post(`${BLOCK_EXPLORER_BASE_URL}/transactions/bulk`, { transactionHashes })
     const response = res.data.data
 
     if (response && response.length > 0) {

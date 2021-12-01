@@ -9,9 +9,9 @@ const DEFAULT_RELAYER_ADDRESS = '5FkmpSggqkxbeebkjdX8rU9mtSqwaw4EncypuXNZXtd1Rw1
 const USER1_ADDRESS = '5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF'
 const USER2_ADDRESS = '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr'
 
-const testRelayerFees = { "relayer": DEFAULT_RELAYER_ADDRESS, fees: {} }
-const testUser1Fees = { "relayer": DEFAULT_RELAYER_ADDRESS, "user": USER1_ADDRESS, fees: {} }
-const testUser2Fees = { "relayer": DEFAULT_RELAYER_ADDRESS, "user": USER2_ADDRESS, fees: {} }
+const testRelayerFees = { relayer: DEFAULT_RELAYER_ADDRESS, fees: {} }
+const testUser1Fees = { relayer: DEFAULT_RELAYER_ADDRESS, user: USER1_ADDRESS, fees: {} }
+const testUser2Fees = { relayer: DEFAULT_RELAYER_ADDRESS, user: USER2_ADDRESS, fees: {} }
 
 async function run() {
   try {
@@ -22,7 +22,7 @@ async function run() {
     const feesCollection = await db.collection(gatewayDb.FEES_COLLECTION_NAME)
     const userFeesCollection = await db.collection(gatewayDb.USER_FEES_COLLECTION_NAME)
 
-    if (await feesCollection.findOne({relayer: DEFAULT_RELAYER_ADDRESS})) {
+    if (await feesCollection.findOne({ relayer: DEFAULT_RELAYER_ADDRESS })) {
       console.log(`\n\tIt looks like this script has already been run on this database, exiting now.\n`)
       return
     }
@@ -52,6 +52,6 @@ function populateTestFees() {
   testUser2Fees.fees[gatewayDb.TransactionType.ProxyTokenTransfer] = TEST_USER2_RELAYER_FEE
 }
 
-(async () => {
+;(async () => {
   await run()
 })()

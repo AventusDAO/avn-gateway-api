@@ -91,11 +91,11 @@ function encodeProxyTransferSignatureData(params) {
 }
 
 function encodeProxyMintSingleNftSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
-  const encodedExternalRef = common.registry.createType('Vec<u8>', params.externalRef);
-  const encodedRoyalties = common.registry.createType('Vec<Royalty>', params.royalties);
-  const encodedT1Authority = common.registry.createType('H160', params.t1Authority);
+  const encodedContext = common.registry.createType('Text', params.context)
+  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer))
+  const encodedExternalRef = common.registry.createType('Vec<u8>', params.externalRef)
+  const encodedRoyalties = common.registry.createType('Vec<Royalty>', params.royalties)
+  const encodedT1Authority = common.registry.createType('H160', params.t1Authority)
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
@@ -103,11 +103,10 @@ function encodeProxyMintSingleNftSignatureData(params) {
     encodedExternalRef.toU8a(false),
     encodedRoyalties.toU8a(false),
     encodedT1Authority.toU8a(true)
-  );
+  )
 
-  return u8aToHex(encodedData);
+  return u8aToHex(encodedData)
 }
-
 
 function encodeFeePaymentSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context)

@@ -67,9 +67,9 @@ async function signAndSend(requestId, relayerAddress, txn) {
   try {
     log.trace(`Getting relayer account for address: ${relayerAddress}`)
     relayerAccount = await getRelayerAccount(relayerAddress)
-  } catch {
-    log.error(`Error getting relayer account for: ${relayerAddress}`)
-    throw
+  } catch (err) {
+    log.error(`Error getting relayer account for ${relayerAddress}: ${err}`)
+    throw err
   }
 
   try {
@@ -86,12 +86,22 @@ async function signAndSend(requestId, relayerAddress, txn) {
     if (!result || !result.transactionHash) {
       result.transactionHash = requestId
     }
-    await redis.addFailedAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString())
+    await redis.addFailedAvnTransaction(
+      requestId,
+      result.transactionHash,
+      relayerAccount.address.toString(),
+      nonce.toString()
+    )
 
     throw err
   }
 
-  await redis.addPendingAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString())
+  await redis.addPendingAvnTransaction(
+    requestId,
+    result.transactionHash,
+    relayerAccount.address.toString(),
+    nonce.toString()
+  )
 
   return result
 }

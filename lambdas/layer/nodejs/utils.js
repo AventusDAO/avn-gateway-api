@@ -38,8 +38,8 @@ function isValidSignatureFormat(signature) {
   return isHex(signature)
 }
 
-function isNullOrEmptyString(value) {
-  return value ? value.replace(/\s/g, '').length == 0 : true
+function isValidString(value) {
+  return !(value ? value.replace(/\s/g, '').length == 0 : true)
 }
 
 function isValidArray(value) {
@@ -98,7 +98,7 @@ module.exports = {
   isValidEthereumAddress,
   isValidUUID,
   isValidArray,
-  isNullOrEmptyString,
+  isValidString,
   toBnString,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature

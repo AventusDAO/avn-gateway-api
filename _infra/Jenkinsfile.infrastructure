@@ -97,7 +97,7 @@ pipeline {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           generateContext("avn-gateway", "dev")
           sh "kubectl create ns dev || true"
-          sh "helm template ec2/chart --set service.type=LoadBalancer | kubectl apply -f -"
+          sh "helm template ec2/chart --set environment=${env.environment} --set accountId=${accountId()} | kubectl apply -f -"
         }
       }
     }

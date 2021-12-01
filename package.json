@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "smokeTests": "mocha --timeout 100000 ./tests/gateway-smoke-tests.js",
     "apiTests": "mocha --timeout 100000 ./avn-api/tests --recursive",
     "avn-connectorTests": "mocha --timeout 100000 ./avn-connector/tests --recursive",
     "lambdaTests": "mocha --timeout 60000 ./lambdas/tests --recursive",

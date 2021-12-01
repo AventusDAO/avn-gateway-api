@@ -1,5 +1,4 @@
 const utils = require('../layer/nodejs/utils.js')
-const axios = require('axios')
 const MQSender = require('./mqSender.js')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT

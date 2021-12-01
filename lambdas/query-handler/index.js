@@ -1,5 +1,4 @@
 const utils = require('../layer/nodejs/utils.js')
-const axios = require('axios')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 
@@ -18,7 +17,7 @@ const format2 = data => utils.toBnString(data.data.free)
 async function queryChain(callId, palletName, storageName, params, responseFormatter) {
   let response
   try {
-    response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })
+    response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })
   } catch (err) {
     throw err
   }
@@ -130,7 +129,11 @@ async function callSwitch(call, responseObject) {
         const relayer = call.params[0]
         const user = call.params[1]
         const transactionType = call.params[2]
-        const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
+        const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
+          relayer,
+          user,
+          transactionType
+        })
         responseObject.result = response.data
       } catch (err) {
         utils.logError('failed to call avn-connector', call.id, 'query-handler.getRelayerFees', err)

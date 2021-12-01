@@ -7,12 +7,14 @@ const MAX_TX_PROCESSING_TIME = 3000
 const NONCE_TYPE = { proxy: 0, payment: 1 }
 const TX_TYPE = {
   ProxyAvtTransfer: 'proxyAvtTransfer',
-  ProxyTokenTransfer: 'proxyTokenTransfer'
+  ProxyTokenTransfer: 'proxyTokenTransfer',
+  ProxyMintSingleNft: 'proxyMintSingleNft'
 }
 
 function Send(api, queryApi, avtContractAddress) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi)
   this.transferToken = generateFunction(transferToken, api, queryApi)
+  this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi)
   this.avtContractAddress = avtContractAddress
   this.nonceMap = {}
   this.feesMap = {}
@@ -27,6 +29,35 @@ function transferAvt(api, queryApi) {
 function transferToken(api, queryApi) {
   return async function(relayer, signer, recipient, token, amount) {
     return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, token, amount)
+  }
+}
+
+function mintSingleNft(api, queryApi) {
+  return async function(relayer, signer, externalRef, royalties, t1Authority) {
+    const proxyMintSignature = proxyApi.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)
+    const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
+    const transactionType = TX_TYPE.ProxyMintSingleNft
+    const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
+    const feePaymentSignature = proxyApi.createFeePaymentSignature(relayer, signer, proxyMintSignature, relayerFee, paymentNonce)
+
+    const response = await this.postRequest(api, transactionType, {
+      pallet: 'nftManager',
+      method: 'signedMintSingleNft',
+      relayer,
+      signer,
+      externalRef,
+      royalties,
+      t1Authority,
+      proxyMintSignature,
+      feePaymentSignature,
+      paymentNonce
+    })
+
+    if (!response && !isRetry) {
+      await this.mintSingleNft(relayer, signer, externalRef, royalties, t1Authority)
+    }
+
+    return response
   }
 }
 

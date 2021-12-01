@@ -72,7 +72,7 @@ async function callSwitch(call, responseObject) {
       }
       break
     case 'getTokenBalance':
-      if (utils.isValidAccountId(call.params[0]) && utils.isValidTokenId(call.params[1])) {
+      if (utils.isValidAccountId(call.params[0]) && utils.isValidEthereumAddress(call.params[1])) {
         try {
           responseObject.result = await queryChain(
             call.id,

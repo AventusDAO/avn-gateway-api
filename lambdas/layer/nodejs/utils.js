@@ -30,12 +30,20 @@ function isValidUUID(requestId) {
   return uuidValidate(requestId)
 }
 
-function isValidTokenId(tokenId) {
+function isValidEthereumAddress(tokenId) {
   return isHex(tokenId) && tokenId.split('').length == 42
 }
 
 function isValidSignatureFormat(signature) {
   return isHex(signature)
+}
+
+function isNullOrEmptyString(value) {
+  return value ? value.replace(/\s/g, '').length == 0 : true
+}
+
+function isValidArray(value) {
+  return Array.isArray(value)
 }
 
 function toBnString(val) {
@@ -87,8 +95,10 @@ module.exports = {
   isValidAmount,
   isValidNonce,
   isValidSignatureFormat,
-  isValidTokenId,
+  isValidEthereumAddress,
   isValidUUID,
+  isValidArray,
+  isNullOrEmptyString,
   toBnString,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature

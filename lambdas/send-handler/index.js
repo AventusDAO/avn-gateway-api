@@ -1,5 +1,4 @@
 const utils = require('../layer/nodejs/utils.js')
-const axios = require('axios')
 const MQSender = require('./mqSender.js')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
@@ -85,16 +84,18 @@ async function callSwitch(call, responseObject, requestId) {
 
 async function processProxyTransfer(call, responseObject, requestId) {
   const transactionType = call.method
-  const pallet = call.params.pallet
-  const method = call.params.method
-  const relayer = call.params.relayer
-  const signer = call.params.signer
-  const recipient = call.params.recipient
-  const token = call.params.token
-  const amount = call.params.amount
-  const proxyTransferSignature = call.params.proxyTransferSignature
-  const feePaymentSignature = call.params.feePaymentSignature
-  const paymentNonce = call.params.paymentNonce
+  const {
+    pallet,
+    method,
+    relayer,
+    signer,
+    recipient,
+    token,
+    amount,
+    proxyTransferSignature,
+    feePaymentSignature,
+    paymentNonce
+  } = call.params
 
   const validParams =
     utils.isValidAccountId(relayer) &&
@@ -138,28 +139,35 @@ async function processProxyTransfer(call, responseObject, requestId) {
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {
-    utils.logError('invalid fee authorisation', call.id, 'send-handler.proxyTransfer.verifyFeePaymentSignature', feePaymentSignature)
+    utils.logError(
+      'invalid fee authorisation',
+      call.id,
+      'send-handler.proxyTransfer.verifyFeePaymentSignature',
+      feePaymentSignature
+    )
     responseObject.error = { code: -32602, message: 'Invalid params' }
   }
 }
 
 async function processProxyMintSingleNft(call, responseObject, requestId) {
   const transactionType = call.method
-  const pallet = call.params.pallet
-  const method = call.params.method
-  const relayer = call.params.relayer
-  const signer = call.params.signer
-  const externalRef = call.params.externalRef
-  const royalties = call.params.royalties
-  const t1Authority = call.params.t1Authority
-  const proxyMintSignature = call.params.proxyMintSignature
-  const feePaymentSignature = call.params.feePaymentSignature
-  const paymentNonce = call.params.paymentNonce
+  const {
+    pallet,
+    method,
+    relayer,
+    signer,
+    externalRef,
+    royalties,
+    t1Authority,
+    proxyMintSignature,
+    feePaymentSignature,
+    paymentNonce
+  } = call.params
 
   const validParams =
     utils.isValidAccountId(relayer) &&
     utils.isValidAccountId(signer) &&
-    !utils.isNullOrEmptyString(externalRef) &&
+    utils.isValidString(externalRef) &&
     utils.isValidEthereumAddress(t1Authority) &&
     utils.isValidArray(royalties) &&
     utils.isValidNonce(paymentNonce) &&
@@ -198,7 +206,12 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {
-    utils.logError('invalid fee authorisation', call.id, 'send-handler.proxyMintSingleNft.verifyFeePaymentSignature', feePaymentSignature)
+    utils.logError(
+      'invalid fee authorisation',
+      call.id,
+      'send-handler.proxyMintSingleNft.verifyFeePaymentSignature',
+      feePaymentSignature
+    )
     responseObject.error = { code: -32602, message: 'Invalid params' }
   }
 }
@@ -213,7 +226,14 @@ async function getRelayerFees(relayer, signer, transactionType) {
 }
 
 function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const paymentIsAuthorised = utils.verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  const paymentIsAuthorised = utils.verifyFeePaymentSignature(
+    signer,
+    relayer,
+    relayerFee,
+    proxyProof,
+    feePaymentSignature,
+    paymentNonce
+  )
 
   if (!paymentIsAuthorised) {
     return undefined

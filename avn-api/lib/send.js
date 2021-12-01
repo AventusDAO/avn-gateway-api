@@ -34,11 +34,23 @@ function transferToken(api, queryApi) {
 
 function mintSingleNft(api, queryApi) {
   return async function(relayer, signer, externalRef, royalties, t1Authority) {
-    const proxyMintSignature = proxyApi.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)
+    const proxyMintSignature = proxyApi.createProxyMintSingleNftSignature(
+      relayer,
+      signer,
+      externalRef,
+      royalties,
+      t1Authority
+    )
     const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
     const transactionType = TX_TYPE.ProxyMintSingleNft
     const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
-    const feePaymentSignature = proxyApi.createFeePaymentSignature(relayer, signer, proxyMintSignature, relayerFee, paymentNonce)
+    const feePaymentSignature = proxyApi.createFeePaymentSignature(
+      relayer,
+      signer,
+      proxyMintSignature,
+      relayerFee,
+      paymentNonce
+    )
 
     const response = await this.postRequest(api, transactionType, {
       pallet: 'nftManager',

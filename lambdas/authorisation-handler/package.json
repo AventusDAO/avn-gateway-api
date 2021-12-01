@@ -1,7 +1,5 @@
 {
   "name": "authorisation-handler",
   "version": "0.1.0",
-  "dependencies": {
-    "axios": "^0.21.4"
-  }
+  "dependencies": {}
 }

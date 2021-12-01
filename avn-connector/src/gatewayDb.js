@@ -3,7 +3,7 @@ const mongoClient = require('mongodb').MongoClient
 const config = require('multiconfig').load()
 const log = require('log4js').getLogger()
 const fs = require('fs')
-const path = require("path")
+const path = require('path')
 
 const FEES_COLLECTION_NAME = 'fees'
 const USER_FEES_COLLECTION_NAME = 'userFees'
@@ -110,13 +110,15 @@ async function collectionExists(db, collectionName) {
 // userAddress and transactionType are optional
 async function getFees(relayerAddress, userAddress, transactionType) {
   if (transactionType && !TransactionType[transactionType]) {
-    throw new Error(`Invalid transaction type ${transactionType} found. Allowed values are ${Object.values(TransactionType)}`)
+    throw new Error(
+      `Invalid transaction type ${transactionType} found. Allowed values are ${Object.values(TransactionType)}`
+    )
   }
 
   const relayerFees = await getRelayerFees(relayerAddress)
   const userFees = await getUserFeesIfAny(relayerAddress, userAddress)
 
-  const fees = { ...defaultFees, ...relayerFees, ...userFees}
+  const fees = { ...defaultFees, ...relayerFees, ...userFees }
 
   return transactionType ? fees[transactionType] : fees
 }
@@ -126,7 +128,10 @@ async function getRelayerFees(relayerAddress) {
     throw new Error(`Relayer address is a mandatory field`)
   }
 
-  const relayerFeesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress }).limit(1);
+  const relayerFeesCursor = await db
+    .collection(FEES_COLLECTION_NAME)
+    .find({ relayer: relayerAddress })
+    .limit(1)
 
   if (await relayerFeesCursor.hasNext()) {
     return (await relayerFeesCursor.next()).fees
@@ -137,14 +142,19 @@ async function getRelayerFees(relayerAddress) {
 
 async function getUserFeesIfAny(relayerAddress, userAddress) {
   if (!relayerAddress || !userAddress) {
-    log.trace(`Relayer address or User address is missing. RelayerAddress: ${relayerAddress}, UserAddress: ${userAddress}`)
+    log.trace(
+      `Relayer address or User address is missing. RelayerAddress: ${relayerAddress}, UserAddress: ${userAddress}`
+    )
     return undefined
   }
 
-  const userFeesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress, "user": userAddress }).limit(1);
+  const userFeesCursor = await db
+    .collection(FEES_COLLECTION_NAME)
+    .find({ relayer: relayerAddress, user: userAddress })
+    .limit(1)
 
   if (await userFeesCursor.hasNext()) {
-    return (await userFeesCursor.next()).fees;
+    return (await userFeesCursor.next()).fees
   }
 
   return undefined

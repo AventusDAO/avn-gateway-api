@@ -62,36 +62,46 @@ async function getNonce(senderAddress) {
 }
 
 async function signAndSend(requestId, relayerAddress, txn) {
-  let result, nonce, relayer
+  let result, nonce, relayerAccount
 
   try {
     log.trace(`Getting relayer account for address: ${relayerAddress}`)
-    relayer = await getRelayerAccount(relayerAddress)
-  } catch {
-    log.error(`Error getting relayer account for: ${relayerAddress}`)
-    throw
+    relayerAccount = await getRelayerAccount(relayerAddress)
+  } catch (err) {
+    log.error(`Error getting relayer account for ${relayerAddress}: ${err}`)
+    throw err
   }
 
   try {
     log.trace(`Encoded Transaction: ${txn}`)
-    nonce = await getNonce(relayer.address)
-    let signedTx = await txn.signAsync(relayer, { nonce })
+    nonce = await getNonce(relayerAccount.address)
+    let signedTx = await txn.signAsync(relayerAccount, { nonce })
     let receipt = await signedTx.send()
     result = { transactionHash: receipt.toString() }
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`)
-    await redis.resetNonce(relayer.address)
+    await redis.resetNonce(relayerAccount.address)
 
     // If we failed to get a true transaction hash, use the requestId as key
     if (!result || !result.transactionHash) {
       result.transactionHash = requestId
     }
-    await redis.addFailedAvnTransaction(requestId, result.transactionHash, relayer.address.toString(), nonce.toString())
+    await redis.addFailedAvnTransaction(
+      requestId,
+      result.transactionHash,
+      relayerAccount.address.toString(),
+      nonce.toString()
+    )
 
     throw err
   }
 
-  await redis.addPendingAvnTransaction(requestId, result.transactionHash, relayer.address.toString(), nonce.toString())
+  await redis.addPendingAvnTransaction(
+    requestId,
+    result.transactionHash,
+    relayerAccount.address.toString(),
+    nonce.toString()
+  )
 
   return result
 }

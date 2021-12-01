@@ -6,7 +6,7 @@ const BN = helper.BN
 const waitForTxToBeMined = async () => await helper.sleep(5000)
 
 describe('AVN Gateway Smoke Tests', function() {
-  let api, relayer, sender, recipient, requestId
+  let api, relayer, sender, recipient
 
   before(async () => {
     api = await helper.avnApi()
@@ -20,14 +20,10 @@ describe('AVN Gateway Smoke Tests', function() {
     assert(senderBalance)
   })
 
-  it('proxy AVT transfer', async () => {
+  it('proxy AVT transfer and poll transaction state', async () => {
     const amount = new BN('1')
-    requestId = await api.send.transferAvt(relayer, sender, recipient, amount)
-    await waitForTxToBeMined()
-    assert(requestId)
-  })
-
-  it('poll request state', async () => {
-    assert.equal(await api.poll.requestState(requestId), 'Pending')
+    const requestId = await api.send.transferAvt(relayer, sender, recipient, amount)
+    assert(requestId, 'requestId is undefined')
+    assert(['Pending', 'Processed'].includes(await api.poll.requestState(requestId)), 'transaction state is neither Pending nor Processed')
   })
 })

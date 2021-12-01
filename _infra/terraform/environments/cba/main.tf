@@ -4,7 +4,7 @@ locals {
   environment            = "cba"
   cluster_version        = "1.21"
   account_id             = "602004642405"
-  avn_connector_endpoint = "http://ec2-63-33-195-249.eu-west-1.compute.amazonaws.com:5000/"
+  avn_connector_endpoint = "http://ab0a22b046cf24b1b93648acbcd6f881-497561177.eu-west-1.elb.amazonaws.com:8080/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
 }
 
@@ -151,7 +151,7 @@ module "eks" {
       instance_types = ["t3.medium"]
       capacity_type  = "ON_DEMAND"
       k8s_labels = {
-        Environment = "${local.environment}"
+        Environment = local.environment
         GithubRepo  = "avn-gateway-api"
         GithubOrg   = "Aventus-Network-Services"
       }
@@ -185,4 +185,11 @@ module "k8s_service_account_permissions" {
     module.eks,
     module.lambda_functions
   ]
+}
+
+module "documentdb" {
+  source = "../../modules/documentdb"
+
+  subnet_ids = module.vpc.private_subnets
+  vpc_id     = module.vpc.vpc_id
 }

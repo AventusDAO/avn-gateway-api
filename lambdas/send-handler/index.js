@@ -1,5 +1,4 @@
 const utils = require('../layer/nodejs/utils.js')
-const axios = require('axios')
 const MQSender = require('./mqSender.js')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
@@ -108,7 +107,7 @@ async function callSwitch(call, responseObject, requestId) {
         let relayerFee
 
         try {
-          const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
+          const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
             relayer,
             user: signer,
             transactionType

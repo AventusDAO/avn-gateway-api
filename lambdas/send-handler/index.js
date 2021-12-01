@@ -84,16 +84,7 @@ async function callSwitch(call, responseObject, requestId) {
 
 async function processProxyTransfer(call, responseObject, requestId) {
   const transactionType = call.method
-  const pallet = call.params.pallet
-  const method = call.params.method
-  const relayer = call.params.relayer
-  const signer = call.params.signer
-  const recipient = call.params.recipient
-  const token = call.params.token
-  const amount = call.params.amount
-  const proxyTransferSignature = call.params.proxyTransferSignature
-  const feePaymentSignature = call.params.feePaymentSignature
-  const paymentNonce = call.params.paymentNonce
+  const { pallet, method, relayer, signer, recipient, token, amount, proxyTransferSignature, feePaymentSignature, paymentNonce } = call.params
 
   const validParams =
     utils.isValidAccountId(relayer) &&
@@ -144,16 +135,7 @@ async function processProxyTransfer(call, responseObject, requestId) {
 
 async function processProxyMintSingleNft(call, responseObject, requestId) {
   const transactionType = call.method
-  const pallet = call.params.pallet
-  const method = call.params.method
-  const relayer = call.params.relayer
-  const signer = call.params.signer
-  const externalRef = call.params.externalRef
-  const royalties = call.params.royalties
-  const t1Authority = call.params.t1Authority
-  const proxyMintSignature = call.params.proxyMintSignature
-  const feePaymentSignature = call.params.feePaymentSignature
-  const paymentNonce = call.params.paymentNonce
+  const { pallet, method, relayer, signer, externalRef, royalties, t1Authority, proxyMintSignature, feePaymentSignature, paymentNonce } = call.params
 
   const validParams =
     utils.isValidAccountId(relayer) &&

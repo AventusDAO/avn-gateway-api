@@ -222,7 +222,7 @@ async function getRelayerFees(relayer, signer, transactionType) {
     user: signer,
     transactionType
   })
-  return response.data
+  return response.data.toString()
 }
 
 function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {

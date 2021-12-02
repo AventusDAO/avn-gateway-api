@@ -1,7 +1,7 @@
 'use strict'
 
 const { isHex, u8aToHex } = require('@polkadot/util')
-const { TypeRegistry } = require('@polkadot/types')
+const { TypeRegistry, createTypeUnsafe } = require('@polkadot/types')
 const { Keyring } = require('@polkadot/keyring')
 const registry = new TypeRegistry()
 const keyring = new Keyring({ type: 'sr25519' })
@@ -40,5 +40,6 @@ module.exports = {
   obtainClientSuri,
   keyring,
   registry,
-  sleep
+  sleep,
+  createTypeUnsafe
 }

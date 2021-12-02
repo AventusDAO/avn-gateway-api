@@ -3,15 +3,19 @@ output "vpc_id" {
 }
 
 output "private_subnets" {
-  value = toset([
-    for subnet in aws_subnet.private_subnets : subnet.id
-  ])
+  value = [
+    aws_subnet.private_subnets["a"].id,
+    aws_subnet.private_subnets["b"].id,
+    aws_subnet.private_subnets["c"].id
+  ]
 }
 
 output "public_subnets" {
-  value = toset([
-    for subnet in aws_subnet.public_subnets : subnet.id
-  ])
+  value = [
+    aws_subnet.public_subnets["a"].id,
+    aws_subnet.public_subnets["b"].id,
+    aws_subnet.public_subnets["c"].id
+  ]
 }
 
 output "public_subnet_ips" {

@@ -5,11 +5,7 @@ const proxyApi = require('./proxy.js')
 
 const MAX_TX_PROCESSING_TIME = 3000
 const NONCE_TYPE = { proxy: 0, payment: 1 }
-const TX_TYPE = {
-  ProxyAvtTransfer: 'proxyAvtTransfer',
-  ProxyTokenTransfer: 'proxyTokenTransfer',
-  ProxyMintSingleNft: 'proxyMintSingleNft'
-}
+const TX_TYPE = common.TX_TYPE
 
 function Send(api, queryApi, avtContractAddress) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi)
@@ -22,18 +18,21 @@ function Send(api, queryApi, avtContractAddress) {
 
 function transferAvt(api, queryApi) {
   return async function(relayer, signer, recipient, amount) {
+    common.checkInputs({ relayer, signer, recipient, amount })
     return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, this.avtContractAddress, amount)
   }
 }
 
 function transferToken(api, queryApi) {
   return async function(relayer, signer, recipient, token, amount) {
+    common.checkInputs({ relayer, signer, recipient, token, amount })
     return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, token, amount)
   }
 }
 
 function mintSingleNft(api, queryApi) {
   return async function(relayer, signer, externalRef, royalties, t1Authority) {
+    common.checkInputs({ relayer, signer, externalRef, royalties, t1Authority })
     const proxyMintSignature = proxyApi.createProxyMintSingleNftSignature(
       relayer,
       signer,

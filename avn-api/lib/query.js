@@ -19,28 +19,33 @@ function getTotalAvt(api) {
 
 function getAvtBalance(api) {
   return async function(account) {
-    common.checkInputs({ account })
+    common.validateAccountType(account)
+
     return await this.postRequest(api, 'getAvtBalance', [account])
   }
 }
 
 function getTokenBalance(api) {
   return async function(account, token) {
-    common.checkInputs({ account, token })
+    common.validateAccountType(account)
+    common.validateEthereumAddressType(token)
+
     return await this.postRequest(api, 'getTokenBalance', [account, token])
   }
 }
 
 function getAccountNonce(api) {
   return async function(account) {
-    common.checkInputs({ account })
+    common.validateAccountType(account)
+
     return await this.postRequest(api, 'getAccountNonce', [account])
   }
 }
 
 function getAccountPaymentNonce(api) {
   return async function(account) {
-    common.checkInputs({ account })
+    common.validateAccountType(account)
+
     return await this.postRequest(api, 'getAccountPaymentNonce', [account])
   }
 }
@@ -53,9 +58,10 @@ function getAvtContractAddress(api) {
 
 function getRelayerFees(api) {
   return async function(relayer, user, transactionType) {
-    common.checkInputs({ relayer })
-    if (user) common.checkInputs({ user })
-    if (transactionType) common.checkInputs({ transactionType })
+    common.validateAccountType(relayer)
+    if (user) common.validateAccountType(user)
+    if (transactionType) common.validateTransactionType(transactionType)
+
     return await this.postRequest(api, 'getRelayerFees', [relayer, user, transactionType])
   }
 }

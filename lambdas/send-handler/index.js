@@ -17,6 +17,7 @@ const connectToMQ = async () => {
 }
 
 exports.handler = async (event, context) => {
+  await utils.init()
   try {
     await connectToMQ()
     return {

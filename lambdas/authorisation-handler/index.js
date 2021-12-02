@@ -10,6 +10,7 @@ const InvalidRequestResponse = { isAuthorized: false }
 const ValidRequestResponse = { isAuthorized: true }
 
 exports.handler = async event => {
+  await utils.init()
   // encapsulate all the logic to make local testing easier
   return await validateAwtToken(event)
 }

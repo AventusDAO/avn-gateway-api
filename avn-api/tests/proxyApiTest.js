@@ -50,7 +50,7 @@ describe('Proxy api calls:', async () => {
       this.timeout(400000) //increase the timeout of this test (https://mochajs.org/#test-level)
 
       const amount = new BN(1)
-      const numTx = new BN(23)
+      const numTx = new BN(10)
 
       for (i = 0; i < numTx; i++) {
         await api.send.transferToken(relayer, sender, recipient, token, amount)

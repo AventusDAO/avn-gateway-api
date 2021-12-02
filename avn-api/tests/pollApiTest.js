@@ -1,9 +1,8 @@
 const assert = require('chai').assert
+const { v4: uuidv4 } = require('uuid')
 const helper = require('./helper.js')
 const accounts = helper.ACCOUNTS
 const BN = helper.BN
-
-const BAD_REQUEST_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
 describe('Polling api calls:', async () => {
   let api
@@ -59,8 +58,9 @@ describe('Polling api calls:', async () => {
       assert.equal(status, 'Processed')
     })
 
-    it.skip('returns an error for an invalid request ID', async () => {
-      assert.equal(await api.poll.requestState(BAD_REQUEST_ID), "Unable to access request's status")
+    it('returns an error for an unknown request ID', async () => {
+      const badRequestId = uuidv4()
+      assert.equal(await api.poll.requestState(badRequestId), 'Transaction not found')
     })
   })
 })

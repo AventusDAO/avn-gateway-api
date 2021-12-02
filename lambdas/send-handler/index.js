@@ -76,7 +76,7 @@ async function callSwitch(call, responseObject, requestId) {
       await processProxyMintSingleNft(call, responseObject, requestId)
       break
     default:
-      utils.logError('method not found', call.id, 'send-handler.callSwitch.default', method)
+      utils.logError('method not found', call.id, 'send-handler.callSwitch.default', call.method)
       responseObject.error = { code: -32601, message: 'Method not found' }
   }
   return responseObject
@@ -217,12 +217,12 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
 }
 
 async function getRelayerFees(relayer, signer, transactionType) {
-  const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
+  const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
     relayer,
     user: signer,
     transactionType
   })
-  return response.data[transactionType]
+  return response.data.toString()
 }
 
 function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {

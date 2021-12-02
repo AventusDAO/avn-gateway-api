@@ -144,7 +144,6 @@ function isTransactionHash(requestId) {
 module.exports = {
   connectToAvN,
   query,
-  tx,
   proxy,
   poll
 }

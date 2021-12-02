@@ -1,8 +1,6 @@
-def avn_connector_eip_id = 'UNKNOWN'
-
 pipeline {
   parameters {
-    choice(name: 'environment', choices: ['sandbox', 'cba'], description: 'Deploy to which environment?')
+    choice(name: 'environment', choices: ['sandbox', 'cba'], description: 'Chose the environment to deploy to.')
     choice(name: 'terraform_target', choices: ['none', 'all', 'lambda_functions', 'eks', 'api-gateway', 'vpc', 'k8s_service_account_permissions', 'rabbitmq'], description: 'Apply specific terraform module targets.')
     string(name: 'additional_terraform_args', defaultValue: '', description: 'Supply additional terraform arguments, The environment can be destroyed by supplying the arg -destroy', trim: true)
     choice(name: 'apply_third_party_charts', choices: ['false', 'true'], description: 'Apply third party helm charts to kubernetes')
@@ -118,7 +116,7 @@ pipeline {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           generateContext("avn-gateway", "dev")
           sh "kubectl create ns dev || true"
-          sh "helm template ec2/chart --set service.type=LoadBalancer --set service.eip_allocation_id=${avn_connector_eip_id} --set environment=${env.environment} | kubectl apply -f -"
+          sh "helm template ec2/chart --set environment=${env.environment} --set accountId=${accountId()} | kubectl apply -f -"
         }
       }
     }

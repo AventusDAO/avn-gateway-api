@@ -5,17 +5,17 @@ on:
     branches:
       - main
     paths:
-      - 'ec2/**'
+      - 'avn-connector/**'
   push:
     branches:
       - main
     paths:
-      - 'ec2/**'
+      - 'avn-connector/**'
 
 defaults:
   run:
     shell: bash
-    working-directory: ec2
+    working-directory: avn-connector
 
 jobs:
   connector:
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '15'
-      
+
       - uses: actions/cache@v2
         with:
           path: ~/.npm
@@ -38,7 +38,7 @@ jobs:
       - name: Create tag for PR
         if: github.ref != 'refs/heads/main'
         run: echo "DOCKER_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
-      
+
       - name: Create tag for merge
         if: github.ref == 'refs/heads/main'
         run: echo "DOCKER_TAG=${GITHUB_SHA::7},latest" >> $GITHUB_ENV
@@ -49,7 +49,7 @@ jobs:
           aws-access-key-id: ${{ secrets.TESTNET_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.TESTNET_AWS_SECRET_ACCESS_KEY }}
           aws-region: "eu-west-2"
-      
+
       - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -67,5 +67,5 @@ jobs:
           push_git_tag: true
           image_tag: ${{ env.DOCKER_TAG }}
           registry: ${{ env.ECR_REGISTRY }}
-          context: ec2/
+          context: avn-connector/
           build_extra_args: --compress=true

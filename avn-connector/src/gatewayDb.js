@@ -3,7 +3,7 @@ const mongoClient = require('mongodb').MongoClient
 const config = require('multiconfig').load()
 const log = require('log4js').getLogger()
 const fs = require('fs')
-const path = require("path")
+const path = require('path')
 
 const FEES_COLLECTION_NAME = 'fees'
 const USER_FEES_COLLECTION_NAME = 'userFees'
@@ -11,11 +11,12 @@ const DEFAULT_RELAYER_FEE = '1000000000000000' //0.001 AVT
 
 const TransactionType = {
   ProxyAvtTransfer: 'proxyAvtTransfer',
-  ProxyTokenTransfer: 'proxyTokenTransfer'
+  ProxyTokenTransfer: 'proxyTokenTransfer',
+  ProxyMintSingleNft: 'proxyMintSingleNft'
 }
 
 const defaultFees = {}
-let db
+let db, client
 
 async function connect() {
   let mongoUri = `mongodb://${config.mongo.username}:${config.mongo.password}@${config.mongo.server}`
@@ -50,11 +51,18 @@ async function connect() {
     options.sslCA = ca
   }
 
-  let client = await mongoClient.connect(mongoUri, options)
+  client = await mongoClient.connect(mongoUri, options)
 
   //Set the global variable
   db = client.db(config.mongo.database)
   log.info('Connected to DocumentDB')
+
+  return db
+}
+
+async function init() {
+  // Connect to documentDB
+  await connect()
 
   // Do other initialisations
   await createCollections(db)
@@ -64,6 +72,7 @@ async function connect() {
 function setupDefaultFees() {
   defaultFees[TransactionType.ProxyAvtTransfer] = DEFAULT_RELAYER_FEE
   defaultFees[TransactionType.ProxyTokenTransfer] = DEFAULT_RELAYER_FEE
+  defaultFees[TransactionType.ProxyMintSingleNft] = DEFAULT_RELAYER_FEE
 }
 
 async function createCollections(db) {
@@ -77,8 +86,8 @@ async function createFeesCollectionIfRequired(db) {
 
   if (!exists) {
     log.trace(`  - Creating ${FEES_COLLECTION_NAME} db collection`)
-    const collection = db.createCollection(FEES_COLLECTION_NAME)
-    log.trace(` - Creating unique indexes`)
+    const collection = await db.createCollection(FEES_COLLECTION_NAME)
+    log.trace(`  - Creating unique indexes`)
     await collection.createIndex({ relayer: 1 }, { unique: true })
   }
 }
@@ -88,41 +97,75 @@ async function createUserFeesCollectionIfRequired(db) {
 
   if (!exists) {
     log.trace(`  - Creating ${USER_FEES_COLLECTION_NAME} db collection`)
-    const collection = db.createCollection(USER_FEES_COLLECTION_NAME)
-    log.trace(` - Creating unique indexes`)
+    const collection = await db.createCollection(USER_FEES_COLLECTION_NAME)
+    log.trace(`  - Creating unique indexes`)
     await collection.createIndex({ relayer: 1, user: 1 }, { unique: true })
   }
 }
-
 
 async function collectionExists(db, collectionName) {
   return (await db.listCollections().toArray()).some(col => col.name.toLowerCase() === collectionName.toLowerCase())
 }
 
-// transactionType and senderAddress are optional
+// userAddress and transactionType are optional
 async function getFees(relayerAddress, userAddress, transactionType) {
+  if (transactionType && !TransactionType[transactionType]) {
+    throw new Error(
+      `Invalid transaction type ${transactionType} found. Allowed values are ${Object.values(TransactionType)}`
+    )
+  }
+
+  const relayerFees = await getRelayerFees(relayerAddress)
+  const userFees = await getUserFeesIfAny(relayerAddress, userAddress)
+
+  const fees = { ...defaultFees, ...relayerFees, ...userFees }
+
+  return transactionType ? fees[transactionType] : fees
+}
+
+async function getRelayerFees(relayerAddress) {
   if (!relayerAddress) {
     throw new Error(`Relayer address is a mandatory field`)
   }
 
-  //*** This will be implemented in the next PR ***/
+  const relayerFeesCursor = await db
+    .collection(FEES_COLLECTION_NAME)
+    .find({ relayer: relayerAddress })
+    .limit(1)
 
-  // const feesCursor = await db.collection(FEES_COLLECTION_NAME).find({ "relayer": relayerAddress }).limit(1);
+  if (await relayerFeesCursor.hasNext()) {
+    return (await relayerFeesCursor.next()).fees
+  }
 
-  // if (await feesCursor.hasNext()) {
-  //   const fees =  await feesCursor.next();
-  //   // Apply additional filtering based on transactionType and senderAddress
+  return undefined
+}
 
-  //   return
-  // }
+async function getUserFeesIfAny(relayerAddress, userAddress) {
+  if (!relayerAddress || !userAddress) {
+    log.trace(
+      `Relayer address or User address is missing. RelayerAddress: ${relayerAddress}, UserAddress: ${userAddress}`
+    )
+    return undefined
+  }
 
-  // return undefined;
+  const userFeesCursor = await db
+    .collection(FEES_COLLECTION_NAME)
+    .find({ relayer: relayerAddress, user: userAddress })
+    .limit(1)
 
-  return defaultFees
+  if (await userFeesCursor.hasNext()) {
+    return (await userFeesCursor.next()).fees
+  }
+
+  return undefined
 }
 
 module.exports = {
   connect,
   getFees,
-  TransactionType
+  init,
+  databaseClient: () => client,
+  TransactionType,
+  FEES_COLLECTION_NAME,
+  USER_FEES_COLLECTION_NAME
 }

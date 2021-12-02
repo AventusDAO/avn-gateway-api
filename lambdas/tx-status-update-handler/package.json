@@ -1,6 +1,4 @@
 {
   "name": "tx-status-update-handler",
-  "dependencies": {
-    "axios": "^0.21.4"
-  }
+  "dependencies": {}
 }

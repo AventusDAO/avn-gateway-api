@@ -1,0 +1,6 @@
+{
+  "name": "gateway-smoke-tests",
+  "dependencies": {
+    "chai": "^4.3.4"
+  }
+}

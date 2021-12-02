@@ -1,6 +1,6 @@
 var assert = require('chai').assert;
 
-describe('Query EC2 calls:', function() {
+describe('Query AvN connector calls:', function() {
 
   before(async () => {
     // Implement me if required

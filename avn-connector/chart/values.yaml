@@ -18,7 +18,7 @@ deployment:
   resources: {}
   
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 8080
   
   # Assign an eip if the service type is LoadBalancer

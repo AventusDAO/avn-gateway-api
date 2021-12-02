@@ -67,12 +67,15 @@ const user2Nonce = api.query.getAccountNonce('0x30ccad92fa31a27621c5fdf872c0244d
 ### Transactions
 
 ```
-// Transfer an amount of AVT from the sender account to the destination account:
-const requestId1 = await api.send.transferAvt('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', '100000000000000000000');
-const requestId2 = await api.send.transferAvt('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', 10);
+// Transfer an amount of AVT from the sender account to the destination account.
+// This operation uses a relayer account that the sender authorises to submit the transfer:
+
+const requestId1 = await api.send.transferAvt('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh', '5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr','100000000000000000000');
+
+const requestId2 = await api.send.transferAvt('0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004', '0xbcfb2baf67c7553a9fa39d3526f697dcf84165fbef074378ec8d5d68384d7749', '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', 10);
 
 // Transfer an amount of an ERC20 or ERC777 token from the sender account to the destination account.
-This operation uses a relayer account that the sender authorises to submit the transfer:
+// This operation uses a relayer account that the sender authorises to submit the transfer:
 
 const requestId1 = await api.send.transferToken('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh', '5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr', '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e', '100000000000000000000');
 
@@ -84,7 +87,7 @@ const requestId2 = await api.send.transferToken('0x9c2bfffc466eb9c1bad0d8393df93
 
 ```
 // Get the current state of a previously sent transaction:
-const requestId3 = await api.send.transferAvt('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', 100);
+const requestId3 = await api.send.transferAvt('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh', '5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr','100');
 const status = await api.poll.requestState(requestId);
 
 ```
@@ -239,7 +242,7 @@ curl https://AVN-API-URL/query \
 ### Transactions
 
 #### transferAvt
-Transfers the specified amount of AVT from the sender account to the destination account
+Transfers the specified amount of AVT from the sender account to the destination account, using a relayer account
 
 **REQUEST** \
 `POST https://AVN-API-URL/send`
@@ -249,7 +252,9 @@ Transfers the specified amount of AVT from the sender account to the destination
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the destination account
+`RELAYER ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the relayer account\
+`SENDER ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the sender account
+`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the recipient account\
 `AMOUNT` *[required]* - string integer value of the current account nonce
 
 **EXAMPLE**
@@ -259,7 +264,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"transferAvt", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'
+    -d '{"jsonrpc":"2.0", "method":"transferAvt", "params":["5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH", "5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "2"], "id":5}'
 ```
 
 **RESULT FIELDS** \
@@ -286,7 +291,7 @@ Transfers the specified amount of an ERC20 or ERC777 token, from the sender acco
 
 **REQUEST PARAMS**\
 `RELAYER ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the relayer account\
-`DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the destination account\
+`SENDER ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the sender account\
 `DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the recipient account\
 `TOKEN ADDRESS` *[required]* - hexadecimal string specifying the Ethereum address (20 bytes) of the token being transferred\
 `AMOUNT` *[required]* - string integer value of the current account nonce

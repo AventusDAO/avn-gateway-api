@@ -1,5 +1,4 @@
 const utils = require('../layer/nodejs/utils.js')
-const axios = require('axios')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 const MAX_TOKEN_AGE_MSEC = process.env.MAX_TOKEN_AGE_MSEC
@@ -45,7 +44,7 @@ async function validateAwtToken(event) {
 async function userHasAvtBalance(awtToken) {
   // query the chain for balance info
   try {
-    const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
       palletName: 'system',
       storageName: 'account',
       params: [awtToken.pk]

@@ -1,8 +1,8 @@
-const { decodeAddress, encodeAddress } = require('@polkadot/keyring')
-const { hexToU8a, isHex, u8aToHex, u8aConcat } = require('@polkadot/util')
-const { signatureVerify } = require('@polkadot/util-crypto')
+const axios = require('axios')
 const { TypeRegistry } = require('@polkadot/types')
 const registry = new TypeRegistry()
+const { hexToU8a, isHex, u8aToHex, u8aConcat } = require('@polkadot/util')
+const { decodeAddress, encodeAddress, signatureVerify } = require('@polkadot/util-crypto')
 const BN = require('bn.js')
 const { validate: uuidValidate } = require('uuid')
 
@@ -30,12 +30,20 @@ function isValidUUID(requestId) {
   return uuidValidate(requestId)
 }
 
-function isValidTokenId(tokenId) {
+function isValidEthereumAddress(tokenId) {
   return isHex(tokenId) && tokenId.split('').length == 42
 }
 
 function isValidSignatureFormat(signature) {
   return isHex(signature)
+}
+
+function isValidString(value) {
+  return !(value ? value.replace(/\s/g, '').length == 0 : true)
+}
+
+function isValidArray(value) {
+  return Array.isArray(value)
 }
 
 function toBnString(val) {
@@ -80,14 +88,17 @@ function encodeProxyProof(params) {
 }
 
 module.exports = {
+  axios,
   BN,
   logError,
   isValidAccountId,
   isValidAmount,
   isValidNonce,
   isValidSignatureFormat,
-  isValidTokenId,
+  isValidEthereumAddress,
   isValidUUID,
+  isValidArray,
+  isValidString,
   toBnString,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature

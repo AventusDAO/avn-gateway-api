@@ -4,6 +4,7 @@ const common = require('./common.js')
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
 const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation'
+const PROXY_MINT_SINGLE_NFT_CONTEXT = 'authorization for mint single nft operation'
 
 function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, proxyNonce) {
   const signerSuri = common.obtainClientSuri()
@@ -22,6 +23,24 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
   }
 
   const hexEncodedData = encodeProxyTransferSignatureData(dataToSign)
+  return signData(signerSuri, hexEncodedData)
+}
+
+function createProxyMintSingleNftSignature(_relayer, _signer, externalRef, royalties, t1Authority) {
+  const signerSuri = common.obtainClientSuri()
+  const relayer = common.convertToPublicKeyIfNeeded(_relayer)
+  const signer = common.convertToPublicKeyIfNeeded(_signer)
+
+  const dataToSign = {
+    context: PROXY_MINT_SINGLE_NFT_CONTEXT,
+    relayer,
+    signer,
+    externalRef,
+    royalties,
+    t1Authority
+  }
+
+  const hexEncodedData = encodeProxyMintSingleNftSignatureData(dataToSign)
   return signData(signerSuri, hexEncodedData)
 }
 
@@ -71,6 +90,24 @@ function encodeProxyTransferSignatureData(params) {
   return u8aToHex(encodedData)
 }
 
+function encodeProxyMintSingleNftSignatureData(params) {
+  const encodedContext = common.registry.createType('Text', params.context)
+  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer))
+  const encodedExternalRef = common.registry.createType('Vec<u8>', params.externalRef)
+  const encodedRoyalties = common.registry.createType('Vec<Royalty>', params.royalties)
+  const encodedT1Authority = common.registry.createType('H160', params.t1Authority)
+
+  const encodedData = u8aConcat(
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedExternalRef.toU8a(false),
+    encodedRoyalties.toU8a(false),
+    encodedT1Authority.toU8a(true)
+  )
+
+  return u8aToHex(encodedData)
+}
+
 function encodeFeePaymentSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context)
   const encodedProxyProof = encodeProxyProof(params.proxyProof)
@@ -104,5 +141,6 @@ function signData(signerSuri, encodedData) {
 
 module.exports = {
   createFeePaymentSignature,
-  createProxyTransferSignature
+  createProxyTransferSignature,
+  createProxyMintSingleNftSignature
 }

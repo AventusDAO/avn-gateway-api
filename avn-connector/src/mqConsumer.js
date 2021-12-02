@@ -157,7 +157,7 @@ async function trySendAvnTx(message) {
       retries++
 
       if (retries <= avnTxRetryCount) {
-        logger.trace(`sendAvnTx failed ${retries} time(s), retrying again. Error: ${err.message}`)
+        logger.warn(`sendAvnTx failed ${retries} time(s), retrying. Error: ${err.message}`)
         await new Promise(resolve => setTimeout(resolve, avnTxRetryDelay))
       } else {
         logger.error('sendAvnTx err', err.message)

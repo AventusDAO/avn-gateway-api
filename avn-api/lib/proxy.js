@@ -1,5 +1,5 @@
 'use strict'
-const { u8aToHex, u8aConcat } = require('@polkadot/util')
+const { u8aToHex, u8aConcat, hexToU8a } = require('@polkadot/util')
 const common = require('./common.js')
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
@@ -94,14 +94,14 @@ function encodeProxyMintSingleNftSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context)
   const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer))
   const encodedExternalRef = common.registry.createType('Vec<u8>', params.externalRef)
-  const encodedRoyalties = common.registry.createType('Vec<Royalty>', params.royalties)
+  const encodedRoyalties = encodeRoyalty(params.royalties)
   const encodedT1Authority = common.registry.createType('H160', params.t1Authority)
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedExternalRef.toU8a(false),
-    encodedRoyalties.toU8a(false),
+    encodedRoyalties,
     encodedT1Authority.toU8a(true)
   )
 
@@ -131,6 +131,19 @@ function encodeProxyProof(params) {
   const relayer = common.registry.createType('AccountId', params.relayer)
   const signature = common.registry.createType('MultiSignature', params.signature)
   return u8aConcat(signer.toU8a(true), relayer.toU8a(true), signature.toU8a(false))
+}
+
+// This complicated logic is required because we do not have access to a connected `api`.
+// If we did, we could have used a 1 liner: api.createType('Vec<Royalty>', royalties)
+function encodeRoyalty(royalties) {
+  const encodedRoyalties = royalties.map(r => {
+    const recipientT1Address = common.registry.createType('H160', r.recipient_t1_address)
+    const partsPerMillion = common.registry.createType('u32', r.rate.parts_per_million)
+    return u8aConcat(recipientT1Address.toU8a(true), partsPerMillion.toU8a(true))
+  })
+
+  const encodedResult = common.createTypeUnsafe(common.registry, 'Vec<(H160, u32)>', [encodedRoyalties])
+  return encodedResult.toU8a(false)
 }
 
 function signData(signerSuri, encodedData) {

@@ -194,7 +194,7 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
   const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
   if (paymentInfo) {
     const params = {
-      proxyParams: [proxyProof, signer, externalRef, royalties, t1Authority],
+      proxyParams: [proxyProof, externalRef, royalties, t1Authority],
       relayerAddress: relayer,
       paymentInfo
     }

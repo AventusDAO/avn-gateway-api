@@ -7,6 +7,18 @@ const bnEquals = helper.bnEquals
 
 const waitForTxToBeMined = async () => await helper.sleep(5000)
 
+const getConfirmation = async (api, requestId) => {
+  if (!requestId) throw new Error(`RequestId cannot be null`)
+
+  let status
+  for (i = 0; i < 10; i++) {
+    await waitForTxToBeMined()
+    status = await api.poll.requestState(requestId)
+    if (status === 'Processed') break
+  }
+  return status
+}
+
 describe('SendTx api calls:', async () => {
   let api
   let relayer, sender, recipient
@@ -48,6 +60,23 @@ describe('SendTx api calls:', async () => {
       bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)))
+    })
+  })
+
+  describe('mintSingleNft', async () => {
+    let externalRef, royalties, t1Authority
+    before(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString() // This must be unique across all mints
+      royalties = []
+      t1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e'
+    })
+
+    it('can mint single nft', async () => {
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
+      console.log("RequestID: ", requestId)
+
+      const mintOutcome = await getConfirmation(api, requestId)
+      assert.equal(mintOutcome, 'Processed')
     })
   })
 })

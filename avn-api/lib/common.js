@@ -34,14 +34,14 @@ function isAccountPK(accountString) {
   return isHex(accountString) && accountString.slice(0, 2) === '0x' && accountString.slice(2).length === 64
 }
 
-function validateAccountType(account) {
+function validateAccount(account) {
   const isValid = encodeAddress(isHex(account) ? hexToU8a(account) : decodeAddress(account))
   if (isValid === false) {
     throw new Error (`Invalid account type: ${account}`)
   }
 }
 
-function validateAmountType(amount) {
+function validateAmount(amount) {
   const amountAsString = new BN(amount).toString()
   const isValid = /^\d+$/.test(amountAsString) && new BN(amount).isZero() === false
   if (isValid === false) {
@@ -49,21 +49,21 @@ function validateAmountType(amount) {
   }
 }
 
-function validateArrayType(array) {
-  const isValid = Array.isArray(array)
-  if (isValid === false) {
-    throw new Error (`Invalid array type: ${array}`)
-  }
-}
-
-function validateEthereumAddressType(ethereumAddress) {
+function validateEthereumAddress(ethereumAddress) {
   const isValid = isHex(ethereumAddress) && ethereumAddress.split('').length == 42
   if (isValid === false) {
     throw new Error (`Invalid ethereum address type: ${ethereumAddress}`)
   }
 }
 
-function validateRequestIdType(requestId) {
+function validateIsArray(array) {
+  const isValid = Array.isArray(array)
+  if (isValid === false) {
+    throw new Error (`Invalid array type: ${array}`)
+  }
+}
+
+function validateRequestId(requestId) {
   const isValid = uuidValidate(requestId)
   if (isValid === false) {
     throw new Error (`Invalid request ID type: ${requestId}`)
@@ -103,11 +103,11 @@ module.exports = {
   registry,
   sleep,
   TX_TYPE,
-  validateAccountType,
-  validateAmountType,
-  validateArrayType,
-  validateEthereumAddressType,
-  validateRequestIdType,
+  validateAccount,
+  validateAmount,
+  validateEthereumAddress,
+  validateIsArray,
+  validateRequestId,
   validateStringIsPopulated,
   validateTransactionType
 }

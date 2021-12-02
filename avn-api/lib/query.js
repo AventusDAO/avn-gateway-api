@@ -19,7 +19,7 @@ function getTotalAvt(api) {
 
 function getAvtBalance(api) {
   return async function(account) {
-    common.validateAccountType(account)
+    common.validateAccount(account)
 
     return await this.postRequest(api, 'getAvtBalance', [account])
   }
@@ -27,8 +27,8 @@ function getAvtBalance(api) {
 
 function getTokenBalance(api) {
   return async function(account, token) {
-    common.validateAccountType(account)
-    common.validateEthereumAddressType(token)
+    common.validateAccount(account)
+    common.validateEthereumAddress(token)
 
     return await this.postRequest(api, 'getTokenBalance', [account, token])
   }
@@ -36,7 +36,7 @@ function getTokenBalance(api) {
 
 function getAccountNonce(api) {
   return async function(account) {
-    common.validateAccountType(account)
+    common.validateAccount(account)
 
     return await this.postRequest(api, 'getAccountNonce', [account])
   }
@@ -44,7 +44,7 @@ function getAccountNonce(api) {
 
 function getAccountPaymentNonce(api) {
   return async function(account) {
-    common.validateAccountType(account)
+    common.validateAccount(account)
 
     return await this.postRequest(api, 'getAccountPaymentNonce', [account])
   }
@@ -58,8 +58,8 @@ function getAvtContractAddress(api) {
 
 function getRelayerFees(api) {
   return async function(relayer, user, transactionType) {
-    common.validateAccountType(relayer)
-    if (user) common.validateAccountType(user)
+    common.validateAccount(relayer)
+    if (user) common.validateAccount(user)
     if (transactionType) common.validateTransactionType(transactionType)
 
     return await this.postRequest(api, 'getRelayerFees', [relayer, user, transactionType])

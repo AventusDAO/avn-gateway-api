@@ -7,7 +7,7 @@ function Poll(api) {
 
 function requestState(api) {
   return async function(requestId) {
-    common.validateRequestIdType(requestId)
+    common.validateRequestId(requestId)
     
     return await this.postRequest(api, 'requestState', [requestId])
   }

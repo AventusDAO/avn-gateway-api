@@ -18,10 +18,10 @@ function Send(api, queryApi, avtContractAddress) {
 
 function transferAvt(api, queryApi) {
   return async function(relayer, signer, recipient, amount) {
-    common.validateAccountType(relayer)
-    common.validateAccountType(signer)
-    common.validateAccountType(recipient)
-    common.validateAmountType(amount)
+    common.validateAccount(relayer)
+    common.validateAccount(signer)
+    common.validateAccount(recipient)
+    common.validateAmount(amount)
 
     return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, this.avtContractAddress, amount)
   }
@@ -29,11 +29,11 @@ function transferAvt(api, queryApi) {
 
 function transferToken(api, queryApi) {
   return async function(relayer, signer, recipient, token, amount) {
-    common.validateAccountType(relayer)
-    common.validateAccountType(signer)
-    common.validateAccountType(recipient)
-    common.validateEthereumAddressType(token)
-    common.validateAmountType(amount)
+    common.validateAccount(relayer)
+    common.validateAccount(signer)
+    common.validateAccount(recipient)
+    common.validateEthereumAddress(token)
+    common.validateAmount(amount)
 
     return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, token, amount)
   }
@@ -41,11 +41,11 @@ function transferToken(api, queryApi) {
 
 function mintSingleNft(api, queryApi) {
   return async function(relayer, signer, externalRef, royalties, t1Authority) {
-    common.validateAccountType(relayer)
-    common.validateAccountType(signer)
+    common.validateAccount(relayer)
+    common.validateAccount(signer)
     common.validateStringIsPopulated(externalRef)
-    common.validateArrayType(royalties)
-    common.validateEthereumAddressType(t1Authority)
+    common.validateIsArray(royalties)
+    common.validateEthereumAddress(t1Authority)
 
     const proxyMintSignature = proxyApi.createProxyMintSingleNftSignature(
       relayer,

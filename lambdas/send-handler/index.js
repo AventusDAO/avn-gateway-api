@@ -76,7 +76,7 @@ async function callSwitch(call, responseObject, requestId) {
       await processProxyMintSingleNft(call, responseObject, requestId)
       break
     default:
-      utils.logError('method not found', call.id, 'send-handler.callSwitch.default', method)
+      utils.logError('method not found', call.id, 'send-handler.callSwitch.default', call.method)
       responseObject.error = { code: -32601, message: 'Method not found' }
   }
   return responseObject
@@ -222,7 +222,7 @@ async function getRelayerFees(relayer, signer, transactionType) {
     user: signer,
     transactionType
   })
-  return response.data[transactionType]
+  return response.data
 }
 
 function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {

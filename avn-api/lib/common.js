@@ -2,7 +2,7 @@
 
 const { hexToU8a, isHex, u8aToHex } = require('@polkadot/util')
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto')
-const { TypeRegistry } = require('@polkadot/types')
+const { TypeRegistry, createTypeUnsafe } = require('@polkadot/types')
 const { Keyring } = require('@polkadot/keyring')
 const registry = new TypeRegistry()
 const keyring = new Keyring({ type: 'sr25519' })
@@ -96,6 +96,7 @@ async function sleep(ms) {
 }
 
 module.exports = {
+  createTypeUnsafe,
   convertToPublicKeyIfNeeded,
   keyring,
   obtainClientSuri,

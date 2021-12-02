@@ -7,6 +7,18 @@ const bnEquals = helper.bnEquals
 
 const waitForTxToBeMined = async () => await helper.sleep(5000)
 
+const getConfirmation = async (api, requestId) => {
+  if (!requestId) throw new Error(`RequestId cannot be null`)
+
+  let status
+  for (i = 0; i < 10; i++) {
+    await waitForTxToBeMined()
+    status = await api.poll.requestState(requestId)
+    if (status === 'Processed') break
+  }
+  return status
+}
+
 describe('SendTx api calls:', async () => {
   let api
   let relayer, sender, recipient
@@ -48,6 +60,60 @@ describe('SendTx api calls:', async () => {
       bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)))
+    })
+  })
+
+  describe('mintSingleNft', async () => {
+    let externalRef, royalties, t1Authority, royaltyRecipient1, royaltyRecipient2, royaltyRate1, royaltyRate2
+
+    before(async () => {
+      royalties = []
+      t1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e'
+      royaltyRecipient1 = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03'
+      royaltyRecipient2 = '0xE566A65705F2d8D6C1Da9063A29b6F0f1Ac1e6Da',
+      royaltyRate1 = 10000,
+      royaltyRate2 = 20000
+    })
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString() // This must be unique across all mints
+    })
+
+    it('can mint single nft', async () => {
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
+      const mintOutcome = await getConfirmation(api, requestId)
+      assert.equal(mintOutcome, 'Processed')
+    })
+
+    it('can mint single nft with a single royalty', async () => {
+      royalties = [{
+        recipient_t1_address: royaltyRecipient1,
+        rate: {
+          parts_per_million: royaltyRate1
+        }
+      }]
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
+      const mintOutcome = await getConfirmation(api, requestId)
+      assert.equal(mintOutcome, 'Processed')
+    })
+
+    it('can mint single nft with multiple royalties', async () => {
+      royalties = [{
+        recipient_t1_address: royaltyRecipient1,
+        rate: {
+          parts_per_million: royaltyRate1
+        }
+      },
+      {
+        recipient_t1_address: royaltyRecipient2,
+        rate: {
+          parts_per_million: royaltyRate2
+        }
+      }]
+
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
+      const mintOutcome = await getConfirmation(api, requestId)
+      assert.equal(mintOutcome, 'Processed')
     })
   })
 })

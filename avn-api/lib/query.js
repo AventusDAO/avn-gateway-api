@@ -61,7 +61,7 @@ Query.prototype.postRequest = async function(api, method, params) {
   const response = await api.axios().post(endpoint, { jsonrpc: '2.0', id: api.uuid(), method: method, params: params })
 
   if (!response || !response.data) {
-    throw new Error(`Invalid response received from server`)
+    throw new Error('Invalid server response')
   }
 
   if (response.data.result) {

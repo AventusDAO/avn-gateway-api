@@ -137,7 +137,7 @@ async function getRelayerFees(relayerAddress) {
     return (await relayerFeesCursor.next()).fees
   }
 
-  return undefined
+  throw new Error(`Relayer ${relayerAddress} is not registered with AvN Gateway`)
 }
 
 async function getUserFeesIfAny(relayerAddress, userAddress) {

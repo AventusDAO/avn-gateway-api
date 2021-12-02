@@ -6,6 +6,8 @@ avn-api/.eslintrc.json
 .terraform.lock.hcl
 *.zip
 *.tgz
+_infra/ansible/files/*
+_infra/ansible/*inventory*
 
 # Config file for AWS MQ
 ec2/src/config/default/mq.yaml

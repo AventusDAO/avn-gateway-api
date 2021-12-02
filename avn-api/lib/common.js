@@ -68,9 +68,11 @@ function checkInput(type, value) {
     case 'amount':
       isValid = /^\d+$/.test(new BN(value).toString()) && !new BN(value).isZero()
       break
+    default:
+      throw new Error(`Unrecognised input type: "${type}"`)
   }
 
-  if (!isValid) throw new Error(`Invalid ${type} argument: ${value}`)
+  if (!isValid) throw new Error(`Invalid ${type} value: ${value}`)
 }
 
 // TODO - allow this to handle multiple local accounts

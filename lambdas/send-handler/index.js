@@ -217,7 +217,7 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
 }
 
 async function getRelayerFees(relayer, signer, transactionType) {
-  const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
+  const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
     relayer,
     user: signer,
     transactionType

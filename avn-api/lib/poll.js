@@ -1,4 +1,5 @@
 'use strict'
+const common = require('./common.js')
 
 function Poll(api) {
   this.requestState = generateFunction(requestState, api)
@@ -6,6 +7,7 @@ function Poll(api) {
 
 function requestState(api) {
   return async function(requestId) {
+    common.checkInputs({ requestId })
     return await this.postRequest(api, 'requestState', [requestId])
   }
 }

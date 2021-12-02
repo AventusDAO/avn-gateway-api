@@ -1,10 +1,19 @@
 'use strict'
 
-const { isHex, u8aToHex } = require('@polkadot/util')
+const { hexToU8a, isHex, u8aToHex } = require('@polkadot/util')
+const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto')
 const { TypeRegistry } = require('@polkadot/types')
 const { Keyring } = require('@polkadot/keyring')
 const registry = new TypeRegistry()
 const keyring = new Keyring({ type: 'sr25519' })
+const { validate: uuidValidate } = require('uuid')
+const BN = require('bn.js')
+
+const TX_TYPE = {
+  ProxyAvtTransfer: 'proxyAvtTransfer',
+  ProxyTokenTransfer: 'proxyTokenTransfer',
+  ProxyMintSingleNft: 'proxyMintSingleNft'
+}
 
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
   if (isAccountPK(accountAddressOrPublicKey)) {
@@ -25,9 +34,52 @@ function isAccountPK(accountString) {
   return isHex(accountString) && accountString.slice(0, 2) === '0x' && accountString.slice(2).length === 64
 }
 
+function checkInputs(inputs) {
+  Object.entries(inputs).forEach(([type, value]) => checkInput(type, value))
+}
+
+function checkInput(type, value) {
+  let isValid
+
+  switch (type) {
+    case 'requestId':
+      isValid = uuidValidate(value)
+      break
+    case 'account':
+    case 'relayer':
+    case 'user':
+    case 'signer':
+    case 'recipient':
+      isValid = encodeAddress(isHex(value) ? hexToU8a(value) : decodeAddress(value))
+      break
+    case 'token':
+    case 't1Authority':
+      isValid = isHex(value) && value.split('').length == 42
+      break
+    case 'transactionType':
+      isValid = Object.values(TX_TYPE).includes(value)
+      break
+    case 'externalRef':
+      isValid = !(value ? value.replace(/\s/g, '').length == 0 : true)
+      break
+    case 'royalties':
+      isValid = Array.isArray(value)
+      break
+    case 'amount':
+      isValid = /^\d+$/.test(new BN(value).toString()) && !new BN(value).isZero()
+      break
+    default:
+      throw new Error(`Unrecognised input type: "${type}"`)
+  }
+
+  if (!isValid) throw new Error(`Invalid ${type} value: ${value}`)
+}
+
 // TODO - allow this to handle multiple local accounts
 function obtainClientSuri() {
-  return process.env.SURI
+  const suri = process.env.SURI
+  if (!suri) throw new Error('Please set SURI environment variable')
+  return suri
 }
 
 async function sleep(ms) {
@@ -35,10 +87,11 @@ async function sleep(ms) {
 }
 
 module.exports = {
-  isAccountPK,
+  checkInputs,
   convertToPublicKeyIfNeeded,
   obtainClientSuri,
   keyring,
   registry,
-  sleep
+  sleep,
+  TX_TYPE
 }

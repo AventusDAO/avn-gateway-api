@@ -87,7 +87,6 @@ app.listen(port, () => {
 })
 
 async function instantiateConnector() {
-  log.info(`**********`)
   await avn.init()
   await redis.connect()
   await mqConsumer.connectToMQ()

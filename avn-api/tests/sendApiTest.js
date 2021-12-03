@@ -70,8 +70,8 @@ describe('SendTx api calls:', async () => {
       royalties = []
       t1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e'
       royaltyRecipient1 = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03'
-      royaltyRecipient2 = '0xE566A65705F2d8D6C1Da9063A29b6F0f1Ac1e6Da',
-      royaltyRate1 = 10000,
+      royaltyRecipient2 = '0xE566A65705F2d8D6C1Da9063A29b6F0f1Ac1e6Da'
+      royaltyRate1 = 10000
       royaltyRate2 = 20000
     })
 
@@ -86,30 +86,34 @@ describe('SendTx api calls:', async () => {
     })
 
     it('can mint single nft with a single royalty', async () => {
-      royalties = [{
-        recipient_t1_address: royaltyRecipient1,
-        rate: {
-          parts_per_million: royaltyRate1
+      royalties = [
+        {
+          recipient_t1_address: royaltyRecipient1,
+          rate: {
+            parts_per_million: royaltyRate1
+          }
         }
-      }]
+      ]
       const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
       const mintOutcome = await getConfirmation(api, requestId)
       assert.equal(mintOutcome, 'Processed')
     })
 
     it('can mint single nft with multiple royalties', async () => {
-      royalties = [{
-        recipient_t1_address: royaltyRecipient1,
-        rate: {
-          parts_per_million: royaltyRate1
+      royalties = [
+        {
+          recipient_t1_address: royaltyRecipient1,
+          rate: {
+            parts_per_million: royaltyRate1
+          }
+        },
+        {
+          recipient_t1_address: royaltyRecipient2,
+          rate: {
+            parts_per_million: royaltyRate2
+          }
         }
-      },
-      {
-        recipient_t1_address: royaltyRecipient2,
-        rate: {
-          parts_per_million: royaltyRate2
-        }
-      }]
+      ]
 
       const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
       const mintOutcome = await getConfirmation(api, requestId)

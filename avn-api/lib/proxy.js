@@ -7,7 +7,6 @@ const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation'
 const PROXY_MINT_SINGLE_NFT_CONTEXT = 'authorization for mint single nft operation'
 
 function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, proxyNonce) {
-  const signerSuri = common.obtainClientSuri()
   const relayer = common.convertToPublicKeyIfNeeded(_relayer)
   const signer = common.convertToPublicKeyIfNeeded(_signer)
   const recipient = common.convertToPublicKeyIfNeeded(_recipient)
@@ -23,29 +22,27 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
   }
 
   const hexEncodedData = encodeProxyTransferSignatureData(dataToSign)
+  const signerSuri = common.obtainSignerSuri(signer)
   return signData(signerSuri, hexEncodedData)
 }
 
-function createProxyMintSingleNftSignature(_relayer, _signer, externalRef, royalties, t1Authority) {
-  const signerSuri = common.obtainClientSuri()
+function createProxyMintSingleNftSignature(_relayer, signer, externalRef, royalties, t1Authority) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer)
-  const signer = common.convertToPublicKeyIfNeeded(_signer)
 
   const dataToSign = {
     context: PROXY_MINT_SINGLE_NFT_CONTEXT,
     relayer,
-    signer,
     externalRef,
     royalties,
     t1Authority
   }
 
   const hexEncodedData = encodeProxyMintSingleNftSignatureData(dataToSign)
+  const signerSuri = common.obtainSignerSuri(signer)
   return signData(signerSuri, hexEncodedData)
 }
 
 function createFeePaymentSignature(_relayer, signer, proxySignature, relayerFee, paymentNonce) {
-  const signerSuri = common.obtainClientSuri()
   const relayer = common.convertToPublicKeyIfNeeded(_relayer)
 
   const proxyProof = {
@@ -65,6 +62,7 @@ function createFeePaymentSignature(_relayer, signer, proxySignature, relayerFee,
   }
 
   const hexEncodedData = encodeFeePaymentSignatureData(dataToSign)
+  const signerSuri = common.obtainSignerSuri(signer)
   return signData(signerSuri, hexEncodedData)
 }
 

@@ -42,7 +42,7 @@ function validateAccount(account) {
 }
 
 function validateAmount(amount) {
-  const amountAsString = new BN(amount).toString()
+  const amountAsString = amount.toString()
   const isValid = /^\d+$/.test(amountAsString) && new BN(amount).isZero() === false
   if (isValid === false) {
     throw new Error (`Invalid amount type: ${amount}`)
@@ -84,10 +84,10 @@ function validateTransactionType(transactionType) {
   }
 }
 
-// TODO - allow this to handle multiple local accounts
-function obtainClientSuri() {
-  const suri = process.env.SURI
-  if (!suri) throw new Error('Please set SURI environment variable')
+function obtainSignerSuri(_publicKey) {
+  const publicKey = convertToPublicKeyIfNeeded(_publicKey)
+  const suri = process.env[publicKey]
+  if (!suri) throw new Error(`Please set environment variable "${publicKey}" to its seed`)
   return suri
 }
 
@@ -99,7 +99,7 @@ module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
   keyring,
-  obtainClientSuri,
+  obtainSignerSuri,
   registry,
   sleep,
   TX_TYPE,

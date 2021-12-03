@@ -42,6 +42,8 @@ module.exports = function(baseURL, roleId, secretId) {
   const ROLE_ID = roleId
   const SECRET_ID = secretId
 
+console.log(`this.baseURL: ${this.baseURL}, ROLE_ID: ${ROLE_ID}, SECRET_ID: ${SECRET_ID}`)
+
   this.createNewRelayer = async function(relayerAddress) {
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
     const userUrl = this.baseURL + 'avn-vault/user/' + relayerAddress

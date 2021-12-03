@@ -117,6 +117,8 @@ async function init() {
   await connectToAvN()
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id)
 
+  console.log(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id)
+
   //Remove me
   let publicKey = await vault.createNewRelayer('Nahu');
   log.info(`\n*** New relayer (Nahu) created: ${publicKey}`)

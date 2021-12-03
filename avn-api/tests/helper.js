@@ -14,7 +14,7 @@ const ACCOUNTS = {
   },
   sender: {
     mnemonic: 'cabbage bone maid dentist sniff load shaft portion flavor gym shine debris',
-    seed: '0x079306effc5d804326b4740ef12da0d126a993d31eaff519ac6d183a4a4e652a', // process.env.SURI
+    seed: '0x079306effc5d804326b4740ef12da0d126a993d31eaff519ac6d183a4a4e652a',
     address: '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr',
     publicKey: '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e'
   },

@@ -9,6 +9,8 @@ function Query(api) {
   this.getAccountPaymentNonce = generateFunction(getAccountPaymentNonce, api)
   this.getAvtContractAddress = generateFunction(getAvtContractAddress, api)
   this.getRelayerFees = generateFunction(getRelayerFees, api)
+  this.getNftNonce = generateFunction(getNftNonce, api)
+  this.getNftId = generateFunction(getNftId, api)
 }
 
 function getTotalAvt(api) {

@@ -86,8 +86,8 @@ function validateTransactionType(transactionType) {
 
 function obtainSignerSuri(_publicKey) {
   const publicKey = convertToPublicKeyIfNeeded(_publicKey)
-  const suri = process.env[publicKey]
-  if (!suri) throw new Error(`Please set environment variable "${publicKey}" to its seed`)
+  const suri = process.env['_' + publicKey]
+  if (!suri) throw new Error(`Please set environment variable "_${publicKey}" to its seed`)
   return suri
 }
 

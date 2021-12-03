@@ -1,0 +1,6 @@
+{
+  "gateway": "https://xtu17iggv4.execute-api.eu-west-1.amazonaws.com",
+  "token" : "0x81f8e50c0d69aaf39925aff8c975f77e7444c8f2",
+  "avt_supply" : "5100000000000000000000",
+  "gateway_fee_in_avt": "1000000000000000"
+}

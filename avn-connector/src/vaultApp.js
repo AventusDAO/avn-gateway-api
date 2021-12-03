@@ -33,7 +33,7 @@ async function get(url, token) {
 
 async function appLogin(baseURL, roleId, secretId) {
   const url = baseURL + 'auth/approle/login'
-  const data = { roleId: roleId, secretId: secretId }
+  const data = { role_id: roleId, secret_id: secretId }
   return await post(url, data)
 }
 

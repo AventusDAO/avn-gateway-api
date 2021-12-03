@@ -1,10 +1,7 @@
 const AvnApi = require('../index.js')
 const assert = require('chai').assert
 const BN = require('bn.js')
-const TOKEN = '0x81f8e50c0d69aaf39925aff8c975f77e7444c8f2'
-const AVT_SUPPLY = '5100000000000000000000'
-const GATEWAY_FEE_IN_AVT = '1000000000000000'
-const { gateway, accounts } = require('../config/avn.json')
+const { gateway, accounts, token, avt_supply, gateway_fee_in_avt } = require('../config/avn.json')
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -23,11 +20,11 @@ function bnEquals(a, b) {
 // keep alphabetical
 module.exports = {
   ACCOUNTS: accounts,
-  AVT_SUPPLY,
+  AVT_SUPPLY: avt_supply,
   avnApi,
   BN,
   bnEquals,
-  GATEWAY_FEE_IN_AVT,
+  GATEWAY_FEE_IN_AVT: gateway_fee_in_avt,
   sleep,
-  TOKEN
+  TOKEN: token
 }

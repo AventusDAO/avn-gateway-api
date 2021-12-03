@@ -1,6 +1,7 @@
 {
   "name": "gateway-smoke-tests",
   "dependencies": {
+    "bn.js": "^5.2.0",
     "chai": "^4.3.4"
   }
 }

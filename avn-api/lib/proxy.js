@@ -38,7 +38,7 @@ function createProxyMintSingleNftSignature(_relayer, signer, externalRef, royalt
     t1Authority
   }
 
-  const hexEncodedData = encodeProxyMintSingleNftignatureData(dataToSign)
+  const hexEncodedData = encodeProxyMintSingleNftSignatureData(dataToSign)
   const signerSuri = common.obtainSignerSuri(signer)
   return signData(signerSuri, hexEncodedData)
 }
@@ -105,7 +105,7 @@ function encodeProxyTransferSignatureData(params) {
   return u8aToHex(encodedData)
 }
 
-function encodeProxyMintSingleNftignatureData(params) {
+function encodeProxyMintSingleNftSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context)
   const encodedRelayer = common.registry.createType('AccountId', params.relayer)
   const encodedExternalRef = common.registry.createType('Vec<u8>', params.externalRef)

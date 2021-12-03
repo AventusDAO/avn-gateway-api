@@ -111,6 +111,7 @@ module.exports = {
   init,
   isValidAccountId,
   isValidAmount,
+  isValidMarket,
   isValidNftId,
   isValidNonce,
   isValidSignatureFormat,

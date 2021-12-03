@@ -50,6 +50,22 @@ function getAccountPaymentNonce(api) {
   }
 }
 
+function getNftNonce(api) {
+  return async function(nftId) {
+    common.validateNftId(nftId)
+
+    return await this.postRequest(api, 'getNftNonce', [nftId])
+  }
+}
+
+function getNftId(api) {
+  return async function(externalRef) {
+    common.validateStringIsPopulated(externalRef)
+
+    return await this.postRequest(api, 'getNftId', [externalRef])
+  }
+}
+
 function getAvtContractAddress(api) {
   return async function() {
     return await this.postRequest(api, 'getAvtContractAddress', [])

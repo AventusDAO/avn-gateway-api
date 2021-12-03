@@ -11,6 +11,7 @@ function Send(api, queryApi, avtContractAddress) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi)
   this.transferToken = generateFunction(transferToken, api, queryApi)
   this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi)
+  this.listNftOpenForSale = generateFunction(listNftOpenForSale, api, queryApi)
   this.avtContractAddress = avtContractAddress
   this.nonceMap = {}
   this.feesMap = {}
@@ -36,6 +37,54 @@ function transferToken(api, queryApi) {
     common.validateAmount(amount)
 
     return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, token, amount)
+  }
+}
+
+function listNftOpenForSale(api, queryApi) {
+  return async function(relayer, signer, nftId, _market) {
+    common.validateAccount(relayer)
+    common.validateAccount(signer)
+    common.validateNftId(nftId)
+    const market = common.validateMarketAndReturnEnum(_market)
+
+    const nftNonce = parseInt(await queryApi.getNftNonce(nftId)) + 1
+
+    const proxyListNftOpenForSaleSignature = proxyApi.createProxyListNftOpenForSaleSignature(
+      relayer,
+      signer,
+      nftId,
+      market,
+      nftNonce
+    )
+
+    const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
+    const transactionType = TX_TYPE.ProxyListNftOpenForSale
+    const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
+    const feePaymentSignature = proxyApi.createFeePaymentSignature(
+      relayer,
+      signer,
+      proxyListNftOpenForSaleSignature,
+      relayerFee,
+      paymentNonce
+    )
+
+    const response = await this.postRequest(api, transactionType, {
+      pallet: 'nftManager',
+      method: 'signedListNftOpenForSale',
+      relayer,
+      signer,
+      nftId,
+      market,
+      proxyListNftOpenForSaleSignature,
+      feePaymentSignature,
+      paymentNonce
+    })
+
+    if (!response && !isRetry) {
+      await this.listNftOpenForSale(relayer, signer, externalRef, royalties, t1Authority)
+    }
+
+    return response
   }
 }
 

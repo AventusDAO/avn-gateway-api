@@ -13,6 +13,8 @@ exports.handler = async event => {
 // response formatters
 const format1 = data => utils.toBnString(data)
 const format2 = data => utils.toBnString(data.data.free)
+const format3 = data => utils.toBnString(data.nonce)
+const format4 = data => utils.toBnString(data.nft_id)
 
 async function queryChain(callId, palletName, storageName, params, responseFormatter) {
   let response
@@ -100,6 +102,32 @@ async function callSwitch(call, responseObject) {
         }
       } else {
         utils.logError('invalid account ID', call.id, 'query-handler.getAccountNonce.params', call.params[0])
+        responseObject.error = { code: -32602, message: 'Invalid params' }
+      }
+      break
+    case 'getNftNonce':
+      if (utils.isValidNftId(call.params[0])) {
+        try {
+          responseObject.result = await queryChain(call.id, 'nftManager', 'nfts', [call.params[0]], format3)
+        } catch (err) {
+          utils.logError('failed to query chain', call.id, 'query-handler.getNftNonce.queryChain', err)
+          responseObject.error = { code: -32603, message: 'Internal error' }
+        }
+      } else {
+        utils.logError('invalid nft ID', call.id, 'query-handler.getNftNonce.params', call.params[0])
+        responseObject.error = { code: -32602, message: 'Invalid params' }
+      }
+      break
+    case 'getNftId':
+      if (utils.isValidString(call.params[0])) {
+        try {
+          responseObject.result = await queryChain(call.id, 'nftManager', 'nfts', [call.params[0]], format4)
+        } catch (err) {
+          utils.logError('failed to query chain', call.id, 'query-handler.getNftId.queryChain', err)
+          responseObject.error = { code: -32603, message: 'Internal error' }
+        }
+      } else {
+        utils.logError('invalid external ref', call.id, 'query-handler.getNftId.params', call.params[0])
         responseObject.error = { code: -32602, message: 'Invalid params' }
       }
       break

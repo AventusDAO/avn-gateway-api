@@ -12,7 +12,13 @@ const BN = require('bn.js')
 const TX_TYPE = {
   ProxyAvtTransfer: 'proxyAvtTransfer',
   ProxyTokenTransfer: 'proxyTokenTransfer',
-  ProxyMintSingleNft: 'proxyMintSingleNft'
+  ProxyMintSingleNft: 'proxyMintSingleNft',
+  ProxyListNftOpenForSale: 'proxyListNftOpenForSale'
+}
+
+const MARKET = {
+  Ethereum: '0x01',
+  Fiat: '0x02'
 }
 
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
@@ -37,7 +43,7 @@ function isAccountPK(accountString) {
 function validateAccount(account) {
   const isValid = encodeAddress(isHex(account) ? hexToU8a(account) : decodeAddress(account))
   if (isValid === false) {
-    throw new Error (`Invalid account type: ${account}`)
+    throw new Error(`Invalid account type: ${account}`)
   }
 }
 
@@ -45,42 +51,58 @@ function validateAmount(amount) {
   const amountAsString = amount.toString()
   const isValid = /^\d+$/.test(amountAsString) && new BN(amount).isZero() === false
   if (isValid === false) {
-    throw new Error (`Invalid amount type: ${amount}`)
+    throw new Error(`Invalid amount type: ${amount}`)
   }
 }
 
 function validateEthereumAddress(ethereumAddress) {
   const isValid = isHex(ethereumAddress) && ethereumAddress.split('').length == 42
   if (isValid === false) {
-    throw new Error (`Invalid ethereum address type: ${ethereumAddress}`)
+    throw new Error(`Invalid ethereum address type: ${ethereumAddress}`)
   }
 }
 
 function validateIsArray(array) {
   const isValid = Array.isArray(array)
   if (isValid === false) {
-    throw new Error (`Invalid array type: ${array}`)
+    throw new Error(`Invalid array type: ${array}`)
+  }
+}
+
+function validateMarketAndReturnEnum(market) {
+  const isValid = Object.keys(MARKET).includes(market)
+  if (isValid === false) {
+    throw new Error(`Invalid market type: ${market}`)
+  }
+  return MARKET[market]
+}
+
+function validateNftId(nftId) {
+  const nftIdAsString = nftId.toString()
+  const isValid = /^\d+$/.test(nftIdAsString) && new BN(nftId).isZero() === false
+  if (isValid === false) {
+    throw new Error(`Invalid nft ID type: ${nftId}`)
   }
 }
 
 function validateRequestId(requestId) {
   const isValid = uuidValidate(requestId)
   if (isValid === false) {
-    throw new Error (`Invalid request ID type: ${requestId}`)
+    throw new Error(`Invalid request ID type: ${requestId}`)
   }
 }
 
 function validateStringIsPopulated(string) {
   const isValid = !(string ? string.replace(/\s/g, '').length == 0 : true)
   if (isValid === false) {
-    throw new Error (`String is not populated: ${string}`)
+    throw new Error(`String is not populated: ${string}`)
   }
 }
 
 function validateTransactionType(transactionType) {
   const isValid = Object.values(TX_TYPE).includes(transactionType)
   if (isValid === false) {
-    throw new Error (`Invalid transaction type: ${transactionType}`)
+    throw new Error(`Invalid transaction type: ${transactionType}`)
   }
 }
 
@@ -107,6 +129,8 @@ module.exports = {
   validateAmount,
   validateEthereumAddress,
   validateIsArray,
+  validateMarketAndReturnEnum,
+  validateNftId,
   validateRequestId,
   validateStringIsPopulated,
   validateTransactionType

@@ -122,7 +122,7 @@ async function init() {
   //Remove me
   let publicKey = await vault.createNewRelayer('Nahu');
   log.info(`\n*** New relayer (Nahu) created: ${publicKey}`)
-  log.info(`\n*** Relayer (Nahu) seed: ${await vault.getUserSeed('Nahu')}`)
+  log.info(`\n*** Relayer (Nahu) seed: ${await vault.getRelayerSeed('Nahu')}`)
 }
 
 async function connectToAvN() {

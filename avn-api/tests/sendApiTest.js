@@ -128,10 +128,9 @@ describe('SendTx api calls:', async () => {
 
     beforeEach(async () => {
       externalRef = 'avn-gateway-test-' + new Date().toISOString()
-      console.log(externalRef)
       const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
       const mintOutcome = await getConfirmation(api, requestId)
-      nftId = api.query.getNftId(externalRef)
+      nftId = await api.query.getNftId(externalRef)
     })
 
     it('can list an NFT as open for sale', async () => {

@@ -75,10 +75,10 @@ function checkInput(type, value) {
   if (!isValid) throw new Error(`Invalid ${type} value: ${value}`)
 }
 
-// TODO - allow this to handle multiple local accounts
-function obtainClientSuri() {
-  const suri = process.env.SURI
-  if (!suri) throw new Error('Please set SURI environment variable')
+function obtainSignerSuri(_publicKey) {
+  const publicKey = convertToPublicKeyIfNeeded(_publicKey)
+  const suri = process.env[publicKey]
+  if (!suri) throw new Error(`Please set environment variable "${publicKey}" to its seed`)
   return suri
 }
 
@@ -89,7 +89,7 @@ async function sleep(ms) {
 module.exports = {
   checkInputs,
   convertToPublicKeyIfNeeded,
-  obtainClientSuri,
+  obtainSignerSuri,
   keyring,
   registry,
   sleep,

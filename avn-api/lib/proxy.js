@@ -105,24 +105,6 @@ function encodeProxyTransferSignatureData(params) {
   return u8aToHex(encodedData)
 }
 
-function encodeProxyListNftOpenForSaleSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context)
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer)
-  const encodedNftId = common.registry.createType('U256', params.nftId)
-  const encodedMarket = common.registry.createType('u8', params.market)
-  const encodedNftNonce = common.registry.createType('u64', params.nftNonce)
-
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedNftId.toU8a(true),
-    encodedMarket.toU8a(false),
-    encodedNftNonce.toU8a(true)
-  )
-
-  return u8aToHex(encodedData)
-}
-
 function encodeProxyMintSingleNftOpenForSaleSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context)
   const encodedRelayer = common.registry.createType('AccountId', params.relayer)
@@ -136,6 +118,24 @@ function encodeProxyMintSingleNftOpenForSaleSignatureData(params) {
     encodedExternalRef.toU8a(false),
     encodedRoyalties,
     encodedT1Authority.toU8a(true)
+  )
+
+  return u8aToHex(encodedData)
+}
+
+function encodeProxyListNftOpenForSaleSignatureData(params) {
+  const encodedContext = common.registry.createType('Text', params.context)
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer)
+  const encodedNftId = common.registry.createType('U256', params.nftId)
+  const encodedMarket = common.registry.createType('u8', params.market)
+  const encodedNftNonce = common.registry.createType('u64', params.nftNonce)
+
+  const encodedData = u8aConcat(
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedNftId.toU8a(true),
+    encodedMarket.toU8a(false),
+    encodedNftNonce.toU8a(true)
   )
 
   return u8aToHex(encodedData)

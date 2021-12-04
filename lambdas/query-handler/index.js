@@ -169,7 +169,7 @@ async function callSwitch(call, responseObject) {
       }
       break
     default:
-      utils.logError('method not found', call.id, 'query-handler.callSwitch.default', method)
+      utils.logError('method not found', call.id, 'query-handler.callSwitch.default', call.method)
       responseObject.error = { code: -32601, message: 'Method not found' }
   }
   return responseObject

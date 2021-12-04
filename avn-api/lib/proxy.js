@@ -55,7 +55,7 @@ function createProxyListNftOpenForSaleSignature(_relayer, signer, nftId, market,
   }
 
   const hexEncodedData = encodeProxyListNftOpenForSaleSignatureData(dataToSign)
-  const signerSuri = common.obtainClientSuri(signer)
+  const signerSuri = common.obtainSignerSuri(signer)
   return signData(signerSuri, hexEncodedData)
 }
 

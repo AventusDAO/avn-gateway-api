@@ -22,10 +22,10 @@ async function run() {
     const feesCollection = await db.collection(gatewayDb.FEES_COLLECTION_NAME)
     const userFeesCollection = await db.collection(gatewayDb.USER_FEES_COLLECTION_NAME)
 
-    if (await feesCollection.findOne({ relayer: DEFAULT_RELAYER_ADDRESS })) {
-      console.log(`\n\tIt looks like this script has already been run on this database, exiting now.\n`)
-      return
-    }
+    // if (await feesCollection.findOne({ relayer: DEFAULT_RELAYER_ADDRESS })) {
+    //   console.log(`\n\tIt looks like this script has already been run on this database, exiting now.\n`)
+    //   return
+    // }
 
     populateTestFees()
 
@@ -53,6 +53,4 @@ function populateTestFees() {
   testUser2Fees.fees[gatewayDb.TransactionType.ProxyTokenTransfer] = TEST_USER2_RELAYER_FEE
 }
 
-;(async () => {
-  await run()
-})()
+;(async () => await run())()

@@ -1,9 +1,9 @@
 
 locals {
   name                   = "avn-gateway"
-  environment            = "cba"
+  environment            = "testnet"
   cluster_version        = "1.21"
-  account_id             = "602004642405"
+  account_id             = "189013141504"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
 }
@@ -68,21 +68,18 @@ module "api_gateway" {
 
 module "vpc" {
   source                   = "../../modules/vpc"
-  avn_vpc_id               = "vpc-074c6e19e26ba4a23"
-  peer_public_route_table  = "rtb-0a0b61707b33e0a75"
-  peer_private_route_table = "rtb-00b575bea946b34bc"
-  vpc_cidr_block           = "172.17.0.0/20"
+  vpc_cidr_block           = "172.18.0.0/18"
 
   private_zone_ips = {
-    "a": "172.17.0.0/22",
-    "b": "172.17.4.0/22",
-    "c": "172.17.8.0/22"
+    "a": "172.18.0.0/20",
+    "b": "172.18.16.0/20",
+    "c": "172.18.32.0/20"
   }
 
   public_zone_ips = {
-    "a": "172.17.12.0/24",
-    "b": "172.17.13.0/24",
-    "c": "172.17.14.0/24"
+    "a": "172.18.48.0/28",
+    "b": "172.18.49.0/28",
+    "c": "172.18.50.0/28"
   }
 
   private_subnet_additional_tags = {
@@ -97,14 +94,13 @@ module "vpc" {
 }
 
 module "dns" {
-  source             = "../../modules/dns"
-  vpc_id             = module.vpc.vpc_id
-  environment        = local.environment
-  rabbit_address     = module.rabbitmq.broker_address
-  documentdb_address = module.documentdb.address
-  api_gateway_url    = module.api_gateway.url
-  api_gateway_id     = module.api_gateway.api_id
-  api_gateway_stage  = module.api_gateway.stage_id
+  source          = "../../modules/dns"
+  vpc_id          = module.vpc.vpc_id
+  environment     = local.environment
+  rabbit_address  = module.rabbitmq.broker_address
+  api_gateway_url = module.api_gateway.url
+  api_gateway_id  = module.api_gateway.api_id
+  api_gateway_stage = module.api_gateway.stage_id
 
   providers = {
     aws         = aws
@@ -115,7 +111,7 @@ module "dns" {
 module "rabbitmq" {
   source          = "../../modules/rabbitmq"
   vpc_id          = module.vpc.vpc_id
-  subnet_ids      = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
+  subnet_ids      = module.vpc.private_subnets
   deployment_mode = "CLUSTER_MULTI_AZ"
   depends_on = [
     module.vpc
@@ -175,7 +171,7 @@ module "eks" {
 
   map_roles = [
     {
-      rolearn  = "arn:aws:iam::${local.account_id}:role/AWSReservedSSO_AdministratorAccess_d1d8f8e0733b5134"
+      rolearn  = "arn:aws:iam::${local.account_id}:role/AWSReservedSSO_AdministratorAccess_0ca933a60f79db9c"
       username = "adminuser:{{SessionName}}"
       groups   = ["system:masters"]
     },

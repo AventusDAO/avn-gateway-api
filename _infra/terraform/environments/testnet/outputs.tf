@@ -3,5 +3,5 @@ output "avn_connector_ips" {
 }
 
 output "main_subnet" {
-  value = join(",", module.vpc.private_subnets)
+  value = module.vpc.private_subnets[0]
 }

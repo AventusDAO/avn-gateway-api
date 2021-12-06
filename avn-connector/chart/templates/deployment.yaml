@@ -35,5 +35,27 @@ spec:
           env:
             - name: NODE_ENV
               value: docker
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: password
+            - name: DOCUMENT_DB_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: server
+            - name: MONGO_SERVER
+              value: $(DOCUMENT_DB_ADDRESS):27017/?ssl=true
+            - name: MQ_BROKER_AMQP_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: rabbit-credentials
+                  key: server
           resources:
             {{- toYaml .Values.deployment.resources | nindent 12 }}

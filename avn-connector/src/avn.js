@@ -116,19 +116,6 @@ async function getRelayerAccount(relayerAddress) {
 async function init() {
   await connectToAvN()
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id)
-
-  //DELETE ME
-  const seed = '0xa2b0200f9666b743402289ca4f7e79c9a4a52ce129365578521b0b75396bd242'
-  console.log(`Seed: ${seed}`)
-  const pk = await vault.setNewRelayer('Thanos', seed)
-  console.log(`Relayer public key: ${pk}`)
-  console.log(`Relayer seed: ${await vault.getRelayerSeed('Thanos')}`)
-
-  const pk2 = await vault.createNewRelayer('Glyn')
-  console.log(`Relayer2 public key: ${pk2}`)
-  console.log(`Relayer2 seed: ${await vault.getRelayerSeed('Glyn')}`)
-
-
 }
 
 async function connectToAvN() {

@@ -30,7 +30,7 @@ resource "local_file" "avn-gateway-vault-instance-file" {
 [vault-sandbox]
 ${module.avn-vault-sandbox.instance_ip_addr} ansible_user=ubuntu
 EOD
-    filename = "${path.module}/../../../ansible/vault.inventory"
+    filename = "${path.module}/vault.inventory"
 }
 
 # TODO Create the Vault certificate using AWS in the dns module.

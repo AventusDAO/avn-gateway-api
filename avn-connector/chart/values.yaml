@@ -16,15 +16,10 @@ deployment:
     maxUnavailable: 20%
   
   resources: {}
-
-ingress:
-  class: alb
-
-  domain: localhost
-
-  tls:
-    enabled: false
   
 service:
   type: LoadBalancer
   port: 8080
+  
+  privateIps: ""
+  subnetIds: ""

@@ -81,7 +81,7 @@ function listNftOpenForSale(api, queryApi) {
     })
 
     if (!response && !isRetry) {
-      await this.listNftOpenForSale(relayer, signer, externalRef, royalties, t1Authority)
+      await this.listNftOpenForSale(relayer, signer, nftId, market)
     }
 
     return response

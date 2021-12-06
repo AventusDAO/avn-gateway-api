@@ -42,29 +42,29 @@ module.exports = function(baseURL, roleId, secretId) {
   const ROLE_ID = roleId
   const SECRET_ID = secretId
 
-  this.createNewRelayer = async function(relayerAddress) {
+  this.createNewRelayer = async function(userName) {
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
-    const userUrl = this.baseURL + 'avn-vault/user/' + relayerAddress
+    const userUrl = this.baseURL + 'avn-vault/user/' + userName
     const res = await get(userUrl, token)
     if (res === '') {
-      return (await post(userUrl, { name: relayerAddress }, token)).publicKey
+      return (await post(userUrl, { name: userName }, token)).publicKey
     } else return res.publicKey
   }
 
-  this.setNewRelayer = async function(_username, _seed) {
+  this.setNewRelayer = async function(userName, _seed) {
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
-    const userUrl = this.baseURL + 'avn-vault/user/set/' + _username
+    const userUrl = this.baseURL + 'avn-vault/user/set/' + userName
     const res = await get(userUrl, token)
     if (res === '') {
-      data = {name: _username, seed: _seed}
+      data = {name: userName, seed: _seed}
       return (await post(userUrl , data, token)).publicKey
     } else
       return res.publicKey
   }
 
-  this.getRelayerSeed = async function(relayerAddress) {
+  this.getRelayerSeed = async function(userName) {
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
-    const url = this.baseURL + 'avn-vault/user/' + relayerAddress
+    const url = this.baseURL + 'avn-vault/user/' + userName
     return (await get(url, token)).seed
   }
 }

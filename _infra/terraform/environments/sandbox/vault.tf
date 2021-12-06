@@ -61,16 +61,13 @@ resource "aws_security_group" "avn-gw-bastion-sg" {
 }
 
 # Avn-Vault Instance
-
 resource "aws_instance" "avn-gw-bastion" {
-  ami                    = "ami-00399ec92321828f5"
+  ami                    = "ami-08edbb0e85d6a0a07"
   instance_type          = "t3a.tiny"
   key_name               = aws_key_pair.vault-ssh-key.key_name
   monitoring             = true
-  # iam_instance_profile = aws_iam_instance_profile.avn-vault-iam-profile.name
   vpc_security_group_ids = [aws_security_group.avn-gw-bastion-sg.id]
   subnet_id              = module.vpc.primary_public_subnet.id
-
 
   root_block_device {
     volume_size = "15"

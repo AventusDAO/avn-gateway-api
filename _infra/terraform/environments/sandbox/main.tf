@@ -6,6 +6,7 @@ locals {
   account_id             = "352429414196"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
   block_explorer_url     = "https://avn.stargate.aventus.io:3000"
+  vpc_cidr_block         = "172.16.0.0/20"
 }
 
 module "lambda_functions" {
@@ -71,6 +72,7 @@ module "vpc" {
   avn_vpc_id               = "vpc-074c6e19e26ba4a23"
   peer_public_route_table  = "rtb-0a0b61707b33e0a75"
   peer_private_route_table = "rtb-00b575bea946b34bc"
+  vpc_cidr_block           = local.vpc_cidr_block
 
   private_subnet_additional_tags = {
     "kubernetes.io/cluster/${local.name}" = "shared"

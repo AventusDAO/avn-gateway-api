@@ -13,7 +13,14 @@ const AVN_URL = config.avnUrl
 let api
 
 async function query(palletName, storageName, params) {
-  const result = await api.query[palletName][storageName](...params)
+  let result
+
+  if (params === 'entries') {
+    result = await api.query[palletName][storageName].entries()
+  } else {
+    result = await api.query[palletName][storageName](...params)
+  }
+
   log.trace(`Encoded query response: ${result}`)
   return result
 }

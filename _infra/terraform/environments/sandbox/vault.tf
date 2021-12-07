@@ -21,7 +21,7 @@ module "avn-vault-sandbox" {
   availability_zone = module.vpc.primary_private_subnet.availability_zone
   aws-route53-zone = module.dns.public_zone_id
   avn_vault_instance_type = "t3a.medium"
-  tls_cert_subdomain = "sandbox.vault.avn-gateway"
+  tls_cert_subdomain = "vault"
   dynamodb_table_name= "avn-gw-vault-sandbox-db"
 }
 

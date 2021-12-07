@@ -25,3 +25,12 @@ provider "aws" {
     role_arn = "arn:aws:iam::352429414196:role/jenkins-access"
   }
 }
+
+provider "aws" {
+  alias  = "aventus"
+  region = var.region
+
+  assume_role {
+    role_arn = "arn:aws:iam::707061609910:role/jenkins-access"
+  }
+}

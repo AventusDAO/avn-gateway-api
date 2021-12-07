@@ -76,7 +76,7 @@ resource "aws_instance" "avn-gw-bastion" {
   }
 
   tags = {
-    Name = "bastion-sg"
+    Name = "bastion"
     Project = "AvN-Gateway"
   }
 }

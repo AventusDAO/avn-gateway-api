@@ -16,7 +16,8 @@ async function query(palletName, storageName, params) {
   let result
 
   if (params === 'entries') {
-    result = JSON.stringify(await api.query[palletName][storageName].entries())
+    result = await api.query[palletName][storageName].entries()
+    result = JSON.stringify(result)
   } else {
     result = await api.query[palletName][storageName](...params)
   }

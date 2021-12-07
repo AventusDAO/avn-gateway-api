@@ -63,7 +63,7 @@ resource "aws_security_group" "avn-gw-bastion-sg" {
 # Avn-Vault Instance
 resource "aws_instance" "avn-gw-bastion" {
   ami                    = "ami-08edbb0e85d6a0a07"
-  instance_type          = "t3a.tiny"
+  instance_type          = "t3a.micro"
   key_name               = aws_key_pair.vault-ssh-key.key_name
   monitoring             = true
   vpc_security_group_ids = [aws_security_group.avn-gw-bastion-sg.id]

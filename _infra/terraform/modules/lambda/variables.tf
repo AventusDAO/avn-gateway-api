@@ -36,3 +36,18 @@ variable "rabbit_secret_arn" {
   type        = string
   description = "ARN of the rabbit user/password secret"
 }
+
+variable "subnet_ids" {
+  type        = list(string)
+  description = "Subnet IDs to deploy the lambda functions"
+  default     = []
+}
+
+variable "avn_connector_endpoint" {
+  type        = string
+  description = "Endpoint of the avn-connector service. Must have a trailing slash."
+}
+
+variable "vpc_id" {
+  type = string
+}

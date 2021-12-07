@@ -1,11 +1,8 @@
 locals {
   lambdas = { for k, v in var.lambda_functions : k => {
-      env_vars           = flatten([
-        lookup(v, "env_vars", []), 
-      ])
-      subnet_ids         = lookup(v, "subnet_ids", [])
-      security_group_ids = lookup(v, "security_group_ids", [])
-      timeout            = lookup(v, "timeout", 3)
+      env_vars    = [lookup(v, "env_vars", {})]
+      timeout     = lookup(v, "timeout", 3)
+      memory_size = lookup(v, "memory_size", 128)
     } 
   }
 }
@@ -23,20 +20,21 @@ resource "aws_lambda_function" "lambda" {
   runtime       = var.lambda_runtime
   layers        = [aws_lambda_layer_version.common_layer.arn]
   timeout       = local.lambdas[each.key]["timeout"]
+  memory_size   = local.lambdas[each.key]["memory_size"]
 
   dynamic "environment" {
     for_each = each.value["env_vars"]
     content {
-      variables = environment.value
+      variables = merge(environment.value, {AVN_CONNECTOR_ENDPOINT = var.avn_connector_endpoint})
     }
   }
 
   dynamic "vpc_config" {
-    for_each = length(each.value["subnet_ids"]) > 0 ? [each.key] : []
+    for_each = length(var.subnet_ids) > 0 ? ["subnets"] : []
 
     content {
-      security_group_ids = each.value["security_group_ids"]
-      subnet_ids         = each.value["subnet_ids"]
+      security_group_ids = [aws_security_group.lambdas.id]
+      subnet_ids         = var.subnet_ids
     }
   }
 }
@@ -160,8 +158,10 @@ resource "aws_iam_role_policy_attachment" "rabbit_secret_access" {
   policy_arn = aws_iam_policy.lambda_logging.arn
 }
 
-resource "aws_iam_role_policy_attachment" "send_handler_network" {
-  role       = aws_iam_role.lambda_role["send-handler"].name
+resource "aws_iam_role_policy_attachment" "network" {
+  for_each   = {for idx, val in aws_iam_role.lambda_role: idx => val}
+
+  role       = each.value.name
   policy_arn = aws_iam_policy.lambda_network.arn
 }
 
@@ -171,4 +171,21 @@ resource "aws_lambda_permission" "allow_api" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda[each.key].function_name
   principal     = "apigateway.amazonaws.com"
+}
+
+resource "aws_security_group" "lambdas" {
+  name = "lambda-functions"
+  description = "Lambda egress Security Group"
+  vpc_id = var.vpc_id
+
+  egress {
+    from_port = "0"
+    to_port = "0"
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "Lambda egress Security Group"
+  }
 }

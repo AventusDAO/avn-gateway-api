@@ -8,7 +8,7 @@ async function sleep(ms) {
 }
 
 async function avnApi() {
-  ({ gateway } = require(`../config/${process.argv[6]}.json`))
+  ;({ gateway } = require(`../config/${process.argv[6]}.json`))
   const api = new AvnApi(gateway)
   await api.init()
   return api

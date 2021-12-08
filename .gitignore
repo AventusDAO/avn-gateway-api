@@ -6,6 +6,7 @@ avn-api/.eslintrc.json
 .terraform.lock.hcl
 *.zip
 *.tgz
+Chart.lock
 
 # Config file for AWS MQ
 avn-connector/src/config/default/mq.yaml

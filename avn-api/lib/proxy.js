@@ -1,5 +1,5 @@
 'use strict'
-const { u8aToHex, u8aConcat, hexToU8a } = require('@polkadot/util')
+const { u8aToHex, u8aConcat } = require('@polkadot/util')
 const common = require('./common.js')
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
@@ -90,7 +90,7 @@ function encodeProxyTransferSignatureData(params) {
 
 function encodeProxyMintSingleNftSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context)
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer))
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer)
   const encodedExternalRef = common.registry.createType('Vec<u8>', params.externalRef)
   const encodedRoyalties = encodeRoyalty(params.royalties)
   const encodedT1Authority = common.registry.createType('H160', params.t1Authority)

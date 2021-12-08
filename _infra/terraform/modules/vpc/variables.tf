@@ -19,7 +19,6 @@ variable "enable_dns_hostnames" {
 variable "vpc_cidr_block" {
   type        = string
   description = "VPC Cidr block, must contain enough IPs to allow to scale"
-  default     = "172.16.0.0/20"
 }
 
 variable "private_zone_ips" {

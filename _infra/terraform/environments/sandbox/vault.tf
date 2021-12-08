@@ -29,7 +29,9 @@ module "avn-vault-sandbox" {
 
 resource "local_file" "avn-gateway-vault-instance-file" {
     content     = <<-EOD
-[vault-sandbox]
+[bastion]
+${aws_instance.avn-gw-bastion.private_ip} ansible_user=ubuntu
+[vault-server]
 ${module.avn-vault-sandbox.instance_ip_addr} ansible_user=ubuntu
 EOD
     filename = "${path.module}/vault.inventory"
@@ -65,7 +67,7 @@ resource "aws_security_group" "avn-gw-bastion-sg" {
 # Avn-Vault Instance
 resource "aws_instance" "avn-gw-bastion" {
   ami                    = "ami-08edbb0e85d6a0a07"
-  instance_type          = "t3a.micro"
+  instance_type          = "t3a.nano"
   key_name               = aws_key_pair.vault-ssh-key.key_name
   monitoring             = true
   vpc_security_group_ids = [aws_security_group.avn-gw-bastion-sg.id]

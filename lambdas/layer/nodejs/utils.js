@@ -32,12 +32,11 @@ function isValidAmount(amount) {
 }
 
 function isValidNftId(nftId) {
-  // TODO:
-  return true
+  return isHex(nftId)
 }
 
 function isValidMarket(market) {
-  return ['0x01', '0x02'].includes(market)
+  return [1, 2].includes(market)
 }
 
 function isValidNonce(nonce) {

@@ -11,6 +11,7 @@ function Query(api) {
   this.getRelayerFees = generateFunction(getRelayerFees, api)
   this.getNftNonce = generateFunction(getNftNonce, api)
   this.getNftId = generateFunction(getNftId, api)
+  this.nftsMap = {}
 }
 
 function getTotalAvt(api) {
@@ -63,8 +64,10 @@ function getNftNonce(api) {
 function getNftId(api) {
   return async function(externalRef) {
     common.validateStringIsPopulated(externalRef)
-
-    return await this.postRequest(api, 'getNftId', [externalRef])
+    if (!this.nftsMap[externalRef]) {
+      this.nftsMap[externalRef] = await this.postRequest(api, 'getNftId', [externalRef])
+    }
+    return this.nftsMap[externalRef]
   }
 }
 

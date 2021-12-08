@@ -47,7 +47,7 @@ function listNftOpenForSale(api, queryApi) {
     common.validateNftId(nftId)
     const market = common.validateMarketAndReturnEnum(_market)
 
-    const nftNonce = parseInt(await queryApi.getNftNonce(nftId)) + 1
+    const nftNonce = await queryApi.getNftNonce(nftId)
 
     const proxyListNftOpenForSaleSignature = proxyApi.createProxyListNftOpenForSaleSignature(
       relayer,

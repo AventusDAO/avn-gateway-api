@@ -18,10 +18,9 @@ const format3 = data => utils.toBnString(data.nonce)
 const format4 = (data, params) => {
   const uniqueExternalRefAsHex = '0x' + Buffer.from(params[1], 'utf8').toString('hex')
   const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex)
-  const nftId = (index > -1) ? data[index][1].nft_id : undefined
+  const nftId = index > -1 ? data[index][1].nft_id : undefined
   return nftId
 }
-
 
 async function queryChain(callId, palletName, storageName, params, responseFormatter) {
   let response

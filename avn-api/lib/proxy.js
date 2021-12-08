@@ -1,5 +1,5 @@
 'use strict'
-const { u8aToHex, u8aConcat, hexToU8a } = require('@polkadot/util')
+const { u8aToHex, u8aConcat } = require('@polkadot/util')
 const common = require('./common.js')
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
@@ -127,7 +127,7 @@ function encodeProxyListNftOpenForSaleSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context)
   const encodedRelayer = common.registry.createType('AccountId', params.relayer)
   const encodedNftId = common.registry.createType('U256', params.nftId)
-  const encodedMarket = common.registry.createType('u8', hexToU8a(params.market))
+  const encodedMarket = common.registry.createType('u8', params.market)
   const encodedNftNonce = common.registry.createType('u64', params.nftNonce)
 
   const encodedData = u8aConcat(

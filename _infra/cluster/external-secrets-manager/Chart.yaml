@@ -1,0 +1,10 @@
+apiVersion: v2
+name: external-secrets
+description: 
+type: application
+version: 0.0.1
+
+dependencies:
+- name: kubernetes-external-secrets
+  version: "8.4.0"
+  repository: "https://external-secrets.github.io/kubernetes-external-secrets/"

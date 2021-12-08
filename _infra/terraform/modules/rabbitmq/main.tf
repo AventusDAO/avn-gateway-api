@@ -109,5 +109,7 @@ POLICY
 
 resource "aws_secretsmanager_secret_version" "rabbit" {
   secret_id     = aws_secretsmanager_secret.rabbit.id
-  secret_string = jsonencode(local.user)
+  secret_string = jsonencode(
+    merge(local.user, { server = aws_mq_broker.gateway.instances.0.endpoints.0 })
+  )
 }

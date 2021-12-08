@@ -11,6 +11,23 @@ pipeline {
   agent any
 
   stages {
+    stage("Get Terraform outputs") {
+      when {
+        expression {
+            return env.additional_terraform_args != '-destroy';
+        }
+      }
+      steps {
+        dir("_infra/terraform/environments/${env.environment}") {
+          sh "terraform init"
+          script {
+            avn_connector_ips = terraformOutput("avn_connector_ips")
+            private_subnets = terraformOutput("main_subnet")
+          }
+        }
+      }
+    }
+
     stage("Deploy avn-connector") {
       when {
         expression {
@@ -20,7 +37,7 @@ pipeline {
       steps {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           generateContext("avn-gateway", "dev")
-          sh "helm template ${env.avn_connector_path}/chart --set deployment.image.tag=${env.image_tag} --set environment=${env.environment} --set accountId=${accountId()} | kubectl apply -f -"
+          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set service.subnetIds={${private_subnets}} --set service.privateIps={${avn_connector_ips}} | kubectl apply -f -"
         }
       }
     }
@@ -45,4 +62,11 @@ def accountId() {
     cba: "602004642405"
   ]
   return environmentMap[env.environment]
+}
+
+def terraformOutput(String outputName) {
+  return sh(
+    script: "terraform output -raw ${outputName}",
+    returnStdout: true
+  ).trim()
 }

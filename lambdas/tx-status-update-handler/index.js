@@ -2,7 +2,7 @@ const utils = require('../layer/nodejs/utils.js')
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL
 
-// Make sure this is kept in sync with the state names defined in ec2/src/redis.js
+// Make sure this is kept in sync with the state names defined in avn-connector/src/redis.js
 const transactionStatus = {
   Processed: 'Processed',
   Rejected: 'Rejected'

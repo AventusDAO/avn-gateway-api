@@ -4,51 +4,47 @@ locals {
   environment            = "cba"
   cluster_version        = "1.21"
   account_id             = "602004642405"
-  avn_connector_endpoint = "http://ab0a22b046cf24b1b93648acbcd6f881-497561177.eu-west-1.elb.amazonaws.com:8080/"
+  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
 }
 
 module "lambda_functions" {
-  source               = "../../modules/lambda"
-  artifact_bucket      = "avn-lambda-artifacts-sandbox"
-  log_retention_period = 1
-  service_version      = var.service_version
-  rabbit_secret_arn    = module.rabbitmq.secret_arn
+  source                 = "../../modules/lambda"
+  artifact_bucket        = "avn-lambda-artifacts-sandbox"
+  log_retention_period   = 1
+  service_version        = var.service_version
+  rabbit_secret_arn      = module.rabbitmq.secret_arn
+  avn_connector_endpoint = local.avn_connector_endpoint
+  subnet_ids             = module.vpc.private_subnets
+  vpc_id                 = module.vpc.vpc_id
 
   lambda_functions = {
     authorisation-handler = {
       env_vars = {
         MAX_TOKEN_AGE_MSEC     = 60000
         MIN_AVT_BALANCE        = "100000000000000000000"
-        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
       }
+      memory_size = 512
     }
     send-handler = {
-      subnet_ids         = module.vpc.private_subnets
-      security_group_ids = [module.rabbitmq.rabbit_security_group]
-      env_vars           = {
-        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
+      env_vars = {
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
         MQ_SECRET_ARN           = module.rabbitmq.secret_arn
         MQ_AVN_TX_QUEUE         = "avnTx"
         SECRET_MANAGER_REGION   = var.region
       }
-      timeout = 4
+      timeout     = 4
+      memory_size = 512
     }
     poll-handler = {
-      env_vars = {
-        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
-      }
-      timeout = 4
+      timeout     = 4
+      memory_size = 256
     }
     query-handler = {
-      env_vars = {
-        AVN_CONNECTOR_ENDPOINT = local.avn_connector_endpoint
-      }
+      memory_size = 256
     }
     tx-status-update-handler = {
       env_vars = {
-        AVN_CONNECTOR_ENDPOINT  = local.avn_connector_endpoint
         BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
       }
     }
@@ -97,6 +93,21 @@ module "vpc" {
   public_subnet_additional_tags = {
     "kubernetes.io/cluster/${local.name}" = "shared"
     "kubernetes.io/role/elb"              = "1"
+  }
+}
+
+module "dns" {
+  source          = "../../modules/dns"
+  vpc_id          = module.vpc.vpc_id
+  environment     = local.environment
+  rabbit_address  = module.rabbitmq.broker_address
+  api_gateway_url = module.api_gateway.url
+  api_gateway_id  = module.api_gateway.api_id
+  api_gateway_stage = module.api_gateway.stage_id
+
+  providers = {
+    aws         = aws
+    aws.aventus = aws.aventus
   }
 }
 

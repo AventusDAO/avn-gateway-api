@@ -5,7 +5,7 @@ const assert = require('assert')
   TODO: Uncomment once we fix multi-config
 */
 
-// const config = require('multiconfig').load({ directory: 'ec2/src/config/' })
+// const config = require('multiconfig').load({ directory: 'avn-connector/src/config/' })
 // const amqp = require('amqplib/callback_api')
 // const AWS = require('aws-sdk')
 // AWS.config.update({ region: config.mq.secretManagerRegion })

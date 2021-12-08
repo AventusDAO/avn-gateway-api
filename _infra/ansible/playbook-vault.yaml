@@ -1,6 +1,8 @@
 ---
-# selected_hosts should be set to some or all of these values:
-# vault-qa:vault-dev:vault-uat
-- hosts: '{{ selected_hosts }}'
+- name: gather facts
+  hosts: bastion
+
+- hosts: vault-server
+  gather_facts: yes
   roles:
   - aventus.ansible-avn-vault

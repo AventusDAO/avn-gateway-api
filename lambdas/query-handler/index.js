@@ -16,12 +16,12 @@ const format2 = data => utils.toBnString(data.data.free)
 const format3 = data => utils.toBnString(data.nonce)
 
 const format4 = (data, params) => {
-  const uniqueExternalRef = params[1]
-  const nfts = JSON.parse(data)
-  const index = nfts.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRef)
-  const nftId = (index > -1) ? nfts[index][1].nft_id : undefined
+  const uniqueExternalRefAsHex = '0x' + Buffer.from(params[1], 'utf8').toString('hex')
+  const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex)
+  const nftId = (index > -1) ? data[index][1].nft_id : undefined
   return nftId
 }
+
 
 async function queryChain(callId, palletName, storageName, params, responseFormatter) {
   let response

@@ -78,11 +78,11 @@ function validateMarketAndReturnEnum(market) {
 }
 
 function validateNftId(nftId) {
-  const nftIdAsString = nftId.toString()
-  const isValid = /^\d+$/.test(nftIdAsString) && new BN(nftId).isZero() === false
-  if (isValid === false) {
-    throw new Error(`Invalid nft ID type: ${nftId}`)
-  }
+  // const nftIdAsString = nftId.toString()
+  // const isValid = /^\d+$/.test(nftIdAsString) && new BN(nftId).isZero() === false
+  // if (isValid === false) {
+  //   throw new Error(`Invalid nft ID type: ${nftId}`)
+  // }
 }
 
 function validateRequestId(requestId) {

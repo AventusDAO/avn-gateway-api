@@ -32,7 +32,8 @@ function isValidAmount(amount) {
 }
 
 function isValidNftId(nftId) {
-  return /^\d+$/.test(nftId) && !new BN(nftId).isZero()
+  // TODO:
+  return true
 }
 
 function isValidMarket(market) {

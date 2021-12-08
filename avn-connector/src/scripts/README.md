@@ -1,3 +1,8 @@
+##Adding Relayer(s)
+This script is written as a temporary measure to add relayer accounts to the AvN gateway while the admin flow is implemented.
+
+*Note:* Please remember to run this script if Vault is reset or if the relayer account defined in tests changes
+
 To run the `addRelayer` script:
  - SSH to the `vault-init` EC2 instance in the sandbox account (Ireland). If you need access, speak to someone in the team to whitelist your public key
  - cd to `vaultTestData`

@@ -14,7 +14,14 @@ exports.handler = async event => {
 const format1 = data => utils.toBnString(data)
 const format2 = data => utils.toBnString(data.data.free)
 const format3 = data => utils.toBnString(data.nonce)
-const format4 = data => utils.toBnString(data.nft_id)
+
+const format4 = (data, params) => {
+  const uniqueExternalRef = params[1]
+  const nfts = JSON.parse(data)
+  const index = nfts.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRef)
+  const nftId = (index > -1) ? nfts[index][1].nft_id : undefined
+  return nftId
+}
 
 async function queryChain(callId, palletName, storageName, params, responseFormatter) {
   let response
@@ -23,7 +30,7 @@ async function queryChain(callId, palletName, storageName, params, responseForma
   } catch (err) {
     throw err
   }
-  return response.data.error || responseFormatter(response.data)
+  return response.data.error || responseFormatter(response.data, params)
 }
 
 async function processRequest(requestObject) {
@@ -121,7 +128,7 @@ async function callSwitch(call, responseObject) {
     case 'getNftId':
       if (utils.isValidString(call.params[0])) {
         try {
-          responseObject.result = await queryChain(call.id, 'nftManager', 'nfts', [call.params[0]], format4)
+          responseObject.result = await queryChain(call.id, 'nftManager', 'nfts', ['entries', call.params[0]], format4)
         } catch (err) {
           utils.logError('failed to query chain', call.id, 'query-handler.getNftId.queryChain', err)
           responseObject.error = { code: -32603, message: 'Internal error' }

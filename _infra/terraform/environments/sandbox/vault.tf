@@ -1,4 +1,5 @@
 locals {
+  # TODO only leave the Jenkins nat ip.
   ssh_allowed_ips = [
     "31.185.206.69/32",     # Thanos
     "81.111.99.54/32",      # John Terry

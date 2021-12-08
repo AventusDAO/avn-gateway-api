@@ -106,8 +106,8 @@ pipeline {
       steps {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           generateContext("avn-gateway", "kube-system")
-          sh "helm dep up _infra/cluster/aws-lb-controller"
-          sh "helm upgrade --install lb-controller _infra/cluster/aws-lb-controller --wait"
+          helmInstallThirdParty("aws-lb-controller")
+          helmInstallThirdParty("external-secrets-manager")
         }
       }
     }
@@ -161,6 +161,11 @@ def accountId() {
     cba: "602004642405"
   ]
   return environmentMap[env.environment]
+}
+
+def helmInstallThirdParty(String application) {
+  sh "helm dep up _infra/cluster/${application}"
+  sh "helm upgrade --install ${application} _infra/cluster/${application} --wait"
 }
 
 def terraformOutput(String outputName) {

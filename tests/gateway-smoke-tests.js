@@ -3,6 +3,8 @@ const AvnApi = require('../avn-api/index.js')
 const { accounts } = require('../avn-api/config/accounts.json')
 const BN = require('bn.js')
 
+// TODO: Replace 'process.argv' with 'yargs' to read command options
+
 describe('AVN Gateway Smoke Tests', function() {
   let api, relayer, sender, recipient
 

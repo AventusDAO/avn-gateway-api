@@ -149,12 +149,12 @@ module "eks" {
     avn-gateway = {
       create_launch_template = true
 
-      disk_size       = 20
+      disk_size       = 50
       disk_type       = "gp3"
 
-      desired_capacity = 1
-      max_capacity     = 10
-      min_capacity     = 1
+      desired_capacity = 5
+      max_capacity     = 50
+      min_capacity     = 5
 
       instance_types = ["t3.medium"]
       capacity_type  = "ON_DEMAND"
@@ -164,7 +164,7 @@ module "eks" {
         GithubOrg   = "Aventus-Network-Services"
       }
       update_config = {
-        max_unavailable = 1
+        max_unavailable = 3
       }
     }
   }

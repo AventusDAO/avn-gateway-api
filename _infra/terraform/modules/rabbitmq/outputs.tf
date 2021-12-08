@@ -9,3 +9,7 @@ output "secret_arn" {
 output "broker_endpoint" {
   value = aws_mq_broker.gateway.instances.0.endpoints.0
 }
+
+output "broker_address" {
+  value = trimsuffix(trimprefix(aws_mq_broker.gateway.instances.0.endpoints.0, "amqps://"), ":5671")
+}

@@ -87,10 +87,12 @@ app.listen(port, () => {
 })
 
 async function instantiateConnector() {
-  await avn.connectToAvN()
+  await avn.init()
   await redis.connect()
   await mqConsumer.connectToMQ()
   await gatewayDb.init()
 }
 
-instantiateConnector()
+;(async () => {
+  await instantiateConnector()
+})()

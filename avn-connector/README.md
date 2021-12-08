@@ -23,7 +23,7 @@ To run the container, from the `docker` folder run:
 ```
 or
 ```
-./start && docker logs -f ec2_avn-connector_1
+./start && docker logs -f avn-connector_1
 ```
 
 To stop, run:
@@ -38,7 +38,7 @@ When running the container, the endpoint is accessible in the same place as runn
 
 It is possible to access the logs of the running container to assist in debugging:
 ```
-docker logs -f ec2_avn-connector_1
+docker logs -f avn-connector_1
 ```
 
 Be careful when specifying variables in the `.env` file. The raw seed of an account must be specified without quotes, whereas in the `.yaml` file it can have quotes.

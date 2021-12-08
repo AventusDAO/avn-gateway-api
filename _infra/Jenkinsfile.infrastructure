@@ -144,7 +144,7 @@ def generateContext(String clusterName, String namespace) {
 def terraformPlan() {
   sh "terraform init"
   if ( env.terraform_target == 'all' ) {
-    sh "terraform plan -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
+    sh "terraform plan -out=plan-out.tfplan -no-color ${env.additional_terraform_args} -target aws_instance.avn-gw-bastion -target local_file.avn-gateway-vault-instance-file"
   } else {
     sh "terraform plan -target module.${env.terraform_target} -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
   }

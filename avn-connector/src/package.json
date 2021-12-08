@@ -22,7 +22,8 @@
     "ioredis": "^4.28.0",
     "log4js": "^6.3.0",
     "mongodb": "^3.6.4",
-    "multiconfig": "^1.1.6"
+    "multiconfig": "^1.1.6",
+    "axios": "^0.21.4"
   },
   "devDependencies": {
     "concurrently": "^6.2.0",

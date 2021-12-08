@@ -4,14 +4,12 @@ const config = require('multiconfig').load()
 const yargs = require("yargs");
 
 async function setRelayer(userName, seed) {
-  console.log(`Relayer generated. Public key, ${JSON.stringify(userName)}, ${seed}, ${JSON.stringify(config.vault)}`)
   const vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id)
   const pk = await vault.setNewRelayer(userName, seed)
   console.log(`Relayer set. Public key: ${pk}`)
 }
 
 async function generateRelayer(userName) {
-  console.log(`Relayer generated. Public key, ${JSON.stringify(userName)}, ${JSON.stringify(config.vault)}`)
   const vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id)
   const pk = await vault.createNewRelayer(userName)
   console.log(`Relayer generated. Public key: ${pk}`)
@@ -28,7 +26,6 @@ async function run() {
     `Command to set a relayer in vault, using a seed`,
     {},
     async (argv) => {
-      console.log(`Relayer generated. Public key`)
       await setRelayer(argv.relayerName, argv.seed);
   })
   .command(

@@ -34,6 +34,8 @@ resource "local_file" "avn-gateway-vault-instance-file" {
 ${aws_instance.avn-gw-bastion.public_ip} ansible_user=ubuntu
 [vault_server]
 ${module.avn-vault-sandbox.instance_ip_addr} ansible_user=ubuntu
+[vault_server:vars]
+ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q ubuntu@${aws_instance.avn-gw-bastion.public_ip}"'
 EOD
     filename = "${path.module}/vault.inventory"
 }

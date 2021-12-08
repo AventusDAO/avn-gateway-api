@@ -59,5 +59,15 @@ spec:
                   key: server
             - name: MQ_SECRET_ARN
               value: arn:aws:secretsmanager:eu-west-1:{{ .Values.accountId }}:secret:rabbitmq
+            - name: REDIS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: username
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: password
           resources:
             {{- toYaml .Values.deployment.resources | nindent 12 }}

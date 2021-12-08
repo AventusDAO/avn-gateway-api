@@ -36,7 +36,7 @@ let redisClient
 async function connect() {
   if ('redis' in config) {
     log.info(`Attempting to connect to Redis database on ${config.redis.url}:${config.redis.port}`)
-    redisClient = new Redis.Cluster([{ port: config.redis.port, host: config.redis.url }])
+    redisClient = new Redis.Cluster([{ port: config.redis.port, host: config.redis.url, username: config.redis.username, password: config.redis.password }])
     log.info(
       'Connected to Redis database:\n',
       (await redisClient.hello()).map((e, i) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')

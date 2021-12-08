@@ -1,5 +1,5 @@
 # TODO replace the bastion ip with dynamic value from hostvars
-bastion_host: "63.32.43.194"
+bastion_host: "34.245.179.247"
 ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p ubuntu@{{ bastion_host }}"'
 server_api_address: 0.0.0.0:8200
 tls_key_file: vault-server/files/vault_sandbox.key

@@ -371,7 +371,7 @@ npm run allTestsSandbox
 Or to run sub tests for a specified gateway:
  - `npm run smokeTests [gateway]`: to run all the smoke tests
  - `npm run apiTests [gateway]`: to run all the api tests
- - `npm run ec2Tests`: to run all the backend (ec2)
+ - `npm run ec2Tests`: to run all the backend
  - `npm run lambdaTests`: to run all the lambda tests
 
 Configuration: 

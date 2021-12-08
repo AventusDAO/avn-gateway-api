@@ -107,9 +107,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 }
 
 async function getRelayerAccount(relayerAddress) {
-  // TODO: Replace me with a call to Vault or some other secret management tool AND remove `senderSuri` from config
-  const relayerSuri = config.senderSuri
-
+  const relayerSuri = vault.getRelayerSeed(relayerAddress)
   return createAccount(relayerSuri)
 }
 

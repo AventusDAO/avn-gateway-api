@@ -56,10 +56,9 @@ module.exports = function(baseURL, roleId, secretId) {
     const userUrl = this.baseURL + 'avn-vault/user/set/' + userName
     const res = await get(userUrl, token)
     if (res === '') {
-      data = {name: userName, seed: seed}
-      return (await post(userUrl , data, token)).publicKey
-    } else
-      return res.publicKey
+      data = { name: userName, seed: seed }
+      return (await post(userUrl, data, token)).publicKey
+    } else return res.publicKey
   }
 
   this.getRelayerSeed = async function(userName) {

@@ -1,5 +1,5 @@
 'use strict'
-const { u8aToHex, u8aConcat } = require('@polkadot/util')
+const { u8aToHex, u8aConcat, hexToU8a } = require('@polkadot/util')
 const common = require('./common.js')
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'

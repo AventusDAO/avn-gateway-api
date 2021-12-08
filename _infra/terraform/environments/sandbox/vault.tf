@@ -31,7 +31,7 @@ module "avn-vault-sandbox" {
 resource "local_file" "avn-gateway-vault-instance-file" {
     content     = <<-EOD
 [bastion]
-${aws_instance.avn-gw-bastion.private_ip} ansible_user=ubuntu
+${aws_instance.avn-gw-bastion.public_ip} ansible_user=ubuntu
 [vault-server]
 ${module.avn-vault-sandbox.instance_ip_addr} ansible_user=ubuntu
 EOD

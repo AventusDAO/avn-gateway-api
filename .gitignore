@@ -8,4 +8,4 @@ avn-api/.eslintrc.json
 *.tgz
 
 # Config file for AWS MQ
-ec2/src/config/default/mq.yaml
+avn-connector/src/config/default/mq.yaml

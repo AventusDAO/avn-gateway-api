@@ -1,3 +1,2 @@
 avnUrl: $ENV:AVN_NODE_URL
 serverPort: $ENV:SERVER_PORT
-senderSuri: $ENV:RELAYER_SURI

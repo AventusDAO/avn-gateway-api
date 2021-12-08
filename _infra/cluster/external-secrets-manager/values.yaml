@@ -1,0 +1,7 @@
+kubernetes-external-secrets:
+  serviceAccount:
+    create: false
+    name: kubernetes-external-secrets
+  
+  env:
+    AWS_REGION: eu-west-1

@@ -52,6 +52,4 @@ function populateTestFees() {
   testUser2Fees.fees[gatewayDb.TransactionType.ProxyTokenTransfer] = TEST_USER2_RELAYER_FEE
 }
 
-;(async () => {
-  await run()
-})()
+;(async () => await run())()

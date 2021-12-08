@@ -25,7 +25,7 @@ async function get(url, token) {
     return (await axios({ method: 'get', url: url, headers: headers })).data.data
   } catch (err) {
     if (err.response) {
-      if (err.response.status == 404 || err.response.data.errors[0].includes('Error reading user')) return ''
+      if (err.response.status === 404 || err.response.data.errors[0].includes('Error reading user')) return ''
       else throw new Error('vault - ' + err.response.data.errors.toString())
     } else throw new Error('vault - cannot connect to ' + url)
   }
@@ -51,12 +51,12 @@ module.exports = function(baseURL, roleId, secretId) {
     } else return res.publicKey
   }
 
-  this.setNewRelayer = async function(userName, _seed) {
+  this.setNewRelayer = async function(userName, seed) {
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
     const userUrl = this.baseURL + 'avn-vault/user/set/' + userName
     const res = await get(userUrl, token)
     if (res === '') {
-      data = {name: userName, seed: _seed}
+      data = {name: userName, seed: seed}
       return (await post(userUrl , data, token)).publicKey
     } else
       return res.publicKey

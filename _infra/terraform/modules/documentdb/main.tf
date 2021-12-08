@@ -86,5 +86,7 @@ resource "aws_secretsmanager_secret" "documentdb" {
 
 resource "aws_secretsmanager_secret_version" "documentdb" {
   secret_id     = aws_secretsmanager_secret.documentdb.id
-  secret_string = jsonencode(local.user)
+  secret_string = jsonencode(
+    merge(local.user, { server = aws_docdb_cluster.docdb.endpoint })
+  )
 }

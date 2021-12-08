@@ -223,3 +223,42 @@ resource "aws_iam_policy" "aws_lb_controller" {
 }
 EOF
 }
+
+resource "aws_iam_role" "aws_lb_controller" {
+  name = "AWSLoadBalancerController"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRoleWithWebIdentity",
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Federated = var.oidc_provider
+        }
+        Condition = {
+          StringEquals = {
+            "${local.oidc_url}:sub": "system:serviceaccount:kube-system:${local.lb_controller}",
+            "${local.oidc_url}:aud": "sts.amazonaws.com"
+          }
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "aws_lb_controller" {
+  role       = aws_iam_role.aws_lb_controller.name
+  policy_arn = aws_iam_policy.aws_lb_controller.arn
+}
+
+resource "kubernetes_service_account" "aws_lb_controller" {
+  metadata {
+    name      = local.lb_controller
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.aws_lb_controller.arn
+    }
+  }
+}

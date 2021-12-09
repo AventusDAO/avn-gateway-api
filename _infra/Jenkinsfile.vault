@@ -1,0 +1,67 @@
+pipeline {
+  environment {
+    ANSIBLE_HOST_KEY_CHECKING="False"
+  }
+
+  parameters {
+    booleanParam( defaultValue: false, description: 'Whether or not deploy the instance of vault', name: 'deploy')
+    choice(name: 'gateway_environment', choices: ['sandbox', 'cba'], description: 'Deploy to which environment?')
+  }
+
+  agent any
+
+  stages {
+
+    stage("Checkout codebase") {
+      steps {
+        checkout([
+            $class: 'GitSCM',
+            branches: [[name: 'refs/heads/master']],
+            doGenerateSubmoduleConfigurations: false,
+            extensions: [[$class: 'CleanCheckout']],
+            submoduleCfg: [],
+            userRemoteConfigs: [[credentialsId: 'aventus-ci-agent', url: 'https://github.com/Aventus-Network-Services/avn-gateway-api.git']]
+        ])
+      }
+    }
+
+    stage("Deploy avn-vault files via ansible.") {
+      when {
+        environment name: 'deploy', value: 'true'
+      }
+      steps {
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'technical-account-vault']) {
+          // Generate the inventory file for the environment
+          dir("${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}") {
+            sh "terraform init && terraform apply -target local_file.avn-gateway-vault-instance-file -auto-approve"
+          }
+
+          dir("${WORKSPACE}/_infra/ansible") {
+            // TODO use nexus to download the binaries.
+            sh "cp -r /var/tmp/pipeline-files/vault-gateway-files/* ."
+
+            // Install dependencies
+            sh "ansible-galaxy install -r roles/requirements.yml -f"
+
+            withCredentials([file(credentialsId: 'vault_tls_key_sandbox', variable: 'vault_tls_key_sandbox')])
+            {
+              script {
+                switch(env.gateway_environment) {
+                  case 'sandbox':
+                      vault_tls_key = "${vault_tls_key_sandbox}"
+                    break
+                  }
+              }
+              sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory -b --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}'}\" --check"
+            }
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}

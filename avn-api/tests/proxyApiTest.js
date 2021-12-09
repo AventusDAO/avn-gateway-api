@@ -5,8 +5,6 @@ const BN = helper.BN
 const bnEquals = helper.bnEquals
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000'
 
-const waitForTxToBeMined = async () => await helper.sleep(5000)
-
 describe('Proxy api calls:', async () => {
   let api, token
   let relayer, sender, recipient
@@ -36,8 +34,10 @@ describe('Proxy api calls:', async () => {
 
     it('can transfer tokens using a recipient public key', async () => {
       const amount = new BN(2)
-      await api.send.transferToken(relayer, sender, recipientPubKey, token, amount)
-      await waitForTxToBeMined()
+      const requestId = await api.send.transferToken(relayer, sender, recipientPubKey, token, amount)
+
+      await helper.confirmStatus(api, requestId, 'Processed')
+
       bnEquals(senderTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(sender, token)))
       bnEquals(recipientTokenBalanceBefore.add(amount), new BN(await api.query.getTokenBalance(recipient, token)))
       bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)))
@@ -50,22 +50,28 @@ describe('Proxy api calls:', async () => {
       this.timeout(400000) //increase the timeout of this test (https://mochajs.org/#test-level)
 
       const amount = new BN(1)
-      const numTx = new BN(10)
+      const numTx = 10
+      const numTxBn = new BN(numTx)
+      let requestId
 
       for (i = 0; i < numTx; i++) {
-        await api.send.transferToken(relayer, sender, recipient, token, amount)
+        requestId = await api.send.transferToken(relayer, sender, recipient, token, amount)
       }
 
-      await waitForTxToBeMined()
-      bnEquals(senderTokenBalanceBefore.sub(amount.mul(numTx)), new BN(await api.query.getTokenBalance(sender, token)))
+      await helper.confirmStatus(api, requestId, 'Processed')
+
       bnEquals(
-        recipientTokenBalanceBefore.add(amount.mul(numTx)),
+        senderTokenBalanceBefore.sub(amount.mul(numTxBn)),
+        new BN(await api.query.getTokenBalance(sender, token))
+      )
+      bnEquals(
+        recipientTokenBalanceBefore.add(amount.mul(numTxBn)),
         new BN(await api.query.getTokenBalance(recipient, token))
       )
-      bnEquals(senderNonceBefore.add(numTx), new BN(await api.query.getAccountNonce(sender)))
-      bnEquals(senderAvtBalanceBefore.sub(relayerFee.mul(numTx)), new BN(await api.query.getAvtBalance(sender)))
+      bnEquals(senderNonceBefore.add(numTxBn), new BN(await api.query.getAccountNonce(sender)))
+      bnEquals(senderAvtBalanceBefore.sub(relayerFee.mul(numTxBn)), new BN(await api.query.getAvtBalance(sender)))
       // TODO: include network fees when we've sorted the accounts out
-      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee.mul(numTx))))
+      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee.mul(numTxBn))))
     })
   })
 })

@@ -4,19 +4,7 @@ const accounts = helper.ACCOUNTS
 const BN = helper.BN
 const bnEquals = helper.bnEquals
 
-const waitForTxToBeMined = async () => await helper.sleep(5000)
-
-const getConfirmation = async (api, requestId) => {
-  if (!requestId) throw new Error(`RequestId cannot be null`)
-
-  let status
-  for (i = 0; i < 10; i++) {
-    await waitForTxToBeMined()
-    status = await api.poll.requestState(requestId)
-    if (status === 'Processed') break
-  }
-  return status
-}
+const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e'
 
 describe('SendTx api calls:', async () => {
   let api
@@ -43,8 +31,9 @@ describe('SendTx api calls:', async () => {
 
     it('can transfer AVT using a recipient address', async () => {
       const amount = new BN(1)
-      await api.send.transferAvt(relayer, sender, recipient, amount)
-      await waitForTxToBeMined()
+      const requestId = await api.send.transferAvt(relayer, sender, recipient, amount)
+      await helper.confirmStatus(api, requestId, 'Processed')
+
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient))
       bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
       // TODO: include network fees when we've sorted the accounts out
@@ -53,8 +42,9 @@ describe('SendTx api calls:', async () => {
 
     it('can transfer AVT using a recipient public key', async () => {
       const amount = new BN(2)
-      await api.send.transferAvt(relayer, sender, recipientPubKey, amount)
-      await waitForTxToBeMined()
+      const requestId = await api.send.transferAvt(relayer, sender, recipientPubKey, amount)
+      await helper.confirmStatus(api, requestId, 'Processed')
+
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey))
       bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
       // TODO: include network fees when we've sorted the accounts out
@@ -63,11 +53,10 @@ describe('SendTx api calls:', async () => {
   })
 
   describe('mintSingleNft', async () => {
-    let externalRef, royalties, t1Authority, royaltyRecipient1, royaltyRecipient2, royaltyRate1, royaltyRate2
+    let externalRef, royalties, royaltyRecipient1, royaltyRecipient2, royaltyRate1, royaltyRate2
 
     before(async () => {
       royalties = []
-      t1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e'
       royaltyRecipient1 = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03'
       royaltyRecipient2 = '0xE566A65705F2d8D6C1Da9063A29b6F0f1Ac1e6Da'
       royaltyRate1 = 10000
@@ -79,9 +68,8 @@ describe('SendTx api calls:', async () => {
     })
 
     it('can mint single nft', async () => {
-      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
-      const mintOutcome = await getConfirmation(api, requestId)
-      assert.equal(mintOutcome, 'Processed')
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, dummyT1Authority)
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
 
     it('can mint single nft with a single royalty', async () => {
@@ -93,9 +81,8 @@ describe('SendTx api calls:', async () => {
           }
         }
       ]
-      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
-      const mintOutcome = await getConfirmation(api, requestId)
-      assert.equal(mintOutcome, 'Processed')
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, dummyT1Authority)
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
 
     it('can mint single nft with multiple royalties', async () => {
@@ -114,28 +101,44 @@ describe('SendTx api calls:', async () => {
         }
       ]
 
-      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
-      const mintOutcome = await getConfirmation(api, requestId)
-      assert.equal(mintOutcome, 'Processed')
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, dummyT1Authority)
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
   })
 
   describe('listNftOpenForSale', async () => {
     let externalRef, nftId
     const royalties = []
-    const t1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e'
 
     beforeEach(async () => {
       externalRef = 'avn-gateway-test-' + new Date().toISOString()
-      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
-      const mintOutcome = await getConfirmation(api, requestId)
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, dummyT1Authority)
+      await helper.confirmStatus(api, requestId, 'Processed')
       nftId = await api.query.getNftId(externalRef)
     })
 
     it('can list an NFT as open for sale', async () => {
       const requestId = await api.send.listNftOpenForSale(relayer, sender, nftId, 'Fiat')
-      const listOutcome = await getConfirmation(api, requestId)
-      assert.equal(listOutcome, 'Processed')
+      await helper.confirmStatus(api, requestId, 'Processed')
+    })
+  })
+
+  describe('transferFiatNft', async () => {
+    let externalRef, nftId
+    const royalties = []
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString()
+      let requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, dummyT1Authority)
+      await helper.confirmStatus(api, requestId, 'Processed')
+      nftId = await api.query.getNftId(externalRef)
+      requestId = await api.send.listNftOpenForSale(relayer, sender, nftId, 'Fiat')
+      await helper.confirmStatus(api, requestId, 'Processed')
+    })
+
+    it('can transfer an NFT after an offline fiat sale', async () => {
+      const requestId = await api.send.transferFiatNft(relayer, sender, recipient, nftId)
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
   })
 })

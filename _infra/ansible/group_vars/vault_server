@@ -1,0 +1,10 @@
+server_api_address: 0.0.0.0:8200
+# Uncomment when using locally
+# tls_key_file: vault-server/files/vault_{{ vault_environment }}.key
+tls_cert_file: vault-server/files/vault_{{ vault_environment }}.crt
+log_level: info
+# Dynamodb pricing https://aws.amazon.com/dynamodb/pricing/on-demand/
+dynamodb_read_capacity: 100
+dynamodb_write_capacity: 10
+vault_binary_path: vault-server/files/vault
+avn_vault_binary_path: vault-server/files/avn-vault

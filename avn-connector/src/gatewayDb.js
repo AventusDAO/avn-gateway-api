@@ -13,7 +13,8 @@ const TransactionType = {
   ProxyAvtTransfer: 'proxyAvtTransfer',
   ProxyTokenTransfer: 'proxyTokenTransfer',
   ProxyMintSingleNft: 'proxyMintSingleNft',
-  ProxyListNftOpenForSale: 'proxyListNftOpenForSale'
+  ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
+  ProxyTransferFiatNft: 'proxyTransferFiatNft'
 }
 
 const defaultFees = {}
@@ -75,6 +76,7 @@ function setupDefaultFees() {
   defaultFees[TransactionType.ProxyTokenTransfer] = DEFAULT_RELAYER_FEE
   defaultFees[TransactionType.ProxyMintSingleNft] = DEFAULT_RELAYER_FEE
   defaultFees[TransactionType.ProxyListNftOpenForSale] = DEFAULT_RELAYER_FEE
+  defaultFees[TransactionType.ProxyTransferFiatNft] = DEFAULT_RELAYER_FEE
 }
 
 async function createCollections(db) {

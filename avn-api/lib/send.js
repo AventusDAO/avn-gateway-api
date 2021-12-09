@@ -12,6 +12,7 @@ function Send(api, queryApi, avtContractAddress) {
   this.transferToken = generateFunction(transferToken, api, queryApi)
   this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi)
   this.listNftOpenForSale = generateFunction(listNftOpenForSale, api, queryApi)
+  this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi)
   this.avtContractAddress = avtContractAddress
   this.nonceMap = {}
   this.feesMap = {}
@@ -81,7 +82,7 @@ function listNftOpenForSale(api, queryApi) {
     })
 
     if (!response && !isRetry) {
-      await this.listNftOpenForSale(relayer, signer, externalRef, royalties, t1Authority)
+      await this.listNftOpenForSale(relayer, signer, nftId, market)
     }
 
     return response
@@ -129,6 +130,55 @@ function mintSingleNft(api, queryApi) {
 
     if (!response && !isRetry) {
       await this.mintSingleNft(relayer, signer, externalRef, royalties, t1Authority)
+    }
+
+    return response
+  }
+}
+
+function transferFiatNft(api, queryApi) {
+  return async function(relayer, signer, recipient, nftId) {
+    common.validateAccount(relayer)
+    common.validateAccount(signer)
+    common.validateAccount(recipient)
+    common.validateNftId(nftId)
+    const market = common.MARKET.Fiat
+
+    const opId = parseInt(await queryApi.getOpIdForNft(nftId)) + 1
+
+    const proxyTransferFiatNftSignature = proxyApi.createProxyTransferFiatNftSignature(
+      relayer,
+      signer,
+      nftId,
+      recipient,
+      opId
+    )
+
+    const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
+    const transactionType = TX_TYPE.ProxyTransferFiatNft
+    const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
+    const feePaymentSignature = proxyApi.createFeePaymentSignature(
+      relayer,
+      signer,
+      proxyTransferFiatNftSignature,
+      relayerFee,
+      paymentNonce
+    )
+
+    const response = await this.postRequest(api, transactionType, {
+      pallet: 'nftManager',
+      method: 'signedTransferFiatNft',
+      relayer,
+      signer,
+      nftId,
+      recipient,
+      proxyTransferFiatNftSignature,
+      feePaymentSignature,
+      paymentNonce
+    })
+
+    if (!response && !isRetry) {
+      await this.transferFiatNft(relayer, signer, recipient, nftId)
     }
 
     return response

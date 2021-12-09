@@ -6,6 +6,8 @@ avn-api/.eslintrc.json
 .terraform.lock.hcl
 *.zip
 *.tgz
+_infra/ansible/files/*
+_infra/ansible/*inventory*
 Chart.lock
 
 # Config file for AWS MQ

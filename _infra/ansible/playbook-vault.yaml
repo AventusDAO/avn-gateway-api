@@ -1,0 +1,9 @@
+---
+- name: gather facts
+  hosts: bastion
+
+- hosts: vault_server
+  gather_facts: yes
+  roles:
+  - aventus.ansible-avn-vault
+  

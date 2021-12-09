@@ -11,6 +11,7 @@ const Vault = require('./vaultApp')
 const AVN_URL = config.avnUrl
 
 let api, vault
+let relayers = {}
 
 async function query(palletName, storageName, params) {
   let result
@@ -115,8 +116,11 @@ async function signAndSend(requestId, relayerAddress, txn) {
 }
 
 async function getRelayerAccount(relayerAddress) {
-  const relayerSuri = vault.getRelayerSeed(relayerAddress)
-  return createAccount(relayerSuri)
+  if (!relayers[relayerAddress]) {
+    const relayerSuri = await vault.getRelayerSeed(relayerAddress)
+    relayers[relayerAddress] = createAccount(relayerSuri)
+  }
+  return relayers[relayerAddress]
 }
 
 async function init() {

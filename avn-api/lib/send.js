@@ -137,14 +137,14 @@ function mintSingleNft(api, queryApi) {
 }
 
 function transferFiatNft(api, queryApi) {
-  return async function(relayer, signer, recipient, nftId) {
+  return async function(relayer, signer, _recipient, nftId) {
     common.validateAccount(relayer)
     common.validateAccount(signer)
-    common.validateAccount(recipient)
+    const recipient = common.convertToPublicKeyIfNeeded(_recipient)
     common.validateNftId(nftId)
     const market = common.MARKET.Fiat
 
-    const opId = parseInt(await queryApi.getNftNonce(nftId)) + 1
+    const opId = await queryApi.getNftNonce(nftId)
 
     const proxyTransferFiatNftSignature = proxyApi.createProxyTransferFiatNftSignature(
       relayer,

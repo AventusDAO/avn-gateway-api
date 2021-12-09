@@ -130,12 +130,14 @@ describe('SendTx api calls:', async () => {
 
     beforeEach(async () => {
       externalRef = 'avn-gateway-test-' + new Date().toISOString()
-      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
+      let requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
       await helper.confirmStatus(api, requestId, 'Processed')
       nftId = await api.query.getNftId(externalRef)
+      requestId = await api.send.listNftOpenForSale(relayer, sender, nftId, 'Fiat')
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
 
-    it('can transfer an NFT', async () => {
+    it('can transfer an NFT after an offline fiat sale', async () => {
       const requestId = await api.send.transferFiatNft(relayer, sender, recipient, nftId)
       await helper.confirmStatus(api, requestId, 'Processed')
     })

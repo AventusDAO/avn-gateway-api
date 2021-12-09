@@ -121,7 +121,6 @@ async function getRelayerAccount(relayerAddress) {
 
 async function init() {
   await connectToAvN()
-  console.log('VAULT CONNECTING xxxxxxxxxxxxxx')
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id)
 }
 

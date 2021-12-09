@@ -46,12 +46,11 @@ function populateTestFees() {
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyAvtTransfer] = TEST_DEFAULT_RELAYER_FEE
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyTokenTransfer] = TEST_DEFAULT_RELAYER_FEE
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyMintSingleNft] = TEST_DEFAULT_RELAYER_FEE
+  testRelayerFees.fees[gatewayDb.TransactionType.ProxyListNftOpenForSale] = TEST_DEFAULT_RELAYER_FEE
 
   testUser1Fees.fees[gatewayDb.TransactionType.ProxyAvtTransfer] = TEST_USER1_RELAYER_FEE
 
   testUser2Fees.fees[gatewayDb.TransactionType.ProxyTokenTransfer] = TEST_USER2_RELAYER_FEE
 }
 
-;(async () => {
-  await run()
-})()
+;(async () => await run())()

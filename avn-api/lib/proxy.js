@@ -1,10 +1,11 @@
 'use strict'
-const { u8aToHex, u8aConcat, hexToU8a } = require('@polkadot/util')
+const { u8aToHex, u8aConcat } = require('@polkadot/util')
 const common = require('./common.js')
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
 const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation'
 const PROXY_MINT_SINGLE_NFT_CONTEXT = 'authorization for mint single nft operation'
+const PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT = 'authorization for list nft open for sale operation'
 
 function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, proxyNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer)
@@ -38,6 +39,22 @@ function createProxyMintSingleNftSignature(_relayer, signer, externalRef, royalt
   }
 
   const hexEncodedData = encodeProxyMintSingleNftSignatureData(dataToSign)
+  const signerSuri = common.obtainSignerSuri(signer)
+  return signData(signerSuri, hexEncodedData)
+}
+
+function createProxyListNftOpenForSaleSignature(_relayer, signer, nftId, market, nftNonce) {
+  const relayer = common.convertToPublicKeyIfNeeded(_relayer)
+
+  const dataToSign = {
+    context: PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT,
+    relayer,
+    nftId,
+    market,
+    nftNonce
+  }
+
+  const hexEncodedData = encodeProxyListNftOpenForSaleSignatureData(dataToSign)
   const signerSuri = common.obtainSignerSuri(signer)
   return signData(signerSuri, hexEncodedData)
 }
@@ -90,7 +107,7 @@ function encodeProxyTransferSignatureData(params) {
 
 function encodeProxyMintSingleNftSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context)
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer))
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer)
   const encodedExternalRef = common.registry.createType('Vec<u8>', params.externalRef)
   const encodedRoyalties = encodeRoyalty(params.royalties)
   const encodedT1Authority = common.registry.createType('H160', params.t1Authority)
@@ -101,6 +118,24 @@ function encodeProxyMintSingleNftSignatureData(params) {
     encodedExternalRef.toU8a(false),
     encodedRoyalties,
     encodedT1Authority.toU8a(true)
+  )
+
+  return u8aToHex(encodedData)
+}
+
+function encodeProxyListNftOpenForSaleSignatureData(params) {
+  const encodedContext = common.registry.createType('Text', params.context)
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer)
+  const encodedNftId = common.registry.createType('U256', params.nftId)
+  const encodedMarket = common.registry.createType('u8', params.market)
+  const encodedNftNonce = common.registry.createType('u64', params.nftNonce)
+
+  const encodedData = u8aConcat(
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedNftId.toU8a(true),
+    encodedMarket.toU8a(true),
+    encodedNftNonce.toU8a(true)
   )
 
   return u8aToHex(encodedData)
@@ -153,5 +188,6 @@ function signData(signerSuri, encodedData) {
 module.exports = {
   createFeePaymentSignature,
   createProxyTransferSignature,
+  createProxyListNftOpenForSaleSignature,
   createProxyMintSingleNftSignature
 }

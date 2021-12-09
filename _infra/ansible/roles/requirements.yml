@@ -1,0 +1,4 @@
+- src: git@github.com:Aventus-Network-Services/avn-vault-ansible-role.git
+  name: aventus.ansible-avn-vault
+  scm: git
+  version: v0.1.0

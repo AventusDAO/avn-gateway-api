@@ -1,7 +1,6 @@
 const assert = require('chai').assert
 const helper = require('./helper.js')
 const accounts = helper.ACCOUNTS
-const token = helper.TOKEN
 const BN = helper.BN
 const bnEquals = helper.bnEquals
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000'
@@ -9,11 +8,12 @@ const BAD_TOKEN = '0x0000000000000000000000000000000000000000'
 const waitForTxToBeMined = async () => await helper.sleep(5000)
 
 describe('Proxy api calls:', async () => {
-  let api
+  let api, token
   let relayer, sender, recipient
   let relayerFee
 
   before(async () => {
+    token = helper.token
     api = await helper.avnApi()
     relayer = accounts.relayer.address
     sender = accounts.sender.address

@@ -33,7 +33,7 @@ app.post('/avnQuery', async (req, res, next) => {
   try {
     log.trace(`avnQuery request body: ${JSON.stringify(req.body)}`)
     const result = await avn.query(req.body.palletName, req.body.storageName, req.body.params)
-    res.send(JSON.stringify(result.toJSON()))
+    res.send(result)
   } catch (err) {
     next(err)
   }
@@ -87,10 +87,12 @@ app.listen(port, () => {
 })
 
 async function instantiateConnector() {
-  await avn.connectToAvN()
+  await avn.init()
   await redis.connect()
   await mqConsumer.connectToMQ()
   await gatewayDb.init()
 }
 
-instantiateConnector()
+;(async () => {
+  await instantiateConnector()
+})()

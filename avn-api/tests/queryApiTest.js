@@ -12,13 +12,15 @@ describe('Query api calls:', async () => {
   const expectedRelayerFees = {
     proxyAvtTransfer: '7000000000000000',
     proxyTokenTransfer: '7000000000000000',
-    proxyMintSingleNft: '7000000000000000'
+    proxyMintSingleNft: '7000000000000000',
+    proxyListNftOpenForSale: '7000000000000000'
   }
 
   const expectedUserFees = {
     proxyAvtTransfer: '7000000000000000',
     proxyTokenTransfer: '30000000000000000',
-    proxyMintSingleNft: '7000000000000000'
+    proxyMintSingleNft: '7000000000000000',
+    proxyListNftOpenForSale: '7000000000000000'
   }
 
   before(async () => {
@@ -29,7 +31,7 @@ describe('Query api calls:', async () => {
 
   describe('getTotalAvt', async () => {
     it('returns total AVT supply', async () => {
-      assert.equal(helper.AVT_SUPPLY, await api.query.getTotalAvt())
+      assert.equal(helper.avt_supply, await api.query.getTotalAvt())
     })
   })
 

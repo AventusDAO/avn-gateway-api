@@ -9,6 +9,9 @@ function Query(api) {
   this.getAccountPaymentNonce = generateFunction(getAccountPaymentNonce, api)
   this.getAvtContractAddress = generateFunction(getAvtContractAddress, api)
   this.getRelayerFees = generateFunction(getRelayerFees, api)
+  this.getNftNonce = generateFunction(getNftNonce, api)
+  this.getNftId = generateFunction(getNftId, api)
+  this.nftsMap = {}
 }
 
 function getTotalAvt(api) {
@@ -47,6 +50,24 @@ function getAccountPaymentNonce(api) {
     common.validateAccount(account)
 
     return await this.postRequest(api, 'getAccountPaymentNonce', [account])
+  }
+}
+
+function getNftNonce(api) {
+  return async function(nftId) {
+    common.validateNftId(nftId)
+
+    return await this.postRequest(api, 'getNftNonce', [nftId])
+  }
+}
+
+function getNftId(api) {
+  return async function(externalRef) {
+    common.validateStringIsPopulated(externalRef)
+    if (!this.nftsMap[externalRef]) {
+      this.nftsMap[externalRef] = await this.postRequest(api, 'getNftId', [externalRef])
+    }
+    return this.nftsMap[externalRef]
   }
 }
 

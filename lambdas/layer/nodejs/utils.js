@@ -31,6 +31,14 @@ function isValidAmount(amount) {
   return /^\d+$/.test(amount) && !new BN(amount).isZero()
 }
 
+function isValidNftId(nftId) {
+  return isHex(nftId)
+}
+
+function isValidMarket(market) {
+  return [1, 2].includes(market)
+}
+
 function isValidNonce(nonce) {
   return /^\d+$/.test(nonce) && new BN(nonce).lt(new BN('ffffffffffffffff', 16))
 }
@@ -103,6 +111,8 @@ module.exports = {
   init,
   isValidAccountId,
   isValidAmount,
+  isValidMarket,
+  isValidNftId,
   isValidNonce,
   isValidSignatureFormat,
   isValidEthereumAddress,

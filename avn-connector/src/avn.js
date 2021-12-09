@@ -1,16 +1,16 @@
 'use strict'
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
-const { isHex, u8aToHex, u8aConcat } = require('@polkadot/util')
-const { signatureVerify } = require('@polkadot/util-crypto')
+const { isHex } = require('@polkadot/util')
 const config = require('multiconfig').load()
 const log4js = require('log4js')
 const log = log4js.getLogger()
 const avn_types = require('./avnTypes')
 const redis = require('./redis')
+const Vault = require('./vaultApp')
 
 const AVN_URL = config.avnUrl
 
-let api
+let api, vault
 
 async function query(palletName, storageName, params) {
   let result
@@ -115,10 +115,13 @@ async function signAndSend(requestId, relayerAddress, txn) {
 }
 
 async function getRelayerAccount(relayerAddress) {
-  // TODO: Replace me with a call to Vault or some other secret management tool AND remove `senderSuri` from config
-  const relayerSuri = config.senderSuri
-
+  const relayerSuri = vault.getRelayerSeed(relayerAddress)
   return createAccount(relayerSuri)
+}
+
+async function init() {
+  await connectToAvN()
+  vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id)
 }
 
 async function connectToAvN() {
@@ -150,7 +153,7 @@ function isTransactionHash(requestId) {
 }
 
 module.exports = {
-  connectToAvN,
+  init,
   query,
   proxy,
   poll

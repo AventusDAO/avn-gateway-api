@@ -4,7 +4,8 @@
     "apiTests": "mocha --timeout 100000 ./avn-api/tests --recursive",
     "avn-connectorTests": "mocha --timeout 100000 ./avn-connector/tests --recursive",
     "lambdaTests": "mocha --timeout 60000 ./lambdas/tests --recursive",
-    "allTests": "npm run apiTests && npm run avn-connectorTests && npm run lambdaTests",
+    "allTestsSandbox": "npm run apiTests sandbox && npm run avn-connectorTests && npm run lambdaTests",
+    "allTestsCBA": "npm run apiTests cba && npm run avn-connectorTests && npm run lambdaTests",
     "format": "npm --prefix ./avn-api run format && npm --prefix ./avn-connector/src run format && npm --prefix ./lambdas run format"
   },
   "devDependencies": {

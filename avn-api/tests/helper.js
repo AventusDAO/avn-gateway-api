@@ -20,16 +20,12 @@ function bnEquals(a, b) {
 }
 
 async function confirmStatus(api, requestId, expectedStatus) {
-  const unprocessedStates = ['Pending', 'Transaction not found']
   if (!requestId) throw new Error('RequestId cannot be null')
 
   for (i = 0; i < 10; i++) {
     await sleep(3000)
     const status = await api.poll.requestState(requestId)
-    if (status === expectedStatus) {
-      break
-    }
-    if (!unprocessedStates.includes(status)) {
+    if (status !== 'Pending' && status !== 'Transaction not found') {
       assert.equal(status, expectedStatus)
       break
     }

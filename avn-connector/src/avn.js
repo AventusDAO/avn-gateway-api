@@ -123,9 +123,6 @@ async function init() {
   await connectToAvN()
   console.log('VAULT CONNECTING xxxxxxxxxxxxxx')
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id)
-  console.log('VAULT CONNECTING xxxxxxxxxxxxxx', vault)
-  const relayerSuri = await vault.getRelayerSeed('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh')
-  console.log('RELAYER SURI xxxxxxxxxxxxxxxxxx', relayerSuri)
 }
 
 async function connectToAvN() {

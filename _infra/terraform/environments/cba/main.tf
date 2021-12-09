@@ -6,6 +6,7 @@ locals {
   account_id             = "602004642405"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
+  vpc_cidr_block         = "172.16.0.0/20"
 }
 
 module "lambda_functions" {

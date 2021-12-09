@@ -123,25 +123,6 @@ describe('SendTx api calls:', async () => {
     })
   })
 
-  describe('cancelListFiatNft', async () => {
-    let externalRef, nftId
-    const royalties = []
-
-    beforeEach(async () => {
-      externalRef = 'avn-gateway-test-' + new Date().toISOString()
-      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, dummyT1Authority)
-      await helper.confirmStatus(api, requestId, 'Processed')
-      nftId = await api.query.getNftId(externalRef)
-      const requestId = await api.send.listNftOpenForSale(relayer, sender, nftId, 'Fiat')
-      await helper.confirmStatus(api, requestId, 'Processed')
-    })
-
-    it('can cancel a fiat listing', async () => {
-      const requestId = await api.send.cancelListFiatNft(relayer, sender, nftId)
-      await helper.confirmStatus(api, requestId, 'Processed')
-    })
-  })
-
   describe('transferFiatNft', async () => {
     let externalRef, nftId
     const royalties = []
@@ -157,6 +138,25 @@ describe('SendTx api calls:', async () => {
 
     it('can transfer an NFT after an offline fiat sale', async () => {
       const requestId = await api.send.transferFiatNft(relayer, sender, recipient, nftId)
+      await helper.confirmStatus(api, requestId, 'Processed')
+    })
+  })
+
+  describe('cancelListFiatNft', async () => {
+    let externalRef, nftId
+    const royalties = []
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString()
+      let requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, dummyT1Authority)
+      await helper.confirmStatus(api, requestId, 'Processed')
+      nftId = await api.query.getNftId(externalRef)
+      requestId = await api.send.listNftOpenForSale(relayer, sender, nftId, 'Fiat')
+      await helper.confirmStatus(api, requestId, 'Processed')
+    })
+
+    it('can cancel a fiat listing', async () => {
+      const requestId = await api.send.cancelListFiatNft(relayer, sender, nftId)
       await helper.confirmStatus(api, requestId, 'Processed')
     })
   })

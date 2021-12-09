@@ -6,6 +6,7 @@ const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
 const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation'
 const PROXY_MINT_SINGLE_NFT_CONTEXT = 'authorization for mint single nft operation'
 const PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT = 'authorization for list nft open for sale operation'
+const PROXY_TRANSFER_FIAT_NFT_CONTEXT = 'authorization for transfer fiat nft operation'
 
 function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, proxyNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer)
@@ -55,6 +56,23 @@ function createProxyListNftOpenForSaleSignature(_relayer, signer, nftId, market,
   }
 
   const hexEncodedData = encodeProxyListNftOpenForSaleSignatureData(dataToSign)
+  const signerSuri = common.obtainSignerSuri(signer)
+  return signData(signerSuri, hexEncodedData)
+}
+
+function createProxyTransferFiatNftSignature(_relayer, signer, nftId, _recipient, opId) {
+  const relayer = common.convertToPublicKeyIfNeeded(_relayer)
+  const recipient = common.convertToPublicKeyIfNeeded(_recipient)
+
+  const dataToSign = {
+    context: PROXY_TRANSFER_FIAT_NFT_CONTEXT,
+    relayer,
+    nftId,
+    recipient,
+    opId
+  }
+
+  const hexEncodedData = encodeProxyTransferFiatNftSignature(dataToSign)
   const signerSuri = common.obtainSignerSuri(signer)
   return signData(signerSuri, hexEncodedData)
 }
@@ -141,6 +159,24 @@ function encodeProxyListNftOpenForSaleSignatureData(params) {
   return u8aToHex(encodedData)
 }
 
+function encodeProxyTransferFiatNftSignature(params) {
+  const encodedContext = common.registry.createType('Text', params.context)
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer)
+  const encodedNftId = common.registry.createType('U256', params.nftId)
+  const encodedRecipient = common.registry.createType('AccountId', params.recipient)
+  const encodedOpId = common.registry.createType('u64', params.opId)
+
+  const encodedData = u8aConcat(
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedNftId.toU8a(true),
+    encodedRecipient.toU8a(true),
+    encodedOpId.toU8a(true)
+  )
+
+  return u8aToHex(encodedData)
+}
+
 function encodeFeePaymentSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context)
   const encodedProxyProof = encodeProxyProof(params.proxyProof)
@@ -189,5 +225,6 @@ module.exports = {
   createFeePaymentSignature,
   createProxyTransferSignature,
   createProxyListNftOpenForSaleSignature,
-  createProxyMintSingleNftSignature
+  createProxyMintSingleNftSignature,
+  createProxyTransferFiatNftSignature
 }

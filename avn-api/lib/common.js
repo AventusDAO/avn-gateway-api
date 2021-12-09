@@ -13,7 +13,8 @@ const TX_TYPE = {
   ProxyAvtTransfer: 'proxyAvtTransfer',
   ProxyTokenTransfer: 'proxyTokenTransfer',
   ProxyMintSingleNft: 'proxyMintSingleNft',
-  ProxyListNftOpenForSale: 'proxyListNftOpenForSale'
+  ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
+  ProxyTransferFiatNft: 'proxyTransferFiatNft'
 }
 
 const MARKET = {
@@ -117,6 +118,7 @@ module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
   keyring,
+  MARKET,
   obtainSignerSuri,
   registry,
   sleep,

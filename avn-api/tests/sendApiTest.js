@@ -138,4 +138,23 @@ describe('SendTx api calls:', async () => {
       assert.equal(listOutcome, 'Processed')
     })
   })
+
+  describe('transferFiatNft', async () => {
+    let externalRef, nftId
+    const royalties = []
+    const t1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e'
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString()
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
+      const mintOutcome = await getConfirmation(api, requestId)
+      nftId = await api.query.getNftId(externalRef)
+    })
+
+    it('can transfer an NFT', async () => {
+      const requestId = await api.send.transferFiatNft(relayer, sender, recipient, nftid)
+      const listOutcome = await getConfirmation(api, requestId)
+      assert.equal(listOutcome, 'Processed')
+    })
+  })
 })

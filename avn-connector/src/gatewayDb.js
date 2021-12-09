@@ -15,7 +15,7 @@ const TransactionType = {
   ProxyMintSingleNft: 'proxyMintSingleNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
   ProxyTransferFiatNft: 'proxyTransferFiatNft',
-  ProxyCancFiatNft: 'proxyCancelListFiatNft'
+  ProxyCancelListFiatNft: 'proxyCancelListFiatNft'
 }
 
 const defaultFees = {}

@@ -14,7 +14,7 @@ resource "aws_key_pair" "vault-ssh-key" {
 }
 
 module "avn-vault-sandbox" {
-  source = "git@github.com:Aventus-Network-Services/avn-vault-terraform-module.git?ref=v0.4.1"
+  source = "git@github.com:Aventus-Network-Services/avn-vault-terraform-module.git?ref=v0.4.2"
   name = local.environment
   project = "avn-gateway"
   ssh-key = "technical-account-vault"

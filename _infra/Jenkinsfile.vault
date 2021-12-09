@@ -43,12 +43,19 @@ pipeline {
             // Install dependencies
             sh "ansible-galaxy install -r roles/requirements.yml -f"
 
-            withCredentials([file(credentialsId: 'vault_tls_key_sandbox', variable: 'vault_tls_key_sandbox')])
+            withCredentials([
+              file(credentialsId: 'vault_tls_key_sandbox', variable: 'vault_tls_key_sandbox'),
+              file(credentialsId: 'vault_tls_key_cba', variable: 'vault_tls_key_cba')
+            ])
             {
               script {
                 switch(env.gateway_environment) {
                   case 'sandbox':
                       vault_tls_key = "${vault_tls_key_sandbox}"
+                    break
+                  }
+                  case 'cba':
+                      vault_tls_key = "${vault_tls_key_cba}"
                     break
                   }
               }

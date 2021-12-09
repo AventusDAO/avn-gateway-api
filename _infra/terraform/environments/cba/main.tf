@@ -6,6 +6,7 @@ locals {
   account_id             = "602004642405"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
+  vpc_cidr_block         = "172.17.0.0/20"
 }
 
 module "lambda_functions" {
@@ -71,7 +72,7 @@ module "vpc" {
   avn_vpc_id               = "vpc-074c6e19e26ba4a23"
   peer_public_route_table  = "rtb-0a0b61707b33e0a75"
   peer_private_route_table = "rtb-00b575bea946b34bc"
-  vpc_cidr_block           = "172.17.0.0/20"
+  vpc_cidr_block           = local.vpc_cidr_block
 
   private_zone_ips = {
     "a": "172.17.0.0/22",

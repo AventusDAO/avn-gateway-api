@@ -13,6 +13,7 @@ function Send(api, queryApi, avtContractAddress) {
   this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi)
   this.listNftOpenForSale = generateFunction(listNftOpenForSale, api, queryApi)
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi)
+  this.cancelListFiatNft = generateFunction(cancelListFiatNft, api, queryApi)
   this.avtContractAddress = avtContractAddress
   this.nonceMap = {}
   this.feesMap = {}
@@ -178,6 +179,51 @@ function transferFiatNft(api, queryApi) {
 
     if (!response && !isRetry) {
       await this.transferFiatNft(relayer, signer, recipient, nftId)
+    }
+
+    return response
+  }
+}
+
+function cancelListFiatNft(api, queryApi) {
+  return async function(relayer, signer, nftId) {
+    common.validateAccount(relayer)
+    common.validateAccount(signer)
+    common.validateNftId(nftId)
+
+    const opId = await queryApi.getNftNonce(nftId)
+
+    const proxyCancelListFiatNftSignature = proxyApi.createProxyCancelListFiatNftSignature(
+      relayer,
+      signer,
+      nftId,
+      opId
+    )
+
+    const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
+    const transactionType = TX_TYPE.ProxyCancelListFiatNft
+    const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
+    const feePaymentSignature = proxyApi.createFeePaymentSignature(
+      relayer,
+      signer,
+      proxyCancelListFiatNftSignature,
+      relayerFee,
+      paymentNonce
+    )
+
+    const response = await this.postRequest(api, transactionType, {
+      pallet: 'nftManager',
+      method: 'signedCancelListFiatNft',
+      relayer,
+      signer,
+      nftId,
+      proxyCancelListFiatNftSignature,
+      feePaymentSignature,
+      paymentNonce
+    })
+
+    if (!response && !isRetry) {
+      await this.cancelListFiatNft(relayer, signer, nftId)
     }
 
     return response

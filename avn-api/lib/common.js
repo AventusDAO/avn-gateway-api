@@ -13,7 +13,8 @@ const TX_TYPE = {
   ProxyAvtTransfer: 'proxyAvtTransfer',
   ProxyTokenTransfer: 'proxyTokenTransfer',
   ProxyMintSingleNft: 'proxyMintSingleNft',
-  ProxyListNftOpenForSale: 'proxyListNftOpenForSale'
+  ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
+  ProxyTransferFiatNft: 'proxyTransferFiatNft'
 }
 
 const MARKET = {

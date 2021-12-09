@@ -4,20 +4,6 @@ const accounts = helper.ACCOUNTS
 const BN = helper.BN
 const bnEquals = helper.bnEquals
 
-const waitForTxToBeMined = async () => await helper.sleep(5000)
-
-const getConfirmation = async (api, requestId) => {
-  if (!requestId) throw new Error(`RequestId cannot be null`)
-
-  let status
-  for (i = 0; i < 10; i++) {
-    await waitForTxToBeMined()
-    status = await api.poll.requestState(requestId)
-    if (status === 'Processed') break
-  }
-  return status
-}
-
 describe('SendTx api calls:', async () => {
   let api
   let relayer, sender, recipient
@@ -43,8 +29,9 @@ describe('SendTx api calls:', async () => {
 
     it('can transfer AVT using a recipient address', async () => {
       const amount = new BN(1)
-      await api.send.transferAvt(relayer, sender, recipient, amount)
-      await waitForTxToBeMined()
+      const requestId = await api.send.transferAvt(relayer, sender, recipient, amount)
+      await helper.confirmStatus(api, requestId, 'Processed')
+
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient))
       bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
       // TODO: include network fees when we've sorted the accounts out
@@ -53,8 +40,9 @@ describe('SendTx api calls:', async () => {
 
     it('can transfer AVT using a recipient public key', async () => {
       const amount = new BN(2)
-      await api.send.transferAvt(relayer, sender, recipientPubKey, amount)
-      await waitForTxToBeMined()
+      const requestId = await api.send.transferAvt(relayer, sender, recipientPubKey, amount)
+      await helper.confirmStatus(api, requestId, 'Processed')
+
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey))
       bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)))
       // TODO: include network fees when we've sorted the accounts out
@@ -80,8 +68,7 @@ describe('SendTx api calls:', async () => {
 
     it('can mint single nft', async () => {
       const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
-      const mintOutcome = await getConfirmation(api, requestId)
-      assert.equal(mintOutcome, 'Processed')
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
 
     it('can mint single nft with a single royalty', async () => {
@@ -94,8 +81,7 @@ describe('SendTx api calls:', async () => {
         }
       ]
       const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
-      const mintOutcome = await getConfirmation(api, requestId)
-      assert.equal(mintOutcome, 'Processed')
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
 
     it('can mint single nft with multiple royalties', async () => {
@@ -115,8 +101,7 @@ describe('SendTx api calls:', async () => {
       ]
 
       const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
-      const mintOutcome = await getConfirmation(api, requestId)
-      assert.equal(mintOutcome, 'Processed')
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
   })
 
@@ -128,14 +113,13 @@ describe('SendTx api calls:', async () => {
     beforeEach(async () => {
       externalRef = 'avn-gateway-test-' + new Date().toISOString()
       const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
-      const mintOutcome = await getConfirmation(api, requestId)
+      await helper.confirmStatus(api, requestId, 'Processed')
       nftId = await api.query.getNftId(externalRef)
     })
 
     it('can list an NFT as open for sale', async () => {
       const requestId = await api.send.listNftOpenForSale(relayer, sender, nftId, 'Fiat')
-      const listOutcome = await getConfirmation(api, requestId)
-      assert.equal(listOutcome, 'Processed')
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
   })
 
@@ -147,14 +131,13 @@ describe('SendTx api calls:', async () => {
     beforeEach(async () => {
       externalRef = 'avn-gateway-test-' + new Date().toISOString()
       const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
-      const mintOutcome = await getConfirmation(api, requestId)
+      await helper.confirmStatus(api, requestId, 'Processed')
       nftId = await api.query.getNftId(externalRef)
     })
 
     it('can transfer an NFT', async () => {
-      const requestId = await api.send.transferFiatNft(relayer, sender, recipient, nftid)
-      const listOutcome = await getConfirmation(api, requestId)
-      assert.equal(listOutcome, 'Processed')
+      const requestId = await api.send.transferFiatNft(relayer, sender, recipient, nftId)
+      await helper.confirmStatus(api, requestId, 'Processed')
     })
   })
 })

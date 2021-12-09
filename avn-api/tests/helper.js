@@ -2,13 +2,14 @@ const AvnApi = require('../index.js')
 const assert = require('chai').assert
 const BN = require('bn.js')
 const { accounts } = require('../config/accounts.json')
+const configPath = process.argv[6] ? `../config/${process.argv[6]}.json` : '../config/sandbox.json'
+const { gateway, token } = require(configPath)
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 async function avnApi() {
-  ;({ gateway } = require(`../config/${process.argv[6]}.json`))
   const api = new AvnApi(gateway)
   await api.init()
   return api
@@ -24,5 +25,6 @@ module.exports = {
   avnApi,
   BN,
   bnEquals,
-  sleep
+  sleep,
+  token
 }

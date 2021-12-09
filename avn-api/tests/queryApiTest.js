@@ -29,8 +29,7 @@ describe('Query api calls:', async () => {
 
   describe('getTotalAvt', async () => {
     it('returns total AVT supply', async () => {
-      const { avt_supply } = require(`../config/${process.argv[6]}.json`)
-      assert.equal(avt_supply, await api.query.getTotalAvt())
+      assert.equal(helper.avt_supply, await api.query.getTotalAvt())
     })
   })
 

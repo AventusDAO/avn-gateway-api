@@ -13,7 +13,7 @@ describe('Proxy api calls:', async () => {
   let relayerFee
 
   before(async () => {
-    ;({ token } = require(`../config/${process.argv[6]}.json`))
+    token = helper.token
     api = await helper.avnApi()
     relayer = accounts.relayer.address
     sender = accounts.sender.address

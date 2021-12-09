@@ -142,7 +142,6 @@ function transferFiatNft(api, queryApi) {
     common.validateAccount(signer)
     const recipient = common.convertToPublicKeyIfNeeded(_recipient)
     common.validateNftId(nftId)
-    const market = common.MARKET.Fiat
 
     const opId = await queryApi.getNftNonce(nftId)
 

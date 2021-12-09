@@ -118,7 +118,6 @@ module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
   keyring,
-  MARKET,
   obtainSignerSuri,
   registry,
   sleep,

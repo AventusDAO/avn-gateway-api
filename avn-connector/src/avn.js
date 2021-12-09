@@ -13,9 +13,17 @@ const AVN_URL = config.avnUrl
 let api, vault
 
 async function query(palletName, storageName, params) {
-  const result = await api.query[palletName][storageName](...params)
+  let result
+
+  if (params[0] === 'entries') {
+    result = await api.query[palletName][storageName].entries()
+  } else {
+    result = await api.query[palletName][storageName](...params)
+    result = result.toJSON()
+  }
+
   log.trace(`Encoded query response: ${result}`)
-  return result
+  return JSON.stringify(result)
 }
 
 async function proxy(requestId, palletName, method, params) {

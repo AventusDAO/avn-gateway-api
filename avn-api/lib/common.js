@@ -12,7 +12,13 @@ const BN = require('bn.js')
 const TX_TYPE = {
   ProxyAvtTransfer: 'proxyAvtTransfer',
   ProxyTokenTransfer: 'proxyTokenTransfer',
-  ProxyMintSingleNft: 'proxyMintSingleNft'
+  ProxyMintSingleNft: 'proxyMintSingleNft',
+  ProxyListNftOpenForSale: 'proxyListNftOpenForSale'
+}
+
+const MARKET = {
+  Ethereum: 1,
+  Fiat: 2
 }
 
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
@@ -63,6 +69,18 @@ function validateIsArray(array) {
   }
 }
 
+function validateMarketAndReturnEnum(market) {
+  const isValid = Object.keys(MARKET).includes(market)
+  if (isValid === false) {
+    throw new Error(`Invalid market type: ${market}`)
+  }
+  return MARKET[market]
+}
+
+function validateNftId(nftId) {
+  return isHex(nftId)
+}
+
 function validateRequestId(requestId) {
   const isValid = uuidValidate(requestId)
   if (isValid === false) {
@@ -107,6 +125,8 @@ module.exports = {
   validateAmount,
   validateEthereumAddress,
   validateIsArray,
+  validateMarketAndReturnEnum,
+  validateNftId,
   validateRequestId,
   validateStringIsPopulated,
   validateTransactionType

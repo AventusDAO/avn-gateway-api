@@ -76,6 +76,9 @@ async function callSwitch(call, responseObject, requestId) {
     case 'proxyMintSingleNft':
       await processProxyMintSingleNft(call, responseObject, requestId)
       break
+    case 'proxyListNftOpenForSale':
+      await processProxyListNftOpenForSale(call, responseObject, requestId)
+      break
     default:
       utils.logError('method not found', call.id, 'send-handler.callSwitch.default', call.method)
       responseObject.error = { code: -32601, message: 'Method not found' }
@@ -144,6 +147,76 @@ async function processProxyTransfer(call, responseObject, requestId) {
       'invalid fee authorisation',
       call.id,
       'send-handler.proxyTransfer.verifyFeePaymentSignature',
+      feePaymentSignature
+    )
+    responseObject.error = { code: -32602, message: 'Invalid params' }
+  }
+}
+
+async function processProxyListNftOpenForSale(call, responseObject, requestId) {
+  const transactionType = call.method
+  const {
+    pallet,
+    method,
+    relayer,
+    signer,
+    nftId,
+    market,
+    proxyListNftOpenForSaleSignature,
+    feePaymentSignature,
+    paymentNonce
+  } = call.params
+
+  const validParams =
+    utils.isValidAccountId(relayer) &&
+    utils.isValidAccountId(signer) &&
+    utils.isValidNftId(nftId) &&
+    utils.isValidMarket(market) &&
+    utils.isValidNonce(paymentNonce) &&
+    utils.isValidSignatureFormat(proxyListNftOpenForSaleSignature) &&
+    utils.isValidSignatureFormat(feePaymentSignature)
+
+  if (!validParams) {
+    utils.logError('invalid params', call.id, 'send-handler.proxyListNftOpenForSale.params', call.params)
+    responseObject.error = { code: -32602, message: 'Invalid params' }
+    return
+  }
+
+  const proxyProof = getProxyProof(signer, relayer, proxyListNftOpenForSaleSignature)
+
+  let relayerFee
+  try {
+    relayerFee = await getRelayerFees(relayer, signer, transactionType)
+  } catch (err) {
+    utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyListNftOpenForSale.relayerFees', err)
+    responseObject.error = { code: -32603, message: 'Internal error' }
+    return
+  }
+
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  if (paymentInfo) {
+    const params = {
+      proxyParams: [proxyProof, nftId, market],
+      relayerAddress: relayer,
+      paymentInfo
+    }
+
+    try {
+      responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
+    } catch (err) {
+      utils.logError(
+        'failed to send proxy transaction',
+        call.id,
+        'send-handler.proxyListNftOpenForSale.sendProxyTx',
+        err
+      )
+      responseObject.error = { code: -32603, message: 'Internal error' }
+    }
+  } else {
+    utils.logError(
+      'invalid fee authorisation',
+      call.id,
+      'send-handler.proxyListNftOpenForSale.verifyFeePaymentSignature',
       feePaymentSignature
     )
     responseObject.error = { code: -32602, message: 'Invalid params' }

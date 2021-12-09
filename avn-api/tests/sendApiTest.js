@@ -119,4 +119,23 @@ describe('SendTx api calls:', async () => {
       assert.equal(mintOutcome, 'Processed')
     })
   })
+
+  describe('listNftOpenForSale', async () => {
+    let externalRef, nftId
+    const royalties = []
+    const t1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e'
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString()
+      const requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, t1Authority)
+      const mintOutcome = await getConfirmation(api, requestId)
+      nftId = await api.query.getNftId(externalRef)
+    })
+
+    it('can list an NFT as open for sale', async () => {
+      const requestId = await api.send.listNftOpenForSale(relayer, sender, nftId, 'Fiat')
+      const listOutcome = await getConfirmation(api, requestId)
+      assert.equal(listOutcome, 'Processed')
+    })
+  })
 })

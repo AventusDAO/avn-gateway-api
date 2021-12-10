@@ -410,7 +410,12 @@ async function processProxyCancelListFiatNft(call, responseObject, requestId) {
     try {
       responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
     } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyCancelListFiatNft.sendProxyTx', err)
+      utils.logError(
+        'failed to send proxy transaction',
+        call.id,
+        'send-handler.proxyCancelListFiatNft.sendProxyTx',
+        err
+      )
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {

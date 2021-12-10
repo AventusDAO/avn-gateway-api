@@ -25,8 +25,7 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
   }
 
   const hexEncodedData = encodeProxyTransferSignatureData(dataToSign)
-  const signerSuri = common.obtainSignerSuri(signer)
-  return signData(signerSuri, hexEncodedData)
+  return signData(hexEncodedData)
 }
 
 function createProxyMintSingleNftSignature(_relayer, signer, externalRef, royalties, t1Authority) {
@@ -41,8 +40,7 @@ function createProxyMintSingleNftSignature(_relayer, signer, externalRef, royalt
   }
 
   const hexEncodedData = encodeProxyMintSingleNftSignatureData(dataToSign)
-  const signerSuri = common.obtainSignerSuri(signer)
-  return signData(signerSuri, hexEncodedData)
+  return signData(hexEncodedData)
 }
 
 function createProxyListNftOpenForSaleSignature(_relayer, signer, nftId, market, nftNonce) {
@@ -57,8 +55,7 @@ function createProxyListNftOpenForSaleSignature(_relayer, signer, nftId, market,
   }
 
   const hexEncodedData = encodeProxyListNftOpenForSaleSignatureData(dataToSign)
-  const signerSuri = common.obtainSignerSuri(signer)
-  return signData(signerSuri, hexEncodedData)
+  return signData(hexEncodedData)
 }
 
 function createProxyTransferFiatNftSignature(_relayer, signer, nftId, _recipient, opId) {
@@ -74,8 +71,7 @@ function createProxyTransferFiatNftSignature(_relayer, signer, nftId, _recipient
   }
 
   const hexEncodedData = encodeProxyTransferFiatNftSignature(dataToSign)
-  const signerSuri = common.obtainSignerSuri(signer)
-  return signData(signerSuri, hexEncodedData)
+  return signData(hexEncodedData)
 }
 
 function createProxyCancelListFiatNftSignature(_relayer, signer, nftId, opId) {
@@ -89,8 +85,7 @@ function createProxyCancelListFiatNftSignature(_relayer, signer, nftId, opId) {
   }
 
   const hexEncodedData = encodeProxyCancelListFiatNftSignature(dataToSign)
-  const signerSuri = common.obtainSignerSuri(signer)
-  return signData(signerSuri, hexEncodedData)
+  return signData(hexEncodedData)
 }
 
 function createFeePaymentSignature(_relayer, signer, proxySignature, relayerFee, paymentNonce) {
@@ -113,8 +108,7 @@ function createFeePaymentSignature(_relayer, signer, proxySignature, relayerFee,
   }
 
   const hexEncodedData = encodeFeePaymentSignatureData(dataToSign)
-  const signerSuri = common.obtainSignerSuri(signer)
-  return signData(signerSuri, hexEncodedData)
+  return signData(hexEncodedData)
 }
 
 function encodeProxyTransferSignatureData(params) {
@@ -247,7 +241,8 @@ function encodeRoyalty(royalties) {
   return encodedResult.toU8a(false)
 }
 
-function signData(signerSuri, encodedData) {
+function signData(encodedData) {
+  const signerSuri = common.obtainSignerSuri()
   const signer = common.keyring.addFromUri(signerSuri)
   const signature = u8aToHex(signer.sign(encodedData))
   return signature

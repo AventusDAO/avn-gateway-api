@@ -141,4 +141,23 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(api, requestId, 'Processed')
     })
   })
+
+  describe('cancelListFiatNft', async () => {
+    let externalRef, nftId
+    const royalties = []
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString()
+      let requestId = await api.send.mintSingleNft(relayer, sender, externalRef, royalties, dummyT1Authority)
+      await helper.confirmStatus(api, requestId, 'Processed')
+      nftId = await api.query.getNftId(externalRef)
+      requestId = await api.send.listNftOpenForSale(relayer, sender, nftId, 'Fiat')
+      await helper.confirmStatus(api, requestId, 'Processed')
+    })
+
+    it('can cancel a fiat listing', async () => {
+      const requestId = await api.send.cancelListFiatNft(relayer, sender, nftId)
+      await helper.confirmStatus(api, requestId, 'Processed')
+    })
+  })
 })

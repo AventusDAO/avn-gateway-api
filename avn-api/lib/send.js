@@ -82,6 +82,7 @@ function listNftOpenForSale(api, queryApi) {
       paymentNonce
     })
 
+    // TODO: This will not retry at present - requires fixing
     if (!response && !isRetry) {
       await this.listNftOpenForSale(relayer, signer, nftId, market)
     }
@@ -129,6 +130,7 @@ function mintSingleNft(api, queryApi) {
       paymentNonce
     })
 
+    // TODO: This will not retry at present - requires fixing
     if (!response && !isRetry) {
       await this.mintSingleNft(relayer, signer, externalRef, royalties, t1Authority)
     }
@@ -177,6 +179,7 @@ function transferFiatNft(api, queryApi) {
       paymentNonce
     })
 
+    // TODO: This will not retry at present - requires fixing
     if (!response && !isRetry) {
       await this.transferFiatNft(relayer, signer, recipient, nftId)
     }
@@ -222,6 +225,7 @@ function cancelListFiatNft(api, queryApi) {
       paymentNonce
     })
 
+    // TODO: This will not retry at present - requires fixing
     if (!response && !isRetry) {
       await this.cancelListFiatNft(relayer, signer, nftId)
     }

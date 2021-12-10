@@ -2,6 +2,8 @@ environment: sandbox
 accountId: "352429414196"
 
 deployment:
+  applyRelayerFees: false
+
   image: 
     repo: 189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/avn-connector
     tag: latest

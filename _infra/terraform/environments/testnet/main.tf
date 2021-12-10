@@ -6,6 +6,7 @@ locals {
   account_id             = "189013141504"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
+  vpc_cidr_block         = "172.18.0.0/18"
 }
 
 module "lambda_functions" {
@@ -68,7 +69,7 @@ module "api_gateway" {
 
 module "vpc" {
   source                   = "../../modules/vpc"
-  vpc_cidr_block           = "172.18.0.0/18"
+  vpc_cidr_block           = local.vpc_cidr_block
 
   private_zone_ips = {
     "a": "172.18.0.0/20",

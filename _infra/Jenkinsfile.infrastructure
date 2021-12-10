@@ -6,7 +6,7 @@ pipeline {
 
   parameters {
     choice(name: 'environment', choices: ['sandbox', 'cba'], description: 'Chose the environment to deploy to.')
-    choice(name: 'terraform_target', choices: ['none', 'all', 'lambda_functions', 'eks', 'api-gateway', 'vpc', 'k8s_service_account_permissions', 'rabbitmq'], description: 'Apply specific terraform module targets.')
+    choice(name: 'terraform_target', choices: ['none', 'all', 'lambda_functions', 'eks', 'api-gateway', 'vpc', 'k8s_service_account_permissions', 'rabbitmq', "bastion", "avn-vault"], description: 'Apply specific terraform module targets.')
     string(name: 'additional_terraform_args', defaultValue: '', description: 'Supply additional terraform arguments, The environment can be destroyed by supplying the arg -destroy', trim: true)
     choice(name: 'apply_third_party_charts', choices: ['false', 'true'], description: 'Apply third party helm charts to kubernetes')
     choice(name: 'new_environment', choices: ['false', 'true'], description: 'Apply a new environment, if true then the VPC will be built before the rest of the infrastructure.')
@@ -88,15 +88,17 @@ pipeline {
         }
       }
       steps {
-        dir("_infra/terraform/environments/${env.environment}") {
-          sh "terraform init"
-          script {
-            avn_connector_ips = terraformOutput("avn_connector_ips")
-            private_subnets = terraformOutput("main_subnet")
-            private_hosted_zone_id = terraformOutput("private_hosted_zone_id")
-            redis_security_group_id = terraformOutput("redis_security_group_id")
-            redis_password = terraformOutput("redis_password")
-            redis_username = terraformOutput("redis_username")
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}") {
+            sh "terraform init"
+            script {
+              avn_connector_ips = terraformOutput("avn_connector_ips")
+              private_subnets = terraformOutput("main_subnet")
+              private_hosted_zone_id = terraformOutput("private_hosted_zone_id")
+              redis_security_group_id = terraformOutput("redis_security_group_id")
+              redis_password = terraformOutput("redis_password")
+              redis_username = terraformOutput("redis_username")
+            }
           }
         }
       }
@@ -130,32 +132,32 @@ pipeline {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           script {
             redis_address = redisAddress()
-            while (redis_address?.trim()) {
+            while (!redis_address?.trim()) {
               echo "MemoryDB cluster is being created sleeping for 10 seconds . . ."
               redis_address = redisAddress()
             }
           }
         }
-        // withAWS(roleAccount:accountId(), role:'jenkins-access') {
-        //   sh "aws route53 change-resource-record-sets \
-        //       --hosted-zone-id ${private_hosted_zone_id} \
-        //       --change-batch '
-        //       {
-        //         \\\"Comment\\\": \\\"Redis record\\\"
-        //         ,\\\"Changes\\\": [{
-        //           \\\"Action\\\"              : \\\"CREATE\\\"
-        //           ,\\\"ResourceRecordSet\\\"  : {
-        //             \\\"Name\\\"              : \\\"redis.'\\\" ${env.environment} \\\"'.aventus.internal\\\"
-        //             ,\\\"Type\\\"             : \\\"CNAME\\\"
-        //             ,\\\"TTL\\\"              : 120
-        //             ,\\\"ResourceRecords\\\"  : [{
-        //                 \\\"Value\\\"         : \\\"'\\\" ${redis_address} \\\"'\\\"
-        //             }]
-        //           }
-        //         }]
-        //       }
-        //       '"
-        // }
+        withAWS(roleAccount:accountId(), role:'jenkins-access') {
+          sh "aws route53 change-resource-record-sets \
+              --hosted-zone-id ${private_hosted_zone_id} \
+              --change-batch ' \
+              { \
+                \"Comment\": \"Redis record\", \
+                \"Changes\": [{ \
+                  \"Action\"              : \"UPSERT\", \
+                  \"ResourceRecordSet\"  : { \
+                    \"Name\"              : \"redis.${env.environment}.aventus.internal\", \
+                    \"Type\"             : \"CNAME\", \
+                    \"TTL\"              : 120, \
+                    \"ResourceRecords\"  : [{ \
+                        \"Value\"         : \"'${redis_address}'\" \
+                    }] \
+                  } \
+                }] \
+              } \
+              '"
+        }
       }
     }
     

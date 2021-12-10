@@ -71,6 +71,8 @@ spec:
                   key: password
             - name: VAULT_URL
               value: vault.{{ .Values.environment }}.avn-gateway.aventus.io
+            - name: REDIS_URL
+              value: redis.{{ .Values.environment }}.aventus.internal
             
           resources:
             {{- toYaml .Values.deployment.resources | nindent 12 }}

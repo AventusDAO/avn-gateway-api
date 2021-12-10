@@ -7,9 +7,7 @@ function mergePkgDependencies(sourcePkgPath, targetPkgPath) {
   const sourcePkg = require(sourcePkgPath)
   const targetPkg = require(targetPkgPath)
 
-  Object.entries(sourcePkg.dependencies).forEach(
-    ([module, version] = dependency) => (targetPkg.dependencies[module] = version)
-  )
+  Object.entries(sourcePkg.dependencies).forEach(([module, version] = dependency) => (targetPkg.dependencies[module] = version))
   fs.writeFileSync(targetPkgPath, JSON.stringify(targetPkg, null, 2))
 }
 

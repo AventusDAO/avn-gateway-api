@@ -97,13 +97,7 @@ function mintSingleNft(api, queryApi) {
     common.validateIsArray(royalties)
     common.validateEthereumAddress(t1Authority)
 
-    const proxyMintSignature = proxyApi.createProxyMintSingleNftSignature(
-      relayer,
-      signer,
-      externalRef,
-      royalties,
-      t1Authority
-    )
+    const proxyMintSignature = proxyApi.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)
 
     const transactionType = TX_TYPE.ProxyMintSingleNft
     const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(
@@ -145,13 +139,7 @@ function transferFiatNft(api, queryApi) {
 
     const opId = await queryApi.getNftNonce(nftId)
 
-    const proxyTransferFiatNftSignature = proxyApi.createProxyTransferFiatNftSignature(
-      relayer,
-      signer,
-      nftId,
-      recipient,
-      opId
-    )
+    const proxyTransferFiatNftSignature = proxyApi.createProxyTransferFiatNftSignature(relayer, signer, nftId, recipient, opId)
 
     const transactionType = TX_TYPE.ProxyTransferFiatNft
     const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(
@@ -222,16 +210,13 @@ function cancelListFiatNft(api, queryApi) {
   }
 }
 
+function generateFunction(functionName, api, queryApi) {
+  return functionName(api, queryApi)
+}
+
 Send.prototype.proxyTransfer = async function(api, queryApi, relayer, signer, recipient, token, amount, isRetry) {
   const proxyNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy)
-  const proxyTransferSignature = proxyApi.createProxyTransferSignature(
-    relayer,
-    signer,
-    recipient,
-    token,
-    amount,
-    proxyNonce
-  )
+  const proxyTransferSignature = proxyApi.createProxyTransferSignature(relayer, signer, recipient, token, amount, proxyNonce)
 
   const transactionType = token === this.avtContractAddress ? TX_TYPE.ProxyAvtTransfer : TX_TYPE.ProxyTokenTransfer
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(
@@ -260,10 +245,6 @@ Send.prototype.proxyTransfer = async function(api, queryApi, relayer, signer, re
   }
 
   return response
-}
-
-function generateFunction(functionName, api, queryApi) {
-  return functionName(api, queryApi)
 }
 
 Send.prototype.postRequest = async function(api, method, params) {
@@ -320,22 +301,10 @@ Send.prototype.getRelayerFee = async function(queryApi, relayer, user, transacti
   return this.feesMap[relayer][user][transactionType]
 }
 
-Send.prototype.getPaymentNonceAndSignature = async function(
-  queryApi,
-  relayer,
-  signer,
-  proxySignature,
-  transactionType
-) {
+Send.prototype.getPaymentNonceAndSignature = async function(queryApi, relayer, signer, proxySignature, transactionType) {
   const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
   const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
-  const feePaymentSignature = proxyApi.createFeePaymentSignature(
-    relayer,
-    signer,
-    proxySignature,
-    relayerFee,
-    paymentNonce
-  )
+  const feePaymentSignature = proxyApi.createFeePaymentSignature(relayer, signer, proxySignature, relayerFee, paymentNonce)
 
   return { paymentNonce, feePaymentSignature }
 }

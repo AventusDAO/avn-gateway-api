@@ -48,6 +48,7 @@ function populateTestFees() {
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyMintSingleNft] = TEST_DEFAULT_RELAYER_FEE
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyListNftOpenForSale] = TEST_DEFAULT_RELAYER_FEE
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyTransferFiatNft] = TEST_DEFAULT_RELAYER_FEE
+  testRelayerFees.fees[gatewayDb.TransactionType.ProxyCancelListFiatNft] = TEST_DEFAULT_RELAYER_FEE
 
   testUser1Fees.fees[gatewayDb.TransactionType.ProxyAvtTransfer] = TEST_USER1_RELAYER_FEE
 

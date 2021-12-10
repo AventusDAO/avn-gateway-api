@@ -69,5 +69,8 @@ spec:
                 secretKeyRef:
                   name: redis-credentials
                   key: password
+            - name: VAULT_URL
+              value: vault.{{ .Values.environment }}.avn-gateway.aventus.io
+            
           resources:
             {{- toYaml .Values.deployment.resources | nindent 12 }}

@@ -116,9 +116,7 @@ async function collectionExists(db, collectionName) {
 // userAddress and transactionType are optional
 async function getFees(relayerAddress, userAddress, transactionType) {
   if (transactionType && !Object.values(TransactionType).includes(transactionType)) {
-    throw new Error(
-      `Invalid transaction type ${transactionType} found. Allowed values are ${Object.values(TransactionType)}`
-    )
+    throw new Error(`Invalid transaction type ${transactionType} found. Allowed values are ${Object.values(TransactionType)}`)
   }
 
   const relayerFees = await getRelayerFees(relayerAddress)
@@ -148,9 +146,7 @@ async function getRelayerFees(relayerAddress) {
 
 async function getUserFeesIfAny(relayerAddress, userAddress) {
   if (!relayerAddress || !userAddress) {
-    log.trace(
-      `Relayer address or User address is missing. RelayerAddress: ${relayerAddress}, UserAddress: ${userAddress}`
-    )
+    log.trace(`Relayer address or User address is missing. RelayerAddress: ${relayerAddress}, UserAddress: ${userAddress}`)
     return undefined
   }
 

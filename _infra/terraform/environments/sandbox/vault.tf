@@ -28,14 +28,22 @@ module "avn-vault-sandbox" {
   dynamodb_table_name= "avn-gw-vault-sandbox-db"
 }
 
+module "bastion" {
+  source                = "../../modules/bastion"
+  vpc_id                = module.vpc.vpc_id
+  ssh_key_name          = aws_key_pair.vault-ssh-key.key_name
+  public_subnet_id      = module.vpc.primary_public_subnet.id
+  ssh_allowed_ips       = local.ssh_allowed_ips
+}
+
 resource "local_file" "avn-gateway-vault-instance-file" {
     content     = <<-EOD
 [bastion]
-${aws_instance.avn-gw-bastion.public_ip} ansible_user=ubuntu
+${module.bastion.public_ip} ansible_user=ubuntu
 [vault_server]
 ${module.avn-vault-sandbox.instance_ip_addr} ansible_user=ubuntu
 [vault_server:vars]
-ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q ubuntu@${aws_instance.avn-gw-bastion.public_ip}"'
+ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
 api_addr_value='https://${module.avn-vault-sandbox.fqdn}:8200'
 aws_region='${module.avn-vault-sandbox.aws_region}'
 kms_key_id='${module.avn-vault-sandbox.kms_key_id}'
@@ -44,49 +52,3 @@ EOD
     filename = "${path.module}/vault.inventory"
 }
 
-# TODO Create the Vault certificate using AWS in the dns module.
-
-# Bastion Security Group
-resource "aws_security_group" "avn-gw-bastion-sg" {
-  name        = "avn-gw-bastion"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
-    cidr_blocks = local.ssh_allowed_ips
-    description = "SSH access inside VPC"
-  }
-
-  egress {
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
-    cidr_blocks     = ["0.0.0.0/0"]
-  }
-  tags = {
-    Name = "bastion-sg"
-    Project = "AvN-Gateway"
-  }
-}
-
-# Avn-Vault Instance
-resource "aws_instance" "avn-gw-bastion" {
-  ami                    = "ami-08edbb0e85d6a0a07"
-  instance_type          = "t3a.nano"
-  key_name               = aws_key_pair.vault-ssh-key.key_name
-  monitoring             = true
-  vpc_security_group_ids = [aws_security_group.avn-gw-bastion-sg.id]
-  subnet_id              = module.vpc.primary_public_subnet.id
-
-  root_block_device {
-    volume_size = "15"
-    encrypted = "true"
-  }
-
-  tags = {
-    Name = "bastion"
-    Project = "AvN-Gateway"
-  }
-}

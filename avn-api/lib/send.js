@@ -59,15 +59,13 @@ function listNftOpenForSale(api, queryApi) {
       nftNonce
     )
 
-    const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
     const transactionType = TX_TYPE.ProxyListNftOpenForSale
-    const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
-    const feePaymentSignature = proxyApi.createFeePaymentSignature(
+    const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(
+      queryApi,
       relayer,
       signer,
       proxyListNftOpenForSaleSignature,
-      relayerFee,
-      paymentNonce
+      transactionType
     )
 
     const response = await this.postRequest(api, transactionType, {
@@ -106,15 +104,14 @@ function mintSingleNft(api, queryApi) {
       royalties,
       t1Authority
     )
-    const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
+
     const transactionType = TX_TYPE.ProxyMintSingleNft
-    const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
-    const feePaymentSignature = proxyApi.createFeePaymentSignature(
+    const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(
+      queryApi,
       relayer,
       signer,
       proxyMintSignature,
-      relayerFee,
-      paymentNonce
+      transactionType
     )
 
     const response = await this.postRequest(api, transactionType, {
@@ -156,15 +153,13 @@ function transferFiatNft(api, queryApi) {
       opId
     )
 
-    const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
     const transactionType = TX_TYPE.ProxyTransferFiatNft
-    const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
-    const feePaymentSignature = proxyApi.createFeePaymentSignature(
+    const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(
+      queryApi,
       relayer,
       signer,
       proxyTransferFiatNftSignature,
-      relayerFee,
-      paymentNonce
+      transactionType
     )
 
     const response = await this.postRequest(api, transactionType, {
@@ -196,22 +191,15 @@ function cancelListFiatNft(api, queryApi) {
 
     const opId = await queryApi.getNftNonce(nftId)
 
-    const proxyCancelListFiatNftSignature = proxyApi.createProxyCancelListFiatNftSignature(
-      relayer,
-      signer,
-      nftId,
-      opId
-    )
+    const proxyCancelListFiatNftSignature = proxyApi.createProxyCancelListFiatNftSignature(relayer, signer, nftId, opId)
 
-    const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
     const transactionType = TX_TYPE.ProxyCancelListFiatNft
-    const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
-    const feePaymentSignature = proxyApi.createFeePaymentSignature(
+    const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(
+      queryApi,
       relayer,
       signer,
       proxyCancelListFiatNftSignature,
-      relayerFee,
-      paymentNonce
+      transactionType
     )
 
     const response = await this.postRequest(api, transactionType, {
@@ -245,15 +233,13 @@ Send.prototype.proxyTransfer = async function(api, queryApi, relayer, signer, re
     proxyNonce
   )
 
-  const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
   const transactionType = token === this.avtContractAddress ? TX_TYPE.ProxyAvtTransfer : TX_TYPE.ProxyTokenTransfer
-  const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
-  const feePaymentSignature = proxyApi.createFeePaymentSignature(
+  const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(
+    queryApi,
     relayer,
     signer,
     proxyTransferSignature,
-    relayerFee,
-    paymentNonce
+    transactionType
   )
 
   const response = await this.postRequest(api, transactionType, {
@@ -332,6 +318,26 @@ Send.prototype.getRelayerFee = async function(queryApi, relayer, user, transacti
   if (!this.feesMap[relayer]) this.feesMap[relayer] = {}
   if (!this.feesMap[relayer][user]) this.feesMap[relayer][user] = await queryApi.getRelayerFees(relayer, user)
   return this.feesMap[relayer][user][transactionType]
+}
+
+Send.prototype.getPaymentNonceAndSignature = async function(
+  queryApi,
+  relayer,
+  signer,
+  proxySignature,
+  transactionType
+) {
+  const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment)
+  const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType)
+  const feePaymentSignature = proxyApi.createFeePaymentSignature(
+    relayer,
+    signer,
+    proxySignature,
+    relayerFee,
+    paymentNonce
+  )
+
+  return { paymentNonce, feePaymentSignature }
 }
 
 module.exports = Send

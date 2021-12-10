@@ -14,7 +14,7 @@ resource "aws_key_pair" "vault-ssh-key" {
 }
 
 module "avn-vault-sandbox" {
-  source = "git@github.com:Aventus-Network-Services/avn-vault-terraform-module.git?ref=v0.4.1"
+  source = "git@github.com:Aventus-Network-Services/avn-vault-terraform-module.git?ref=v0.4.2"
   name = local.environment
   project = "avn-gateway"
   ssh-key = "technical-account-vault"
@@ -36,11 +36,13 @@ ${aws_instance.avn-gw-bastion.public_ip} ansible_user=ubuntu
 ${module.avn-vault-sandbox.instance_ip_addr} ansible_user=ubuntu
 [vault_server:vars]
 ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q ubuntu@${aws_instance.avn-gw-bastion.public_ip}"'
+api_addr_value='https://${module.avn-vault-sandbox.fqdn}:8200'
+aws_region='${module.avn-vault-sandbox.aws_region}'
+kms_key_id='${module.avn-vault-sandbox.kms_key_id}'
+dynamodb_table='${module.avn-vault-sandbox.dynamodb_table}'
 EOD
     filename = "${path.module}/vault.inventory"
 }
-
-# TODO Create the Vault certificate using AWS in the dns module.
 
 # Bastion Security Group
 resource "aws_security_group" "avn-gw-bastion-sg" {

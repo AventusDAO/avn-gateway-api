@@ -28,6 +28,9 @@ spec:
           image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-account:latest"
           command: ["node", "scripts/addRelayer.js", "setRelayer", "-u", "$(RELAYER_ADDRESS)", "-s", "$(RELAYER_SEED)"]
           env:
+            envFrom:
+            - configMapRef:
+              name: vault
             # Hardcoded relayers for test environments only, the seed is not sensitive and does not exist in testnet or mainnet.
             - name: RELAYER_ADDRESS
               value: "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh"
@@ -46,7 +49,9 @@ spec:
               containerPort: {{ .Values.deployment.server.port }}
           envFrom:
             - configMapRef:
-                name: {{ .Chart.Name }}
+              name: {{ .Chart.Name }}
+            - configMapRef:
+              name: vault
           env:
             - name: NODE_ENV
               value: docker

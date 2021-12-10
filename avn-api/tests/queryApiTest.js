@@ -4,6 +4,9 @@ const assert = chai.assert
 chai.use(require('chai-as-promised'))
 const helper = require('./helper.js')
 const accounts = helper.ACCOUNTS
+const BN = helper.BN
+
+const MIN_TOTAL_AVT_SUPPLY = new BN('100000000000000000000')
 
 describe('Query api calls:', async () => {
   let api
@@ -35,7 +38,7 @@ describe('Query api calls:', async () => {
 
   describe('getTotalAvt', async () => {
     it('returns total AVT supply', async () => {
-      assert.equal(helper.AVT_SUPPLY, await api.query.getTotalAvt())
+      assert(new BN(await api.query.getTotalAvt()).gt(MIN_TOTAL_AVT_SUPPLY))
     })
   })
 

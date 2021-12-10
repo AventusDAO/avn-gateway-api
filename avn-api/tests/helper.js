@@ -3,7 +3,7 @@ const assert = require('chai').assert
 const BN = require('bn.js')
 const { accounts } = require('../config/accounts.json')
 const configPath = process.argv[6] ? `../config/${process.argv[6]}.json` : '../config/sandbox.json'
-const { gateway, token, avt_supply } = require(configPath)
+const { gateway, token } = require(configPath)
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -36,7 +36,6 @@ async function confirmStatus(api, requestId, expectedStatus) {
 module.exports = {
   ACCOUNTS: accounts,
   confirmStatus,
-  AVT_SUPPLY: avt_supply,
   avnApi,
   BN,
   bnEquals,

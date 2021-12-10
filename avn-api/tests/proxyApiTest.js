@@ -60,14 +60,8 @@ describe('Proxy api calls:', async () => {
 
       await helper.confirmStatus(api, requestId, 'Processed')
 
-      bnEquals(
-        senderTokenBalanceBefore.sub(amount.mul(numTxBn)),
-        new BN(await api.query.getTokenBalance(sender, token))
-      )
-      bnEquals(
-        recipientTokenBalanceBefore.add(amount.mul(numTxBn)),
-        new BN(await api.query.getTokenBalance(recipient, token))
-      )
+      bnEquals(senderTokenBalanceBefore.sub(amount.mul(numTxBn)), new BN(await api.query.getTokenBalance(sender, token)))
+      bnEquals(recipientTokenBalanceBefore.add(amount.mul(numTxBn)), new BN(await api.query.getTokenBalance(recipient, token)))
       bnEquals(senderNonceBefore.add(numTxBn), new BN(await api.query.getAccountNonce(sender)))
       bnEquals(senderAvtBalanceBefore.sub(relayerFee.mul(numTxBn)), new BN(await api.query.getAvtBalance(sender)))
       // TODO: include network fees when we've sorted the accounts out

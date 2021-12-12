@@ -15,3 +15,4 @@ vault_scripts_home_dir: /vault/scripts/
 
 # Needs to be defined
 # gpg_key_public_key: <gpg public key here>
+# gpg_key_id: <gpg public key id here>

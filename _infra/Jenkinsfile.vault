@@ -1,6 +1,7 @@
 pipeline {
   environment {
     ANSIBLE_HOST_KEY_CHECKING="False"
+    gpg_key_id="eosprod@aventus.io"
   }
 
   parameters {
@@ -63,7 +64,8 @@ pipeline {
                     break
                   }
               }
-              sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory -b --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}', 'gpg_key_public_key':'${gpg_public_key}', 'deploy_vault': ${env.deploy}, 'init_vault': ${env.vault_init} }\""
+              def gpg_public_key = sh(script: 'gpg --export ${gpg_public_id} | base64 -w 10000', returnStdout: true)
+              sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}', 'gpg_key_public_key':'${gpg_public_key}', 'gpg_key_id':'${gpg_public_id}', 'deploy_vault': ${env.deploy}, 'init_vault': ${env.vault_init} }\""
             }
           }
         }
@@ -72,7 +74,7 @@ pipeline {
 
   post {
     always {
-      archiveArtifacts artifacts: '_infra/ansible/init.json', allowEmptyArchive: true
+      archiveArtifacts artifacts: '_infra/ansible/init.json,_infra/ansible/avn-vault-config.json.gpg,_infra/ansible/avn-vault-config.yaml.gpg', allowEmptyArchive: true
       cleanWs()
     }
   }

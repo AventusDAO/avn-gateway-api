@@ -1,0 +1,78 @@
+---
+- name: Create Vault directory
+  file:
+    path: '{{ item }}'
+    owner: vault
+    group: vault
+    state: directory
+    mode: 0755
+  loop:
+    - '{{ vault_scripts_home_dir }}'
+    - '{{ vault_scripts_home_dir }}config/'
+  become: true
+
+- name: Get the encrypted file & store it locally
+  fetch:
+    src: '{{ vault_scripts_home_dir }}config/init.json'
+    dest: '{{ playbook_dir }}/init.json'
+    flat: yes
+  become: true
+
+- name: Save the JSON file content of init.json (Vault response with gpg encrypted values)
+  local_action:
+    set_fact vault_init_json_parsed_data="{{ lookup('file', '{{ playbook_dir }}/init.json') | from_json }}"
+  no_log: true
+
+- name: PGP Decrypt of vault root password -- expects that the appropriate key is installed in the host machine
+  local_action:
+    shell echo "{{ vault_init_json_parsed_data['root_token']  }}" | base64 --decode | gpg -dq
+  register: vault_root_token
+  no_log: true
+
+- name: Copy init script
+  copy:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    owner: vault
+    group: vault
+    mode: 0755
+  with_items:
+    - { src: 'init.sh', dest: '/vault/scripts/' }
+  become: true
+
+- name: Run init.sh script
+  script: ./init.sh
+  args:
+    chdir: /vault/scripts/
+  environment:
+    vault_api_url: '{{ api_addr_value }}/v1'
+    config_output: '{{ vault_scripts_home_dir }}config/'
+    gpg_key_id: '{{ gpg_key_id }}'
+    vault_root_token: '{{ vault_root_token }}'
+    create_authority: '{{ avn_vault_create_authority }}'
+    create_relayer: '{{ avn_vault_create_relayer }}'
+
+- name: Get the init config files & store them locally
+  fetch:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    flat: yes
+  with_items:
+    - { src: '{{ vault_scripts_home_dir }}config/config.json', dest: '{{ playbook_dir }}/config.json' }
+    - { src: '{{ vault_scripts_home_dir }}config/config.yaml', dest: '{{ playbook_dir }}/config.yaml' }
+
+- name: PGP Encrypt of config files -- expects that the appropriate key is installed in the host machine
+  local_action:
+    shell gpg --output {{ item.dest }} --encrypt --recipient {{ gpg_key_id }} --trust-model always --yes {{ item.src }}
+  with_items:
+    - { src: '{{ vault_scripts_home_dir }}config/config.json', dest: '{{ playbook_dir }}/avn-vault-config.json.gpg' }
+    - { src: '{{ vault_scripts_home_dir }}config/config.yaml', dest: '{{ playbook_dir }}/avn-vault-config.yaml.gpg' }
+
+- name: Delete config.json & config.yaml file
+  when: cleanup_sensitive_data|bool
+  file:
+    state: absent
+    path: '{{ item }}'
+  with_items:
+    - '{{ vault_scripts_home_dir }}config/config.json'
+    - '{{ vault_scripts_home_dir }}config/config.yaml'

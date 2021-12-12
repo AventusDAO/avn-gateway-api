@@ -8,5 +8,9 @@
   roles:
   - role: aventus.ansible-avn-vault
     when: deploy_vault|bool
+    become: yes
   - role: vault-init
     when: init_vault|bool
+    become: yes
+  - role: avn-vault-setup
+    when: setup_avn_vault|bool

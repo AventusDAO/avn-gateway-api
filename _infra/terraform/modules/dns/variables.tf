@@ -19,6 +19,11 @@ variable "rabbit_address" {
   type        = string
 }
 
+variable "documentdb_address" {
+  description = "Address of the Mongo database"
+  type        = string
+}
+
 variable "api_gateway_url" {
   type = string
 }

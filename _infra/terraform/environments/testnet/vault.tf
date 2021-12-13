@@ -1,9 +1,5 @@
 locals {
-  # TODO only leave the Jenkins nat ip.
   ssh_allowed_ips = [
-    "31.185.206.69/32",     # Thanos
-    "81.111.99.54/32",      # John Terry
-    "82.6.143.25/32",       # Nahu
     "18.135.167.38/32",     # IP of the nat of Testnet (Jenkins)
   ]
 }
@@ -43,7 +39,7 @@ ${module.bastion.public_ip} ansible_user=ubuntu
 [vault_server]
 ${module.avn-vault.instance_ip_addr} ansible_user=ubuntu
 [vault_server:vars]
-ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
+ansible_ssh_common_args='-o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
 api_addr_value='https://${module.avn-vault.fqdn}:8200'
 aws_region='${module.avn-vault.aws_region}'
 kms_key_id='${module.avn-vault.kms_key_id}'

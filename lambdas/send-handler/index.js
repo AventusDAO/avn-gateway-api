@@ -7,11 +7,7 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 let mqSender
 const connectToMQ = async () => {
   if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
-    mqSender = new MQSender(
-      process.env.SECRET_MANAGER_REGION,
-      process.env.MQ_SECRET_ARN,
-      process.env.MQ_BROKER_AMQP_ENDPOINT
-    )
+    mqSender = new MQSender(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN, process.env.MQ_BROKER_AMQP_ENDPOINT)
     await mqSender.connectToMessageBroker()
   }
 }
@@ -210,12 +206,7 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
     try {
       responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
     } catch (err) {
-      utils.logError(
-        'failed to send proxy transaction',
-        call.id,
-        'send-handler.proxyListNftOpenForSale.sendProxyTx',
-        err
-      )
+      utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyListNftOpenForSale.sendProxyTx', err)
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {

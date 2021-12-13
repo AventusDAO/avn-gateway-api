@@ -1,4 +1,5 @@
 'use strict'
+
 const common = require('./common.js')
 
 function Query(api) {
@@ -64,9 +65,11 @@ function getNftNonce(api) {
 function getNftId(api) {
   return async function(externalRef) {
     common.validateStringIsPopulated(externalRef)
+
     if (!this.nftsMap[externalRef]) {
       this.nftsMap[externalRef] = await this.postRequest(api, 'getNftId', [externalRef])
     }
+
     return this.nftsMap[externalRef]
   }
 }

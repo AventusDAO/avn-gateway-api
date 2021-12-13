@@ -29,8 +29,8 @@ async function query(palletName, storageName, params) {
 
 async function proxy(requestId, palletName, method, params) {
   log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
-  let innerCall = api.tx[palletName][method](...params.proxyParams)
-  const txn = await api.tx.avnProxy.proxy(innerCall, params.paymentInfo)
+  const innerCall = api.tx[palletName][method](...params.proxyParams)
+  const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo)
   return await signAndSend(requestId, params.relayerAddress, txn)
 }
 

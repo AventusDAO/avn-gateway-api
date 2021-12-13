@@ -1,9 +1,5 @@
 locals {
-  # TODO only leave the Jenkins nat ip.
   ssh_allowed_ips = [
-    "31.185.206.69/32",     # Thanos
-    "81.111.99.54/32",      # John Terry
-    "82.6.143.25/32",       # Nahu
     "18.135.167.38/32",     # IP of the nat of Testnet (Jenkins)
   ]
 }

@@ -1,4 +1,5 @@
 'use strict'
+
 const common = require('./common.js')
 
 function Poll(api) {

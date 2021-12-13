@@ -95,22 +95,12 @@ async function signAndSend(requestId, relayerAddress, txn) {
     if (!result || !result.transactionHash) {
       result.transactionHash = requestId
     }
-    await redis.addFailedAvnTransaction(
-      requestId,
-      result.transactionHash,
-      relayerAccount.address.toString(),
-      nonce.toString()
-    )
+    await redis.addFailedAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString())
 
     throw err
   }
 
-  await redis.addPendingAvnTransaction(
-    requestId,
-    result.transactionHash,
-    relayerAccount.address.toString(),
-    nonce.toString()
-  )
+  await redis.addPendingAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString())
 
   return result
 }

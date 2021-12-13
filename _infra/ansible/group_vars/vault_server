@@ -11,7 +11,6 @@ vault_binary_path: vault-server/files/vault
 avn_vault_binary_path: vault-server/files/avn-vault
 
 ## Vault init
-vault_scripts_home_dir: /vault/scripts/
 
 # Needs to be defined
 # gpg_key_public_key: <gpg public key here>

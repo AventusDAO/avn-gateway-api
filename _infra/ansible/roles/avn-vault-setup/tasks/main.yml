@@ -8,7 +8,17 @@
     mode: 0755
   loop:
     - '{{ vault_scripts_home_dir }}'
-    - '{{ vault_scripts_home_dir }}config/'
+  become: true
+
+- name: Copy files
+  copy:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    owner: vault
+    group: vault
+    mode: 0755
+  with_items:
+    - { src: 'scripts/', dest: '/vault/' }
   become: true
 
 - name: Get the encrypted file & store it locally
@@ -29,21 +39,10 @@
   register: vault_root_token
   no_log: true
 
-- name: Copy init script
-  copy:
-    src: '{{ item.src }}'
-    dest: '{{ item.dest }}'
-    owner: vault
-    group: vault
-    mode: 0755
-  with_items:
-    - { src: 'init.sh', dest: '/vault/scripts/' }
-  become: true
-
 - name: Run init.sh script
-  script: ./init.sh
+  script: init.sh
   args:
-    chdir: /vault/scripts/
+    chdir: /vault/scripts
   environment:
     vault_api_url: '{{ api_addr_value }}/v1'
     config_output: '{{ vault_scripts_home_dir }}config/'
@@ -51,6 +50,7 @@
     vault_root_token: '{{ vault_root_token }}'
     create_authority: '{{ avn_vault_create_authority }}'
     create_relayer: '{{ avn_vault_create_relayer }}'
+    avn_vault_path: '{{ avn_vault_path }}'
 
 - name: Get the init config files & store them locally
   fetch:

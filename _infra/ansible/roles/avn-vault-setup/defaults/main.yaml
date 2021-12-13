@@ -3,3 +3,5 @@ setup_avn_vault: no
 cleanup_sensitive_data: no
 avn_vault_create_authority: no
 avn_vault_create_relayer: no
+avn_vault_path: '/vault/plugins/avn-vault'
+vault_scripts_home_dir: /vault/scripts/

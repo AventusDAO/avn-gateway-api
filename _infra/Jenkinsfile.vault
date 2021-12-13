@@ -7,7 +7,7 @@ pipeline {
   parameters {
     booleanParam( defaultValue: false, description: 'Whether or not deploy the instance of vault', name: 'deploy')
     booleanParam( defaultValue: false, description: 'Attempt to initialise the instance of vault', name: 'vault_init')
-    booleanParam( defaultValue: false, description: 'Attempt to initialise avn-vault module and application roles', name: 'init')
+    booleanParam( defaultValue: false, description: 'Attempt to setup avn-vault module and application roles', name: 'setup_avn_vault')
     choice(name: 'gateway_environment', choices: ['sandbox', 'cba'], description: 'Deploy to which environment?')
   }
 
@@ -31,7 +31,7 @@ pipeline {
     stage("Deploy Vault & avn-vault files via ansible.") {
       when {
         expression {
-            return env.deploy || env.vault_init || env.init;
+            return env.deploy || env.vault_init || env.setup_avn_vault;
         }
       }
 
@@ -65,8 +65,8 @@ pipeline {
                   }
               }
               script{
-                def gpg_public_key = sh(script: 'gpg --export ${gpg_public_id} | base64 -w 0', returnStdout: true)
-                sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}', 'gpg_key_public_key':'${gpg_public_key}', 'gpg_key_id':'${gpg_public_id}', 'deploy_vault': ${env.deploy}, 'init_vault': ${env.vault_init} }\""
+                def gpg_public_key = sh(script: 'gpg --export ${gpg_key_id} | base64 -w 0', returnStdout: true)
+                sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}', 'gpg_key_public_key':'${gpg_public_key}', 'gpg_key_id':'${gpg_key_id}', 'deploy_vault': ${env.deploy}, 'init_vault': ${env.vault_init}, 'setup_avn_vault': ${env.setup_avn_vault} }\""
               }
 
             }
@@ -74,7 +74,7 @@ pipeline {
         }
       }
     }
-
+  }
   post {
     always {
       archiveArtifacts artifacts: '_infra/ansible/init.json,_infra/ansible/avn-vault-config.json.gpg,_infra/ansible/avn-vault-config.yaml.gpg', allowEmptyArchive: true

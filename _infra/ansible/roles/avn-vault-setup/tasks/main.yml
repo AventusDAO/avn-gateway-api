@@ -1,4 +1,8 @@
 ---
+- name: Pause for 10 seconds to allow the server to init properly
+  pause:
+    seconds: 10
+
 - name: Create Vault directory
   file:
     path: '{{ item }}'
@@ -18,7 +22,7 @@
     group: vault
     mode: 0755
   with_items:
-    - { src: 'scripts/', dest: '/vault/' }
+    - { src: 'scripts/', dest: '/vault/scripts/' }
   become: true
 
 - name: Get the encrypted file & store it locally
@@ -40,17 +44,18 @@
   no_log: true
 
 - name: Run init.sh script
-  script: init.sh
+  script: scripts/init.sh
   args:
     chdir: /vault/scripts
   environment:
     vault_api_url: '{{ api_addr_value }}/v1'
     config_output: '{{ vault_scripts_home_dir }}config/'
     gpg_key_id: '{{ gpg_key_id }}'
-    vault_root_token: '{{ vault_root_token }}'
+    vault_root_token: '{{ vault_root_token.stdout }}'
     create_authority: '{{ avn_vault_create_authority }}'
     create_relayer: '{{ avn_vault_create_relayer }}'
     avn_vault_path: '{{ avn_vault_path }}'
+  become: true
 
 - name: Get the init config files & store them locally
   fetch:
@@ -60,13 +65,15 @@
   with_items:
     - { src: '{{ vault_scripts_home_dir }}config/config.json', dest: '{{ playbook_dir }}/config.json' }
     - { src: '{{ vault_scripts_home_dir }}config/config.yaml', dest: '{{ playbook_dir }}/config.yaml' }
+  become: true
+  become_user: ubuntu
 
 - name: PGP Encrypt of config files -- expects that the appropriate key is installed in the host machine
   local_action:
     shell gpg --output {{ item.dest }} --encrypt --recipient {{ gpg_key_id }} --trust-model always --yes {{ item.src }}
   with_items:
-    - { src: '{{ vault_scripts_home_dir }}config/config.json', dest: '{{ playbook_dir }}/avn-vault-config.json.gpg' }
-    - { src: '{{ vault_scripts_home_dir }}config/config.yaml', dest: '{{ playbook_dir }}/avn-vault-config.yaml.gpg' }
+    - { src: '{{ playbook_dir }}/config.json', dest: '{{ playbook_dir }}/avn-vault-config.json.gpg' }
+    - { src: '{{ playbook_dir }}/config.yaml', dest: '{{ playbook_dir }}/avn-vault-config.yaml.gpg' }
 
 - name: Delete config.json & config.yaml file
   when: cleanup_sensitive_data|bool

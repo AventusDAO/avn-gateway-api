@@ -11,6 +11,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-name: {{ .Chart.Name }}-{{ .Values.environment }}
     service.beta.kubernetes.io/aws-load-balancer-private-ipv4-addresses: "{{ join "," .Values.service.privateIps }}"
     service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
     service.beta.kubernetes.io/aws-load-balancer-subnets: {{ join "," .Values.service.subnetIds }}
   {{- end }}
 spec:

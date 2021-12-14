@@ -3,6 +3,8 @@ ingress-nginx:
     kind: DaemonSet
     
     service:
+      external:
+        enabled: false
       internal:
         enabled: true
         annotations:

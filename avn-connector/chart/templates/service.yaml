@@ -5,7 +5,6 @@ metadata:
   labels:
     app: {{ .Chart.Name }}
     helmVersion: {{ .Chart.Version }}
-  annotations:
 spec:
   type: {{ .Values.service.type }}
   ports:

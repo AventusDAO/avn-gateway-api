@@ -4,7 +4,7 @@ locals {
   environment            = "cba"
   cluster_version        = "1.21"
   account_id             = "602004642405"
-  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
+  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
   vault_recovery_window  = 0
 }

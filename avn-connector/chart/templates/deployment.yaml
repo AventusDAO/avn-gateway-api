@@ -27,10 +27,10 @@ spec:
         - name: relayer-account
           image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-account:latest"
           command: ["node", "scripts/addRelayer.js", "setRelayer", "-u", "$(RELAYER_ADDRESS)", "-s", "$(RELAYER_SEED)"]
-          env:
-            envFrom:
+          envFrom:
             - configMapRef:
               name: vault
+          env:
             - name: VAULT_ROLE_ID
               valueFrom:
                 secretKeyRef:

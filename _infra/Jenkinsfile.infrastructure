@@ -108,6 +108,9 @@ pipeline {
           generateContext("avn-gateway", "kube-system")
           helmInstallThirdParty("aws-lb-controller")
           helmInstallThirdParty("external-secrets-manager")
+          sh "kubectl create ns nginx || true"
+          generateContext("avn-gateway", "nginx")
+          helmInstallThirdParty("nginx")
         }
       }
     }

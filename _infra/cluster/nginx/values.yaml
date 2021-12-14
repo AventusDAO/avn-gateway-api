@@ -1,0 +1,11 @@
+ingress-nginx:
+  controller:
+    kind: DaemonSet
+    
+    service:
+      internal:
+        enabled: true
+        annotations:
+          # Create internal ELB
+          service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+          service.beta.kubernetes.io/aws-load-balancer-name: nginx-ingress-controller

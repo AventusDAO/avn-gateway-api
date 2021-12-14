@@ -3,6 +3,7 @@ locals {
   oidc_url         = trimprefix(var.oidc_provider, "${local.oidc_arn_prefix}/")
   lb_controller    = "aws-load-balancer-controller"
   external_secrets = "kubernetes-external-secrets" 
+  external_dns     = "external-dns"
 }
 
 data "aws_lambda_function" "tx_handler" {

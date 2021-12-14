@@ -129,14 +129,6 @@ resource "aws_route53_record" "api_gateway" {
   }
 }
 
-resource "aws_route53_record" "avn_connector" {
-  zone_id = aws_route53_zone.private.zone_id
-  name    = "avn-connector.${aws_route53_zone.private.name}"
-  type    = "A"
-  ttl     = "300"
-  records = local.avn_connector_ips
-}
-
 resource "aws_route53_record" "rabbit" {
   zone_id = aws_route53_zone.private.zone_id
   name    = "rabbit.${aws_route53_zone.private.name}"

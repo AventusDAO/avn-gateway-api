@@ -1,5 +1,4 @@
 {
   "gateway": "https://api.cba.avn-gateway.aventus.io",
-  "token" : "0x81f8e50c0d69aaf39925aff8c975f77e7444c8f2",
-  "avt_supply" : "5100000000000000000000"
+  "token" : "0x81f8e50c0d69aaf39925aff8c975f77e7444c8f2"
 }

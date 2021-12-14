@@ -5,7 +5,7 @@ const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto')
 const { TypeRegistry, createTypeUnsafe } = require('@polkadot/types')
 const { Keyring } = require('@polkadot/keyring')
 const registry = new TypeRegistry()
-const keyring = new Keyring({ type: 'sr25519' })
+const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 })
 const { validate: uuidValidate } = require('uuid')
 const BN = require('bn.js')
 
@@ -104,10 +104,9 @@ function validateTransactionType(transactionType) {
   }
 }
 
-function obtainSignerSuri(_publicKey) {
-  const publicKey = convertToPublicKeyIfNeeded(_publicKey)
-  const suri = process.env['_' + publicKey]
-  if (!suri) throw new Error(`Please set environment variable "_${publicKey}" to its seed`)
+function obtainSignerSuri() {
+  const suri = process.env.SURI
+  if (!suri) throw new Error('Please set SURI environment variable')
   return suri
 }
 

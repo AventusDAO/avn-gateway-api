@@ -115,6 +115,8 @@ spec:
                 secretKeyRef:
                   name: vault-role
                   key: secret-id
+            - name: REDIS_URL
+              value: redis.{{ .Values.environment }}.aventus.internal
             - name: MQ_SECRET_ARN
               value: arn:aws:secretsmanager:eu-west-1:{{ .Values.accountId }}:secret:rabbitmq
           resources:

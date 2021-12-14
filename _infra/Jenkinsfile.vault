@@ -71,6 +71,19 @@ pipeline {
         }
       }
     }
+    stage("Store app-role and secret-id in secrets manager") {
+      when {
+        expression {
+            return env.setup_avn_vault;
+        }
+      }
+
+      steps {
+        withAWS(roleAccount:accountId(), role:'jenkins-access') {
+          sh "aws secretsmanager put-secret-value --region ${env.region} --secret-id vault --secret-string file://_infra/ansible/config.json";
+        }
+      }
+    }
   }
   post {
     always {
@@ -78,4 +91,12 @@ pipeline {
       cleanWs()
     }
   }
+}
+
+def accountId() {
+  def environmentMap = [
+    sandbox: "352429414196",
+    cba: "602004642405"
+  ]
+  return environmentMap[env.gateway_environment]
 }

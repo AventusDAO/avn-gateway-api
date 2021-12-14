@@ -111,6 +111,9 @@ pipeline {
           helmInstallThirdParty("external-dns", 
             "--set external-dns.txtOwnderId=${private_hosted_zone_id} \
             --set domainFilters[0]=${env.environment}.aventus.internal")
+          sh "kubectl create ns nginx || true"
+          generateContext("avn-gateway", "nginx")
+          helmInstallThirdParty("nginx")
         }
       }
     }

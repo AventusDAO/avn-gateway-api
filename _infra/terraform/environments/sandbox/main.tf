@@ -4,7 +4,7 @@ locals {
   environment            = "sandbox"
   cluster_version        = "1.21"
   account_id             = "352429414196"
-  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
+  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   block_explorer_url     = "https://avn.stargate.aventus.io:3000"
   vpc_cidr_block         = "172.16.0.0/20"
   vault_recovery_window  = 0

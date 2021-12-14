@@ -108,6 +108,9 @@ pipeline {
           generateContext("avn-gateway", "kube-system")
           helmInstallThirdParty("aws-lb-controller")
           helmInstallThirdParty("external-secrets-manager")
+          helmInstallThirdParty("external-dns", 
+            "--set external-dns.txtOwnderId=${private_hosted_zone_id} \
+            --set domainFilters[0]=${env.environment}.aventus.internal")
         }
       }
     }
@@ -166,6 +169,11 @@ def accountId() {
 def helmInstallThirdParty(String application) {
   sh "helm dep up _infra/cluster/${application}"
   sh "helm upgrade --install ${application} _infra/cluster/${application} --wait"
+}
+
+def helmInstallThirdParty(String application, String set) {
+  sh "helm dep up _infra/cluster/${application}"
+  sh "helm upgrade --install ${application} _infra/cluster/${application} ${set} --wait"
 }
 
 def terraformOutput(String outputName) {

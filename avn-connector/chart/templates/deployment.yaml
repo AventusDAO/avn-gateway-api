@@ -27,10 +27,10 @@ spec:
         - name: relayer-account
           image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-account:latest"
           command: ["node", "scripts/addRelayer.js", "setRelayer", "-u", "$(RELAYER_ADDRESS)", "-s", "$(RELAYER_SEED)"]
-          env:
-            envFrom:
+          envFrom:
             - configMapRef:
               name: vault
+          env:
             - name: VAULT_ROLE_ID
               valueFrom:
                 secretKeyRef:
@@ -115,6 +115,8 @@ spec:
                 secretKeyRef:
                   name: vault-role
                   key: secret-id
+            - name: REDIS_URL
+              value: redis.{{ .Values.environment }}.aventus.internal
             - name: MQ_SECRET_ARN
               value: arn:aws:secretsmanager:eu-west-1:{{ .Values.accountId }}:secret:rabbitmq
           resources:

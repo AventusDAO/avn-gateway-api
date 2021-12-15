@@ -81,6 +81,23 @@ pipeline {
       }
     }
 
+    stage("Vault Setup & Init") {
+      when {
+        expression {
+          return env.new_environment == 'true';
+        }
+      }
+      steps {
+        build job: 'avn-gateway-vault-deployment', parameters:
+        [
+          string(name: 'gateway_environment', value: env.environment),
+          booleanParam(name: 'deploy', value: true),
+          booleanParam(name: 'vault_init', value: true),
+          booleanParam(name: 'setup_avn_vault', value: true),
+        ]
+      }
+    }
+
     stage("Get Terraform outputs") {
       when {
         expression {

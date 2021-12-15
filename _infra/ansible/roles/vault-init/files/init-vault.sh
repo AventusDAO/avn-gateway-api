@@ -7,10 +7,10 @@ fi
 
 set -e
 
-echo "checking if already init"
+echo "checking if vault has already been initialized"
 initialized_vault=$(curl -s ${vault_api_url}/sys/health | jq .initialized)
 if [ "$initialized_vault" = true ] ; then
-    echo -e "[init-vault] \e[33mVault is already initialzed. Skip step.\e[0m"
+    echo -e "[init-vault] \e[33mVault is already initialized. Skip step.\e[0m"
     exit
 fi
 

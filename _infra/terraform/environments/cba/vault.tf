@@ -45,10 +45,12 @@ resource "local_file" "avn-gateway-vault-instance-file" {
     content     = <<-EOD
 [bastion]
 ${module.bastion.public_ip} ansible_user=ubuntu
+
 [vault_server]
 ${module.avn-vault.instance_ip_addr} ansible_user=ubuntu
+
 [vault_server:vars]
-ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
+ansible_ssh_common_args='-o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
 api_addr_value='https://${module.avn-vault.fqdn}:8200'
 aws_region='${module.avn-vault.aws_region}'
 kms_key_id='${module.avn-vault.kms_key_id}'

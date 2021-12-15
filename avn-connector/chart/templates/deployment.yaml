@@ -49,6 +49,9 @@ spec:
         - name: relayer-fees
           image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-fees:latest"
           command: ["node", "scripts/insertTestFees.js"]
+          envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}
           env:
             - name: MONGO_USERNAME
               valueFrom:

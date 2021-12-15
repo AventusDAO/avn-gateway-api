@@ -9,7 +9,7 @@ pipeline {
     booleanParam( defaultValue: false, description: 'Whether or not deploy the instance of vault', name: 'deploy')
     booleanParam( defaultValue: false, description: 'Attempt to initialise the instance of vault', name: 'vault_init')
     booleanParam( defaultValue: false, description: 'Attempt to setup avn-vault module and application roles', name: 'setup_avn_vault')
-    choice(name: 'gateway_environment', choices: ['sandbox', 'cba'], description: 'Deploy to which environment?')
+    choice(name: 'gateway_environment', choices: ['sandbox', 'cba', 'testnet'], description: 'Deploy to which environment?')
   }
 
   agent any
@@ -97,7 +97,8 @@ pipeline {
 def accountId() {
   def environmentMap = [
     sandbox: "352429414196",
-    cba: "602004642405"
+    cba: "602004642405",
+    testnet: "189013141504"
   ]
   return environmentMap[env.gateway_environment]
 }

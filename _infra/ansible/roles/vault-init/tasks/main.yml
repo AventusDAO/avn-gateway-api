@@ -1,4 +1,9 @@
 ---
+
+- name: Pause for 10 seconds to allow the server to start properly
+  pause:
+    seconds: 10
+
 - name: Create Vault directory
   file:
     path: '{{ item }}'

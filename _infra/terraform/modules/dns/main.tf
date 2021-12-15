@@ -1,10 +1,14 @@
 locals {
   # https://www.terraform.io/docs/language/functions/cidrhost.html
   avn_connector_ips = [
-    cidrhost(data.aws_subnet.private["a"].cidr_block, 20)
+    cidrhost(data.aws_subnet.private["a"].cidr_block, 20),
+    cidrhost(data.aws_subnet.private["b"].cidr_block, 20),
+    cidrhost(data.aws_subnet.private["c"].cidr_block, 20)
   ]
   subnets = [
-    data.aws_subnet.private["a"].id
+    data.aws_subnet.private["a"].id,
+    data.aws_subnet.private["b"].id,
+    data.aws_subnet.private["c"].id
   ]
   public_zone_name = "${var.environment}.gateway.aventus.io"
 }
@@ -17,7 +21,7 @@ provider "aws" {
 }
 
 data "aws_subnet" "private" {
-  for_each = toset(["a"])
+  for_each = toset(["a", "b", "c"])
   filter {
     name   = "tag:Name"
     values = ["${var.vpc_name}-private-${each.key}"]
@@ -131,4 +135,12 @@ resource "aws_route53_record" "rabbit" {
   type    = "CNAME"
   ttl     = "300"
   records = [var.rabbit_address]
+}
+
+resource "aws_route53_record" "documentdb" {
+  zone_id = aws_route53_zone.private.zone_id
+  name    = "documentdb.${aws_route53_zone.private.name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [var.documentdb_address]
 }

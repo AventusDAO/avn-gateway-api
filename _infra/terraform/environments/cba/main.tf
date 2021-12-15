@@ -1,8 +1,8 @@
-
 locals {
   name                   = "avn-gateway"
   environment            = "cba"
   cluster_version        = "1.21"
+  eks_node_size          = 20
   account_id             = "602004642405"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
@@ -73,7 +73,7 @@ module "vpc" {
   avn_vpc_id               = "vpc-074c6e19e26ba4a23"
   peer_public_route_table  = "rtb-0a0b61707b33e0a75"
   peer_private_route_table = "rtb-00b575bea946b34bc"
-  vpc_cidr_block           = "172.17.0.0/20"
+  vpc_cidr_block           = local.vpc_cidr_block
 
   private_zone_ips = {
     "a": "172.17.0.0/22",
@@ -99,13 +99,14 @@ module "vpc" {
 }
 
 module "dns" {
-  source          = "../../modules/dns"
-  vpc_id          = module.vpc.vpc_id
-  environment     = local.environment
-  rabbit_address  = module.rabbitmq.broker_address
-  api_gateway_url = module.api_gateway.url
-  api_gateway_id  = module.api_gateway.api_id
-  api_gateway_stage = module.api_gateway.stage_id
+  source             = "../../modules/dns"
+  vpc_id             = module.vpc.vpc_id
+  environment        = local.environment
+  rabbit_address     = module.rabbitmq.broker_address
+  documentdb_address = module.documentdb.address
+  api_gateway_url    = module.api_gateway.url
+  api_gateway_id     = module.api_gateway.api_id
+  api_gateway_stage  = module.api_gateway.stage_id
 
   providers = {
     aws         = aws
@@ -154,7 +155,7 @@ module "eks" {
     avn-gateway = {
       create_launch_template = true
 
-      disk_size       = 20
+      disk_size       = local.eks_node_size
       disk_type       = "gp3"
 
       desired_capacity = 1
@@ -205,4 +206,11 @@ module "documentdb" {
 
   subnet_ids = module.vpc.private_subnets
   vpc_id     = module.vpc.vpc_id
+}
+
+module "redis" {
+  source = "../../modules/redis"
+
+  vpc_id       = module.vpc.vpc_id
+  ip_whitelist = module.vpc.private_subnet_ips
 }

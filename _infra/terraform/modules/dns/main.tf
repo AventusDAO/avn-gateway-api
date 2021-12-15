@@ -1,12 +1,16 @@
 locals {
   # https://www.terraform.io/docs/language/functions/cidrhost.html
   avn_connector_ips = [
-    cidrhost(data.aws_subnet.private["a"].cidr_block, 20)
+    cidrhost(data.aws_subnet.private["a"].cidr_block, 20),
+    cidrhost(data.aws_subnet.private["b"].cidr_block, 20),
+    cidrhost(data.aws_subnet.private["c"].cidr_block, 20)
   ]
   subnets = [
-    data.aws_subnet.private["a"].id
+    data.aws_subnet.private["a"].id,
+    data.aws_subnet.private["b"].id,
+    data.aws_subnet.private["c"].id
   ]
-  public_zone_name = "${var.environment}.avn-gateway.aventus.io"
+  public_zone_name = "${var.environment}.gateway.aventus.io"
 }
 
 provider "aws" {
@@ -17,7 +21,7 @@ provider "aws" {
 }
 
 data "aws_subnet" "private" {
-  for_each = toset(["a"])
+  for_each = toset(["a", "b", "c"])
   filter {
     name   = "tag:Name"
     values = ["${var.vpc_name}-private-${each.key}"]
@@ -58,7 +62,7 @@ resource "aws_route53_record" "aventus_io" {
 }
 
 resource "aws_acm_certificate" "api_gateway" {
-  domain_name       = "api.${aws_route53_zone.public.name}"
+  domain_name       = "${aws_route53_zone.public.name}"
   validation_method = "DNS"
 
   tags = {
@@ -71,7 +75,7 @@ resource "aws_acm_certificate" "api_gateway" {
 }
 
 resource "aws_apigatewayv2_domain_name" "api_gateway" {
-  domain_name = "api.${aws_route53_zone.public.name}"
+  domain_name = "${aws_route53_zone.public.name}"
 
   domain_name_configuration {
     certificate_arn    = aws_acm_certificate.api_gateway.arn
@@ -115,7 +119,7 @@ resource "aws_acm_certificate_validation" "api_gateway" {
 
 resource "aws_route53_record" "api_gateway" {
   zone_id = aws_route53_zone.public.zone_id
-  name    = "api.${aws_route53_zone.public.name}"
+  name    = "${aws_route53_zone.public.name}"
   type    = "A"
   
   alias {
@@ -125,18 +129,18 @@ resource "aws_route53_record" "api_gateway" {
   }
 }
 
-resource "aws_route53_record" "avn_connector" {
-  zone_id = aws_route53_zone.private.zone_id
-  name    = "avn-connector.${aws_route53_zone.private.name}"
-  type    = "A"
-  ttl     = "300"
-  records = local.avn_connector_ips
-}
-
 resource "aws_route53_record" "rabbit" {
   zone_id = aws_route53_zone.private.zone_id
   name    = "rabbit.${aws_route53_zone.private.name}"
   type    = "CNAME"
   ttl     = "300"
   records = [var.rabbit_address]
+}
+
+resource "aws_route53_record" "documentdb" {
+  zone_id = aws_route53_zone.private.zone_id
+  name    = "documentdb.${aws_route53_zone.private.name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [var.documentdb_address]
 }

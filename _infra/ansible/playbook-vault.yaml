@@ -2,8 +2,11 @@
 - name: gather facts
   hosts: bastion
 
-- hosts: vault_server
-  gather_facts: yes
+- name: Deploy & setup vault server files
+  hosts: vault_server
+
   roles:
-  - aventus.ansible-avn-vault
-  
+  - role: aventus.ansible-avn-vault
+    when: deploy_vault|bool
+  - role: vault-init
+    when: init_vault|bool

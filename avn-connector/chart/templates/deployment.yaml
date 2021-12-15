@@ -22,6 +22,52 @@ spec:
         helmVersion: {{ .Chart.Version }}
     spec:
       serviceAccount: avn-connector
+      {{- if and (not (eq .Values.environment "mainnet")) (not (eq .Values.environment "testnet"))}}
+      initContainers:
+        - name: relayer-account
+          image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-account:latest"
+          command: ["node", "scripts/addRelayer.js", "setRelayer", "-u", "$(RELAYER_ADDRESS)", "-s", "$(RELAYER_SEED)"]
+          envFrom:
+            - configMapRef:
+              name: vault
+          env:
+            - name: VAULT_ROLE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-role
+                  key: role-id
+            - name: VAULT_SECRET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-role
+                  key: secret-id
+            # Hardcoded relayers for test environments only, the seed is not sensitive and does not exist in testnet or mainnet.
+            - name: RELAYER_ADDRESS
+              value: "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh"
+            - name: RELAYER_SEED
+              value: "0xa343da434e14c8cef7c474551a63e7e4c0cb4670a2374368ee01e670ab0d2464"
+        - name: relayer-fees
+          image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-fees:latest"
+          command: ["node", "scripts/insertTestFees.js"]
+          env:
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: password
+            - name: DOCUMENT_DB_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: server
+            - name: MONGO_SERVER
+              value: $(DOCUMENT_DB_ADDRESS):27017/?ssl=true
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.deployment.image.repo }}:{{ .Values.deployment.image.tag }}"
@@ -31,7 +77,9 @@ spec:
               containerPort: {{ .Values.deployment.server.port }}
           envFrom:
             - configMapRef:
-                name: {{ .Chart.Name }}
+              name: {{ .Chart.Name }}
+            - configMapRef:
+              name: vault
           env:
             - name: NODE_ENV
               value: docker
@@ -57,6 +105,18 @@ spec:
                 secretKeyRef:
                   name: rabbit-credentials
                   key: server
+            - name: VAULT_ROLE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-role
+                  key: role-id
+            - name: VAULT_SECRET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-role
+                  key: secret-id
+            - name: REDIS_URL
+              value: redis.{{ .Values.environment }}.aventus.internal
             - name: MQ_SECRET_ARN
               value: arn:aws:secretsmanager:eu-west-1:{{ .Values.accountId }}:secret:rabbitmq
           resources:

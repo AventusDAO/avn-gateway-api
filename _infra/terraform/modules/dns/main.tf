@@ -10,7 +10,7 @@ locals {
     data.aws_subnet.private["b"].id,
     data.aws_subnet.private["c"].id
   ]
-  public_zone_name = "${var.environment}.avn-gateway.aventus.io"
+  public_zone_name = "${var.environment}.gateway.aventus.io"
 }
 
 provider "aws" {
@@ -62,7 +62,7 @@ resource "aws_route53_record" "aventus_io" {
 }
 
 resource "aws_acm_certificate" "api_gateway" {
-  domain_name       = "api.${aws_route53_zone.public.name}"
+  domain_name       = "${aws_route53_zone.public.name}"
   validation_method = "DNS"
 
   tags = {
@@ -75,7 +75,7 @@ resource "aws_acm_certificate" "api_gateway" {
 }
 
 resource "aws_apigatewayv2_domain_name" "api_gateway" {
-  domain_name = "api.${aws_route53_zone.public.name}"
+  domain_name = "${aws_route53_zone.public.name}"
 
   domain_name_configuration {
     certificate_arn    = aws_acm_certificate.api_gateway.arn
@@ -119,7 +119,7 @@ resource "aws_acm_certificate_validation" "api_gateway" {
 
 resource "aws_route53_record" "api_gateway" {
   zone_id = aws_route53_zone.public.zone_id
-  name    = "api.${aws_route53_zone.public.name}"
+  name    = "${aws_route53_zone.public.name}"
   type    = "A"
   
   alias {

@@ -5,6 +5,8 @@ pipeline {
 
   parameters {
     booleanParam( defaultValue: false, description: 'Whether or not deploy the instance of vault', name: 'deploy')
+    booleanParam( defaultValue: false, description: 'Attempt to initialise the instance of vault', name: 'vault_init')
+    booleanParam( defaultValue: false, description: 'Attempt to initialise avn-vault module and application roles', name: 'init')
     choice(name: 'gateway_environment', choices: ['sandbox', 'cba'], description: 'Deploy to which environment?')
   }
 
@@ -25,10 +27,13 @@ pipeline {
       }
     }
 
-    stage("Deploy avn-vault files via ansible.") {
+    stage("Deploy Vault & avn-vault files via ansible.") {
       when {
-        environment name: 'deploy', value: 'true'
+        expression {
+            return env.deploy || env.vault_init;
+        }
       }
+
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'technical-account-vault']) {
           // Generate the inventory file for the environment
@@ -58,15 +63,16 @@ pipeline {
                     break
                   }
               }
-              sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory -b --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}'}\" --check"
+              sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory -b --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}', 'gpg_key_public_key':'${gpg_public_key}', 'deploy_vault': ${env.deploy}, 'init_vault': ${env.vault_init} }\""
             }
           }
         }
       }
     }
-  }
+
   post {
     always {
+      archiveArtifacts artifacts: '_infra/ansible/init.json', allowEmptyArchive: true
       cleanWs()
     }
   }

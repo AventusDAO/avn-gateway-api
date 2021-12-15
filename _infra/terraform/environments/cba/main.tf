@@ -1,8 +1,8 @@
-
 locals {
   name                   = "avn-gateway"
   environment            = "cba"
   cluster_version        = "1.21"
+  eks_node_size          = 20
   account_id             = "602004642405"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
@@ -155,7 +155,7 @@ module "eks" {
     avn-gateway = {
       create_launch_template = true
 
-      disk_size       = 20
+      disk_size       = local.eks_node_size
       disk_type       = "gp3"
 
       desired_capacity = 1

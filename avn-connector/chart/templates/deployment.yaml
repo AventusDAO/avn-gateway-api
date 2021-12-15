@@ -29,7 +29,7 @@ spec:
           command: ["node", "scripts/addRelayer.js", "setRelayer", "-u", "$(RELAYER_ADDRESS)", "-s", "$(RELAYER_SEED)"]
           envFrom:
             - configMapRef:
-              name: vault
+                name: vault
           env:
             - name: VAULT_ROLE_ID
               valueFrom:
@@ -77,9 +77,9 @@ spec:
               containerPort: {{ .Values.deployment.server.port }}
           envFrom:
             - configMapRef:
-              name: {{ .Chart.Name }}
+                name: {{ .Chart.Name }}
             - configMapRef:
-              name: vault
+                name: vault
           env:
             - name: NODE_ENV
               value: docker

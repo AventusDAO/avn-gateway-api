@@ -4,7 +4,7 @@ locals {
   environment            = "mainnet"
   cluster_version        = "1.21"
   eks_node_size          = 50
-  account_id             = "189013141504"
+  account_id             = "503742778456"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
   block_explorer_url     = "https://avn.mainnet.aventus.io:3000"
   vpc_cidr_block         = "172.18.0.0/18"

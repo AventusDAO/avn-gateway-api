@@ -22,9 +22,11 @@ pipeline {
         }
       }
       steps {
-        dir("_infra/terraform/environments/${env.environment}") {
-          sh "terraform init"
-          sh "terraform plan -target module.vpc -target module.redis -out=plan-out-vpc.tfplan -no-color"
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}") {
+            sh "terraform init"
+            sh "terraform plan -target module.vpc -target module.redis -out=plan-out-vpc.tfplan -no-color"
+          }
         }
       }
     }
@@ -40,9 +42,11 @@ pipeline {
         message "Proceed with VPC apply"
       }
       steps {
-        dir("_infra/terraform/environments/${env.environment}") {
-          sh "terraform init"
-          sh "terraform apply plan-out-vpc.tfplan -no-color"
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}") {
+            sh "terraform init"
+            sh "terraform apply plan-out-vpc.tfplan -no-color"
+          }
         }
       }
     }

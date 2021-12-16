@@ -9,7 +9,6 @@ avn-api/.eslintrc.json
 _infra/ansible/files/*
 _infra/ansible/*inventory*
 Chart.lock
-.serverless/
 
 # Config file for AWS MQ
 avn-connector/src/config/default/mq.yaml

@@ -234,6 +234,7 @@ def generateContext(String clusterName, String namespace) {
 
 def terraformPlan() {
   sh "terraform init"
+  sh "terraform refresh"
   if ( env.terraform_target == 'all' ) {
     sh "terraform plan -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
   } else {

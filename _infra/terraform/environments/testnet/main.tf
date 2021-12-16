@@ -6,7 +6,7 @@ locals {
   eks_node_size          = 50
   account_id             = "189013141504"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
-  block_explorer_url     = "https://avn.testnet.aventus.io:3000"
+  block_explorer_url     = "https://testnet.index.aventus.io:3000"
   vpc_cidr_block         = "172.18.0.0/18"
   vault_recovery_window  = 0
 }

@@ -2,21 +2,12 @@ const axios = require('axios')
 const { TypeRegistry } = require('@polkadot/types')
 const registry = new TypeRegistry()
 const { hexToU8a, isHex, u8aToHex, u8aConcat } = require('@polkadot/util')
-const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = require('@polkadot/util-crypto')
+const { decodeAddress, encodeAddress, signatureVerify } = require('@polkadot/util-crypto')
 const BN = require('bn.js')
 const { validate: uuidValidate } = require('uuid')
 
 const SIGNING_CONTEXT = 'awt_gateway_api'
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
-
-let initialised
-
-async function init() {
-  if (!initialised) {
-    await cryptoWaitReady()
-    initialised = true
-  }
-}
 
 function isValidAccountId(accountId) {
   try {
@@ -108,7 +99,6 @@ module.exports = {
   axios,
   BN,
   logError,
-  init,
   isValidAccountId,
   isValidAmount,
   isValidMarket,

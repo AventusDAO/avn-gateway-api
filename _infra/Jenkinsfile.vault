@@ -53,6 +53,7 @@ pipeline {
             withCredentials([
               file(credentialsId: 'vault_tls_key_sandbox', variable: 'vault_tls_key_sandbox'),
               file(credentialsId: 'vault_tls_key_cba', variable: 'vault_tls_key_cba')
+              file(credentialsId: 'vault_tls_key_testnet', variable: 'vault_tls_key_testnet')
             ])
             {
               script {
@@ -62,6 +63,9 @@ pipeline {
                     break
                   case 'cba':
                     vault_tls_key = '$vault_tls_key_cba'
+                    break
+                  case 'testnet':
+                    vault_tls_key = '$vault_tls_key_testnet'
                     break
                 }
                 def gpg_public_key = sh(script: 'gpg --export ${gpg_key_id} | base64 -w 0', returnStdout: true)

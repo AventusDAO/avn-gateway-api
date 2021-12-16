@@ -179,7 +179,7 @@ resource "aws_route" "internet_gateway" {
 
 
 resource "aws_route" "public_avn_to_gateway_private_subnets" {
-  for_each = var.avn_vpc_id != "" ? [var.private_zone_ips] : {}
+  for_each = var.avn_vpc_id != "" ? var.private_zone_ips : {}
 
   provider                  = aws.avn
   route_table_id            = var.peer_public_route_table
@@ -197,7 +197,7 @@ resource "aws_route" "public_avn_to_gateway_public_subnets" {
 }
 
 resource "aws_route" "private_avn_to_gateway_private_subnets" {
-  for_each = var.avn_vpc_id != "" ? [var.private_zone_ips] : {}
+  for_each = var.avn_vpc_id != "" ? var.private_zone_ips : {}
 
   provider                  = aws.avn
   route_table_id            = var.peer_private_route_table
@@ -206,7 +206,7 @@ resource "aws_route" "private_avn_to_gateway_private_subnets" {
 }
 
 resource "aws_route" "private_avn_subnets_to_public_gateway" {
-  for_each = var.avn_vpc_id != "" ? [var.public_zone_ips] : {}
+  for_each = var.avn_vpc_id != "" ? var.public_zone_ips : {}
 
   provider                  = aws.avn
   route_table_id            = var.peer_private_route_table

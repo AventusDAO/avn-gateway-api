@@ -1,8 +1,8 @@
-
 locals {
   name                   = "avn-gateway"
   environment            = "sandbox"
   cluster_version        = "1.21"
+  eks_node_size          = 20
   account_id             = "352429414196"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   block_explorer_url     = "https://avn.stargate.aventus.io:3000"
@@ -58,7 +58,7 @@ module "lambda_functions" {
   ]
 }
 
-module "avn-gateway-api" {
+module "api_gateway" {
   source                = "../../modules/api-gateway"
   authoriser_invoke_arn = module.lambda_functions.invoke_arns["authorisation-handler"]
   authoriser_arn        = module.lambda_functions.lambda_arns["authorisation-handler"]
@@ -87,14 +87,14 @@ module "vpc" {
 }
 
 module "dns" {
-  source            = "../../modules/dns"
-  vpc_id            = module.vpc.vpc_id
-  environment       = local.environment
-  rabbit_address    = module.rabbitmq.broker_address
-  documentdb_address = "localhost"
-  api_gateway_url   = module.avn-gateway-api.url
-  api_gateway_id    = module.avn-gateway-api.api_id
-  api_gateway_stage = module.avn-gateway-api.stage_id
+  source             = "../../modules/dns"
+  vpc_id             = module.vpc.vpc_id
+  environment        = local.environment
+  rabbit_address     = module.rabbitmq.broker_address
+  documentdb_address = module.documentdb.address
+  api_gateway_url    = module.api_gateway.url
+  api_gateway_id     = module.api_gateway.api_id
+  api_gateway_stage  = module.api_gateway.stage_id
 
   providers = {
     aws         = aws
@@ -103,11 +103,9 @@ module "dns" {
 }
 
 module "rabbitmq" {
-  source              = "../../modules/rabbitmq"
-  vpc_id              = module.vpc.vpc_id
-  subnet_ids          = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
-  instance_type       = "mq.t3.micro"
-  publicly_accessible = true
+  source          = "../../modules/rabbitmq"
+  vpc_id          = module.vpc.vpc_id
+  subnet_ids      = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
   depends_on = [
     module.vpc
   ]
@@ -144,7 +142,7 @@ module "eks" {
     avn-gateway = {
       create_launch_template = true
 
-      disk_size       = 20
+      disk_size       = local.eks_node_size
       disk_type       = "gp3"
 
       desired_capacity = 1
@@ -188,4 +186,18 @@ module "k8s_service_account_permissions" {
     module.eks,
     module.lambda_functions
   ]
+}
+
+module "documentdb" {
+  source = "../../modules/documentdb"
+
+  subnet_ids = module.vpc.private_subnets
+  vpc_id     = module.vpc.vpc_id
+}
+
+module "redis" {
+  source = "../../modules/redis"
+
+  vpc_id       = module.vpc.vpc_id
+  ip_whitelist = module.vpc.private_subnet_ips
 }

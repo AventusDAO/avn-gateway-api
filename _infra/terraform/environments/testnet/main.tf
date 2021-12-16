@@ -101,6 +101,7 @@ module "dns" {
   vpc_id          = module.vpc.vpc_id
   environment     = local.environment
   rabbit_address  = module.rabbitmq.broker_address
+  documentdb_address = module.documentdb.address
   api_gateway_url = module.api_gateway.url
   api_gateway_id  = module.api_gateway.api_id
   api_gateway_stage = module.api_gateway.stage_id

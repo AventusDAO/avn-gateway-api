@@ -52,7 +52,7 @@ pipeline {
 
             withCredentials([
               file(credentialsId: 'vault_tls_key_sandbox', variable: 'vault_tls_key_sandbox'),
-              file(credentialsId: 'vault_tls_key_cba', variable: 'vault_tls_key_cba')
+              file(credentialsId: 'vault_tls_key_cba', variable: 'vault_tls_key_cba'),
               file(credentialsId: 'vault_tls_key_testnet', variable: 'vault_tls_key_testnet')
             ])
             {

@@ -1,0 +1,9 @@
+{
+  "name": "common",
+  "dependencies": {
+    "@polkadot/types": "^3.0.1",
+    "axios": "^0.24.0",
+    "bn.js": "^5.2.0",
+    "uuid": "^8.3.2"
+  }
+}

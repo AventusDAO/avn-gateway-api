@@ -28,7 +28,7 @@ provider:
   logRetentionInDays: 1
   vpc:
     securityGroupIds:
-      - sg-036af2a870edc91ca
+      - sg-0e8bbe6fd1637aa59
     subnetIds:
       - subnet-0fbd9b2001dd48ab2
       - subnet-02399a3c0dbbddfd9

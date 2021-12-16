@@ -18,7 +18,7 @@ provider:
     authorizers:
       awtAuthorisation:
         type: request
-        functionName: auth
+        functionName: awt
         resultTtlInSeconds: 60
         identitySource: $request.header.Authorization
   logs:
@@ -39,16 +39,16 @@ layers:
     path: queue
 
 functions:
-  auth:
-    name: auth
-    handler: auth.handler
+  awt:
+    name: awt
+    handler: awt.handler
     environment:
       MAX_TOKEN_AGE_MSEC: 60000
       MIN_AVT_BALANCE: 100000000000000000000
     package:
       patterns:
         - '!**/**'
-        - auth.js
+        - awt.js
     memorySize: 512
     layers:
       - { Ref: CommonLambdaLayer }

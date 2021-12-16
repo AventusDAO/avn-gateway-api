@@ -8,9 +8,7 @@
 const amqp = require('amqplib/callback_api')
 const avn = require('./avn')
 const config = require('multiconfig').load()
-const logger = require('log4js')
-  .configure(config.log4Js)
-  .getLogger()
+const logger = require('log4js').configure(config.log4Js).getLogger()
 const SecretsManager = require('./secretsManager')
 
 async function connectToMQ() {
@@ -30,7 +28,7 @@ function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqCom
   this.mqComponents = mqComponents
 }
 
-MQConsumer.prototype.getMqConnectionUrl = async function() {
+MQConsumer.prototype.getMqConnectionUrl = async function () {
   const secret = await this.secretsManager.getSecret(this.secretArn)
   return this.mqBrokerAmqpEndpoint.replace(
     'amqps://',
@@ -39,7 +37,7 @@ MQConsumer.prototype.getMqConnectionUrl = async function() {
 }
 
 async function processMessagesFromMq(mqConsumer) {
-  amqp.connect(await mqConsumer.getMqConnectionUrl(), function(err, conn) {
+  amqp.connect(await mqConsumer.getMqConnectionUrl(), function (err, conn) {
     logger.info('[AMQP] connecting')
 
     if (err) {
@@ -47,13 +45,13 @@ async function processMessagesFromMq(mqConsumer) {
       return setTimeout(processMessagesFromMq, 1000, mqConsumer)
     }
 
-    conn.on('error', function(err) {
+    conn.on('error', function (err) {
       if (err.message !== '[AMQP] connection closing') {
         logger.error('[AMQP] connection error', err.message)
       }
     })
 
-    conn.on('close', function() {
+    conn.on('close', function () {
       logger.error('[AMQP] reconnecting')
       return setTimeout(processMessagesFromMq, 1000, mqConsumer)
     })
@@ -101,7 +99,7 @@ async function processMessage(channel, queue) {
       {
         noAck: false
       },
-      async function(err, message) {
+      async function (err, message) {
         if (err) {
           channel.nack(message, allUpTo, requeue)
           reject()
@@ -124,17 +122,17 @@ async function processMessage(channel, queue) {
 
 function createChannel(conn) {
   return new Promise((resolve, reject) => {
-    conn.createChannel(function(err, channel) {
+    conn.createChannel(function (err, channel) {
       if (err) {
         logger.error('[AMQP] channel connection error', err.message)
         throw err
       }
 
-      channel.on('error', function(err) {
+      channel.on('error', function (err) {
         logger.error('[AMQP] channel error', err.message)
       })
 
-      channel.on('close', function() {
+      channel.on('close', function () {
         logger.info('[AMQP] channel closed')
         reject()
       })

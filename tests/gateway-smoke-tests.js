@@ -5,7 +5,7 @@ const BN = require('bn.js')
 
 // TODO: Replace 'process.argv' with 'yargs' to read command options
 
-describe('AVN Gateway Smoke Tests', function() {
+describe('AVN Gateway Smoke Tests', function () {
   let api, relayer, sender, recipient
 
   before(async () => {
@@ -28,6 +28,9 @@ describe('AVN Gateway Smoke Tests', function() {
     const requestId = await api.send.transferAvt(relayer, sender, recipient, amount)
     assert(requestId !== undefined, 'requestId is undefined')
     assert(requestId !== 'Invalid params', 'request contains invalid params')
-    assert(['Pending', 'Processed'].includes(await api.poll.requestState(requestId)), 'transaction state is neither Pending nor Processed')
+    assert(
+      ['Pending', 'Processed'].includes(await api.poll.requestState(requestId)),
+      'transaction state is neither Pending nor Processed'
+    )
   })
 })

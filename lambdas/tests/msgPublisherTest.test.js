@@ -1,0 +1,225 @@
+'use strict'
+
+const assert = require('assert')
+/*
+  TODO: Uncomment once we fix multi-config
+*/
+
+// const config = require('multiconfig').load({ directory: 'avn-connector/src/config/' })
+// const amqp = require('amqplib/callback_api')
+// const AWS = require('aws-sdk')
+// AWS.config.update({ region: config.mq.secretManagerRegion })
+// const smClient = new AWS.SecretsManager()
+// const lambda = new AWS.Lambda()
+
+const TEST_FN_NAME = 'msg-publisher-test'
+const TEST_QUEUE_NAME = 'send-txn-queue'
+const PREFETCH_SIZE = 30
+// const defaultEnvironmentVariable = {
+//   MQ_BROKER_AMQP_ENDPOINT: config.mq.mqBrokerAmqpEndpoint,
+//   MQ_SECRET_ARN: config.mq.mqSecretArn,
+//   SECRET_MANAGER_REGION: config.mq.secretManagerRegion
+// }
+
+let amqpConnection = null
+let amqpChannel = null
+
+// xdescribe('Lambda function: msg-publisher-test', function() {
+//   before(async () => {
+//     await setup()
+//   })
+
+//   after(async () => {
+//     await cleanUp()
+//   })
+
+//   describe(`publish messages to MQ queue ${TEST_QUEUE_NAME}`, function() {
+//     describe('publish multiple messages when queue does not exist', async () => {
+//       let testMessages = []
+
+//       before(async () => {
+//         testMessages = generateTestMessages(PREFETCH_SIZE)
+//         await invokeLambdaFnToPublishTestMessages(testMessages)
+//       })
+
+//       it(`new messages are added to queue ${TEST_QUEUE_NAME}`, async () => {
+//         const messagesInQueue = await readAllMessagesFromQueue()
+//         await assertMessagesInQueue(testMessages, messagesInQueue)
+//       })
+//     })
+//   })
+
+//   describe('Fails with', function() {
+//     it('Wrong MQ broker amqp endpoint', async () => {
+//       await updateLambdaEnvironmentVariable({
+//         MQ_BROKER_AMQP_ENDPOINT: 'abc',
+//         MQ_SECRET_ARN: config.mq.mqSecretArn,
+//         SECRET_MANAGER_REGION: config.mq.secretManagerRegion
+//       })
+//       let response = await publishMessage(newTestMessage(PREFETCH_SIZE + 1))
+//       assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'Error')
+//     })
+
+//     it('wrong MQ secret arn', async () => {
+//       await updateLambdaEnvironmentVariable({
+//         MQ_BROKER_AMQP_ENDPOINT: config.mq.mqBrokerAmqpEndpoint,
+//         MQ_SECRET_ARN: 'abc',
+//         SECRET_MANAGER_REGION: config.mq.secretManagerRegion
+//       })
+//       let response = await publishMessage(newTestMessage(PREFETCH_SIZE + 2))
+//       assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'ResourceNotFoundException')
+//     })
+
+//     it('wrong secret manager region', async () => {
+//       await updateLambdaEnvironmentVariable({
+//         MQ_BROKER_AMQP_ENDPOINT: config.mq.mqBrokerAmqpEndpoint,
+//         MQ_SECRET_ARN: config.mq.mqSecretArn,
+//         SECRET_MANAGER_REGION: 'abc'
+//       })
+//       let response = await publishMessage(newTestMessage(PREFETCH_SIZE + 3))
+//       assert(response.FunctionError && JSON.parse(response.Payload).errorType === 'UnknownEndpoint')
+//     })
+//   })
+// })
+
+// ----------------------------- Helper functions -------------------------------------------------
+
+// async function setup() {
+//   const url = await getAmqpEndpointUrl()
+//   amqpConnection = await connectToMessageBroker(url)
+//   amqpChannel = await connectToChannel(amqpConnection)
+//   await updateLambdaEnvironmentVariable(defaultEnvironmentVariable)
+//   deleteQueueInMQBroker()
+// }
+
+// async function cleanUp() {
+//   await updateLambdaEnvironmentVariable(defaultEnvironmentVariable)
+//   deleteQueueInMQBroker()
+//   amqpConnection.close()
+// }
+
+// function getAmqpEndpointUrl() {
+//   return new Promise((resolve, reject) => {
+//     smClient.getSecretValue({ SecretId: config.mq.mqSecretArn }, function(err, data) {
+//       if (err) throw err
+//       if ('SecretString' in data) {
+//         let { username, password } = JSON.parse(data.SecretString)
+//         resolve(
+//           config.mq.mqBrokerAmqpEndpoint.replace(
+//             'amqps://',
+//             `amqps://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`
+//           )
+//         )
+//       }
+//     })
+//   })
+// }
+
+// function connectToMessageBroker(url) {
+//   return new Promise((resolve, reject) => {
+//     amqp.connect(url, function(err, conn) {
+//       if (err) throw err
+//       conn.on('error', function(err) {
+//         throw err
+//       })
+//       resolve(conn)
+//     })
+//   })
+// }
+
+// function connectToChannel(conn) {
+//   return new Promise((resolve, reject) => {
+//     conn.createChannel(function(err, channel) {
+//       if (err) throw err
+//       resolve(channel)
+//     })
+//   })
+// }
+
+// function deleteQueueInMQBroker() {
+//   amqpChannel.deleteQueue(TEST_QUEUE_NAME)
+// }
+
+// async function assertMessagesInQueue(messages, messagesInQueue) {
+//   for (let i = 0; i < messages.length; i++) {
+//     assert.deepEqual(messages[i], messagesInQueue[i])
+//   }
+// }
+
+// function readAllMessagesFromQueue() {
+//   return new Promise((resolve, reject) => {
+//     let messageCounter = 0
+//     let messagesInQueue = []
+
+//     amqpChannel.assertQueue(TEST_QUEUE_NAME, { durable: true }, (error2, response) => {
+//       const messageCount = response.messageCount
+//       amqpChannel.consume(
+//         TEST_QUEUE_NAME,
+//         function(msg) {
+//           msg = msg.content.toString()
+//           messagesInQueue.push(JSON.parse(msg))
+//           messageCounter += 1
+//           if (messageCount === messageCounter) {
+//             resolve(messagesInQueue)
+//           }
+//         },
+//         {
+//           noAck: true
+//         }
+//       )
+//     })
+//   })
+// }
+
+// function generateTestMessages(numberOfMessages) {
+//   let messages = []
+//   for (let i = 0; i < numberOfMessages; i++) {
+//     messages.push(newTestMessage(i))
+//   }
+//   return messages
+// }
+
+// function newTestMessage(id) {
+//   return {
+//     jsonrpc: '2.0',
+//     method: 'transferAvt',
+//     params: ['5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr', '2'],
+//     id: id
+//   }
+// }
+
+// async function invokeLambdaFnToPublishTestMessages(messages) {
+//   for (let i = 0; i < messages.length; i++) {
+//     let response = await publishMessage(messages[i])
+//     assert(!response.FunctionError)
+//   }
+// }
+
+// async function publishMessage(message) {
+//   return new Promise((resolve, reject) => {
+//     var params = {
+//       FunctionName: TEST_FN_NAME,
+//       InvocationType: 'RequestResponse',
+//       Payload: Buffer.from(JSON.stringify(message))
+//     }
+//     lambda.invoke(params, function(err, data) {
+//       if (err) throw err
+//       resolve(data)
+//     })
+//   })
+// }
+
+// async function updateLambdaEnvironmentVariable(variables) {
+//   return new Promise((resolve, reject) => {
+//     var params = {
+//       FunctionName: TEST_FN_NAME,
+//       Environment: {
+//         Variables: variables
+//       }
+//     }
+//     lambda.updateFunctionConfiguration(params, function(err, data) {
+//       if (err) throw err
+//       resolve(data)
+//     })
+//   })
+// }

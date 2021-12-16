@@ -14,6 +14,7 @@ https://www.serverless.com/framework/docs/providers/aws/guide/credentials
 
 
 ### Deploying the avn-gateway
+Ensure the node modules in any layer folders are up-to-date, then:
 ```
 serverless deploy
 ```

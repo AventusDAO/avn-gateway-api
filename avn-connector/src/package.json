@@ -6,9 +6,6 @@
   "description": "Connects to the AVN and keeps connection in memory",
   "scripts": {
     "start": "node index.js",
-    "pretty": "prettier --config ../.prettierrc.json --check \"**/*.{js,json}\"",
-    "pretty:fix": "prettier --config ../.prettierrc.json --write \"**/*.{js,json}\"",
-    "format": "npm run pretty:fix",
     "ssh": "ssh -N -L 27017:172.16.12.33:27017 ubuntu@18.135.125.46",
     "insertTestFees": "concurrently \"npm run ssh\" \"node scripts/insertTestFees.js\" --kill-others"
   },
@@ -27,7 +24,6 @@
     "yargs": "^16.2.0"
   },
   "devDependencies": {
-    "concurrently": "^6.2.0",
-    "prettier": "^1.19.1"
+    "concurrently": "^6.2.0"
   }
 }

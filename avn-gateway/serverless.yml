@@ -44,6 +44,7 @@ functions:
   awt:
     name: awt
     handler: awt.handler
+    description: aws:states:opt-out
     environment:
       MAX_TOKEN_AGE_MSEC: 60000
       MIN_AVT_BALANCE: 100000000000000000000
@@ -58,6 +59,7 @@ functions:
   poll:
     name: poll
     handler: poll.handler
+    description: aws:states:opt-out
     package:
       patterns:
         - '!**/**'
@@ -75,6 +77,7 @@ functions:
   query:
     name: query
     handler: query.handler
+    description: aws:states:opt-out
     package:
       patterns:
         - '!**/**'
@@ -92,6 +95,7 @@ functions:
   send:
     name: send
     handler: send.handler
+    description: aws:states:opt-out
     environment:
       MQ_AVN_TX_QUEUE: avnTx
       MQ_BROKER_AMQP_ENDPOINT: amqps://b-46391450-1f8b-48a3-952a-856c35d7a44c.mq.eu-west-1.amazonaws.com:5671
@@ -115,6 +119,7 @@ functions:
   tx-status-update:
     name: tx-status-update
     handler: tx-status-update.handler
+    description: aws:states:opt-out
     environment:
       BLOCK_EXPLORER_BASE_URL: https://avn.stargate.aventus.io:3000
     package:
@@ -122,11 +127,5 @@ functions:
         - '!**/**'
         - tx-status-update.js
     memorySize: 128
-    events:
-      - httpApi:
-          path: /tx-status-update
-          method: POST
-          authorizer:
-            name: awtAuthorisation
     layers:
       - { Ref: CommonLambdaLayer }

@@ -2,7 +2,7 @@
 The setup of the avn-gateway (and its layers and lambdas) is handled by Serverless and defined in the `serverless.yml` file
 For available properties see: https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml
 Layers are resources that can be shared across lambdas and are contained in folders (eg: `common/`)
-Lambdas are individual route handler functions and contained in individual .js files (eg: `poll.js`)
+Lambdas are individual route handler functions and contained in individual .js files (eg: `poll-handler.js`)
 
 ### Prerequisites
 Install Serverless:
@@ -26,5 +26,5 @@ serverless remove
 
 ### Deploying a single lambda (fast)
 ```
-serverless deploy function --function awt
+serverless deploy function --function send-handler
 ```

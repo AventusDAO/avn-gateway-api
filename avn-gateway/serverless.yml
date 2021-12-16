@@ -18,7 +18,7 @@ provider:
     authorizers:
       awtAuthorisation:
         type: request
-        functionName: awt
+        functionName: authorisation-handler
         resultTtlInSeconds: 60
         enableSimpleResponses: true
         identitySource: $request.header.Authorization
@@ -41,9 +41,9 @@ layers:
     path: queue
 
 functions:
-  awt:
-    name: awt
-    handler: awt.handler
+  authorisation-handler:
+    name: authorisation-handler
+    handler: authorisation-handler.handler
     description: aws:states:opt-out
     environment:
       MAX_TOKEN_AGE_MSEC: 60000
@@ -51,19 +51,19 @@ functions:
     package:
       patterns:
         - '!**/**'
-        - awt.js
+        - authorisation-handler.js
     memorySize: 512
     layers:
       - { Ref: CommonLambdaLayer }
 
-  poll:
-    name: poll
-    handler: poll.handler
+  poll-handler:
+    name: poll-handler
+    handler: poll-handler.handler
     description: aws:states:opt-out
     package:
       patterns:
         - '!**/**'
-        - poll.js
+        - poll-handler.js
     memorySize: 256
     events:
       - httpApi:
@@ -74,14 +74,14 @@ functions:
     layers:
       - { Ref: CommonLambdaLayer }
 
-  query:
-    name: query
-    handler: query.handler
+  query-handler:
+    name: query-handler
+    handler: query-handler.handler
     description: aws:states:opt-out
     package:
       patterns:
         - '!**/**'
-        - query.js
+        - query-handler.js
     memorySize: 256
     events:
       - httpApi:
@@ -92,9 +92,9 @@ functions:
     layers:
       - { Ref: CommonLambdaLayer }
 
-  send:
-    name: send
-    handler: send.handler
+  send-handler:
+    name: send-handler
+    handler: send-handler.handler
     description: aws:states:opt-out
     environment:
       MQ_AVN_TX_QUEUE: avnTx
@@ -104,7 +104,7 @@ functions:
     package:
       patterns:
         - '!**/**'
-        - send.js
+        - send-handler.js
     memorySize: 512
     events:
       - httpApi:
@@ -116,16 +116,16 @@ functions:
       - { Ref: CommonLambdaLayer }
       - { Ref: QueueLambdaLayer }
 
-  tx-status-update:
-    name: tx-status-update
-    handler: tx-status-update.handler
+  tx-status-update-handler:
+    name: tx-status-update-handler
+    handler: tx-status-update-handler.handler
     description: aws:states:opt-out
     environment:
       BLOCK_EXPLORER_BASE_URL: https://avn.stargate.aventus.io:3000
     package:
       patterns:
         - '!**/**'
-        - tx-status-update.js
+        - tx-status-update-handler.js
     memorySize: 128
     layers:
       - { Ref: CommonLambdaLayer }

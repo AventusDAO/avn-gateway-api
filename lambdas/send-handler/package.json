@@ -1,7 +1,0 @@
-{
-  "name": "send-handler",
-  "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.39.0",
-    "amqplib": "^0.8.0"
-  }
-}

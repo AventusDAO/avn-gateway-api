@@ -1,0 +1,132 @@
+service: lambdas
+
+custom:
+  splitStacks:
+    perLambda: true
+
+package:
+  individually: true
+
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-1
+  versionFunctions: false
+  timeout: 6
+  environment:
+    AVN_CONNECTOR_ENDPOINT: http://avn-connector.sandbox.aventus.internal:8080/
+  httpApi:
+    authorizers:
+      awtAuthorisation:
+        type: request
+        functionName: auth
+        resultTtlInSeconds: 60
+        identitySource: $request.header.Authorization
+  logs:
+    format: '{"httpMethod":"$context.httpMethod","ip":"$context.identity.sourceIp","protocol":"$context.protocol","requestId":"$context.requestId","requestTime":"$context.requestTime","responseLength":"$context.responseLength","routeKey":"$context.routeKey","status":"$context.status"}'
+  vpc:
+    securityGroupIds:
+      - sg-036af2a870edc91ca
+    subnetIds:
+      - subnet-0fbd9b2001dd48ab2
+      - subnet-02399a3c0dbbddfd9
+      - subnet-0408c56e2665040d5
+
+layers:
+  common:
+    path: common
+  queue:
+    path: queue
+
+functions:
+  auth:
+    name: auth
+    handler: auth.handler
+    environment:
+      MAX_TOKEN_AGE_MSEC: 60000
+      MIN_AVT_BALANCE: 100000000000000000000
+    package:
+      patterns:
+        - '!**/**'
+        - auth.js
+    memorySize: 512
+    layers:
+      - { Ref: CommonLambdaLayer }
+
+  poll:
+    name: poll
+    handler: poll.handler
+    package:
+      patterns:
+        - '!**/**'
+        - poll.js
+    memorySize: 256
+    events:
+      - httpApi:
+          path: /poll
+          method: POST
+          authorizer:
+            name: awtAuthorisation
+    layers:
+      - { Ref: CommonLambdaLayer }
+
+  query:
+    name: query
+    handler: query.handler
+    package:
+      patterns:
+        - '!**/**'
+        - query.js
+    memorySize: 256
+    events:
+      - httpApi:
+          path: /query
+          method: POST
+          authorizer:
+            name: awtAuthorisation
+    layers:
+      - { Ref: CommonLambdaLayer }
+
+  send:
+    name: send
+    handler: send.handler
+    environment:
+      MQ_AVN_TX_QUEUE: avnTx
+      MQ_BROKER_AMQP_ENDPOINT: amqps://b-46391450-1f8b-48a3-952a-856c35d7a44c.mq.eu-west-1.amazonaws.com:5671
+      MQ_SECRET_ARN: arn:aws:secretsmanager:eu-west-1:352429414196:secret:rabbitmq-TU640D
+      SECRET_MANAGER_REGION: eu-west-1
+    package:
+      patterns:
+        - '!**/**'
+        - send.js
+    memorySize: 512
+    events:
+      - httpApi:
+          path: /send
+          method: POST
+          authorizer:
+            name: awtAuthorisation
+    layers:
+      - { Ref: CommonLambdaLayer }
+      - { Ref: QueueLambdaLayer }
+
+  tx-status-update:
+    name: tx-status-update
+    handler: tx-status-update.handler
+    environment:
+      BLOCK_EXPLORER_BASE_URL: https://avn.stargate.aventus.io:3000
+    package:
+      patterns:
+        - '!**/**'
+        - tx-status-update.js
+    memorySize: 128
+    events:
+      - httpApi:
+          path: /tx-status-update
+          method: POST
+          authorizer:
+            name: awtAuthorisation
+    layers:
+      - { Ref: CommonLambdaLayer }

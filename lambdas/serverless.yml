@@ -22,7 +22,8 @@ provider:
         resultTtlInSeconds: 60
         identitySource: $request.header.Authorization
   logs:
-    format: '{"httpMethod":"$context.httpMethod","ip":"$context.identity.sourceIp","protocol":"$context.protocol","requestId":"$context.requestId","requestTime":"$context.requestTime","responseLength":"$context.responseLength","routeKey":"$context.routeKey","status":"$context.status"}'
+    httpApi:
+      format: '{"httpMethod":"$context.httpMethod","ip":"$context.identity.sourceIp","protocol":"$context.protocol","requestId":"$context.requestId","requestTime":"$context.requestTime","responseLength":"$context.responseLength","routeKey":"$context.routeKey","status":"$context.status"}'
   logRetentionInDays: 1
   vpc:
     securityGroupIds:

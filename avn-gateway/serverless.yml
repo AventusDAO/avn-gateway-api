@@ -10,22 +10,12 @@ provider:
   runtime: nodejs14.x
   region: eu-west-1
   versionFunctions: false
+  logRetentionInDays: 1
   timeout: 6
   environment:
-    AVN_CONNECTOR_ENDPOINT: http://avn-connector.sandbox.aventus.internal:8080/
+    AVN_CONNECTOR_ENDPOINT: http://avn-connector.sandbox.aventus.internal/
   httpApi:
-    name: avn-gateway
-    authorizers:
-      awtAuthorisation:
-        type: request
-        functionName: authorisation-handler
-        resultTtlInSeconds: 60
-        enableSimpleResponses: true
-        identitySource: $request.header.Authorization
-  logs:
-    httpApi:
-      format: '{"httpMethod":"$context.httpMethod","ip":"$context.identity.sourceIp","protocol":"$context.protocol","requestId":"$context.requestId","requestTime":"$context.requestTime","responseLength":"$context.responseLength","routeKey":"$context.routeKey","status":"$context.status"}'
-  logRetentionInDays: 1
+    id: ekruq8jkuc
   vpc:
     securityGroupIds:
       - sg-0e8bbe6fd1637aa59
@@ -70,7 +60,9 @@ functions:
           path: /poll
           method: POST
           authorizer:
-            name: awtAuthorisation
+            type: request
+            id:
+              Ref: Authorisation
     layers:
       - { Ref: CommonLambdaLayer }
 
@@ -88,7 +80,9 @@ functions:
           path: /query
           method: POST
           authorizer:
-            name: awtAuthorisation
+            type: request
+            id:
+              Ref: Authorisation
     layers:
       - { Ref: CommonLambdaLayer }
 
@@ -98,8 +92,8 @@ functions:
     description: aws:states:opt-out
     environment:
       MQ_AVN_TX_QUEUE: avnTx
-      MQ_BROKER_AMQP_ENDPOINT: amqps://b-46391450-1f8b-48a3-952a-856c35d7a44c.mq.eu-west-1.amazonaws.com:5671
-      MQ_SECRET_ARN: arn:aws:secretsmanager:eu-west-1:352429414196:secret:rabbitmq-TU640D
+      MQ_BROKER_AMQP_ENDPOINT: amqps://b-63abcf7c-287c-4e32-82d6-993836a68350.mq.eu-west-1.amazonaws.com:5671
+      MQ_SECRET_ARN: arn:aws:secretsmanager:eu-west-1:352429414196:secret:rabbitmq
       SECRET_MANAGER_REGION: eu-west-1
     package:
       patterns:
@@ -111,7 +105,9 @@ functions:
           path: /send
           method: POST
           authorizer:
-            name: awtAuthorisation
+            type: request
+            id:
+              Ref: Authorisation
     layers:
       - { Ref: CommonLambdaLayer }
       - { Ref: QueueLambdaLayer }
@@ -129,3 +125,32 @@ functions:
     memorySize: 128
     layers:
       - { Ref: CommonLambdaLayer }
+
+resources:
+  Resources:
+    Authorisation:
+      Type: AWS::ApiGatewayV2::Authorizer
+      Properties:
+        Name: authorisation
+        ApiId: ekruq8jkuc
+        AuthorizerPayloadFormatVersion: '2.0'
+        AuthorizerResultTtlInSeconds: 60
+        AuthorizerType: REQUEST
+        AuthorizerUri: arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-1:352429414196:function:authorisation-handler/invocations
+        EnableSimpleResponses: true
+        IdentitySource:
+          - $request.header.Authorization
+    Permission:
+      Type: AWS::Lambda::Permission
+      DependsOn: AuthorisationDashhandlerLambdaFunction
+      Properties:
+        FunctionName: authorisation-handler
+        Action: lambda:InvokeFunction
+        Principal: apigateway.amazonaws.com
+        SourceArn: !Sub
+          - arn:aws:execute-api:eu-west-1:352429414196:ekruq8jkuc/authorizers/${AuthorizerId}
+          - { AuthorizerId: !Ref Authorisation }
+
+# ${AWS::Region}
+# ${AWS::AccountId}
+# AuthorisationDashhandlerLambdaFunction

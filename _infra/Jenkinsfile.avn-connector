@@ -51,11 +51,3 @@ def accountId() {
   ]
   return environmentMap[env.environment]
 }
-
-def relayer() {
-  def relayerPublicKeys = [
-    sandbox: "352429414196",
-    cba: "602004642405"
-  ]
-  return relayerPublicKeys[env.environment]
-}

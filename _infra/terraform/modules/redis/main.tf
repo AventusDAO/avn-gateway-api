@@ -8,7 +8,7 @@ locals {
 resource "random_password" "redis" {
   length           = 20
   special          = true
-  override_special = "!@()[]{}"
+  override_special = "@*~"
 }
 
 resource "aws_security_group" "redis" {

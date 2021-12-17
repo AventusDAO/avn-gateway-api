@@ -150,7 +150,3 @@ resources:
         SourceArn: !Sub
           - arn:aws:execute-api:eu-west-1:352429414196:ekruq8jkuc/authorizers/${AuthorizerId}
           - { AuthorizerId: !Ref Authorisation }
-
-# ${AWS::Region}
-# ${AWS::AccountId}
-# AuthorisationDashhandlerLambdaFunction

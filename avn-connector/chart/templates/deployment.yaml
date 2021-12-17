@@ -63,6 +63,8 @@ spec:
                 secretKeyRef:
                   name: mongo-credentials
                   key: password
+            - name: MONGO_OPTIONS
+              value: $(MONGO_OPTIONS)&retryWrites=false
             - name: DOCUMENT_DB_ADDRESS
               valueFrom:
                 secretKeyRef:

@@ -156,6 +156,7 @@ pipeline {
             while (!redis_address?.trim()) {
               echo "MemoryDB cluster is being created sleeping for 10 seconds . . ."
               redis_address = redisAddress()
+              sh "sleep 10"
             }
           }
         }

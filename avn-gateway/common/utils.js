@@ -107,8 +107,8 @@ function encodeProxyProof(params) {
 module.exports = {
   axios,
   BN,
-  logError,
   init,
+  logError,
   isValidAccountId,
   isValidAmount,
   isValidMarket,

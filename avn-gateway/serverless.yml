@@ -1,0 +1,152 @@
+service: avn-gateway
+
+package:
+  individually: true
+
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-1
+  versionFunctions: false
+  logRetentionInDays: 1
+  timeout: 6
+  environment:
+    AVN_CONNECTOR_ENDPOINT: http://avn-connector.sandbox.aventus.internal/
+  httpApi:
+    id: ekruq8jkuc
+  vpc:
+    securityGroupIds:
+      - sg-0e8bbe6fd1637aa59
+    subnetIds:
+      - subnet-0fbd9b2001dd48ab2
+      - subnet-02399a3c0dbbddfd9
+      - subnet-0408c56e2665040d5
+
+layers:
+  common:
+    path: common
+  queue:
+    path: queue
+
+functions:
+  authorisation-handler:
+    name: authorisation-handler
+    handler: authorisation-handler.handler
+    description: aws:states:opt-out
+    environment:
+      MAX_TOKEN_AGE_MSEC: 60000
+      MIN_AVT_BALANCE: 100000000000000000000
+    package:
+      patterns:
+        - '!**/**'
+        - authorisation-handler.js
+    memorySize: 512
+    layers:
+      - { Ref: CommonLambdaLayer }
+
+  poll-handler:
+    name: poll-handler
+    handler: poll-handler.handler
+    description: aws:states:opt-out
+    package:
+      patterns:
+        - '!**/**'
+        - poll-handler.js
+    memorySize: 256
+    events:
+      - httpApi:
+          path: /poll
+          method: POST
+          authorizer:
+            type: request
+            id:
+              Ref: Authorisation
+    layers:
+      - { Ref: CommonLambdaLayer }
+
+  query-handler:
+    name: query-handler
+    handler: query-handler.handler
+    description: aws:states:opt-out
+    package:
+      patterns:
+        - '!**/**'
+        - query-handler.js
+    memorySize: 256
+    events:
+      - httpApi:
+          path: /query
+          method: POST
+          authorizer:
+            type: request
+            id:
+              Ref: Authorisation
+    layers:
+      - { Ref: CommonLambdaLayer }
+
+  send-handler:
+    name: send-handler
+    handler: send-handler.handler
+    description: aws:states:opt-out
+    environment:
+      MQ_AVN_TX_QUEUE: avnTx
+      MQ_BROKER_AMQP_ENDPOINT: amqps://b-63abcf7c-287c-4e32-82d6-993836a68350.mq.eu-west-1.amazonaws.com:5671
+      MQ_SECRET_ARN: arn:aws:secretsmanager:eu-west-1:352429414196:secret:rabbitmq
+      SECRET_MANAGER_REGION: eu-west-1
+    package:
+      patterns:
+        - '!**/**'
+        - send-handler.js
+    memorySize: 512
+    events:
+      - httpApi:
+          path: /send
+          method: POST
+          authorizer:
+            type: request
+            id:
+              Ref: Authorisation
+    layers:
+      - { Ref: CommonLambdaLayer }
+      - { Ref: QueueLambdaLayer }
+
+  tx-status-update-handler:
+    name: tx-status-update-handler
+    handler: tx-status-update-handler.handler
+    description: aws:states:opt-out
+    environment:
+      BLOCK_EXPLORER_BASE_URL: https://avn.stargate.aventus.io:3000
+    package:
+      patterns:
+        - '!**/**'
+        - tx-status-update-handler.js
+    memorySize: 128
+    layers:
+      - { Ref: CommonLambdaLayer }
+
+resources:
+  Resources:
+    Authorisation:
+      Type: AWS::ApiGatewayV2::Authorizer
+      Properties:
+        Name: authorisation
+        ApiId: ekruq8jkuc
+        AuthorizerPayloadFormatVersion: '2.0'
+        AuthorizerResultTtlInSeconds: 60
+        AuthorizerType: REQUEST
+        AuthorizerUri: arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-1:352429414196:function:authorisation-handler/invocations
+        EnableSimpleResponses: true
+        IdentitySource:
+          - $request.header.Authorization
+    Permission:
+      Type: AWS::Lambda::Permission
+      DependsOn: AuthorisationDashhandlerLambdaFunction
+      Properties:
+        FunctionName: authorisation-handler
+        Action: lambda:InvokeFunction
+        Principal: apigateway.amazonaws.com
+        SourceArn: !Sub
+          - arn:aws:execute-api:eu-west-1:352429414196:ekruq8jkuc/authorizers/${AuthorizerId}
+          - { AuthorizerId: !Ref Authorisation }

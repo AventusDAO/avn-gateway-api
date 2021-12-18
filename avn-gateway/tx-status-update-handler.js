@@ -1,4 +1,4 @@
-const utils = require('../layer/nodejs/utils.js')
+const utils = require('/opt/utils.js')
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL
 

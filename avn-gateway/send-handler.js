@@ -1,5 +1,5 @@
-const utils = require('../layer/nodejs/utils.js')
-const MQSender = require('./mqSender.js')
+const utils = require('/opt/utils.js')
+const MQSender = require('/opt/mqSender.js')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 
@@ -13,7 +13,6 @@ const connectToMQ = async () => {
 }
 
 exports.handler = async (event, context) => {
-  await utils.init()
   try {
     await connectToMQ()
     return {

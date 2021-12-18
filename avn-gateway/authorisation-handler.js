@@ -1,4 +1,4 @@
-const utils = require('../layer/nodejs/utils.js')
+const utils = require('/opt/utils.js')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 const MAX_TOKEN_AGE_MSEC = process.env.MAX_TOKEN_AGE_MSEC
@@ -11,7 +11,6 @@ const ValidRequestResponse = { isAuthorized: true }
 
 exports.handler = async event => {
   await utils.init()
-  // encapsulate all the logic to make local testing easier
   return await validateAwtToken(event)
 }
 

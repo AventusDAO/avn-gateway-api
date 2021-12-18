@@ -5,9 +5,10 @@ locals {
   cluster_version        = "1.21"
   eks_node_size          = 50
   account_id             = "189013141504"
-  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal:8080/"
-  block_explorer_url     = "https://avn.testnet.aventus.io:3000"
+  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
+  block_explorer_url     = "https://testnet.index.aventus.io:3000"
   vpc_cidr_block         = "172.18.0.0/18"
+  vault_recovery_window  = 0
 }
 
 module "lambda_functions" {
@@ -100,6 +101,7 @@ module "dns" {
   vpc_id          = module.vpc.vpc_id
   environment     = local.environment
   rabbit_address  = module.rabbitmq.broker_address
+  documentdb_address = module.documentdb.address
   api_gateway_url = module.api_gateway.url
   api_gateway_id  = module.api_gateway.api_id
   api_gateway_stage = module.api_gateway.stage_id

@@ -4,40 +4,28 @@ pipeline {
   }
 
   parameters {
-    choice(name: 'environment', choices: ['sandbox', 'cba'], description: 'Deploy to which environment?')
+    choice(name: 'environment', choices: ['sandbox', 'cba', 'testnet'], description: 'Deploy to which environment?')
     string(name: 'image_tag', defaultValue: 'latest', description: 'Docker tag of the avn-connector', trim: true)
   }
 
   agent any
 
   stages {
-    stage("Get Terraform outputs") {
-      when {
-        expression {
-            return env.additional_terraform_args != '-destroy';
-        }
-      }
-      steps {
-        dir("_infra/terraform/environments/${env.environment}") {
-          sh "terraform init"
-          script {
-            avn_connector_ips = terraformOutput("avn_connector_ips")
-            private_subnets = terraformOutput("main_subnet")
-          }
-        }
-      }
-    }
-
     stage("Deploy avn-connector") {
-      when {
-        expression {
-            return env.additional_terraform_args != '-destroy';
-        }
-      }
       steps {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           generateContext("avn-gateway", "dev")
-          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set service.subnetIds={${private_subnets}} --set service.privateIps={${avn_connector_ips}} | kubectl apply -f -"
+          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set deployment.image.tag=${env.image_tag} | kubectl apply -f -"
+        }
+      }
+    }
+    stage("Smoke test") {
+      steps {
+        withCredentials([string(credentialsId: "avn_gateway_suri_${env.environment}", variable: "SURI")]) {
+          script {
+            sh "cd avn-api && npm i && cd ../tests && npm i && cd ../ && npm i"
+            sh "SURI=${SURI} npm run smokeTests ${env.environment}"
+          }
         }
       }
     }
@@ -59,14 +47,8 @@ def generateContext(String clusterName, String namespace) {
 def accountId() {
   def environmentMap = [
     sandbox: "352429414196",
-    cba: "602004642405"
+    cba: "602004642405",
+    testnet: "189013141504"
   ]
   return environmentMap[env.environment]
-}
-
-def terraformOutput(String outputName) {
-  return sh(
-    script: "terraform output -raw ${outputName}",
-    returnStdout: true
-  ).trim()
 }

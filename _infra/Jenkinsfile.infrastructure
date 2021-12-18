@@ -5,7 +5,7 @@ pipeline {
   }
 
   parameters {
-    choice(name: 'environment', choices: ['sandbox', 'cba'], description: 'Chose the environment to deploy to.')
+    choice(name: 'environment', choices: ['sandbox', 'cba', 'testnet'], description: 'Chose the environment to deploy to.')
     choice(name: 'terraform_target', choices: ['none', 'all', 'lambda_functions', 'eks', 'api-gateway', 'vpc', 'k8s_service_account_permissions', 'rabbitmq', "bastion", "avn-vault"], description: 'Apply specific terraform module targets.')
     string(name: 'additional_terraform_args', defaultValue: '', description: 'Supply additional terraform arguments, The environment can be destroyed by supplying the arg -destroy', trim: true)
     choice(name: 'apply_third_party_charts', choices: ['false', 'true'], description: 'Apply third party helm charts to kubernetes')
@@ -22,9 +22,11 @@ pipeline {
         }
       }
       steps {
-        dir("_infra/terraform/environments/${env.environment}") {
-          sh "terraform init"
-          sh "terraform plan -target module.vpc -target module.redis -out=plan-out-vpc.tfplan -no-color"
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}") {
+            sh "terraform init"
+            sh "terraform plan -target module.vpc -target module.redis -out=plan-out-vpc.tfplan -no-color"
+          }
         }
       }
     }
@@ -40,9 +42,11 @@ pipeline {
         message "Proceed with VPC apply"
       }
       steps {
-        dir("_infra/terraform/environments/${env.environment}") {
-          sh "terraform init"
-          sh "terraform apply plan-out-vpc.tfplan -no-color"
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}") {
+            sh "terraform init"
+            sh "terraform apply plan-out-vpc.tfplan -no-color"
+          }
         }
       }
     }
@@ -152,6 +156,7 @@ pipeline {
             while (!redis_address?.trim()) {
               echo "MemoryDB cluster is being created sleeping for 10 seconds . . ."
               redis_address = redisAddress()
+              sh "sleep 10"
             }
           }
         }
@@ -230,6 +235,7 @@ def generateContext(String clusterName, String namespace) {
 
 def terraformPlan() {
   sh "terraform init"
+  sh "terraform refresh"
   if ( env.terraform_target == 'all' ) {
     sh "terraform plan -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
   } else {
@@ -245,7 +251,8 @@ def terraformApply() {
 def accountId() {
   def environmentMap = [
     sandbox: "352429414196",
-    cba: "602004642405"
+    cba: "602004642405",
+    testnet: "189013141504"
   ]
   return environmentMap[env.environment]
 }

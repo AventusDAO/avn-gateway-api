@@ -26,5 +26,5 @@ serverless remove
 
 ### Deploying a single lambda (fast)
 ```
-serverless deploy function --function send-handler
+serverless deploy function --function query-handler
 ```

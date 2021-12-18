@@ -11,7 +11,7 @@ function MQSender(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint) {
   this.mqBrokerAmqpEndpoint = mqBrokerAmqpEndpoint
 }
 
-MQSender.prototype.getMqConnectionUrl = async function() {
+MQSender.prototype.getMqConnectionUrl = async function () {
   const secret = await this.secretsManager.getSecret(this.secretArn)
   return this.mqBrokerAmqpEndpoint.replace(
     'amqps://',
@@ -19,11 +19,11 @@ MQSender.prototype.getMqConnectionUrl = async function() {
   )
 }
 
-MQSender.prototype.sendMessageToMQ = async function(queue, message, persistent = true) {
+MQSender.prototype.sendMessageToMQ = async function (queue, message, persistent = true) {
   const amqpChannel = await createChannel(this.amqpConnection)
   return await new Promise((resolve, reject) => {
     try {
-      amqpChannel.checkQueue(queue, function(err, ok) {
+      amqpChannel.checkQueue(queue, function (err, ok) {
         if (err) throw Error(`queue '${queue}' does not exist`)
         if (ok) {
           amqpChannel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
@@ -43,11 +43,11 @@ MQSender.prototype.sendMessageToMQ = async function(queue, message, persistent =
   })
 }
 
-MQSender.prototype.connectToMessageBroker = async function() {
+MQSender.prototype.connectToMessageBroker = async function () {
   const url = await this.getMqConnectionUrl()
   let self = this
   await new Promise((resolve, reject) => {
-    amqp.connect(url, function(err, conn) {
+    amqp.connect(url, function (err, conn) {
       console.info('[AMQP] connecting')
 
       if (err) {
@@ -56,13 +56,13 @@ MQSender.prototype.connectToMessageBroker = async function() {
         reject()
       }
 
-      conn.on('error', function(err) {
+      conn.on('error', function (err) {
         console.error('[AMQP] connection error', err.message)
         self.amqpConnected = false
         reject()
       })
 
-      conn.on('close', function() {
+      conn.on('close', function () {
         console.error('[AMQP] connection closed')
         self.amqpConnected = false
         reject()
@@ -78,17 +78,17 @@ MQSender.prototype.connectToMessageBroker = async function() {
 
 function createChannel(conn) {
   return new Promise((resolve, reject) => {
-    conn.createChannel(function(err, channel) {
+    conn.createChannel(function (err, channel) {
       if (err) {
         console.error('[AMQP] channel connection error', err.message)
         throw err
       }
 
-      channel.on('error', function(err) {
+      channel.on('error', function (err) {
         console.error('[AMQP] channel error', err.message)
       })
 
-      channel.on('close', function() {
+      channel.on('close', function () {
         console.info('[AMQP] channel closed')
       })
 

@@ -1,9 +1,7 @@
 'use strict'
 
 const config = require('multiconfig').load()
-const logger = require('log4js')
-  .configure(config.log4Js)
-  .getLogger()
+const logger = require('log4js').configure(config.log4Js).getLogger()
 const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager')
 
 module.exports = SecretsManager
@@ -12,7 +10,7 @@ function SecretsManager(region) {
   this.smClient = new SecretsManagerClient({ region: region })
 }
 
-SecretsManager.prototype.getSecret = async function(secretId) {
+SecretsManager.prototype.getSecret = async function (secretId) {
   const params = { SecretId: secretId }
   const command = new GetSecretValueCommand(params)
   try {

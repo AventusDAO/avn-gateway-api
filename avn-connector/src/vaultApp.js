@@ -37,12 +37,12 @@ async function appLogin(baseURL, roleId, secretId) {
   return await post(url, data)
 }
 
-module.exports = function(baseURL, roleId, secretId) {
+module.exports = function (baseURL, roleId, secretId) {
   this.baseURL = baseURL
   const ROLE_ID = roleId
   const SECRET_ID = secretId
 
-  this.createNewRelayer = async function(userName) {
+  this.createNewRelayer = async function (userName) {
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
     const userUrl = this.baseURL + 'avn-vault/user/' + userName
     const res = await get(userUrl, token)
@@ -51,7 +51,7 @@ module.exports = function(baseURL, roleId, secretId) {
     } else return res.publicKey
   }
 
-  this.setNewRelayer = async function(userName, seed) {
+  this.setNewRelayer = async function (userName, seed) {
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
     const userUrl = this.baseURL + 'avn-vault/user/set/' + userName
     const res = await get(userUrl, token)
@@ -61,7 +61,7 @@ module.exports = function(baseURL, roleId, secretId) {
     } else return res.publicKey
   }
 
-  this.getRelayerSeed = async function(userName) {
+  this.getRelayerSeed = async function (userName) {
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
     const url = this.baseURL + 'avn-vault/user/' + userName
     return (await get(url, token)).seed

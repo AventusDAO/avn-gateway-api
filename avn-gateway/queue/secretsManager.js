@@ -8,7 +8,7 @@ function SecretsManager(region) {
   this.smClient = new SecretsManagerClient({ region: region })
 }
 
-SecretsManager.prototype.getSecret = async function(secretId) {
+SecretsManager.prototype.getSecret = async function (secretId) {
   const params = { SecretId: secretId }
   const command = new GetSecretValueCommand(params)
   try {

@@ -1,4 +1,4 @@
-const utils = require('../layer/nodejs/utils.js')
+const utils = require('/opt/utils.js')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 
@@ -62,9 +62,3 @@ async function makeCall(call, responseObject) {
 
   return responseObject
 }
-
-// async function testlocal() {
-//   console.log('requestState:', await processRequest('{"jsonrpc": "2.0", "method":"requestState", "params":["0x9f78ca5fb3fe3448295b77b42dd3695126b9bf2d414b24fcafd09886fe388283"], "id":6}'));
-// }
-//
-// testlocal();

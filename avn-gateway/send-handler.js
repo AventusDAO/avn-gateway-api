@@ -1,5 +1,5 @@
-const utils = require('../layer/nodejs/utils.js')
-const MQSender = require('./mqSender.js')
+const utils = require('/opt/utils.js')
+const MQSender = require('/opt/mqSender.js')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 
@@ -13,7 +13,6 @@ const connectToMQ = async () => {
 }
 
 exports.handler = async (event, context) => {
-  await utils.init()
   try {
     await connectToMQ()
     return {
@@ -354,16 +353,8 @@ async function processProxyTransferFiatNft(call, responseObject, requestId) {
 
 async function processProxyCancelListFiatNft(call, responseObject, requestId) {
   const transactionType = call.method
-  const {
-    pallet,
-    method,
-    relayer,
-    signer,
-    nftId,
-    proxyCancelListFiatNftSignature,
-    feePaymentSignature,
-    paymentNonce
-  } = call.params
+  const { pallet, method, relayer, signer, nftId, proxyCancelListFiatNftSignature, feePaymentSignature, paymentNonce } =
+    call.params
 
   const validParams =
     utils.isValidAccountId(relayer) &&

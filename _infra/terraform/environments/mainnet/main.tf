@@ -8,7 +8,7 @@ locals {
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   block_explorer_url     = "https://mainnet.index.aventus.io:3000"
   vpc_cidr_block         = "172.20.0.0/18"
-  vault_recovery_window  = 0
+  vault_recovery_window  = 30
 }
 
 module "lambda_functions" {

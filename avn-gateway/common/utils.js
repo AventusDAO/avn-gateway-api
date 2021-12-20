@@ -74,7 +74,7 @@ function logError(msg, callId, data) {
   const lineNumber = frame.split(':').reverse()[1]
   const functionName = frame.split(' ')[5]
   const reference = lambdaName + ' line ' + lineNumber + ' (' + functionName +')'
-  console.error(msg, ':User call ID:', callId, ':Error ref:', reference, ':Error data:', JSON.stringify(data))
+  console.error(msg.toUpperCase(), 'User request ID:', callId, 'Reference: ', reference, 'Error data:', JSON.stringify(data))
 }
 
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {

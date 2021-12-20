@@ -23,8 +23,8 @@ resource "aws_apigatewayv2_route" "poll" {
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "POST /poll"
 
-  target             = "integrations/${aws_apigatewayv2_integration.poll.id}"
-  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.id
+  target             = "integrations/${aws_apigatewayv2_integration.poll.full.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.full.id
   authorization_type = "CUSTOM"
 
   depends_on = [
@@ -52,8 +52,8 @@ resource "aws_apigatewayv2_route" "send" {
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "POST /send"
 
-  target             = "integrations/${aws_apigatewayv2_integration.send.id}"
-  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.id
+  target             = "integrations/${aws_apigatewayv2_integration.send.full.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.full.id
   authorization_type = "CUSTOM"
 }
 
@@ -77,8 +77,8 @@ resource "aws_apigatewayv2_route" "query" {
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "POST /query"
 
-  target             = "integrations/${aws_apigatewayv2_integration.query.id}"
-  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.id
+  target             = "integrations/${aws_apigatewayv2_integration.query.full.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.full.id
   authorization_type = "CUSTOM"
 
   depends_on = [
@@ -168,7 +168,7 @@ EOF
 
 resource "aws_iam_role_policy" "invocation_policy" {
   for_each = var.skeleton_gateway ? [] : ["full"]
-  
+
   name = "AuthoriserInvokeArn"
   role = aws_iam_role.invocation_role.id
 

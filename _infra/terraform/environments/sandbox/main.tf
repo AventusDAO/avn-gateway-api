@@ -131,7 +131,6 @@ module "k8s_service_account_permissions" {
 
   depends_on = [
     module.eks,
-    module.lambda_functions
   ]
 }
 

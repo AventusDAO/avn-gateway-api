@@ -31,7 +31,7 @@ async function processRequest() {
   const pendingTransactionHashes = (await utils.axios.get(AVN_CONNECTOR_ENDPOINT + 'pendingTransactions')).data
 
   if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {
-    console.log('No pending transactions to resolve')
+    console.info('No pending transactions to resolve')
     return
   }
 
@@ -41,12 +41,12 @@ async function processRequest() {
 
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
-    console.log(`Getting ${transactionHashes.length} transaction statuses from chain indexer`)
+    console.info(`Getting ${transactionHashes.length} transaction statuses from chain indexer`)
     let res = await utils.axios.post(`${BLOCK_EXPLORER_BASE_URL}/transactions/bulk`, { transactionHashes })
     const response = res.data.data
 
     if (response && response.length > 0) {
-      console.log(`Recieved ${response.length} responses from chain indexer`)
+      console.info(`Recieved ${response.length} responses from chain indexer`)
 
       return response.map(tx => {
         return {

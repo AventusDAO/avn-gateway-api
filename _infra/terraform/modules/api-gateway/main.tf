@@ -23,8 +23,8 @@ resource "aws_apigatewayv2_route" "poll" {
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "POST /poll"
 
-  target             = "integrations/${aws_apigatewayv2_integration.poll.full.id}"
-  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.full.id
+  target             = "integrations/${aws_apigatewayv2_integration.poll["full"].id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.authoriser["full"].id
   authorization_type = "CUSTOM"
 
   depends_on = [
@@ -52,8 +52,8 @@ resource "aws_apigatewayv2_route" "send" {
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "POST /send"
 
-  target             = "integrations/${aws_apigatewayv2_integration.send.full.id}"
-  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.full.id
+  target             = "integrations/${aws_apigatewayv2_integration.send["full"].id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.authoriser["full"].id
   authorization_type = "CUSTOM"
 }
 
@@ -77,8 +77,8 @@ resource "aws_apigatewayv2_route" "query" {
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "POST /query"
 
-  target             = "integrations/${aws_apigatewayv2_integration.query.full.id}"
-  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.full.id
+  target             = "integrations/${aws_apigatewayv2_integration.query["full"].id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.authoriser["full"].id
   authorization_type = "CUSTOM"
 
   depends_on = [

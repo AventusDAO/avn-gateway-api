@@ -6,9 +6,16 @@
 help: ## Show this help.
 	@sed -ne '/@sed/!s/## //p' $(MAKEFILE_LIST)
 
-package: ## - package the lambdas with serverless to the build directory
-	npm i serverless
+package: ## - package the lambdas into a series of zips $ make package version=<version_no>
+	npm i -g serverless
 	serverless package -p build
+	mkdir -p build/query-handler
+	mkdir -p build/send-handler
+	mkdir -p build/poll-handler
+	mkdir -p build/authorisation-handler
+	mkdir -p build/tx-status-update-handler
+	mkdir -p build/common
+	mkdir -p build/queue
 
 clean: ## destroys the build folder
 	rm -rf ./build/

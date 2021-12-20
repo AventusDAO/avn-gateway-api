@@ -61,13 +61,13 @@ jobs:
       
       - name: create latest version alongside git short sha
         run: |
-          cp build/${{ env.POLL }}/${{ env.POLL }}*.zip build/${{ env.POLL }}/${{ env.POLL }}-latest.zip
-          cp build/${{ env.SEND }}/${{ env.SEND }}*.zip build/${{ env.SEND }}/${{ env.SEND }}-latest.zip
-          cp build/${{ env.QUERY }}/${{ env.QUERY }}*.zip build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip
-          cp build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}*.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip
-          cp build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}*.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip
-          cp build/${{ env.COMMON }}/${{ env.COMMON }}*.zip build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip
-          cp build/${{ env.QUEUE }}/${{ env.QUEUE }}*.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip
+          mv build/${{ env.POLL }}.zip build/${{ env.POLL }}/${{ env.POLL }}-latest.zip
+          mv build/${{ env.SEND }}.zip build/${{ env.SEND }}/${{ env.SEND }}-latest.zip
+          mv build/${{ env.QUERY }}.zip build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip
+          mv build/${{ env.AUTHORISER }}.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip
+          mv build/${{ env.TX_STATUS }}.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip
+          mv build/${{ env.COMMON }}.zip build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip
+          mv build/${{ env.QUEUE }}.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip
           ls -l build/
 
       - name: Upload to S3
@@ -77,4 +77,4 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
           AWS_REGION: 'eu-west-1'
-          SOURCE_DIR: "lambdas/build"
+          SOURCE_DIR: "avn-gateway/build"

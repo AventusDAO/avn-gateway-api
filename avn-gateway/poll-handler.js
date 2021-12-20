@@ -38,10 +38,11 @@ async function processRequest(requestObject) {
   if (typeof call.method !== 'string') {
     utils.logError('method type must be string', call.id, call.method)
     responseObject.error = { code: -32600, message: 'Invalid Request' }
+    return responseObject
   } else {
-    responseObject = await makeCall(call, responseObject)
+    await makeCall(call, responseObject)
   }
-
+  
   responseObject.id = call.id
   return responseObject
 }

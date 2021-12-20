@@ -167,7 +167,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "invocation_policy" {
-  for_each = var.skeleton_gateway ? [] : ["full"]
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
 
   name = "AuthoriserInvokeArn"
   role = aws_iam_role.invocation_role.id

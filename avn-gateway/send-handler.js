@@ -163,7 +163,7 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
     if (utils.isValidMarket(market) === false) throw 'market'
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
-    if (isValidSignatureFormat(proxyListNftOpenForSaleSignature) === false) throw 'proxy signature'
+    if (utils.isValidSignatureFormat(proxyListNftOpenForSaleSignature) === false) throw 'proxy signature'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const errorMsg = 'invalid ' + param

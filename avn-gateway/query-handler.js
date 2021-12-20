@@ -10,7 +10,7 @@ exports.handler = async event => {
   return response
 }
 
-async function queryChain(callId, palletName, storageName, params, responseFormatter) {
+async function queryChain(responseObject, callId, palletName, storageName, params, responseFormatter) {
   let response
   try {
     response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })

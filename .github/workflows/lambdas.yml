@@ -1,11 +1,11 @@
-name: lambdas
+name: avn-gateway
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'lambdas/**'
+      - 'avn-gateway/**'
 
 env:
   AUTHORISER: authorisation-handler
@@ -13,12 +13,13 @@ env:
   SEND: send-handler
   QUERY: query-handler
   TX_STATUS: tx-status-update-handler
-  LAYER: common-layer
+  COMMON: common
+  QUEUE: queue
 
 defaults:
   run:
     shell: bash
-    working-directory: lambdas
+    working-directory: avn-gateway
 
 jobs:
   version-suffix:
@@ -46,15 +47,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-          cache: 'npm'
-          cache-dependency-path: |
-            lambdas/${{ env.POLL }}/package-lock.json
-            lambdas/${{ env.SEND }}/package-lock.json
-            lambdas/${{ env.QUERY }}/package-lock.json
-            lambdas/${{ env.AUTHORISER }}/package-lock.json
-            lambdas/${{ env.TX_STATUS }}/package-lock.json
-            lambdas/layer/nodejs/package-lock.json
-            lambdas/package-lock.json
       
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -65,12 +57,7 @@ jobs:
 
       - name: Package Function
         run: |
-          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.POLL }}
-          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.SEND }}
-          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.QUERY }}
-          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.AUTHORISER }}
-          make package version=${{ needs.version-suffix.outputs.version }} name=${{ env.TX_STATUS }}
-          make package-layer version=${{ needs.version-suffix.outputs.version }} 
+          make package version=${{ needs.version-suffix.outputs.version }}
       
       - name: create latest version alongside git short sha
         run: |
@@ -79,7 +66,8 @@ jobs:
           cp build/${{ env.QUERY }}/${{ env.QUERY }}*.zip build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip
           cp build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}*.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip
           cp build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}*.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip
-          cp build/${{ env.LAYER }}/${{ env.LAYER }}*.zip build/${{ env.LAYER }}/${{ env.LAYER }}-latest.zip
+          cp build/${{ env.COMMON }}/${{ env.COMMON }}*.zip build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip
+          cp build/${{ env.QUEUE }}/${{ env.QUEUE }}*.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip
           ls -l build/
 
       - name: Upload to S3

@@ -10,6 +10,7 @@ _infra/ansible/files/*
 _infra/ansible/*inventory*
 Chart.lock
 .serverless/
+build/
 
 # Config file for AWS MQ
 avn-connector/src/config/default/mq.yaml

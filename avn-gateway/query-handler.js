@@ -116,7 +116,7 @@ async function getAccountNonce(call, responseObject) {
   const accountId = call.params[0]
 
   if (utils.isValidAccountId(accountId) === false) {
-    utils.logError('invalid account ID', call.id, call.params)
+    utils.logError('invalid account ID', call.id, accountId)
     responseObject.error = { code: -32602, message: 'Invalid params' }
   } else {
     await queryChain(responseObject, call.id, 'tokenManager', 'nonces', [accountId], formatNumAsString)

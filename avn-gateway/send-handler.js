@@ -34,6 +34,7 @@ async function sendTx(responseObject, callId, requestId, txType, queueName, pall
   } catch (err) {
     utils.logError('failed to send proxy transaction', callId, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
+    return
   }
 
   responseObject.result = response

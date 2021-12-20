@@ -1,4 +1,5 @@
 const utils = require('/opt/utils.js')
+
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL
 
@@ -27,7 +28,6 @@ exports.handler = async _event => {
 }
 
 async function processRequest() {
-  // Get transactions that need resolving (i.e. that are pending)
   const pendingTransactionHashes = (await utils.axios.get(AVN_CONNECTOR_ENDPOINT + 'pendingTransactions')).data
 
   if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {
@@ -36,8 +36,6 @@ async function processRequest() {
   }
 
   const transactions = await getTransactionsStatusFromIndexer(pendingTransactionHashes)
-
-  // resolve them in the database
   await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'resolvePendingTransactions', { transactions })
 }
 

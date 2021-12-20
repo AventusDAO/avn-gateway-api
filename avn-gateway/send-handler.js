@@ -3,7 +3,6 @@ const MQSender = require('/opt/mqSender.js')
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 
-// TODO: SYS-1546 To check if this needs an update after we setup the k8t proxy
 let mqSender
 const connectToMQ = async () => {
   if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
@@ -43,7 +42,7 @@ async function processRequest(requestObject, requestId) {
   try {
     call = JSON.parse(requestObject)
   } catch (err) {
-    utils.logError('failed to parse JSON', null, 'send-handler.processRequest.parse', err)
+    utils.logError('failed to parse JSON', null, err)
     responseObject.error = { code: -32700, message: 'Parse error' }
     responseObject.id = null
     return responseObject
@@ -52,7 +51,7 @@ async function processRequest(requestObject, requestId) {
   console.info('CALLID_REQUESTID:', call.id + ':' + requestId)
 
   if (typeof call.method !== 'string') {
-    utils.logError('method type must be string', call.id, 'send-handler.processRequest.method', call.method)
+    utils.logError('method type must be string', call.id, call.method)
     responseObject.error = { code: -32600, message: 'Invalid Request' }
   } else {
     responseObject = await callSwitch(call, responseObject, requestId)
@@ -81,7 +80,7 @@ async function callSwitch(call, responseObject, requestId) {
       await processProxyCancelListFiatNft(call, responseObject, requestId)
       break
     default:
-      utils.logError('method not found', call.id, 'send-handler.callSwitch.default', call.method)
+      utils.logError('method not found', call.id, call.method)
       responseObject.error = { code: -32601, message: 'Method not found' }
   }
   return responseObject
@@ -113,7 +112,7 @@ async function processProxyTransfer(call, responseObject, requestId) {
     utils.isValidSignatureFormat(feePaymentSignature)
 
   if (!validParams) {
-    utils.logError('invalid params', call.id, 'send-handler.proxyTransfer.params', call.params)
+    utils.logError('invalid params', call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
@@ -124,7 +123,7 @@ async function processProxyTransfer(call, responseObject, requestId) {
   try {
     relayerFee = await getRelayerFees(relayer, signer, transactionType)
   } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyTransfer.relayerFees', err)
+    utils.logError('failed to retrieve relayer fee', call.id, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
     return
   }
@@ -140,16 +139,11 @@ async function processProxyTransfer(call, responseObject, requestId) {
     try {
       responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
     } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyTransfer.sendProxyTx', err)
+      utils.logError('failed to send proxy transaction', call.id, err)
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {
-    utils.logError(
-      'invalid fee authorisation',
-      call.id,
-      'send-handler.proxyTransfer.verifyFeePaymentSignature',
-      feePaymentSignature
-    )
+    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
     responseObject.error = { code: -32602, message: 'Invalid params' }
   }
 }
@@ -178,7 +172,7 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
     utils.isValidSignatureFormat(feePaymentSignature)
 
   if (!validParams) {
-    utils.logError('invalid params', call.id, 'send-handler.proxyListNftOpenForSale.params', call.params)
+    utils.logError('invalid params', call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
@@ -189,7 +183,7 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
   try {
     relayerFee = await getRelayerFees(relayer, signer, transactionType)
   } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyListNftOpenForSale.relayerFees', err)
+    utils.logError('failed to retrieve relayer fee', call.id, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
     return
   }
@@ -205,16 +199,11 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
     try {
       responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
     } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyListNftOpenForSale.sendProxyTx', err)
+      utils.logError('failed to send proxy transaction', call.id, err)
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {
-    utils.logError(
-      'invalid fee authorisation',
-      call.id,
-      'send-handler.proxyListNftOpenForSale.verifyFeePaymentSignature',
-      feePaymentSignature
-    )
+    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
     responseObject.error = { code: -32602, message: 'Invalid params' }
   }
 }
@@ -245,7 +234,7 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
     utils.isValidSignatureFormat(feePaymentSignature)
 
   if (!validParams) {
-    utils.logError('invalid params', call.id, 'send-handler.proxyMintSingleNft.params', call.params)
+    utils.logError('invalid params', call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
@@ -256,7 +245,7 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
   try {
     relayerFee = await getRelayerFees(relayer, signer, transactionType)
   } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyMintSingleNft.relayerFees', err)
+    utils.logError('failed to retrieve relayer fee', call.id, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
     return
   }
@@ -272,16 +261,11 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
     try {
       responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
     } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyMintSingleNft.sendProxyTx', err)
+      utils.logError('failed to send proxy transaction', call.id, err)
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {
-    utils.logError(
-      'invalid fee authorisation',
-      call.id,
-      'send-handler.proxyMintSingleNft.verifyFeePaymentSignature',
-      feePaymentSignature
-    )
+    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
     responseObject.error = { code: -32602, message: 'Invalid params' }
   }
 }
@@ -310,7 +294,7 @@ async function processProxyTransferFiatNft(call, responseObject, requestId) {
     utils.isValidSignatureFormat(feePaymentSignature)
 
   if (!validParams) {
-    utils.logError('invalid params', call.id, 'send-handler.proxyTransferFiatNft.params', call.params)
+    utils.logError('invalid params', call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
@@ -321,7 +305,7 @@ async function processProxyTransferFiatNft(call, responseObject, requestId) {
   try {
     relayerFee = await getRelayerFees(relayer, signer, transactionType)
   } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyTransferFiatNft.relayerFees', err)
+    utils.logError('failed to retrieve relayer fee', call.id, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
     return
   }
@@ -337,16 +321,11 @@ async function processProxyTransferFiatNft(call, responseObject, requestId) {
     try {
       responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
     } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyTransferFiatNft.sendProxyTx', err)
+      utils.logError('failed to send proxy transaction', call.id, err)
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {
-    utils.logError(
-      'invalid fee authorisation',
-      call.id,
-      'send-handler.proxyTransferFiatNft.verifyFeePaymentSignature',
-      feePaymentSignature
-    )
+    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
     responseObject.error = { code: -32602, message: 'Invalid params' }
   }
 }
@@ -365,7 +344,7 @@ async function processProxyCancelListFiatNft(call, responseObject, requestId) {
     utils.isValidSignatureFormat(feePaymentSignature)
 
   if (!validParams) {
-    utils.logError('invalid params', call.id, 'send-handler.proxyCancelListFiatNft.params', call.params)
+    utils.logError('invalid params', call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
@@ -376,7 +355,7 @@ async function processProxyCancelListFiatNft(call, responseObject, requestId) {
   try {
     relayerFee = await getRelayerFees(relayer, signer, transactionType)
   } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, 'send-handler.proxyCancelListFiatNft.relayerFees', err)
+    utils.logError('failed to retrieve relayer fee', call.id, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
     return
   }
@@ -392,16 +371,11 @@ async function processProxyCancelListFiatNft(call, responseObject, requestId) {
     try {
       responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
     } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, 'send-handler.proxyCancelListFiatNft.sendProxyTx', err)
+      utils.logError('failed to send proxy transaction', call.id, err)
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {
-    utils.logError(
-      'invalid fee authorisation',
-      call.id,
-      'send-handler.proxyCancelListFiatNft.verifyFeePaymentSignature',
-      feePaymentSignature
-    )
+    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
     responseObject.error = { code: -32602, message: 'Invalid params' }
   }
 }

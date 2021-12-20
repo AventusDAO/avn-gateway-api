@@ -27,14 +27,14 @@ async function processRequest(requestObject) {
   try {
     call = JSON.parse(requestObject)
   } catch (err) {
-    utils.logError('failed to parse JSON', null, 'poll-handler.processRequest.parse', err)
+    utils.logError('failed to parse JSON', null, err)
     responseObject.error = { code: -32700, message: 'Parse error' }
     responseObject.id = null
     return responseObject
   }
 
   if (typeof call.method !== 'string') {
-    utils.logError('method type must be string', call.id, 'poll-handler.processRequest.method', call.method)
+    utils.logError('method type must be string', call.id, call.method)
     responseObject.error = { code: -32600, message: 'Invalid Request' }
   } else {
     responseObject = await makeCall(call, responseObject)
@@ -46,17 +46,17 @@ async function processRequest(requestObject) {
 
 async function makeCall(call, responseObject) {
   if (call.method !== 'requestState') {
-    utils.logError("method must be 'requestState'", call.id, 'poll-handler.makeCall.method', call.method)
+    utils.logError("method must be 'requestState'", call.id, call.method)
     responseObject.error = { code: -32601, message: 'Method not found' }
   } else if (utils.isValidUUID(call.params[0])) {
     try {
       responseObject.result = await poll(call.id, call.params[0])
     } catch (err) {
-      utils.logError('failed to poll chain', call.id, 'poll-handler.poll', err)
+      utils.logError('failed to poll chain', call.id, err)
       responseObject.error = { code: -32603, message: 'Internal error' }
     }
   } else {
-    utils.logError('invalid request ID', call.id, 'poll-handler.makeCall.requestId', call.params[0])
+    utils.logError('invalid request ID', call.id, call.params[0])
     responseObject.error = { code: -32602, message: 'Invalid params' }
   }
 

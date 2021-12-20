@@ -1,7 +1,7 @@
 locals {
   # TODO only leave the Jenkins nat ip.
   ssh_allowed_ips = [
-    "31.185.206.69/32",     # Thanos
+    "31.185.206.0/32",      # Thanos
     "81.111.99.54/32",      # John Terry
     "82.6.143.25/32",       # Nahu
     "18.135.167.38/32",     # IP of the nat of Testnet (Jenkins)
@@ -18,9 +18,9 @@ resource "aws_secretsmanager_secret" "vault" {
   recovery_window_in_days = local.vault_recovery_window
 }
 
-module "avn-vault-sandbox" {
+module "avn-vault" {
   source = "git@github.com:Aventus-Network-Services/avn-vault-terraform-module.git?ref=v0.4.2"
-  name = "Sandbox"
+  name = local.environment
   project = "avn-gateway"
   ssh-key = "technical-account-vault"
   avn-vault-vpc-cidr = local.vpc_cidr_block
@@ -30,7 +30,7 @@ module "avn-vault-sandbox" {
   aws-route53-zone = module.dns.public_zone_id
   avn_vault_instance_type = "t3a.medium"
   tls_cert_subdomain = "vault"
-  dynamodb_table_name= "avn-gw-vault-sandbox-db"
+  dynamodb_table_name= "avn-gw-vault-${local.environment}-db"
 }
 
 module "bastion" {
@@ -45,15 +45,16 @@ resource "local_file" "avn-gateway-vault-instance-file" {
     content     = <<-EOD
 [bastion]
 ${module.bastion.public_ip} ansible_user=ubuntu
+
 [vault_server]
-${module.avn-vault-sandbox.instance_ip_addr} ansible_user=ubuntu
+${module.avn-vault.instance_ip_addr} ansible_user=ubuntu
+
 [vault_server:vars]
-ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
-api_addr_value='https://${module.avn-vault-sandbox.fqdn}:8200'
-aws_region='${module.avn-vault-sandbox.aws_region}'
-kms_key_id='${module.avn-vault-sandbox.kms_key_id}'
-dynamodb_table='${module.avn-vault-sandbox.dynamodb_table}'
+ansible_ssh_common_args='-o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
+api_addr_value='https://${module.avn-vault.fqdn}:8200'
+aws_region='${module.avn-vault.aws_region}'
+kms_key_id='${module.avn-vault.kms_key_id}'
+dynamodb_table='${module.avn-vault.dynamodb_table}'
 EOD
     filename = "${path.module}/vault.inventory"
 }
-

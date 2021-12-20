@@ -16,13 +16,13 @@ function Query(api) {
 }
 
 function getTotalAvt(api) {
-  return async function() {
+  return async function () {
     return await this.postRequest(api, 'getTotalAvt', [])
   }
 }
 
 function getAvtBalance(api) {
-  return async function(account) {
+  return async function (account) {
     common.validateAccount(account)
 
     return await this.postRequest(api, 'getAvtBalance', [account])
@@ -30,7 +30,7 @@ function getAvtBalance(api) {
 }
 
 function getTokenBalance(api) {
-  return async function(account, token) {
+  return async function (account, token) {
     common.validateAccount(account)
     common.validateEthereumAddress(token)
 
@@ -39,7 +39,7 @@ function getTokenBalance(api) {
 }
 
 function getAccountNonce(api) {
-  return async function(account) {
+  return async function (account) {
     common.validateAccount(account)
 
     return await this.postRequest(api, 'getAccountNonce', [account])
@@ -47,7 +47,7 @@ function getAccountNonce(api) {
 }
 
 function getAccountPaymentNonce(api) {
-  return async function(account) {
+  return async function (account) {
     common.validateAccount(account)
 
     return await this.postRequest(api, 'getAccountPaymentNonce', [account])
@@ -55,7 +55,7 @@ function getAccountPaymentNonce(api) {
 }
 
 function getNftNonce(api) {
-  return async function(nftId) {
+  return async function (nftId) {
     common.validateNftId(nftId)
 
     return await this.postRequest(api, 'getNftNonce', [nftId])
@@ -63,7 +63,7 @@ function getNftNonce(api) {
 }
 
 function getNftId(api) {
-  return async function(externalRef) {
+  return async function (externalRef) {
     common.validateStringIsPopulated(externalRef)
 
     if (!this.nftsMap[externalRef]) {
@@ -75,13 +75,13 @@ function getNftId(api) {
 }
 
 function getAvtContractAddress(api) {
-  return async function() {
+  return async function () {
     return await this.postRequest(api, 'getAvtContractAddress', [])
   }
 }
 
 function getRelayerFees(api) {
-  return async function(relayer, user, transactionType) {
+  return async function (relayer, user, transactionType) {
     common.validateAccount(relayer)
     if (user) common.validateAccount(user)
     if (transactionType) common.validateTransactionType(transactionType)
@@ -94,7 +94,7 @@ function generateFunction(functionName, api) {
   return functionName(api)
 }
 
-Query.prototype.postRequest = async function(api, method, params) {
+Query.prototype.postRequest = async function (api, method, params) {
   const endpoint = api.gateway + '/query'
   const response = await api.axios().post(endpoint, { jsonrpc: '2.0', id: api.uuid(), method: method, params: params })
 

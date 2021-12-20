@@ -1,0 +1,53 @@
+---
+
+- name: Pause for 10 seconds to allow the server to start properly
+  pause:
+    seconds: 10
+
+- name: Create Vault directory
+  file:
+    path: '{{ item }}'
+    owner: vault
+    group: vault
+    state: directory
+    mode: 0755
+  loop:
+    - '{{ vault_scripts_home_dir }}'
+    - '{{ vault_scripts_home_dir }}config/'
+
+- name: Install packages
+  package:
+    name:
+      - jq
+
+- name: Copy init-vault script
+  copy:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    owner: vault
+    group: vault
+    mode: 0755
+  with_items:
+    - { src: 'init-vault.sh', dest: '/vault/scripts/' }
+
+- name: Run init script
+  script: ./init-vault.sh
+  args:
+    chdir: /vault/scripts/
+  environment:
+    enable_auto_unseal: 'true'
+    vault_api_url: '{{ api_addr_value }}/v1'
+    config_output: '{{ vault_scripts_home_dir }}config/'
+    gpg_key: '{{ gpg_key_public_key }}'
+
+- name: Get the encrypted file & store it locally
+  fetch:
+    src: '{{ vault_scripts_home_dir }}config/init.json'
+    dest: '{{ playbook_dir }}/init.json'
+    flat: yes
+
+- name: Delete init.json file
+  when: cleanup_sensitive_data|bool
+  file:
+    state: absent
+    path: '{{ vault_scripts_home_dir }}config/init.json'

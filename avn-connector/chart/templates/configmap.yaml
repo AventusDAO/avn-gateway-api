@@ -13,4 +13,4 @@ kind: ConfigMap
 metadata:
   name: vault
 data:
-  VAULT_URL: https://vault.{{ .Values.environment }}.avn-gateway.aventus.io:8200/v1/
+  VAULT_URL: https://vault.{{ .Values.environment }}.gateway.aventus.io:8200/v1/

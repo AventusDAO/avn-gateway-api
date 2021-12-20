@@ -1,11 +1,15 @@
 pipeline {
   environment {
     ANSIBLE_HOST_KEY_CHECKING="False"
+    gpg_key_id="eosprod@aventus.io"
+    region = "eu-west-1"
   }
 
   parameters {
     booleanParam( defaultValue: false, description: 'Whether or not deploy the instance of vault', name: 'deploy')
-    choice(name: 'gateway_environment', choices: ['sandbox', 'cba'], description: 'Deploy to which environment?')
+    booleanParam( defaultValue: false, description: 'Attempt to initialise the instance of vault', name: 'vault_init')
+    booleanParam( defaultValue: false, description: 'Attempt to setup avn-vault module and application roles', name: 'setup_avn_vault')
+    choice(name: 'gateway_environment', choices: ['sandbox', 'cba', 'testnet'], description: 'Deploy to which environment?')
   }
 
   agent any
@@ -16,7 +20,7 @@ pipeline {
       steps {
         checkout([
             $class: 'GitSCM',
-            branches: [[name: 'refs/heads/master']],
+            branches: [[name: 'refs/heads/main']],
             doGenerateSubmoduleConfigurations: false,
             extensions: [[$class: 'CleanCheckout']],
             submoduleCfg: [],
@@ -25,10 +29,13 @@ pipeline {
       }
     }
 
-    stage("Deploy avn-vault files via ansible.") {
+    stage("Deploy Vault & avn-vault files via ansible.") {
       when {
-        environment name: 'deploy', value: 'true'
+        expression {
+            return env.deploy || env.vault_init || env.setup_avn_vault;
+        }
       }
+
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'technical-account-vault']) {
           // Generate the inventory file for the environment
@@ -45,29 +52,57 @@ pipeline {
 
             withCredentials([
               file(credentialsId: 'vault_tls_key_sandbox', variable: 'vault_tls_key_sandbox'),
-              file(credentialsId: 'vault_tls_key_cba', variable: 'vault_tls_key_cba')
+              file(credentialsId: 'vault_tls_key_cba', variable: 'vault_tls_key_cba'),
+              file(credentialsId: 'vault_tls_key_testnet', variable: 'vault_tls_key_testnet')
             ])
             {
               script {
                 switch(env.gateway_environment) {
                   case 'sandbox':
-                      vault_tls_key = "${vault_tls_key_sandbox}"
+                    vault_tls_key = '$vault_tls_key_sandbox'
                     break
                   case 'cba':
-                      vault_tls_key = "${vault_tls_key_cba}"
+                    vault_tls_key = '$vault_tls_key_cba'
                     break
-                  }
+                  case 'testnet':
+                    vault_tls_key = '$vault_tls_key_testnet'
+                    break
+                }
+                def gpg_public_key = sh(script: 'gpg --export ${gpg_key_id} | base64 -w 0', returnStdout: true)
+                sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}', 'gpg_key_public_key':'${gpg_public_key}', 'gpg_key_id':'${gpg_key_id}', 'deploy_vault': ${env.deploy}, 'init_vault': ${env.vault_init}, 'setup_avn_vault': ${env.setup_avn_vault} }\""
               }
-              sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory -b --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}'}\" --check"
             }
           }
+        }
+      }
+    }
+    stage("Store app-role and secret-id in secrets manager") {
+      when {
+        expression {
+            return env.setup_avn_vault;
+        }
+      }
+
+      steps {
+        withAWS(roleAccount:accountId(), role:'jenkins-access') {
+          sh "aws secretsmanager put-secret-value --region ${env.region} --secret-id vault --secret-string file://_infra/ansible/config.json";
         }
       }
     }
   }
   post {
     always {
+      archiveArtifacts artifacts: '_infra/ansible/init.json,_infra/ansible/avn-vault-config.json.gpg,_infra/ansible/avn-vault-config.yaml.gpg', allowEmptyArchive: true
       cleanWs()
     }
   }
+}
+
+def accountId() {
+  def environmentMap = [
+    sandbox: "352429414196",
+    cba: "602004642405",
+    testnet: "189013141504"
+  ]
+  return environmentMap[env.gateway_environment]
 }

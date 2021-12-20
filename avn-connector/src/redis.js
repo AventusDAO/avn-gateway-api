@@ -126,11 +126,7 @@ async function resolvePendingAvnTransactions(transactions) {
     newValue[transactionObject.status] = tx.status
     newValue[transactionObject.blockNumber] = tx.blockNumber
 
-    await redisClient
-      .multi()
-      .hset(transactionHashKey, newValue)
-      .zrem(PENDING_TX_KEY.ALL, tx.transactionHash)
-      .exec()
+    await redisClient.multi().hset(transactionHashKey, newValue).zrem(PENDING_TX_KEY.ALL, tx.transactionHash).exec()
   }
 }
 

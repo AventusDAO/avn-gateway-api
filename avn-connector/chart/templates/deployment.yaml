@@ -27,16 +27,16 @@ spec:
         - name: relayer-account
           image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-account:latest"
           command: ["node", "scripts/addRelayer.js", "setRelayer", "-u", "$(RELAYER_ADDRESS)", "-s", "$(RELAYER_SEED)"]
-          env:
-            envFrom:
+          envFrom:
             - configMapRef:
-              name: vault
-            - name: VAULT_ROLE_ID
+                name: vault
+          env:
+            - name: VAULT_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:
                   name: vault-role
                   key: role-id
-            - name: VAULT_SECRET_ID
+            - name: VAULT_APP_SECRET_ID
               valueFrom:
                 secretKeyRef:
                   name: vault-role
@@ -49,6 +49,9 @@ spec:
         - name: relayer-fees
           image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-fees:latest"
           command: ["node", "scripts/insertTestFees.js"]
+          envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}
           env:
             - name: MONGO_USERNAME
               valueFrom:
@@ -60,6 +63,8 @@ spec:
                 secretKeyRef:
                   name: mongo-credentials
                   key: password
+            - name: MONGO_OPTIONS
+              value: $(MONGO_OPTIONS)&retryWrites=false
             - name: DOCUMENT_DB_ADDRESS
               valueFrom:
                 secretKeyRef:
@@ -77,9 +82,9 @@ spec:
               containerPort: {{ .Values.deployment.server.port }}
           envFrom:
             - configMapRef:
-              name: {{ .Chart.Name }}
+                name: {{ .Chart.Name }}
             - configMapRef:
-              name: vault
+                name: vault
           env:
             - name: NODE_ENV
               value: docker
@@ -105,16 +110,18 @@ spec:
                 secretKeyRef:
                   name: rabbit-credentials
                   key: server
-            - name: VAULT_ROLE_ID
+            - name: VAULT_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:
                   name: vault-role
                   key: role-id
-            - name: VAULT_SECRET_ID
+            - name: VAULT_APP_SECRET_ID
               valueFrom:
                 secretKeyRef:
                   name: vault-role
                   key: secret-id
+            - name: REDIS_URL
+              value: redis.{{ .Values.environment }}.aventus.internal
             - name: MQ_SECRET_ARN
               value: arn:aws:secretsmanager:eu-west-1:{{ .Values.accountId }}:secret:rabbitmq
           resources:

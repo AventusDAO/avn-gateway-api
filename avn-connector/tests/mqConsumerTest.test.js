@@ -5,7 +5,7 @@
 // BeforeAll:
 //      Create a test queue in MQ
 // AfterAll:
-//      Delete the test queue 
+//      Delete the test queue
 
 // Test Cases
 //  - Happy Path
@@ -18,7 +18,7 @@
 //      NACK(Negative Acknowledgement)
 //          Run consumer script for multiple valid messages but one invalid message, assert the negative message is still in the queue, and others are removed from the queue
 //          TODO: Update consumer script to check some conditions to decide ack or nack to keep or delete the message from queue
-//      Wrong secret arn 
+//      Wrong secret arn
 //          Run consumer script with wrong secret arn in config file to assert error printout, messages are still in the queue
 //      Wrong secret region
 //          Run consumer script with wrong secret region in config file to assert error printout, messages are still in the queue

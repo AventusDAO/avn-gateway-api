@@ -132,10 +132,7 @@ async function getRelayerFees(relayerAddress) {
     throw new Error(`Relayer address is a mandatory field`)
   }
 
-  const relayerFeesCursor = await db
-    .collection(FEES_COLLECTION_NAME)
-    .find({ relayer: relayerAddress })
-    .limit(1)
+  const relayerFeesCursor = await db.collection(FEES_COLLECTION_NAME).find({ relayer: relayerAddress }).limit(1)
 
   if (await relayerFeesCursor.hasNext()) {
     return (await relayerFeesCursor.next()).fees

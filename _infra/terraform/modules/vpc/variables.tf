@@ -62,6 +62,7 @@ variable "avn_vpc_owner_id" {
 variable "avn_vpc_id" {
   type        = string
   description = "VPC ID that houses the AnN blockchain"
+  default     = ""
 }
 
 variable "peer_region" {
@@ -73,9 +74,11 @@ variable "peer_region" {
 variable "peer_public_route_table" {
   type        = string
   description = "The route table id that handles public subnet traffic in the peer VPC"
+  default     = ""
 }
 
 variable "peer_private_route_table" {
   type        = string
   description = "The route table id that handles private subnet traffic in the peer VPC"
+  default     = ""
 }

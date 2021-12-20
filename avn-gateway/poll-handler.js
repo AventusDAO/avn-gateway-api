@@ -52,11 +52,13 @@ async function makeCall(call, responseObject) {
   if (call.method !== 'requestState') {
     utils.logError("method must be 'requestState'", call.id, call.method)
     responseObject.error = { code: -32601, message: 'Method not found' }
+    return
   }
 
   if (utils.isValidUUID(requestId) === false) {
     utils.logError('invalid request ID', call.id, requestId)
     responseObject.error = { code: -32602, message: 'Invalid params' }
+    return
   }
 
   await poll(responseObject, call.id, requestId)

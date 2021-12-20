@@ -59,7 +59,7 @@ jobs:
         run: |
           make package version=${{ needs.version-suffix.outputs.version }}
       
-      - name: create latest version alongside git short sha
+      - name: create latest version
         run: |
           mv build/${{ env.POLL }}.zip build/${{ env.POLL }}/${{ env.POLL }}-latest.zip
           mv build/${{ env.SEND }}.zip build/${{ env.SEND }}/${{ env.SEND }}-latest.zip
@@ -69,6 +69,16 @@ jobs:
           mv build/${{ env.COMMON }}.zip build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip
           mv build/${{ env.QUEUE }}.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip
           ls -l build/
+      
+      - name: create Short sha version
+        run: |
+          cp build/${{ env.POLL }}/${{ env.POLL }}-latest.zip build/${{ env.POLL }}/${{ env.POLL }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.SEND }}/${{ env.SEND }}-latest.zip build/${{ env.SEND }}/${{ env.SEND }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip build/${{ env.QUERY }}/${{ env.QUERY }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip build/${{ env.COMMON }}/${{ env.COMMON }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-${{ needs.version-suffix.outputs.version }}.zip
 
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@v0.5.1

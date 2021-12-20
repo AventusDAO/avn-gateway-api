@@ -67,8 +67,14 @@ function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString()
 }
 
-function logError(msg, callId, reference, data) {
-  console.error('Error:', msg, ':User call ID:', callId, ':Error ref:', reference, ':Error data:', JSON.stringify(data))
+function logError(msg, callId, data) {
+  const e = new Error()
+  const frame = e.stack.split('\n')[2]
+  const lambdaName = frame.split('.')[0].split('/').reverse()[0]
+  const lineNumber = frame.split(':').reverse()[1]
+  const functionName = frame.split(' ')[5]
+  const reference = lambdaName + ' ' + functionName + ' line ' + lineNumber
+  console.error(msg, ':User call ID:', callId, ':Error ref:', reference, ':Error data:', JSON.stringify(data))
 }
 
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {

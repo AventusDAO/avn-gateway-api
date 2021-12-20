@@ -5,7 +5,6 @@ const MAX_TOKEN_AGE_MSEC = process.env.MAX_TOKEN_AGE_MSEC
 const CLOCK_JITTER_MSEC = -15000
 const MIN_AVT_BALANCE = new utils.BN(process.env.MIN_AVT_BALANCE)
 const AUTH_PREFIX = 'Bearer '
-
 const InvalidRequestResponse = { isAuthorized: false }
 const ValidRequestResponse = { isAuthorized: true }
 
@@ -37,12 +36,7 @@ async function validateAwtToken(event) {
   return ValidRequestResponse
 }
 
-/*
-    Helper functions
-*/
-
 async function userHasAvtBalance(awtToken) {
-  // query the chain for balance info
   try {
     const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
       palletName: 'system',
@@ -52,7 +46,7 @@ async function userHasAvtBalance(awtToken) {
     const avtBalance = new utils.BN(response.data.data.free.replace('0x', ''), 16)
     return avtBalance.gte(MIN_AVT_BALANCE)
   } catch (err) {
-    console.error('failed to check user AVT balance', err)
+    utils.logError('failed to check user AVT balance', null, err)
     return false
   }
 }
@@ -61,10 +55,9 @@ function tokenAgeIsValid(token) {
   try {
     const issuedAt = new Date(token.iat)
     const tokenAge = new Date() - issuedAt
-
     return tokenAge >= CLOCK_JITTER_MSEC && tokenAge < MAX_TOKEN_AGE_MSEC
   } catch (err) {
-    console.error('failed to check AWT age', err)
+    utils.logError('failed to check AWT age', null, err)
     return false
   }
 }
@@ -77,7 +70,7 @@ function getAwtTokenIfAny(event) {
       return JSON.parse(decodedToken)
     }
   } catch (err) {
-    console.error('failed to extract AWT', err)
+    utils.logError('failed to extract AWT', null, err)
     return null
   }
 }

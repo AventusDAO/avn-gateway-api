@@ -8,6 +8,8 @@ help: ## Show this help.
 
 package: ## - package the lambdas into a series of zips $ make package version=<version_no>
 	npm i -g serverless
+	npm --prefix ./common i ./common
+	npm --prefix ./queue install ./queue
 	serverless package -p build
 	mkdir -p build/query-handler
 	mkdir -p build/send-handler
@@ -18,4 +20,4 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	mkdir -p build/queue
 
 clean: ## destroys the build folder
-	rm -rf ./build/
+	rm -rf ./build/ 

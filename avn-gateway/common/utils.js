@@ -82,16 +82,18 @@ function toBnString(val) {
 function logError(msg, callId, data) {
   const e = new Error()
   const splitStack = e.stack.split('\n')
+
+  const pFrame = splitStack[3]
+  const pFile = pFrame.split('.')[0].split('/').reverse()[0]
+  const pLineNum = pFrame.split(':').reverse()[1]
+  const pFunc = pFrame.split(' ')[5]
+
   const frame = splitStack[2]
   const file = frame.split('.')[0].split('/').reverse()[0]
   const lineNum = frame.split(':').reverse()[1]
   const func = frame.split(' ')[5]
-  const pFrame = splitStack[3]
-  const pfile = pFrame.split('.')[0].split('/').reverse()[0]
-  const pLineNum = pFrame.split(':').reverse()[1]
-  const pFunc = pFrame.split(' ')[5]
 
-  const reference = file + ' line ' + pLineNum + ' (' + pFunc + ') -> ' + pFile + ' line ' + lineNum + ' (' + func + ')'
+  const reference = pFile + ' line ' + pLineNum + ' (' + pFunc + ') -> ' + file + ' line ' + lineNum + ' (' + func + ')'
   console.error(msg.toUpperCase(), 'Ref: ', reference, 'Request ID:', callId, 'Error data:', JSON.stringify(data))
 }
 

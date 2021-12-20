@@ -97,7 +97,8 @@ async function getAvtBalance(call, responseObject) {
 }
 
 async function getTokenBalance(call, responseObject) {
-  const { accountId, token } = call.params
+  const accountId = call.params[0]
+  const token = call.params[1]
 
   try {
     if (utils.isValidAccountId(accountId) === false) throw 'account ID'
@@ -109,7 +110,7 @@ async function getTokenBalance(call, responseObject) {
     return
   }
 
-  await queryChain(responseObject, call.id, 'tokenManager', 'balances', [[accountId, token]], formatNumAsString)
+  await queryChain(responseObject, call.id, 'tokenManager', 'balances', [[token, accountId]], formatNumAsString)
 }
 
 async function getAccountNonce(call, responseObject) {
@@ -161,10 +162,12 @@ async function getAvtContractAddress(call, responseObject) {
 }
 
 async function getRelayerFees(call, responseObject) {
-  const { relayer, user, transactionType } = call.params
+  const relayer = call.params[0]
+  const user = call.params[1]
+  const transactionType = call.params[2]
 
   try {
-    if (relayer && utils.isValidAccountId(relayer) === false) throw 'relayer'
+    if (utils.isValidAccountId(relayer) === false) throw 'relayer'
     if (user && utils.isValidAccountId(user) === false) throw 'user'
     if (transactionType && utils.isValidTransactionType(transactionType) === false) throw 'transaction type'
   } catch (param) {

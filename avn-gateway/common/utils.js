@@ -73,7 +73,7 @@ function logError(msg, callId, data) {
   const lambdaName = frame.split('.')[0].split('/').reverse()[0]
   const lineNumber = frame.split(':').reverse()[1]
   const functionName = frame.split(' ')[5]
-  const reference = lambdaName + ' ' + functionName + ' line ' + lineNumber
+  const reference = lambdaName + ' line ' + lineNumber + ' (' + functionName +')'
   console.error(msg, ':User call ID:', callId, ':Error ref:', reference, ':Error data:', JSON.stringify(data))
 }
 

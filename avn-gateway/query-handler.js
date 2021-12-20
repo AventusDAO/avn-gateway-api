@@ -164,9 +164,9 @@ async function getRelayerFees(call, responseObject) {
   const { relayer, user, transactionType } = call.params
 
   try {
-    if (utils.isValidAccountId(relayer) === false) throw 'relayer'
-    if (utils.isValidAccountId(user) === false) throw 'user'
-    if (utils.isValidTransactionType(transactionType) === false) throw 'transction type'
+    if (relayer && utils.isValidAccountId(relayer) === false) throw 'relayer'
+    if (user && utils.isValidAccountId(user) === false) throw 'user'
+    if (transactionType && utils.isValidTransactionType(transactionType) === false) throw 'transaction type'
   } catch (param) {
     const errorMsg = 'invalid ' + param
     utils.logError(errorMsg, call.id, call.params)

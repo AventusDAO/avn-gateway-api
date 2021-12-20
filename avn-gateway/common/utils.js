@@ -83,15 +83,16 @@ function logError(msg, callId, data) {
   const e = new Error()
   const splitStack = e.stack.split('\n')
   const frame = splitStack[2]
-  const lambdaName = frame.split('.')[0].split('/').reverse()[0]
+  const file = frame.split('.')[0].split('/').reverse()[0]
   const lineNum = frame.split(':').reverse()[1]
   const func = frame.split(' ')[5]
-  const parentFrame = splitStack[3]
-  const parentLineNum = parentFrame.split(':').reverse()[1]
-  const parentFunc = parentFrame.split(' ')[5]
+  const pFrame = splitStack[3]
+  const pfile = pFrame.split('.')[0].split('/').reverse()[0]
+  const pLineNum = pFrame.split(':').reverse()[1]
+  const pFunc = pFrame.split(' ')[5]
 
-  const reference = lambdaName + ' line ' + parentLineNum + ' (' + parentFunc + ') -> line ' + lineNum + ' (' + func + ')'
-  console.error(msg.toUpperCase(), 'User request ID:', callId, 'Reference: ', reference, 'Error data:', JSON.stringify(data))
+  const reference = file + ' line ' + pLineNum + ' (' + pFunc + ') -> ' + pFile + ' line ' + lineNum + ' (' + func + ')'
+  console.error(msg.toUpperCase(), 'Ref: ', reference, 'Request ID:', callId, 'Error data:', JSON.stringify(data))
 }
 
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {

@@ -138,9 +138,8 @@ async function processProxyTransfer(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
+    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
   }
-
-  await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
 }
 
 async function processProxyListNftOpenForSale(call, responseObject, requestId) {
@@ -189,9 +188,8 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
+    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
   }
-
-  await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
 }
 
 async function processProxyMintSingleNft(call, responseObject, requestId) {
@@ -242,9 +240,8 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
+    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
   }
-
-  await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
 }
 
 async function processProxyTransferFiatNft(call, responseObject, requestId) {
@@ -292,9 +289,8 @@ async function processProxyTransferFiatNft(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
+    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
   }
-
-  await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
 }
 
 async function processProxyCancelListFiatNft(call, responseObject, requestId) {
@@ -333,9 +329,8 @@ async function processProxyCancelListFiatNft(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
+    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
   }
-
-  await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
 }
 
 async function getRelayerFee(responseObject, relayer, user, transactionType) {

@@ -15,7 +15,7 @@ async function poll(responseObject, callId, requestId) {
   try {
     response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
   } catch (err) {
-    utils.logError('failed to poll chain', call.id, err)
+    utils.logError('failed to poll chain', callId, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
     return
   }

@@ -94,7 +94,7 @@ function logError(msg, callId, data) {
   const func = frame.split(' ')[5]
 
   const reference = pFile + ' line ' + pLineNum + ' (' + pFunc + ') -> ' + file + ' line ' + lineNum + ' (' + func + ')'
-  console.error(msg.toUpperCase(), 'Ref: ', reference, 'Request ID:', callId, 'Error data:', JSON.stringify(data))
+  console.error(msg.toUpperCase(), 'Ref:', reference, 'Request ID:', callId, 'Error data:', JSON.stringify(data))
 }
 
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {

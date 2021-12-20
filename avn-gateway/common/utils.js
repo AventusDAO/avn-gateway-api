@@ -8,6 +8,14 @@ const { validate: uuidValidate } = require('uuid')
 
 const SIGNING_CONTEXT = 'awt_gateway_api'
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment'
+const TX_TYPES = [
+  'proxyAvtTransfer',
+  'proxyTokenTransfer',
+  'proxyMintSingleNft',
+  'proxyListNftOpenForSale',
+  'proxyTransferFiatNft',
+  'proxyCancelListFiatNft'
+]
 
 let initialised
 
@@ -63,17 +71,26 @@ function isValidArray(value) {
   return Array.isArray(value)
 }
 
+function isValidTransactionType(transactionType) {
+  return TX_TYPES.includes(transactionType)
+}
+
 function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString()
 }
 
 function logError(msg, callId, data) {
   const e = new Error()
-  const frame = e.stack.split('\n')[2]
+  const splitStack = e.stack.split('\n')
+  const frame = splitStack[2]
   const lambdaName = frame.split('.')[0].split('/').reverse()[0]
-  const lineNumber = frame.split(':').reverse()[1]
-  const functionName = frame.split(' ')[5]
-  const reference = lambdaName + ' line ' + lineNumber + ' (' + functionName +')'
+  const lineNum = frame.split(':').reverse()[1]
+  const func = frame.split(' ')[5]
+  const parentFrame = splitStack[3]
+  const parentLineNum = parentFrame.split(':').reverse()[1]
+  const parentFunc = parentFrame.split(' ')[5]
+
+  const reference = lambdaName + ' line ' + parentLineNum + ' (' + parentFunc + ') -> line ' + lineNum + ' (' + func + ')'
   console.error(msg.toUpperCase(), 'User request ID:', callId, 'Reference: ', reference, 'Error data:', JSON.stringify(data))
 }
 
@@ -121,6 +138,7 @@ module.exports = {
   isValidNftId,
   isValidNonce,
   isValidSignatureFormat,
+  isValidTransactionType,
   isValidEthereumAddress,
   isValidUUID,
   isValidArray,

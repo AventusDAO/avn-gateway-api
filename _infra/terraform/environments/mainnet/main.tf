@@ -1,7 +1,7 @@
 
 locals {
   name                   = "avn-gateway"
-  environment            = "testnet"
+  environment            = "mainnet"
   cluster_version        = "1.21"
   eks_node_size          = 50
   account_id             = "503742778456"

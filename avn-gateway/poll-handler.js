@@ -11,15 +11,13 @@ exports.handler = async event => {
 }
 
 async function poll(responseObject, callId, requestId) {
-  let response
   try {
-    response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
+    responseObject.result = response.data.error || response.data.status
   } catch (err) {
     utils.logError('failed to poll chain', callId, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
-    return
   }
-  responseObject.result = response.data.error || response.data.status
 }
 
 async function processRequest(requestObject) {

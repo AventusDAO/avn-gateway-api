@@ -23,8 +23,8 @@ describe('Polling api calls:', async () => {
       const validAmount = new BN('1')
       const invalidAmount = new BN(senderAvtBalance).add(new BN('1')).toString()
 
-      requestId = await api.send.transferAvt(relayer, sender, recipient, validAmount)
-      invalidRequestId = await api.send.transferAvt(relayer, sender, recipient, invalidAmount)
+      requestId = await api.send.transferAvt(relayer, recipient, validAmount)
+      invalidRequestId = await api.send.transferAvt(relayer, recipient, invalidAmount)
     })
 
     it('returns a pending status for a valid request ID', async () => {

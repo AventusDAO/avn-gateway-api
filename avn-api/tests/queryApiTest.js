@@ -11,6 +11,7 @@ const MIN_TOTAL_AVT_SUPPLY = new BN('100000000000000000000')
 describe('Query api calls:', async () => {
   let api
   let relayer, user
+  let relayerPublicKey, userPublicKey
 
   const expectedRelayerFees = {
     proxyAvtTransfer: '7000000000000000',
@@ -34,6 +35,8 @@ describe('Query api calls:', async () => {
     api = await helper.avnApi()
     relayer = accounts.relayer.address
     user = accounts.sender.address
+    relayerPublicKey = accounts.relayer.publicKey
+    userPublicKey = accounts.sender.publicKey
   })
 
   describe('getTotalAvt', async () => {
@@ -43,13 +46,23 @@ describe('Query api calls:', async () => {
   })
 
   describe('getRelayerFees', async () => {
-    it('returns default fees for a relayer', async () => {
+    it('returns default fees for a relayer by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer)
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees))
     })
 
-    it('returns fees for a specific user', async () => {
+    it('returns default fees for a relayer by publicKey', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayerPublicKey)
+      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees))
+    })
+
+    it('returns fees for a specific user by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer, user)
+      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees))
+    })
+
+    it('returns fees for a specific user by publicKey', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer, userPublicKey)
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees))
     })
 

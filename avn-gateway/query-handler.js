@@ -140,8 +140,8 @@ async function getNftNonce(call, responseObject) {
 }
 
 async function getRelayerFees(call, responseObject) {
-  const relayer = call.params[0]
-  const user = call.params[1]
+  let relayer = call.params[0]
+  let user = call.params[1]
   const transactionType = call.params[2]
 
   try {
@@ -156,6 +156,8 @@ async function getRelayerFees(call, responseObject) {
   }
 
   try {
+    relayer = utils.convertToAddress(relayer)
+    user = utils.convertToAddress(user)
     const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
     responseObject.result = response.data
   } catch (err) {

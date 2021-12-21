@@ -29,8 +29,9 @@ exports.handler = async (event, context) => {
 
 async function sendTx(responseObject, callId, requestId, palletName, method, params) {
   try {
-    const queue = process.env.MQ_AVN_TX_QUEUE,
-    const response = await mqSender.sendMessageToMQ(queue, { requestId, 'avnProxy', palletName, method, params })
+    const queue = process.env.MQ_AVN_TX_QUEUE
+    const txType = 'avnProxy'
+    const response = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params })
     responseObject.result = response
   } catch (err) {
     utils.logError('failed to send proxy transaction', callId, err)

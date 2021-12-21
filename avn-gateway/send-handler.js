@@ -18,7 +18,7 @@ exports.handler = async (event, context) => {
     const body = {
       jsonrpc: '2.0',
       id: null,
-      error: { code: -32603, message: 'Internal error', data: { gatewayError, request } }
+      error: { code: -32603, message: 'Internal error', data: { gatewayError, event.body } }
     }
     return {
       statusCode: 500,
@@ -88,7 +88,7 @@ async function callSwitch(call, request, response, requestId) {
   }
 }
 
-async function sendTx(response, callId, requestId, palletName, method, params) {
+async function sendTx(request, response, callId, requestId, palletName, method, params) {
   try {
     const queue = process.env.MQ_AVN_TX_QUEUE
     const txType = 'avnProxy'
@@ -159,7 +159,7 @@ async function processProxyTransfer(call, request, response, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(response, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -209,7 +209,7 @@ async function processProxyCancelListFiatNft(call, request, response, requestId)
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(response, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -269,7 +269,7 @@ async function processProxyListNftOpenForSale(call, request, response, requestId
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(response, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -331,7 +331,7 @@ async function processProxyMintSingleNft(call, request, response, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(response, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -390,7 +390,7 @@ async function processProxyTransferFiatNft(call, request, response, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(response, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 

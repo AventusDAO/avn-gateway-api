@@ -27,11 +27,14 @@ exports.handler = async (event, context) => {
   }
 }
 
-async function sendTx(requestId, txType, queueName, palletName, method, params) {
+async function sendTx(responseObject, callId, requestId, palletName, method, params) {
   try {
-    return await mqSender.sendMessageToMQ(queueName, { requestId, txType, palletName, method, params })
+    const queue = process.env.MQ_AVN_TX_QUEUE,
+    const response = await mqSender.sendMessageToMQ(queue, { requestId, 'avnProxy', palletName, method, params })
+    responseObject.result = response
   } catch (err) {
-    throw err
+    utils.logError('failed to send proxy transaction', callId, err)
+    responseObject.error = { code: -32603, message: 'Internal error' }
   }
 }
 
@@ -48,13 +51,13 @@ async function processRequest(requestObject, requestId) {
     return responseObject
   }
 
-  console.info('CALLID_REQUESTID:', call.id + ':' + requestId)
+  console.info('CALLID_TO_REQUESTID:', call.id + ':' + requestId)
 
   if (typeof call.method !== 'string') {
     utils.logError('method type must be string', call.id, call.method)
     responseObject.error = { code: -32600, message: 'Invalid Request' }
   } else {
-    responseObject = await callSwitch(call, responseObject, requestId)
+    await callSwitch(call, responseObject, requestId)
   }
 
   responseObject.id = call.id
@@ -83,11 +86,11 @@ async function callSwitch(call, responseObject, requestId) {
       utils.logError('method not found', call.id, call.method)
       responseObject.error = { code: -32601, message: 'Method not found' }
   }
-  return responseObject
 }
 
 async function processProxyTransfer(call, responseObject, requestId) {
   const transactionType = call.method
+
   const {
     pallet,
     method,
@@ -101,55 +104,54 @@ async function processProxyTransfer(call, responseObject, requestId) {
     paymentNonce
   } = call.params
 
-  const validParams =
-    utils.isValidAccountId(relayer) &&
-    utils.isValidAccountId(signer) &&
-    utils.isValidAccountId(recipient) &&
-    utils.isValidEthereumAddress(token) &&
-    utils.isValidAmount(amount) &&
-    utils.isValidNonce(paymentNonce) &&
-    utils.isValidSignatureFormat(proxyTransferSignature) &&
-    utils.isValidSignatureFormat(feePaymentSignature)
-
-  if (!validParams) {
-    utils.logError('invalid params', call.id, call.params)
+  try {
+    if (utils.isValidAccountId(relayer) === false) throw 'relayer'
+    if (utils.isValidAccountId(signer) === false) throw 'signer'
+    if (utils.isValidAccountId(recipient) === false) throw 'recipient'
+    if (utils.isValidEthereumAddress(token) === false) throw 'token'
+    if (utils.isValidAmount(amount) === false) throw 'amount'
+    if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
+    if (utils.isValidSignatureFormat(proxyTransferSignature) === false) throw 'proxy signature format'
+    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
+  } catch (param) {
+    const errorMsg = 'invalid ' + param
+    utils.logError(errorMsg, call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyTransferSignature)
 
-  let relayerFee
-  try {
-    relayerFee = await getRelayerFees(relayer, signer, transactionType)
-  } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+
+  if (!relayerFee) {
     return
   }
 
-  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  const paymentInfo = getPaymentInfo(
+    responseObject,
+    call.id,
+    signer,
+    relayer,
+    relayerFee,
+    proxyProof,
+    feePaymentSignature,
+    paymentNonce
+  )
+
   if (paymentInfo) {
     const params = {
       proxyParams: [proxyProof, signer, recipient, token, amount],
       relayerAddress: relayer,
       paymentInfo
     }
-
-    try {
-      responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
-    } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, err)
-      responseObject.error = { code: -32603, message: 'Internal error' }
-    }
-  } else {
-    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 
 async function processProxyListNftOpenForSale(call, responseObject, requestId) {
   const transactionType = call.method
+
   const {
     pallet,
     method,
@@ -162,54 +164,53 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
     paymentNonce
   } = call.params
 
-  const validParams =
-    utils.isValidAccountId(relayer) &&
-    utils.isValidAccountId(signer) &&
-    utils.isValidNftId(nftId) &&
-    utils.isValidMarket(market) &&
-    utils.isValidNonce(paymentNonce) &&
-    utils.isValidSignatureFormat(proxyListNftOpenForSaleSignature) &&
-    utils.isValidSignatureFormat(feePaymentSignature)
-
-  if (!validParams) {
-    utils.logError('invalid params', call.id, call.params)
+  try {
+    if (utils.isValidAccountId(relayer) === false) throw 'relayer'
+    if (utils.isValidAccountId(signer) === false) throw 'signer'
+    if (utils.isValidNftId(nftId) === false) throw 'nft ID'
+    if (utils.isValidMarket(market) === false) throw 'market'
+    if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
+    if (utils.isValidSignatureFormat(proxyListNftOpenForSaleSignature) === false) throw 'proxy signature'
+    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
+  } catch (param) {
+    const errorMsg = 'invalid ' + param
+    utils.logError(errorMsg, call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyListNftOpenForSaleSignature)
 
-  let relayerFee
-  try {
-    relayerFee = await getRelayerFees(relayer, signer, transactionType)
-  } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+
+  if (!relayerFee) {
     return
   }
 
-  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  const paymentInfo = getPaymentInfo(
+    responseObject,
+    call.id,
+    signer,
+    relayer,
+    relayerFee,
+    proxyProof,
+    feePaymentSignature,
+    paymentNonce
+  )
+
   if (paymentInfo) {
     const params = {
       proxyParams: [proxyProof, nftId, market],
       relayerAddress: relayer,
       paymentInfo
     }
-
-    try {
-      responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
-    } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, err)
-      responseObject.error = { code: -32603, message: 'Internal error' }
-    }
-  } else {
-    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 
 async function processProxyMintSingleNft(call, responseObject, requestId) {
   const transactionType = call.method
+
   const {
     pallet,
     method,
@@ -223,50 +224,48 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
     paymentNonce
   } = call.params
 
-  const validParams =
-    utils.isValidAccountId(relayer) &&
-    utils.isValidAccountId(signer) &&
-    utils.isValidString(externalRef) &&
-    utils.isValidEthereumAddress(t1Authority) &&
-    utils.isValidArray(royalties) &&
-    utils.isValidNonce(paymentNonce) &&
-    utils.isValidSignatureFormat(proxyMintSignature) &&
-    utils.isValidSignatureFormat(feePaymentSignature)
-
-  if (!validParams) {
-    utils.logError('invalid params', call.id, call.params)
+  try {
+    if (utils.isValidAccountId(relayer) === false) throw 'relayer'
+    if (utils.isValidAccountId(signer) === false) throw 'signer'
+    if (utils.isValidString(externalRef) === false) throw 'externalRef'
+    if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority'
+    if (utils.isValidArray(royalties) === false) throw 'royalties'
+    if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
+    if (utils.isValidSignatureFormat(proxyMintSignature) === false) throw 'proxy signature format'
+    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
+  } catch (param) {
+    const errorMsg = 'invalid ' + param
+    utils.logError(errorMsg, call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyMintSignature)
 
-  let relayerFee
-  try {
-    relayerFee = await getRelayerFees(relayer, signer, transactionType)
-  } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+
+  if (!relayerFee) {
     return
   }
 
-  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  const paymentInfo = getPaymentInfo(
+    responseObject,
+    call.id,
+    signer,
+    relayer,
+    relayerFee,
+    proxyProof,
+    feePaymentSignature,
+    paymentNonce
+  )
+
   if (paymentInfo) {
     const params = {
       proxyParams: [proxyProof, externalRef, royalties, t1Authority],
       relayerAddress: relayer,
       paymentInfo
     }
-
-    try {
-      responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
-    } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, err)
-      responseObject.error = { code: -32603, message: 'Internal error' }
-    }
-  } else {
-    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -284,112 +283,111 @@ async function processProxyTransferFiatNft(call, responseObject, requestId) {
     paymentNonce
   } = call.params
 
-  const validParams =
-    utils.isValidAccountId(relayer) &&
-    utils.isValidAccountId(signer) &&
-    utils.isValidNftId(nftId) &&
-    utils.isValidAccountId(recipient) &&
-    utils.isValidNonce(paymentNonce) &&
-    utils.isValidSignatureFormat(proxyTransferFiatNftSignature) &&
-    utils.isValidSignatureFormat(feePaymentSignature)
-
-  if (!validParams) {
-    utils.logError('invalid params', call.id, call.params)
+  try {
+    if (utils.isValidAccountId(relayer) === false) throw 'relayer'
+    if (utils.isValidAccountId(signer) === false) throw 'signer'
+    if (utils.isValidNftId(nftId) === false) throw 'nft ID'
+    if (utils.isValidAccountId(recipient) === false) throw 'recipient'
+    if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
+    if (utils.isValidSignatureFormat(proxyTransferFiatNftSignature) === false) throw 'proxy signature format'
+    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
+  } catch (param) {
+    const errorMsg = 'invalid ' + param
+    utils.logError(errorMsg, call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyTransferFiatNftSignature)
 
-  let relayerFee
-  try {
-    relayerFee = await getRelayerFees(relayer, signer, transactionType)
-  } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+
+  if (!relayerFee) {
     return
   }
 
-  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  const paymentInfo = getPaymentInfo(
+    responseObject,
+    call.id,
+    signer,
+    relayer,
+    relayerFee,
+    proxyProof,
+    feePaymentSignature,
+    paymentNonce
+  )
+
   if (paymentInfo) {
     const params = {
       proxyParams: [proxyProof, nftId, recipient],
       relayerAddress: relayer,
       paymentInfo
     }
-
-    try {
-      responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
-    } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, err)
-      responseObject.error = { code: -32603, message: 'Internal error' }
-    }
-  } else {
-    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 
 async function processProxyCancelListFiatNft(call, responseObject, requestId) {
   const transactionType = call.method
+
   const { pallet, method, relayer, signer, nftId, proxyCancelListFiatNftSignature, feePaymentSignature, paymentNonce } =
     call.params
 
-  const validParams =
-    utils.isValidAccountId(relayer) &&
-    utils.isValidAccountId(signer) &&
-    utils.isValidNftId(nftId) &&
-    utils.isValidNonce(paymentNonce) &&
-    utils.isValidSignatureFormat(proxyCancelListFiatNftSignature) &&
-    utils.isValidSignatureFormat(feePaymentSignature)
-
-  if (!validParams) {
-    utils.logError('invalid params', call.id, call.params)
+  try {
+    if (utils.isValidAccountId(relayer) === false) throw 'relayer'
+    if (utils.isValidAccountId(signer) === false) throw 'signer'
+    if (utils.isValidNftId(nftId) === false) throw 'nft ID'
+    if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
+    if (utils.isValidSignatureFormat(proxyCancelListFiatNftSignature) === false) throw 'proxy signature format'
+    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
+  } catch (param) {
+    const errorMsg = 'invalid ' + param
+    utils.logError(errorMsg, call.id, call.params)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyCancelListFiatNftSignature)
 
-  let relayerFee
-  try {
-    relayerFee = await getRelayerFees(relayer, signer, transactionType)
-  } catch (err) {
-    utils.logError('failed to retrieve relayer fee', call.id, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+
+  if (!relayerFee) {
     return
   }
 
-  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  const paymentInfo = getPaymentInfo(
+    responseObject,
+    call.id,
+    signer,
+    relayer,
+    relayerFee,
+    proxyProof,
+    feePaymentSignature,
+    paymentNonce
+  )
+
   if (paymentInfo) {
     const params = {
       proxyParams: [proxyProof, nftId],
       relayerAddress: relayer,
       paymentInfo
     }
-
-    try {
-      responseObject.result = await sendTx(requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
-    } catch (err) {
-      utils.logError('failed to send proxy transaction', call.id, err)
-      responseObject.error = { code: -32603, message: 'Internal error' }
-    }
-  } else {
-    utils.logError('invalid fee authorisation', call.id, feePaymentSignature)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 
-async function getRelayerFees(relayer, signer, transactionType) {
-  const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
-    relayer,
-    user: signer,
-    transactionType
-  })
-  return response.data.toString()
+async function getRelayerFee(responseObject, callId, relayer, user, transactionType) {
+  try {
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
+    return response.data.toString()
+  } catch (err) {
+    utils.logError('failed to retrieve relayer fee', callId, err)
+    responseObject.error = { code: -32603, message: 'Internal error' }
+    return undefined
+  }
 }
 
-function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+function getPaymentInfo(responseObject, callId, signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const paymentIsAuthorised = utils.verifyFeePaymentSignature(
     signer,
     relayer,
@@ -400,6 +398,8 @@ function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSigna
   )
 
   if (!paymentIsAuthorised) {
+    utils.logError('invalid fee authorisation', callId, feePaymentSignature)
+    responseObject.error = { code: -32602, message: 'Invalid params' }
     return undefined
   }
 

@@ -61,12 +61,12 @@ function tokenAgeIsValid(token) {
 
 async function userHasAvtBalance(awtToken) {
   try {
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
       palletName: 'system',
       storageName: 'account',
       params: [awtToken.pk]
     })
-    const avtBalance = new utils.BN(response.data.data.free.replace('0x', ''), 16)
+    const avtBalance = new utils.BN(avnResponse.data.data.free.replace('0x', ''), 16)
     return avtBalance.gte(MIN_AVT_BALANCE)
   } catch (err) {
     utils.logError('failed to check user AVT balance', null, err)

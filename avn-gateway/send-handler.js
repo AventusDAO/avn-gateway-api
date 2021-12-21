@@ -13,10 +13,17 @@ exports.handler = async (event, context) => {
       body: JSON.stringify(await processRequest(event.body, context.awsRequestId))
     }
   } catch (err) {
+    const gatewayError = 'failed to connect to queue'
+    utils.logError(gatewayError, null, err)
+    const body = {
+      jsonrpc: '2.0',
+      id: null,
+      error: { code: -32603, message: 'Internal error', data: { gatewayError, request: event.body } }
+    }
     return {
       statusCode: 500,
       error: { message: err.message },
-      body: JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32603, message: 'Internal error' } })
+      body: JSON.stringify(body)
     }
   }
 }
@@ -28,69 +35,73 @@ const connectToMQ = async () => {
   }
 }
 
-async function processRequest(requestObject, requestId) {
-  let responseObject = { jsonrpc: '2.0' }
+async function processRequest(request, requestId) {
+  let response = { jsonrpc: '2.0' }
   let call
 
   try {
-    call = JSON.parse(requestObject)
+    call = JSON.parse(request)
   } catch (err) {
-    utils.logError('failed to parse JSON', null, err)
-    responseObject.error = { code: -32700, message: 'Parse error' }
-    responseObject.id = null
-    return responseObject
+    const gatewayError = 'failed to parse JSON'
+    utils.logError(gatewayError, null, err)
+    response.error = { code: -32700, message: 'Parse error', data: { gatewayError, request } }
+    response.id = null
+    return response
   }
 
   console.info('CALLID_TO_REQUESTID:', call.id + ':' + requestId)
 
   if (typeof call.method !== 'string') {
-    utils.logError('method type must be string', call.id, call.method)
-    responseObject.error = { code: -32600, message: 'Invalid Request' }
+    const gatewayError = 'method type must be string'
+    utils.logError(gatewayError, call.id, call.method)
+    response.error = { code: -32600, message: 'Invalid Request', data: { gatewayError, request } }
   } else {
-    await callSwitch(call, responseObject, requestId)
+    await callSwitch(call, request, response, requestId)
   }
 
-  responseObject.id = call.id
-  return responseObject
+  response.id = call.id
+  return response
 }
 
-async function callSwitch(call, responseObject, requestId) {
+async function callSwitch(call, request, response, requestId) {
   switch (call.method) {
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':
-      await processProxyTransfer(call, responseObject, requestId)
+      await processProxyTransfer(call, request, response, requestId)
       break
     case 'proxyCancelListFiatNft':
-      await processProxyCancelListFiatNft(call, responseObject, requestId)
+      await processProxyCancelListFiatNft(call, request, response, requestId)
       break
     case 'proxyListNftOpenForSale':
-      await processProxyListNftOpenForSale(call, responseObject, requestId)
+      await processProxyListNftOpenForSale(call, request, response, requestId)
       break
     case 'proxyMintSingleNft':
-      await processProxyMintSingleNft(call, responseObject, requestId)
+      await processProxyMintSingleNft(call, request, response, requestId)
       break
     case 'proxyTransferFiatNft':
-      await processProxyTransferFiatNft(call, responseObject, requestId)
+      await processProxyTransferFiatNft(call, request, response, requestId)
       break
     default:
-      utils.logError('method not found', call.id, call.method)
-      responseObject.error = { code: -32601, message: 'Method not found' }
+      const gatewayError = 'method not found'
+      utils.logError(gatewayError, call.id, call.method)
+      response.error = { code: -32601, message: 'Method not found', data: { gatewayError, request } }
   }
 }
 
-async function sendTx(responseObject, callId, requestId, palletName, method, params) {
+async function sendTx(request, response, callId, requestId, palletName, method, params) {
   try {
     const queue = process.env.MQ_AVN_TX_QUEUE
     const txType = 'avnProxy'
-    const response = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params })
-    responseObject.result = response
+    const queueResponse = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params })
+    response.result = queueResponse
   } catch (err) {
-    utils.logError('failed to send proxy transaction', callId, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+    const gatewayError = 'failed to send proxy transaction'
+    utils.logError(gatewayError, callId, err)
+    response.error = { code: -32603, message: 'Internal error', data: { gatewayError, request } }
   }
 }
 
-async function processProxyTransfer(call, responseObject, requestId) {
+async function processProxyTransfer(call, request, response, requestId) {
   const transactionType = call.method
 
   const {
@@ -116,22 +127,23 @@ async function processProxyTransfer(call, responseObject, requestId) {
     if (utils.isValidSignatureFormat(proxyTransferSignature) === false) throw 'proxy signature format'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
-    const errorMsg = 'invalid ' + param
-    utils.logError(errorMsg, call.id, call.params)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid ' + param
+    utils.logError(gatewayError, call.id, call.params)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyTransferSignature)
 
-  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
 
   if (!relayerFee) {
     return
   }
 
   const paymentInfo = getPaymentInfo(
-    responseObject,
+    request,
+    response,
     call.id,
     signer,
     relayer,
@@ -147,11 +159,11 @@ async function processProxyTransfer(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
-async function processProxyCancelListFiatNft(call, responseObject, requestId) {
+async function processProxyCancelListFiatNft(call, request, response, requestId) {
   const transactionType = call.method
 
   const { pallet, method, relayer, signer, nftId, proxyCancelListFiatNftSignature, feePaymentSignature, paymentNonce } =
@@ -165,22 +177,23 @@ async function processProxyCancelListFiatNft(call, responseObject, requestId) {
     if (utils.isValidSignatureFormat(proxyCancelListFiatNftSignature) === false) throw 'proxy signature format'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
-    const errorMsg = 'invalid ' + param
-    utils.logError(errorMsg, call.id, call.params)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid ' + param
+    utils.logError(gatewayError, call.id, call.params)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyCancelListFiatNftSignature)
 
-  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
 
   if (!relayerFee) {
     return
   }
 
   const paymentInfo = getPaymentInfo(
-    responseObject,
+    request,
+    response,
     call.id,
     signer,
     relayer,
@@ -196,11 +209,11 @@ async function processProxyCancelListFiatNft(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
-async function processProxyListNftOpenForSale(call, responseObject, requestId) {
+async function processProxyListNftOpenForSale(call, request, response, requestId) {
   const transactionType = call.method
 
   const {
@@ -224,22 +237,23 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
     if (utils.isValidSignatureFormat(proxyListNftOpenForSaleSignature) === false) throw 'proxy signature'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
-    const errorMsg = 'invalid ' + param
-    utils.logError(errorMsg, call.id, call.params)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid ' + param
+    utils.logError(gatewayError, call.id, call.params)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyListNftOpenForSaleSignature)
 
-  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
 
   if (!relayerFee) {
     return
   }
 
   const paymentInfo = getPaymentInfo(
-    responseObject,
+    request,
+    response,
     call.id,
     signer,
     relayer,
@@ -255,11 +269,11 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
-async function processProxyMintSingleNft(call, responseObject, requestId) {
+async function processProxyMintSingleNft(call, request, response, requestId) {
   const transactionType = call.method
 
   const {
@@ -285,22 +299,23 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
     if (utils.isValidSignatureFormat(proxyMintSignature) === false) throw 'proxy signature format'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
-    const errorMsg = 'invalid ' + param
-    utils.logError(errorMsg, call.id, call.params)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid ' + param
+    utils.logError(gatewayError, call.id, call.params)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyMintSignature)
 
-  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
 
   if (!relayerFee) {
     return
   }
 
   const paymentInfo = getPaymentInfo(
-    responseObject,
+    request,
+    response,
     call.id,
     signer,
     relayer,
@@ -316,11 +331,11 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
-async function processProxyTransferFiatNft(call, responseObject, requestId) {
+async function processProxyTransferFiatNft(call, request, response, requestId) {
   const transactionType = call.method
   const {
     pallet,
@@ -343,22 +358,23 @@ async function processProxyTransferFiatNft(call, responseObject, requestId) {
     if (utils.isValidSignatureFormat(proxyTransferFiatNftSignature) === false) throw 'proxy signature format'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
-    const errorMsg = 'invalid ' + param
-    utils.logError(errorMsg, call.id, call.params)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid ' + param
+    utils.logError(gatewayError, call.id, call.params)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
     return
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyTransferFiatNftSignature)
 
-  const relayerFee = await getRelayerFee(responseObject, call.id, relayer, signer, transactionType)
+  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
 
   if (!relayerFee) {
     return
   }
 
   const paymentInfo = getPaymentInfo(
-    responseObject,
+    request,
+    response,
     call.id,
     signer,
     relayer,
@@ -374,22 +390,23 @@ async function processProxyTransferFiatNft(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, pallet, method, params)
+    await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
-async function getRelayerFee(responseObject, callId, relayer, user, transactionType) {
+async function getRelayerFee(request, response, callId, relayer, user, transactionType) {
   try {
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
-    return response.data.toString()
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
+    return avnResponse.data.toString()
   } catch (err) {
-    utils.logError('failed to retrieve relayer fee', callId, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+    const gatewayError = 'failed to retrieve relayer fee'
+    utils.logError(gatewayError, callId, err)
+    response.error = { code: -32603, message: 'Internal error', data: { gatewayError, request } }
     return undefined
   }
 }
 
-function getPaymentInfo(responseObject, callId, signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+function getPaymentInfo(request, response, callId, signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const paymentIsAuthorised = utils.verifyFeePaymentSignature(
     signer,
     relayer,
@@ -400,8 +417,9 @@ function getPaymentInfo(responseObject, callId, signer, relayer, relayerFee, pro
   )
 
   if (!paymentIsAuthorised) {
-    utils.logError('invalid fee authorisation', callId, feePaymentSignature)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid fee authorisation'
+    utils.logError(gatewayError, callId, feePaymentSignature)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
     return undefined
   }
 

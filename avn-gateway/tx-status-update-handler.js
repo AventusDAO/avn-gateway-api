@@ -42,8 +42,8 @@ async function processRequest() {
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
     console.info(`Getting ${transactionHashes.length} transaction statuses from chain indexer`)
-    let res = await utils.axios.post(`${BLOCK_EXPLORER_BASE_URL}/transactions/bulk`, { transactionHashes })
-    const response = res.data.data
+    const blockExplorerResponse = await utils.axios.post(`${BLOCK_EXPLORER_BASE_URL}/transactions/bulk`, { transactionHashes })
+    const response = blockExplorerResponse.data.data
 
     if (response && response.length > 0) {
       console.info(`Recieved ${response.length} responses from chain indexer`)

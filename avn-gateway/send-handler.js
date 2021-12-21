@@ -27,9 +27,10 @@ exports.handler = async (event, context) => {
   }
 }
 
-async function sendTx(responseObject, callId, requestId, txType, queueName, palletName, method, params) {
+async function sendTx(responseObject, callId, requestId, palletName, method, params) {
   try {
-    const response = await mqSender.sendMessageToMQ(queueName, { requestId, txType, palletName, method, params })
+    const queue = process.env.MQ_AVN_TX_QUEUE,
+    const response = await mqSender.sendMessageToMQ(queue, { requestId, 'avnProxy', palletName, method, params })
     responseObject.result = response
   } catch (err) {
     utils.logError('failed to send proxy transaction', callId, err)
@@ -144,7 +145,7 @@ async function processProxyTransfer(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -203,7 +204,7 @@ async function processProxyListNftOpenForSale(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -264,7 +265,7 @@ async function processProxyMintSingleNft(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -322,7 +323,7 @@ async function processProxyTransferFiatNft(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -371,7 +372,7 @@ async function processProxyCancelListFiatNft(call, responseObject, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(responseObject, call.id, requestId, 'avnProxy', process.env.MQ_AVN_TX_QUEUE, pallet, method, params)
+    await sendTx(responseObject, call.id, requestId, pallet, method, params)
   }
 }
 

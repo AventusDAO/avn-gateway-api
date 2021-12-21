@@ -6,14 +6,15 @@ const proxyApi = require('./proxy.js')
 const TX_PROCESSING_TIME = 3000
 const NONCE_TYPE = { proxy: 0, payment: 1 }
 const TX_TYPE = common.TX_TYPE
+const MARKET = { Ethereum: 1, Fiat: 2 }
 
 function Send(api, queryApi, avtContractAddress) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi)
   this.transferToken = generateFunction(transferToken, api, queryApi)
   this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi)
-  this.listNftOpenForSale = generateFunction(listNftOpenForSale, api, queryApi)
+  this.listFiatNftForSale = generateFunction(listFiatNftForSale, api, queryApi)
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi)
-  this.cancelListFiatNft = generateFunction(cancelListFiatNft, api, queryApi)
+  this.cancelFiatNftListing = generateFunction(cancelFiatNftListing, api, queryApi)
   this.avtContractAddress = avtContractAddress
   this.nonceMap = {}
   this.feesMap = {}
@@ -40,16 +41,6 @@ function transferToken(api, queryApi) {
   }
 }
 
-function listNftOpenForSale(api, queryApi) {
-  return async function (relayer, nftId, _market) {
-    common.validateAccount(relayer)
-    common.validateNftId(nftId)
-    const market = common.validateMarketAndReturnEnum(_market)
-
-    return await this.proxyListNftOpenForSale(api, queryApi, relayer, nftId, market)
-  }
-}
-
 function mintSingleNft(api, queryApi) {
   return async function (relayer, externalRef, royalties, t1Authority) {
     common.validateAccount(relayer)
@@ -58,6 +49,16 @@ function mintSingleNft(api, queryApi) {
     common.validateEthereumAddress(t1Authority)
 
     return await this.proxyMintSingleNft(api, queryApi, relayer, externalRef, royalties, t1Authority)
+  }
+}
+
+function listFiatNftForSale(api, queryApi) {
+  return async function (relayer, nftId) {
+    common.validateAccount(relayer)
+    common.validateNftId(nftId)
+    const market = MARKET.Fiat
+
+    return await this.proxyListNftOpenForSale(api, queryApi, relayer, nftId, market)
   }
 }
 
@@ -71,7 +72,7 @@ function transferFiatNft(api, queryApi) {
   }
 }
 
-function cancelListFiatNft(api, queryApi) {
+function cancelFiatNftListing(api, queryApi) {
   return async function (relayer, nftId) {
     common.validateAccount(relayer)
     common.validateNftId(nftId)

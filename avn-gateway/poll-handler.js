@@ -10,14 +10,14 @@ exports.handler = async event => {
   return response
 }
 
-async function poll(callId, requestId) {
-  let response
+async function poll(responseObject, callId, requestId) {
   try {
-    response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
+    responseObject.result = response.data.error || response.data.status
   } catch (err) {
-    throw err
+    utils.logError('failed to poll chain', callId, err)
+    responseObject.error = { code: -32603, message: 'Internal error' }
   }
-  return response.data.error || response.data.status
 }
 
 async function processRequest(requestObject) {
@@ -36,8 +36,9 @@ async function processRequest(requestObject) {
   if (typeof call.method !== 'string') {
     utils.logError('method type must be string', call.id, call.method)
     responseObject.error = { code: -32600, message: 'Invalid Request' }
+    return responseObject
   } else {
-    responseObject = await makeCall(call, responseObject)
+    await makeCall(call, responseObject)
   }
 
   responseObject.id = call.id
@@ -45,20 +46,19 @@ async function processRequest(requestObject) {
 }
 
 async function makeCall(call, responseObject) {
+  const requestId = call.params[0]
+
   if (call.method !== 'requestState') {
     utils.logError("method must be 'requestState'", call.id, call.method)
     responseObject.error = { code: -32601, message: 'Method not found' }
-  } else if (utils.isValidUUID(call.params[0])) {
-    try {
-      responseObject.result = await poll(call.id, call.params[0])
-    } catch (err) {
-      utils.logError('failed to poll chain', call.id, err)
-      responseObject.error = { code: -32603, message: 'Internal error' }
-    }
-  } else {
-    utils.logError('invalid request ID', call.id, call.params[0])
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    return
   }
 
-  return responseObject
+  if (utils.isValidUUID(requestId) === false) {
+    utils.logError('invalid request ID', call.id, requestId)
+    responseObject.error = { code: -32602, message: 'Invalid params' }
+    return
+  }
+
+  await poll(responseObject, call.id, requestId)
 }

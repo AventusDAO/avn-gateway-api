@@ -17,40 +17,40 @@ function Query(api) {
 
 function getTotalAvt(api) {
   return async function () {
-    return await this.postRequest(api, 'getTotalAvt', [])
+    return await this.postRequest(api, 'getTotalAvt')
   }
 }
 
 function getAvtBalance(api) {
-  return async function (account) {
-    common.validateAccount(account)
+  return async function (accountId) {
+    common.validateAccount(accountId)
 
-    return await this.postRequest(api, 'getAvtBalance', [account])
+    return await this.postRequest(api, 'getAvtBalance', { accountId })
   }
 }
 
 function getTokenBalance(api) {
-  return async function (account, token) {
-    common.validateAccount(account)
+  return async function (accountId, token) {
+    common.validateAccount(accountId)
     common.validateEthereumAddress(token)
 
-    return await this.postRequest(api, 'getTokenBalance', [account, token])
+    return await this.postRequest(api, 'getTokenBalance', { accountId, token })
   }
 }
 
 function getAccountNonce(api) {
-  return async function (account) {
-    common.validateAccount(account)
+  return async function (accountId) {
+    common.validateAccount(accountId)
 
-    return await this.postRequest(api, 'getAccountNonce', [account])
+    return await this.postRequest(api, 'getAccountNonce', { accountId })
   }
 }
 
 function getAccountPaymentNonce(api) {
-  return async function (account) {
-    common.validateAccount(account)
+  return async function (accountId) {
+    common.validateAccount(accountId)
 
-    return await this.postRequest(api, 'getAccountPaymentNonce', [account])
+    return await this.postRequest(api, 'getAccountPaymentNonce', { accountId })
   }
 }
 
@@ -58,7 +58,7 @@ function getNftNonce(api) {
   return async function (nftId) {
     common.validateNftId(nftId)
 
-    return await this.postRequest(api, 'getNftNonce', [nftId])
+    return await this.postRequest(api, 'getNftNonce', { nftId })
   }
 }
 
@@ -67,7 +67,7 @@ function getNftId(api) {
     common.validateStringIsPopulated(externalRef)
 
     if (!this.nftsMap[externalRef]) {
-      this.nftsMap[externalRef] = await this.postRequest(api, 'getNftId', [externalRef])
+      this.nftsMap[externalRef] = await this.postRequest(api, 'getNftId', { externalRef })
     }
 
     return this.nftsMap[externalRef]
@@ -76,7 +76,7 @@ function getNftId(api) {
 
 function getAvtContractAddress(api) {
   return async function () {
-    return await this.postRequest(api, 'getAvtContractAddress', [])
+    return await this.postRequest(api, 'getAvtContractAddress')
   }
 }
 
@@ -86,7 +86,7 @@ function getRelayerFees(api) {
     if (user) common.validateAccount(user)
     if (transactionType) common.validateTransactionType(transactionType)
 
-    return await this.postRequest(api, 'getRelayerFees', [relayer, user, transactionType])
+    return await this.postRequest(api, 'getRelayerFees', { relayer, user, transactionType })
   }
 }
 

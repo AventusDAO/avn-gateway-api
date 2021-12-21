@@ -10,7 +10,7 @@ function requestState(api) {
   return async function (requestId) {
     common.validateRequestId(requestId)
 
-    return await this.postRequest(api, 'requestState', [requestId])
+    return await this.postRequest(api, 'requestState', { requestId })
   }
 }
 

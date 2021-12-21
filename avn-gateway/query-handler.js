@@ -81,7 +81,7 @@ async function queryChain(responseObject, callId, palletName, storageName, param
 }
 
 async function getAccountNonce(call, responseObject) {
-  const accountId = call.params[0]
+  const { accountId } = call.params
 
   if (utils.isValidAccountId(accountId) === false) {
     utils.logError('invalid account ID', call.id, accountId)
@@ -92,7 +92,7 @@ async function getAccountNonce(call, responseObject) {
 }
 
 async function getAccountPaymentNonce(call, responseObject) {
-  const accountId = call.params[0]
+  const { accountId } = call.params
 
   if (utils.isValidAccountId(accountId) === false) {
     utils.logError('invalid account ID', call.id, accountId)
@@ -103,7 +103,7 @@ async function getAccountPaymentNonce(call, responseObject) {
 }
 
 async function getAvtBalance(call, responseObject) {
-  const accountId = call.params[0]
+  const { accountId } = call.params
 
   if (utils.isValidAccountId(accountId) === false) {
     utils.logError('invalid account ID', call.id, accountId)
@@ -118,7 +118,7 @@ async function getAvtContractAddress(call, responseObject) {
 }
 
 async function getNftId(call, responseObject) {
-  const externalRef = call.params[0]
+  const { externalRef } = call.params
 
   if (utils.isValidString(externalRef) === false) {
     utils.logError('invalid external ref', call.id, externalRef)
@@ -129,7 +129,7 @@ async function getNftId(call, responseObject) {
 }
 
 async function getNftNonce(call, responseObject) {
-  const nftId = call.params[0]
+  const { nftId } = call.params
 
   if (utils.isValidNftId(nftId) === false) {
     utils.logError('invalid nft ID', call.id, nftId)
@@ -140,9 +140,7 @@ async function getNftNonce(call, responseObject) {
 }
 
 async function getRelayerFees(call, responseObject) {
-  let relayer = call.params[0]
-  let user = call.params[1]
-  const transactionType = call.params[2]
+  let  { relayer, user, transactionType } = call.params
 
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer'
@@ -167,8 +165,7 @@ async function getRelayerFees(call, responseObject) {
 }
 
 async function getTokenBalance(call, responseObject) {
-  const accountId = call.params[0]
-  const token = call.params[1]
+  const { accountId, token } = call.params
 
   try {
     if (utils.isValidAccountId(accountId) === false) throw 'account ID'

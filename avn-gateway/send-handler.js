@@ -28,16 +28,13 @@ exports.handler = async (event, context) => {
 }
 
 async function sendTx(responseObject, callId, requestId, txType, queueName, palletName, method, params) {
-  let response
   try {
-    response = await mqSender.sendMessageToMQ(queueName, { requestId, txType, palletName, method, params })
+    const response = await mqSender.sendMessageToMQ(queueName, { requestId, txType, palletName, method, params })
+    responseObject.result = response
   } catch (err) {
     utils.logError('failed to send proxy transaction', callId, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
-    return
   }
-
-  responseObject.result = response
 }
 
 async function processRequest(requestObject, requestId) {
@@ -53,7 +50,7 @@ async function processRequest(requestObject, requestId) {
     return responseObject
   }
 
-  console.info('CALLID_REQUESTID:', call.id + ':' + requestId)
+  console.info('CALLID_TO_REQUESTID:', call.id + ':' + requestId)
 
   if (typeof call.method !== 'string') {
     utils.logError('method type must be string', call.id, call.method)

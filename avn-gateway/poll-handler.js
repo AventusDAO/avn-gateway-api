@@ -10,16 +10,6 @@ exports.handler = async event => {
   return response
 }
 
-async function poll(responseObject, callId, requestId) {
-  try {
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
-    responseObject.result = response.data.error || response.data.status
-  } catch (err) {
-    utils.logError('failed to poll chain', callId, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
-  }
-}
-
 async function processRequest(requestObject) {
   let responseObject = { jsonrpc: '2.0' }
   let call
@@ -54,11 +44,21 @@ async function makeCall(call, responseObject) {
     return
   }
 
-  if (utils.isValidUUID(requestId) === false) {
+  if (utils.isValidRequestId(requestId) === false) {
     utils.logError('invalid request ID', call.id, requestId)
     responseObject.error = { code: -32602, message: 'Invalid params' }
     return
   }
 
   await poll(responseObject, call.id, requestId)
+}
+
+async function poll(responseObject, callId, requestId) {
+  try {
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
+    responseObject.result = response.data.error || response.data.status
+  } catch (err) {
+    utils.logError('failed to poll chain', callId, err)
+    responseObject.error = { code: -32603, message: 'Internal error' }
+  }
 }

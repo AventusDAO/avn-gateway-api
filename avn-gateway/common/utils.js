@@ -39,24 +39,28 @@ function isValidAmount(amount) {
   return /^\d+$/.test(amount) && !new BN(amount).isZero()
 }
 
-function isValidNftId(nftId) {
-  return isHex(nftId)
+function isValidArray(value) {
+  return Array.isArray(value)
+}
+
+function isValidEthereumAddress(tokenId) {
+  return isHex(tokenId) && tokenId.split('').length == 42
 }
 
 function isValidMarket(market) {
   return [1, 2].includes(market)
 }
 
+function isValidNftId(nftId) {
+  return isHex(nftId)
+}
+
 function isValidNonce(nonce) {
   return /^\d+$/.test(nonce) && new BN(nonce).lt(new BN('ffffffffffffffff', 16))
 }
 
-function isValidUUID(requestId) {
+function isValidRequestId(requestId) {
   return uuidValidate(requestId)
-}
-
-function isValidEthereumAddress(tokenId) {
-  return isHex(tokenId) && tokenId.split('').length == 42
 }
 
 function isValidSignatureFormat(signature) {
@@ -67,16 +71,8 @@ function isValidString(value) {
   return !(value ? value.replace(/\s/g, '').length == 0 : true)
 }
 
-function isValidArray(value) {
-  return Array.isArray(value)
-}
-
 function isValidTransactionType(transactionType) {
   return TX_TYPES.includes(transactionType)
-}
-
-function toBnString(val) {
-  return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString()
 }
 
 function logError(msg, callId, data) {
@@ -95,6 +91,10 @@ function logError(msg, callId, data) {
 
   const reference = pFile + ' line ' + pLineNum + ' (' + pFunc + ') -> ' + file + ' line ' + lineNum + ' (' + func + ')'
   console.error(msg.toUpperCase(), 'Ref:', reference, 'Request ID:', callId, 'Error data:', JSON.stringify(data))
+}
+
+function toBnString(val) {
+  return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString()
 }
 
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
@@ -130,22 +130,23 @@ function encodeProxyProof(params) {
   return u8aConcat(signer.toU8a(true), relayer.toU8a(true), signature.toU8a(false))
 }
 
+// Keep alphabetical
 module.exports = {
   axios,
   BN,
   init,
-  logError,
   isValidAccountId,
   isValidAmount,
+  isValidArray,
+  isValidEthereumAddress,
   isValidMarket,
   isValidNftId,
   isValidNonce,
+  isValidRequestId,
   isValidSignatureFormat,
-  isValidTransactionType,
-  isValidEthereumAddress,
-  isValidUUID,
-  isValidArray,
   isValidString,
+  isValidTransactionType,
+  logError,
   toBnString,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature

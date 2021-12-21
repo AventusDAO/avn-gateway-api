@@ -35,18 +35,16 @@ async function validateAwtToken(event) {
   return ValidRequestResponse
 }
 
-async function userHasAvtBalance(awtToken) {
+function getAwtTokenIfAny(event) {
   try {
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
-      palletName: 'system',
-      storageName: 'account',
-      params: [awtToken.pk]
-    })
-    const avtBalance = new utils.BN(response.data.data.free.replace('0x', ''), 16)
-    return avtBalance.gte(MIN_AVT_BALANCE)
+    const rawToken = event.headers.authorization
+    if (rawToken && rawToken.toLowerCase().startsWith(AUTH_PREFIX.toLowerCase())) {
+      const decodedToken = Buffer.from(rawToken.split(' ')[1], 'base64').toString('ascii')
+      return JSON.parse(decodedToken)
+    }
   } catch (err) {
-    utils.logError('failed to check user AVT balance', null, err)
-    return false
+    utils.logError('failed to extract AWT token', null, err)
+    return null
   }
 }
 
@@ -61,15 +59,17 @@ function tokenAgeIsValid(token) {
   }
 }
 
-function getAwtTokenIfAny(event) {
+async function userHasAvtBalance(awtToken) {
   try {
-    const rawToken = event.headers.authorization
-    if (rawToken && rawToken.toLowerCase().startsWith(AUTH_PREFIX.toLowerCase())) {
-      const decodedToken = Buffer.from(rawToken.split(' ')[1], 'base64').toString('ascii')
-      return JSON.parse(decodedToken)
-    }
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
+      palletName: 'system',
+      storageName: 'account',
+      params: [awtToken.pk]
+    })
+    const avtBalance = new utils.BN(response.data.data.free.replace('0x', ''), 16)
+    return avtBalance.gte(MIN_AVT_BALANCE)
   } catch (err) {
-    utils.logError('failed to extract AWT token', null, err)
-    return null
+    utils.logError('failed to check user AVT balance', null, err)
+    return false
   }
 }

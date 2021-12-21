@@ -377,16 +377,14 @@ async function processProxyCancelListFiatNft(call, responseObject, requestId) {
 }
 
 async function getRelayerFee(responseObject, callId, relayer, user, transactionType) {
-  let response
   try {
-    response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
+    return response.data.toString()
   } catch (err) {
     utils.logError('failed to retrieve relayer fee', callId, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
     return undefined
   }
-
-  return response.data.toString()
 }
 
 function getPaymentInfo(responseObject, callId, signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {

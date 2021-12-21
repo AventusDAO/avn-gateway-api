@@ -22,8 +22,8 @@ spec:
         helmVersion: {{ .Chart.Version }}
     spec:
       serviceAccount: avn-connector
-      {{- if and (not (eq .Values.environment "mainnet")) (not (eq .Values.environment "testnet"))}}
       initContainers:
+        {{- if and (not (eq .Values.environment "mainnet")) (not (eq .Values.environment "testnet"))}}
         - name: relayer-account
           image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-account:latest"
           command: ["node", "scripts/addRelayer.js", "setRelayer", "-u", "$(RELAYER_ADDRESS)", "-s", "$(RELAYER_SEED)"]
@@ -46,6 +46,7 @@ spec:
               value: "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh"
             - name: RELAYER_SEED
               value: "0xa343da434e14c8cef7c474551a63e7e4c0cb4670a2374368ee01e670ab0d2464"
+        {{- end }}
         - name: relayer-fees
           image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-fees:latest"
           command: ["node", "scripts/insertTestFees.js"]
@@ -53,6 +54,8 @@ spec:
             - configMapRef:
                 name: {{ .Chart.Name }}
           env:
+            - name: ENVIRONMENT
+              value: {{ .Values.environment }}
             - name: MONGO_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -72,7 +75,6 @@ spec:
                   key: server
             - name: MONGO_SERVER
               value: $(DOCUMENT_DB_ADDRESS):27017/?ssl=true
-      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.deployment.image.repo }}:{{ .Values.deployment.image.tag }}"

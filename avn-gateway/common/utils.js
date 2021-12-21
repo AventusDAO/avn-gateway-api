@@ -75,6 +75,10 @@ function isValidTransactionType(transactionType) {
   return TX_TYPES.includes(transactionType)
 }
 
+function convertToAddress(accountId) {
+  return isHex(accountId) ? encodeAddress(accountId) : accountId
+}
+
 function logError(msg, callId, data) {
   const e = new Error()
   const splitStack = e.stack.split('\n')
@@ -134,6 +138,7 @@ function encodeProxyProof(params) {
 module.exports = {
   axios,
   BN,
+  convertToAddress,
   init,
   isValidAccountId,
   isValidAmount,

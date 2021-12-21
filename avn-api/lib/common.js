@@ -18,11 +18,6 @@ const TX_TYPE = {
   ProxyCancelListFiatNft: 'proxyCancelListFiatNft'
 }
 
-const MARKET = {
-  Ethereum: 1,
-  Fiat: 2
-}
-
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
   if (isAccountPK(accountAddressOrPublicKey)) {
     return accountAddressOrPublicKey
@@ -69,14 +64,6 @@ function validateIsArray(array) {
   if (isValid === false) {
     throw new Error(`Invalid array type: ${array}`)
   }
-}
-
-function validateMarketAndReturnEnum(market) {
-  const isValid = Object.keys(MARKET).includes(market)
-  if (isValid === false) {
-    throw new Error(`Invalid market type: ${market}`)
-  }
-  return MARKET[market]
 }
 
 function validateNftId(nftId) {
@@ -133,7 +120,6 @@ module.exports = {
   validateAmount,
   validateEthereumAddress,
   validateIsArray,
-  validateMarketAndReturnEnum,
   validateNftId,
   validateRequestId,
   validateStringIsPopulated,

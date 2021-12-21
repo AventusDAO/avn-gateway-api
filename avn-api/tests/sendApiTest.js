@@ -106,7 +106,7 @@ describe('SendTx api calls:', async () => {
     })
   })
 
-  describe('listNftOpenForSale', async () => {
+  describe('listFiatNftForSale', async () => {
     let externalRef, nftId
     const royalties = []
 
@@ -118,7 +118,7 @@ describe('SendTx api calls:', async () => {
     })
 
     it('can list an NFT as open for sale', async () => {
-      const requestId = await api.send.listNftOpenForSale(relayer, nftId, 'Fiat')
+      const requestId = await api.send.listFiatNftForSale(relayer, nftId)
       await helper.confirmStatus(api, requestId, 'Processed')
     })
   })
@@ -132,7 +132,7 @@ describe('SendTx api calls:', async () => {
       let requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority)
       await helper.confirmStatus(api, requestId, 'Processed')
       nftId = await api.query.getNftId(externalRef)
-      requestId = await api.send.listNftOpenForSale(relayer, nftId, 'Fiat')
+      requestId = await api.send.listFiatNftForSale(relayer, nftId)
       await helper.confirmStatus(api, requestId, 'Processed')
     })
 
@@ -142,7 +142,7 @@ describe('SendTx api calls:', async () => {
     })
   })
 
-  describe('cancelListFiatNft', async () => {
+  describe('cancelFiatNftListing', async () => {
     let externalRef, nftId
     const royalties = []
 
@@ -151,12 +151,12 @@ describe('SendTx api calls:', async () => {
       let requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority)
       await helper.confirmStatus(api, requestId, 'Processed')
       nftId = await api.query.getNftId(externalRef)
-      requestId = await api.send.listNftOpenForSale(relayer, nftId, 'Fiat')
+      requestId = await api.send.listFiatNftForSale(relayer, nftId)
       await helper.confirmStatus(api, requestId, 'Processed')
     })
 
     it('can cancel a fiat listing', async () => {
-      const requestId = await api.send.cancelListFiatNft(relayer, nftId)
+      const requestId = await api.send.cancelFiatNftListing(relayer, nftId)
       await helper.confirmStatus(api, requestId, 'Processed')
     })
   })

@@ -111,9 +111,9 @@ function getClientSigner() {
   return signer
 }
 
-function getClientPublicKey() {
+function getClientAddress() {
   const signer = getClientSigner()
-  return u8aToHex(signer.publicKey)
+  return signer.address
 }
 
 async function sleep(ms) {
@@ -123,7 +123,7 @@ async function sleep(ms) {
 module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
-  getClientPublicKey,
+  getClientAddress,
   getClientSigner,
   keyring,
   registry,

@@ -85,7 +85,7 @@ function generateFunction(functionName, api, queryApi) {
 }
 
 Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient, token, amount, retry) {
-  const signer = common.getClientPublicKey()
+  const signer = common.getClientAddress()
   const proxyNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy, retry)
   const proxyTransferSignature = proxyApi.createProxyTransferSignature(relayer, signer, recipient, token, amount, proxyNonce)
 
@@ -121,7 +121,7 @@ Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient
 }
 
 Send.prototype.proxyListNftOpenForSale = async function (api, queryApi, relayer, nftId, market, retry) {
-  const signer = common.getClientPublicKey()
+  const signer = common.getClientAddress()
   const nftNonce = await queryApi.getNftNonce(nftId)
   const proxyListNftOpenForSaleSignature = proxyApi.createProxyListNftOpenForSaleSignature(
     relayer,
@@ -162,7 +162,7 @@ Send.prototype.proxyListNftOpenForSale = async function (api, queryApi, relayer,
 }
 
 Send.prototype.proxyMintSingleNft = async function (api, queryApi, relayer, externalRef, royalties, t1Authority, retry) {
-  const signer = common.getClientPublicKey()
+  const signer = common.getClientAddress()
   const proxyMintSignature = proxyApi.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)
 
   const transactionType = TX_TYPE.ProxyMintSingleNft
@@ -199,7 +199,7 @@ Send.prototype.proxyMintSingleNft = async function (api, queryApi, relayer, exte
 }
 
 Send.prototype.proxyTransferFiatNft = async function (api, queryApi, relayer, nftId, recipient, retry) {
-  const signer = common.getClientPublicKey()
+  const signer = common.getClientAddress()
   const opId = await queryApi.getNftNonce(nftId)
   const proxyTransferFiatNftSignature = proxyApi.createProxyTransferFiatNftSignature(relayer, signer, nftId, recipient, opId)
 
@@ -234,7 +234,7 @@ Send.prototype.proxyTransferFiatNft = async function (api, queryApi, relayer, nf
 }
 
 Send.prototype.proxyCancelListFiatNft = async function (api, queryApi, relayer, nftId, retry) {
-  const signer = common.getClientPublicKey()
+  const signer = common.getClientAddress()
   const opId = await queryApi.getNftNonce(nftId)
   const proxyCancelListFiatNftSignature = proxyApi.createProxyCancelListFiatNftSignature(relayer, signer, nftId, opId)
 

@@ -20,69 +20,63 @@ function Send(api, queryApi, avtContractAddress) {
 }
 
 function transferAvt(api, queryApi) {
-  return async function (relayer, signer, recipient, amount) {
+  return async function (relayer, recipient, amount) {
     common.validateAccount(relayer)
-    common.validateAccount(signer)
     common.validateAccount(recipient)
     common.validateAmount(amount)
 
-    return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, this.avtContractAddress, amount)
+    return await this.proxyTransfer(api, queryApi, relayer, recipient, this.avtContractAddress, amount)
   }
 }
 
 function transferToken(api, queryApi) {
-  return async function (relayer, signer, recipient, token, amount) {
+  return async function (relayer, recipient, token, amount) {
     common.validateAccount(relayer)
-    common.validateAccount(signer)
     common.validateAccount(recipient)
     common.validateEthereumAddress(token)
     common.validateAmount(amount)
 
-    return await this.proxyTransfer(api, queryApi, relayer, signer, recipient, token, amount)
+    return await this.proxyTransfer(api, queryApi, relayer, recipient, token, amount)
   }
 }
 
 function listNftOpenForSale(api, queryApi) {
-  return async function (relayer, signer, nftId, _market) {
+  return async function (relayer, nftId, _market) {
     common.validateAccount(relayer)
-    common.validateAccount(signer)
     common.validateNftId(nftId)
     const market = common.validateMarketAndReturnEnum(_market)
 
-    return await this.proxyListNftOpenForSale(api, queryApi, relayer, signer, nftId, market)
+    return await this.proxyListNftOpenForSale(api, queryApi, relayer, nftId, market)
   }
 }
 
 function mintSingleNft(api, queryApi) {
-  return async function (relayer, signer, externalRef, royalties, t1Authority) {
+  return async function (relayer, externalRef, royalties, t1Authority) {
     common.validateAccount(relayer)
-    common.validateAccount(signer)
     common.validateStringIsPopulated(externalRef)
     common.validateIsArray(royalties)
     common.validateEthereumAddress(t1Authority)
 
-    return await this.proxyMintSingleNft(api, queryApi, relayer, signer, externalRef, royalties, t1Authority)
+    return await this.proxyMintSingleNft(api, queryApi, relayer, externalRef, royalties, t1Authority)
   }
 }
 
 function transferFiatNft(api, queryApi) {
-  return async function (relayer, signer, _recipient, nftId) {
+  return async function (relayer, _recipient, nftId) {
     common.validateAccount(relayer)
-    common.validateAccount(signer)
     const recipient = common.convertToPublicKeyIfNeeded(_recipient)
     common.validateNftId(nftId)
 
-    return await this.proxyTransferFiatNft(api, queryApi, relayer, signer, nftId, recipient)
+    return await this.proxyTransferFiatNft(api, queryApi, relayer, nftId, recipient)
   }
 }
 
 function cancelListFiatNft(api, queryApi) {
-  return async function (relayer, signer, nftId) {
+  return async function (relayer, nftId) {
     common.validateAccount(relayer)
-    common.validateAccount(signer)
     common.validateNftId(nftId)
 
-    return await this.proxyCancelListFiatNft(api, queryApi, relayer, signer, nftId)
+    return await this.proxyCancelListFiatNft(api, queryApi, relayer, nftId)
   }
 }
 
@@ -90,7 +84,8 @@ function generateFunction(functionName, api, queryApi) {
   return functionName(api, queryApi)
 }
 
-Send.prototype.proxyTransfer = async function (api, queryApi, relayer, signer, recipient, token, amount, retry) {
+Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient, token, amount, retry) {
+  const signer = common.getClientAddress()
   const proxyNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy, retry)
   const proxyTransferSignature = proxyApi.createProxyTransferSignature(relayer, signer, recipient, token, amount, proxyNonce)
 
@@ -119,13 +114,14 @@ Send.prototype.proxyTransfer = async function (api, queryApi, relayer, signer, r
 
   if (!response && !retry) {
     retry = true
-    await this.proxyTransfer(api, queryApi, relayer, signer, recipient, token, amount, retry)
+    await this.proxyTransfer(api, queryApi, relayer, recipient, token, amount, retry)
   }
 
   return response
 }
 
-Send.prototype.proxyListNftOpenForSale = async function (api, queryApi, relayer, signer, nftId, market, retry) {
+Send.prototype.proxyListNftOpenForSale = async function (api, queryApi, relayer, nftId, market, retry) {
+  const signer = common.getClientAddress()
   const nftNonce = await queryApi.getNftNonce(nftId)
   const proxyListNftOpenForSaleSignature = proxyApi.createProxyListNftOpenForSaleSignature(
     relayer,
@@ -159,22 +155,14 @@ Send.prototype.proxyListNftOpenForSale = async function (api, queryApi, relayer,
 
   if (!response && !retry) {
     retry = true
-    await this.proxyListNftOpenForSale(api, queryApi, relayer, signer, nftId, market, retry)
+    await this.proxyListNftOpenForSale(api, queryApi, relayer, nftId, market, retry)
   }
 
   return response
 }
 
-Send.prototype.proxyMintSingleNft = async function (
-  api,
-  queryApi,
-  relayer,
-  signer,
-  externalRef,
-  royalties,
-  t1Authority,
-  retry
-) {
+Send.prototype.proxyMintSingleNft = async function (api, queryApi, relayer, externalRef, royalties, t1Authority, retry) {
+  const signer = common.getClientAddress()
   const proxyMintSignature = proxyApi.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)
 
   const transactionType = TX_TYPE.ProxyMintSingleNft
@@ -204,13 +192,14 @@ Send.prototype.proxyMintSingleNft = async function (
 
   if (!response && !retry) {
     retry = true
-    await this.proxyMintSingleNft(api, queryApi, relayer, signer, externalRef, royalties, t1Authority, retry)
+    await this.proxyMintSingleNft(api, queryApi, relayer, externalRef, royalties, t1Authority, retry)
   }
 
   return response
 }
 
-Send.prototype.proxyTransferFiatNft = async function (api, queryApi, relayer, signer, nftId, recipient, retry) {
+Send.prototype.proxyTransferFiatNft = async function (api, queryApi, relayer, nftId, recipient, retry) {
+  const signer = common.getClientAddress()
   const opId = await queryApi.getNftNonce(nftId)
   const proxyTransferFiatNftSignature = proxyApi.createProxyTransferFiatNftSignature(relayer, signer, nftId, recipient, opId)
 
@@ -238,13 +227,14 @@ Send.prototype.proxyTransferFiatNft = async function (api, queryApi, relayer, si
 
   if (!response && !retry) {
     retry = true
-    await this.proxyTransferFiatNft(api, queryApi, relayer, signer, nftId, recipient, retry)
+    await this.proxyTransferFiatNft(api, queryApi, relayer, nftId, recipient, retry)
   }
 
   return response
 }
 
-Send.prototype.proxyCancelListFiatNft = async function (api, queryApi, relayer, signer, nftId, retry) {
+Send.prototype.proxyCancelListFiatNft = async function (api, queryApi, relayer, nftId, retry) {
+  const signer = common.getClientAddress()
   const opId = await queryApi.getNftNonce(nftId)
   const proxyCancelListFiatNftSignature = proxyApi.createProxyCancelListFiatNftSignature(relayer, signer, nftId, opId)
 
@@ -271,7 +261,7 @@ Send.prototype.proxyCancelListFiatNft = async function (api, queryApi, relayer, 
 
   if (!response && !retry) {
     retry = true
-    await this.proxyCancelListFiatNft(api, queryApi, relayer, signer, nftId, retry)
+    await this.proxyCancelListFiatNft(api, queryApi, relayer, nftId, retry)
   }
 
   return response

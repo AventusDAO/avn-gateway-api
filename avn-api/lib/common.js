@@ -104,10 +104,16 @@ function validateTransactionType(transactionType) {
   }
 }
 
-function obtainSignerSuri() {
+function getClientSigner() {
   const suri = process.env.SURI
   if (!suri) throw new Error('Please set SURI environment variable')
-  return suri
+  const signer = keyring.addFromUri(suri)
+  return signer
+}
+
+function getClientAddress() {
+  const signer = getClientSigner()
+  return signer.address
 }
 
 async function sleep(ms) {
@@ -117,8 +123,9 @@ async function sleep(ms) {
 module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
+  getClientAddress,
+  getClientSigner,
   keyring,
-  obtainSignerSuri,
   registry,
   sleep,
   TX_TYPE,

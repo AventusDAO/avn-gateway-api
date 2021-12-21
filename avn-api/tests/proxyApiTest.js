@@ -32,9 +32,9 @@ describe('Proxy api calls:', async () => {
       senderNonceBefore = new BN(await api.query.getAccountNonce(sender))
     })
 
-    it('can transfer tokens using a recipient public key', async () => {
+    it('can transfer tokens', async () => {
       const amount = new BN(2)
-      const requestId = await api.send.transferToken(relayer, sender, recipientPubKey, token, amount)
+      const requestId = await api.send.transferToken(relayer, recipientPubKey, token, amount)
 
       await helper.confirmStatus(api, requestId, 'Processed')
 
@@ -55,7 +55,7 @@ describe('Proxy api calls:', async () => {
       let requestId
 
       for (i = 0; i < numTx; i++) {
-        requestId = await api.send.transferToken(relayer, sender, recipient, token, amount)
+        requestId = await api.send.transferToken(relayer, recipient, token, amount)
       }
 
       await helper.confirmStatus(api, requestId, 'Processed')

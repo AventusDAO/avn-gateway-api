@@ -114,7 +114,7 @@ Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient
 
   if (!response && !retry) {
     retry = true
-    await this.proxyTransfer(api, queryApi, relayer, signer, recipient, token, amount, retry)
+    await this.proxyTransfer(api, queryApi, relayer, recipient, token, amount, retry)
   }
 
   return response
@@ -155,7 +155,7 @@ Send.prototype.proxyListNftOpenForSale = async function (api, queryApi, relayer,
 
   if (!response && !retry) {
     retry = true
-    await this.proxyListNftOpenForSale(api, queryApi, relayer, signer, nftId, market, retry)
+    await this.proxyListNftOpenForSale(api, queryApi, relayer, nftId, market, retry)
   }
 
   return response
@@ -192,7 +192,7 @@ Send.prototype.proxyMintSingleNft = async function (api, queryApi, relayer, exte
 
   if (!response && !retry) {
     retry = true
-    await this.proxyMintSingleNft(api, queryApi, relayer, signer, externalRef, royalties, t1Authority, retry)
+    await this.proxyMintSingleNft(api, queryApi, relayer, externalRef, royalties, t1Authority, retry)
   }
 
   return response
@@ -227,7 +227,7 @@ Send.prototype.proxyTransferFiatNft = async function (api, queryApi, relayer, nf
 
   if (!response && !retry) {
     retry = true
-    await this.proxyTransferFiatNft(api, queryApi, relayer, signer, nftId, recipient, retry)
+    await this.proxyTransferFiatNft(api, queryApi, relayer, nftId, recipient, retry)
   }
 
   return response
@@ -261,7 +261,7 @@ Send.prototype.proxyCancelListFiatNft = async function (api, queryApi, relayer, 
 
   if (!response && !retry) {
     retry = true
-    await this.proxyCancelListFiatNft(api, queryApi, relayer, signer, nftId, retry)
+    await this.proxyCancelListFiatNft(api, queryApi, relayer, nftId, retry)
   }
 
   return response

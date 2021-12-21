@@ -10,55 +10,60 @@ exports.handler = async event => {
   return response
 }
 
-async function processRequest(requestObject) {
-  let responseObject = { jsonrpc: '2.0' }
+async function processRequest(request) {
+  let response = { jsonrpc: '2.0' }
   let call
 
   try {
-    call = JSON.parse(requestObject)
+    call = JSON.parse(request)
   } catch (err) {
-    utils.logError('failed to parse JSON', null, err)
-    responseObject.error = { code: -32700, message: 'Parse error' }
-    responseObject.id = null
-    return responseObject
+    const gatewayError = 'failed to parse JSON'
+    utils.logError(gatewayError, null, err)
+    response.error = { code: -32700, message: 'Parse error', data: { gatewayError, request } }
+    response.id = null
+    return response
   }
 
   if (typeof call.method !== 'string') {
-    utils.logError('method type must be string', call.id, call.method)
-    responseObject.error = { code: -32600, message: 'Invalid Request' }
-    return responseObject
+    const gatewayError = 'method type must be string'
+    utils.logError(gatewayError, call.id, call.method)
+    response.error = { code: -32600, message: 'Invalid Request', data: { gatewayError, request } }
+    return response
   } else {
-    await makeCall(call, responseObject)
+    await makeCall(call, request, response)
   }
 
-  responseObject.id = call.id
-  return responseObject
+  response.id = call.id
+  return response
 }
 
-async function makeCall(call, responseObject) {
+async function makeCall(call, request, response) {
   const { requestId } = call.params
 
   if (call.method !== 'requestState') {
-    utils.logError("method must be 'requestState'", call.id, call.method)
-    responseObject.error = { code: -32601, message: 'Method not found' }
+    const gatewayError = "method must be 'requestState'"
+    utils.logError(gatewayError, call.id, call.method)
+    response.error = { code: -32601, message: 'Method not found', data: { gatewayError, request } }
     return
   }
 
   if (utils.isValidRequestId(requestId) === false) {
-    utils.logError('invalid request ID', call.id, requestId)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid request ID'
+    utils.logError(gatewayError, call.id, requestId)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
     return
   }
 
-  await poll(responseObject, call.id, requestId)
+  await poll(request, response, call.id, requestId)
 }
 
-async function poll(responseObject, callId, requestId) {
+async function poll(request, response, callId, requestId) {
   try {
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
-    responseObject.result = response.data.error || response.data.status
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
+    response.result = avnResponse.data.error || avnResponse.data.status
   } catch (err) {
-    utils.logError('failed to poll chain', callId, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+    const gatewayError = 'failed to poll chain'
+    utils.logError(gatewayError, callId, err)
+    response.error = { code: -32603, message: 'Internal error', data: { gatewayError, request } }
   }
 }

@@ -10,178 +10,188 @@ exports.handler = async event => {
   return response
 }
 
-async function processRequest(requestObject) {
-  let responseObject = { jsonrpc: '2.0' }
+async function processRequest(request) {
+  let response = { jsonrpc: '2.0' }
   let call
 
   try {
-    call = JSON.parse(requestObject)
+    call = JSON.parse(request)
   } catch (err) {
-    utils.logError('failed to parse JSON', null, err)
-    responseObject.error = { code: -32700, message: 'Parse error' }
-    responseObject.id = null
-    return responseObject
+    const gatewayError = 'failed to parse JSON'
+    utils.logError(gatewayError, null, err)
+    response.error = { code: -32700, message: 'Parse error', data: { gatewayError, request } }
+    response.id = null
+    return response
   }
 
   if (typeof call.method !== 'string') {
-    utils.logError('method type must be string', call.id, call.method)
-    responseObject.error = { code: -32600, message: 'Invalid Request' }
+    const gatewayError = 'method type must be string'
+    utils.logError(gatewayError, call.id, call.method)
+    response.error = { code: -32600, message: 'Invalid Request', data: { gatewayError, request } }
   } else {
-    await callSwitch(call, responseObject)
+    await callSwitch(call, request, response)
   }
 
-  responseObject.id = call.id
-  return responseObject
+  response.id = call.id
+  return response
 }
 
 // Keep alphabetical
-async function callSwitch(call, responseObject) {
+async function callSwitch(call, request, response) {
   switch (call.method) {
     case 'getAccountNonce':
-      await getAccountNonce(call, responseObject)
+      await getAccountNonce(call, request, response)
       break
     case 'getAccountPaymentNonce':
-      await getAccountPaymentNonce(call, responseObject)
+      await getAccountPaymentNonce(call, request, response)
       break
     case 'getAvtBalance':
-      await getAvtBalance(call, responseObject)
+      await getAvtBalance(call, request, response)
       break
     case 'getAvtContractAddress':
-      await getAvtContractAddress(call, responseObject)
+      await getAvtContractAddress(call, request, response)
       break
     case 'getNftId':
-      await getNftId(call, responseObject)
+      await getNftId(call, request, response)
       break
     case 'getNftNonce':
-      await getNftNonce(call, responseObject)
+      await getNftNonce(call, request, response)
       break
     case 'getRelayerFees':
-      await getRelayerFees(call, responseObject)
+      await getRelayerFees(call, request, response)
       break
     case 'getTokenBalance':
-      await getTokenBalance(call, responseObject)
+      await getTokenBalance(call, request, response)
       break
     case 'getTotalAvt':
-      await getTotalAvt(call, responseObject)
+      await getTotalAvt(call, request, response)
       break
     default:
-      utils.logError('method not found', call.id, call.method)
-      responseObject.error = { code: -32601, message: 'Method not found' }
+      const gatewayError = 'method not found'
+      utils.logError(gatewayError, call.id, call.method)
+      response.error = { code: -32601, message: 'Method not found', data: { gatewayError, request } }
   }
 }
 
-async function queryChain(responseObject, callId, palletName, storageName, params, responseFormatter) {
+async function queryChain(request, response, callId, palletName, storageName, params, responseFormatter) {
   try {
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })
-    responseObject.result = response.data.error || responseFormatter(response.data, params)
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })
+    response.result = avnResponse.data.error || responseFormatter(avnResponse.data, params)
   } catch (err) {
-    utils.logError('failed to query chain', callId, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+    const gatewayError = 'failed to query chain'
+    utils.logError(gatewayError, callId, err)
+    response.error = { code: -32603, message: 'Internal error', data: { gatewayError, request } }
   }
 }
 
-async function getAccountNonce(call, responseObject) {
+async function getAccountNonce(call, request, response) {
   const { accountId } = call.params
 
   if (utils.isValidAccountId(accountId) === false) {
-    utils.logError('invalid account ID', call.id, accountId)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid account ID'
+    utils.logError(gatewayError, call.id, accountId)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
   } else {
-    await queryChain(responseObject, call.id, 'tokenManager', 'nonces', [accountId], formatNumAsString)
+    await queryChain(request, response, call.id, 'tokenManager', 'nonces', [accountId], formatNumAsString)
   }
 }
 
-async function getAccountPaymentNonce(call, responseObject) {
+async function getAccountPaymentNonce(call, request, response) {
   const { accountId } = call.params
 
   if (utils.isValidAccountId(accountId) === false) {
-    utils.logError('invalid account ID', call.id, accountId)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid account ID'
+    utils.logError(gatewayError, call.id, accountId)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
   } else {
-    await queryChain(responseObject, call.id, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString)
+    await queryChain(request, response, call.id, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString)
   }
 }
 
-async function getAvtBalance(call, responseObject) {
+async function getAvtBalance(call, request, response) {
   const { accountId } = call.params
 
   if (utils.isValidAccountId(accountId) === false) {
-    utils.logError('invalid account ID', call.id, accountId)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid account ID'
+    utils.logError(gatewayError, call.id, accountId)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
   } else {
-    await queryChain(responseObject, call.id, 'system', 'account', [accountId], formatBalanceAsString)
+    await queryChain(request, response, call.id, 'system', 'account', [accountId], formatBalanceAsString)
   }
 }
 
-async function getAvtContractAddress(call, responseObject) {
-  await queryChain(responseObject, call.id, 'tokenManager', 'aVTTokenContract', [], formatAsString)
+async function getAvtContractAddress(call, request, response) {
+  await queryChain(request, response, call.id, 'tokenManager', 'aVTTokenContract', [], formatAsString)
 }
 
-async function getNftId(call, responseObject) {
+async function getNftId(call, request, response) {
   const { externalRef } = call.params
 
   if (utils.isValidString(externalRef) === false) {
-    utils.logError('invalid external ref', call.id, externalRef)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid external ref'
+    utils.logError(gatewayError, call.id, externalRef)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
   } else {
-    await queryChain(responseObject, call.id, 'nftManager', 'nfts', ['entries', externalRef], filterNftId)
+    await queryChain(request, response, call.id, 'nftManager', 'nfts', ['entries', externalRef], filterNftId)
   }
 }
 
-async function getNftNonce(call, responseObject) {
+async function getNftNonce(call, request, response) {
   const { nftId } = call.params
 
   if (utils.isValidNftId(nftId) === false) {
-    utils.logError('invalid nft ID', call.id, nftId)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid nft ID'
+    utils.logError(gatewayError, call.id, nftId)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
   } else {
-    await queryChain(responseObject, call.id, 'nftManager', 'nfts', [nftId], formatNftNonceAsString)
+    await queryChain(request, response, call.id, 'nftManager', 'nfts', [nftId], formatNftNonceAsString)
   }
 }
 
-async function getRelayerFees(call, responseObject) {
-  let  { relayer, user, transactionType } = call.params
+async function getRelayerFees(call, request, response) {
+  let { relayer, user, transactionType } = call.params
 
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer'
     if (user && utils.isValidAccountId(user) === false) throw 'user'
     if (transactionType && utils.isValidTransactionType(transactionType) === false) throw 'transaction type'
   } catch (param) {
-    const errorMsg = 'invalid ' + param
-    utils.logError(errorMsg, call.id, call.params)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid ' + param
+    utils.logError(gatewayError, call.id, call.params)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
     return
   }
 
   try {
     relayer = utils.convertToAddress(relayer)
     user = utils.convertToAddress(user)
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
-    responseObject.result = response.data
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
+    response.result = avnResponse.data
   } catch (err) {
-    utils.logError('failed to call avn-connector', call.id, err)
-    responseObject.error = { code: -32603, message: 'Internal error' }
+    const gatewayError = 'failed to call avn-connector'
+    utils.logError(gatewayError, call.id, err)
+    response.error = { code: -32603, message: 'Internal error', data: { gatewayError, request } }
   }
 }
 
-async function getTokenBalance(call, responseObject) {
+async function getTokenBalance(call, request, response) {
   const { accountId, token } = call.params
 
   try {
     if (utils.isValidAccountId(accountId) === false) throw 'account ID'
     if (utils.isValidEthereumAddress(token) === false) throw 'token'
   } catch (param) {
-    const errorMsg = 'invalid ' + param
-    utils.logError(errorMsg, call.id, call.params)
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    const gatewayError = 'invalid ' + param
+    utils.logError(gatewayError, call.id, call.params)
+    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
     return
   }
 
-  await queryChain(responseObject, call.id, 'tokenManager', 'balances', [[token, accountId]], formatNumAsString)
+  await queryChain(request, response, call.id, 'tokenManager', 'balances', [[token, accountId]], formatNumAsString)
 }
 
-async function getTotalAvt(call, responseObject) {
-  await queryChain(responseObject, call.id, 'balances', 'totalIssuance', [], formatNumAsString)
+async function getTotalAvt(call, request, response) {
+  await queryChain(request, response, call.id, 'balances', 'totalIssuance', [], formatNumAsString)
 }
 
 const formatAsString = data => data.toString()

@@ -2,9 +2,9 @@
 const gatewayDb = require('../gatewayDb')
 const config = require('multiconfig').load()
 
-const TESTNET = "testnet"
-const MAINNET = "mainnet"
-const DEFAULT_RELAYER_FEE = config.relayer.fee 
+const TESTNET = 'testnet'
+const MAINNET = 'mainnet'
+const DEFAULT_RELAYER_FEE = config.relayer.fee
 const TEST_USER1_RELAYER_FEE = '20000000000000000'
 const TEST_USER2_RELAYER_FEE = '30000000000000000'
 
@@ -24,7 +24,7 @@ async function run() {
     const db = await gatewayDb.connect()
     const feesCollection = await db.collection(gatewayDb.FEES_COLLECTION_NAME)
     const userFeesCollection = await db.collection(gatewayDb.USER_FEES_COLLECTION_NAME)
-    
+
     console.log(`Checking relayer address: ${RELAYER_ADDRESS}`)
     if (await feesCollection.findOne({ relayer: RELAYER_ADDRESS })) {
       console.log(`\n\tIt looks like this script has already been run on this database, exiting now.\n`)
@@ -36,7 +36,7 @@ async function run() {
     console.log(`Inserting fees for Relayer: ${RELAYER_ADDRESS}`)
     await feesCollection.insertOne(testRelayerFees)
     if (process.env.ENVIRONMENT != TESTNET && process.env.ENVIRONMENT != MAINNET) {
-      console.log("Inserting test user data")
+      console.log('Inserting test user data')
       await userFeesCollection.insertOne(testUser1Fees)
       await userFeesCollection.insertOne(testUser2Fees)
     }

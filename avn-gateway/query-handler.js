@@ -11,15 +11,13 @@ exports.handler = async event => {
 }
 
 async function queryChain(responseObject, callId, palletName, storageName, params, responseFormatter) {
-  let response
   try {
-    response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })
+    responseObject.result = response.data.error || responseFormatter(response.data, params)
   } catch (err) {
     utils.logError('failed to query chain', callId, err)
     responseObject.error = { code: -32603, message: 'Internal error' }
-    return
   }
-  responseObject.result = response.data.error || responseFormatter(response.data, params)
 }
 
 async function processRequest(requestObject) {

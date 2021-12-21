@@ -18,7 +18,7 @@ exports.handler = async (event, context) => {
     const body = {
       jsonrpc: '2.0',
       id: null,
-      error: { code: -32603, message: 'Internal error', data: { gatewayError, event.body } }
+      error: { code: -32603, message: 'Internal error', data: { gatewayError, request: event.body } }
     }
     return {
       statusCode: 500,

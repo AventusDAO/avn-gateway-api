@@ -14,22 +14,21 @@ exports.handler = async event => {
 }
 
 async function validateAwtToken(event) {
-  console.log('Authorisation lambda called')
-
+  console.info('Validating AWT token and user balance')
   const awtToken = getAwtTokenIfAny(event)
 
   if (!tokenAgeIsValid(awtToken)) {
-    console.log('Token is either expired or issued in the future')
+    console.info('Invalid AWT token - outside window')
     return InvalidRequestResponse
   }
 
   if (!utils.verifyAwtTokenSignature(awtToken.pk, awtToken.iat, awtToken.sig)) {
-    console.log('The avnPublicKey signature is not valid')
+    console.info('Invalid AWT token - bad signature')
     return InvalidRequestResponse
   }
 
   if (!(await userHasAvtBalance(awtToken))) {
-    console.log('User does not have enough balance to use the avn gateway api')
+    console.info('User does not have enough AVT to use the gateway')
     return InvalidRequestResponse
   }
 
@@ -57,7 +56,7 @@ function tokenAgeIsValid(token) {
     const tokenAge = new Date() - issuedAt
     return tokenAge >= CLOCK_JITTER_MSEC && tokenAge < MAX_TOKEN_AGE_MSEC
   } catch (err) {
-    utils.logError('failed to check AWT age', null, err)
+    utils.logError('failed to check AWT token age', null, err)
     return false
   }
 }
@@ -70,7 +69,7 @@ function getAwtTokenIfAny(event) {
       return JSON.parse(decodedToken)
     }
   } catch (err) {
-    utils.logError('failed to extract AWT', null, err)
+    utils.logError('failed to extract AWT token', null, err)
     return null
   }
 }

@@ -36,7 +36,7 @@ async function processRequest(requestObject) {
 }
 
 async function makeCall(call, responseObject) {
-  const requestId = call.params[0]
+  const { requestId } = call.params
 
   if (call.method !== 'requestState') {
     utils.logError("method must be 'requestState'", call.id, call.method)

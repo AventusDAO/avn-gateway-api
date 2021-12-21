@@ -25,7 +25,7 @@ describe('AVN Gateway Smoke Tests', function () {
 
   it('proxy AVT transfer and poll transaction state', async () => {
     const amount = new BN('1')
-    const requestId = await api.send.transferAvt(relayer, sender, recipient, amount)
+    const requestId = await api.send.transferAvt(relayer, recipient, amount)
     assert(requestId !== undefined, 'requestId is undefined')
     assert(requestId !== 'Invalid params', 'request contains invalid params')
     assert(

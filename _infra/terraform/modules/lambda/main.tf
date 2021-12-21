@@ -37,6 +37,10 @@ resource "aws_lambda_function" "lambda" {
       subnet_ids         = var.subnet_ids
     }
   }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.network
+  ]
 }
 
 resource "aws_lambda_layer_version" "common_layer" {

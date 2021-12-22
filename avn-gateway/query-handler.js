@@ -104,7 +104,7 @@ async function getNftId(call, request, response) {
   if (utils.isValidString(externalRef) === false) {
     return utils.errorResponse('params', 'invalid external ref', externalRef, request, response)
   } else {
-    await queryChain(request, response, call.id, 'nftManager', 'nfts', ['entries', externalRef], filterNftId)
+    return await queryChain(request, response, call.id, 'nftManager', 'nfts', ['entries', externalRef], filterNftId)
   }
 }
 
@@ -114,7 +114,7 @@ async function getNftNonce(call, request, response) {
   if (utils.isValidNftId(nftId) === false) {
     return utils.errorResponse('params', 'invalid nft id', nftId, request, response)
   } else {
-    await queryChain(request, response, call.id, 'nftManager', 'nfts', [nftId], formatNftNonceAsString)
+    return await queryChain(request, response, call.id, 'nftManager', 'nfts', [nftId], formatNftNonceAsString)
   }
 }
 
@@ -156,7 +156,7 @@ async function getTokenBalance(call, request, response) {
 }
 
 async function getTotalAvt(call, request, response) {
-  await queryChain(request, response, call.id, 'balances', 'totalIssuance', [], formatNumAsString)
+  return await queryChain(request, response, call.id, 'balances', 'totalIssuance', [], formatNumAsString)
 }
 
 const formatAsString = data => data.toString()

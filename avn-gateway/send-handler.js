@@ -183,7 +183,7 @@ async function processProxyCancelListFiatNft(call, request, response, requestId)
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(request, response, call.id, requestId, pallet, method, params)
+    return await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -241,7 +241,7 @@ async function processProxyListNftOpenForSale(call, request, response, requestId
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(request, response, call.id, requestId, pallet, method, params)
+    return await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -301,7 +301,7 @@ async function processProxyMintSingleNft(call, request, response, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(request, response, call.id, requestId, pallet, method, params)
+    return await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 
@@ -358,7 +358,7 @@ async function processProxyTransferFiatNft(call, request, response, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(request, response, call.id, requestId, pallet, method, params)
+    return await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 

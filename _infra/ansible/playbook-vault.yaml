@@ -14,3 +14,4 @@
     become: yes
   - role: avn-vault-setup
     when: setup_avn_vault|bool
+  # - role: create-account-from-seed

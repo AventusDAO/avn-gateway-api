@@ -15,3 +15,11 @@ avn_vault_binary_path: vault-server/files/avn-vault
 # Needs to be defined
 # gpg_key_public_key: <gpg public key here>
 # gpg_key_id: <gpg public key id here>
+
+# Add relayer account
+
+# role_id: <add_role>
+# secret_id: <add_secret>
+
+# new_account_SS58: <add_ss58>
+# new_account_seed: <add_secret_seed>

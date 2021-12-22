@@ -6,25 +6,21 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 let mqSender
 
 exports.handler = async (event, context) => {
+  let response = { jsonrpc: '2.0', id: null }
+
   try {
     await connectToMQ()
-    return {
-      statusCode: 200,
-      body: JSON.stringify(await processRequest(event.body, context.awsRequestId))
-    }
   } catch (err) {
-    const gatewayError = 'failed to connect to queue'
-    utils.logError(gatewayError, null, err)
-    const body = {
-      jsonrpc: '2.0',
-      id: null,
-      error: { code: -32603, message: 'Internal error', data: { gatewayError, request: event.body } }
-    }
     return {
       statusCode: 500,
       error: { message: err.message },
-      body: JSON.stringify(body)
+      body: JSON.stringify(utils.errorResponse('parse', 'failed to connect to queue', err, event.body, response))
     }
+  }
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify(await processRequest(event.body, response, context.awsRequestId))
   }
 }
 
@@ -35,56 +31,40 @@ const connectToMQ = async () => {
   }
 }
 
-async function processRequest(request, requestId) {
-  let response = { jsonrpc: '2.0' }
+async function processRequest(request, response, requestId) {
   let call
 
   try {
     call = JSON.parse(request)
   } catch (err) {
-    const gatewayError = 'failed to parse JSON'
-    utils.logError(gatewayError, null, err)
-    response.error = { code: -32700, message: 'Parse error', data: { gatewayError, request } }
-    response.id = null
-    return response
+    return utils.errorResponse('parse', 'failed to parse JSON', err, request, response)
   }
 
   console.info('CALLID_TO_REQUESTID:', call.id + ':' + requestId)
+  response.id = call.id
 
   if (typeof call.method !== 'string') {
-    const gatewayError = 'method type must be string'
-    utils.logError(gatewayError, call.id, call.method)
-    response.error = { code: -32600, message: 'Invalid Request', data: { gatewayError, request } }
+    return utils.errorResponse('request', 'method type must be string', call.method, request, response)
   } else {
-    await callSwitch(call, request, response, requestId)
+    return await callSwitch(call, request, response, requestId)
   }
-
-  response.id = call.id
-  return response
 }
 
 async function callSwitch(call, request, response, requestId) {
   switch (call.method) {
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':
-      await processProxyTransfer(call, request, response, requestId)
-      break
+      return await processProxyTransfer(call, request, response, requestId)
     case 'proxyCancelListFiatNft':
-      await processProxyCancelListFiatNft(call, request, response, requestId)
-      break
+      return await processProxyCancelListFiatNft(call, request, response, requestId)
     case 'proxyListNftOpenForSale':
-      await processProxyListNftOpenForSale(call, request, response, requestId)
-      break
+      return await processProxyListNftOpenForSale(call, request, response, requestId)
     case 'proxyMintSingleNft':
-      await processProxyMintSingleNft(call, request, response, requestId)
-      break
+      return await processProxyMintSingleNft(call, request, response, requestId)
     case 'proxyTransferFiatNft':
-      await processProxyTransferFiatNft(call, request, response, requestId)
-      break
+      return await processProxyTransferFiatNft(call, request, response, requestId)
     default:
-      const gatewayError = 'method not found'
-      utils.logError(gatewayError, call.id, call.method)
-      response.error = { code: -32601, message: 'Method not found', data: { gatewayError, request } }
+      return utils.errorResponse(2, 'method not found', call.method, request, response)
   }
 }
 
@@ -92,12 +72,10 @@ async function sendTx(request, response, callId, requestId, palletName, method, 
   try {
     const queue = process.env.MQ_AVN_TX_QUEUE
     const txType = 'avnProxy'
-    const queueResponse = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params })
-    response.result = queueResponse
+    response.result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params })
+    return response
   } catch (err) {
-    const gatewayError = 'failed to send proxy transaction'
-    utils.logError(gatewayError, callId, err)
-    response.error = { code: -32603, message: 'Internal error', data: { gatewayError, request } }
+    return utils.errorResponse('internal', 'failed to send proxy transaction', err, request, response)
   }
 }
 
@@ -128,9 +106,7 @@ async function processProxyTransfer(call, request, response, requestId) {
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
-    utils.logError(gatewayError, call.id, call.params)
-    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
-    return
+    return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyTransferSignature)
@@ -178,9 +154,7 @@ async function processProxyCancelListFiatNft(call, request, response, requestId)
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
-    utils.logError(gatewayError, call.id, call.params)
-    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
-    return
+    return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyCancelListFiatNftSignature)
@@ -238,9 +212,7 @@ async function processProxyListNftOpenForSale(call, request, response, requestId
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
-    utils.logError(gatewayError, call.id, call.params)
-    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
-    return
+    return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyListNftOpenForSaleSignature)
@@ -300,9 +272,7 @@ async function processProxyMintSingleNft(call, request, response, requestId) {
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
-    utils.logError(gatewayError, call.id, call.params)
-    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
-    return
+    return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyMintSignature)
@@ -359,9 +329,7 @@ async function processProxyTransferFiatNft(call, request, response, requestId) {
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
-    utils.logError(gatewayError, call.id, call.params)
-    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
-    return
+    return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxyTransferFiatNftSignature)
@@ -399,9 +367,7 @@ async function getRelayerFee(request, response, callId, relayer, user, transacti
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
     return avnResponse.data.toString()
   } catch (err) {
-    const gatewayError = 'failed to retrieve relayer fee'
-    utils.logError(gatewayError, callId, err)
-    response.error = { code: -32603, message: 'Internal error', data: { gatewayError, request } }
+    // return utils.errorResponse('internal', 'failed to retrieve relayer fee', err, request, response)
     return undefined
   }
 }
@@ -417,9 +383,7 @@ function getPaymentInfo(request, response, callId, signer, relayer, relayerFee, 
   )
 
   if (!paymentIsAuthorised) {
-    const gatewayError = 'invalid fee authorisation'
-    utils.logError(gatewayError, callId, feePaymentSignature)
-    response.error = { code: -32602, message: 'Invalid params', data: { gatewayError, request } }
+    // return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
     return undefined
   }
 

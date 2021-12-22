@@ -10,7 +10,7 @@ exports.handler = async event => {
   }
 }
 
-async function processRequest(request) {
+async function processRequest(request, response) {
   let call
 
   try {

@@ -135,7 +135,7 @@ async function processProxyTransfer(call, request, response, requestId) {
       relayerAddress: relayer,
       paymentInfo
     }
-    await sendTx(request, response, call.id, requestId, pallet, method, params)
+    return await sendTx(request, response, call.id, requestId, pallet, method, params)
   }
 }
 

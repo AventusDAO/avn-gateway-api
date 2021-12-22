@@ -35,7 +35,7 @@ async function run() {
 
     console.log(`Inserting fees for Relayer: ${RELAYER_ADDRESS}`)
     await feesCollection.insertOne(testRelayerFees)
-    if (process.env.ENVIRONMENT != TESTNET && process.env.ENVIRONMENT != MAINNET) {
+    if (process.env.ENVIRONMENT !== TESTNET && process.env.ENVIRONMENT !== MAINNET) {
       console.log('Inserting test user data')
       await userFeesCollection.insertOne(testUser1Fees)
       await userFeesCollection.insertOne(testUser2Fees)

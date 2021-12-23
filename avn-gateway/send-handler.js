@@ -111,32 +111,25 @@ async function processProxyTransfer(call, request, response, requestId) {
 
   const proxyProof = getProxyProof(signer, relayer, proxyTransferSignature)
 
-  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
-
-  if (!relayerFee) {
-    return
+  let relayerFee
+  try {
+    relayerFee = await getRelayerFee(relayer, signer, call.method)
+  } catch (error) {
+    return utils.errorResponse('internal', 'could not get relayer fee', error, request, response)
   }
 
-  const paymentInfo = getPaymentInfo(
-    request,
-    response,
-    call.id,
-    signer,
-    relayer,
-    relayerFee,
-    proxyProof,
-    feePaymentSignature,
-    paymentNonce
-  )
-
-  if (paymentInfo) {
-    const params = {
-      proxyParams: [proxyProof, signer, recipient, token, amount],
-      relayerAddress: relayer,
-      paymentInfo
-    }
-    return await sendTx(request, response, call.id, requestId, pallet, method, params)
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  if (!paymentInfo) {
+    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
   }
+
+  const params = {
+    proxyParams: [proxyProof, signer, recipient, token, amount],
+    relayerAddress: relayer,
+    paymentInfo
+  }
+
+  return await sendTx(request, response, call.id, requestId, pallet, method, params)
 }
 
 async function processProxyCancelListFiatNft(call, request, response, requestId) {
@@ -159,32 +152,25 @@ async function processProxyCancelListFiatNft(call, request, response, requestId)
 
   const proxyProof = getProxyProof(signer, relayer, proxyCancelListFiatNftSignature)
 
-  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
-
-  if (!relayerFee) {
-    return
+  let relayerFee
+  try {
+    relayerFee = await getRelayerFee(relayer, signer, call.method)
+  } catch (error) {
+    return utils.errorResponse('internal', 'could not get relayer fee', error, request, response)
   }
 
-  const paymentInfo = getPaymentInfo(
-    request,
-    response,
-    call.id,
-    signer,
-    relayer,
-    relayerFee,
-    proxyProof,
-    feePaymentSignature,
-    paymentNonce
-  )
-
-  if (paymentInfo) {
-    const params = {
-      proxyParams: [proxyProof, nftId],
-      relayerAddress: relayer,
-      paymentInfo
-    }
-    return await sendTx(request, response, call.id, requestId, pallet, method, params)
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  if (!paymentInfo) {
+    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
   }
+
+  const params = {
+    proxyParams: [proxyProof, nftId],
+    relayerAddress: relayer,
+    paymentInfo
+  }
+
+  return await sendTx(request, response, call.id, requestId, pallet, method, params)
 }
 
 async function processProxyListNftOpenForSale(call, request, response, requestId) {
@@ -217,32 +203,25 @@ async function processProxyListNftOpenForSale(call, request, response, requestId
 
   const proxyProof = getProxyProof(signer, relayer, proxyListNftOpenForSaleSignature)
 
-  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
-
-  if (!relayerFee) {
-    return
+  let relayerFee
+  try {
+    relayerFee = await getRelayerFee(relayer, signer, call.method)
+  } catch (error) {
+    return utils.errorResponse('internal', 'could not get relayer fee', error, request, response)
   }
 
-  const paymentInfo = getPaymentInfo(
-    request,
-    response,
-    call.id,
-    signer,
-    relayer,
-    relayerFee,
-    proxyProof,
-    feePaymentSignature,
-    paymentNonce
-  )
-
-  if (paymentInfo) {
-    const params = {
-      proxyParams: [proxyProof, nftId, market],
-      relayerAddress: relayer,
-      paymentInfo
-    }
-    return await sendTx(request, response, call.id, requestId, pallet, method, params)
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  if (!paymentInfo) {
+    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
   }
+
+  const params = {
+    proxyParams: [proxyProof, nftId, market],
+    relayerAddress: relayer,
+    paymentInfo
+  }
+
+  return await sendTx(request, response, call.id, requestId, pallet, method, params)
 }
 
 async function processProxyMintSingleNft(call, request, response, requestId) {
@@ -277,32 +256,25 @@ async function processProxyMintSingleNft(call, request, response, requestId) {
 
   const proxyProof = getProxyProof(signer, relayer, proxyMintSignature)
 
-  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
-
-  if (!relayerFee) {
-    return
+  let relayerFee
+  try {
+    relayerFee = await getRelayerFee(relayer, signer, call.method)
+  } catch (error) {
+    return utils.errorResponse('internal', 'could not get relayer fee', error, request, response)
   }
 
-  const paymentInfo = getPaymentInfo(
-    request,
-    response,
-    call.id,
-    signer,
-    relayer,
-    relayerFee,
-    proxyProof,
-    feePaymentSignature,
-    paymentNonce
-  )
-
-  if (paymentInfo) {
-    const params = {
-      proxyParams: [proxyProof, externalRef, royalties, t1Authority],
-      relayerAddress: relayer,
-      paymentInfo
-    }
-    return await sendTx(request, response, call.id, requestId, pallet, method, params)
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  if (!paymentInfo) {
+    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
   }
+
+  const params = {
+    proxyParams: [proxyProof, externalRef, royalties, t1Authority],
+    relayerAddress: relayer,
+    paymentInfo
+  }
+
+  return await sendTx(request, response, call.id, requestId, pallet, method, params)
 }
 
 async function processProxyTransferFiatNft(call, request, response, requestId) {
@@ -334,56 +306,40 @@ async function processProxyTransferFiatNft(call, request, response, requestId) {
 
   const proxyProof = getProxyProof(signer, relayer, proxyTransferFiatNftSignature)
 
-  const relayerFee = await getRelayerFee(request, response, call.id, relayer, signer, transactionType)
-
-  if (!relayerFee) {
-    return
+  let relayerFee
+  try {
+    relayerFee = await getRelayerFee(relayer, signer, call.method)
+  } catch (error) {
+    return utils.errorResponse('internal', 'could not get relayer fee', error, request, response)
   }
 
-  const paymentInfo = getPaymentInfo(
-    request,
-    response,
-    call.id,
-    signer,
-    relayer,
-    relayerFee,
-    proxyProof,
-    feePaymentSignature,
-    paymentNonce
-  )
-
-  if (paymentInfo) {
-    const params = {
-      proxyParams: [proxyProof, nftId, recipient],
-      relayerAddress: relayer,
-      paymentInfo
-    }
-    return await sendTx(request, response, call.id, requestId, pallet, method, params)
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  if (!paymentInfo) {
+    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
   }
+
+  const params = {
+    proxyParams: [proxyProof, nftId, recipient],
+    relayerAddress: relayer,
+    paymentInfo
+  }
+
+  return await sendTx(request, response, call.id, requestId, pallet, method, params)
 }
 
-async function getRelayerFee(request, response, callId, relayer, user, transactionType) {
+async function getRelayerFee(relayer, user, transactionType) {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
     return avnResponse.data.toString()
-  } catch (err) {
-    // return utils.errorResponse('internal', 'failed to retrieve relayer fee', err, request, response)
-    return undefined
+  } catch (error) {
+    throw error
   }
 }
 
-function getPaymentInfo(request, response, callId, signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const paymentIsAuthorised = utils.verifyFeePaymentSignature(
-    signer,
-    relayer,
-    relayerFee,
-    proxyProof,
-    feePaymentSignature,
-    paymentNonce
-  )
+function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+  const verified = utils.verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
 
-  if (!paymentIsAuthorised) {
-    // return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
+  if (verified === false) {
     return undefined
   }
 

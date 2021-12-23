@@ -122,13 +122,7 @@ Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient
 Send.prototype.proxyListNftOpenForSale = async function (api, queryApi, relayer, nftId, market, retry) {
   const signer = common.getClientAddress()
   const nftNonce = await queryApi.getNftNonce(nftId)
-  const proxySignature = proxyApi.createProxyListNftOpenForSaleSignature(
-    relayer,
-    signer,
-    nftId,
-    market,
-    nftNonce
-  )
+  const proxySignature = proxyApi.createProxyListNftOpenForSaleSignature(relayer, signer, nftId, market, nftNonce)
 
   const transactionType = TX_TYPE.ProxyListNftOpenForSale
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(

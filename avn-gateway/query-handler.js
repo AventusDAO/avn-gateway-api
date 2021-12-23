@@ -54,16 +54,6 @@ async function callSwitch(call, request, response) {
   }
 }
 
-async function queryChain(request, response, callId, palletName, storageName, params, responseFormatter) {
-  try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })
-    response.result = avnResponse.data.error || responseFormatter(avnResponse.data, params)
-    return response
-  } catch (err) {
-    return utils.errorResponse('internal', 'failed to query chain', err, request, response)
-  }
-}
-
 async function getAccountNonce(call, request, response) {
   const { accountId } = call.params
 
@@ -157,6 +147,16 @@ async function getTokenBalance(call, request, response) {
 
 async function getTotalAvt(call, request, response) {
   return await queryChain(request, response, call.id, 'balances', 'totalIssuance', [], formatNumAsString)
+}
+
+async function queryChain(request, response, callId, palletName, storageName, params, responseFormatter) {
+  try {
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })
+    response.result = avnResponse.data.error || responseFormatter(avnResponse.data, params)
+    return response
+  } catch (err) {
+    return utils.errorResponse('internal', 'failed to query chain', err, request, response)
+  }
 }
 
 const formatAsString = data => data.toString()

@@ -81,19 +81,10 @@ async function sendTx(request, response, callId, requestId, palletName, method, 
 
 async function processProxyTransfer(call, request, response, requestId) {
   const transactionType = call.method
+  const pallet = 'tokenManager'
+  const method = 'signedTransfer'
 
-  const {
-    pallet,
-    method,
-    relayer,
-    signer,
-    recipient,
-    token,
-    amount,
-    proxyTransferSignature,
-    feePaymentSignature,
-    paymentNonce
-  } = call.params
+  const { relayer, signer, recipient, token, amount, proxySignature, feePaymentSignature, paymentNonce } = call.params
 
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer'
@@ -102,14 +93,14 @@ async function processProxyTransfer(call, request, response, requestId) {
     if (utils.isValidEthereumAddress(token) === false) throw 'token'
     if (utils.isValidAmount(amount) === false) throw 'amount'
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
-    if (utils.isValidSignatureFormat(proxyTransferSignature) === false) throw 'proxy signature format'
+    if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
     return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
-  const proxyProof = getProxyProof(signer, relayer, proxyTransferSignature)
+  const proxyProof = getProxyProof(signer, relayer, proxySignature)
 
   let relayerFee
   try {
@@ -134,23 +125,24 @@ async function processProxyTransfer(call, request, response, requestId) {
 
 async function processProxyCancelListFiatNft(call, request, response, requestId) {
   const transactionType = call.method
+  const pallet = 'nftManager'
+  const method = 'signedCancelListFiatNft'
 
-  const { pallet, method, relayer, signer, nftId, proxyCancelListFiatNftSignature, feePaymentSignature, paymentNonce } =
-    call.params
+  const { relayer, signer, nftId, proxySignature, feePaymentSignature, paymentNonce } = call.params
 
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer'
     if (utils.isValidAccountId(signer) === false) throw 'signer'
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
-    if (utils.isValidSignatureFormat(proxyCancelListFiatNftSignature) === false) throw 'proxy signature format'
+    if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
     return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
-  const proxyProof = getProxyProof(signer, relayer, proxyCancelListFiatNftSignature)
+  const proxyProof = getProxyProof(signer, relayer, proxySignature)
 
   let relayerFee
   try {
@@ -175,18 +167,10 @@ async function processProxyCancelListFiatNft(call, request, response, requestId)
 
 async function processProxyListNftOpenForSale(call, request, response, requestId) {
   const transactionType = call.method
+  const pallet = 'nftManager'
+  const method = 'signedListNftOpenForSale'
 
-  const {
-    pallet,
-    method,
-    relayer,
-    signer,
-    nftId,
-    market,
-    proxyListNftOpenForSaleSignature,
-    feePaymentSignature,
-    paymentNonce
-  } = call.params
+  const { relayer, signer, nftId, market, proxySignature, feePaymentSignature, paymentNonce } = call.params
 
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer'
@@ -194,14 +178,14 @@ async function processProxyListNftOpenForSale(call, request, response, requestId
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
     if (utils.isValidMarket(market) === false) throw 'market'
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
-    if (utils.isValidSignatureFormat(proxyListNftOpenForSaleSignature) === false) throw 'proxy signature'
+    if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
     return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
-  const proxyProof = getProxyProof(signer, relayer, proxyListNftOpenForSaleSignature)
+  const proxyProof = getProxyProof(signer, relayer, proxySignature)
 
   let relayerFee
   try {
@@ -226,19 +210,10 @@ async function processProxyListNftOpenForSale(call, request, response, requestId
 
 async function processProxyMintSingleNft(call, request, response, requestId) {
   const transactionType = call.method
+  const pallet = 'nftManager'
+  const method = 'signedMintSingleNft'
 
-  const {
-    pallet,
-    method,
-    relayer,
-    signer,
-    externalRef,
-    royalties,
-    t1Authority,
-    proxyMintSignature,
-    feePaymentSignature,
-    paymentNonce
-  } = call.params
+  const { relayer, signer, externalRef, royalties, t1Authority, proxySignature, feePaymentSignature, paymentNonce } = call.params
 
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer'
@@ -247,14 +222,14 @@ async function processProxyMintSingleNft(call, request, response, requestId) {
     if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority'
     if (utils.isValidArray(royalties) === false) throw 'royalties'
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
-    if (utils.isValidSignatureFormat(proxyMintSignature) === false) throw 'proxy signature format'
+    if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
     return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
-  const proxyProof = getProxyProof(signer, relayer, proxyMintSignature)
+  const proxyProof = getProxyProof(signer, relayer, proxySignature)
 
   let relayerFee
   try {
@@ -279,17 +254,10 @@ async function processProxyMintSingleNft(call, request, response, requestId) {
 
 async function processProxyTransferFiatNft(call, request, response, requestId) {
   const transactionType = call.method
-  const {
-    pallet,
-    method,
-    relayer,
-    signer,
-    nftId,
-    recipient,
-    proxyTransferFiatNftSignature,
-    feePaymentSignature,
-    paymentNonce
-  } = call.params
+  const pallet = 'nftManager'
+  const method = 'signedTransferFiatNft'
+
+  const { relayer, signer, nftId, recipient, proxySignature, feePaymentSignature, paymentNonce } = call.params
 
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer'
@@ -297,14 +265,14 @@ async function processProxyTransferFiatNft(call, request, response, requestId) {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
     if (utils.isValidAccountId(recipient) === false) throw 'recipient'
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
-    if (utils.isValidSignatureFormat(proxyTransferFiatNftSignature) === false) throw 'proxy signature format'
+    if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format'
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
   } catch (param) {
     const gatewayError = 'invalid ' + param
     return utils.errorResponse('params', gatewayError, call.params, request, response)
   }
 
-  const proxyProof = getProxyProof(signer, relayer, proxyTransferFiatNftSignature)
+  const proxyProof = getProxyProof(signer, relayer, proxySignature)
 
   let relayerFee
   try {

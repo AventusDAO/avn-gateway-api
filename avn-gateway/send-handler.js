@@ -68,17 +68,6 @@ async function callSwitch(call, request, response, requestId) {
   }
 }
 
-async function sendTx(request, response, requestId, palletName, method, params) {
-  try {
-    const queue = process.env.MQ_AVN_TX_QUEUE
-    const txType = 'avnProxy'
-    response.result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params })
-    return response
-  } catch (err) {
-    return utils.errorResponse('internal', 'failed to send proxy transaction', err, request, response)
-  }
-}
-
 async function processProxyTransfer(call, request, response, requestId) {
   const pallet = 'tokenManager'
   const method = 'signedTransfer'
@@ -161,6 +150,42 @@ async function processProxyTransferFiatNft(call, request, response, requestId) {
   return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
 }
 
+async function processProxyMethod(call, request, response, requestId, pallet, method, methodParams) {
+  const { relayer, signer, proxySignature, feePaymentSignature, paymentNonce } = call.params
+
+  try {
+    if (utils.isValidAccountId(relayer) === false) throw 'relayer'
+    if (utils.isValidAccountId(signer) === false) throw 'signer'
+    if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format'
+    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
+    if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
+  } catch (param) {
+    return utils.errorResponse('param', 'invalid' + param, param, request, response)
+  }
+
+  const proxyProof = getProxyProof(signer, relayer, proxySignature)
+
+  let relayerFee
+  try {
+    relayerFee = await getRelayerFee(relayer, signer, call.method)
+  } catch (error) {
+    return utils.errorResponse('internal', 'could not get relayer fee', error, request, response)
+  }
+
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
+  if (!paymentInfo) {
+    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
+  }
+
+  const params = {
+    proxyParams: [proxyProof].concat(methodParams),
+    relayerAddress: relayer,
+    paymentInfo
+  }
+
+  return await sendTx(request, response, requestId, pallet, method, params)
+}
+
 async function getRelayerFee(relayer, user, transactionType) {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
@@ -196,38 +221,13 @@ function getProxyProof(signer, relayer, proxySignature) {
   }
 }
 
-async function processProxyMethod(call, request, response, requestId, pallet, method, methodParams) {
-  const { relayer, signer, proxySignature, feePaymentSignature, paymentNonce } = call.params
-
+async function sendTx(request, response, requestId, palletName, method, params) {
   try {
-    if (utils.isValidAccountId(relayer) === false) throw 'relayer'
-    if (utils.isValidAccountId(signer) === false) throw 'signer'
-    if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format'
-    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
-    if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
-  } catch (param) {
-    return utils.errorResponse('param', 'invalid' + param, param, request, response)
+    const queue = process.env.MQ_AVN_TX_QUEUE
+    const txType = 'avnProxy'
+    response.result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params })
+    return response
+  } catch (err) {
+    return utils.errorResponse('internal', 'failed to send proxy transaction', err, request, response)
   }
-
-  const proxyProof = getProxyProof(signer, relayer, proxySignature)
-
-  let relayerFee
-  try {
-    relayerFee = await getRelayerFee(relayer, signer, call.method)
-  } catch (error) {
-    return utils.errorResponse('internal', 'could not get relayer fee', error, request, response)
-  }
-
-  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
-  if (!paymentInfo) {
-    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
-  }
-
-  const params = {
-    proxyParams: [proxyProof].concat(methodParams),
-    relayerAddress: relayer,
-    paymentInfo
-  }
-
-  return await sendTx(request, response, requestId, pallet, method, params)
 }

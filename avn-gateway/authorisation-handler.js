@@ -43,7 +43,7 @@ function getAwtTokenIfAny(event) {
       return JSON.parse(decodedToken)
     }
   } catch (err) {
-    utils.logError('failed to extract AWT token', null, err)
+    console.error('failed to extract AWT token', err)
     return null
   }
 }
@@ -54,7 +54,7 @@ function tokenAgeIsValid(token) {
     const tokenAge = new Date() - issuedAt
     return tokenAge >= CLOCK_JITTER_MSEC && tokenAge < MAX_TOKEN_AGE_MSEC
   } catch (err) {
-    utils.logError('failed to check AWT token age', null, err)
+    console.error('failed to check AWT token age', err)
     return false
   }
 }
@@ -69,7 +69,7 @@ async function userHasAvtBalance(awtToken) {
     const avtBalance = new utils.BN(avnResponse.data.data.free.replace('0x', ''), 16)
     return avtBalance.gte(MIN_AVT_BALANCE)
   } catch (err) {
-    utils.logError('failed to check user AVT balance', null, err)
+    console.error('failed to check user AVT balance', err)
     return false
   }
 }

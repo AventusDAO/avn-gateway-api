@@ -26,6 +26,29 @@ async function init() {
   }
 }
 
+const RPC_ERROR = {
+  parse:    { code: -32700, message: 'Parse error' },
+  request:  { code: -32600, message: 'Invalid Request' },
+  method:   { code: -32601, message: 'Method not found' },
+  params:   { code: -32602, message: 'Invalid params' },
+  internal: { code: -32603, message: 'Internal error' },
+}
+
+function errorResponse(rpcError, gatewayError, errorData, request, response) {
+  const e = new Error()
+  const splitStack = e.stack.split('\n')
+  const frame = splitStack[2]
+  const file = frame.split('.')[0].split('/').reverse()[0]
+  const lineNum = frame.split(':').reverse()[1]
+  const func = frame.split(' ')[5]
+  const ref = file + ' line ' + lineNum + ' (' + func + ')'
+  console.error(gatewayError.toUpperCase(), 'Ref:', ref, 'ID:', response.id, 'Error data:', JSON.stringify(errorData))
+
+  response.error = RPC_ERROR[rpcError]
+  response.error.data = { gatewayError, request }
+  return response
+}
+
 function isValidAccountId(accountId) {
   try {
     encodeAddress(isHex(accountId) ? hexToU8a(accountId) : decodeAddress(accountId))
@@ -79,24 +102,6 @@ function convertToAddress(accountId) {
   return isHex(accountId) ? encodeAddress(accountId) : accountId
 }
 
-function logError(msg, callId, data) {
-  const e = new Error()
-  const splitStack = e.stack.split('\n')
-
-  const pFrame = splitStack[3]
-  const pFile = pFrame.split('.')[0].split('/').reverse()[0]
-  const pLineNum = pFrame.split(':').reverse()[1]
-  const pFunc = pFrame.split(' ')[5]
-
-  const frame = splitStack[2]
-  const file = frame.split('.')[0].split('/').reverse()[0]
-  const lineNum = frame.split(':').reverse()[1]
-  const func = frame.split(' ')[5]
-
-  const reference = pFile + ' line ' + pLineNum + ' (' + pFunc + ') -> ' + file + ' line ' + lineNum + ' (' + func + ')'
-  console.error(msg.toUpperCase(), 'Ref:', reference, 'Request ID:', callId, 'Error data:', JSON.stringify(data))
-}
-
 function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString()
 }
@@ -139,6 +144,7 @@ module.exports = {
   axios,
   BN,
   convertToAddress,
+  errorResponse,
   init,
   isValidAccountId,
   isValidAmount,
@@ -151,7 +157,6 @@ module.exports = {
   isValidSignatureFormat,
   isValidString,
   isValidTransactionType,
-  logError,
   toBnString,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature

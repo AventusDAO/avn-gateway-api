@@ -64,7 +64,7 @@ async function callSwitch(call, request, response, requestId) {
     case 'proxyTransferFiatNft':
       return await processProxyTransferFiatNft(call, request, response, requestId)
     default:
-      return utils.errorResponse(2, 'method not found', call.method, request, response)
+      return utils.errorResponse('method', 'method not found', call.method, request, response)
   }
 }
 

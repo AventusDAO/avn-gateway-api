@@ -82,8 +82,8 @@ async function sendTx(request, response, requestId, palletName, method, params) 
 async function processProxyTransfer(call, request, response, requestId) {
   const pallet = 'tokenManager'
   const method = 'signedTransfer'
-
   const { signer, recipient, token, amount } = call.params
+  const methodParams = [signer, recipient, token, amount]
 
   try {
     if (utils.isValidAccountId(signer) === false) throw 'signer'
@@ -94,15 +94,14 @@ async function processProxyTransfer(call, request, response, requestId) {
     return utils.errorResponse('params', 'invalid ' + param, param, request, response)
   }
 
-  const methodParams = [signer, recipient, token, amount]
   return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
 }
 
 async function processProxyCancelListFiatNft(call, request, response, requestId) {
   const pallet = 'nftManager'
   const method = 'signedCancelListFiatNft'
-
   const { nftId } = call.params
+  const methodParams = [nftId]
 
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
@@ -110,16 +109,14 @@ async function processProxyCancelListFiatNft(call, request, response, requestId)
     return utils.errorResponse('params', 'invalid ' + param, param, request, response)
   }
 
-  const methodParams = [nftId]
-
   return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
 }
 
 async function processProxyListNftOpenForSale(call, request, response, requestId) {
   const pallet = 'nftManager'
   const method = 'signedListNftOpenForSale'
-
   const { nftId, market } = call.params
+  const methodParams = [nftId, market]
 
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
@@ -128,15 +125,14 @@ async function processProxyListNftOpenForSale(call, request, response, requestId
     return utils.errorResponse('params', 'invalid ' + param, param, request, response)
   }
 
-  const methodParams = [nftId, market]
   return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
 }
 
 async function processProxyMintSingleNft(call, request, response, requestId) {
   const pallet = 'nftManager'
   const method = 'signedMintSingleNft'
-
   const { externalRef, royalties, t1Authority } = call.params
+  const methodParams = [externalRef, royalties, t1Authority]
 
   try {
     if (utils.isValidString(externalRef) === false) throw 'externalRef'
@@ -146,15 +142,14 @@ async function processProxyMintSingleNft(call, request, response, requestId) {
     return utils.errorResponse('params', 'invalid ' + param, param, request, response)
   }
 
-  const methodParams = [externalRef, royalties, t1Authority]
   return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
 }
 
 async function processProxyTransferFiatNft(call, request, response, requestId) {
   const pallet = 'nftManager'
   const method = 'signedTransferFiatNft'
-
   const { nftId, recipient } = call.params
+  const methodParams = [nftId, recipient]
 
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
@@ -163,7 +158,6 @@ async function processProxyTransferFiatNft(call, request, response, requestId) {
     return utils.errorResponse('params', 'invalid ' + param, param, request, response)
   }
 
-  const methodParams = [nftId, recipient]
   return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
 }
 

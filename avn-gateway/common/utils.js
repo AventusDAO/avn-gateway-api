@@ -27,11 +27,11 @@ async function init() {
 }
 
 const RPC_ERROR = {
-  parse:    { code: -32700, message: 'Parse error' },
-  request:  { code: -32600, message: 'Invalid Request' },
-  method:   { code: -32601, message: 'Method not found' },
-  params:   { code: -32602, message: 'Invalid params' },
-  internal: { code: -32603, message: 'Internal error' },
+  parse: { code: -32700, message: 'Parse error' },
+  request: { code: -32600, message: 'Invalid Request' },
+  method: { code: -32601, message: 'Method not found' },
+  params: { code: -32602, message: 'Invalid params' },
+  internal: { code: -32603, message: 'Internal error' }
 }
 
 function errorResponse(rpcError, gatewayError, errorData, request, response) {

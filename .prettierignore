@@ -3,6 +3,7 @@ build/
 dist/
 www/
 coverage/
+.serverless/
 **/*.scss.d.ts
 package-lock.json
 **/*.d.ts

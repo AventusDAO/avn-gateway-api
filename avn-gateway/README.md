@@ -16,15 +16,15 @@ https://www.serverless.com/framework/docs/providers/aws/guide/credentials
 ### Deploying the avn-gateway
 Ensure the node modules in any layer folders are up-to-date, then:
 ```
-serverless deploy
+serverless deploy --env stargate
 ```
 
 ### Removing the avn-gateway
 ```
-serverless remove
+serverless remove --env stargate
 ```
 
 ### Deploying a single lambda (fast)
 ```
-serverless deploy function --function query-handler
+serverless deploy function --function query-handler --env stargate
 ```

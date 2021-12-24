@@ -1,11 +1,12 @@
+useDotenv: true
 service: avn-gateway
-custom: ${file(./environments/${opt:env}.yml)}
+custom: ${file(../_serverless_environments/${opt:env}.yml)}
 package:
   individually: true
 frameworkVersion: '2'
 
 provider:
-  region: ${self:custom.region}
+  region: ${self:custom.aws-region}
   name: aws
   runtime: nodejs14.x
   versionFunctions: false
@@ -93,8 +94,8 @@ functions:
       MQ_AVN_TX_QUEUE: avnTx
       MQ_BROKER_AMQP_ENDPOINT: >-
         ${self:custom.mq-broker-ampq-endpoint}
-      MQ_SECRET_ARN: arn:aws:secretsmanager:${self:custom.region}:${self:custom.aws-sso-id}:secret:rabbitmq
-      SECRET_MANAGER_REGION: ${self:custom.region}
+      MQ_SECRET_ARN: arn:aws:secretsmanager:${self:custom.aws-region}:${self:custom.aws-account}:secret:rabbitmq
+      SECRET_MANAGER_REGION: ${self:custom.aws-region}
     package:
       patterns:
         - '!**/**'
@@ -137,7 +138,7 @@ resources:
         AuthorizerResultTtlInSeconds: 60
         AuthorizerType: REQUEST
         AuthorizerUri: >-
-          arn:aws:apigateway:${self:custom.region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${self:custom.region}:${self:custom.aws-sso-id}:function:authorisation-handler/invocations
+          arn:aws:apigateway:${self:custom.aws-region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${self:custom.aws-region}:${self:custom.aws-account}:function:authorisation-handler/invocations
         EnableSimpleResponses: true
         IdentitySource:
           - $request.header.Authorization
@@ -152,6 +153,6 @@ resources:
         SourceArn:
           Fn::Sub:
             - >-
-              arn:aws:execute-api:${self:custom.region}:${self:custom.aws-sso-id}:${self:custom.gateway-id}/authorizers/${AuthorizerId}
+              arn:aws:execute-api:${self:custom.aws-region}:${self:custom.aws-account}:${self:custom.gateway-id}/authorizers/${AuthorizerId}
             - AuthorizerId:
               Ref: Authorisation

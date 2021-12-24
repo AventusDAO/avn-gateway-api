@@ -1,6 +1,6 @@
 gateway-id: ekruq8jkuc
-region: eu-west-1
-aws-sso-id: '352429414196'
+aws-region: eu-west-1
+aws-account: '352429414196'
 
 avn-connector-endpoint: http://avn-connector.sandbox.aventus.internal/
 block-explorer-url: https://avn.stargate.aventus.io:3000

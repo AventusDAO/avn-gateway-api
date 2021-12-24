@@ -43,6 +43,8 @@ async function callSwitch(call, request, response) {
       return await getNftId(call, request, response)
     case 'getNftNonce':
       return await getNftNonce(call, request, response)
+    case 'getNftOwner':
+      return await getNftOwner(call, request, response)
     case 'getRelayerFees':
       return await getRelayerFees(call, request, response)
     case 'getTokenBalance':
@@ -105,6 +107,16 @@ async function getNftNonce(call, request, response) {
     return utils.errorResponse('params', 'invalid nft id', nftId, request, response)
   } else {
     return await queryChain(request, response, call.id, 'nftManager', 'nfts', [nftId], formatNftNonceAsString)
+  }
+}
+
+async function getNftOwner(call, request, response) {
+  const { nftId } = call.params
+
+  if (utils.isValidNftId(nftId) === false) {
+    return utils.errorResponse('params', 'invalid nft id', nftId, request, response)
+  } else {
+    return await queryChain(request, response, call.id, 'nftManager', 'nfts', ['entries', nftId], filterNftOwner)
   }
 }
 
@@ -172,4 +184,11 @@ const filterNftId = (data, params) => {
   const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex)
   const nftId = index > -1 ? data[index][1].nft_id : undefined
   return nftId
+}
+
+const filterNftOwner = (data, params) => {
+  const nftIdAsHex = '0x' + Buffer.from(params[1], 'utf8').toString('hex')
+  const index = data.findIndex(nft => nft[1].nft_id === nftIdAsHex)
+  const owner = index > -1 ? data[index][1].owner : undefined
+  return owner
 }

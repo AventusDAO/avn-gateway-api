@@ -187,8 +187,7 @@ const filterNftId = (data, params) => {
 }
 
 const filterNftOwner = (data, params) => {
-  const nftIdAsHex = '0x' + Buffer.from(params[1], 'utf8').toString('hex')
-  const index = data.findIndex(nft => nft[1].nft_id === nftIdAsHex)
+  const index = data.findIndex(nft => nft[1].nft_id === params[1])
   const owner = index > -1 ? data[index][1].owner : undefined
   return owner
 }

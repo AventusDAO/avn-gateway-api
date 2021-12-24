@@ -46,15 +46,15 @@ describe('Query api calls:', async () => {
 
   describe('getAccountNonce', async () => {
     it('returns the same nonce by address as by public key', async () => {
-      console.log(await api.query.getAccountNonce(sender.address))
-      console.log(await api.query.getAccountNonce(sender.publicKey))
+      const nonce = await api.query.getAccountNonce(sender.address)
+      assert.equal(nonce, await api.query.getAccountNonce(sender.publicKey))
     })
   })
 
   describe('getAccountPaymentNonce', async () => {
     it('returns the same nonce by address as by public key', async () => {
-      console.log(await api.query.getAccountPaymentNonce(sender.address))
-      console.log(await api.query.getAccountPaymentNonce(sender.publicKey))
+      const nonce = await api.query.getAccountPaymentNonce(sender.address)
+      assert.equal(nonce, await api.query.getAccountPaymentNonce(sender.publicKey))
     })
   })
 

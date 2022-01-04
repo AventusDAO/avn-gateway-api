@@ -1,28 +1,27 @@
-useDotenv: true
+variablesResolutionMode: 20210326
 service: avn-gateway
-custom: ${file(../_serverless_environments/${opt:env}.yml)}
 package:
   individually: true
 frameworkVersion: '2'
 
 provider:
-  region: ${self:custom.aws-region}
+  region: ${file(./stages.js):region}
   name: aws
   runtime: nodejs14.x
   versionFunctions: false
-  logRetentionInDays: ${self:custom.log-retention-days}
+  logRetentionInDays: ${file(./stages.js):logRetentionDays}
   timeout: 6
   environment:
-    AVN_CONNECTOR_ENDPOINT: ${self:custom.avn-connector-endpoint}
+    AVN_CONNECTOR_ENDPOINT: ${file(./stages.js):avnConnectorEndpoint}
   httpApi:
-    id: ${self:custom.gateway-id}
+    id: ${file(./stages.js):gatewayId}
   vpc:
     securityGroupIds:
-      - ${self:custom.security-group}
+      - ${file(./stages.js):securityGroup}
     subnetIds:
-      - ${self:custom.subnet-1}
-      - ${self:custom.subnet-2}
-      - ${self:custom.subnet-3}
+      - ${file(./stages.js):subnet1}
+      - ${file(./stages.js):subnet2}
+      - ${file(./stages.js):subnet3}
 
 layers:
   common:
@@ -44,7 +43,7 @@ functions:
         - authorisation-handler.js
     memorySize: 512
     layers:
-      - Ref: CommonLambdaLayer
+      - { Ref: CommonLambdaLayer }
 
   poll-handler:
     name: poll-handler
@@ -64,7 +63,7 @@ functions:
             id:
               Ref: Authorisation
     layers:
-      - Ref: CommonLambdaLayer
+      - { Ref: CommonLambdaLayer }
 
   query-handler:
     name: query-handler
@@ -84,7 +83,7 @@ functions:
             id:
               Ref: Authorisation
     layers:
-      - Ref: CommonLambdaLayer
+      - { Ref: CommonLambdaLayer }
 
   send-handler:
     name: send-handler
@@ -92,10 +91,9 @@ functions:
     description: aws:states:opt-out
     environment:
       MQ_AVN_TX_QUEUE: avnTx
-      MQ_BROKER_AMQP_ENDPOINT: >-
-        ${self:custom.mq-broker-ampq-endpoint}
-      MQ_SECRET_ARN: arn:aws:secretsmanager:${self:custom.aws-region}:${self:custom.aws-account}:secret:rabbitmq
-      SECRET_MANAGER_REGION: ${self:custom.aws-region}
+      MQ_BROKER_AMQP_ENDPOINT: ${file(./stages.js):mqBrokerAmpqEndpoint}
+      MQ_SECRET_ARN: ${file(./stages.js):mqSecretArn}
+      SECRET_MANAGER_REGION: ${file(./stages.js):region}
     package:
       patterns:
         - '!**/**'
@@ -110,22 +108,22 @@ functions:
             id:
               Ref: Authorisation
     layers:
-      - Ref: CommonLambdaLayer
-      - Ref: QueueLambdaLayer
+      - { Ref: CommonLambdaLayer }
+      - { Ref: QueueLambdaLayer }
 
   tx-status-update-handler:
     name: tx-status-update-handler
     handler: tx-status-update-handler.handler
     description: aws:states:opt-out
     environment:
-      BLOCK_EXPLORER_BASE_URL: ${self:custom.block-explorer-url}
+      BLOCK_EXPLORER_BASE_URL: ${file(./stages.js):blockExplorerUrl}
     package:
       patterns:
         - '!**/**'
         - tx-status-update-handler.js
     memorySize: 128
     layers:
-      - Ref: CommonLambdaLayer
+      - { Ref: CommonLambdaLayer }
 
 resources:
   Resources:
@@ -133,12 +131,11 @@ resources:
       Type: AWS::ApiGatewayV2::Authorizer
       Properties:
         Name: authorisation
-        ApiId: ${self:custom.gateway-id}
+        ApiId: ${file(./stages.js):gatewayId}
         AuthorizerPayloadFormatVersion: '2.0'
         AuthorizerResultTtlInSeconds: 60
         AuthorizerType: REQUEST
-        AuthorizerUri: >-
-          arn:aws:apigateway:${self:custom.aws-region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${self:custom.aws-region}:${self:custom.aws-account}:function:authorisation-handler/invocations
+        AuthorizerUri: arn:aws:apigateway:${file(./stages.js):region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${file(./stages.js):region}:${file(./stages.js):awsAccount}:function:authorisation-handler/invocations
         EnableSimpleResponses: true
         IdentitySource:
           - $request.header.Authorization
@@ -150,9 +147,6 @@ resources:
         FunctionName: authorisation-handler
         Action: lambda:InvokeFunction
         Principal: apigateway.amazonaws.com
-        SourceArn:
-          Fn::Sub:
-            - >-
-              arn:aws:execute-api:${self:custom.aws-region}:${self:custom.aws-account}:${self:custom.gateway-id}/authorizers/${AuthorizerId}
-            - AuthorizerId:
-              Ref: Authorisation
+        SourceArn: !Sub
+            - arn:aws:execute-api:${file(./stages.js):region}:${file(./stages.js):awsAccount}:${file(./stages.js):gatewayId}/authorizers/${AuthorizerId}
+            - { AuthorizerId: !Ref Authorisation }

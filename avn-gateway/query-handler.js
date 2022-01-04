@@ -179,6 +179,7 @@ const formatBalanceAsString = data => utils.toBnString(data.data.free)
 
 const formatNftNonceAsString = data => utils.toBnString(data.nonce)
 
+// TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (data, params) => {
   const uniqueExternalRefAsHex = '0x' + Buffer.from(params[1], 'utf8').toString('hex')
   const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex)
@@ -186,6 +187,7 @@ const filterNftId = (data, params) => {
   return nftId
 }
 
+// TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT owners
 const filterNftOwner = (data, params) => {
   const index = data.findIndex(nft => nft[1].nft_id === params[1])
   const owner = index > -1 ? data[index][1].owner : undefined

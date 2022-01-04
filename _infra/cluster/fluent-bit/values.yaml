@@ -1,0 +1,27 @@
+aws-for-fluent-bit:
+  serviceAccount:
+    create: false
+    name: fluent-bit
+    
+  input:
+    skipLongLines: On
+    refreshInterval: 10
+    memBufLimit: 5MB
+    parser: docker
+    db: /fluent-bit/state/flb_cwagent.db
+    path: /var/log/containers/*.log
+    tag: application.*
+
+  cloudwatch:
+    enabled: true
+    logRetentionDays: 30
+    autoCreateGroup: true
+  
+  kinesis:
+    enabled: false
+  
+  firehose:
+    enabled: false
+  
+  elasticsearch:
+    enabled: false

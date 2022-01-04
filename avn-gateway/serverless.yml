@@ -141,12 +141,11 @@ resources:
           - $request.header.Authorization
     Permission:
       Type: AWS::Lambda::Permission
-      DependsOn:
-        - AuthorisationDashhandlerLambdaFunction
+      DependsOn: AuthorisationDashhandlerLambdaFunction
       Properties:
         FunctionName: authorisation-handler
         Action: lambda:InvokeFunction
         Principal: apigateway.amazonaws.com
         SourceArn: !Sub
-            - arn:aws:execute-api:${file(./stages.js):region}:${file(./stages.js):awsAccount}:${file(./stages.js):gatewayId}/authorizers/${AuthorizerId}
-            - { AuthorizerId: !Ref Authorisation }
+          - arn:aws:execute-api:${file(./stages.js):region}:${file(./stages.js):awsAccount}:${file(./stages.js):gatewayId}/authorizers/${AuthorizerId}
+          - { AuthorizerId: !Ref Authorisation }

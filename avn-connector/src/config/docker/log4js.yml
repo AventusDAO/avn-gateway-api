@@ -16,8 +16,6 @@ categories:
 
 appenders:
   console:
-    type: console
+    type: stdout
     layout:
-      type: pattern
-      # ASCII colors in console
-      pattern: %d{ISO8601} %[[%-5p]%] %m
+      type: json

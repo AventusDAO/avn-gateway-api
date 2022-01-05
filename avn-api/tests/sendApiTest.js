@@ -67,9 +67,11 @@ describe('SendTx api calls:', async () => {
       externalRef = 'avn-gateway-test-' + new Date().toISOString() // This must be unique across all mints
     })
 
-    it('can mint single nft', async () => {
+    it('can mint a single nft and confirm the owner', async () => {
       const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority)
       await helper.confirmStatus(api, requestId, 'Processed')
+      nftId = await api.query.getNftId(externalRef)
+      assert.equal(sender, await api.query.getNftOwner(nftId))
     })
 
     it('can mint single nft with a single royalty', async () => {

@@ -12,6 +12,7 @@ function Query(api) {
   this.getRelayerFees = generateFunction(getRelayerFees, api)
   this.getNftNonce = generateFunction(getNftNonce, api)
   this.getNftId = generateFunction(getNftId, api)
+  this.getNftOwner = generateFunction(getNftOwner, api)
   this.nftsMap = {}
 }
 
@@ -71,6 +72,18 @@ function getNftId(api) {
     }
 
     return this.nftsMap[externalRef]
+  }
+}
+
+function getNftOwner(api) {
+  return async function (nftId) {
+    common.validateNftId(nftId)
+
+    if (!this.nftsMap[nftId]) {
+      this.nftsMap[nftId] = await this.postRequest(api, 'getNftOwner', { nftId })
+    }
+
+    return this.nftsMap[nftId]
   }
 }
 

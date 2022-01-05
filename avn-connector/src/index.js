@@ -8,7 +8,9 @@ const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
 const log4js = require('log4js')
 
-console.log(config.log4Js)
+log4js.addLayout('json', function(config) {
+  return function(logEvent) { return JSON.stringify(logEvent) + config.separator; }
+});
 log4js.configure(config.log4Js)
 const log = log4js.getLogger()
 

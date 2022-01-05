@@ -5,23 +5,23 @@ package:
 frameworkVersion: '2'
 
 provider:
-  region: ${file(./env/config.js):region}
+  region: ${file(./${env:SLS_ENV}.yml):region}
   name: aws
   runtime: nodejs14.x
   versionFunctions: false
-  logRetentionInDays: ${file(./env/config.js):logRetentionDays}
+  logRetentionInDays: ${file(./${env:SLS_ENV}.yml):logRetentionDays}
   timeout: 6
   environment:
-    AVN_CONNECTOR_ENDPOINT: ${file(./env/config.js):avnConnectorEndpoint}
+    AVN_CONNECTOR_ENDPOINT: ${file(./${env:SLS_ENV}.yml):avnConnectorEndpoint}
   httpApi:
-    id: ${file(./env/config.js):gatewayId}
+    id: ${file(./${env:SLS_ENV}.yml):gatewayId}
   vpc:
     securityGroupIds:
-      - ${file(./env/config.js):securityGroup}
+      - ${file(./${env:SLS_ENV}.yml):securityGroup}
     subnetIds:
-      - ${file(./env/config.js):subnet1}
-      - ${file(./env/config.js):subnet2}
-      - ${file(./env/config.js):subnet3}
+      - ${file(./${env:SLS_ENV}.yml):subnet1}
+      - ${file(./${env:SLS_ENV}.yml):subnet2}
+      - ${file(./${env:SLS_ENV}.yml):subnet3}
 
 layers:
   common:
@@ -91,9 +91,9 @@ functions:
     description: aws:states:opt-out
     environment:
       MQ_AVN_TX_QUEUE: avnTx
-      MQ_BROKER_AMQP_ENDPOINT: ${file(./env/config.js):mqBrokerAmpqEndpoint}
-      MQ_SECRET_ARN: ${file(./env/config.js):mqSecretArn}
-      SECRET_MANAGER_REGION: ${file(./env/config.js):region}
+      MQ_BROKER_AMQP_ENDPOINT: ${file(./${env:SLS_ENV}.yml):mqBrokerAmpqEndpoint}
+      MQ_SECRET_ARN: ${file(./${env:SLS_ENV}.yml):mqSecretArn}
+      SECRET_MANAGER_REGION: ${file(./${env:SLS_ENV}.yml):region}
     package:
       patterns:
         - '!**/**'
@@ -116,7 +116,7 @@ functions:
     handler: tx-status-update-handler.handler
     description: aws:states:opt-out
     environment:
-      BLOCK_EXPLORER_BASE_URL: ${file(./env/config.js):blockExplorerUrl}
+      BLOCK_EXPLORER_BASE_URL: ${file(./${env:SLS_ENV}.yml):blockExplorerUrl}
     package:
       patterns:
         - '!**/**'
@@ -131,11 +131,11 @@ resources:
       Type: AWS::ApiGatewayV2::Authorizer
       Properties:
         Name: authorisation
-        ApiId: ${file(./env/config.js):gatewayId}
+        ApiId: ${file(./${env:SLS_ENV}.yml):gatewayId}
         AuthorizerPayloadFormatVersion: '2.0'
         AuthorizerResultTtlInSeconds: 60
         AuthorizerType: REQUEST
-        AuthorizerUri: arn:aws:apigateway:${file(./env/config.js):region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${file(./env/config.js):region}:${file(./env/config.js):awsAccount}:function:authorisation-handler/invocations
+        AuthorizerUri: arn:aws:apigateway:${file(./${env:SLS_ENV}.yml):region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${file(./${env:SLS_ENV}.yml):region}:${file(./${env:SLS_ENV}.yml):awsAccount}:function:authorisation-handler/invocations
         EnableSimpleResponses: true
         IdentitySource:
           - $request.header.Authorization
@@ -147,5 +147,5 @@ resources:
         Action: lambda:InvokeFunction
         Principal: apigateway.amazonaws.com
         SourceArn: !Sub
-          - arn:aws:execute-api:${file(./env/config.js):region}:${file(./env/config.js):awsAccount}:${file(./env/config.js):gatewayId}/authorizers/${AuthorizerId}
+          - arn:aws:execute-api:${file(./${env:SLS_ENV}.yml):region}:${file(./${env:SLS_ENV}.yml):awsAccount}:${file(./${env:SLS_ENV}.yml):gatewayId}/authorizers/${AuthorizerId}
           - { AuthorizerId: !Ref Authorisation }

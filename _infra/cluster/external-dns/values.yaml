@@ -7,3 +7,6 @@ external-dns:
   serviceAccount:
     create: false
     name: external-dns
+
+  podAnnotations:
+    fluentbit.io/exclude: "true"

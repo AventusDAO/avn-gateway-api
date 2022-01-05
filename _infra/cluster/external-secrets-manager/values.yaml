@@ -5,3 +5,6 @@ kubernetes-external-secrets:
   
   env:
     AWS_REGION: eu-west-1
+
+  podAnnotations:
+    fluentbit.io/exclude: "true"

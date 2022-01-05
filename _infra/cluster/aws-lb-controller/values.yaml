@@ -1,5 +1,9 @@
 aws-load-balancer-controller:
   clusterName: avn-gateway
+
+  podAnnotations:
+    fluentbit.io/exclude: "true"
+
   serviceAccount:
     # use pregenerated serviceaccount
     create: false

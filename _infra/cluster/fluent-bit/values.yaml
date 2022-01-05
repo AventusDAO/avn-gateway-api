@@ -11,6 +11,10 @@ aws-for-fluent-bit:
     db: /fluent-bit/state/flb_cwagent.db
     path: /var/log/containers/*.log
     tag: application.*
+  
+  filter:
+    k8sLoggingParser: On
+    k8sLoggingExclude: On
 
   cloudWatch:
     enabled: true

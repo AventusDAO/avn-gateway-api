@@ -1,8 +1,6 @@
 ingress-nginx:
   controller:
     kind: DaemonSet
-    podAnnotations:
-      fluentbit.io/exclude: "true"
     
     service:
       external:

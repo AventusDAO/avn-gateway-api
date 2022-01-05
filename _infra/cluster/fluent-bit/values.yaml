@@ -4,7 +4,7 @@ aws-for-fluent-bit:
     name: fluent-bit
     
   input:
-    skipLongLines: On
+    skipLongLines: "On"
     refreshInterval: 10
     memBufLimit: 5MB
     parser: docker
@@ -13,8 +13,8 @@ aws-for-fluent-bit:
     tag: application.*
   
   filter:
-    k8sLoggingParser: On
-    k8sLoggingExclude: On
+    k8sLoggingParser: "On"
+    k8sLoggingExclude: "On"
 
   cloudWatch:
     enabled: true

@@ -7,10 +7,9 @@ const mqConsumer = require('./mqConsumer')
 const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
 const log4js = require('log4js')
+const jsonLayout = require('log4js-json-layout');
 
-log4js.addLayout('json', function(config) {
-  return function(logEvent) { return JSON.stringify(logEvent) + config.separator; }
-});
+log4js.addLayout('json', jsonLayout);
 log4js.configure(config.log4Js)
 const log = log4js.getLogger()
 

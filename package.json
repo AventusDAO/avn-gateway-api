@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "child-process-async": "^1.0.1",
+    "log4js-json-layout": "^2.2.3",
     "prettier": "^2.5.1"
   }
 }

@@ -35,8 +35,8 @@ functions:
     handler: authorisation-handler.handler
     description: aws:states:opt-out
     environment:
-      MAX_TOKEN_AGE_MSEC: '60000'
-      MIN_AVT_BALANCE: '100000000000000000000'
+      MAX_TOKEN_AGE_MSEC: ${file(./${env:SLS_ENV}.yml):maxTokenAgeMsec}
+      MIN_AVT_BALANCE: ${file(./${env:SLS_ENV}.yml):minAvtBalance}
     package:
       patterns:
         - '!**/**'

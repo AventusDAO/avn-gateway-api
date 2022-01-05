@@ -12,10 +12,12 @@ aws-for-fluent-bit:
     path: /var/log/containers/*.log
     tag: application.*
 
-  cloudwatch:
+  cloudWatch:
     enabled: true
+    region: eu-west-1
     logRetentionDays: 30
     autoCreateGroup: true
+    logFormat: json/emf
   
   kinesis:
     enabled: false

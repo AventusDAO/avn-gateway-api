@@ -13,7 +13,8 @@ resource "aws_iam_policy" "fluent_bit" {
         "logs:CreateLogGroup",
         "logs:PutLogEvents",
         "logs:DescribeLogGroups",
-        "logs:DescribeLogStreams"
+        "logs:DescribeLogStreams",
+        "logs:PutRetentionPolicy"
       ],
       "Resource": "arn:aws:logs:*:*:*",
       "Effect": "Allow"

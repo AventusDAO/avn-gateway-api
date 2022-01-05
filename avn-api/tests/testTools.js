@@ -6,7 +6,10 @@ async function demoCbaAwt(gateway) {
 
     let api = await avnApi(gateway)
 
-    let iat = "2021-12-26T12:13:55+00:00";
+    let time = "2021-12-26T12:13:55+00:00";
+    let date = new Date(time);
+    let iat = date.toISOString();
+
     let payload = api.awt.generateAwtPayload(sender.mnemonic, iat);
     let myToken = await api.awt.generateAwtTokenFromPayload(payload);
     console.log('Payload: ', payload)

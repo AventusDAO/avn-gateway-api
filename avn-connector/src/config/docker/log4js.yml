@@ -1,22 +1,12 @@
-#
-# Config for https://www.npmjs.com/package/log4js
-# These settings are implicitly stored under the key which equals the filename (without extension).
-#
-levels:
-  # Messages should be strict JSON-encoded objects - no free-text prefixes or suffixes!
-  JSON:
-    # greater than FATAL, so even min. level set to FATAL displays these messages -
-    # presumably business events not related to log levels
-    value: 51000
-categories:
-  default:
-    level: trace
-    appenders:
-      - console
-
 appenders:
   console:
     type: console
     layout:
       type: json
       separator: ','
+
+categories:
+  default:
+    level: trace
+    appenders:
+      - console

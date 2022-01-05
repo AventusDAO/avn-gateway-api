@@ -1,30 +1,28 @@
-## AvN-Gateway setup
-The setup of the avn-gateway (and its layers and lambdas) is handled by Serverless and defined in the `serverless.yml` file
-For available properties see: https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml
-Layers are resources that can be shared across lambdas and are contained in folders (eg: `common/`)
-Lambdas are individual route handler functions and contained in individual .js files (eg: `poll-handler.js`)
+## Overview
+The setup of the auth, layers, lambdas and routes of a gateway is handled by Serverless and defined in `serverless.yml`
+(for serverless properties see: https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)
+Each environment has its own variables which can be set in the other `*.yml` files (eg: `sandbox.yml`)
+Layers are contained in folders (eg: `common/`)
+Lambdas are contained in `*-handler.js` files (eg: `poll-handler.js`)
 
-### Prerequisites
-Install Serverless:
-```
-npm install -g serverless
-```
-You may need to add your AWS credentials:
-https://www.serverless.com/framework/docs/providers/aws/guide/credentials
+## Prerequisites
+Install dependencies: `npm i`
+Set up AWS if required: https://www.serverless.com/framework/docs/providers/aws/guide/credentials
 
+## Development
+Ensure the node modules in any layer folders are up-to-date.
+Set the environment, (eg: `export SLS_ENV=sandbox`)
+Ensure you've set the correct AWS credentials for the environment (see: https://aventus-network-services.awsapps.com/start#/)
 
-### Deploying the avn-gateway
-Ensure the node modules in any layer folders are up-to-date, then:
+### Update/deploy all lambdas and layers
 ```
-serverless deploy
+sls deploy
 ```
-
-### Removing the avn-gateway
+### Update/add a single lambda (fast)
 ```
-serverless remove
+sls deploy function --function query-handler
 ```
-
-### Deploying a single lambda (fast)
+### Remove all lambdas and layers
 ```
-serverless deploy function --function query-handler
+sls remove
 ```

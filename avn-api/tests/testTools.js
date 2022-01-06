@@ -27,6 +27,10 @@ async function avnApi(gateway) {
 }
 
 async function main() {
+    // Run this script with node ./testTools.js <config file name without extension>
+    // If you get an error at startup similar to this
+    // TypeError: Cannot read property 'startsWith' of undefined
+    // it may be because you have not defined your SURI environment variable
     let args = process.argv.slice(2);
     let configPath = args[0] ? `../config/${args[0]}.json` : '../config/sandbox.json'
     const { gateway } = require(configPath)

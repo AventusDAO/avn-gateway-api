@@ -8,6 +8,7 @@ const { signatureVerify, cryptoWaitReady } = require('@polkadot/util-crypto')
 const { Keyring } = require('@polkadot/keyring');
 const { assert, expect } = require('chai');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 })
+const prompt = require('prompt-sync')({sigint: true});
 
 const registry = new TypeRegistry();
 const SIGNING_CONTEXT = 'awt_gateway_api';
@@ -97,28 +98,23 @@ function testCBASignature() {
 async function testSubkeyCompatibility() {
     await cryptoWaitReady();
 
-    // let message = 'hello world';
-    // let encodedPayload = u8aToHex(registry.createType('Text', message).toU8a(false));
+    console.log('Verifying Subkey compatibility of generated signatures'.bold);
+
     let signingKey = '0x81cd713ef51940a684b5db9c36dcafc3199b6bdff4b2c332f9fc88a3f69c0881';
-    let publicKey = '0x36838287ca3370224054f8a59ac79f112aac88e9adc39fd6b00d1e723e141a31';
-    let sig = '0xb2063d62ec83953db52bde27edb8fd88f2f12281ce819b61634363c2fea3a561144f458be399acb0eb5b7faf0a6da12dd88d45a386d99ab1fad188952ef37182';
+    let signer = keyring.addFromUri(signingKey);
+    let publicKey = signer.publicKey;
+    let address = signer.address;
 
-    /*
-    console.log('Verifying Subkey generated signatures');
+    let plainMessage = 'hello world';
+    let messageAsBytes = u8aToHex(registry.createType('Text', plainMessage).toU8a(false));
 
-    console.log('* * * * * * * * *'.yellow);
-    // Verification Fails
-    console.log('message: hello world. Verified against encoded message');
-    wrapTest(verifyBytesSignature(encodedPayload, publicKey, sig));
+    console.log('Signature of ascii data for Subkey'.yellow);
+    let signature = signer.sign(plainMessage)
+    wrapTest(verifyHexStringSignature(plainMessage, publicKey, signature));
 
-    // Verification Fails
-    console.log('message: hello world. Verified against plain message data');
-    wrapTest(verifyBytesSignature(message, publicKey, sig));
+    console.log(`\necho -n '${plainMessage}' | ./subkey verify ${u8aToHex(signature)} ${u8aToHex(publicKey)}`.brightBlue.italic);
+    console.log(`\necho -n '${plainMessage}' | ./subkey verify ${u8aToHex(signature)} ${address}`.brightBlue.italic);
 
-    // Succeeds
-    console.log('message: hello world. Plain verification against plain message data');
-    wrapTest(verifyHexStringSignature(message, publicKey, sig));
-*/
 
     // --------------------------------------------------------------
 

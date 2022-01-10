@@ -110,18 +110,18 @@ async function testSubkeyCompatibility() {
 
     console.log('Signature of ascii data for Subkey'.yellow);
     let signature = signer.sign(plainMessage)
-
     wrapTest(verifyHexStringSignature(plainMessage, publicKey, signature));
 
+    console.log('Please, verify in Subkey with these commands'.cyan);
     console.log(`\necho -n '${plainMessage}' | ./subkey verify ${u8aToHex(signature)} ${u8aToHex(publicKey)}`.brightBlue.italic);
     console.log(`\necho -n '${plainMessage}' | ./subkey verify ${u8aToHex(signature)} ${address}`.brightBlue.italic);
 
     console.log('Signature of binary data for Subkey'.yellow);
     signature = signer.sign(messageAsBytes)
     wrapTest(verifyHexStringSignature(messageAsBytes, publicKey, signature));
-
     let bashPayload = hexToBashEscaped(messageAsBytes);
 
+    console.log('Please, verify in Subkey with these commands'.cyan);
     console.log(`\necho -n -e '${bashPayload}' | ./subkey verify ${u8aToHex(signature)} ${u8aToHex(publicKey)}`.brightBlue.italic);
     console.log(`\necho -n -e '${bashPayload}' | ./subkey verify ${u8aToHex(signature)} ${address}`.brightBlue.italic);
 
@@ -132,14 +132,15 @@ async function testSubkeyCompatibility() {
     let subkeySig = prompt('Enter Subkey-generated signature: ');
     subkeySig = ensure0x(subkeySig);
     console.log(`Signature: ${subkeySig} `);
-
     wrapTest(verifyHexStringSignature(plainMessage, publicKey, subkeySig));
 
+    console.log('Creation of binary signature in Subkey and verification in Polkadot'.yellow);
     console.log(`echo -n -e '${bashPayload}' | ./subkey sign --suri ${signingKey}`.brightRed.italic);
+    subkeySig = prompt('Enter Subkey-generated signature: ');
+    subkeySig = ensure0x(subkeySig);
+    console.log(`Signature: ${subkeySig} `);
 
-    // subkeySig = prompt('Enter Subkey-generated signature:\n');
-    // subkeySig = ensure0x(subkeySig);
-    // console.log(`Signature: ${subkeySig} `);
+    wrapTest(verifyHexStringSignature(messageAsBytes, publicKey, subkeySig));
 
 /*
     console.log('\n\n* * * * * * * * *'.bold.cyan);

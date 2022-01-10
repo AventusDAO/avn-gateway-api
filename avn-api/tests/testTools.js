@@ -115,6 +115,14 @@ async function testSubkeyCompatibility() {
     console.log(`\necho -n '${plainMessage}' | ./subkey verify ${u8aToHex(signature)} ${u8aToHex(publicKey)}`.brightBlue.italic);
     console.log(`\necho -n '${plainMessage}' | ./subkey verify ${u8aToHex(signature)} ${address}`.brightBlue.italic);
 
+    console.log('Signature of binary data for Subkey'.yellow);
+    signature = signer.sign(messageAsBytes)
+    wrapTest(verifyHexStringSignature(messageAsBytes, publicKey, signature));
+
+    let bashPayload = hexToBashEscaped(messageAsBytes);
+
+    console.log(`\necho -n -e '${bashPayload}' | ./subkey verify ${u8aToHex(signature)} ${u8aToHex(publicKey)}`.brightBlue.italic);
+    console.log(`\necho -n -e '${bashPayload}' | ./subkey verify ${u8aToHex(signature)} ${address}`.brightBlue.italic);
 
     // --------------------------------------------------------------
 

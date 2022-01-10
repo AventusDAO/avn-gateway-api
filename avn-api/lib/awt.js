@@ -58,5 +58,6 @@ module.exports = {
   generateAwtToken,
   generateAwtTokenFromPayload,
   generateAwtPayload,
-  tokenAgeIsValid
+  tokenAgeIsValid,
+  encodeAvnPublicKeyForSigning
 }

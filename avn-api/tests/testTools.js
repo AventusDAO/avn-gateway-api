@@ -110,6 +110,7 @@ async function testSubkeyCompatibility() {
 
     console.log('Signature of ascii data for Subkey'.yellow);
     let signature = signer.sign(plainMessage)
+
     wrapTest(verifyHexStringSignature(plainMessage, publicKey, signature));
 
     console.log(`\necho -n '${plainMessage}' | ./subkey verify ${u8aToHex(signature)} ${u8aToHex(publicKey)}`.brightBlue.italic);
@@ -126,51 +127,19 @@ async function testSubkeyCompatibility() {
 
     // --------------------------------------------------------------
 
-    // console.log('* * * * * * * * *'.yellow);
-    // // Subkey succeeds in verifying with message 'hello world'
-    // // echo -n 'hello world' | ./subkey verify <signature> 0x36838287ca3370224054f8a59ac79f112aac88e9adc39fd6b00d1e723e141a31
-    // // signature can be passed with or without 0x
-    // console.log('\nproduce signature for subkey verification - raw message'.bold);
+    console.log('Creation of ascii signature in Subkey and verification in Polkadot'.yellow);
+    console.log(`echo -n '${plainMessage}' | ./subkey sign --suri ${signingKey}`.brightRed.italic);
+    let subkeySig = prompt('Enter Subkey-generated signature: ');
+    subkeySig = ensure0x(subkeySig);
+    console.log(`Signature: ${subkeySig} `);
 
-    // let plainMessage = 'hello world';
-    // let signer = keyring.addFromUri(signingKey);
-    // let address = signer.address;
-    // let signature = signer.sign(plainMessage)
-    // console.log('Message'.yellow, plainMessage);
-    // console.log('Signature of Plain Message', u8aToHex(signature));
-    // console.log(`echo -n '${plainMessage}' | ./subkey verify ${u8aToHex(signature)} ${address}`.brightBlue.italic);
+    wrapTest(verifyHexStringSignature(plainMessage, publicKey, subkeySig));
 
-    /*
-    console.log('* * * * * * * * *'.yellow);
-    // Fails
-    // Subkey does not understand encoded strings.
-    // Encoded payload: 0x2c68656c6c6f20776f726c64
-    // I tried with these, and all failed:
-    // echo -n 0x2c68656c6c6f20776f726c64
-    // echo -n '0x2c68656c6c6f20776f726c64'
-    // echo -n 2c68656c6c6f20776f726c64
-    // echo -n '2c68656c6c6f20776f726c64'
-    console.log('produce signature for subkey verification - encoded message');
-    signer = keyring.addFromUri(signingKey);
-    signature = signer.sign(encodedPayload);
-    console.log('Encoded payload'.yellow, encodedPayload);
-    console.log('Signature', u8aToHex(signature));
+    console.log(`echo -n -e '${bashPayload}' | ./subkey sign --suri ${signingKey}`.brightRed.italic);
 
-    console.log('* * * * * * * * *'.yellow);
-    // Fails
-    // Subkey does not understand encoded strings.
-    // Encoded payload: 0x2c68656c6c6f20776f726c64
-    // I tried with these, and all failed:
-    // echo -n 0x2c68656c6c6f20776f726c64
-    // echo -n '0x2c68656c6c6f20776f726c64'
-    // echo -n 2c68656c6c6f20776f726c64
-    // echo -n '2c68656c6c6f20776f726c64'
-    console.log('produce signature for subkey verification - encoded message minus 0x');
-    signer = keyring.addFromUri(signingKey);
-    signature = signer.sign(encodedPayload.slice(2));
-    console.log('Encoded payload'.yellow, encodedPayload.slice(2));
-    console.log('Signature', u8aToHex(signature));
-*/
+    // subkeySig = prompt('Enter Subkey-generated signature:\n');
+    // subkeySig = ensure0x(subkeySig);
+    // console.log(`Signature: ${subkeySig} `);
 
 /*
     console.log('\n\n* * * * * * * * *'.bold.cyan);
@@ -211,6 +180,11 @@ async function testSubkeyCompatibility() {
 }
 
 // -------------------------------------------------------------------------
+function ensure0x(string) {
+    if (!string.startsWith('0x')) return '0x' + string;
+    else return string;
+}
+
 async function init(gateway) {
     let api = await avnApi(gateway)
     return api;

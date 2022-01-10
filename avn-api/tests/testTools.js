@@ -140,44 +140,7 @@ async function testSubkeyCompatibility() {
     subkeySig = ensure0x(subkeySig);
     console.log(`Signature: ${subkeySig} `);
 
-    wrapTest(verifyHexStringSignature(messageAsBytes, publicKey, subkeySig));
-
-/*
-    console.log('\n\n* * * * * * * * *'.bold.cyan);
-    // Success
-    // Subkey understands escaped sequences as bytes
-    // Encoded payload: 0x2c68656c6c6f20776f726c64
-    // Subkey input message: "\x2c\x68\x65\x6c\x6c\x6f\x20\x77\x6f\x72\x6c\x64"
-    console.log('produce signature for subkey verification - encoded message minus 0x'.bold);
-    signer = keyring.addFromUri(signingKey);
-    let binaryPayload = u8aToHex(registry.createType('Text', plainMessage).toU8a(false));
-    let bashPayload = hexToBashEscaped(binaryPayload);
-    signature = signer.sign(binaryPayload);
-    console.log('Encoded payload'.yellow, binaryPayload);
-    console.log('Bash payload'.yellow, bashPayload);
-    console.log('Signature', u8aToHex(signature));
-    console.log(`echo -n -e '${bashPayload}' | ./subkey verify ${u8aToHex(signature)} ${address}`.brightBlue.italic);
-
-    console.log('* * * * * * * * *'.yellow);
-
-    console.log(`echo -n -e '${bashPayload}' | ./subkey sign --suri ${signingKey}`.brightRed.italic);
-    let subkeySig = '0x70f91f427902e82b5d1afb8645983b343b23fd3c8cf5c9be91b7bb5f5df1944264168698be427a35c5f09750dbac1c2dd6609fac7f78d281bd80a8999d1ab58e';
-    console.log(`message: ${bashPayload} `);
-
-    wrapTest(verifyBytesSignature(binaryPayload, publicKey, subkeySig));
-    wrapTest(verifyHexStringSignature(binaryPayload, publicKey, subkeySig));
-
-    console.log('* * * * * * * * *'.gray.bold);
-    console.log('Verifying CBAs latest data'.gray.bold);
-*/
-
-    // Summary so far:
-    // Subkey takes its message and interprets it prima facie. It reads a text string, probably encodes it and signs.
-    // It can verify strings that are signed in that way by us
-    // But it can't understand when our raw data is encoded bytes. In this case, we pass a hex string representing an encoding
-    // I believe in the backstate, we transform that into bytes and that is what we sign
-    // I have not found how to pass 'bytes' to subkey
-    console.log('Done');
+    wrapTest(verifyHexStringSignature(plainMessage, publicKey, subkeySig));
 }
 
 // -------------------------------------------------------------------------
@@ -247,11 +210,6 @@ function hexToBashEscaped(string) {
 function bashEscapedToHex(string) {
     return '0x' + string.replace(/\\x/g, '');
 }
-
-
-
-
-
 
 ( async () => {
     await main();

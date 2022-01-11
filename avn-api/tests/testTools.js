@@ -140,7 +140,7 @@ async function testSubkeyCompatibility() {
     subkeySig = ensure0x(subkeySig);
     console.log(`Signature: ${subkeySig} `);
 
-    wrapTest(verifyHexStringSignature(plainMessage, publicKey, subkeySig));
+    wrapTest(verifyHexStringSignature(messageAsBytes, publicKey, subkeySig));
 }
 
 // -------------------------------------------------------------------------

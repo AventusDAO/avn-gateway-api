@@ -18,7 +18,7 @@ Before running the script, set your AvN mnemonic or secret seed as an environmen
 export SURI=<mnemonic OR secret seed>
 ```
 examples: \
-`export SURI=industry icon train animal assist park sister wrong hammer cruise faint describe`
+`export SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"`
  \
 `export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
 

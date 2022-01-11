@@ -1,28 +1,27 @@
+variablesResolutionMode: 20210326
 service: avn-gateway
-
 package:
   individually: true
-
 frameworkVersion: '2'
 
 provider:
+  region: ${file(./${env:SLS_ENV}.yml):region}
   name: aws
   runtime: nodejs14.x
-  region: eu-west-1
   versionFunctions: false
-  logRetentionInDays: 1
+  logRetentionInDays: ${file(./${env:SLS_ENV}.yml):logRetentionDays}
   timeout: 6
   environment:
-    AVN_CONNECTOR_ENDPOINT: http://avn-connector.sandbox.aventus.internal/
+    AVN_CONNECTOR_ENDPOINT: ${file(./${env:SLS_ENV}.yml):avnConnectorEndpoint}
   httpApi:
-    id: ekruq8jkuc
+    id: ${file(./${env:SLS_ENV}.yml):gatewayId}
   vpc:
     securityGroupIds:
-      - sg-0e8bbe6fd1637aa59
+      - ${file(./${env:SLS_ENV}.yml):securityGroup}
     subnetIds:
-      - subnet-0fbd9b2001dd48ab2
-      - subnet-02399a3c0dbbddfd9
-      - subnet-0408c56e2665040d5
+      - ${file(./${env:SLS_ENV}.yml):subnet1}
+      - ${file(./${env:SLS_ENV}.yml):subnet2}
+      - ${file(./${env:SLS_ENV}.yml):subnet3}
 
 layers:
   common:
@@ -36,8 +35,8 @@ functions:
     handler: authorisation-handler.handler
     description: aws:states:opt-out
     environment:
-      MAX_TOKEN_AGE_MSEC: 60000
-      MIN_AVT_BALANCE: 100000000000000000000
+      MAX_TOKEN_AGE_MSEC: ${file(./${env:SLS_ENV}.yml):maxTokenAgeMsec}
+      MIN_AVT_BALANCE: ${file(./${env:SLS_ENV}.yml):minAvtBalance}
     package:
       patterns:
         - '!**/**'
@@ -92,9 +91,9 @@ functions:
     description: aws:states:opt-out
     environment:
       MQ_AVN_TX_QUEUE: avnTx
-      MQ_BROKER_AMQP_ENDPOINT: amqps://b-63abcf7c-287c-4e32-82d6-993836a68350.mq.eu-west-1.amazonaws.com:5671
-      MQ_SECRET_ARN: arn:aws:secretsmanager:eu-west-1:352429414196:secret:rabbitmq
-      SECRET_MANAGER_REGION: eu-west-1
+      MQ_BROKER_AMQP_ENDPOINT: ${file(./${env:SLS_ENV}.yml):mqBrokerAmpqEndpoint}
+      MQ_SECRET_ARN: ${file(./${env:SLS_ENV}.yml):mqSecretArn}
+      SECRET_MANAGER_REGION: ${aws:region}
     package:
       patterns:
         - '!**/**'
@@ -117,7 +116,7 @@ functions:
     handler: tx-status-update-handler.handler
     description: aws:states:opt-out
     environment:
-      BLOCK_EXPLORER_BASE_URL: https://avn.stargate.aventus.io:3000
+      BLOCK_EXPLORER_BASE_URL: ${file(./${env:SLS_ENV}.yml):blockExplorerUrl}
     package:
       patterns:
         - '!**/**'
@@ -132,11 +131,11 @@ resources:
       Type: AWS::ApiGatewayV2::Authorizer
       Properties:
         Name: authorisation
-        ApiId: ekruq8jkuc
+        ApiId: ${file(./${env:SLS_ENV}.yml):gatewayId}
         AuthorizerPayloadFormatVersion: '2.0'
         AuthorizerResultTtlInSeconds: 60
         AuthorizerType: REQUEST
-        AuthorizerUri: arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-1:352429414196:function:authorisation-handler/invocations
+        AuthorizerUri: arn:aws:apigateway:${aws:region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${aws:region}:${file(./${env:SLS_ENV}.yml):awsAccount}:function:authorisation-handler/invocations
         EnableSimpleResponses: true
         IdentitySource:
           - $request.header.Authorization
@@ -148,5 +147,5 @@ resources:
         Action: lambda:InvokeFunction
         Principal: apigateway.amazonaws.com
         SourceArn: !Sub
-          - arn:aws:execute-api:eu-west-1:352429414196:ekruq8jkuc/authorizers/${AuthorizerId}
+          - arn:aws:execute-api:${aws:region}:${file(./${env:SLS_ENV}.yml):awsAccount}:${file(./${env:SLS_ENV}.yml):gatewayId}/authorizers/${AuthorizerId}
           - { AuthorizerId: !Ref Authorisation }

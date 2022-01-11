@@ -14,7 +14,6 @@ build/
 
 # Config file for AWS MQ
 avn-connector/src/config/default/mq.yaml
-Test Plan for Demo
-tests/demo/demo-accounts-testnet.json
 tests/demo/demo-accounts.json
-tests/demo/Instructions.md
+tests/demo/demo-accounts-testnet.json
+

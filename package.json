@@ -3,10 +3,8 @@
     "soloTests": "mocha --timeout 100000",
     "smokeTests": "mocha --timeout 100000 ./tests/gateway-smoke-tests.js",
     "apiTests": "mocha --timeout 100000 ./avn-api/tests --recursive",
-    "avn-connectorTests": "mocha --timeout 100000 ./avn-connector/tests --recursive",
-    "lambdaTests": "mocha --timeout 60000 ./lambdas/tests --recursive",
-    "allTestsSandbox": "npm run apiTests sandbox && npm run avn-connectorTests && npm run lambdaTests",
-    "allTestsCBA": "npm run apiTests cba && npm run avn-connectorTests && npm run lambdaTests",
+    "allTestsSandbox": "npm run apiTests sandbox",
+    "allTestsCBA": "npm run apiTests cba",
     "pretty": "prettier --config ./.prettierrc.json --check \"**/*.{js,json}\"",
     "pretty:fix": "prettier --config ./.prettierrc.json --write \"**/*.{js,json}\"",
     "format": "npm run pretty:fix"
@@ -14,7 +12,8 @@
   "devDependencies": {
     "chai": "^4.3.4",
     "chai-as-promised": "7.1.1",
-    "mocha": "^9.0.2"
+    "mocha": "^9.0.2",
+    "serverless": "^2.70.0"
   },
   "dependencies": {
     "child-process-async": "^1.0.1",

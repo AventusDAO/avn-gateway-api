@@ -28,7 +28,7 @@ async function query(palletName, storageName, params) {
 }
 
 async function proxy(requestId, palletName, method, params) {
-  log.trace(`Creating inner call from extrinsic api.tx.${palletName}.proxy`)
+  log.trace({message: "Creating inner call from extrinsic",  extrinsic: `api.tx.${palletName}.proxy`})
   const innerCall = api.tx[palletName][method](...params.proxyParams)
   const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo)
   return await signAndSend(requestId, params.relayerAddress, txn)
@@ -74,7 +74,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
   let result, nonce, relayerAccount
 
   try {
-    log.trace(`Getting relayer account for address: ${relayerAddress}`)
+    log.trace({message: "Getting relayer account", address: relayerAddress})
     relayerAccount = await getRelayerAccount(relayerAddress)
   } catch (err) {
     log.error(`Error getting relayer account for ${relayerAddress}: ${err}`)
@@ -82,7 +82,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
   }
 
   try {
-    log.trace(`Encoded Transaction: ${txn}`)
+    log.trace({encodedTransaction: txn})
     nonce = await getNonce(relayerAccount.address)
     let signedTx = await txn.signAsync(relayerAccount, { nonce })
     let receipt = await signedTx.send()

@@ -59,3 +59,41 @@ While in DEV mode, to deploy a new version on the EC2 instance, you should:
  ```
 
  This script attempts to insert a hardcoded test fees data. If this data exists already, the script will print a message and exits without changing anything.
+
+## Logging
+The avn-connector logs running in kuberentes will be output as JSON and forwarded to cloudwatch. A JSON structure ensures that our logs can be searched and indexed by cloudwatch.
+
+avn-connector logs can be queried in cloudwatch using the cloudwatch insights api, avn-connector queries must be done over the log group `/aws/eks/fluentbit-cloudwatch/logs`, the query syntax documentation can be found [here](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html).
+An example query for searching for the most recent avn-connector logs:
+
+```
+fields @timestamp, data.level, @message
+| sort @timestamp desc
+| filter `kubernetes.labels.app` = "avn-connector"
+```
+In the above example `@timestamp` and `@message` are cloudwatch supplied fields, `@message` containing all the log data. `data.level` is supplied by log4js and is indexed for searching in CloudWatch. Filtering error messages can be done with the following:
+
+```
+fields @timestamp, data.level, @message
+| sort @timestamp desc
+| filter `kubernetes.labels.app` = "avn-connector"
+| filter data.level = "ERROR"
+```
+
+We can search over any json field supplied by the logs, they will always be nested under `data`. Eg, we can do a search by the avnQueryRequest palletName:
+
+```
+fields @timestamp, data.level, @message
+| sort @timestamp desc
+| filter `kubernetes.labels.app` = "avn-connector"
+| filter data.avnQueryRequest.palletName = "avnProxy"
+```
+
+We can also search over the `@message` attribute for the same data, but this will be a slower query and might return more data that we want. Heres the above query with a broader scope:
+
+```
+fields @timestamp, data.level, @message
+| sort @timestamp desc
+| filter `kubernetes.labels.app` = "avn-connector"
+| filter @message like "avnProxy"
+```

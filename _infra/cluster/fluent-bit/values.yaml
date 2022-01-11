@@ -1,0 +1,45 @@
+aws-for-fluent-bit:
+  serviceAccount:
+    create: false
+    name: fluent-bit
+  
+  extraInputs: |
+    [INPUT]
+        Name              tail
+        Tag               <namespace_name>.<pod_name>.<container_name>
+        Tag_Regex         (?<pod_name>[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*)_(?<namespace_name>[^_]+)_(?<container_name>.+)-
+        Path              /var/log/containers/*_nginx_*.log
+        DB                /var/log/flb_kube.db
+        Parser            k8s-nginx-ingress
+        Mem_Buf_Limit     5MB
+        Skip_Long_Lines   On
+        Refresh_Interval  10
+
+  filter:
+    keepLog: "Off"
+
+  service:
+    extraParsers: |
+      [PARSER]
+          Name        k8s-nginx-ingress
+          Format      regex
+          Regex       ^(?<host>[^ ]*) - \[(?<real_ip>[^ ]*)\] - (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*) "(?<referer>[^\"]*)" "(?<agent>[^\"]*)" (?<request_length>[^ ]*) (?<request_time>[^ ]*) \[(?<proxy_upstream_name>[^ ]*)\] (?<upstream_addr>[^ ]*) (?<upstream_response_length>[^ ]*) (?<upstream_response_time>[^ ]*) (?<upstream_status>[^ ]*) (?<last>[^$]*)
+          Time_Key    time
+          Time_Format %d/%b/%Y:%H:%M:%S %z
+
+  cloudWatch:
+    enabled: true
+    region: eu-west-1
+    logRetentionDays: 30
+    autoCreateGroup: true
+    logFormat: json/emf
+
+  
+  kinesis:
+    enabled: false
+  
+  firehose:
+    enabled: false
+  
+  elasticsearch:
+    enabled: false

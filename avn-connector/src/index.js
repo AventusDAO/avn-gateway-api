@@ -7,7 +7,9 @@ const mqConsumer = require('./mqConsumer')
 const txStatusPoller = require('./txStatusPoller')
 const express = require('express')
 const log4js = require('log4js')
+const jsonLayout = require('log4js-json-layout');
 
+log4js.addLayout('json', jsonLayout);
 log4js.configure(config.log4Js)
 const log = log4js.getLogger()
 
@@ -31,7 +33,7 @@ app.get('/health', async (req, res, next) => {
 
 app.post('/avnQuery', async (req, res, next) => {
   try {
-    log.trace(`avnQuery request body: ${JSON.stringify(req.body)}`)
+    log.trace({avnQueryRequest: req.body})
     const result = await avn.query(req.body.palletName, req.body.storageName, req.body.params)
     res.send(result)
   } catch (err) {
@@ -41,7 +43,7 @@ app.post('/avnQuery', async (req, res, next) => {
 
 app.post('/avnPoll', async (req, res, next) => {
   try {
-    log.trace(`avnPoll request body: ${JSON.stringify(req.body)}`)
+    log.trace({avnPollRequest: req.body})
     // the await is removed on purpose here
     txStatusPoller.resolvePendingTransactionsState()
 
@@ -64,7 +66,7 @@ app.get('/pendingTransactions', async (req, res, next) => {
 
 app.post('/resolvePendingTransactions', async (req, res, next) => {
   try {
-    log.trace(`resolvePendingTransactions request properties: ${Object.keys(req.body)}`)
+    log.trace({resolvePendingTransactions: Object.keys(req.body)})
     const result = await redis.resolvePendingAvnTransactions(req.body.transactions)
     res.send(result)
   } catch (err) {
@@ -74,7 +76,7 @@ app.post('/resolvePendingTransactions', async (req, res, next) => {
 
 app.post('/relayerFees', async (req, res, next) => {
   try {
-    log.trace(`fees request body: ${JSON.stringify(req.body)}`)
+    log.trace({relayerFeesRequest: req.body})
     const result = await gatewayDb.getFees(req.body.relayer, req.body.user, req.body.transactionType)
     res.send(result)
   } catch (err) {

@@ -12,6 +12,18 @@ describe('Fail Query api calls:', async () => {
     //reset state for isolation of tests
   })
 
+  describe('getAvtBalance', async () => {
+    //getAvtBalance(account)
+    describe('fails when called', async () => {
+      it('With account as empty string')
+      it('With account as undefined')
+      it('With account in invalid format')
+      it('With account address short')
+      it('With account address long')
+      it('With account in valid format but not existent')
+    })
+  })
+
   describe('getTokenBalance', async () => {
     //getTokenBalance(account, token_address)
     describe('fails when called', async () => {

@@ -1,7 +1,7 @@
 const AvnApi = require('../index.js')
 const { accounts } = require('../config/accounts.json')
 const BN = require('bn.js')
-const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
+const { hexAddPrefix, hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util')
 var colors = require('colors');
 const { TypeRegistry } = require('@polkadot/types')
 const { signatureVerify, cryptoWaitReady } = require('@polkadot/util-crypto')
@@ -144,25 +144,20 @@ async function testSubkeyCompatibility() {
     console.log('Creation of ascii signature in Subkey and verification in Polkadot'.brightCyan);
     console.log(`echo -n '${plainMessage}' | ./subkey sign --suri ${signingKey}`.bgBrightWhite.italic.red);
     let subkeySig = prompt('Enter Subkey-generated signature: ');
-    subkeySig = ensure0x(subkeySig);
+    subkeySig = hexAddPrefix(subkeySig);
     console.log(`Signature: ${subkeySig} `.yellow);
     wrapTest(verifyHexStringSignature(plainMessage, publicKey, subkeySig));
 
     console.log('Creation of binary signature in Subkey and verification in Polkadot'.brightCyan);
     console.log(`echo -n -e '${bashPayload}' | ./subkey sign --suri ${signingKey}`.bgBrightWhite.italic.red);
     subkeySig = prompt('Enter Subkey-generated signature: ');
-    subkeySig = ensure0x(subkeySig);
+    subkeySig = hexAddPrefix(subkeySig);
     console.log(`Signature: ${subkeySig} `.yellow);
 
     wrapTest(verifyHexStringSignature(messageAsBytes, publicKey, subkeySig));
 }
 
 // -------------------------------------------------------------------------
-function ensure0x(string) {
-    if (!string.startsWith('0x')) return '0x' + string;
-    else return string;
-}
-
 async function init(gateway) {
     let api = await avnApi(gateway)
     return api;

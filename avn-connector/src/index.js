@@ -25,10 +25,6 @@ app.use(function (err, req, res, _next) {
 
 app.get('/health', async (req, res, next) => {
   try {
-  /*
-    REMOVE ME
-  */
-    throw new Error("This is a test error bla bla bla")
     res.send({})
   } catch (err) {
     next(err)
@@ -38,6 +34,10 @@ app.get('/health', async (req, res, next) => {
 app.post('/avnQuery', async (req, res, next) => {
   try {
     log.trace({avnQueryRequest: req.body})
+    /*
+    REMOVE ME
+  */
+    throw new Error("This is a test error bla bla bla")
     const result = await avn.query(req.body.palletName, req.body.storageName, req.body.params)
     res.send(result)
   } catch (err) {

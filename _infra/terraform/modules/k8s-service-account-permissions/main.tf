@@ -4,6 +4,7 @@ locals {
   lb_controller    = "aws-load-balancer-controller"
   external_secrets = "kubernetes-external-secrets" 
   external_dns     = "external-dns"
+  fluent_bit       = "fluent-bit"
 }
 
 data "aws_lambda_function" "tx_handler" {

@@ -33,10 +33,9 @@ describe('Query api calls:', async () => {
 
   before(async () => {
     api = await helper.avnApi()
-    relayer = accounts.relayer.address
-    user = accounts.sender.address
-    relayerPublicKey = accounts.relayer.publicKey
-    userPublicKey = accounts.sender.publicKey
+    relayer = accounts.relayer
+    user = accounts.sender
+    sender = accounts.sender
   })
 
   describe('getTotalAvt', async () => {
@@ -45,30 +44,44 @@ describe('Query api calls:', async () => {
     })
   })
 
+  describe('getAccountNonce', async () => {
+    it('returns the same nonce by address as by public key', async () => {
+      const nonce = await api.query.getAccountNonce(sender.address)
+      assert.equal(nonce, await api.query.getAccountNonce(sender.publicKey))
+    })
+  })
+
+  describe('getAccountPaymentNonce', async () => {
+    it('returns the same nonce by address as by public key', async () => {
+      const nonce = await api.query.getAccountPaymentNonce(sender.address)
+      assert.equal(nonce, await api.query.getAccountPaymentNonce(sender.publicKey))
+    })
+  })
+
   describe('getRelayerFees', async () => {
     it('returns default fees for a relayer by address', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer)
+      const returnedFees = await api.query.getRelayerFees(relayer.address)
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees))
     })
 
     it('returns default fees for a relayer by publicKey', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayerPublicKey)
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey)
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees))
     })
 
     it('returns fees for a specific user by address', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer, user)
+      const returnedFees = await api.query.getRelayerFees(relayer.address, user.address)
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees))
     })
 
     it('returns fees for a specific user by publicKey', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer, userPublicKey)
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey)
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees))
     })
 
     it('returns the fee for a specific user and transaction type', async () => {
       const transactionType = 'proxyTokenTransfer'
-      const returnedFees = await api.query.getRelayerFees(relayer, user, transactionType)
+      const returnedFees = await api.query.getRelayerFees(relayer.address, user.publicKey, transactionType)
       assert.equal(returnedFees, expectedUserFees[transactionType])
     })
 

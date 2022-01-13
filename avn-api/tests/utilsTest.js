@@ -1,7 +1,7 @@
 const assert = require('chai').assert
 const helper = require('./helper.js')
 
-describe('AWT authorisation', async () => {
+describe('Utilities', async () => {
   let api
 
   before(async () => {

@@ -19,6 +19,7 @@
     "express": "^4.17.1",
     "ioredis": "^4.28.0",
     "log4js": "^6.3.0",
+    "log4js-json-layout": "^2.2.3",
     "mongodb": "^3.6.4",
     "multiconfig": "^1.1.6",
     "yargs": "^16.2.0"

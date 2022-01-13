@@ -76,4 +76,40 @@ describe('Query api calls:', async () => {
       await expect(api.query.getRelayerFees(user)).to.be.rejectedWith(Error)
     })
   })
+
+  describe('getAvtBalance', async () => {
+  //getAvtBalance(account)
+    it('returns correct avt balance for specific user by address')
+    it('returns correct avt balance for specific user by publicKey')
+  })
+  describe('getTokenBalance', async () => {
+  //getTokenBalance(account, token_address)
+    it('returns correct token balance for specific user by address')
+    it('returns correct token balance for specific user by publicKey')
+  })
+  describe('getAccountNonce', async () => {
+  //getAccountNonce(account)
+    it('returns correct account nonce for specific user by address')
+    it('returns correct account nonce for specific user by publicKey')
+  })
+  describe('getAccountPaymentNonce', async () => {
+  //getAccountPaymentNonce(account)
+    it('returns correct account payment nonce for specific user by address')
+    it('returns correct account payment nonce for specific user by publicKey')
+  })
+  describe('getAvtContractAddress', async () => {
+  //getAvtContractAddress()
+    it('returns correct avt contract address')
+  })
+  describe('getNftNonce', async () => {
+  //getNftNonce(nftId)
+    it('returns correct nft nonce for specific nft id')
+  })
+  describe('getNftId', async () => {
+  //getNftId(external_reference);
+    it('returns correct nft id for specific reference')
+  })
+  describe('getNftOwner', async () => {
+  //getNftOwner(nftId)
+    it('returns correct nft owner for specific nft id')
 })

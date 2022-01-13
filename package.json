@@ -13,12 +13,12 @@
     "chai": "^4.3.4",
     "chai-as-promised": "7.1.1",
     "mocha": "^9.0.2",
-    "serverless": "^2.70.0"
+    "serverless": "^2.70.0",
+    "prompt-sync": "^4.2.0"
   },
   "dependencies": {
     "child-process-async": "^1.0.1",
     "colors": "^1.4.0",
-    "prettier": "^2.5.1",
-    "prompt-sync": "^4.2.0"
+    "prettier": "^2.5.1"
   }
 }

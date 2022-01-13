@@ -371,8 +371,12 @@ npm run allTestsSandbox
 Or to run sub tests for a specified gateway:
  - `npm run smokeTests [gateway]`: to run all the smoke tests
  - `npm run apiTests [gateway]`: to run all the api tests
- - `npm run avn-connectorTests`: to run all the backend
- - `npm run lambdaTests`: to run all the lambda tests
+
+Note: The `gateway` parameter should be the name of a file (without extension) describing the parameters to connect to a gateway.
+It does not seem to be working at the moment.
+
+These run whole test packages. To run an individual test file in the same environment, and in the same conditions as these, use:
+- `npm run soloTests [path to individual test file]`
 
 Configuration:
 The configuration files for both gateway and AVN accounts are stored from the root folder `./avn-api/config/`.

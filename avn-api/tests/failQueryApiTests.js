@@ -14,53 +14,94 @@ describe('Fail Query api calls:', async () => {
 
   describe('getTokenBalance', async () => {
     //getTokenBalance(account, token_address)
-    it('With a valid account and a bad token')
-    it('With a bad account and a valid token')
-    it('With a bad account and a bad account')
+    describe('fails when called', async () => {
+      it('With account as empty string')
+      it('With account as undefined')
+      it('With account in invalid format')
+      it('With account address short')
+      it('With account address long')
+      it('With account in valid format but not existent')
+      it('With token as empty string')
+      it('With token as undefined')
+      it('With token in invalid format')
+      it('With token address short')
+      it('With token address long')
+      it('With token in valid format but not existent')
+    })
   })
 
   describe('getAccountNonce', async () => {
     //getAccountNonce(account)
-    it('With a bad account')
+    describe('fails when called', async () => {
+      it('With account as empty string')
+      it('With account as undefined')
+      it('With account in invalid format')
+      it('With account address short')
+      it('With account address long')
+      it('With account in valid format but not existent')
+    })
   })
 
   describe('getAccountPaymentNonce', async () => {
     //getAccountPaymentNonce(account)
-    it('With a bad account')
-  })
-
-  describe('getAvtContractAddress', async () => {
-    //getAvtContractAddress(avnApi)
-    it('With a bad api')
+    describe('fails when called', async () => {
+      it('With account as empty string')
+      it('With account as undefined')
+      it('With account in invalid format')
+      it('With account address short')
+      it('With account address long')
+      it('With account in valid format but not existent')
+    })
   })
 
   describe('getRelayerFees', async () => {
     //getRelayerFees(avnRelayerAddress);
     //getRelayerFees(avnRelayerAddress, user);
     //getRelayerFees(avnRelayerAddress, user, _transaction_type);
-    it('With a bad address')
-    it('With a valid address with a bad user')
-    it('With a bad address with a valid user')
-    it('With a bad address and a bad user')
-    it('With a valid address, a valid user and a bad transaction type')
-    it('With a valid address, a bad user and a valid transaction type')
-    it('With a bad address, a valid user and a valid transaction type')
-    it('With a bad address, a bad user and a valid transaction type')
-    it('With a bad address, a bad user and a bad transaction type')
+    describe('fails when called', async () => {
+      it('With relayer as empty string')
+      it('With relayer as undefined')
+      it('With relayer address in invalid format')
+      it('With relayer address short')
+      it('With relayer address long')
+      it('With relayer in valid format but not existent')
+      it('With user as empty string')
+      it('With user as undefined')
+      it('With user in invalid format')
+      it('With user address short')
+      it('With user address long')
+      it('With user in valid format but not existent')
+      it('With transaction as empty string')
+      it('With transaction type as undefined')
+      it('With transaction type wrong')
+    })
   })
 
   describe('getNftNonce', async () => {
     //getNftNonce(nftId)
-    it('With a bad nft id')
+    describe('fails when called', async () => {
+      it('With nft id as empty string')
+      it('With nft id as undefined')
+      it('With nft id that doesnt exist')
+    })
   })
 
   describe('getNftId', async () => {
     //getNftId(external_reference);
-    it('With a bad external reference')
+    describe('fails when called', async () => {
+      it('With external reference as empty string')
+      it('With external reference as undefined')
+      it('With external reference in invalid format')
+      it('With external reference in valid format but not existent')
+    })
   })
 
   describe('getNftOwner', async () => {
     //getNftOwner(nftId)
-    it('With a bad nft id')
+    describe('fails when called', async () => {
+      it('With nft id as empty string')
+      it('With nft id as undefined')
+      it('With nft id that doesnt exist')
+    })
   })
 })

@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "child-process-async": "^1.0.1",
-    "prettier": "^2.5.1"
+    "colors": "^1.4.0",
+    "prettier": "^2.5.1",
+    "prompt-sync": "^4.2.0"
   }
 }

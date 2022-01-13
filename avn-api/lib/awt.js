@@ -6,19 +6,25 @@ const common = require('./common.js')
 const MAX_TOKEN_AGE_MSEC = 60000
 const SIGNING_CONTEXT = 'awt_gateway_api'
 
-function generateAwtToken(suri) {
+function generateAwtPayload(suri, issuedAt) {
   const tokenOwner = common.keyring.addFromUri(suri)
-  const issuedAt = new Date().toISOString()
   const avnPublicKey = u8aToHex(tokenOwner.publicKey)
   const encodedData = encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt)
   const signature = tokenOwner.sign(encodedData)
 
-  const payload = {
+  return {
     pk: avnPublicKey,
     iat: issuedAt,
     sig: u8aToHex(signature)
   }
+}
 
+function generateAwtToken(suri) {
+  let payload = generateAwtPayload(suri, new Date().toISOString())
+  return generateAwtTokenFromPayload(payload)
+}
+
+function generateAwtTokenFromPayload(payload) {
   const payloadBuff = new Buffer.from(JSON.stringify(payload))
   return payloadBuff.toString('base64')
 }
@@ -50,5 +56,8 @@ function tokenAgeIsValid(awtTokenBase64) {
 
 module.exports = {
   generateAwtToken,
-  tokenAgeIsValid
+  generateAwtTokenFromPayload,
+  generateAwtPayload,
+  tokenAgeIsValid,
+  encodeAvnPublicKeyForSigning
 }

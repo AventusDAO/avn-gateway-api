@@ -46,7 +46,6 @@ app.post('/avnPoll', async (req, res, next) => {
     const result = await avn.poll(req.body.requestId)
     res.send(result)
   } catch (err) {
-    log.trace("\n****We have an error here, calling next()***\n")
     next(err)
   }
 })

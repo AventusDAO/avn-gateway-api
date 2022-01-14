@@ -50,5 +50,6 @@ async function poll(call, request, requestId) {
 }
 
 function createResponse(id, result) {
+  if (id === undefined) id = null
   return result ? { jsonrpc: '2.0', id, result } : { jsonrpc: '2.0', id }
 }

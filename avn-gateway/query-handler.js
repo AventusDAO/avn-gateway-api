@@ -135,8 +135,8 @@ async function getRelayerFees(call, request) {
     relayer = utils.convertToAddress(relayer)
     user = utils.convertToAddress(user)
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType })
-    response.result = avnResponse.data
-    return response
+    const result = avnResponse.data
+    return utils.validResponse(call.id, result)
   } catch (err) {
     return utils.errorResponse('internal', 'failed to call avn-connector', err, request, call.id)
   }

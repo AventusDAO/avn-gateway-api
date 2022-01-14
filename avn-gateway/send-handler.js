@@ -38,6 +38,7 @@ async function processRequest(request, requestId) {
     return utils.errorResponse('parse', 'failed to parse JSON', err, request, null)
   }
 
+  if (call.id === undefined) call.id = null
   console.info('CALLID_TO_REQUESTID:', call.id + ':' + requestId)
 
   if (typeof call.method !== 'string') {

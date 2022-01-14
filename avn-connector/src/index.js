@@ -18,10 +18,6 @@ const port = config.serverPort
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json({ limit: '50mb' }))
-app.use(function (err, req, res, _next) {
-  log.error(`Error processing request: ${req}, \nStack: ${err.stack}`)
-  res.status(500).send('Error processing request')
-})
 
 app.get('/health', async (req, res, next) => {
   try {
@@ -82,6 +78,11 @@ app.post('/relayerFees', async (req, res, next) => {
   } catch (err) {
     next(err)
   }
+})
+
+app.use(function (err, req, res, _next) {
+  log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`)
+  res.status(500).send({error: err.message})
 })
 
 app.listen(port, () => {

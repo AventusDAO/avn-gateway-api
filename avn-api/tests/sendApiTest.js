@@ -139,8 +139,10 @@ describe('SendTx api calls:', async () => {
     })
 
     it('can transfer an NFT after an offline fiat sale', async () => {
+      assert.equal(sender, await api.query.getNftOwner(nftId))
       const requestId = await api.send.transferFiatNft(relayer, recipient, nftId)
       await helper.confirmStatus(api, requestId, 'Processed')
+      assert.equal(recipient, await api.query.getNftOwner(nftId))
     })
   })
 

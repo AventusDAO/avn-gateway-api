@@ -116,7 +116,7 @@ async function resolvePendingAvnTransactions(transactions) {
     const transactionHashKey = getKey(tx.transactionHash)
 
     if (![transactionStatus.Processed, transactionStatus.Rejected].includes(tx.status)) {
-      log.warn({message: "invalid status, ignoring request", transactionHashKey: transactionHashKey, txStatus: tx.status})
+      log.warn({ message: 'invalid status, ignoring request', transactionHashKey: transactionHashKey, txStatus: tx.status })
       continue
     }
 

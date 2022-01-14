@@ -40,10 +40,6 @@ app.post('/avnQuery', async (req, res, next) => {
 app.post('/avnPoll', async (req, res, next) => {
   try {
     log.trace({avnPollRequest: req.body})
-    /*
-    REMOVE ME
-  */
-    throw new Error("This is a test error bla bla bla")
     // the await is removed on purpose here
     txStatusPoller.resolvePendingTransactionsState()
 

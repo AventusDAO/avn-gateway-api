@@ -26,20 +26,20 @@ async function processRequest(request) {
 }
 
 async function makeCall(call, request) {
-  const { requestId } = call.params
-
   if (call.method !== 'requestState') {
     return utils.errorResponse('method', "method must be 'requestState'", call.method, request, createResponse(call.id))
   }
+
+  const { requestId } = call.params
 
   if (utils.isValidRequestId(requestId) === false) {
     return utils.errorResponse('params', 'invalid request ID', requestId, request, createResponse(call.id))
   }
 
-  return await poll(call, requestId, request)
+  return await poll(call, request, requestId)
 }
 
-async function poll(call, requestId, request) {
+async function poll(call, request, requestId) {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { call.id, requestId })
     const result = avnResponse.data.error || avnResponse.data.status

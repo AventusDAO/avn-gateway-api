@@ -1,6 +1,6 @@
 pipeline {
   parameters {
-    choice(name: 'environment', choices: ['sandbox', 'cba', 'testnet', 'mainnet'], description: 'Chose the environment to deploy to.')
+    choice(name: 'environment', choices: ['sandbox', 'cba', 'testnet', 'mainnet'], description: 'Choose the environment to deploy to.')
     string(name: 'version', defaultValue: 'latest', description: 'Lambda functions version', trim: true)
   }
 

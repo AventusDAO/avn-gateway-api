@@ -18,9 +18,10 @@ const port = config.serverPort
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json({ limit: '50mb' }))
-app.use(function (err, req, res, _next) {
+app.use(function (err, req, res, next) {
   log.error(`Error processing request: ${req}, \nStack: ${err.stack}`)
-  //res.status(500).send({error: err.message})
+  console.error(`\n***Middleware error: ${err.stack}***\n`)
+  res.status(500).send({error: err.message})
 })
 
 app.get('/health', async (req, res, next) => {

@@ -86,9 +86,10 @@ app.post('/relayerFees', async (req, res, next) => {
 })
 
 app.use(function (err, req, res, next) {
-  log.error(`Error processing request: ${req}, \nStack: ${err.stack}`)
-  console.error(`\n***Middleware error: ${err.stack}***\n`)
-  res.status(500).send({error: err.message})
+  log.error(`Error processing request: ${JSON.stringify(req, null, 2)}.
+             \nStack: ${err.stack}`)
+  log.error(err.message)
+  res.status(500).send({error: err})
 })
 
 app.listen(port, () => {

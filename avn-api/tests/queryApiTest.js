@@ -112,4 +112,5 @@ describe('Query api calls:', async () => {
   describe('getNftOwner', async () => {
   //getNftOwner(nftId)
     it('returns correct nft owner for specific nft id')
+  })
 })

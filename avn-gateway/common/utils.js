@@ -43,8 +43,9 @@ function errorResponse(rpcError, gatewayError, error, request, id) {
   const func = frame.split(' ')[5]
   const ref = file + ' line ' + lineNum + ' (' + func + ')'
   const errorData = error.response ? err.response.data : 'N/A'
-  console.error(gatewayError.toUpperCase(), 'Ref: ', ref, 'ID: ', id, 'Error data: ', errorData, 'Error details: ', JSON.stringify(error))
-
+  console.error(
+    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${JSON.stringify(error)}`
+  )
   let response = { jsonrpc: '2.0', id }
   response.error = RPC_ERROR[rpcError]
   response.error.data = { gatewayError, request }

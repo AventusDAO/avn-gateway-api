@@ -49,8 +49,6 @@ async function poll(call, request, requestId) {
   }
 }
 
-function createResponse(_id, _result) {
-  const id = _id || null
-  const result = _result || null
-  return { jsonrpc: '2.0', id, result }
+function createResponse(id, result) {
+  return result ? { jsonrpc: '2.0', id, result } : { jsonrpc: '2.0', id }
 }

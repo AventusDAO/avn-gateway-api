@@ -12,7 +12,7 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 500,
       error: { message: err.message },
-      body: JSON.stringify(utils.errorResponse('parse', 'failed to connect to queue', err, event.body, null))
+      body: JSON.stringify(utils.errorResponse('internal', 'failed to connect to queue', err, event.body, null))
     }
   }
 

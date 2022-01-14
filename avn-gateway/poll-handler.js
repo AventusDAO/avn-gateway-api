@@ -41,9 +41,10 @@ async function makeCall(call, request) {
 
 async function poll(call, request, requestId) {
   try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { call.id, requestId })
+    const callId = call.id
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
     const result = avnResponse.data.error || avnResponse.data.status
-    return utils.validResponse(call.id, result)
+    return utils.validResponse(callId, result)
   } catch (err) {
     return utils.errorResponse('internal', 'failed to poll chain', err, request, call.id)
   }

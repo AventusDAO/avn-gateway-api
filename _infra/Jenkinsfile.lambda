@@ -7,7 +7,7 @@ pipeline {
   agent any
 
   stages {
-    stage("Terraform plan") {
+    stage("Terraform Plan") {
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
           dir("_infra/terraform/environments/${env.environment}") {

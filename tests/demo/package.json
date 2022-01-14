@@ -3,7 +3,7 @@
   "dependencies": {
     "avn-api": "^0.5.1",
     "colors": "^1.4.0",
-    "prompt-sync": "^4.2.0",
+    "prompt-sync": "^4.1.6",
     "yargs": "^16.2.0"
   }
 }

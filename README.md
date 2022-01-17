@@ -491,6 +491,7 @@ Transfers the specified amount of AVT from the sender account to the destination
 
 **REQUEST PARAMS** \
 `RELAYER ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the relayer account\
+`SENDER ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the sender account
 `DESTINATION ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the recipient account\
 `AMOUNT` *[required]* - string integer value of the current account nonce
 

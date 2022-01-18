@@ -15,7 +15,7 @@ describe('Fail Send api calls:', async () => {
   describe('transferAvt', async () => {
     //transferAvt(relayer, recipient, amount)
     describe('fails when called', async () => {
-      it('With amount greater than relayers balance')
+      it('With amount greater than senders balance')
       it('With amount as undefined')
       it('With amount as zero')
       it('With amount as negative value')
@@ -26,8 +26,9 @@ describe('Fail Send api calls:', async () => {
       it('With relayer in invalid format')
       it('With relayer address short')
       it('With relayer address long')
-      it('With relayer address different than signers address')
-      it('With relayer and recipient as the same address')
+      it('With relayer address that is not a relayer')
+
+      it('With sender and recipient as the same address')
 
       it('With recipient as empty string')
       it('With recipient as undefined')
@@ -41,7 +42,7 @@ describe('Fail Send api calls:', async () => {
   describe('transferToken', async () => {
     //transferToken(relayer, recipient, token, amount)
     describe('fails when called', async () => {
-      it('With token amount greater than relayers token balance')
+      it('With token amount greater than senders token balance')
       it('With token amount as undefined')
       it('With token amount as zero')
       it('With token amount as negative value')
@@ -52,8 +53,9 @@ describe('Fail Send api calls:', async () => {
       it('With relayer in invalid format')
       it('With relayer address short')
       it('With relayer address long')
-      it('With relayer address different than signers address')
-      it('With relayer and recipient as the same address')
+      it('With relayer address that is not a relayer')
+
+      it('With sender and recipient as the same address')
 
       it('With recipient as empty string')
       it('With recipient as undefined')
@@ -77,14 +79,13 @@ describe('Fail Send api calls:', async () => {
       it('With relayer in invalid format')
       it('With relayer address short')
       it('With relayer address long')
-      it('With relayer address different than signers address')
+      it('With relayer address that is not a relayer')
 
       it('With external reference as empty string')
       it('With external reference as undefined')
       it('With external reference in invalid format')
       it('With external reference in valid format but not existent')
 
-      it('With royalties as empty array')
       it('With royalties as undefined')
       it('With royalties with invalid JSON format')
 
@@ -118,13 +119,13 @@ describe('Fail Send api calls:', async () => {
       it('With relayer in invalid format')
       it('With relayer address short')
       it('With relayer address long')
-      it('With relayer that doesnt own this nft')
-      it('With relayer address different than signers address')
+      it('With relayer address that is not a relayer')
+
+      it('With sender that doesnt own this nft')
 
       it('With nft id as empty string')
       it('With nft id as undefined')
       it('With nft id that doesnt exist')
-      it('With nft id that doesnt belong to this relayer')
     })
   })
 
@@ -136,9 +137,10 @@ describe('Fail Send api calls:', async () => {
       it('With relayer in invalid format')
       it('With relayer address short')
       it('With relayer address long')
-      it('With relayer that doesnt own this nft')
-      it('With relayer address different than signers address')
-      it('With relayer and recipient as the same address')
+      it('With relayer address that is not a relayer')
+
+      it('With sender that doesnt own this nft')
+      it('With sender and recipient as the same address')
 
       it('With recipient as empty string')
       it('With recipient as undefined')
@@ -149,7 +151,6 @@ describe('Fail Send api calls:', async () => {
       it('With nft id as empty string')
       it('With nft id as undefined')
       it('With nft id that doesnt exist')
-      it('With nft id that doesnt belong to this relayer')
     })
   })
 
@@ -161,13 +162,13 @@ describe('Fail Send api calls:', async () => {
       it('With relayer in invalid format')
       it('With relayer address short')
       it('With relayer address long')
-      it('With relayer that doesnt own this nft')
-      it('With relayer address different than signers address')
+      it('With relayer address that is not a relayer')
+
+      it('With sender that doesnt own this nft')
 
       it('With nft id as empty string')
       it('With nft id as undefined')
       it('With nft id that doesnt exist')
-      it('With nft id that doesnt belong to this relayer')
     })
   })
 })

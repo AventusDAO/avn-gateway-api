@@ -448,14 +448,6 @@ curl https://AVN-API-URL/query \
 `VALUE` - string integer value of the current relayer fee for user and type \
 OR \
 `OBJECT`- object representing fees for relayer (generic or filtered for user if passed) \
-`{
-    "proxyAvtTransfer": "7000000000000000",
-    "proxyTokenTransfer": "7000000000000000",
-    "proxyMintSingleNft": "7000000000000000",
-    "proxyListNftOpenForSale": "7000000000000000",
-    "proxyTransferFiatNft": "7000000000000000",
-    "proxyCancelListFiatNft": "7000000000000000"
-  }`
 
 **BODY**
 ```
@@ -468,12 +460,16 @@ OR \
 OR
 
 {
-  "proxyAvtTransfer": "7000000000000000",
-  "proxyTokenTransfer": "7000000000000000",
-  "proxyMintSingleNft": "7000000000000000",
-  "proxyListNftOpenForSale": "7000000000000000",
-  "proxyTransferFiatNft": "7000000000000000",
-  "proxyCancelListFiatNft": "7000000000000000"
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "proxyAvtTransfer": "7000000000000000",
+    "proxyTokenTransfer": "7000000000000000",
+    "proxyMintSingleNft": "7000000000000000",
+    "proxyListNftOpenForSale": "7000000000000000",
+    "proxyTransferFiatNft": "7000000000000000",
+    "proxyCancelListFiatNft": "7000000000000000"
+  }
 }
 ```
 

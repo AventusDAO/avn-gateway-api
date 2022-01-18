@@ -447,7 +447,7 @@ curl https://AVN-API-URL/query \
 **RESULT FIELDS** \
 `VALUE` - string integer value of the current relayer fee for user and type \
 OR \
-`OBJECT`- object representing fees for relayer (generic or filtered for user if passed) \
+`OBJECT`- object representing fees for relayer (generic or filtered for user if passed)
 
 **BODY**
 ```
@@ -521,11 +521,11 @@ curl https://AVN-API-URL/send \
 Transfers the specified amount of an ERC20 or ERC777 token, from the sender account to the destination account, using a relayer account
 
 **REQUEST**\
-`POST https://AVN-API-URL/send`\
+`POST https://AVN-API-URL/send`
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`\
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -563,15 +563,15 @@ curl https://AVN-API-URL/send \
 Mints a single NFT to the sender
 
 **REQUEST**\
-`POST https://AVN-API-URL/send`\
+`POST https://AVN-API-URL/send`
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`\
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS**\
-`relayer` *[required]* - a string representing the relayer's  \
-`signer` *[required]* - a string representing the sender's  \
+`relayer` *[required]* - a string representing the relayer's \
+`signer` *[required]* - a string representing the sender's \
 `externalRef` *[required]* - a unique string representing the NFT's external reference \
 `royalties` *[optional]* - an array of royalty rates with percentages set in parts per million - accepts empty array if no royalties\
 `t1Authority` *[required]* - a hex string representing the 20 byte Ethereum address of the relevant authority \
@@ -605,11 +605,11 @@ curl https://AVN-API-URL/send \
 Lists an NFT as open for sale in a particular market
 
 **REQUEST**\
-`POST https://AVN-API-URL/send`\
+`POST https://AVN-API-URL/send`
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`\
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -646,11 +646,11 @@ curl https://AVN-API-URL/send \
 Transfers an NFT that is currently listed for sale in fiat
 
 **REQUEST**\
-`POST https://AVN-API-URL/send`\
+`POST https://AVN-API-URL/send`
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`\
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -687,11 +687,11 @@ curl https://AVN-API-URL/send \
 Cancels a listing for an NFT as open for sale in fiat
 
 **REQUEST**\
-`POST https://AVN-API-URL/send`\
+`POST https://AVN-API-URL/send`
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`\
+`Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \

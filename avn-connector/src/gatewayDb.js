@@ -143,8 +143,11 @@ async function getRelayerFees(relayerAddress) {
 
 async function getUserFeesIfAny(relayerAddress, userAddress) {
   if (!relayerAddress || !userAddress) {
-    log.trace({message: "Relayer address or User address is missing.", 
-      RelayerAddress: relayerAddress, UserAddress: userAddress})
+    log.trace({
+      message: 'Relayer address or User address is missing.',
+      RelayerAddress: relayerAddress,
+      UserAddress: userAddress
+    })
     return undefined
   }
 

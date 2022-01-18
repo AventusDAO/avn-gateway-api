@@ -6,21 +6,19 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 let mqSender
 
 exports.handler = async (event, context) => {
-  let response = { jsonrpc: '2.0', id: null }
-
   try {
     await connectToMQ()
   } catch (err) {
     return {
       statusCode: 500,
       error: { message: err.message },
-      body: JSON.stringify(utils.errorResponse('parse', 'failed to connect to queue', err, event.body, response))
+      body: JSON.stringify(utils.errorResponse('internal', 'failed to connect to queue', err, event.body, null))
     }
   }
 
   return {
     statusCode: 200,
-    body: JSON.stringify(await processRequest(event.body, response, context.awsRequestId))
+    body: JSON.stringify(await processRequest(event.body, context.awsRequestId))
   }
 }
 
@@ -31,44 +29,44 @@ const connectToMQ = async () => {
   }
 }
 
-async function processRequest(request, response, requestId) {
+async function processRequest(request, requestId) {
   let call
 
   try {
     call = JSON.parse(request)
   } catch (err) {
-    return utils.errorResponse('parse', 'failed to parse JSON', err, request, response)
+    return utils.errorResponse('parse', 'failed to parse JSON', err, request, null)
   }
 
+  if (call.id === undefined) call.id = null
   console.info('CALLID_TO_REQUESTID:', call.id + ':' + requestId)
-  response.id = call.id
 
   if (typeof call.method !== 'string') {
-    return utils.errorResponse('request', 'method type must be string', call.method, request, response)
+    return utils.errorResponse('request', 'method type must be string', call.method, request, call.id)
   } else {
-    return await callSwitch(call, request, response, requestId)
+    return await callSwitch(call, request, requestId)
   }
 }
 
-async function callSwitch(call, request, response, requestId) {
+async function callSwitch(call, request, requestId) {
   switch (call.method) {
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':
-      return await processProxyTransfer(call, request, response, requestId)
+      return await processProxyTransfer(call, request, requestId)
     case 'proxyCancelListFiatNft':
-      return await processProxyCancelListFiatNft(call, request, response, requestId)
+      return await processProxyCancelListFiatNft(call, request, requestId)
     case 'proxyListNftOpenForSale':
-      return await processProxyListNftOpenForSale(call, request, response, requestId)
+      return await processProxyListNftOpenForSale(call, request, requestId)
     case 'proxyMintSingleNft':
-      return await processProxyMintSingleNft(call, request, response, requestId)
+      return await processProxyMintSingleNft(call, request, requestId)
     case 'proxyTransferFiatNft':
-      return await processProxyTransferFiatNft(call, request, response, requestId)
+      return await processProxyTransferFiatNft(call, request, requestId)
     default:
-      return utils.errorResponse('method', 'method not found', call.method, request, response)
+      return utils.errorResponse('method', 'method not found', call.method, request, call.id)
   }
 }
 
-async function processProxyTransfer(call, request, response, requestId) {
+async function processProxyTransfer(call, request, requestId) {
   const pallet = 'tokenManager'
   const method = 'signedTransfer'
   const { signer, recipient, token, amount } = call.params
@@ -80,13 +78,13 @@ async function processProxyTransfer(call, request, response, requestId) {
     if (utils.isValidEthereumAddress(token) === false) throw 'token'
     if (utils.isValidAmount(amount) === false) throw 'amount'
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, response)
+    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id)
   }
 
-  return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams)
 }
 
-async function processProxyCancelListFiatNft(call, request, response, requestId) {
+async function processProxyCancelListFiatNft(call, request, requestId) {
   const pallet = 'nftManager'
   const method = 'signedCancelListFiatNft'
   const { nftId } = call.params
@@ -95,13 +93,13 @@ async function processProxyCancelListFiatNft(call, request, response, requestId)
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, response)
+    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id)
   }
 
-  return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams)
 }
 
-async function processProxyListNftOpenForSale(call, request, response, requestId) {
+async function processProxyListNftOpenForSale(call, request, requestId) {
   const pallet = 'nftManager'
   const method = 'signedListNftOpenForSale'
   const { nftId, market } = call.params
@@ -111,13 +109,13 @@ async function processProxyListNftOpenForSale(call, request, response, requestId
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
     if (utils.isValidMarket(market) === false) throw 'market'
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, response)
+    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id)
   }
 
-  return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams)
 }
 
-async function processProxyMintSingleNft(call, request, response, requestId) {
+async function processProxyMintSingleNft(call, request, requestId) {
   const pallet = 'nftManager'
   const method = 'signedMintSingleNft'
   const { externalRef, royalties, t1Authority } = call.params
@@ -128,13 +126,13 @@ async function processProxyMintSingleNft(call, request, response, requestId) {
     if (utils.isValidArray(royalties) === false) throw 'royalties'
     if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority'
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, response)
+    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id)
   }
 
-  return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams)
 }
 
-async function processProxyTransferFiatNft(call, request, response, requestId) {
+async function processProxyTransferFiatNft(call, request, requestId) {
   const pallet = 'nftManager'
   const method = 'signedTransferFiatNft'
   const { nftId, recipient } = call.params
@@ -144,13 +142,13 @@ async function processProxyTransferFiatNft(call, request, response, requestId) {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID'
     if (utils.isValidAccountId(recipient) === false) throw 'recipient'
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, response)
+    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id)
   }
 
-  return await processProxyMethod(call, request, response, requestId, pallet, method, methodParams)
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams)
 }
 
-async function processProxyMethod(call, request, response, requestId, pallet, method, methodParams) {
+async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {
   const { relayer, signer, proxySignature, feePaymentSignature, paymentNonce } = call.params
 
   try {
@@ -160,7 +158,7 @@ async function processProxyMethod(call, request, response, requestId, pallet, me
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format'
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce'
   } catch (param) {
-    return utils.errorResponse('param', 'invalid' + param, param, request, response)
+    return utils.errorResponse('param', 'invalid' + param, param, request, call.id)
   }
 
   const proxyProof = getProxyProof(signer, relayer, proxySignature)
@@ -169,12 +167,12 @@ async function processProxyMethod(call, request, response, requestId, pallet, me
   try {
     relayerFee = await getRelayerFee(relayer, signer, call.method)
   } catch (error) {
-    return utils.errorResponse('internal', 'could not get relayer fee', error, request, response)
+    return utils.errorResponse('internal', 'could not get relayer fee', error, request, call.id)
   }
 
   const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce)
   if (!paymentInfo) {
-    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, response)
+    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, call.id)
   }
 
   const params = {
@@ -183,7 +181,7 @@ async function processProxyMethod(call, request, response, requestId, pallet, me
     paymentInfo
   }
 
-  return await sendTx(request, response, requestId, pallet, method, params)
+  return await sendTx(call, request, requestId, pallet, method, params)
 }
 
 async function getRelayerFee(relayer, user, transactionType) {
@@ -221,13 +219,13 @@ function getProxyProof(signer, relayer, proxySignature) {
   }
 }
 
-async function sendTx(request, response, requestId, palletName, method, params) {
+async function sendTx(call, request, requestId, palletName, method, params) {
   try {
     const queue = process.env.MQ_AVN_TX_QUEUE
     const txType = 'avnProxy'
-    response.result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params })
-    return response
+    const result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params })
+    return utils.validResponse(call.id, result)
   } catch (err) {
-    return utils.errorResponse('internal', 'failed to send proxy transaction', err, request, response)
+    return utils.errorResponse('internal', 'failed to send proxy transaction', err, request, call.id)
   }
 }

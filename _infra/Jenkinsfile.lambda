@@ -1,0 +1,59 @@
+pipeline {
+  parameters {
+    choice(name: 'environment', choices: ['sandbox', 'cba', 'testnet', 'mainnet'], description: 'Choose the environment to deploy to.')
+    string(name: 'version', defaultValue: 'latest', description: 'Lambda functions version', trim: true)
+  }
+
+  agent any
+
+  stages {
+    stage("Terraform Plan") {
+      steps {
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}") {
+            terraformPlan()
+          }
+        }
+      }
+    }
+
+    stage("Terraform Apply") {
+      input {
+        message "Proceed with Terraform apply"
+      }
+      steps {
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}") {
+            terraformApply()
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}
+
+def terraformPlan() {
+  sh "terraform init -no-color"
+  sh "terraform refresh -no-color"
+  sh "terraform plan -target module.lambda_functions -var service_version=${env.version} -out=plan-out.tfplan -no-color"
+}
+
+def terraformApply() {
+  sh "terraform init -no-color"
+  sh "terraform apply plan-out.tfplan -no-color"
+}
+
+def accountId() {
+  def environmentMap = [
+    sandbox: "352429414196",
+    cba: "602004642405",
+    testnet: "189013141504",
+    mainnet: "503742778456"
+  ]
+  return environmentMap[env.environment]
+}

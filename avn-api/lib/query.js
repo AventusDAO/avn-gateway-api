@@ -79,11 +79,7 @@ function getNftOwner(api) {
   return async function (nftId) {
     common.validateNftId(nftId)
 
-    if (!this.nftsMap[nftId]) {
-      this.nftsMap[nftId] = await this.postRequest(api, 'getNftOwner', { nftId })
-    }
-
-    return this.nftsMap[nftId]
+    return await this.postRequest(api, 'getNftOwner', { nftId })
   }
 }
 

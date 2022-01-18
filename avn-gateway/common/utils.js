@@ -34,7 +34,7 @@ const RPC_ERROR = {
   internal: { code: -32603, message: 'Internal error' }
 }
 
-function errorResponse(rpcError, gatewayError, errorData, request, response) {
+function errorResponse(rpcError, gatewayError, error, request, id) {
   const e = new Error()
   const splitStack = e.stack.split('\n')
   const frame = splitStack[2]
@@ -42,11 +42,19 @@ function errorResponse(rpcError, gatewayError, errorData, request, response) {
   const lineNum = frame.split(':').reverse()[1]
   const func = frame.split(' ')[5]
   const ref = file + ' line ' + lineNum + ' (' + func + ')'
-  console.error(gatewayError.toUpperCase(), 'Ref:', ref, 'ID:', response.id, 'Error data:', JSON.stringify(errorData))
-
+  const errorData = error.response ? err.response.data : 'N/A'
+  console.error(
+    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${JSON.stringify(error)}`
+  )
+  let response = { jsonrpc: '2.0', id }
   response.error = RPC_ERROR[rpcError]
   response.error.data = { gatewayError, request }
+
   return response
+}
+
+function validResponse(id, result) {
+  return { jsonrpc: '2.0', id, result }
 }
 
 function isValidAccountId(accountId) {
@@ -158,6 +166,7 @@ module.exports = {
   isValidString,
   isValidTransactionType,
   toBnString,
+  validResponse,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature
 }

@@ -3,51 +3,51 @@ const utils = require('/opt/utils.js')
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
 
 exports.handler = async event => {
-  let response = { jsonrpc: '2.0', id: null }
   return {
     statusCode: 200,
-    body: JSON.stringify(await processRequest(event.body, response))
+    body: JSON.stringify(await processRequest(event.body))
   }
 }
 
-async function processRequest(request, response) {
+async function processRequest(request) {
   let call
 
   try {
     call = JSON.parse(request)
   } catch (err) {
-    return utils.errorResponse('parse', 'failed to parse JSON', err, request, response)
+    return utils.errorResponse('parse', 'failed to parse JSON', err, request, null)
   }
 
-  response.id = call.id
+  if (call.id === undefined) call.id = null
 
   if (typeof call.method !== 'string') {
-    return utils.errorResponse('request', 'method type must be string', call.method, request, response)
+    return utils.errorResponse('request', 'method type must be string', call.method, request, call.id)
   } else {
-    return await makeCall(call, request, response)
+    return await makeCall(call, request)
   }
 }
 
-async function makeCall(call, request, response) {
+async function makeCall(call, request) {
+  if (call.method !== 'requestState') {
+    return utils.errorResponse('method', "method must be 'requestState'", call.method, request, call.id)
+  }
+
   const { requestId } = call.params
 
-  if (call.method !== 'requestState') {
-    return utils.errorResponse('method', "method must be 'requestState'", call.method, request, response)
-  }
-
   if (utils.isValidRequestId(requestId) === false) {
-    return utils.errorResponse('params', 'invalid request ID', requestId, request, response)
+    return utils.errorResponse('params', 'invalid request ID', requestId, request, call.id)
   }
 
-  return await poll(request, response, call.id, requestId)
+  return await poll(call, request, requestId)
 }
 
-async function poll(request, response, callId, requestId) {
+async function poll(call, request, requestId) {
   try {
+    const callId = call.id
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
-    response.result = avnResponse.data.error || avnResponse.data.status
-    return response
+    const result = avnResponse.data.error || avnResponse.data.status
+    return utils.validResponse(callId, result)
   } catch (err) {
-    return utils.errorResponse('internal', 'failed to poll chain', err, request, response)
+    return utils.errorResponse('internal', 'failed to poll chain', err, request, call.id)
   }
 }

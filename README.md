@@ -212,7 +212,7 @@ Returns the balance of a given token for a given AvN account
 
 **REQUEST PARAMS** \
 `accountId` *[required]* - a string representing the public key or SS58 address of the account to check for token balance \
-`token` *[required]* - a hex string representing the token ID (20 bytes) of the token being checked \
+`token` *[required]* - a hex string representing the token ID (20 bytes) of the token being checked
 
 **EXAMPLE**
 ```

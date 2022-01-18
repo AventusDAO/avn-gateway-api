@@ -101,6 +101,38 @@ This token will be generated for you automatically by the library.
 
 ### Queries
 
+#### getAvtContractAddress
+Returns the 20 byte Ethereum address of the AVT token contract
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getAvtContractAddress", "params":[], "id":0}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - string value of AVT contract ethereum address
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "result": "0x0d88eD6E74bbFD96B831231638b66C05571e824F"
+}
+```
+
 #### getTotalAvt
 Returns the total amount of AVT in the AvN
 
@@ -144,7 +176,7 @@ Returns the AVT balance of a given AvN account
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account to check for AVT balance
+`accountId` *[required]* - a string representing the public key or SS58 address of the account to check for AVT balance
 
 **EXAMPLE**
 ```
@@ -153,11 +185,11 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getAvtBalance", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":2}'
+    -d '{"jsonrpc":"2.0", "method":"getAvtBalance", "params":[{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}], "id":2}'
 ```
 
 **RESULT FIELDS** \
-`BALANCE` - string integer value of the current AVT balance in its smallest denomination
+`VALUE` - string integer value of the current AVT balance for the account in its smallest denomination
 
 **BODY**
 ```
@@ -179,8 +211,8 @@ Returns the balance of a given token for a given AvN account
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account to check for token balance
-`TOKEN ID` *[required]* - a string representing the token ID (20 bytes) of the token being checked \
+`accountId` *[required]* - a string representing the public key or SS58 address of the account to check for token balance
+`token` *[required]* - a hex string representing the token ID (20 bytes) of the token being checked \
 
 **EXAMPLE**
 ```
@@ -189,11 +221,11 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getTokenBalance", "params":["5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"], "id":3}'
+    -d '{"jsonrpc":"2.0", "method":"getTokenBalance", "params":[{"accountId":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "token":"0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"}], "id":3}'
 ```
 
 **RESULT FIELDS** \
-`BALANCE` - string integer value of the current token balance in its smallest denomination
+`VALUE` - string integer value of the current token balance for the account in its smallest denomination
 
 **BODY**
 ```
@@ -205,7 +237,7 @@ curl https://AVN-API-URL/query \
 ```
 
 #### getAccountNonce
-Returns the nonce of a given AvN account
+Returns the account nonce of a given AvN account
 
 **REQUEST** \
 `POST https://AVN-API-URL/query`
@@ -215,7 +247,7 @@ Returns the nonce of a given AvN account
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`ACCOUNT ID / SS58 ADDRESS` *[required]* - a string representing the account to check for nonce
+`accountId` *[required]* - a string representing the public key or SS58 address of the account to check for nonce
 
 **EXAMPLE**
 ```
@@ -224,11 +256,11 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getAccountNonce", "params":["5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"], "id":4}'
+    -d '{"jsonrpc":"2.0", "method":"getAccountNonce", "params":[{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}], "id":4}'
 ```
 
 **RESULT FIELDS** \
-`BALANCE` - string integer value of the current account nonce
+`VALUE` - string integer value of the current account nonce
 
 **BODY**
 ```
@@ -236,6 +268,212 @@ curl https://AVN-API-URL/query \
   "jsonrpc": "2.0",
   "id": 4,
   "result": "3"
+}
+```
+
+#### getAccountPaymentNonce
+Returns the payment nonce of a given AvN account
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**REQUEST PARAMS** \
+`accountId` *[required]* - a string representing the public key or SS58 address of the account to check for payment nonce
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getAccountPaymentNonce", "params":[{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}], "id":5}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - string integer value of the current account nonce
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": "10"
+}
+```
+
+#### getNftNonce
+Returns the nonce of a given NFT
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**REQUEST PARAMS** \
+`nftId` *[required]* - a string representing the NFT ID (32 bytes) to check for nonce
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getNftNonce", "params":[{"nftId":"0x4184aa1d0e5a1a44d36d92b02ad07ab4285a43086f538a7e5b7d5cbd858e0e71"}], "id":6}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - string integer value of the current nonce for the NFT
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": "3"
+}
+```
+
+#### getNftId
+Returns the NFT ID for a given external reference
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**REQUEST PARAMS** \
+`externalRef` *[required]* - a string representing the NFT's external reference
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getNftId", "params":[{"externalRef":"my_unique_nft_2022-01-17T12:15:31Z"}], "id":7}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - hex string value representing the NFT ID
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": "0x4184aa1d0e5a1a44d36d92b02ad07ab4285a43086f538a7e5b7d5cbd858e0e71"
+}
+```
+
+#### getNftOwner
+Returns the owner of a given NFT
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**REQUEST PARAMS** \
+`nftId` *[required]* - a hex string representing the NFT ID (32 bytes)
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getNftOwner", "params":[{"nftId":"0x4184aa1d0e5a1a44d36d92b02ad07ab4285a43086f538a7e5b7d5cbd858e0e71"}], "id":8}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - string integer value of the current nonce for the NFT
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 8,
+  "result": "5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF"
+}
+```
+
+#### getRelayerFees
+Returns fees for a particular relayer, optionally by user and/or transaction type
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**REQUEST PARAMS** \
+`relayer` *[required]* - a string representing the relayer's public key or SS58 address
+`user` *[optional]* - a string representing the user's public key or SS58 address
+`transactionType` *[optional]* - a string representing the transaction type. One of:
+```
+"proxyAvtTransfer"
+"proxyTokenTransfer"
+"proxyMintSingleNft"
+"proxyListNftOpenForSale"
+"proxyTransferFiatNft"
+"proxyCancelListFiatNft"
+```
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getNftOwner", "params":[{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5GnPqcyiruWxK5HWVZSdvZk25y2kZjmeaSBaTvpygyLcDTCg", "transactionType":"proxyTokenTransfer"}], "id":9}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - string integer value of the current relayer fee for user and type
+OR
+`OBJECT`- object representing fees for relayer (generic or filtered for user if passed)
+`{
+    "proxyAvtTransfer": "7000000000000000",
+    "proxyTokenTransfer": "7000000000000000",
+    "proxyMintSingleNft": "7000000000000000",
+    "proxyListNftOpenForSale": "7000000000000000",
+    "proxyTransferFiatNft": "7000000000000000",
+    "proxyCancelListFiatNft": "7000000000000000"
+  }`
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 9,
+  "result": "5000000000000000"
+}
+
+OR
+
+{
+  "proxyAvtTransfer": "7000000000000000",
+  "proxyTokenTransfer": "7000000000000000",
+  "proxyMintSingleNft": "7000000000000000",
+  "proxyListNftOpenForSale": "7000000000000000",
+  "proxyTransferFiatNft": "7000000000000000",
+  "proxyCancelListFiatNft": "7000000000000000"
 }
 ```
 

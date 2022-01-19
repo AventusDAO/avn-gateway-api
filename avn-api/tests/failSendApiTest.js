@@ -1,6 +1,7 @@
 const chai = require('chai')
 const expect = chai.expect
 const assert = chai.assert
+const testPatterns = require('./testPatterns.js')
 
 describe('Fail Send api calls:', async () => {
 
@@ -15,26 +16,36 @@ describe('Fail Send api calls:', async () => {
   describe('transferAvt', async () => {
     //transferAvt(relayer, recipient, amount)
     describe('fails when called', async () => {
-      it('With amount greater than senders balance')
-      it('With amount as undefined')
-      it('With amount as zero')
-      it('With amount as negative value')
-      it('With amount not being a number')
+      describe('With invalid amount', async () => {
 
-      it('With relayer as empty string')
-      it('With relayer as undefined')
-      it('With relayer in invalid format')
-      it('With relayer address short')
-      it('With relayer address long')
-      it('With relayer address that is not a relayer')
+      })
 
-      it('With sender and recipient as the same address')
+      describe('With invalid account:', async () => {
+        describe('relayer', async () => {
 
-      it('With recipient as empty string')
-      it('With recipient as undefined')
-      it('With recipient in invalid format')
-      it('With recipient address short')
-      it('With recipient address long')
+          let anySuccess = testPatterns.invalidAccount('relayer', validCallData);
+
+          it('All invalid test cases fail', async () => {
+            expect(anySuccess).to.be.false;
+          });
+        });
+
+        it('With relayer address that is not a relayer')
+      })
+
+      describe('With invalid account:', async () => {
+        it('recipient', async () => {
+
+        });
+
+        it('With recipient as empty string')
+        it('With recipient as undefined')
+        it('With recipient in invalid format')
+        it('With recipient address short')
+        it('With recipient address long')
+      })
+
+      it('With API sender and recipient as the same address')
 
     })
   })

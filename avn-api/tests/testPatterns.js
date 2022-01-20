@@ -20,12 +20,14 @@ async function validAccount(message, accoutAddress, validCallData) {
         // submit request
         // check success / failure
     })
+
     it (message + ' is undefined', async () => {
         // Modify call data by making a single account field invalid. In this case, undefined
         // validCallData[accountFieldName] = ''
         // submit request
         // check success / failure
     })
+
     // Valid formats: SS58 (variable length) and hex string (fixed length: 32 bytes)
     it (message + ' is in invalid format', async () => {
     })
@@ -63,10 +65,17 @@ function validExternalReference(message, id, validCallData) {
     it(message + 'is in invalid format')
 }
 
+function validRequestState(message, requestId, validCallData) {
+    it(message + ' is empty')
+    it(message + ' is undefined')
+    it(message + ' valid but not existent')
+}
+
 module.exports = {
   validAccount,
   validAmount,
   validEthereumToken,
   validNftId,
-  validExternalReference
+  validExternalReference,
+  validRequestState
 };

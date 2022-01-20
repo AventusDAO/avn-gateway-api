@@ -1,6 +1,7 @@
 const chai = require('chai')
 const expect = chai.expect
 const assert = chai.assert
+const testPatterns = require('./testPatterns.js')
 
 describe('Fail Poll api calls:', async () => {
 
@@ -15,9 +16,9 @@ describe('Fail Poll api calls:', async () => {
   describe('requestState', async () => {
     //requestState(requestId)
     describe('fails when called', async () => {
-      it('With request id as empty string')
-      it('With request id as undefined')
-      it('With request id that doesnt exist')
+      describe('With invalid request', async () => {
+        await testPatterns.validRequestState('Request', 'requestId', 'validCallData');
+      })
     })
   })
 })

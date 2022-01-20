@@ -135,9 +135,10 @@ function createExternalRef() {
 }
 
 async function avnApi(gateway) {
+  console.log(`Connecting to Avn @ ${gateway}`.red)
   const api = new AvnApi(gateway)
   await api.init()
-  console.log(`Connected to Avn @ ${gateway}`)
+  console.log(`Connected to Avn @ ${gateway}`.green)
   return api
 }
 
@@ -189,6 +190,6 @@ function formatBalance(balanceAsBN) {
 ;(async () => {
   await main()
 })().catch(e => {
-  console.log(e)
+  console.log(e.toString())
   process.exit(1)
 })

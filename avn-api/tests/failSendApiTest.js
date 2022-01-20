@@ -41,7 +41,7 @@ describe('Fail Send api calls:', async () => {
         await testPatterns.validAccount('Recipient', 'accountAddress', 'validCallData');
       })
       describe('With invalid token', async () => {
-        await testPatterns.validEthereumToken('Token', 'accountAddress', 'validCallData');
+        await testPatterns.validEthereumToken('Token', 'tokenAddress', 'validCallData');
       })
       describe('With invalid token amount', async () => {
         await testPatterns.validAmount('Token amount', 'amountValue', 'tokenAddress', 'validCallData');

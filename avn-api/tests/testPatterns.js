@@ -1,3 +1,7 @@
+const chai = require('chai')
+const expect = chai.expect
+const assert = chai.assert
+
 /**
  * This method encapsulates in one call all the possible tests for an invalid account. It could be used with any account.
  * This simplifies the writing of the tests, by reducing the number of individual test cases we have to write.
@@ -9,66 +13,60 @@
  * so that this code (which is generic) does not have to know how to create requests
  */
 
-function validAccount(message, accountFieldName, validCallData) {
-    let anySuccess = false;
-
+async function validAccount(message, accoutAddress, validCallData) {
     it (message + ' is empty', async () => {
         // Modify call data by making a single account field invalid. In this case, empty
         // validCallData[accountFieldName] = ''
         // submit request
         // check success / failure
-
-        if ("test does not fail") {
-            anySuccess = true;
-        }
-    });
-
+    })
     it (message + ' is undefined', async () => {
         // Modify call data by making a single account field invalid. In this case, undefined
         // validCallData[accountFieldName] = ''
         // submit request
         // check success / failure
-
-        if ("test does not fail") {
-            anySuccess = true;
-        }
-    });
-
+    })
     // Valid formats: SS58 (variable length) and hex string (fixed length: 32 bytes)
     it (message + ' is in invalid format', async () => {
-        // do expectation here
-        if ("test does not fail") {
-            anySuccess = true;
-        }
-    });
+    })
 
     it (message + ' is too short hex string to be a public key', async () => {
-        // do expectation here
-        if ("test does not fail") {
-            anySuccess = true;
-        }
-    });
+    })
 
     it (message + ' is too ,ong hex string to be a public key', async () => {
-        // do expectation here
-        if ("test does not fail") {
-            anySuccess = true;
-        }
-    });
-
-    return anySuccess;
+    })
 }
 
-function validAmount(/*...*/) {
-
+function validAmount(message, amount, token, validCallData) {
+    it(message + 'is greater than senders balance')
+    it(message + 'is undefined')
+    it(message + 'is zero')
+    it(message + 'is a negative value')
+    it(message + 'is not a number')
 }
 
-function validEthereumToken(/*...*/) {
+function validEthereumToken(message, token, validCallData) {
+    it(message + 'is empty')
+    it(message + 'is undefined')
+    it(message + 'is in invalid format')
+}
 
+function validNftId(message, id, validCallData) {
+    it(message + 'is empty')
+    it(message + 'is undefined')
+    it(message + 'doesnt exist')
+}
+
+function validExternalReference(message, id, validCallData) {
+    it(message + 'is empty')
+    it(message + 'is undefined')
+    it(message + 'is in invalid format')
 }
 
 module.exports = {
   validAccount,
   validAmount,
-  validEthereumToken
+  validEthereumToken,
+  validNftId,
+  validExternalReference
 };

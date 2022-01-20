@@ -16,86 +16,63 @@ describe('Fail Send api calls:', async () => {
   describe('transferAvt', async () => {
     //transferAvt(relayer, recipient, amount)
     describe('fails when called', async () => {
+      describe('With invalid account: relayer', async () => {
+        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid account: recipient', async () => {
+        await testPatterns.validAccount('Recipient', 'accountAddress', 'validCallData');
+      })
       describe('With invalid amount', async () => {
-
+        await testPatterns.validAmount('AVT Amount', 'amountValue', 'avt', 'validCallData');
       })
-
-      describe('With invalid account:', async () => {
-        describe('relayer', async () => {
-
-          let anySuccess = testPatterns.invalidAccount('relayer', validCallData);
-
-          it('All invalid test cases fail', async () => {
-            expect(anySuccess).to.be.false;
-          });
-        });
-
-        it('With relayer address that is not a relayer')
-      })
-
-      describe('With invalid account:', async () => {
-        it('recipient', async () => {
-
-        });
-
-        it('With recipient as empty string')
-        it('With recipient as undefined')
-        it('With recipient in invalid format')
-        it('With recipient address short')
-        it('With recipient address long')
-      })
-
+      it('With relayer address that is not a relayer')
+      it('With relayer address that does not have enough AVT')
       it('With API sender and recipient as the same address')
-
     })
   })
 
   describe('transferToken', async () => {
     //transferToken(relayer, recipient, token, amount)
     describe('fails when called', async () => {
-      it('With token amount greater than senders token balance')
-      it('With token amount as undefined')
-      it('With token amount as zero')
-      it('With token amount as negative value')
-      it('With token amount not being a number')
-
-      it('With relayer as empty string')
-      it('With relayer as undefined')
-      it('With relayer in invalid format')
-      it('With relayer address short')
-      it('With relayer address long')
+      describe('With invalid account: relayer', async () => {
+        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid account: recipient', async () => {
+        await testPatterns.validAccount('Recipient', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid token', async () => {
+        await testPatterns.validEthereumToken('Token', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid token amount', async () => {
+        await testPatterns.validAmount('Token amount', 'amountValue', 'tokenAddress', 'validCallData');
+      })
       it('With relayer address that is not a relayer')
-
-      it('With sender and recipient as the same address')
-
-      it('With recipient as empty string')
-      it('With recipient as undefined')
-      it('With recipient in invalid format')
-      it('With recipient address short')
-      it('With recipient address long')
-
-      it('With token as empty string')
-      it('With token as undefined')
-      it('With token in invalid format')
-      it('With token that doesnt exist')
-
+      it('With relayer address that does not have enough AVT')
+      it('With API sender and recipient as the same address')
     })
   })
 
   describe('mintSingleNft', async () => {
     //mintSingleNft(relayer, externalRef, royalties, T1Authority)
     describe('fails when called', async () => {
-      it('With relayer as empty string')
-      it('With relayer as undefined')
-      it('With relayer in invalid format')
-      it('With relayer address short')
-      it('With relayer address long')
-      it('With relayer address that is not a relayer')
+      describe('With invalid account: relayer', async () => {
+        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid account: T1Authority', async () => {
+        await testPatterns.validAccount('T1Authority', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid token', async () => {
+        await testPatterns.validEthereumToken('Token', 'tokenAddress', 'validCallData');
+      })
+      describe('With invalid token amount', async () => {
+        await testPatterns.validAmount('Token Amount', 'accountAddress', 'tokenAddress', 'validCallData');
+      })
+      describe('With invalid external reference', async () => {
+        await testPatterns.validExternalReference('External reference', 'externalRefAddress', 'validCallData');
+      })
 
-      it('With external reference as empty string')
-      it('With external reference as undefined')
-      it('With external reference in invalid format')
-      it('With external reference in valid format but not existent')
+      it('With relayer address that is not a relayer')
+      it('With relayer address that does not have enough AVT')
 
       it('With royalties as undefined')
       it('With royalties with invalid JSON format')
@@ -113,73 +90,59 @@ describe('Fail Send api calls:', async () => {
       it('With royalties where parts_per_million is undefined')
 
       it('With multiple royalties where one of them is invalid')
-
-      it('With T1Authority as empty string')
-      it('With T1Authority as undefined')
-      it('With T1Authority in invalid format')
-      it('With T1Authority address short')
-      it('With T1Authority address long')
     })
   })
 
   describe('listFiatNftForSale', async () => {
     //listFiatNftForSale(relayer, nftId)
     describe('fails when called', async () => {
-      it('With relayer as empty string')
-      it('With relayer as undefined')
-      it('With relayer in invalid format')
-      it('With relayer address short')
-      it('With relayer address long')
+      describe('With invalid account: relayer', async () => {
+        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid nft id', async () => {
+        await testPatterns.validNftId('Nft id', 'nftId', 'validCallData');
+      })
       it('With relayer address that is not a relayer')
+      it('With relayer address that does not have enough AVT')
 
       it('With sender that doesnt own this nft')
-
-      it('With nft id as empty string')
-      it('With nft id as undefined')
-      it('With nft id that doesnt exist')
     })
   })
 
   describe('transferFiatNft', async () => {
     //transferFiatNft(relayer, recipient, nftId)
     describe('fails when called', async () => {
-      it('With relayer as empty string')
-      it('With relayer as undefined')
-      it('With relayer in invalid format')
-      it('With relayer address short')
-      it('With relayer address long')
-      it('With relayer address that is not a relayer')
-
-      it('With sender that doesnt own this nft')
+      describe('With invalid account: relayer', async () => {
+        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid account: recipient', async () => {
+        await testPatterns.validAccount('Recipient', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid nft id', async () => {
+        await testPatterns.validNftId('Nft id', 'nftId', 'validCallData');
+      })
       it('With sender and recipient as the same address')
+      it('With sender that doesnt own this nft')
 
-      it('With recipient as empty string')
-      it('With recipient as undefined')
-      it('With recipient in invalid format')
-      it('With recipient address short')
-      it('With recipient address long')
-
-      it('With nft id as empty string')
-      it('With nft id as undefined')
-      it('With nft id that doesnt exist')
+      it('With relayer address that is not a relayer')
+      it('With relayer address that does not have enough AVT')
     })
   })
 
   describe('cancelFiatNftListing', async () => {
     //cancelFiatNftListing(relayer, nftId)
     describe('fails when called', async () => {
-      it('With relayer as empty string')
-      it('With relayer as undefined')
-      it('With relayer in invalid format')
-      it('With relayer address short')
-      it('With relayer address long')
+      describe('With invalid account: relayer', async () => {
+        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+      })
+      describe('With invalid nft id', async () => {
+        await testPatterns.validNftId('Nft id', 'nftId', 'validCallData');
+      })
       it('With relayer address that is not a relayer')
+      it('With relayer address that does not have enough AVT')
 
       it('With sender that doesnt own this nft')
-
-      it('With nft id as empty string')
-      it('With nft id as undefined')
-      it('With nft id that doesnt exist')
     })
   })
+
 })

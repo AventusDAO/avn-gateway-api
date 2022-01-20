@@ -1,17 +1,17 @@
-const chai = require('chai')
-const expect = chai.expect
-const assert = chai.assert
-chai.use(require('chai-as-promised'))
-const helper = require('./helper.js')
-const accounts = helper.ACCOUNTS
-const BN = helper.BN
+const chai = require('chai');
+const expect = chai.expect;
+const assert = chai.assert;
+chai.use(require('chai-as-promised'));
+const helper = require('./helper.js');
+const accounts = helper.ACCOUNTS;
+const BN = helper.BN;
 
-const MIN_TOTAL_AVT_SUPPLY = new BN('100000000000000000000')
+const MIN_TOTAL_AVT_SUPPLY = new BN('100000000000000000000');
 
 describe('Query api calls:', async () => {
-  let api
-  let relayer, user
-  let relayerPublicKey, userPublicKey
+  let api;
+  let relayer, user;
+  let relayerPublicKey, userPublicKey;
 
   const expectedRelayerFees = {
     proxyAvtTransfer: '7000000000000000',
@@ -20,7 +20,7 @@ describe('Query api calls:', async () => {
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',
     proxyCancelListFiatNft: '7000000000000000'
-  }
+  };
 
   const expectedUserFees = {
     proxyAvtTransfer: '7000000000000000',
@@ -29,101 +29,101 @@ describe('Query api calls:', async () => {
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',
     proxyCancelListFiatNft: '7000000000000000'
-  }
+  };
 
   before(async () => {
-    api = await helper.avnApi()
-    relayer = accounts.relayer
-    user = accounts.sender
-    sender = accounts.sender
-  })
+    api = await helper.avnApi();
+    relayer = accounts.relayer;
+    user = accounts.sender;
+    sender = accounts.sender;
+  });
 
   describe('getTotalAvt', async () => {
     it('returns total AVT supply', async () => {
-      assert(new BN(await api.query.getTotalAvt()).gt(MIN_TOTAL_AVT_SUPPLY))
-    })
-  })
+      assert(new BN(await api.query.getTotalAvt()).gt(MIN_TOTAL_AVT_SUPPLY));
+    });
+  });
 
   describe('getAccountNonce', async () => {
     it('returns the same nonce by address as by public key', async () => {
-      const nonce = await api.query.getAccountNonce(sender.address)
-      assert.equal(nonce, await api.query.getAccountNonce(sender.publicKey))
-    })
-  })
+      const nonce = await api.query.getAccountNonce(sender.address);
+      assert.equal(nonce, await api.query.getAccountNonce(sender.publicKey));
+    });
+  });
 
   describe('getAccountPaymentNonce', async () => {
     it('returns the same nonce by address as by public key', async () => {
-      const nonce = await api.query.getAccountPaymentNonce(sender.address)
-      assert.equal(nonce, await api.query.getAccountPaymentNonce(sender.publicKey))
-    })
-  })
+      const nonce = await api.query.getAccountPaymentNonce(sender.address);
+      assert.equal(nonce, await api.query.getAccountPaymentNonce(sender.publicKey));
+    });
+  });
 
   describe('getRelayerFees', async () => {
     it('returns default fees for a relayer by address', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer.address)
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees))
-    })
+      const returnedFees = await api.query.getRelayerFees(relayer.address);
+      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
+    });
 
     it('returns default fees for a relayer by publicKey', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer.publicKey)
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees))
-    })
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey);
+      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
+    });
 
     it('returns fees for a specific user by address', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer.address, user.address)
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees))
-    })
+      const returnedFees = await api.query.getRelayerFees(relayer.address, user.address);
+      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
+    });
 
     it('returns fees for a specific user by publicKey', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey)
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees))
-    })
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey);
+      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
+    });
 
     it('returns the fee for a specific user and transaction type', async () => {
-      const transactionType = 'proxyTokenTransfer'
-      const returnedFees = await api.query.getRelayerFees(relayer.address, user.publicKey, transactionType)
-      assert.equal(returnedFees, expectedUserFees[transactionType])
-    })
+      const transactionType = 'proxyTokenTransfer';
+      const returnedFees = await api.query.getRelayerFees(relayer.address, user.publicKey, transactionType);
+      assert.equal(returnedFees, expectedUserFees[transactionType]);
+    });
 
     it('errors if relayer is not registered', async () => {
-      await expect(api.query.getRelayerFees(user)).to.be.rejectedWith(Error)
-    })
-  })
+      await expect(api.query.getRelayerFees(user)).to.be.rejectedWith(Error);
+    });
+  });
 
   describe('getAvtBalance', async () => {
-  //getAvtBalance(account)
-    it('returns correct avt balance for specific user by address')
-    it('returns correct avt balance for specific user by publicKey')
-  })
+    //getAvtBalance(account)
+    it('returns correct avt balance for specific user by address');
+    it('returns correct avt balance for specific user by publicKey');
+  });
   describe('getTokenBalance', async () => {
-  //getTokenBalance(account, token_address)
-    it('returns correct token balance for specific user by address')
-    it('returns correct token balance for specific user by publicKey')
-  })
+    //getTokenBalance(account, token_address)
+    it('returns correct token balance for specific user by address');
+    it('returns correct token balance for specific user by publicKey');
+  });
   describe('getAccountNonce', async () => {
-  //getAccountNonce(account)
-    it('returns correct account nonce for specific user by address')
-    it('returns correct account nonce for specific user by publicKey')
-  })
+    //getAccountNonce(account)
+    it('returns correct account nonce for specific user by address');
+    it('returns correct account nonce for specific user by publicKey');
+  });
   describe('getAccountPaymentNonce', async () => {
-  //getAccountPaymentNonce(account)
-    it('returns correct account payment nonce for specific user by address')
-    it('returns correct account payment nonce for specific user by publicKey')
-  })
+    //getAccountPaymentNonce(account)
+    it('returns correct account payment nonce for specific user by address');
+    it('returns correct account payment nonce for specific user by publicKey');
+  });
   describe('getAvtContractAddress', async () => {
-  //getAvtContractAddress()
-    it('returns correct avt contract address')
-  })
+    //getAvtContractAddress()
+    it('returns correct avt contract address');
+  });
   describe('getNftNonce', async () => {
-  //getNftNonce(nftId)
-    it('returns correct nft nonce for specific nft id')
-  })
+    //getNftNonce(nftId)
+    it('returns correct nft nonce for specific nft id');
+  });
   describe('getNftId', async () => {
-  //getNftId(external_reference);
-    it('returns correct nft id for specific reference')
-  })
+    //getNftId(external_reference);
+    it('returns correct nft id for specific reference');
+  });
   describe('getNftOwner', async () => {
-  //getNftOwner(nftId)
-    it('returns correct nft owner for specific nft id')
-  })
-})
+    //getNftOwner(nftId)
+    it('returns correct nft owner for specific nft id');
+  });
+});

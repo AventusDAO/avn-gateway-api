@@ -3,8 +3,9 @@ locals {
     username = var.username
     password = random_password.docdb_password.result
   }
-  subnet_ids = var.subnet_ids
+  subnet_ids         = var.subnet_ids
   subnet_cidr_blocks = [for k, subnet in data.aws_subnet.subnets: subnet.cidr_block]
+  whitelist_ips      = concat(local.subnet_cidr_blocks, var.additional_whitelist_ips)
 }
 
 data "aws_subnet" "subnets" {
@@ -64,7 +65,7 @@ resource "aws_security_group" "documentdb" {
     from_port        = "27017"
     to_port          = "27017"
     protocol         = "tcp"
-    cidr_blocks      = local.subnet_cidr_blocks
+    cidr_blocks      = local.whitelist_ips
   }
 
   egress {

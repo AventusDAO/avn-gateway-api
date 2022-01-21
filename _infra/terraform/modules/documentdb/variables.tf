@@ -48,3 +48,9 @@ variable "instance_type" {
   type        = string
   default     = "db.t4g.medium"
 }
+
+variable "additional_whitelist_ips" {
+  description = "IPs for the database to whitelist"
+  type        = list(string)
+  default     = []
+}

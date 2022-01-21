@@ -13,7 +13,7 @@ const assert = chai.assert
  * so that this code (which is generic) does not have to know how to create requests
  */
 
-async function validAccount(message, accoutAddress, validCallData) {
+async function invalidAccount(message, accoutAddress, validCallData) {
     it (message + ' is empty', async () => {
         // Modify call data by making a single account field invalid. In this case, empty
         // validCallData[accountFieldName] = ''
@@ -39,7 +39,13 @@ async function validAccount(message, accoutAddress, validCallData) {
     })
 }
 
-function validAmount(message, amount, token, validCallData) {
+async function invalidEthereumAccount(message, accoutAddress, validCallData) {
+    it (message + ' is empty')
+    it (message + ' is undefined')
+    it (message + ' is in invalid format')
+}
+
+function invalidAmount(message, amount, token, validCallData) {
     it(message + 'is greater than senders balance')
     it(message + 'is undefined')
     it(message + 'is zero')
@@ -47,35 +53,36 @@ function validAmount(message, amount, token, validCallData) {
     it(message + 'is not a number')
 }
 
-function validEthereumToken(message, token, validCallData) {
+function invalidEthereumToken(message, token, validCallData) {
     it(message + 'is empty')
     it(message + 'is undefined')
     it(message + 'is in invalid format')
 }
 
-function validNftId(message, id, validCallData) {
+function invalidNftId(message, id, validCallData) {
     it(message + 'is empty')
     it(message + 'is undefined')
     it(message + 'doesnt exist')
 }
 
-function validExternalReference(message, id, validCallData) {
+function invalidExternalReference(message, id, validCallData) {
     it(message + 'is empty')
     it(message + 'is undefined')
     it(message + 'is in invalid format')
 }
 
-function validRequestState(message, requestId, validCallData) {
+function invalidRequest(message, requestId, validCallData) {
     it(message + ' is empty')
     it(message + ' is undefined')
     it(message + ' valid but not existent')
 }
 
 module.exports = {
-  validAccount,
-  validAmount,
-  validEthereumToken,
-  validNftId,
-  validExternalReference,
-  validRequestState
+  invalidAccount,
+  invalidAmount,
+  invalidEthereumToken,
+  invalidNftId,
+  invalidExternalReference,
+  invalidRequest,
+  invalidEthereumAccount
 };

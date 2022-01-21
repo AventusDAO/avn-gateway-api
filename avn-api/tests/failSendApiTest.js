@@ -17,13 +17,13 @@ describe('Fail Send api calls:', async () => {
     //transferAvt(relayer, recipient, amount)
     describe('fails when called', async () => {
       describe('With invalid account: relayer', async () => {
-        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('Relayer', 'accountAddress', 'validCallData');
       })
       describe('With invalid account: recipient', async () => {
-        await testPatterns.validAccount('Recipient', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('Recipient', 'accountAddress', 'validCallData');
       })
       describe('With invalid amount', async () => {
-        await testPatterns.validAmount('AVT Amount', 'amountValue', 'avt', 'validCallData');
+        await testPatterns.invalidAmount('AVT Amount', 'amountValue', 'avt', 'validCallData');
       })
       it('With relayer address that is not a relayer')
       it('With relayer address that does not have enough AVT')
@@ -35,16 +35,16 @@ describe('Fail Send api calls:', async () => {
     //transferToken(relayer, recipient, token, amount)
     describe('fails when called', async () => {
       describe('With invalid account: relayer', async () => {
-        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('Relayer', 'accountAddress', 'validCallData');
       })
       describe('With invalid account: recipient', async () => {
-        await testPatterns.validAccount('Recipient', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('Recipient', 'accountAddress', 'validCallData');
       })
       describe('With invalid token', async () => {
-        await testPatterns.validEthereumToken('Token', 'tokenAddress', 'validCallData');
+        await testPatterns.ininvalidEthereumToken('Token', 'tokenAddress', 'validCallData');
       })
       describe('With invalid token amount', async () => {
-        await testPatterns.validAmount('Token amount', 'amountValue', 'tokenAddress', 'validCallData');
+        await testPatterns.invalidAmount('Token amount', 'amountValue', 'tokenAddress', 'validCallData');
       })
       it('With relayer address that is not a relayer')
       it('With relayer address that does not have enough AVT')
@@ -56,19 +56,19 @@ describe('Fail Send api calls:', async () => {
     //mintSingleNft(relayer, externalRef, royalties, T1Authority)
     describe('fails when called', async () => {
       describe('With invalid account: relayer', async () => {
-        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('Relayer', 'accountAddress', 'validCallData');
       })
       describe('With invalid account: T1Authority', async () => {
-        await testPatterns.validAccount('T1Authority', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('T1Authority', 'accountAddress', 'validCallData');
       })
       describe('With invalid token', async () => {
-        await testPatterns.validEthereumToken('Token', 'tokenAddress', 'validCallData');
+        await testPatterns.invalidEthereumToken('Token', 'tokenAddress', 'validCallData');
       })
       describe('With invalid token amount', async () => {
-        await testPatterns.validAmount('Token Amount', 'accountAddress', 'tokenAddress', 'validCallData');
+        await testPatterns.invalidAmount('Token Amount', 'accountAddress', 'tokenAddress', 'validCallData');
       })
       describe('With invalid external reference', async () => {
-        await testPatterns.validExternalReference('External reference', 'externalRefAddress', 'validCallData');
+        await testPatterns.invalidExternalReference('External reference', 'externalRefAddress', 'validCallData');
       })
 
       it('With relayer address that is not a relayer')
@@ -97,15 +97,16 @@ describe('Fail Send api calls:', async () => {
     //listFiatNftForSale(relayer, nftId)
     describe('fails when called', async () => {
       describe('With invalid account: relayer', async () => {
-        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('Relayer', 'accountAddress', 'validCallData');
       })
       describe('With invalid nft id', async () => {
-        await testPatterns.validNftId('Nft id', 'nftId', 'validCallData');
+        await testPatterns.invalidNftId('Nft id', 'nftId', 'validCallData');
       })
       it('With relayer address that is not a relayer')
       it('With relayer address that does not have enough AVT')
 
       it('With sender that doesnt own this nft')
+      it('with an NFT that is already listed')
     })
   })
 
@@ -113,19 +114,21 @@ describe('Fail Send api calls:', async () => {
     //transferFiatNft(relayer, recipient, nftId)
     describe('fails when called', async () => {
       describe('With invalid account: relayer', async () => {
-        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('Relayer', 'accountAddress', 'validCallData');
       })
       describe('With invalid account: recipient', async () => {
-        await testPatterns.validAccount('Recipient', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('Recipient', 'accountAddress', 'validCallData');
       })
       describe('With invalid nft id', async () => {
-        await testPatterns.validNftId('Nft id', 'nftId', 'validCallData');
+        await testPatterns.invalidNftId('Nft id', 'nftId', 'validCallData');
       })
       it('With sender and recipient as the same address')
       it('With sender that doesnt own this nft')
 
       it('With relayer address that is not a relayer')
       it('With relayer address that does not have enough AVT')
+
+      it('with an NFT that is not listed')
     })
   })
 
@@ -133,15 +136,16 @@ describe('Fail Send api calls:', async () => {
     //cancelFiatNftListing(relayer, nftId)
     describe('fails when called', async () => {
       describe('With invalid account: relayer', async () => {
-        await testPatterns.validAccount('Relayer', 'accountAddress', 'validCallData');
+        await testPatterns.invalidAccount('Relayer', 'accountAddress', 'validCallData');
       })
       describe('With invalid nft id', async () => {
-        await testPatterns.validNftId('Nft id', 'nftId', 'validCallData');
+        await testPatterns.invalidNftId('Nft id', 'nftId', 'validCallData');
       })
       it('With relayer address that is not a relayer')
       it('With relayer address that does not have enough AVT')
 
       it('With sender that doesnt own this nft')
+      it('with an NFT that is not listed')
     })
   })
 

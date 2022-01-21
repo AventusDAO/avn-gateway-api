@@ -17,7 +17,7 @@ describe('Fail Poll api calls:', async () => {
     //requestState(requestId)
     describe('fails when called', async () => {
       describe('With invalid request', async () => {
-        await testPatterns.validRequestState('Request', 'requestId', 'validCallData');
+        await testPatterns.invalidRequest('Request', 'requestId', 'validCallData');
       })
     })
   })

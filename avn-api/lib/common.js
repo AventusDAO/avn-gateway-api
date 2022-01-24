@@ -44,12 +44,13 @@ function validateAccount(account) {
   }
 }
 
-function validateAmount(amount) {
+function validateAndConvertAmountToString(amount) {
   const amountAsString = amount.toString();
   const isValid = /^\d+$/.test(amountAsString) && new BN(amount).isZero() === false;
   if (isValid === false) {
     throw new Error(`Invalid amount type: ${amount}`);
   }
+  return amountAsString;
 }
 
 function validateEthereumAddress(ethereumAddress) {
@@ -117,7 +118,7 @@ module.exports = {
   sleep,
   TX_TYPE,
   validateAccount,
-  validateAmount,
+  validateAndConvertAmountToString,
   validateEthereumAddress,
   validateIsArray,
   validateNftId,

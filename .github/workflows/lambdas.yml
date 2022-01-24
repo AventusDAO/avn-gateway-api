@@ -57,7 +57,7 @@ jobs:
 
       - name: Package Function
         run: |
-          make package version=${{ needs.version-suffix.outputs.version }}
+          SLS_ENV=sandbox make package version=${{ needs.version-suffix.outputs.version }}
       
       - name: create latest version
         run: |

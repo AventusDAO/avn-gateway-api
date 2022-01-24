@@ -1,0 +1,22 @@
+FROM node:14.18.2-alpine3.12 AS builder
+
+RUN addgroup -S relayer && adduser -S -g relayer -D relayer
+RUN mkdir -p /opt/relayer && chown -R relayer:relayer /opt
+
+USER relayer
+WORKDIR /opt/relayer
+
+COPY src/scripts/ scripts
+COPY src/config/ config
+COPY src/res/ res
+COPY src/package.json .
+COPY src/package-lock.json .
+COPY src/gatewayDb.js .
+
+RUN npm i
+
+FROM node:14.18.2-alpine3.12
+
+COPY --from=builder /opt/relayer /opt/relayer
+
+RUN addgroup -S relayer && adduser -S -g relayer -D relayer && chown -R relayer:relayer /opt/relayer

@@ -50,9 +50,9 @@ module "dns" {
 }
 
 module "rabbitmq" {
-  source          = "../../modules/rabbitmq"
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
+  source     = "../../modules/rabbitmq"
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
   depends_on = [
     module.vpc
   ]
@@ -73,7 +73,7 @@ provider "kubernetes" {
 }
 
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
   version = "17.24.0"
 
   cluster_version   = local.cluster_version
@@ -90,8 +90,8 @@ module "eks" {
     avn-gateway = {
       create_launch_template = true
 
-      disk_size       = local.eks_node_size
-      disk_type       = "gp3"
+      disk_size = local.eks_node_size
+      disk_type = "gp3"
 
       desired_capacity = 1
       max_capacity     = 10

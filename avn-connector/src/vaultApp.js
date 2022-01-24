@@ -1,69 +1,69 @@
-const axios = require('axios')
+const axios = require('axios');
 
 async function post(url, data, token) {
-  const tokenReq = typeof token === 'undefined'
-  const headers = { 'Content-Type': 'application/json' }
+  const tokenReq = typeof token === 'undefined';
+  const headers = { 'Content-Type': 'application/json' };
 
   if (!tokenReq) {
-    headers['X-Vault-Request'] = 'true'
-    headers['X-Vault-Token'] = token
+    headers['X-Vault-Request'] = 'true';
+    headers['X-Vault-Token'] = token;
   }
 
   try {
-    const res = await axios({ method: 'post', url: url, data: data, headers: headers })
-    return tokenReq ? res.data.auth.client_token : res.data.data
+    const res = await axios({ method: 'post', url: url, data: data, headers: headers });
+    return tokenReq ? res.data.auth.client_token : res.data.data;
   } catch (err) {
-    if (err.response) throw new Error('vault - ' + err.response.data.errors.toString())
-    else throw new Error('vault - cannot connect to ' + url)
+    if (err.response) throw new Error('vault - ' + err.response.data.errors.toString());
+    else throw new Error('vault - cannot connect to ' + url);
   }
 }
 
 async function get(url, token) {
-  const headers = { 'X-Vault-Token': token }
+  const headers = { 'X-Vault-Token': token };
 
   try {
-    return (await axios({ method: 'get', url: url, headers: headers })).data.data
+    return (await axios({ method: 'get', url: url, headers: headers })).data.data;
   } catch (err) {
     if (err.response) {
-      if (err.response.status === 404 || err.response.data.errors[0].includes('Error reading user')) return ''
-      else throw new Error('vault - ' + err.response.data.errors.toString())
-    } else throw new Error('vault - cannot connect to ' + url)
+      if (err.response.status === 404 || err.response.data.errors[0].includes('Error reading user')) return '';
+      else throw new Error('vault - ' + err.response.data.errors.toString());
+    } else throw new Error('vault - cannot connect to ' + url);
   }
 }
 
 async function appLogin(baseURL, roleId, secretId) {
-  const url = baseURL + 'auth/approle/login'
-  const data = { role_id: roleId, secret_id: secretId }
-  return await post(url, data)
+  const url = baseURL + 'auth/approle/login';
+  const data = { role_id: roleId, secret_id: secretId };
+  return await post(url, data);
 }
 
 module.exports = function (baseURL, roleId, secretId) {
-  this.baseURL = baseURL
-  const ROLE_ID = roleId
-  const SECRET_ID = secretId
+  this.baseURL = baseURL;
+  const ROLE_ID = roleId;
+  const SECRET_ID = secretId;
 
   this.createNewRelayer = async function (userName) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
-    const userUrl = this.baseURL + 'avn-vault/user/' + userName
-    const res = await get(userUrl, token)
+    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    const userUrl = this.baseURL + 'avn-vault/user/' + userName;
+    const res = await get(userUrl, token);
     if (res === '') {
-      return (await post(userUrl, { name: userName }, token)).publicKey
-    } else return res.publicKey
-  }
+      return (await post(userUrl, { name: userName }, token)).publicKey;
+    } else return res.publicKey;
+  };
 
   this.setNewRelayer = async function (userName, seed) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
-    const userUrl = this.baseURL + 'avn-vault/user/set/' + userName
-    const res = await get(userUrl, token)
+    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    const userUrl = this.baseURL + 'avn-vault/user/set/' + userName;
+    const res = await get(userUrl, token);
     if (res === '') {
-      data = { name: userName, seed: seed }
-      return (await post(userUrl, data, token)).publicKey
-    } else return res.publicKey
-  }
+      data = { name: userName, seed: seed };
+      return (await post(userUrl, data, token)).publicKey;
+    } else return res.publicKey;
+  };
 
   this.getRelayerSeed = async function (userName) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
-    const url = this.baseURL + 'avn-vault/user/' + userName
-    return (await get(url, token)).seed
-  }
-}
+    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    const url = this.baseURL + 'avn-vault/user/' + userName;
+    return (await get(url, token)).seed;
+  };
+};

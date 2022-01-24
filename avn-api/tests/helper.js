@@ -2,8 +2,27 @@ const AvnApi = require('../index.js');
 const assert = require('chai').assert;
 const BN = require('bn.js');
 const { accounts } = require('../config/accounts.json');
-const configPath = process.argv[6] ? `../config/${process.argv[6]}.json` : '../config/sandbox.json';
+const yargs = require('yargs');
+
+let argv = yargs
+  .usage('Run smoke tests using a given Gateway environment')
+  .help('h')
+  .alias('h', 'help')
+  .demandOption('c')
+  .describe('c', 'Configuration file with gateway parameters')
+  .string('c')
+  .alias('c', 'gateway').argv;
+// For some reason, an alias 'g' will prevent some tests from running when we call with
+// npm run solo ./avn-api/tests/awtTest.js -- -g cba
+// even though the full option would work fine:
+// npm run solo ./avn-api/tests/awtTest.js -- --gateway cba
+// This problem does not exist with other aliases, like 'c' or 'k'
+
+let gatewayFile = argv.gateway;
+const configPath = gatewayFile ? `../config/${gatewayFile}.json` : '../config/sandbox.json';
 const { gateway, token } = require(configPath);
+
+console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

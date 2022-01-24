@@ -1,0 +1,2 @@
+address: $ENV:RELAYER_ADDRESS
+fee: $ENV:RELAYER_FEE

@@ -1,182 +1,200 @@
-const utils = require('/opt/utils.js')
+const utils = require('/opt/utils.js');
 
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async event => {
-  const response = {
+  return {
     statusCode: 200,
     body: JSON.stringify(await processRequest(event.body))
-  }
-  return response
-}
+  };
+};
 
-// response formatters
-const format1 = data => utils.toBnString(data)
-const format2 = data => utils.toBnString(data.data.free)
-const format3 = data => utils.toBnString(data.nonce)
-
-const format4 = (data, params) => {
-  const uniqueExternalRefAsHex = '0x' + Buffer.from(params[1], 'utf8').toString('hex')
-  const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex)
-  const nftId = index > -1 ? data[index][1].nft_id : undefined
-  return nftId
-}
-
-async function queryChain(callId, palletName, storageName, params, responseFormatter) {
-  let response
-  try {
-    response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', { callId, palletName, storageName, params })
-  } catch (err) {
-    throw err
-  }
-  return response.data.error || responseFormatter(response.data, params)
-}
-
-async function processRequest(requestObject) {
-  let responseObject = { jsonrpc: '2.0' }
-  let call
+async function processRequest(request) {
+  let call;
 
   try {
-    call = JSON.parse(requestObject)
+    call = JSON.parse(request);
   } catch (err) {
-    utils.logError('failed to parse JSON', null, 'query-handler.processRequest.parse', err)
-    responseObject.error = { code: -32700, message: 'Parse error' }
-    responseObject.id = null
-    return responseObject
+    return utils.errorResponse('parse', 'failed to parse JSON', err, request, null);
   }
+
+  if (call.id === undefined) call.id = null;
 
   if (typeof call.method !== 'string') {
-    utils.logError('method type must be string', call.id, 'query-handler.processRequest.method', call.method)
-    responseObject.error = { code: -32600, message: 'Invalid Request' }
+    return utils.errorResponse('request', 'method type must be string', call.method, request, call.id);
   } else {
-    responseObject = await callSwitch(call, responseObject)
+    return await callSwitch(call, request);
   }
-
-  responseObject.id = call.id
-  return responseObject
 }
 
-async function callSwitch(call, responseObject) {
+// Keep alphabetical
+async function callSwitch(call, request) {
   switch (call.method) {
-    case 'getTotalAvt':
-      try {
-        responseObject.result = await queryChain(call.id, 'balances', 'totalIssuance', [], format1)
-      } catch (err) {
-        utils.logError('failed to query chain', call.id, 'query-handler.getTotalAvt.queryChain', err)
-        responseObject.error = { code: -32603, message: 'Internal error' }
-      }
-      break
-    case 'getAvtBalance':
-      if (utils.isValidAccountId(call.params[0])) {
-        try {
-          responseObject.result = await queryChain(call.id, 'system', 'account', [call.params[0]], format2)
-        } catch (err) {
-          utils.logError('failed to query chain', call.id, 'query-handler.getAvtBalance.queryChain', err)
-          responseObject.error = { code: -32603, message: 'Internal error' }
-        }
-      } else {
-        utils.logError('invalid account ID', call.id, 'query-handler.getAvtBalance.params', call.params[0])
-        responseObject.error = { code: -32602, message: 'Invalid params' }
-      }
-      break
-    case 'getTokenBalance':
-      if (utils.isValidAccountId(call.params[0]) && utils.isValidEthereumAddress(call.params[1])) {
-        try {
-          responseObject.result = await queryChain(
-            call.id,
-            'tokenManager',
-            'balances',
-            [[call.params[1], call.params[0]]],
-            format1
-          )
-        } catch (err) {
-          utils.logError('failed to query chain', call.id, 'query-handler.getTokenBalance.queryChain', err)
-          responseObject.error = { code: -32603, message: 'Internal error' }
-        }
-      } else {
-        utils.logError('invalid params', call.id, 'query-handler.getTokenBalance.params', call.params)
-        responseObject.error = { code: -32602, message: 'Invalid params' }
-      }
-      break
     case 'getAccountNonce':
-      if (utils.isValidAccountId(call.params[0])) {
-        try {
-          responseObject.result = await queryChain(call.id, 'tokenManager', 'nonces', [call.params[0]], format1)
-        } catch (err) {
-          utils.logError('failed to query chain', call.id, 'query-handler.getAccountNonce.queryChain', err)
-          responseObject.error = { code: -32603, message: 'Internal error' }
-        }
-      } else {
-        utils.logError('invalid account ID', call.id, 'query-handler.getAccountNonce.params', call.params[0])
-        responseObject.error = { code: -32602, message: 'Invalid params' }
-      }
-      break
-    case 'getNftNonce':
-      if (utils.isValidNftId(call.params[0])) {
-        try {
-          responseObject.result = await queryChain(call.id, 'nftManager', 'nfts', [call.params[0]], format3)
-        } catch (err) {
-          utils.logError('failed to query chain', call.id, 'query-handler.getNftNonce.queryChain', err)
-          responseObject.error = { code: -32603, message: 'Internal error' }
-        }
-      } else {
-        utils.logError('invalid nft ID', call.id, 'query-handler.getNftNonce.params', call.params[0])
-        responseObject.error = { code: -32602, message: 'Invalid params' }
-      }
-      break
-    case 'getNftId':
-      if (utils.isValidString(call.params[0])) {
-        try {
-          responseObject.result = await queryChain(call.id, 'nftManager', 'nfts', ['entries', call.params[0]], format4)
-        } catch (err) {
-          utils.logError('failed to query chain', call.id, 'query-handler.getNftId.queryChain', err)
-          responseObject.error = { code: -32603, message: 'Internal error' }
-        }
-      } else {
-        utils.logError('invalid external ref', call.id, 'query-handler.getNftId.params', call.params[0])
-        responseObject.error = { code: -32602, message: 'Invalid params' }
-      }
-      break
+      return await getAccountNonce(call, request);
     case 'getAccountPaymentNonce':
-      if (utils.isValidAccountId(call.params[0])) {
-        try {
-          responseObject.result = await queryChain(call.id, 'avnProxy', 'paymentNonces', [call.params[0]], format1)
-        } catch (err) {
-          utils.logError('failed to query chain', call.id, 'query-handler.getAccountPaymentNonce.queryChain', err)
-          responseObject.error = { code: -32603, message: 'Internal error' }
-        }
-      } else {
-        utils.logError('invalid account ID', call.id, 'query-handler.getAccountPaymentNonce.params', call.params[0])
-        responseObject.error = { code: -32602, message: 'Invalid params' }
-      }
-      break
+      return await getAccountPaymentNonce(call, request);
+    case 'getAvtBalance':
+      return await getAvtBalance(call, request);
     case 'getAvtContractAddress':
-      try {
-        responseObject.result = await queryChain(call.id, 'tokenManager', 'aVTTokenContract', [], res => res.toString())
-      } catch (err) {
-        utils.logError('failed to query chain', call.id, 'query-handler.getAvtContractAddress.query', err)
-        responseObject.error = { code: -32603, message: 'Internal error' }
-      }
-      break
+      return await getAvtContractAddress(call, request);
+    case 'getNftId':
+      return await getNftId(call, request);
+    case 'getNftNonce':
+      return await getNftNonce(call, request);
+    case 'getNftOwner':
+      return await getNftOwner(call, request);
     case 'getRelayerFees':
-      try {
-        const relayer = call.params[0]
-        const user = call.params[1]
-        const transactionType = call.params[2]
-        const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', {
-          relayer,
-          user,
-          transactionType
-        })
-        responseObject.result = response.data
-      } catch (err) {
-        utils.logError('failed to call avn-connector', call.id, 'query-handler.getRelayerFees', err)
-        responseObject.error = { code: -32603, message: 'Internal error' }
-      }
-      break
+      return await getRelayerFees(call, request);
+    case 'getTokenBalance':
+      return await getTokenBalance(call, request);
+    case 'getTotalAvt':
+      return await getTotalAvt(call, request);
     default:
-      utils.logError('method not found', call.id, 'query-handler.callSwitch.default', call.method)
-      responseObject.error = { code: -32601, message: 'Method not found' }
+      return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
-  return responseObject
 }
+
+async function getAccountNonce(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'tokenManager', 'nonces', [accountId], formatNumAsString);
+  }
+}
+
+async function getAccountPaymentNonce(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString);
+  }
+}
+
+async function getAvtBalance(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'system', 'account', [accountId], formatBalanceAsString);
+  }
+}
+
+async function getAvtContractAddress(call, request) {
+  return await queryChain(call, request, 'tokenManager', 'aVTTokenContract', [], formatAsString);
+}
+
+async function getNftId(call, request) {
+  const { externalRef } = call.params;
+
+  if (utils.isValidString(externalRef) === false) {
+    return utils.errorResponse('params', 'invalid external ref', externalRef, request, call.id);
+  } else {
+    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', externalRef], filterNftId);
+  }
+}
+
+async function getNftNonce(call, request) {
+  const { nftId } = call.params;
+
+  if (utils.isValidNftId(nftId) === false) {
+    return utils.errorResponse('params', 'invalid nft id', nftId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'nftManager', 'nfts', [nftId], formatNftNonceAsString);
+  }
+}
+
+async function getNftOwner(call, request) {
+  const { nftId } = call.params;
+
+  if (utils.isValidNftId(nftId) === false) {
+    return utils.errorResponse('params', 'invalid nft id', nftId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', nftId], filterNftOwner);
+  }
+}
+
+async function getRelayerFees(call, request) {
+  let { relayer, user, transactionType } = call.params;
+
+  try {
+    if (utils.isValidAccountId(relayer) === false) throw 'relayer';
+    if (user && utils.isValidAccountId(user) === false) throw 'user';
+    if (transactionType && utils.isValidTransactionType(transactionType) === false) throw 'transaction type';
+  } catch (param) {
+    const gatewayError = 'invalid ' + param;
+    return utils.errorResponse('params', gatewayError, call.params, request, call.id);
+  }
+
+  try {
+    relayer = utils.convertToAddress(relayer);
+    user = utils.convertToAddress(user);
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
+    const result = avnResponse.data;
+    return utils.validResponse(call.id, result);
+  } catch (err) {
+    return utils.errorResponse('internal', 'failed to call avn-connector', err, request, call.id);
+  }
+}
+
+async function getTokenBalance(call, request) {
+  const { accountId, token } = call.params;
+
+  try {
+    if (utils.isValidAccountId(accountId) === false) throw 'account ID';
+    if (utils.isValidEthereumAddress(token) === false) throw 'token';
+  } catch (param) {
+    const gatewayError = 'invalid ' + param;
+    return utils.errorResponse('params', gatewayError, call.params, request, call.id);
+  }
+
+  return await queryChain(call, request, 'tokenManager', 'balances', [[token, accountId]], formatNumAsString);
+}
+
+async function getTotalAvt(call, request) {
+  return await queryChain(call, request, 'balances', 'totalIssuance', [], formatNumAsString);
+}
+
+async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
+  try {
+    const callId = call.id;
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
+      callId,
+      palletName,
+      storageName,
+      params
+    });
+    const result = avnResponse.data.error || responseFormatter(avnResponse.data, params);
+    return utils.validResponse(callId, result);
+  } catch (err) {
+    return utils.errorResponse('internal', 'failed to query chain', err, request, call.id);
+  }
+}
+
+const formatAsString = data => data.toString();
+
+const formatNumAsString = data => utils.toBnString(data);
+
+const formatBalanceAsString = data => utils.toBnString(data.data.free);
+
+const formatNftNonceAsString = data => utils.toBnString(data.nonce);
+
+// TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
+const filterNftId = (data, params) => {
+  const uniqueExternalRefAsHex = '0x' + Buffer.from(params[1], 'utf8').toString('hex');
+  const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex);
+  const nftId = index > -1 ? data[index][1].nft_id : undefined;
+  return nftId;
+};
+
+// TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT owners
+const filterNftOwner = (data, params) => {
+  const index = data.findIndex(nft => nft[1].nft_id === params[1]);
+  const owner = index > -1 ? data[index][1].owner : undefined;
+  return owner;
+};

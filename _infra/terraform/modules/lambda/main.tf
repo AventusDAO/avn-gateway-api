@@ -15,10 +15,10 @@ resource "aws_lambda_function" "lambda" {
   s3_key        = "${each.key}/${each.key}-${var.service_version}.zip"
   function_name = each.key
   role          = aws_iam_role.lambda_role[each.key].arn
-  handler       = "index.handler"
+  handler       = "${each.key}.handler"
   description   = "${each.key} - ${var.service_version} - Deployed by Terraform" 
   runtime       = var.lambda_runtime
-  layers        = [aws_lambda_layer_version.common_layer.arn]
+  layers        = [aws_lambda_layer_version.common_layer.arn, aws_lambda_layer_version.queue.arn]
   timeout       = local.lambdas[each.key]["timeout"]
   memory_size   = local.lambdas[each.key]["memory_size"]
 
@@ -37,12 +37,24 @@ resource "aws_lambda_function" "lambda" {
       subnet_ids         = var.subnet_ids
     }
   }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.network
+  ]
 }
 
 resource "aws_lambda_layer_version" "common_layer" {
-  layer_name = "common-layer"
+  layer_name = "common"
   s3_bucket  = var.artifact_bucket
-  s3_key     = "common-layer/common-layer-${var.service_version}.zip"
+  s3_key     = "common/common-${var.service_version}.zip"
+
+  compatible_runtimes = [var.lambda_runtime]
+}
+
+resource "aws_lambda_layer_version" "queue" {
+  layer_name = "queue"
+  s3_bucket  = var.artifact_bucket
+  s3_key     = "queue/queue-${var.service_version}.zip"
 
   compatible_runtimes = [var.lambda_runtime]
 }

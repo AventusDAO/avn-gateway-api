@@ -1,0 +1,11 @@
+{
+  "name": "demo",
+  "dependencies": {
+    "avn-api": "^0.5.1",
+    "prompt-sync": "^4.2.0",
+    "yargs": "^16.2.0"
+  },
+  "devDependencies": {
+    "colors": "^1.4.0"
+  }
+}

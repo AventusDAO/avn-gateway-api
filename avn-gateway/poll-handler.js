@@ -1,64 +1,53 @@
-const utils = require('/opt/utils.js')
+const utils = require('/opt/utils.js');
 
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async event => {
-  const response = {
+  return {
     statusCode: 200,
     body: JSON.stringify(await processRequest(event.body))
-  }
-  return response
-}
+  };
+};
 
-async function poll(callId, requestId) {
-  let response
-  try {
-    response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId })
-  } catch (err) {
-    throw err
-  }
-  return response.data.error || response.data.status
-}
-
-async function processRequest(requestObject) {
-  let responseObject = { jsonrpc: '2.0' }
-  let call
+async function processRequest(request) {
+  let call;
 
   try {
-    call = JSON.parse(requestObject)
+    call = JSON.parse(request);
   } catch (err) {
-    utils.logError('failed to parse JSON', null, 'poll-handler.processRequest.parse', err)
-    responseObject.error = { code: -32700, message: 'Parse error' }
-    responseObject.id = null
-    return responseObject
+    return utils.errorResponse('parse', 'failed to parse JSON', err, request, null);
   }
+
+  if (call.id === undefined) call.id = null;
 
   if (typeof call.method !== 'string') {
-    utils.logError('method type must be string', call.id, 'poll-handler.processRequest.method', call.method)
-    responseObject.error = { code: -32600, message: 'Invalid Request' }
+    return utils.errorResponse('request', 'method type must be string', call.method, request, call.id);
   } else {
-    responseObject = await makeCall(call, responseObject)
+    return await makeCall(call, request);
   }
-
-  responseObject.id = call.id
-  return responseObject
 }
 
-async function makeCall(call, responseObject) {
+async function makeCall(call, request) {
   if (call.method !== 'requestState') {
-    utils.logError("method must be 'requestState'", call.id, 'poll-handler.makeCall.method', call.method)
-    responseObject.error = { code: -32601, message: 'Method not found' }
-  } else if (utils.isValidUUID(call.params[0])) {
-    try {
-      responseObject.result = await poll(call.id, call.params[0])
-    } catch (err) {
-      utils.logError('failed to poll chain', call.id, 'poll-handler.poll', err)
-      responseObject.error = { code: -32603, message: 'Internal error' }
-    }
-  } else {
-    utils.logError('invalid request ID', call.id, 'poll-handler.makeCall.requestId', call.params[0])
-    responseObject.error = { code: -32602, message: 'Invalid params' }
+    return utils.errorResponse('method', "method must be 'requestState'", call.method, request, call.id);
   }
 
-  return responseObject
+  const { requestId } = call.params;
+
+  if (utils.isValidRequestId(requestId) === false) {
+    return utils.errorResponse('params', 'invalid request ID', requestId, request, call.id);
+  }
+
+  return await poll(call, request, requestId);
+}
+
+async function poll(call, request, requestId) {
+  try {
+    const callId = call.id;
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId });
+    const result = avnResponse.data.error || avnResponse.data.status;
+    return utils.validResponse(callId, result);
+  } catch (err) {
+    return utils.errorResponse('internal', 'failed to poll chain', err, request, call.id);
+  }
 }

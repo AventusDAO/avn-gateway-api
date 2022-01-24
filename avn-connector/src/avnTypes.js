@@ -279,8 +279,8 @@ const common_types = {
       NftMarketplace: 'MarketplaceId'
     }
   }
-}
+};
 
 module.exports = {
   description: common_types
-}
+};

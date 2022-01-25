@@ -21,21 +21,21 @@ function Send(api, queryApi, avtContractAddress) {
 }
 
 function transferAvt(api, queryApi) {
-  return async function (relayer, recipient, _amount) {
+  return async function (relayer, recipient, amount) {
     common.validateAccount(relayer);
     common.validateAccount(recipient);
-    const amount = common.validateAndConvertAmountToString(_amount);
+    amount = common.validateAndConvertAmountToString(amount);
 
     return await this.proxyTransfer(api, queryApi, relayer, recipient, this.avtContractAddress, amount);
   };
 }
 
 function transferToken(api, queryApi) {
-  return async function (relayer, recipient, token, _amount) {
+  return async function (relayer, recipient, token, amount) {
     common.validateAccount(relayer);
     common.validateAccount(recipient);
     common.validateEthereumAddress(token);
-    const amount = common.validateAndConvertAmountToString(_amount);
+    amount = common.validateAndConvertAmountToString(amount);
 
     return await this.proxyTransfer(api, queryApi, relayer, recipient, token, amount);
   };

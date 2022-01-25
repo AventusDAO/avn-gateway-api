@@ -772,23 +772,28 @@ From the root of the codebase install the dependencies:
 npm install
 ```
 
-Then to run all the tests for a specified gateway:
-```
-npm run allTestsCBA
-or
-npm run allTestsSandbox
-```
-
-Or to run sub tests for a specified gateway:
- - `npm run smokeTests [gateway]`: to run all the smoke tests
- - `npm run apiTests [gateway]`: to run all the api tests
-
-Note: The `gateway` parameter should be the name of a file (without extension) describing the parameters to connect to a gateway.
-It does not seem to be working at the moment.
-
-These run whole test packages. To run an individual test file in the same environment, and in the same conditions as these, use:
-- `npm run soloTests [path to individual test file]`
-
-Configuration:
-The configuration files for both gateway and AVN accounts are stored from the root folder `./avn-api/config/`.
+There are a few different options to run tests. All of them can be run against different environments of the gateway. These are specified by a gateway option, that should match the name of a config file (minus the extension).
+The configuration files for both gateway and AVN accounts are stored, from the root folder, at this location `./avn-api/config/`.
 AVN test accounts are currently shared between different chains.
+
+Common options are: `sandbox`, `cba`, `testnet`.
+
+To run smoke tests, type:
+```
+npm run smokeTests [gateway]
+```
+
+To run all the api tests for a specified gateway:
+```
+npm run apiTests [gateway]
+```
+
+It is also possible to run individual test files. These require two parameters (test file and gateway) and so require a more careful syntax
+`npm run solo [path to test file] -- --gateway [gateway]` or
+`npm run solo [path to test file] -- -c [gateway]`
+
+Example:
+```
+npm run solo ./avn-api/tests/queryApiTest.js -- -c sandbox
+
+```

@@ -66,7 +66,7 @@ async function userHasAvtBalance(awtToken) {
       storageName: 'account',
       params: [awtToken.pk]
     });
-    const avtBalance = new utils.BN(avnResponse.data.data.free.replace('0x', ''), 16);
+    const avtBalance = new utils.BN(avnResponse.data.data.free.toString().replace('0x', ''), 16);
     return avtBalance.gte(MIN_AVT_BALANCE);
   } catch (err) {
     console.error('failed to check user AVT balance', err);

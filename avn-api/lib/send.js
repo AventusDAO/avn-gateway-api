@@ -24,7 +24,7 @@ function transferAvt(api, queryApi) {
   return async function (relayer, recipient, amount) {
     common.validateAccount(relayer);
     common.validateAccount(recipient);
-    common.validateAmount(amount);
+    amount = common.validateAndConvertAmountToString(amount);
 
     return await this.proxyTransfer(api, queryApi, relayer, recipient, this.avtContractAddress, amount);
   };
@@ -35,7 +35,7 @@ function transferToken(api, queryApi) {
     common.validateAccount(relayer);
     common.validateAccount(recipient);
     common.validateEthereumAddress(token);
-    common.validateAmount(amount);
+    amount = common.validateAndConvertAmountToString(amount);
 
     return await this.proxyTransfer(api, queryApi, relayer, recipient, token, amount);
   };

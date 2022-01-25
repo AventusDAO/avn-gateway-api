@@ -1,15 +1,26 @@
 const assert = require('chai').assert;
 const AvnApi = require('../avn-api/index.js');
 const { accounts } = require('../avn-api/config/accounts.json');
+const yargs = require('yargs');
 const BN = require('bn.js');
 
-// TODO: Replace 'process.argv' with 'yargs' to read command options
+let argv = yargs
+  .usage('Run smoke tests using a given Gateway environment')
+  .help('h')
+  .alias('h', 'help')
+  .demandOption('g')
+  .describe('g', 'Configuration file with gateway parameters')
+  .string('g')
+  .alias('g', 'gateway').argv;
+let gatewayFile = argv.gateway;
+
+console.log(`Running smoke tests on gateway: [${gatewayFile}]`);
 
 describe('AVN Gateway Smoke Tests', function () {
   let api, relayer, sender, recipient;
 
   before(async () => {
-    const { gateway } = require(`../avn-api/config/${process.argv[5]}.json`);
+    const { gateway } = require(`../avn-api/config/${gatewayFile}.json`);
     api = new AvnApi(gateway);
     await api.init();
 

@@ -1,10 +1,8 @@
 {
   "scripts": {
-    "soloTests": "mocha --timeout 100000",
-    "smokeTests": "mocha --timeout 100000 ./tests/gateway-smoke-tests.js",
-    "apiTests": "mocha --timeout 100000 ./avn-api/tests --recursive",
-    "allTestsSandbox": "npm run apiTests sandbox",
-    "allTestsCBA": "npm run apiTests cba",
+    "smokeTests": "mocha --timeout 100000 ./tests/gateway-smoke-tests.js --gateway",
+    "apiTests": "mocha --timeout 100000 ./avn-api/tests --recursive --gateway",
+    "solo": "mocha --timeout 100000 ",
     "pretty": "prettier --config ./.prettierrc.json --check \"**/*.{js,json}\"",
     "pretty:fix": "prettier --config ./.prettierrc.json --write \"**/*.{js,json}\"",
     "format": "npm run pretty:fix"
@@ -12,10 +10,11 @@
   "devDependencies": {
     "chai": "^4.3.4",
     "chai-as-promised": "7.1.1",
+    "colors": "^1.4.0",
     "mocha": "^9.0.2",
-    "serverless": "^2.70.0",
-    "prompt-sync": "^4.2.0",
-    "colors": "^1.4.0"
+    "prompt-sync": "^4.1.6",
+    "serverless": "^2.72.1",
+    "yargs": "^17.3.1"
   },
   "dependencies": {
     "child-process-async": "^1.0.1",

@@ -3,7 +3,7 @@ const expect = chai.expect;
 const testPatterns = require('./testPatterns.js');
 const helper = require('./helper.js');
 
-// IIFE function to make async calls available before my test suite
+// IIFE function to make async calls available before the test suite
 // Must be run with --delay flag
 (async function () {
   const api = await helper.avnApi();

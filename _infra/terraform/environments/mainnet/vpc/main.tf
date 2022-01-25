@@ -5,7 +5,7 @@ locals {
 }
 
 module "vpc" {
-  source         = "../../modules/vpc"
+  source         = "../../../modules/vpc"
   vpc_cidr_block = local.vpc_cidr_block
 
   private_zone_ips = {

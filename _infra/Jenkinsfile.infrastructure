@@ -107,7 +107,7 @@ pipeline {
           dir("_infra/terraform/environments/${env.environment}/vpc") {
             sh "terraform init"
             script {
-              private_subnets = terraformOutput("main_subnet")
+              private_subnets = terraformOutput("private_subnets_string")
             }
           }
         }
@@ -241,8 +241,8 @@ def generateContext(String clusterName, String namespace) {
 }
 
 def terraformPlan() {
-  sh "terraform init"
-  sh "terraform refresh"
+  sh "terraform init -no-color"
+  sh "terraform refresh -no-color"
   if ( env.terraform_target == 'all' ) {
     sh "terraform plan -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
   } else {

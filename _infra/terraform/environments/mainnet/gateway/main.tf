@@ -11,14 +11,14 @@ locals {
 }
 
 module "lambda_functions" {
-  source                 = "../../modules/lambda"
+  source                 = "../../../modules/lambda"
   artifact_bucket        = "avn-lambda-artifacts-sandbox"
   log_retention_period   = 1
   service_version        = var.service_version
   rabbit_secret_arn      = module.rabbitmq.secret_arn
   avn_connector_endpoint = local.avn_connector_endpoint
-  subnet_ids             = module.vpc.private_subnets
-  vpc_id                 = module.vpc.vpc_id
+  subnet_ids             = data.terraform_remote_state.vpc.outputs.private_subnets
+  vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
 
   lambda_functions = {
     authorisation-handler = {
@@ -58,7 +58,7 @@ module "lambda_functions" {
 }
 
 module "api_gateway" {
-  source                = "../../modules/api-gateway"
+  source                = "../../../modules/api-gateway"
   authoriser_invoke_arn = module.lambda_functions.invoke_arns["authorisation-handler"]
   authoriser_arn        = module.lambda_functions.lambda_arns["authorisation-handler"]
   poll_invoke_arn       = module.lambda_functions.invoke_arns["poll-handler"]
@@ -68,8 +68,8 @@ module "api_gateway" {
 }
 
 module "dns" {
-  source             = "../../modules/dns"
-  vpc_id             = module.vpc.vpc_id
+  source             = "../../../modules/dns"
+  vpc_id             = data.terraform_remote_state.vpc.outputs.vpc_id
   environment        = local.environment
   rabbit_address     = module.rabbitmq.broker_address
   documentdb_address = module.documentdb.address
@@ -84,9 +84,9 @@ module "dns" {
 }
 
 module "rabbitmq" {
-  source          = "../../modules/rabbitmq"
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.private_subnets
+  source          = "../../../modules/rabbitmq"
+  vpc_id          = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnet_ids      = data.terraform_remote_state.vpc.outputs.private_subnets
   deployment_mode = "CLUSTER_MULTI_AZ"
 }
 
@@ -110,8 +110,8 @@ module "eks" {
 
   cluster_version   = local.cluster_version
   cluster_name      = local.name
-  vpc_id            = module.vpc.vpc_id
-  subnets           = module.vpc.private_subnets
+  vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnets           = data.terraform_remote_state.vpc.outputs.private_subnets
   enable_irsa       = true
   workers_role_name = local.name
 
@@ -157,7 +157,7 @@ module "eks" {
 }
 
 module "k8s_service_account_permissions" {
-  source = "../../modules/k8s-service-account-permissions"
+  source = "../../../modules/k8s-service-account-permissions"
 
   oidc_provider     = module.eks.oidc_provider_arn
   rabbit_secret_arn = module.rabbitmq.secret_arn
@@ -169,16 +169,16 @@ module "k8s_service_account_permissions" {
 }
 
 module "documentdb" {
-  source = "../../modules/documentdb"
+  source = "../../../modules/documentdb"
 
-  subnet_ids               = module.vpc.private_subnets
-  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = data.terraform_remote_state.vpc.outputs.private_subnets
+  vpc_id                   = data.terraform_remote_state.vpc.outputs.vpc_id
   additional_whitelist_ips = [module.bastion.private_cidr]
 }
 
 module "redis" {
-  source = "../../modules/redis"
+  source = "../../../modules/redis"
 
-  vpc_id       = module.vpc.vpc_id
-  ip_whitelist = module.vpc.private_subnet_ips
+  vpc_id       = data.terraform_remote_state.vpc.outputs.vpc_id
+  ip_whitelist = data.terraform_remote_state.vpc.outputs.private_subnet_ips
 }

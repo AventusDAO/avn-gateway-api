@@ -18,6 +18,16 @@ terraform {
   }
 }
 
+data "terraform_remote_state" "vpc" {
+  backend = "s3"
+  config = {
+    bucket   = "terraform-state-avn-gateway-api-sandbox"
+    key      = "env:/sandbox/gateway-api/vpc/terraform.tfstate"
+    region   = var.region
+    role_arn = "arn:aws:iam::352429414196:role/jenkins-access"
+  }
+}
+
 provider "aws" {
   region = var.region
 

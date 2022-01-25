@@ -10,13 +10,13 @@ locals {
 }
 
 module "api_gateway" {
-  source           = "../../modules/api-gateway"
+  source           = "../../../modules/api-gateway"
   skeleton_gateway = true
 }
 
 module "dns" {
-  source             = "../../modules/dns"
-  vpc_id             = module.vpc.vpc_id
+  source             = "../../../modules/dns"
+  vpc_id             = data.terraform_remote_state.vpc.outputs.vpc_id
   environment        = local.environment
   rabbit_address     = module.rabbitmq.broker_address
   documentdb_address = module.documentdb.address
@@ -31,9 +31,9 @@ module "dns" {
 }
 
 module "rabbitmq" {
-  source          = "../../modules/rabbitmq"
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
+  source          = "../../../modules/rabbitmq"
+  vpc_id          = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnet_ids      = setunion(data.terraform_remote_state.vpc.outputs.private_subnets, data.terraform_remote_state.vpc.outputs.public_subnets)
   deployment_mode = "CLUSTER_MULTI_AZ"
 }
 
@@ -57,8 +57,8 @@ module "eks" {
 
   cluster_version   = local.cluster_version
   cluster_name      = local.name
-  vpc_id            = module.vpc.vpc_id
-  subnets           = module.vpc.private_subnets
+  vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnets           = data.terraform_remote_state.vpc.outputs.private_subnets
   enable_irsa       = true
   workers_role_name = local.name
 
@@ -104,7 +104,7 @@ module "eks" {
 }
 
 module "k8s_service_account_permissions" {
-  source = "../../modules/k8s-service-account-permissions"
+  source = "../../../modules/k8s-service-account-permissions"
 
   oidc_provider     = module.eks.oidc_provider_arn
   rabbit_secret_arn = module.rabbitmq.secret_arn
@@ -115,16 +115,16 @@ module "k8s_service_account_permissions" {
 }
 
 module "documentdb" {
-  source = "../../modules/documentdb"
+  source = "../../../modules/documentdb"
 
-  subnet_ids               = module.vpc.private_subnets
-  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = data.terraform_remote_state.vpc.outputs.private_subnets
+  vpc_id                   = data.terraform_remote_state.vpc.outputs.vpc_id
   additional_whitelist_ips = [module.bastion.private_cidr]
 }
 
 module "redis" {
-  source = "../../modules/redis"
+  source = "../../../modules/redis"
 
-  vpc_id       = module.vpc.vpc_id
-  ip_whitelist = module.vpc.private_subnet_ips
+  vpc_id       = data.terraform_remote_state.vpc.outputs.vpc_id
+  ip_whitelist = data.terraform_remote_state.vpc.outputs.private_subnet_ips
 }

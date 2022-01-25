@@ -5,7 +5,7 @@ locals {
 }
 
 module "vpc" {
-  source         = "../../modules/vpc"
+  source         = "../../../modules/vpc"
   avn_vpc_id     = local.avn_vpc_id
   vpc_cidr_block = local.vpc_cidr_block
 

@@ -17,6 +17,15 @@ terraform {
   }
 }
 
+data "terraform_remote_state" "vpc" {
+  backend = "s3"
+  config = {
+    bucket = "tf-state-avn-1"
+    key    = "env:/production/testnet/avn-gateway/vpc/terraform.tfstate"
+    region = "eu-west-2"
+  }
+}
+
 provider "aws" {
   region = var.region
 }

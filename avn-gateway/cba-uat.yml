@@ -8,7 +8,7 @@ subnet1: 'subnet-0581074f5997ea000'
 subnet2: 'subnet-029e2c38b9db9a73c'
 subnet3: 'subnet-0e283c1e95f97cd17'
 maxTokenAgeMsec: '60000'
-minAvtBalance: '100000000000000000000'
+minAvtBalance: '1000000000000000000'
 mqBrokerAmpqEndpoint: 'amqps://b-e3b90bd4-9486-47ba-854a-aef65a9192f3.mq.eu-west-1.amazonaws.com:5671'
 mqSecretArn: 'arn:aws:secretsmanager:eu-west-1:602004642405:secret:rabbitmq-Nc8wYf'
 logRetentionDays: 1

@@ -24,7 +24,7 @@ module "lambda_functions" {
     authorisation-handler = {
       env_vars = {
         MAX_TOKEN_AGE_MSEC     = 60000
-        MIN_AVT_BALANCE        = "100000000000000000000"
+        MIN_AVT_BALANCE        = "1000000000000000000"
       }
       memory_size = 512
     }

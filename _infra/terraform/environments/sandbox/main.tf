@@ -10,62 +10,9 @@ locals {
   vault_recovery_window  = 0
 }
 
-module "lambda_functions" {
-  source                 = "../../modules/lambda"
-  artifact_bucket        = "avn-lambda-artifacts-sandbox"
-  log_retention_period   = 1
-  service_version        = var.service_version
-  rabbit_secret_arn      = module.rabbitmq.secret_arn
-  avn_connector_endpoint = local.avn_connector_endpoint
-  subnet_ids             = module.vpc.private_subnets
-  vpc_id                 = module.vpc.vpc_id
-
-  lambda_functions = {
-    authorisation-handler = {
-      env_vars = {
-        MAX_TOKEN_AGE_MSEC     = 60000
-        MIN_AVT_BALANCE        = "1000000000000000000"
-      }
-      memory_size = 512
-    }
-    send-handler = {
-      env_vars = {
-        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
-        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
-        MQ_AVN_TX_QUEUE         = "avnTx"
-        SECRET_MANAGER_REGION   = var.region
-      }
-      timeout     = 4
-      memory_size = 512
-    }
-    poll-handler = {
-      timeout     = 4
-      memory_size = 256
-    }
-    query-handler = {
-      memory_size = 256
-    }
-    tx-status-update-handler = {
-      env_vars = {
-        BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
-      }
-    }
-  }
-
-  depends_on = [
-    module.vpc,
-    module.rabbitmq
-  ]
-}
-
 module "api_gateway" {
-  source                = "../../modules/api-gateway"
-  authoriser_invoke_arn = module.lambda_functions.invoke_arns["authorisation-handler"]
-  authoriser_arn        = module.lambda_functions.lambda_arns["authorisation-handler"]
-  poll_invoke_arn       = module.lambda_functions.invoke_arns["poll-handler"]
-  send_invoke_arn       = module.lambda_functions.invoke_arns["send-handler"]
-  query_invoke_arn      = module.lambda_functions.invoke_arns["query-handler"]
-  auth_cache_duration   = 60
+  source           = "../../modules/api-gateway"
+  skeleton_gateway = true
 }
 
 module "vpc" {
@@ -103,9 +50,9 @@ module "dns" {
 }
 
 module "rabbitmq" {
-  source          = "../../modules/rabbitmq"
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
+  source     = "../../modules/rabbitmq"
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
   depends_on = [
     module.vpc
   ]
@@ -126,7 +73,7 @@ provider "kubernetes" {
 }
 
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
   version = "17.24.0"
 
   cluster_version   = local.cluster_version
@@ -143,8 +90,8 @@ module "eks" {
     avn-gateway = {
       create_launch_template = true
 
-      disk_size       = local.eks_node_size
-      disk_type       = "gp3"
+      disk_size = local.eks_node_size
+      disk_type = "gp3"
 
       desired_capacity = 1
       max_capacity     = 10
@@ -185,7 +132,6 @@ module "k8s_service_account_permissions" {
 
   depends_on = [
     module.eks,
-    module.lambda_functions
   ]
 }
 

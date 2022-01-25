@@ -4,6 +4,8 @@ resource "aws_apigatewayv2_api" "avn_gateway_api" {
 }
 
 resource "aws_apigatewayv2_integration" "poll" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
   api_id           = aws_apigatewayv2_api.avn_gateway_api.id
   integration_type = "AWS_PROXY"
 
@@ -16,11 +18,13 @@ resource "aws_apigatewayv2_integration" "poll" {
 }
 
 resource "aws_apigatewayv2_route" "poll" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "POST /poll"
 
-  target             = "integrations/${aws_apigatewayv2_integration.poll.id}"
-  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.id
+  target             = "integrations/${aws_apigatewayv2_integration.poll["full"].id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.authoriser["full"].id
   authorization_type = "CUSTOM"
 
   depends_on = [
@@ -29,6 +33,8 @@ resource "aws_apigatewayv2_route" "poll" {
 }
 
 resource "aws_apigatewayv2_integration" "send" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
   api_id           = aws_apigatewayv2_api.avn_gateway_api.id
   integration_type = "AWS_PROXY"
 
@@ -41,15 +47,19 @@ resource "aws_apigatewayv2_integration" "send" {
 }
 
 resource "aws_apigatewayv2_route" "send" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "POST /send"
 
-  target             = "integrations/${aws_apigatewayv2_integration.send.id}"
-  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.id
+  target             = "integrations/${aws_apigatewayv2_integration.send["full"].id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.authoriser["full"].id
   authorization_type = "CUSTOM"
 }
 
 resource "aws_apigatewayv2_integration" "query" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
   api_id           = aws_apigatewayv2_api.avn_gateway_api.id
   integration_type = "AWS_PROXY"
 
@@ -62,11 +72,13 @@ resource "aws_apigatewayv2_integration" "query" {
 }
 
 resource "aws_apigatewayv2_route" "query" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "POST /query"
 
-  target             = "integrations/${aws_apigatewayv2_integration.query.id}"
-  authorizer_id      = aws_apigatewayv2_authorizer.authoriser.id
+  target             = "integrations/${aws_apigatewayv2_integration.query["full"].id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.authoriser["full"].id
   authorization_type = "CUSTOM"
 
   depends_on = [
@@ -75,6 +87,8 @@ resource "aws_apigatewayv2_route" "query" {
 }
 
 resource "aws_apigatewayv2_authorizer" "authoriser" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
   name                    = "authorisation-handler"
   api_id                  = aws_apigatewayv2_api.avn_gateway_api.id
   authorizer_type         = "REQUEST"
@@ -153,6 +167,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "invocation_policy" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
   name = "AuthoriserInvokeArn"
   role = aws_iam_role.invocation_role.id
 

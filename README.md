@@ -1,4 +1,6 @@
-[![avn-gateway](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/lambdas.yml/badge.svg?branch=main)](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/lambdas.yml) [![avn-connector](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/connector.yml/badge.svg?branch=main)](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/connector.yml)
+[![avn-gateway](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/lambdas.yml/badge.svg?branch=main)](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/lambdas.yml)
+
+[![avn-connector](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/connector.yml/badge.svg?branch=main)](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/connector.yml)
 
 # avn-gateway-api
 

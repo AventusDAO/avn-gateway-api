@@ -17,7 +17,7 @@ provider:
     id: ${file(./${env:SLS_ENV}.yml):gatewayId}
   vpc:
     securityGroupIds:
-      - ${file(./${env:SLS_ENV}.yml):securityGroup}
+      - Ref: LambdaSecurityGroup
     subnetIds:
       - ${file(./${env:SLS_ENV}.yml):subnet1}
       - ${file(./${env:SLS_ENV}.yml):subnet2}
@@ -127,6 +127,15 @@ functions:
 
 resources:
   Resources:
+    LambdaSecurityGroup:
+      Type: "AWS::EC2::SecurityGroup"
+      Properties:
+        GroupName: lambda-egress
+        GroupDescription: Allow all outbound traffic, no inbound
+        SecurityGroupIngress:
+          - IpProtocol: -1
+            CidrIp: 127.0.0.1/32
+        VpcId: ${file(./${env:SLS_ENV}.yml):vpcId}
     Authorisation:
       Type: AWS::ApiGatewayV2::Authorizer
       Properties:

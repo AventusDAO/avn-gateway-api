@@ -23,9 +23,9 @@ pipeline {
       }
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
-          dir("_infra/terraform/environments/${env.environment}") {
+          dir("_infra/terraform/environments/${env.environment}/vpc") {
             sh "terraform init"
-            sh "terraform plan -target module.vpc -target module.redis -out=plan-out-vpc.tfplan -no-color"
+            sh "terraform plan -out=plan-out-vpc.tfplan -no-color"
           }
         }
       }
@@ -43,7 +43,7 @@ pipeline {
       }
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
-          dir("_infra/terraform/environments/${env.environment}") {
+          dir("_infra/terraform/environments/${env.environment}/vpc") {
             sh "terraform init"
             sh "terraform apply plan-out-vpc.tfplan -no-color"
           }
@@ -51,7 +51,7 @@ pipeline {
       }
     }
 
-    stage("Terraform plan") {
+    stage("Gateway plan") {
       when {
         expression {
             return env.terraform_target != 'none';
@@ -59,14 +59,14 @@ pipeline {
       }
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
-          dir("_infra/terraform/environments/${env.environment}") {
+          dir("_infra/terraform/environments/${env.environment}/gateway") {
             terraformPlan()
           }
         }
       }
     }
 
-    stage("Terraform Apply") {
+    stage("Gateway Apply") {
       when {
         beforeInput true
         expression {
@@ -78,7 +78,7 @@ pipeline {
       }
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
-          dir("_infra/terraform/environments/${env.environment}") {
+          dir("_infra/terraform/environments/${env.environment}/gateway") {
             terraformApply()
           }
         }
@@ -93,15 +93,21 @@ pipeline {
       }
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
-          dir("_infra/terraform/environments/${env.environment}") {
+          dir("_infra/terraform/environments/${env.environment}/gateway") {
             sh "terraform init"
             script {
-              avn_connector_ips = terraformOutput("avn_connector_ips")
-              private_subnets = terraformOutput("main_subnet")
               private_hosted_zone_id = terraformOutput("private_hosted_zone_id")
               redis_security_group_id = terraformOutput("redis_security_group_id")
               redis_password = terraformOutput("redis_password")
               redis_username = terraformOutput("redis_username")
+            }
+          }
+        }
+        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
+          dir("_infra/terraform/environments/${env.environment}/vpc") {
+            sh "terraform init"
+            script {
+              private_subnets = terraformOutput("main_subnet")
             }
           }
         }
@@ -215,7 +221,7 @@ pipeline {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           generateContext("avn-gateway", "dev")
           sh "kubectl create ns dev || true"
-          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set service.subnetIds={${private_subnets}} --set service.privateIps={${avn_connector_ips}} | kubectl apply -f -"
+          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set service.subnetIds={${private_subnets}} | kubectl apply -f -"
         }
       }
     }

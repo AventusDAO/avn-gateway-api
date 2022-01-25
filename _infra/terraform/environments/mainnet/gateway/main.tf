@@ -1,14 +1,13 @@
 
 locals {
   name                   = "avn-gateway"
-  environment            = "testnet"
+  environment            = "mainnet"
   cluster_version        = "1.21"
   eks_node_size          = 50
-  account_id             = "189013141504"
+  account_id             = "503742778456"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
-  block_explorer_url     = "https://testnet.index.aventus.io:3000"
-  vpc_cidr_block         = "172.18.0.0/18"
-  vault_recovery_window  = 0
+  block_explorer_url     = "https://mainnet.index.aventus.io:3000"
+  vault_recovery_window  = 30
 }
 
 module "lambda_functions" {
@@ -36,11 +35,11 @@ module "lambda_functions" {
         MQ_AVN_TX_QUEUE         = "avnTx"
         SECRET_MANAGER_REGION   = var.region
       }
-      timeout     = 4
+      timeout     = 6
       memory_size = 512
     }
     poll-handler = {
-      timeout     = 4
+      timeout     = 6
       memory_size = 256
     }
     query-handler = {
@@ -54,7 +53,6 @@ module "lambda_functions" {
   }
 
   depends_on = [
-    module.vpc,
     module.rabbitmq
   ]
 }
@@ -69,42 +67,15 @@ module "api_gateway" {
   auth_cache_duration   = 60
 }
 
-module "vpc" {
-  source                   = "../../modules/vpc"
-  vpc_cidr_block           = local.vpc_cidr_block
-
-  private_zone_ips = {
-    "a": "172.18.0.0/20",
-    "b": "172.18.16.0/20",
-    "c": "172.18.32.0/20"
-  }
-
-  public_zone_ips = {
-    "a": "172.18.48.0/28",
-    "b": "172.18.49.0/28",
-    "c": "172.18.50.0/28"
-  }
-
-  private_subnet_additional_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/internal-elb"     = "1"
-  }
-
-  public_subnet_additional_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/elb"              = "1"
-  }
-}
-
 module "dns" {
-  source          = "../../modules/dns"
-  vpc_id          = module.vpc.vpc_id
-  environment     = local.environment
-  rabbit_address  = module.rabbitmq.broker_address
+  source             = "../../modules/dns"
+  vpc_id             = module.vpc.vpc_id
+  environment        = local.environment
+  rabbit_address     = module.rabbitmq.broker_address
   documentdb_address = module.documentdb.address
-  api_gateway_url = module.api_gateway.url
-  api_gateway_id  = module.api_gateway.api_id
-  api_gateway_stage = module.api_gateway.stage_id
+  api_gateway_url    = module.api_gateway.url
+  api_gateway_id     = module.api_gateway.api_id
+  api_gateway_stage  = module.api_gateway.stage_id
 
   providers = {
     aws         = aws
@@ -117,9 +88,6 @@ module "rabbitmq" {
   vpc_id          = module.vpc.vpc_id
   subnet_ids      = module.vpc.private_subnets
   deployment_mode = "CLUSTER_MULTI_AZ"
-  depends_on = [
-    module.vpc
-  ]
 }
 
 data "aws_eks_cluster" "eks" {
@@ -176,7 +144,7 @@ module "eks" {
 
   map_roles = [
     {
-      rolearn  = "arn:aws:iam::${local.account_id}:role/AWSReservedSSO_AdministratorAccess_0ca933a60f79db9c"
+      rolearn  = "arn:aws:iam::${local.account_id}:role/AWSReservedSSO_AdministratorAccess_deb451792f07feb1"
       username = "adminuser:{{SessionName}}"
       groups   = ["system:masters"]
     },

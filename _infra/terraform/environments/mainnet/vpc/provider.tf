@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     encrypt                = true
     bucket                 = "tf-state-avn-1"
-    key                    = "env:/cba/gateway-api/state3.tfstate"
+    key                    = "env:/production/mainnet/avn-gateway/vpc/terraform.tfstate"
     region                 = "eu-west-2"
     skip_region_validation = "true"
   }
@@ -19,17 +19,8 @@ terraform {
 
 provider "aws" {
   region = var.region
-
+  
   assume_role {
-    role_arn = "arn:aws:iam::602004642405:role/jenkins-access"
-  }
-}
-
-provider "aws" {
-  alias  = "aventus"
-  region = var.region
-
-  assume_role {
-    role_arn = "arn:aws:iam::707061609910:role/jenkins-access"
+    role_arn = "arn:aws:iam::503742778456:role/jenkins-access"
   }
 }

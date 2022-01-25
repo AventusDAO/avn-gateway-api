@@ -1,36 +1,17 @@
 locals {
   name                   = "avn-gateway"
-  environment            = "sandbox"
+  environment            = "cba"
   cluster_version        = "1.21"
   eks_node_size          = 20
-  account_id             = "352429414196"
+  account_id             = "602004642405"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
-  block_explorer_url     = "https://avn.stargate.aventus.io:3000"
-  vpc_cidr_block         = "172.16.0.0/20"
+  block_explorer_url     = "https://avn.cba-stargate.aventus.io:3000"
   vault_recovery_window  = 0
 }
 
 module "api_gateway" {
   source           = "../../modules/api-gateway"
   skeleton_gateway = true
-}
-
-module "vpc" {
-  source                   = "../../modules/vpc"
-  avn_vpc_id               = "vpc-074c6e19e26ba4a23"
-  peer_public_route_table  = "rtb-0a0b61707b33e0a75"
-  peer_private_route_table = "rtb-00b575bea946b34bc"
-  vpc_cidr_block           = local.vpc_cidr_block
-
-  private_subnet_additional_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/internal-elb"     = "1"
-  }
-
-  public_subnet_additional_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/elb"              = "1"
-  }
 }
 
 module "dns" {
@@ -50,12 +31,10 @@ module "dns" {
 }
 
 module "rabbitmq" {
-  source     = "../../modules/rabbitmq"
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
-  depends_on = [
-    module.vpc
-  ]
+  source          = "../../modules/rabbitmq"
+  vpc_id          = module.vpc.vpc_id
+  subnet_ids      = setunion(module.vpc.private_subnets, module.vpc.public_subnets)
+  deployment_mode = "CLUSTER_MULTI_AZ"
 }
 
 data "aws_eks_cluster" "eks" {
@@ -73,7 +52,7 @@ provider "kubernetes" {
 }
 
 module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
+  source          = "terraform-aws-modules/eks/aws"
   version = "17.24.0"
 
   cluster_version   = local.cluster_version
@@ -90,8 +69,8 @@ module "eks" {
     avn-gateway = {
       create_launch_template = true
 
-      disk_size = local.eks_node_size
-      disk_type = "gp3"
+      disk_size       = local.eks_node_size
+      disk_type       = "gp3"
 
       desired_capacity = 1
       max_capacity     = 10
@@ -112,7 +91,7 @@ module "eks" {
 
   map_roles = [
     {
-      rolearn  = "arn:aws:iam::${local.account_id}:role/AWSReservedSSO_AdministratorAccess_a2b4587f5d23a564"
+      rolearn  = "arn:aws:iam::${local.account_id}:role/AWSReservedSSO_AdministratorAccess_d1d8f8e0733b5134"
       username = "adminuser:{{SessionName}}"
       groups   = ["system:masters"]
     },
@@ -131,7 +110,7 @@ module "k8s_service_account_permissions" {
   rabbit_secret_arn = module.rabbitmq.secret_arn
 
   depends_on = [
-    module.eks,
+    module.eks
   ]
 }
 

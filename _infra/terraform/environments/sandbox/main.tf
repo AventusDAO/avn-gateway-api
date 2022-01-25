@@ -192,8 +192,9 @@ module "k8s_service_account_permissions" {
 module "documentdb" {
   source = "../../modules/documentdb"
 
-  subnet_ids = module.vpc.private_subnets
-  vpc_id     = module.vpc.vpc_id
+  subnet_ids               = module.vpc.private_subnets
+  vpc_id                   = module.vpc.vpc_id
+  additional_whitelist_ips = [module.bastion.private_cidr]
 }
 
 module "redis" {

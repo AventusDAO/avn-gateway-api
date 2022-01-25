@@ -9,7 +9,6 @@ const helper = require('./helper.js');
   const api = await helper.avnApi();
   describe('Fail Poll api calls:', async () => {
     describe('requestState', async () => {
-      //requestState(requestId)
       describe('fails when called', async () => {
         let validCallData = {
           requestId: 'Processed'

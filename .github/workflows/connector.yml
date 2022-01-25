@@ -110,7 +110,7 @@ jobs:
           registry: ${{ env.ECR_REGISTRY }}
           context: avn-connector/
           build_extra_args: --compress=true
-          dockerfile: avn-connector/Dockerfile.addrelayer
+          dockerfile: Dockerfile.addrelayer
   
   insert-fees:
     runs-on: ubuntu-latest
@@ -152,4 +152,4 @@ jobs:
           registry: ${{ env.ECR_REGISTRY }}
           context: avn-connector/
           build_extra_args: --compress=true
-          dockerfile: avn-connector/Dockerfile.inserttestfees
+          dockerfile: Dockerfile.inserttestfees

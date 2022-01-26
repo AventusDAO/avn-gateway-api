@@ -17,7 +17,7 @@ const accounts = helper.ACCOUNTS;
  * @param testFunction The function being tested
  */
 async function invalidAccount(message, fieldName, validCallData, testFunction) {
-  let callData = { ...validCallData }
+  let callData = { ...validCallData };
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Expected non-null, non-empty base58 input/);
@@ -46,7 +46,7 @@ async function invalidAccount(message, fieldName, validCallData, testFunction) {
 }
 
 async function invalidEthereumAccount(message, fieldName, validCallData, testFunction) {
-  let callData = { ...validCallData }
+  let callData = { ...validCallData };
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
@@ -65,7 +65,7 @@ async function invalidEthereumAccount(message, fieldName, validCallData, testFun
 }
 
 function invalidAmount(message, fieldName, validCallData, testFunction) {
-  let callData = { ...validCallData }
+  let callData = { ...validCallData };
   it(message + ' is greater than senders balance', async () => {
     callData[fieldName] = 100000000000000000000000000;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid amount type:/);
@@ -78,12 +78,10 @@ function invalidAmount(message, fieldName, validCallData, testFunction) {
   it(message + ' is zero', async () => {
     callData[fieldName] = 0;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid amount type:/);
-
   });
   it(message + ' is a negative value', async () => {
     callData[fieldName] = -1;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid amount type:/);
-
   });
   it(message + ' is not a number', async () => {
     callData[fieldName] = 'string';
@@ -92,7 +90,7 @@ function invalidAmount(message, fieldName, validCallData, testFunction) {
 }
 
 function invalidEthereumToken(message, fieldName, validCallData, testFunction) {
-  let callData = { ...validCallData }
+  let callData = { ...validCallData };
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
@@ -108,29 +106,23 @@ function invalidEthereumToken(message, fieldName, validCallData, testFunction) {
 }
 
 function invalidNftId(message, fieldName, validCallData, testFunction) {
-  let callData = { ...validCallData }
+  let callData = { ...validCallData };
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(
-      /Cannot read property/
-    );
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read property/);
   });
   it(message + ' is undefined', async () => {
     callData[fieldName] = undefined;
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(
-      /Cannot read property/
-    );
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read property/);
   });
   it(message + ' doesnt exist', async () => {
     callData[fieldName] = 'idThatDoesntExist';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(
-      /Cannot read property/
-    );
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read property/);
   });
 }
 
 function invalidExternalReference(message, fieldName, validCallData, testFunction) {
-  let callData = { ...validCallData }
+  let callData = { ...validCallData };
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/String is not populated:/);
@@ -141,14 +133,12 @@ function invalidExternalReference(message, fieldName, validCallData, testFunctio
   });
   it(message + ' is in invalid format', async () => {
     callData[fieldName] = 'invalid_reference';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(
-      /Cannot read property/
-    );
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read property/);
   });
 }
 
 function invalidRequestState(message, fieldName, validCallData, testFunction) {
-  let callData = { ...validCallData }
+  let callData = { ...validCallData };
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid request ID type:/);

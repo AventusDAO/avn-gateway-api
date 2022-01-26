@@ -17,13 +17,8 @@ const accounts = helper.ACCOUNTS;
   const royaltyRecipient2 = '0xE566A65705F2d8D6C1Da9063A29b6F0f1Ac1e6Da';
   const royaltyRate1 = 10000;
   const royaltyRate2 = 20000;
-
-  const externalRef = 'avn-gateway-test-' + new Date().toISOString();
-  const externalRef2 = 'avn-gateway-test2-' + new Date().toISOString();
-  const externalRef3 = 'avn-gateway-test3-' + new Date().toISOString();
-  const externalRef4 = 'avn-gateway-test4-' + new Date().toISOString();
-
   const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
+  const externalRef = 'avn-gateway-test-' + new Date().toISOString();
   const royalties = [
     {
       recipient_t1_address: royaltyRecipient1,
@@ -33,39 +28,22 @@ const accounts = helper.ACCOUNTS;
     }
   ];
 
-  //Unlisted NFT owned by sender
-  let requestId = await api.send.mintSingleNft(validRelayer.address, externalRef, royalties, dummyT1Authority);
-  await helper.confirmStatus(api, requestId, 'Processed');
-  const unlistedNftId = await api.query.getNftId(externalRef);
+  //These Nfts were minted at Avn-ui for faster testing
+  //Will fail if sandbox gets reset
 
-  // //Unlisted NFT owned by user
-  requestId = await api.send.mintSingleNft(validRelayer.address, externalRef2, royalties, dummyT1Authority);
-  await helper.confirmStatus(api, requestId, 'Processed');
-  const unlistedUserNft = await api.query.getNftId(externalRef2);
-  requestId = await api.send.listFiatNftForSale(validRelayer.address, unlistedUserNft);
-  await helper.confirmStatus(api, requestId, 'Processed');
-  await api.send.transferFiatNft(validRelayer.address, validUser.address, unlistedUserNft);
-  await api.send.cancelFiatNftListing(validRelayer.address, unlistedUserNft);
+  //Nfts owned by Sender
+  const unlistedSenderNft = '0x31a538814804e2364e8adeeb2fe2e771d855369ce3a31e2819353f149680bf09';
+  const listedSenderNft = '0xdee4cb569d372d0cee1897c6164c7ce3b3857beeade6069117bc38613fe6dd95';
 
-  //Listed NFT owned by sender
-  requestId = await api.send.mintSingleNft(validRelayer.address, externalRef3, royalties, dummyT1Authority);
-  await helper.confirmStatus(api, requestId, 'Processed');
-  const listedNftId = await api.query.getNftId(externalRef3);
-  requestId = await api.send.listFiatNftForSale(validRelayer.address, listedNftId);
-  await helper.confirmStatus(api, requestId, 'Processed');
-
-  //Listed NFT owned by user
-  requestId = await api.send.mintSingleNft(validRelayer.address, externalRef4, royalties, dummyT1Authority);
-  await helper.confirmStatus(api, requestId, 'Processed');
-  const listedUserNft = await api.query.getNftId(externalRef4);
-  requestId = await api.send.listFiatNftForSale(validRelayer.address, listedUserNft);
-  await helper.confirmStatus(api, requestId, 'Processed');
-  await api.send.transferFiatNft(validRelayer.address, validUser.address, listedUserNft);
+  //Nfts owned by User
+  const unlistedUserNft = '0xe9f6568c3444442edf8d37657cbe4050982205ef3435a0b0a4c8987306627ec0';
+  const listedUserNft = '0x7bf45d3e340ed03026679b5f436004e983c04354485e6a20f6d9ab4ce7551cdd';
+  let validCallData;
 
   describe('Fail Send api calls:', async () => {
     describe('transferAvt', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
+        validCallData = {
           relayer: validRelayer.address,
           recipient: validUser.address,
           amount: 22
@@ -96,7 +74,7 @@ const accounts = helper.ACCOUNTS;
 
     describe('transferToken', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
+        validCallData = {
           relayer: validRelayer.address,
           recipient: validUser.address,
           token: validToken,
@@ -132,7 +110,7 @@ const accounts = helper.ACCOUNTS;
 
     describe('mintSingleNft', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
+        validCallData = {
           relayer: validRelayer.address,
           externalReference: externalRef,
           royalties: royalties,
@@ -252,14 +230,14 @@ const accounts = helper.ACCOUNTS;
 
     describe('listFiatNftForSale', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
+        validCallData = {
           relayer: validRelayer.address,
-          nftId: unlistedNftId
+          nftId: unlistedSenderNft
         };
         beforeEach(async () => {
           validCallData = {
             relayer: validRelayer.address,
-            nftId: unlistedNftId
+            nftId: unlistedSenderNft
           };
         });
         describe('With invalid account: relayer', async () => {
@@ -280,7 +258,7 @@ const accounts = helper.ACCOUNTS;
         });
         //TODO: This should return an error
         xit('With an NFT that is already listed', async () => {
-          validCallData['nftId'] = listedNftId;
+          validCallData['nftId'] = listedSenderNft;
           await expect(api.send.listFiatNftForSale(...Object.values(validCallData))).to.be.rejectedWith(Error);
         });
       });
@@ -288,16 +266,16 @@ const accounts = helper.ACCOUNTS;
 
     describe('transferFiatNft', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
+        validCallData = {
           relayer: validRelayer.address,
           recipient: validUser.address,
-          nftId: listedNftId
+          nftId: listedSenderNft
         };
         beforeEach(async () => {
           validCallData = {
             relayer: validRelayer.address,
             recipient: validUser.address,
-            nftId: listedNftId
+            nftId: listedSenderNft
           };
         });
         describe('With invalid account: relayer', async () => {
@@ -322,7 +300,7 @@ const accounts = helper.ACCOUNTS;
         });
         //TODO: Fix error code 500
         xit('With an NFT that is not listed', async () => {
-          validCallData['relayer'] = unlistedNftId;
+          validCallData['relayer'] = unlistedSenderNft;
           await expect(api.send.transferFiatNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
         });
       });
@@ -330,14 +308,14 @@ const accounts = helper.ACCOUNTS;
 
     describe('cancelFiatNftListing', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
+        validCallData = {
           relayer: validRelayer.address,
-          nftId: listedNftId
+          nftId: listedSenderNft
         };
         beforeEach(async () => {
           validCallData = {
             relayer: validRelayer.address,
-            nftId: listedNftId
+            nftId: listedSenderNft
           };
         });
         describe('With invalid account: relayer', async () => {
@@ -357,7 +335,7 @@ const accounts = helper.ACCOUNTS;
         });
         //TODO: Fix error code 500
         xit('with an NFT that is not listed', async () => {
-          validCallData['relayer'] = unlistedNftId;
+          validCallData['relayer'] = unlistedSenderNft;
           await expect(api.send.cancelFiatNftListing(...Object.values(validCallData))).to.be.rejectedWith(Error);
         });
       });

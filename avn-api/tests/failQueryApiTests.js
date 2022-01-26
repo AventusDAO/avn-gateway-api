@@ -11,6 +11,7 @@ const accounts = helper.ACCOUNTS;
   const validSender = accounts.sender;
   const validUser = accounts.user1;
   const validToken = helper.token;
+  let validCallData;
 
   describe('Fail Query api calls:', async done => {
     describe('getAvtBalance', async () => {
@@ -62,7 +63,7 @@ const accounts = helper.ACCOUNTS;
     });
 
     describe('getRelayerFees', async () => {
-      let validCallData = {
+      validCallData = {
         relayer: validRelayer.address,
         user: validUser.address,
         transaction_type: 'proxyAvtTransfer'

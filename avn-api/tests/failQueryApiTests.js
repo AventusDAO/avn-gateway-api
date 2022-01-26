@@ -62,7 +62,11 @@ const accounts = helper.ACCOUNTS;
     });
 
     describe('getRelayerFees', async () => {
-      let validCallData;
+      let validCallData = {
+        relayer: validRelayer.address,
+        user: validUser.address,
+        transaction_type: 'proxyAvtTransfer'
+      };
       beforeEach(async () => {
         validCallData = {
           relayer: validRelayer.address,

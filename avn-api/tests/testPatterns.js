@@ -93,15 +93,15 @@ function invalidAmount(message, fieldName, validCallData, testFunction) {
 
 function invalidEthereumToken(message, fieldName, validCallData, testFunction) {
   let callData = { ...validCallData }
-  it(message + 'is empty', async () => {
+  it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
   });
-  it(message + 'is undefined', async () => {
+  it(message + ' is undefined', async () => {
     callData[fieldName] = undefined;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
   });
-  it(message + 'is in invalid format', async () => {
+  it(message + ' is in invalid format', async () => {
     callData[fieldName] = 'invalid_format';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
   });
@@ -131,15 +131,15 @@ function invalidNftId(message, fieldName, validCallData, testFunction) {
 
 function invalidExternalReference(message, fieldName, validCallData, testFunction) {
   let callData = { ...validCallData }
-  it(message + 'is empty', async () => {
+  it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/String is not populated:/);
   });
-  it(message + 'is undefined', async () => {
+  it(message + ' is undefined', async () => {
     callData[fieldName] = undefined;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/String is not populated:/);
   });
-  it(message + 'is in invalid format', async () => {
+  it(message + ' is in invalid format', async () => {
     callData[fieldName] = 'invalid_reference';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(
       /Cannot read property/

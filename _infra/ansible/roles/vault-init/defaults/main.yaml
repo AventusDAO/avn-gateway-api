@@ -1,4 +1,0 @@
----
-deploy_vault: no
-init_vault: no
-cleanup_sensitive_data: no

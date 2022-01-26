@@ -15,7 +15,7 @@ resource "aws_secretsmanager_secret" "vault" {
 }
 
 module "avn-vault" {
-  source = "git@github.com:Aventus-Network-Services/avn-vault-terraform-module.git?ref=v0.4.2"
+  source = "git@github.com:Aventus-Network-Services/avn-vault-infrastructure//terraform-module/avn-vault?ref=1.3.0"
   name = local.environment
   project = "avn-gateway"
   ssh-key = "technical-account-vault"
@@ -25,8 +25,9 @@ module "avn-vault" {
   availability_zone = module.vpc.primary_private_subnet.availability_zone
   aws-route53-zone = module.dns.public_zone_id
   avn_vault_instance_type = "t3a.medium"
-  tls_cert_subdomain = "vault"
-  dynamodb_table_name= "avn-gw-vault-${local.environment}-db"
+  tls_cert_subdomain  = "vault"
+  dynamodb_table_name = "avn-gw-vault-${local.environment}-db"
+  avn-ingress-ports   = []
 }
 
 module "bastion" {

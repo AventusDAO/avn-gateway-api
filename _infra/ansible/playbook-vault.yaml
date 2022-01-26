@@ -4,9 +4,11 @@
 
 - name: Deploy & setup vault server files
   hosts: vault_server
+  collections:
+    - aventus.avn_vault
 
   roles:
-  - role: aventus.ansible-avn-vault
+  - role: avn-vault-infra
     when: deploy_vault|bool
     become: yes
   - role: vault-init

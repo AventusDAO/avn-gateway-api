@@ -1,20 +1,35 @@
+## Global Settings
+cleanup_sensitive_data: yes
+
+## The environment name
+# vault_environment: defined through extra-vars
+
 ## Vault deployment
+# deploy_vault: defined through extra-vars
 server_api_address: 0.0.0.0:8200
+
 # Uncomment when using locally
-# tls_key_file: vault-server/files/vault_{{ vault_environment }}.key
+# tls_key_file: defined through extra-vars, vault-server/files/vault_{{ vault_environment }}.key
 tls_cert_file: vault-server/files/vault_{{ vault_environment }}.crt
 log_level: info
+
 # Dynamodb pricing https://aws.amazon.com/dynamodb/pricing/on-demand/
 dynamodb_read_capacity: 100
 dynamodb_write_capacity: 10
+
 vault_binary_path: vault-server/files/vault
 avn_vault_binary_path: vault-server/files/avn-vault
 
 ## Vault init
 
+# init_vault: defined through extra-vars
+
+vault_unseal_total_shares: 1
+vault_unseal_threshold_shares: 1
+
 # Needs to be defined
-# gpg_key_public_key: <gpg public key here>
-# gpg_key_id: <gpg public key id here>
+# gpg_key_public_key: defined through extra-vars
+# gpg_key_id: defined through extra-vars
 
 # Add relayer account
 

@@ -39,7 +39,7 @@ pipeline {
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'technical-account-vault']) {
           // Generate the inventory file for the environment
-          dir("${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}") {
+          dir("${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/gateway") {
             sh "terraform init && terraform apply -target local_file.avn-gateway-vault-instance-file -auto-approve"
           }
 

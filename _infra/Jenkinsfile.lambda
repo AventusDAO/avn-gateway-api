@@ -10,7 +10,7 @@ pipeline {
     stage("Terraform Plan") {
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
-          dir("_infra/terraform/environments/${env.environment}") {
+          dir("_infra/terraform/environments/${env.environment}/gateway") {
             terraformPlan()
           }
         }
@@ -23,7 +23,7 @@ pipeline {
       }
       steps {
         sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
-          dir("_infra/terraform/environments/${env.environment}") {
+          dir("_infra/terraform/environments/${env.environment}/gateway") {
             terraformApply()
           }
         }

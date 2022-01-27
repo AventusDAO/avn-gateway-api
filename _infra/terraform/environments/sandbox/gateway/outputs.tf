@@ -1,11 +1,3 @@
-output "avn_connector_ips" {
-  value = join(",", module.dns.avn_connector_ips)
-}
-
-output "main_subnet" {
-  value = join(",", module.vpc.private_subnets)
-}
-
 output "redis_password" {
   sensitive = true
   value = module.redis.password

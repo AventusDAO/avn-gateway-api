@@ -1,5 +1,9 @@
 locals {
+  # TODO only leave the Jenkins nat ip.
   ssh_allowed_ips = [
+    "31.185.206.0/32",      # Thanos
+    "81.111.99.54/32",      # John Terry
+    "82.6.143.25/32",       # Nahu
     "18.135.167.38/32",     # IP of the nat of Testnet (Jenkins)
   ]
 }
@@ -19,10 +23,10 @@ module "avn-vault" {
   name = local.environment
   project = "avn-gateway"
   ssh-key = "technical-account-vault"
-  avn-vault-vpc-cidr = local.vpc_cidr_block
-  vpc-id = module.vpc.vpc_id
-  subnet-id = module.vpc.primary_private_subnet.id
-  availability_zone = module.vpc.primary_private_subnet.availability_zone
+  avn-vault-vpc-cidr = data.terraform_remote_state.vpc.outputs.vpc_cidr_block
+  vpc-id = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnet-id = data.terraform_remote_state.vpc.outputs.primary_private_subnet.id
+  availability_zone = data.terraform_remote_state.vpc.outputs.primary_private_subnet.availability_zone
   aws-route53-zone = module.dns.public_zone_id
   avn_vault_instance_type = "t3a.medium"
   tls_cert_subdomain  = "vault"
@@ -31,10 +35,10 @@ module "avn-vault" {
 }
 
 module "bastion" {
-  source                = "../../modules/bastion"
-  vpc_id                = module.vpc.vpc_id
+  source                = "../../../modules/bastion"
+  vpc_id                = data.terraform_remote_state.vpc.outputs.vpc_id
   ssh_key_name          = aws_key_pair.vault-ssh-key.key_name
-  public_subnet_id      = module.vpc.primary_public_subnet.id
+  public_subnet_id      = data.terraform_remote_state.vpc.outputs.primary_public_subnet.id
   ssh_allowed_ips       = local.ssh_allowed_ips
 }
 

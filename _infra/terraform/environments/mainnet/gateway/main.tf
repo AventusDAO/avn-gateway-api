@@ -7,19 +7,18 @@ locals {
   account_id             = "503742778456"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   block_explorer_url     = "https://mainnet.index.aventus.io:3000"
-  vpc_cidr_block         = "172.20.0.0/18"
   vault_recovery_window  = 30
 }
 
 module "lambda_functions" {
-  source                 = "../../modules/lambda"
+  source                 = "../../../modules/lambda"
   artifact_bucket        = "avn-lambda-artifacts-sandbox"
   log_retention_period   = 1
   service_version        = var.service_version
   rabbit_secret_arn      = module.rabbitmq.secret_arn
   avn_connector_endpoint = local.avn_connector_endpoint
-  subnet_ids             = module.vpc.private_subnets
-  vpc_id                 = module.vpc.vpc_id
+  subnet_ids             = data.terraform_remote_state.vpc.outputs.private_subnets
+  vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
 
   lambda_functions = {
     authorisation-handler = {
@@ -54,13 +53,12 @@ module "lambda_functions" {
   }
 
   depends_on = [
-    module.vpc,
     module.rabbitmq
   ]
 }
 
 module "api_gateway" {
-  source                = "../../modules/api-gateway"
+  source                = "../../../modules/api-gateway"
   authoriser_invoke_arn = module.lambda_functions.invoke_arns["authorisation-handler"]
   authoriser_arn        = module.lambda_functions.lambda_arns["authorisation-handler"]
   poll_invoke_arn       = module.lambda_functions.invoke_arns["poll-handler"]
@@ -69,36 +67,9 @@ module "api_gateway" {
   auth_cache_duration   = 60
 }
 
-module "vpc" {
-  source                   = "../../modules/vpc"
-  vpc_cidr_block           = local.vpc_cidr_block
-
-  private_zone_ips = {
-    "a": "172.20.0.0/20",
-    "b": "172.20.16.0/20",
-    "c": "172.20.32.0/20"
-  }
-
-  public_zone_ips = {
-    "a": "172.20.48.0/28",
-    "b": "172.20.49.0/28",
-    "c": "172.20.50.0/28"
-  }
-
-  private_subnet_additional_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/internal-elb"     = "1"
-  }
-
-  public_subnet_additional_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/elb"              = "1"
-  }
-}
-
 module "dns" {
-  source             = "../../modules/dns"
-  vpc_id             = module.vpc.vpc_id
+  source             = "../../../modules/dns"
+  vpc_id             = data.terraform_remote_state.vpc.outputs.vpc_id
   environment        = local.environment
   rabbit_address     = module.rabbitmq.broker_address
   documentdb_address = module.documentdb.address
@@ -113,13 +84,10 @@ module "dns" {
 }
 
 module "rabbitmq" {
-  source          = "../../modules/rabbitmq"
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.private_subnets
+  source          = "../../../modules/rabbitmq"
+  vpc_id          = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnet_ids      = data.terraform_remote_state.vpc.outputs.private_subnets
   deployment_mode = "CLUSTER_MULTI_AZ"
-  depends_on = [
-    module.vpc
-  ]
 }
 
 data "aws_eks_cluster" "eks" {
@@ -142,8 +110,8 @@ module "eks" {
 
   cluster_version   = local.cluster_version
   cluster_name      = local.name
-  vpc_id            = module.vpc.vpc_id
-  subnets           = module.vpc.private_subnets
+  vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnets           = data.terraform_remote_state.vpc.outputs.private_subnets
   enable_irsa       = true
   workers_role_name = local.name
 
@@ -189,7 +157,7 @@ module "eks" {
 }
 
 module "k8s_service_account_permissions" {
-  source = "../../modules/k8s-service-account-permissions"
+  source = "../../../modules/k8s-service-account-permissions"
 
   oidc_provider     = module.eks.oidc_provider_arn
   rabbit_secret_arn = module.rabbitmq.secret_arn
@@ -201,16 +169,16 @@ module "k8s_service_account_permissions" {
 }
 
 module "documentdb" {
-  source = "../../modules/documentdb"
+  source = "../../../modules/documentdb"
 
-  subnet_ids               = module.vpc.private_subnets
-  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = data.terraform_remote_state.vpc.outputs.private_subnets
+  vpc_id                   = data.terraform_remote_state.vpc.outputs.vpc_id
   additional_whitelist_ips = [module.bastion.private_cidr]
 }
 
 module "redis" {
-  source = "../../modules/redis"
+  source = "../../../modules/redis"
 
-  vpc_id       = module.vpc.vpc_id
-  ip_whitelist = module.vpc.private_subnet_ips
+  vpc_id       = data.terraform_remote_state.vpc.outputs.vpc_id
+  ip_whitelist = data.terraform_remote_state.vpc.outputs.private_subnet_ips
 }

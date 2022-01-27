@@ -11,13 +11,13 @@ const accounts = helper.ACCOUNTS;
  * But the arguments have to be tuned in a way that can be used generically.
  *
  * @param message A context to qualify each individual test as part of this block
- * @param fieldName An identified to the part of the request (validCallData) that is being tested in this block.
  * @param validCallData An object that can be used to create a valid request. It should be as completely formed as possible,
  * so that this code (which is generic) does not have to know how to create requests
  * @param testFunction The function being tested
  */
-async function invalidAccount(message, fieldName, validCallData, testFunction) {
+async function invalidAccount(message, validCallData, testFunction) {
   let callData = { ...validCallData };
+  const fieldName = 'account'
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Expected non-null, non-empty base58 input/);
@@ -34,40 +34,55 @@ async function invalidAccount(message, fieldName, validCallData, testFunction) {
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid base58 character/);
   });
 
+  //TODO: Fix error mesage for too short or too long
   it(message + ' is too short hex string to be a public key', async () => {
-    callData[fieldName] = '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2';
+    const HEX_STRING_31_BYTES = '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f'
+    callData[fieldName] = HEX_STRING_31_BYTES;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid base58 character/);
   });
 
+  //TODO: Fix error mesage for too short or too long
   it(message + ' is too long hex string to be a public key', async () => {
-    callData[fieldName] = '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2eq';
+    const HEX_STRING_33_BYTES = '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2eq3'
+    callData[fieldName] = HEX_STRING_33_BYTES;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid base58 character/);
   });
 }
 
-async function invalidEthereumAccount(message, fieldName, validCallData, testFunction) {
+async function invalidEthereumAddress(message, validCallData, testFunction) {
   let callData = { ...validCallData };
+  const fieldName = 'ethereumAddress';
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
   });
-
   it(message + ' is undefined', async () => {
     callData[fieldName] = undefined;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
   });
-
-  // Valid formats: SS58 (variable length) and hex string (fixed length: 32 bytes)
   it(message + ' is in invalid format', async () => {
     callData[fieldName] = 'invalid_format';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
   });
+  it(message + ' is too short ethereum address', async () => {
+    const ETHEREUM_ADDRESS_19_BYTES = '0xb130395ae89acbe32999f8eb6e6114a56d6761'
+    callData[fieldName] = HEX_STRING_30_BYTES;
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(Error);
+  });
+
+  it(message + ' is too long ethereum address', async () => {
+    const ETHEREUM_ADDRESS_21_BYTES = '0xb130395ae89acbe32999f8eb6e6114a56d676199eq'
+    callData[fieldName] = HEX_STRING_31_BYTES;
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(Error);
+  });
 }
 
-function invalidAmount(message, fieldName, validCallData, testFunction) {
+function invalidAmount(message, validCallData, testFunction) {
   let callData = { ...validCallData };
+  const fieldName = 'amount';
+  //TODO: Fix "invalid amount type" by "not enough balance"
   it(message + ' is greater than senders balance', async () => {
-    callData[fieldName] = 100000000000000000000000000;
+    callData[fieldName] = 10000000000000000000000000000;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid amount type:/);
   });
   //TODO Fix error message "Cannot read property 'toString' of undefined"
@@ -89,24 +104,9 @@ function invalidAmount(message, fieldName, validCallData, testFunction) {
   });
 }
 
-function invalidEthereumToken(message, fieldName, validCallData, testFunction) {
+function invalidNftId(message, validCallData, testFunction) {
   let callData = { ...validCallData };
-  it(message + ' is empty', async () => {
-    callData[fieldName] = '';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
-  });
-  it(message + ' is undefined', async () => {
-    callData[fieldName] = undefined;
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
-  });
-  it(message + ' is in invalid format', async () => {
-    callData[fieldName] = 'invalid_format';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
-  });
-}
-
-function invalidNftId(message, fieldName, validCallData, testFunction) {
-  let callData = { ...validCallData };
+  const fieldName = 'nftId'
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read property/);
@@ -121,8 +121,9 @@ function invalidNftId(message, fieldName, validCallData, testFunction) {
   });
 }
 
-function invalidExternalReference(message, fieldName, validCallData, testFunction) {
+function invalidExternalReference(message, validCallData, testFunction) {
   let callData = { ...validCallData };
+  const fieldName = 'externalReference'
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/String is not populated:/);
@@ -131,14 +132,11 @@ function invalidExternalReference(message, fieldName, validCallData, testFunctio
     callData[fieldName] = undefined;
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/String is not populated:/);
   });
-  it(message + ' is in invalid format', async () => {
-    callData[fieldName] = 'invalid_reference';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read property/);
-  });
 }
 
-function invalidRequestState(message, fieldName, validCallData, testFunction) {
+function invalidRequestState(message, validCallData, testFunction) {
   let callData = { ...validCallData };
+  const fieldName = 'requestId'
   it(message + ' is empty', async () => {
     callData[fieldName] = '';
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid request ID type:/);
@@ -156,9 +154,8 @@ function invalidRequestState(message, fieldName, validCallData, testFunction) {
 module.exports = {
   invalidAccount,
   invalidAmount,
-  invalidEthereumToken,
+  invalidEthereumAddress,
   invalidNftId,
   invalidExternalReference,
   invalidRequestState,
-  invalidEthereumAccount
 };

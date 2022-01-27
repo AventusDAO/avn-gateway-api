@@ -73,7 +73,7 @@ pipeline {
                     break
                 }
                 def gpg_public_key = sh(script: 'gpg --export ${gpg_key_id} | base64 -w 0', returnStdout: true)
-                sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/vault.inventory --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}', 'root_gpg_public_key':'${gpg_public_key}', 'gpg_key_id':'${gpg_key_id}', 'deploy_vault': ${env.deploy}, 'init_vault': ${env.vault_init}, 'setup_avn_vault': ${env.setup_avn_vault} }\""
+                sh "ansible-playbook -v playbook-vault.yaml -i ${WORKSPACE}/_infra/terraform/environments/${env.gateway_environment}/gateway/vault.inventory --extra-vars \"{'vault_environment':'${env.gateway_environment}', 'tls_key_file':'${vault_tls_key}', 'root_gpg_public_key':'${gpg_public_key}', 'gpg_key_id':'${gpg_key_id}', 'deploy_vault': ${env.deploy}, 'init_vault': ${env.vault_init}, 'setup_avn_vault': ${env.setup_avn_vault} }\""
               }
             }
           }

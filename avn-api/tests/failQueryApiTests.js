@@ -13,6 +13,7 @@ const accounts = helper.ACCOUNTS;
   const validSender = accounts.sender;
   const validUser = accounts.user1;
   const validToken = helper.token;
+  //TODO: Nft address to be sourced from config file
   const unlistedSenderNft = '0x31a538814804e2364e8adeeb2fe2e771d855369ce3a31e2819353f149680bf09';
   let testConfig;
 

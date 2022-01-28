@@ -3,19 +3,22 @@ const expect = chai.expect;
 const testPatterns = require('./testPatterns.js');
 const helper = require('./helper.js');
 
-// Immediately Invoked Function Expression function to make async calls available before the test suite
-// Must call run() method with --delay flag
-
+// Immediately Invoked Function Expression to make async calls available before the test suite
+// This makes run() method available to be called with --delay flag
 (async function () {
   const api = await helper.avnApi();
   describe('Fail Poll api calls:', async () => {
     describe('requestState', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
-          requestId: 'Processed'
+        let testConfig = {
+          validCallData: {
+            requestId: 'Processed'
+          },
+          selectionField: 'requestId',
+          testFunction: api.poll.requestState
         };
         describe('With invalid request', async () => {
-          await testPatterns.invalidRequestState('Request', validCallData, api.poll.requestState);
+          await testPatterns.invalidRequestState(testConfig);
         });
       });
     });

@@ -5,71 +5,95 @@ chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 
+// Immediately Invoked Function Expression to make async calls available before the test suite
+// This makes run() method available to be called with --delay flag
 (async function () {
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
   const validSender = accounts.sender;
   const validUser = accounts.user1;
   const validToken = helper.token;
-  let validCallData;
+  const unlistedSenderNft = '0x31a538814804e2364e8adeeb2fe2e771d855369ce3a31e2819353f149680bf09';
+  let testConfig;
 
   describe('Fail Query api calls:', async done => {
     describe('getAvtBalance', async () => {
       describe('fails when called', async () => {
         describe('With invalid account', async () => {
-          let validCallData = {
-            account: validSender.address
+          testConfig = {
+            validCallData: {
+              account: validSender.address
+            },
+            selectionField: 'account',
+            testFunction: api.query.getAvtBalance
           };
-          await testPatterns.invalidAccount('Account', 'account', validCallData, api.query.getAvtBalance);
+          await testPatterns.invalidAccount(testConfig);
         });
       });
     });
 
     describe('getTokenBalance', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
-          account: validSender.address,
-          token: validToken
+        testConfig = {
+          validCallData: {
+            account: validSender.address,
+            token: validToken
+          },
+          selectionField: 'account',
+          testFunction: api.query.getTokenBalance
         };
         describe('With invalid account', async () => {
-          await testPatterns.invalidAccount('Account', 'account', validCallData, api.query.getTokenBalance);
+          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid token', async () => {
-          await testPatterns.invalidEthereumToken('Token', 'token', validCallData, api.query.getTokenBalance);
+          testConfig.selectionField = 'token';
+          await testPatterns.invalidEthereumAddress(testConfig);
         });
       });
     });
 
     describe('getAccountNonce', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
-          account: validSender.address
+        testConfig = {
+          validCallData: {
+            account: validSender.address
+          },
+          selectionField: 'account',
+          testFunction: api.query.getAccountNonce
         };
         describe('With invalid account', async () => {
-          await testPatterns.invalidAccount('Account', 'account', validCallData, api.query.getAccountNonce);
+          await testPatterns.invalidAccount(testConfig);
         });
       });
     });
 
     describe('getAccountPaymentNonce', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
-          account: validSender.address
+        testConfig = {
+          validCallData: {
+            account: validSender.address
+          },
+          selectionField: 'account',
+          testFunction: api.query.getAccountNonce
         };
         describe('With invalid account', async () => {
-          await testPatterns.invalidAccount('Account', 'account', validCallData, api.query.getAccountPaymentNonce);
+          await testPatterns.invalidAccount(testConfig);
         });
       });
     });
 
     describe('getRelayerFees', async () => {
-      validCallData = {
-        relayer: validRelayer.address,
-        user: validUser.address,
-        transaction_type: 'proxyAvtTransfer'
+      testConfig = {
+        validCallData: {
+          relayer: validRelayer.address,
+          user: validUser.address,
+          transaction_type: 'proxyAvtTransfer'
+        },
+        selectionField: 'relayer',
+        testFunction: api.query.getRelayerFees
       };
       beforeEach(async () => {
-        validCallData = {
+        testConfig.validCallData = {
           relayer: validRelayer.address,
           user: validUser.address,
           transaction_type: 'proxyAvtTransfer'
@@ -77,27 +101,30 @@ const accounts = helper.ACCOUNTS;
       });
       describe('fails when called', async () => {
         describe('With invalid account: Relayer', async () => {
-          let validData = {
+          testConfig.validCallData = {
             relayer: validRelayer.address
           };
-          await testPatterns.invalidAccount('Relayer', 'relayer', validData, api.query.getRelayerFees);
+          await testPatterns.invalidAccount(testConfig);
         });
         //TODO: investigate unexpected error when passing 2 arguments and we are validating the second argument
+        //TypeError: Cannot read property 'postRequest' of undefined should be 'Expected non-null, non-empty base58 input'
+        //This occurs on undefined and empty string tests only
         xdescribe('With invalid account: User', async () => {
-          let validData = {
+          testConfig.validCallData = {
             relayer: validRelayer.address,
             user: validUser.address
           };
-          await testPatterns.invalidAccount('User', 'user', validData, api.query.getRelayerFees);
+          testConfig.selectionField = 'user';
+          await testPatterns.invalidAccount(testConfig);
         });
         //TODO: Fix 500 error when calling the function with a relayer that is not a relayer
         xit('With relayer address that is not a relayer', async () => {
-          validCallData['relayer'] = validSender.address;
-          console.log(await api.query.getRelayerFees(...Object.values(validCallData)));
+          testConfig.validCallData.relayer = validSender.address;
+          console.log(await api.query.getRelayerFees(...Object.values(testConfig.validCallData)));
         });
         it('With invalid transaction type', async () => {
-          validCallData['transaction_type'] = 'invalid_type';
-          await expect(api.query.getRelayerFees(...Object.values(validCallData))).to.be.rejectedWith(
+          testConfig.validCallData.transaction_type = 'invalid_type';
+          await expect(api.query.getRelayerFees(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Invalid transaction type:/
           );
         });
@@ -106,27 +133,30 @@ const accounts = helper.ACCOUNTS;
 
     describe('getNftNonce', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
-          nftId: 'valid_id'
+        testConfig = {
+          validCallData: {
+            nftId: unlistedSenderNft
+          },
+          selectionField: 'nftId',
+          testFunction: api.query.getNftNonce
         };
         describe('With invalid nft id', async () => {
-          await testPatterns.invalidNftId('Nft Id', 'nftId', validCallData, api.query.getNftNonce);
+          await testPatterns.invalidNftId(testConfig);
         });
       });
     });
 
     describe('getNftId', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
-          externalReference: 'valid_reference'
+        testConfig = {
+          validCallData: {
+            externalReference: 'valid_reference'
+          },
+          selectionField: 'externalReference',
+          testFunction: api.query.getNftId
         };
         describe('With invalid external reference', async () => {
-          await testPatterns.invalidExternalReference(
-            'External reference',
-            'externalReference',
-            validCallData,
-            api.query.getNftId
-          );
+          await testPatterns.invalidExternalReference(testConfig);
         });
       });
     });
@@ -136,8 +166,15 @@ const accounts = helper.ACCOUNTS;
         let validCallData = {
           nftId: 'valid_id'
         };
+        testConfig = {
+          validCallData: {
+            nftId: unlistedSenderNft
+          },
+          selectionField: 'nftId',
+          testFunction: api.query.getNftOwner
+        };
         describe('With invalid nft id', async () => {
-          await testPatterns.invalidNftId('Nft id', 'nftId', validCallData, api.query.getNftOwner);
+          await testPatterns.invalidNftId(testConfig);
         });
       });
     });

@@ -34,6 +34,7 @@ const accounts = helper.ACCOUNTS;
   //Will fail if sandbox gets reset
   //Nft generator Script to be created so we can remove this test dependency
 
+  //TODO: These NFT addresses will be sourced from a config file
   //Nfts owned by Sender
   const unlistedSenderNft = '0x31a538814804e2364e8adeeb2fe2e771d855369ce3a31e2819353f149680bf09';
   const listedSenderNft = '0xdee4cb569d372d0cee1897c6164c7ce3b3857beeade6069117bc38613fe6dd95';

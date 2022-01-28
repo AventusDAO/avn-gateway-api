@@ -14,7 +14,7 @@ const BN = helper.BN;
  * @param testConfig An object that can be used to create a valid request.
  * It should contain validCallData, selectionField and testFunction keys where,
  * testFunction is the function being tested,
- * validCallData is the arguments to this test function,
+ * validCallData are the arguments to this test function,
  * selectionField is the chosen argument to test
  */
 async function invalidAccount(testConfig) {

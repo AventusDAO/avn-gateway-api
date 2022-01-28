@@ -6,6 +6,8 @@ chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 
+// Immediately Invoked Function Expression to make async calls available before the test suite
+// This makes run() method available to be called with --delay flag
 (async function () {
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
@@ -30,6 +32,7 @@ const accounts = helper.ACCOUNTS;
 
   //These Nfts were minted at Avn-ui for faster testing
   //Will fail if sandbox gets reset
+  //Nft generator Script to be created so we can remove this test dependency
 
   //Nfts owned by Sender
   const unlistedSenderNft = '0x31a538814804e2364e8adeeb2fe2e771d855369ce3a31e2819353f149680bf09';
@@ -38,50 +41,61 @@ const accounts = helper.ACCOUNTS;
   //Nfts owned by User
   const unlistedUserNft = '0xe9f6568c3444442edf8d37657cbe4050982205ef3435a0b0a4c8987306627ec0';
   const listedUserNft = '0x7bf45d3e340ed03026679b5f436004e983c04354485e6a20f6d9ab4ce7551cdd';
-  let validCallData;
+
+  let testConfig;
 
   describe('Fail Send api calls:', async () => {
     describe('transferAvt', async () => {
       describe('fails when called', async () => {
-        validCallData = {
-          relayer: validRelayer.address,
-          recipient: validUser.address,
-          amount: 22
+        testConfig = {
+          validCallData: {
+            relayer: validRelayer.address,
+            recipient: validUser.address,
+            amount: 22
+          },
+          selectionField: 'relayer',
+          testFunction: api.send.transferAvt
         };
         beforeEach(async () => {
-          validCallData = {
+          testConfig.validCallData = {
             relayer: validRelayer.address,
             recipient: validUser.address,
             amount: 22
           };
         });
         describe('With invalid account: relayer', async () => {
-          await testPatterns.invalidAccount('Relayer', 'relayer', validCallData, api.send.transferAvt);
+          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid account: recipient', async () => {
-          await testPatterns.invalidAccount('Recipient', 'recipient', validCallData, api.send.transferAvt);
+          testConfig.selectionField = 'recipient';
+          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid amount', async () => {
-          await testPatterns.invalidAmount('AVT Amount', 'amount', validCallData, api.send.transferAvt);
+          testConfig.selectionField = 'amount';
+          await testPatterns.invalidAmount(testConfig);
         });
         //TODO: Fix error code 500 when relayer is not a relayer
         xit('With relayer address that is not a relayer', async () => {
-          validCallData['relayer'] = validSender.address;
-          console.log(await api.send.transferAvt(...Object.values(validCallData)));
+          testConfig.validCallData.relayer = validSender.address;
+          console.log(await api.send.transferAvt(...Object.values(testConfig.validCallData)));
         });
       });
     });
 
     describe('transferToken', async () => {
       describe('fails when called', async () => {
-        validCallData = {
-          relayer: validRelayer.address,
-          recipient: validUser.address,
-          token: validToken,
-          amount: 22
+        testConfig = {
+          validCallData: {
+            relayer: validRelayer.address,
+            recipient: validUser.address,
+            token: validToken,
+            amount: 22
+          },
+          selectionField: 'relayer',
+          testFunction: api.send.transferToken
         };
         beforeEach(async () => {
-          validCallData = {
+          testConfig.validCallData = {
             relayer: validRelayer.address,
             recipient: validUser.address,
             token: validToken,
@@ -89,127 +103,134 @@ const accounts = helper.ACCOUNTS;
           };
         });
         describe('With invalid account: relayer', async () => {
-          await testPatterns.invalidAccount('Relayer', 'relayer', validCallData, api.send.transferToken);
+          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid account: recipient', async () => {
-          await testPatterns.invalidAccount('Recipient', 'recipient', validCallData, api.send.transferToken);
+          testConfig.selectionField = 'recipient';
+          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid token', async () => {
-          await testPatterns.invalidEthereumToken('Token', 'token', validCallData, api.send.transferToken);
+          testConfig.selectionField = 'token';
+          await testPatterns.invalidEthereumAddress(testConfig);
         });
         describe('With invalid token amount', async () => {
-          await testPatterns.invalidAmount('Token amount', 'amount', validCallData, api.send.transferToken);
+          testConfig.selectionField = 'amount';
+          await testPatterns.invalidAmount(testConfig);
         });
         //TODO: Fix error code 500 when relayer is not a relayer
         xit('With relayer address that is not a relayer', async () => {
-          validCallData['relayer'] = validUser.address;
-          console.log(await api.send.transferToken(...Object.values(validCallData)));
+          testConfig.validCallData.relayer = validUser.address;
+          console.log(await api.send.transferToken(...Object.values(testConfig.validCallData)));
         });
       });
     });
 
     describe('mintSingleNft', async () => {
       describe('fails when called', async () => {
-        validCallData = {
-          relayer: validRelayer.address,
-          externalReference: externalRef,
-          royalties: royalties,
-          T1Authority: dummyT1Authority
-        };
-        beforeEach(async () => {
-          validCallData = {
+        testConfig = {
+          validCallData: {
             relayer: validRelayer.address,
             externalReference: externalRef,
             royalties: royalties,
-            T1Authority: dummyT1Authority
+            ethereumAddress: dummyT1Authority
+          },
+          selectionField: 'relayer',
+          testFunction: api.send.mintSingleNft
+        };
+        beforeEach(async () => {
+          testConfig.validCallData = {
+            relayer: validRelayer.address,
+            externalReference: externalRef,
+            royalties: royalties,
+            ethereumAddress: dummyT1Authority
           };
         });
         describe('With invalid account: relayer', async () => {
-          await testPatterns.invalidAccount('Relayer', 'relayer', validCallData, api.send.mintSingleNft);
+          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid account: T1Authority', async () => {
-          await testPatterns.invalidEthereumAccount('T1Authority', 'T1Authority', validCallData, api.send.mintSingleNft);
+          testConfig.selectionField = 'ethereumAddress';
+          await testPatterns.invalidEthereumAddress(testConfig);
         });
         describe('With invalid external reference', async () => {
-          await testPatterns.invalidExternalReference(
-            'External reference',
-            'externalReference',
-            validCallData,
-            api.send.mintSingleNft
-          );
+          testConfig.selectionField = 'externalReference';
+          await testPatterns.invalidExternalReference(testConfig);
         });
         //TODO: Fix error code 500 when relayer is not a relayer
         xit('With relayer address that is not a relayer', async () => {
-          validCallData['relayer'] = validUser.address;
-          console.log(await api.send.mintSingleNft(...Object.values(validCallData)));
+          testConfig.validCallData.relayer = validUser.address;
+          console.log(await api.send.mintSingleNft(...Object.values(testConfig.validCallData)));
         });
 
         it('With royalties as undefined', async () => {
-          validCallData['royalties'] = undefined;
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(/Invalid array type:/);
+          testConfig.validCallData.royalties = undefined;
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid array type:/
+          );
         });
         it('With royalties with invalid JSON format', async () => {
-          validCallData['royalties'] = [
+          testConfig.validCallData.royalties = [
             {
               recipient_t1_address: royaltyRecipient1,
               parts_per_million: royaltyRate1
             }
           ];
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(/Cannot read property/);
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Cannot read property.*of undefined/
+          );
         });
-        //TODO: Should return an error
-        xit('With royalties where recipient address is empty string', async () => {
-          validCallData.royalties[0].recipient_t1_address = '';
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where recipient address is empty string', async () => {
+          testConfig.validCallData.royalties[0].recipient_t1_address = '';
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With royalties where recipient address is undefined', async () => {
-          validCallData.royalties[0].recipient_t1_address = undefined;
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where recipient address is undefined', async () => {
+          testConfig.validCallData.royalties[0].recipient_t1_address = undefined;
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With royalties where recipient address is in invalid format', async () => {
-          validCallData.royalties[0].recipient_t1_address = 'invalid_format';
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where recipient address is in invalid format', async () => {
+          testConfig.validCallData.royalties[0].recipient_t1_address = 'invalid_format';
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With royalties where recipient address is short', async () => {
-          validCallData.royalties[0].recipient_t1_address = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec0';
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where recipient address is short', async () => {
+          testConfig.validCallData.royalties[0].recipient_t1_address = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec';
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With royalties where recipient address is long', async () => {
-          validCallData.royalties[0].recipient_t1_address = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec035';
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where recipient address is long', async () => {
+          testConfig.validCallData.royalties[0].recipient_t1_address = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03ab';
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With royalties where parts_per_million not a number', async () => {
-          validCallData.royalties[0].rate.parts_per_million = 'string';
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where parts_per_million not a number', async () => {
+          testConfig.validCallData.royalties[0].rate.parts_per_million = 'string';
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With royalties where parts_per_million is zero', async () => {
-          validCallData.royalties[0].rate.parts_per_million = 0;
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where parts_per_million is zero', async () => {
+          testConfig.validCallData.royalties[0].rate.parts_per_million = 0;
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With royalties where parts_per_million is not integer', async () => {
-          validCallData.royalties[0].rate.parts_per_million = 10.1;
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where parts_per_million is not integer', async () => {
+          testConfig.validCallData.royalties[0].rate.parts_per_million = 10.1;
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With royalties where parts_per_million is bigger than 1,000,000', async () => {
-          validCallData.royalties[0].rate.parts_per_million = 100000000;
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where parts_per_million is bigger than 1,000,000', async () => {
+          testConfig.validCallData.royalties[0].rate.parts_per_million = 1000001;
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With royalties where parts_per_million is undefined', async () => {
-          validCallData.royalties[0].rate.parts_per_million = undefined;
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With royalties where parts_per_million is undefined', async () => {
+          testConfig.validCallData.royalties[0].rate.parts_per_million = undefined;
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Should return an error
-        xit('With multiple royalties where one of them is invalid', async () => {
-          validCallData['royalties'] = [
+        it('With multiple royalties where one of them is invalid', async () => {
+          testConfig.validCallData.royalties = [
             {
               recipient_t1_address: royaltyRecipient1,
               rate: {
@@ -223,120 +244,140 @@ const accounts = helper.ACCOUNTS;
               }
             }
           ];
-          await expect(api.send.mintSingleNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
       });
     });
 
     describe('listFiatNftForSale', async () => {
       describe('fails when called', async () => {
-        validCallData = {
-          relayer: validRelayer.address,
-          nftId: unlistedSenderNft
+        testConfig = {
+          validCallData: {
+            relayer: validRelayer.address,
+            nftId: unlistedSenderNft
+          },
+          selectionField: 'relayer',
+          testFunction: api.send.listFiatNftForSale
         };
         beforeEach(async () => {
-          validCallData = {
+          testConfig.validCallData = {
             relayer: validRelayer.address,
             nftId: unlistedSenderNft
           };
         });
         describe('With invalid account: relayer', async () => {
-          await testPatterns.invalidAccount('Relayer', 'relayer', validCallData, api.send.listFiatNftForSale);
+          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid nft id', async () => {
-          await testPatterns.invalidNftId('Nft id', 'nftId', validCallData, api.send.listFiatNftForSale);
+          testConfig.selectionField = 'nftId';
+          await testPatterns.invalidNftId(testConfig);
         });
         //TODO: Fix error code 500 when relayer is not a relayer
         xit('With relayer address that is not a relayer', async () => {
-          validCallData['relayer'] = validUser.address;
-          console.log(await api.send.listFiatNftForSale(...Object.values(validCallData)));
+          testConfig.validCallData.relayer = validUser.address;
+          console.log(await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData)));
         });
-        //TODO: This should return an error
-        xit('With sender that doesnt own this nft', async () => {
-          validCallData['nftId'] = unlistedUserNft;
-          await expect(api.send.listFiatNftForSale(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With sender that doesnt own this nft', async () => {
+          testConfig.validCallData.nftId = unlistedUserNft;
+          const requestId = await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: This should return an error
-        xit('With an NFT that is already listed', async () => {
-          validCallData['nftId'] = listedSenderNft;
-          await expect(api.send.listFiatNftForSale(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With an NFT that is already listed', async () => {
+          testConfig.validCallData.nftId = listedSenderNft;
+          const requestId = await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
       });
     });
 
     describe('transferFiatNft', async () => {
       describe('fails when called', async () => {
-        validCallData = {
-          relayer: validRelayer.address,
-          recipient: validUser.address,
-          nftId: listedSenderNft
+        testConfig = {
+          validCallData: {
+            relayer: validRelayer.address,
+            recipient: validUser.address,
+            nftId: listedSenderNft
+          },
+          selectionField: 'relayer',
+          testFunction: api.send.transferFiatNft
         };
         beforeEach(async () => {
-          validCallData = {
+          testConfig.validCallData = {
             relayer: validRelayer.address,
             recipient: validUser.address,
             nftId: listedSenderNft
           };
         });
         describe('With invalid account: relayer', async () => {
-          await testPatterns.invalidAccount('Relayer', 'relayer', validCallData, api.send.transferFiatNft);
+          await testPatterns.invalidAccount(testConfig);
         });
         //TODO: Error returns 'Cannot read property 'proxyTransferFiatNft' of undefined'
         // instead of addressing the bad recipient address
         xdescribe('With invalid account: recipient', async () => {
-          await testPatterns.invalidAccount('Recipient', 'recipient', validCallData, api.send.transferFiatNft);
+          testConfig.selectionField = 'recipient';
+          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid nft id', async () => {
-          await testPatterns.invalidNftId('Nft id', 'nftId', validCallData, api.send.transferFiatNft);
-        });
-        //TODO: This should return an error
-        xit('With sender that doesnt own this nft', async () => {
-          validCallData['nftId'] = listedUserNft;
-          await expect(api.send.transferFiatNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+          testConfig.selectionField = 'nftId';
+          await testPatterns.invalidNftId(testConfig);
         });
         //TODO: Fix error code 500
         xit('With relayer address that is not a relayer', async () => {
-          validCallData['relayer'] = validUser.address;
+          testConfig.validCallData.relayer = validUser.address;
+          console.log(await api.send.transferFiatNft(...Object.values(testConfig.validCallData)));
+        });
+        it('With sender that doesnt own this nft', async () => {
+          testConfig.validCallData.nftId = listedUserNft;
+          const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
         //TODO: Fix error code 500
-        xit('With an NFT that is not listed', async () => {
-          validCallData['relayer'] = unlistedSenderNft;
-          await expect(api.send.transferFiatNft(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With an NFT that is not listed', async () => {
+          testConfig.validCallData.nftId = unlistedSenderNft;
+          const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
       });
     });
 
     describe('cancelFiatNftListing', async () => {
       describe('fails when called', async () => {
-        validCallData = {
-          relayer: validRelayer.address,
-          nftId: listedSenderNft
+        testConfig = {
+          validCallData: {
+            relayer: validRelayer.address,
+            nftId: listedSenderNft
+          },
+          selectionField: 'relayer',
+          testFunction: api.send.cancelFiatNftListing
         };
         beforeEach(async () => {
-          validCallData = {
+          testConfig.validCallData = {
             relayer: validRelayer.address,
             nftId: listedSenderNft
           };
         });
         describe('With invalid account: relayer', async () => {
-          await testPatterns.invalidAccount('Relayer', 'relayer', validCallData, api.send.cancelFiatNftListing);
+          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid nft id', async () => {
-          await testPatterns.invalidNftId('Nft id', 'nftId', validCallData, api.send.cancelFiatNftListing);
+          testConfig.selectionField = 'nftId';
+          await testPatterns.invalidNftId(testConfig);
         });
         //TODO: Fix error code 500 when relayer is not a relayer
         xit('With relayer address that is not a relayer', async () => {
-          validCallData['relayer'] = validUser.address;
+          testConfig.validCallData.relayer = validUser.address;
+          console.log(await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData)));
         });
-        //TODO: Should return an error
-        xit('With sender that doesnt own this nft', async () => {
-          validCallData['nftId'] = listedUserNft;
-          await expect(api.send.cancelFiatNftListing(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('With sender that doesnt own this nft', async () => {
+          testConfig.validCallData.nftId = listedUserNft;
+          const requestId = await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Fix error code 500
-        xit('with an NFT that is not listed', async () => {
-          validCallData['relayer'] = unlistedSenderNft;
-          await expect(api.send.cancelFiatNftListing(...Object.values(validCallData))).to.be.rejectedWith(Error);
+        it('with an NFT that is not listed', async () => {
+          testConfig.validCallData.nftId = unlistedSenderNft;
+          const requestId = await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
       });
     });

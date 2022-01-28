@@ -75,7 +75,6 @@ async function invalidEthereumAddress(testConfig) {
     await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid ethereum address type:/);
   });
 
-  //Should I get size error here?
   it(selectionField + ' is too short ethereum address', async () => {
     const ETHEREUM_ADDRESS_19_BYTES = '0xb130395ae89acbe32999f8eb6e6114a56d6761';
     callData[selectionField] = ETHEREUM_ADDRESS_19_BYTES;

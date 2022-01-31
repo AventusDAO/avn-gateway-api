@@ -10,11 +10,10 @@ const nfts = helper.NFTS;
 // Immediately Invoked Function Expression to make async calls available before the test suite
 // This makes run() method available to be called with --delay flag
 (async function () {
-
   if (!nfts) {
     console.log('*** Please run: npm run generateState --gateway ***');
     return;
-  };
+  }
 
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;

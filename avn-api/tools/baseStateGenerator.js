@@ -12,7 +12,6 @@ let argv = yargs
   .string('c')
   .alias('c', 'gateway').argv;
 
-
 const accounts = helper.ACCOUNTS;
 const validRelayer = accounts.relayer;
 const validSender = accounts.sender;
@@ -50,7 +49,6 @@ const royalties = [
   requestId = await api.send.listFiatNftForSale(validRelayer.address, listedSenderNftId);
   await helper.confirmStatus(api, requestId, 'Processed');
 
-
   process.env.SURI = validUser.seed;
 
   //Mint nft owned by user
@@ -66,7 +64,6 @@ const royalties = [
   const listedUserNftId = await api.query.getNftId(externalRef);
   requestId = await api.send.listFiatNftForSale(validRelayer.address, listedUserNftId);
   await helper.confirmStatus(api, requestId, 'Processed');
-
 
   const mintedNfts = {
     sender: {
@@ -85,9 +82,9 @@ const royalties = [
   const configPath = gatewayFile ? `avn-api/config/${gatewayFile}.json` : 'avn-api/config/sandbox.json';
 
   const jsonString = fs.readFileSync(configPath);
-  const sandboxConfig = JSON.parse(jsonString)
+  const sandboxConfig = JSON.parse(jsonString);
 
-  sandboxConfig['nfts'] = mintedNfts
+  sandboxConfig['nfts'] = mintedNfts;
   const data = JSON.stringify(sandboxConfig, null, 2);
   fs.writeFileSync('avn-api/config/sandbox.json', data);
 })();

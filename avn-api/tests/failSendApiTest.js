@@ -54,7 +54,7 @@ const accounts = helper.ACCOUNTS;
             recipient: validUser.address,
             amount: 22
           },
-          selectionField: 'relayer',
+          selectionField: undefined,
           testFunction: api.send.transferAvt
         };
         beforeEach(async () => {
@@ -65,6 +65,7 @@ const accounts = helper.ACCOUNTS;
           };
         });
         describe('With invalid account: relayer', async () => {
+          testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid account: recipient', async () => {
@@ -92,7 +93,7 @@ const accounts = helper.ACCOUNTS;
             token: validToken,
             amount: 22
           },
-          selectionField: 'relayer',
+          selectionField: undefined,
           testFunction: api.send.transferToken
         };
         beforeEach(async () => {
@@ -104,6 +105,7 @@ const accounts = helper.ACCOUNTS;
           };
         });
         describe('With invalid account: relayer', async () => {
+          testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid account: recipient', async () => {
@@ -135,7 +137,7 @@ const accounts = helper.ACCOUNTS;
             royalties: royalties,
             ethereumAddress: dummyT1Authority
           },
-          selectionField: 'relayer',
+          selectionField: undefined,
           testFunction: api.send.mintSingleNft
         };
         beforeEach(async () => {
@@ -147,6 +149,7 @@ const accounts = helper.ACCOUNTS;
           };
         });
         describe('With invalid account: relayer', async () => {
+          testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid account: T1Authority', async () => {
@@ -258,7 +261,7 @@ const accounts = helper.ACCOUNTS;
             relayer: validRelayer.address,
             nftId: unlistedSenderNft
           },
-          selectionField: 'relayer',
+          selectionField: undefined,
           testFunction: api.send.listFiatNftForSale
         };
         beforeEach(async () => {
@@ -268,6 +271,7 @@ const accounts = helper.ACCOUNTS;
           };
         });
         describe('With invalid account: relayer', async () => {
+          testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid nft id', async () => {
@@ -300,7 +304,7 @@ const accounts = helper.ACCOUNTS;
             recipient: validUser.address,
             nftId: listedSenderNft
           },
-          selectionField: 'relayer',
+          selectionField: undefined,
           testFunction: api.send.transferFiatNft
         };
         beforeEach(async () => {
@@ -311,6 +315,7 @@ const accounts = helper.ACCOUNTS;
           };
         });
         describe('With invalid account: relayer', async () => {
+          testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
         //TODO: Error returns 'Cannot read property 'proxyTransferFiatNft' of undefined'
@@ -349,7 +354,7 @@ const accounts = helper.ACCOUNTS;
             relayer: validRelayer.address,
             nftId: listedSenderNft
           },
-          selectionField: 'relayer',
+          selectionField: undefined,
           testFunction: api.send.cancelFiatNftListing
         };
         beforeEach(async () => {
@@ -359,6 +364,7 @@ const accounts = helper.ACCOUNTS;
           };
         });
         describe('With invalid account: relayer', async () => {
+          testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid nft id', async () => {

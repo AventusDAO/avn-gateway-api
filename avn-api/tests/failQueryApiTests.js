@@ -1,113 +1,192 @@
 const chai = require('chai');
 const expect = chai.expect;
-const assert = chai.assert;
+const testPatterns = require('./testPatterns.js');
+chai.use(require('chai-as-promised'));
+const helper = require('./helper.js');
+const accounts = helper.ACCOUNTS;
 
-describe('Fail Query api calls:', async () => {
-  before(async () => {
-    //set up params
-  });
+// Immediately Invoked Function Expression to make async calls available before the test suite
+// This makes run() method available to be called with --delay flag
+(async function () {
+  const api = await helper.avnApi();
+  const validRelayer = accounts.relayer;
+  const validSender = accounts.sender;
+  const validUser = accounts.user1;
+  const validToken = helper.token;
+  //TODO: Nft address to be sourced from config file
+  const unlistedSenderNft = '0x31a538814804e2364e8adeeb2fe2e771d855369ce3a31e2819353f149680bf09';
+  let testConfig;
 
-  beforeEach(async () => {
-    //reset state for isolation of tests
-  });
+  describe('Fail Query api calls:', async done => {
+    describe('getAvtBalance', async () => {
+      describe('fails when called', async () => {
+        testConfig = {
+          validCallData: {
+            account: validSender.address
+          },
+          selectionField: undefined,
+          testFunction: api.query.getAvtBalance
+        };
+        describe('With invalid account', async () => {
+          testConfig.selectionField = 'account';
+          await testPatterns.invalidAccount(testConfig);
+        });
+      });
+    });
 
-  describe('getAvtBalance', async () => {
-    //getAvtBalance(account)
-    describe('fails when called', async () => {
-      it('With account as empty string');
-      it('With account as undefined');
-      it('With account in invalid format');
-      it('With account address short');
-      it('With account address long');
+    describe('getTokenBalance', async () => {
+      describe('fails when called', async () => {
+        testConfig = {
+          validCallData: {
+            account: validSender.address,
+            token: validToken
+          },
+          selectionField: undefined,
+          testFunction: api.query.getTokenBalance
+        };
+        describe('With invalid account', async () => {
+          testConfig.selectionField = 'account';
+          await testPatterns.invalidAccount(testConfig);
+        });
+        describe('With invalid token', async () => {
+          testConfig.selectionField = 'token';
+          await testPatterns.invalidEthereumAddress(testConfig);
+        });
+      });
+    });
+
+    describe('getAccountNonce', async () => {
+      describe('fails when called', async () => {
+        testConfig = {
+          validCallData: {
+            account: validSender.address
+          },
+          selectionField: undefined,
+          testFunction: api.query.getAccountNonce
+        };
+        describe('With invalid account', async () => {
+          testConfig.selectionField = 'account';
+          await testPatterns.invalidAccount(testConfig);
+        });
+      });
+    });
+
+    describe('getAccountPaymentNonce', async () => {
+      describe('fails when called', async () => {
+        testConfig = {
+          validCallData: {
+            account: validSender.address
+          },
+          selectionField: undefined,
+          testFunction: api.query.getAccountNonce
+        };
+        describe('With invalid account', async () => {
+          testConfig.selectionField = 'account';
+          await testPatterns.invalidAccount(testConfig);
+        });
+      });
+    });
+
+    describe('getRelayerFees', async () => {
+      testConfig = {
+        validCallData: {
+          relayer: validRelayer.address,
+          user: validUser.address,
+          transaction_type: 'proxyAvtTransfer'
+        },
+        selectionField: undefined,
+        testFunction: api.query.getRelayerFees
+      };
+      beforeEach(async () => {
+        testConfig.validCallData = {
+          relayer: validRelayer.address,
+          user: validUser.address,
+          transaction_type: 'proxyAvtTransfer'
+        };
+      });
+      describe('fails when called', async () => {
+        describe('With invalid account: Relayer', async () => {
+          testConfig.validCallData = {
+            relayer: validRelayer.address
+          };
+          testConfig.selectionField = 'relayer';
+          await testPatterns.invalidAccount(testConfig);
+        });
+        //TODO: investigate unexpected error when passing 2 arguments and we are validating the second argument
+        //TypeError: Cannot read property 'postRequest' of undefined should be 'Expected non-null, non-empty base58 input'
+        //This occurs on undefined and empty string tests only
+        xdescribe('With invalid account: User', async () => {
+          testConfig.validCallData = {
+            relayer: validRelayer.address,
+            user: validUser.address
+          };
+          testConfig.selectionField = 'user';
+          await testPatterns.invalidAccount(testConfig);
+        });
+        //TODO: Fix 500 error when calling the function with a relayer that is not a relayer
+        xit('With relayer address that is not a relayer', async () => {
+          testConfig.validCallData.relayer = validSender.address;
+          console.log(await api.query.getRelayerFees(...Object.values(testConfig.validCallData)));
+        });
+        it('With invalid transaction type', async () => {
+          testConfig.validCallData.transaction_type = 'invalid_type';
+          await expect(api.query.getRelayerFees(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid transaction type:/
+          );
+        });
+      });
+    });
+
+    describe('getNftNonce', async () => {
+      describe('fails when called', async () => {
+        testConfig = {
+          validCallData: {
+            nftId: unlistedSenderNft
+          },
+          selectionField: undefined,
+          testFunction: api.query.getNftNonce
+        };
+        describe('With invalid nft id', async () => {
+          testConfig.selectionField = 'nftId';
+          await testPatterns.invalidNftId(testConfig);
+        });
+      });
+    });
+
+    describe('getNftId', async () => {
+      describe('fails when called', async () => {
+        testConfig = {
+          validCallData: {
+            externalReference: 'valid_reference'
+          },
+          selectionField: undefined,
+          testFunction: api.query.getNftId
+        };
+        describe('With invalid external reference', async () => {
+          testConfig.selectionField = 'externalReference';
+          await testPatterns.invalidExternalReference(testConfig);
+        });
+      });
+    });
+
+    describe('getNftOwner', async () => {
+      describe('fails when called', async () => {
+        let validCallData = {
+          nftId: 'valid_id'
+        };
+        testConfig = {
+          validCallData: {
+            nftId: unlistedSenderNft
+          },
+          selectionField: undefined,
+          testFunction: api.query.getNftOwner
+        };
+        describe('With invalid nft id', async () => {
+          testConfig.selectionField = 'nftId';
+          await testPatterns.invalidNftId(testConfig);
+        });
+      });
     });
   });
-
-  describe('getTokenBalance', async () => {
-    //getTokenBalance(account, token_address)
-    describe('fails when called', async () => {
-      it('With account as empty string');
-      it('With account as undefined');
-      it('With account in invalid format');
-      it('With account address short');
-      it('With account address long');
-      it('With token as empty string');
-      it('With token as undefined');
-      it('With token in invalid format');
-      it('With token address short');
-      it('With token address long');
-    });
-  });
-
-  describe('getAccountNonce', async () => {
-    //getAccountNonce(account)
-    describe('fails when called', async () => {
-      it('With account as empty string');
-      it('With account as undefined');
-      it('With account in invalid format');
-      it('With account address short');
-      it('With account address long');
-      it('With account in valid format but not existent');
-    });
-  });
-
-  describe('getAccountPaymentNonce', async () => {
-    //getAccountPaymentNonce(account)
-    describe('fails when called', async () => {
-      it('With account as empty string');
-      it('With account as undefined');
-      it('With account in invalid format');
-      it('With account address short');
-      it('With account address long');
-      it('With account in valid format but not existent');
-    });
-  });
-
-  describe('getRelayerFees', async () => {
-    //getRelayerFees(avnRelayerAddress);
-    //getRelayerFees(avnRelayerAddress, user);
-    //getRelayerFees(avnRelayerAddress, user, _transaction_type);
-    describe('fails when called', async () => {
-      it('With relayer as empty string');
-      it('With relayer as undefined');
-      it('With relayer address in invalid format');
-      it('With relayer address short');
-      it('With relayer address long');
-      it('With user as empty string');
-      it('With user as undefined');
-      it('With user in invalid format');
-      it('With user address short');
-      it('With user address long');
-      it('With transaction as empty string');
-      it('With transaction type as undefined');
-      it('With transaction type wrong');
-    });
-  });
-
-  describe('getNftNonce', async () => {
-    //getNftNonce(nftId)
-    describe('fails when called', async () => {
-      it('With nft id as empty string');
-      it('With nft id as undefined');
-      it('With nft id that doesnt exist');
-    });
-  });
-
-  describe('getNftId', async () => {
-    //getNftId(external_reference);
-    describe('fails when called', async () => {
-      it('With external reference as empty string');
-      it('With external reference as undefined');
-      it('With external reference in invalid format');
-      it('With external reference in valid format but not existent');
-    });
-  });
-
-  describe('getNftOwner', async () => {
-    //getNftOwner(nftId)
-    describe('fails when called', async () => {
-      it('With nft id as empty string');
-      it('With nft id as undefined');
-      it('With nft id that doesnt exist');
-    });
-  });
-});
+  run();
+})();

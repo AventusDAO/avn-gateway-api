@@ -20,14 +20,15 @@ const accounts = helper.ACCOUNTS;
   describe('Fail Query api calls:', async done => {
     describe('getAvtBalance', async () => {
       describe('fails when called', async () => {
+        testConfig = {
+          validCallData: {
+            account: validSender.address
+          },
+          selectionField: undefined,
+          testFunction: api.query.getAvtBalance
+        };
         describe('With invalid account', async () => {
-          testConfig = {
-            validCallData: {
-              account: validSender.address
-            },
-            selectionField: 'account',
-            testFunction: api.query.getAvtBalance
-          };
+          testConfig.selectionField = 'account';
           await testPatterns.invalidAccount(testConfig);
         });
       });
@@ -40,10 +41,11 @@ const accounts = helper.ACCOUNTS;
             account: validSender.address,
             token: validToken
           },
-          selectionField: 'account',
+          selectionField: undefined,
           testFunction: api.query.getTokenBalance
         };
         describe('With invalid account', async () => {
+          testConfig.selectionField = 'account';
           await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid token', async () => {
@@ -59,10 +61,11 @@ const accounts = helper.ACCOUNTS;
           validCallData: {
             account: validSender.address
           },
-          selectionField: 'account',
+          selectionField: undefined,
           testFunction: api.query.getAccountNonce
         };
         describe('With invalid account', async () => {
+          testConfig.selectionField = 'account';
           await testPatterns.invalidAccount(testConfig);
         });
       });
@@ -74,10 +77,11 @@ const accounts = helper.ACCOUNTS;
           validCallData: {
             account: validSender.address
           },
-          selectionField: 'account',
+          selectionField: undefined,
           testFunction: api.query.getAccountNonce
         };
         describe('With invalid account', async () => {
+          testConfig.selectionField = 'account';
           await testPatterns.invalidAccount(testConfig);
         });
       });
@@ -90,7 +94,7 @@ const accounts = helper.ACCOUNTS;
           user: validUser.address,
           transaction_type: 'proxyAvtTransfer'
         },
-        selectionField: 'relayer',
+        selectionField: undefined,
         testFunction: api.query.getRelayerFees
       };
       beforeEach(async () => {
@@ -105,6 +109,7 @@ const accounts = helper.ACCOUNTS;
           testConfig.validCallData = {
             relayer: validRelayer.address
           };
+          testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
         //TODO: investigate unexpected error when passing 2 arguments and we are validating the second argument
@@ -138,10 +143,11 @@ const accounts = helper.ACCOUNTS;
           validCallData: {
             nftId: unlistedSenderNft
           },
-          selectionField: 'nftId',
+          selectionField: undefined,
           testFunction: api.query.getNftNonce
         };
         describe('With invalid nft id', async () => {
+          testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
       });
@@ -153,10 +159,11 @@ const accounts = helper.ACCOUNTS;
           validCallData: {
             externalReference: 'valid_reference'
           },
-          selectionField: 'externalReference',
+          selectionField: undefined,
           testFunction: api.query.getNftId
         };
         describe('With invalid external reference', async () => {
+          testConfig.selectionField = 'externalReference';
           await testPatterns.invalidExternalReference(testConfig);
         });
       });
@@ -171,10 +178,11 @@ const accounts = helper.ACCOUNTS;
           validCallData: {
             nftId: unlistedSenderNft
           },
-          selectionField: 'nftId',
+          selectionField: undefined,
           testFunction: api.query.getNftOwner
         };
         describe('With invalid nft id', async () => {
+          testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
       });

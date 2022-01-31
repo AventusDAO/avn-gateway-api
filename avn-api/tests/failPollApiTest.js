@@ -1,23 +1,27 @@
 const chai = require('chai');
 const expect = chai.expect;
-const assert = chai.assert;
 const testPatterns = require('./testPatterns.js');
+const helper = require('./helper.js');
 
-describe('Fail Poll api calls:', async () => {
-  before(async () => {
-    //set up params
-  });
-
-  beforeEach(async () => {
-    //reset state for isolation of tests
-  });
-
-  describe('requestState', async () => {
-    //requestState(requestId)
-    describe('fails when called', async () => {
-      describe('With invalid request', async () => {
-        await testPatterns.invalidRequest('Request', 'requestId', 'validCallData');
+// Immediately Invoked Function Expression to make async calls available before the test suite
+// This makes run() method available to be called with --delay flag
+(async function () {
+  const api = await helper.avnApi();
+  describe('Fail Poll api calls:', async () => {
+    describe('requestState', async () => {
+      describe('fails when called', async () => {
+        let testConfig = {
+          validCallData: {
+            requestId: 'Processed'
+          },
+          selectionField: 'requestId',
+          testFunction: api.poll.requestState
+        };
+        describe('With invalid request', async () => {
+          await testPatterns.invalidRequestState(testConfig);
+        });
       });
     });
   });
-});
+  run();
+})();

@@ -5,10 +5,16 @@ const testPatterns = require('./testPatterns.js');
 chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
+const nfts = helper.NFTS;
 
 // Immediately Invoked Function Expression to make async calls available before the test suite
 // This makes run() method available to be called with --delay flag
 (async function () {
+  if (!nfts) {
+    console.log('*** Please run: npm run generateState --gateway <environment> ***');
+    return;
+  }
+
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
   const validSender = accounts.sender;
@@ -30,18 +36,13 @@ const accounts = helper.ACCOUNTS;
     }
   ];
 
-  //These Nfts were minted at Avn-ui for faster testing
-  //Will fail if sandbox gets reset
-  //Nft generator Script to be created so we can remove this test dependency
-
-  //TODO: These NFT addresses will be sourced from a config file
   //Nfts owned by Sender
-  const unlistedSenderNft = '0x31a538814804e2364e8adeeb2fe2e771d855369ce3a31e2819353f149680bf09';
-  const listedSenderNft = '0xdee4cb569d372d0cee1897c6164c7ce3b3857beeade6069117bc38613fe6dd95';
+  const unlistedSenderNft = nfts.sender.unlistedNft;
+  const listedSenderNft = nfts.sender.listedNft;
 
   //Nfts owned by User
-  const unlistedUserNft = '0xe9f6568c3444442edf8d37657cbe4050982205ef3435a0b0a4c8987306627ec0';
-  const listedUserNft = '0x7bf45d3e340ed03026679b5f436004e983c04354485e6a20f6d9ab4ce7551cdd';
+  const unlistedUserNft = nfts.user.unlistedNft;
+  const listedUserNft = nfts.user.listedNft;
 
   let testConfig;
 

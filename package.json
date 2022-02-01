@@ -5,7 +5,8 @@
     "solo": "mocha --timeout 100000 ",
     "pretty": "prettier --config ./.prettierrc.json --check \"**/*.{js,json}\"",
     "pretty:fix": "prettier --config ./.prettierrc.json --write \"**/*.{js,json}\"",
-    "format": "npm run pretty:fix"
+    "format": "npm run pretty:fix",
+    "generateState": "./avn-api/tools/baseStateGenerator.js --gateway"
   },
   "devDependencies": {
     "chai": "^4.3.4",

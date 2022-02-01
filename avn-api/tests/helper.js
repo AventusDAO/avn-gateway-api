@@ -20,7 +20,7 @@ let argv = yargs
 
 let gatewayFile = argv.gateway;
 const configPath = gatewayFile ? `../config/${gatewayFile}.json` : '../config/sandbox.json';
-const { gateway, token } = require(configPath);
+const { gateway, token, nfts } = require(configPath);
 
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
@@ -54,6 +54,7 @@ async function confirmStatus(api, requestId, expectedStatus) {
 // keep alphabetical
 module.exports = {
   ACCOUNTS: accounts,
+  NFTS: nfts,
   confirmStatus,
   avnApi,
   BN,

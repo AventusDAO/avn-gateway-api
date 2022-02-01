@@ -4,17 +4,22 @@ const testPatterns = require('./testPatterns.js');
 chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
+const nfts = helper.NFTS;
 
 // Immediately Invoked Function Expression to make async calls available before the test suite
 // This makes run() method available to be called with --delay flag
 (async function () {
+  if (!nfts) {
+    console.log('*** Please run: npm run generateState --gateway <environment> ***');
+    return;
+  }
+
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
   const validSender = accounts.sender;
   const validUser = accounts.user1;
   const validToken = helper.token;
-  //TODO: Nft address to be sourced from config file
-  const unlistedSenderNft = '0x31a538814804e2364e8adeeb2fe2e771d855369ce3a31e2819353f149680bf09';
+  const unlistedSenderNft = nfts.sender.unlistedNft;
   let testConfig;
 
   describe('Fail Query api calls:', async done => {

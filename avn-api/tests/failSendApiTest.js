@@ -145,7 +145,14 @@ const nfts = helper.NFTS;
           testConfig.validCallData = {
             relayer: validRelayer.address,
             externalReference: externalRef,
-            royalties: royalties,
+            royalties: [
+              {
+                recipient_t1_address: royaltyRecipient1,
+                rate: {
+                  parts_per_million: royaltyRate1
+                }
+              }
+            ],
             ethereumAddress: dummyT1Authority
           };
         });
@@ -181,58 +188,68 @@ const nfts = helper.NFTS;
             }
           ];
           await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Cannot read property.*of undefined/
+            /Invalid JSON format:/
           );
         });
         it('With royalties where recipient address is empty string', async () => {
           testConfig.validCallData.royalties[0].recipient_t1_address = '';
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid ethereum address type:/
+          );
         });
         it('With royalties where recipient address is undefined', async () => {
           testConfig.validCallData.royalties[0].recipient_t1_address = undefined;
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid ethereum address type:/
+          );
         });
         it('With royalties where recipient address is in invalid format', async () => {
           testConfig.validCallData.royalties[0].recipient_t1_address = 'invalid_format';
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid ethereum address type:/
+          );
         });
         it('With royalties where recipient address is short', async () => {
           testConfig.validCallData.royalties[0].recipient_t1_address = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec';
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid ethereum address type:/
+          );
         });
         it('With royalties where recipient address is long', async () => {
           testConfig.validCallData.royalties[0].recipient_t1_address = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03ab';
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid ethereum address type:/
+          );
         });
         it('With royalties where parts_per_million not a number', async () => {
           testConfig.validCallData.royalties[0].rate.parts_per_million = 'string';
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid rate value:/
+          );
         });
         it('With royalties where parts_per_million is zero', async () => {
           testConfig.validCallData.royalties[0].rate.parts_per_million = 0;
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid rate value:/
+          );
         });
         it('With royalties where parts_per_million is not integer', async () => {
           testConfig.validCallData.royalties[0].rate.parts_per_million = 10.1;
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid rate value:/
+          );
         });
         it('With royalties where parts_per_million is bigger than 1,000,000', async () => {
           testConfig.validCallData.royalties[0].rate.parts_per_million = 1000001;
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid rate value:/
+          );
         });
         it('With royalties where parts_per_million is undefined', async () => {
           testConfig.validCallData.royalties[0].rate.parts_per_million = undefined;
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid rate value:/
+          );
         });
         it('With multiple royalties where one of them is invalid', async () => {
           testConfig.validCallData.royalties = [
@@ -249,8 +266,9 @@ const nfts = helper.NFTS;
               }
             }
           ];
-          const requestId = await api.send.mintSingleNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Invalid ethereum address type:/
+          );
         });
       });
     });

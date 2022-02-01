@@ -18,13 +18,11 @@ const validSender = accounts.sender;
 const validUser = accounts.user1;
 
 const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
-const royaltyRecipient1 = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03';
-const royaltyRate1 = 10000;
 const royalties = [
   {
-    recipient_t1_address: royaltyRecipient1,
+    recipient_t1_address: '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03',
     rate: {
-      parts_per_million: royaltyRate1
+      parts_per_million: 10000
     }
   }
 ];

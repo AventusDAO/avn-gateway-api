@@ -78,13 +78,16 @@ function validateRoyaltiesStructure(royalties) {
 
 function validateRoyalties(royalties) {
   validateIsArray(royalties);
+  if (royalties.length === 0 ) {
+    return;
+  }
   validateRoyaltiesStructure(royalties);
 
   royalties.forEach(royalty => {
     validateEthereumAddress(royalty.recipient_t1_address);
     if (
-      !royalty.rate.parts_per_million ||
-      !Number.isInteger(royalty.rate.parts_per_million) ||
+      royalty.rate.parts_per_million === false ||
+      Number.isInteger(royalty.rate.parts_per_million) === false  ||
       royalty.rate.parts_per_million <= 0 ||
       royalty.rate.parts_per_million > 1000000
     ) {

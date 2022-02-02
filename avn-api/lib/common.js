@@ -66,13 +66,13 @@ function validateRoyaltiesStructure(royalties) {
   let structureCheck;
 
   royalties.forEach(royalty => {
-    structureCheck = royalty ? JSON.stringify(Object.keys(royalty)) === JSON.stringify(royaltiesStructure) : false;
+    structureCheck = JSON.stringify(Object.keys(royalty)) === JSON.stringify(royaltiesStructure);
     if (structureCheck) {
-      structureCheck = royalty.rate ? JSON.stringify(Object.keys(royalty.rate)) === JSON.stringify(rateStructure) : false;
+      structureCheck = JSON.stringify(Object.keys(royalty.rate)) === JSON.stringify(rateStructure);
     }
   });
   if (!structureCheck) {
-    throw new Error(`Invalid JSON format: ${royalties}`);
+    throw new Error(`Invalid royalties format: ${royalties}`);
   }
 }
 

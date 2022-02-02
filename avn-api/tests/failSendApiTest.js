@@ -188,7 +188,7 @@ const nfts = helper.NFTS;
             }
           ];
           await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Invalid JSON format:/
+            /Invalid royalties format:/
           );
         });
         it('With royalties where recipient address is empty string', async () => {

@@ -42,7 +42,7 @@ function errorResponse(rpcError, gatewayError, error, request, id) {
   const lineNum = frame.split(':').reverse()[1];
   const func = frame.split(' ')[5];
   const ref = file + ' line ' + lineNum + ' (' + func + ')';
-  const errorData = error.response ? err.response.data : 'N/A';
+  const errorData = error.response ? error.response.data : 'N/A';
   console.error(
     `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${JSON.stringify(error)}`
   );

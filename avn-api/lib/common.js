@@ -60,6 +60,42 @@ function validateEthereumAddress(ethereumAddress) {
   }
 }
 
+function validateRoyaltiesStructure(royalties) {
+  const royaltiesStructure = ['recipient_t1_address', 'rate'];
+  const rateStructure = ['parts_per_million'];
+  let structureCheck;
+
+  royalties.forEach(royalty => {
+    structureCheck = JSON.stringify(Object.keys(royalty)) === JSON.stringify(royaltiesStructure);
+    if (structureCheck) {
+      structureCheck = JSON.stringify(Object.keys(royalty.rate)) === JSON.stringify(rateStructure);
+    }
+  });
+  if (!structureCheck) {
+    throw new Error(`Invalid royalties format: ${royalties}`);
+  }
+}
+
+function validateRoyalties(royalties) {
+  validateIsArray(royalties);
+  if (royalties.length === 0 ) {
+    return;
+  }
+  validateRoyaltiesStructure(royalties);
+
+  royalties.forEach(royalty => {
+    validateEthereumAddress(royalty.recipient_t1_address);
+    if (
+      royalty.rate.parts_per_million === false ||
+      Number.isInteger(royalty.rate.parts_per_million) === false  ||
+      royalty.rate.parts_per_million <= 0 ||
+      royalty.rate.parts_per_million > 1000000
+    ) {
+      throw new Error(`Invalid rate value: ${royalty.rate.parts_per_million}`);
+    }
+  });
+}
+
 function validateIsArray(array) {
   const isValid = Array.isArray(array);
   if (isValid === false) {
@@ -124,5 +160,6 @@ module.exports = {
   validateNftId,
   validateRequestId,
   validateStringIsPopulated,
-  validateTransactionType
+  validateTransactionType,
+  validateRoyalties
 };

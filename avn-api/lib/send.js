@@ -45,7 +45,7 @@ function mintSingleNft(api, queryApi) {
   return async function (relayer, externalRef, royalties, t1Authority) {
     common.validateAccount(relayer);
     common.validateStringIsPopulated(externalRef);
-    common.validateIsArray(royalties);
+    common.validateRoyalties(royalties);
     common.validateEthereumAddress(t1Authority);
 
     return await this.proxyMintSingleNft(api, queryApi, relayer, externalRef, royalties, t1Authority);

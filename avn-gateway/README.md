@@ -27,7 +27,7 @@ https://aventus-network-services.awsapps.com/start#/
 
 4) Push your changes to AWS:
 
-##### Update/deploy all lambdas and layers
+##### Update/deploy all lambdas and layers (slow but required for changes to layers or adding new lambdas etc)
 ```
 sls deploy
 ```

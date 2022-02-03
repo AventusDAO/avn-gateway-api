@@ -1,28 +1,41 @@
 ## Overview
-The setup of the auth, layers, lambdas and routes of a gateway is handled by Serverless and defined in `serverless.yml`
-(for serverless properties see: https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)
+The setup of the authorisation, layers, lambdas and routes of a gateway is handled by Serverless and defined in `serverless.yml`.
+
+For serverless properties see: https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml
+
 Each environment has its own variables which can be set in the other `*.yml` files (eg: `sandbox.yml`)
-Layers are contained in folders (eg: `common/`)
+
+Layers (code shared between lambdas) are contained in folders (eg: `common/`)
+
 Lambdas are contained in `*-handler.js` files (eg: `poll-handler.js`)
 
+
 ## Prerequisites
-Install dependencies: `npm i`
-Set up AWS if required: https://www.serverless.com/framework/docs/providers/aws/guide/credentials
+Install serverless: `npm install -g serverless`
+
+Set up AWS credentials if required: https://www.serverless.com/framework/docs/providers/aws/guide/credentials
+
 
 ## Development
-Ensure the node modules in any layer folders are up-to-date.
-Set the environment, (eg: `export SLS_ENV=sandbox`)
-Ensure you've set the correct AWS credentials for the environment (see: https://aventus-network-services.awsapps.com/start#/)
+1) Ensure the node modules in any layer folders (eg: `common/` or `queue/`) are up-to-date by running `npm i` in them.
 
-### Update/deploy all lambdas and layers
+2) Set the environment variable `SLS_ENV` to point to the environment you'll be deploying to (eg: `export SLS_ENV=sandbox`)
+
+3) Ensure you've set the correct AWS environment variables for your environment in your terminal by copying them from here:
+https://aventus-network-services.awsapps.com/start#/
+(eg: `AWS Account > AVN Sandbox > AdministratorAccess > Command line or programmatic access > Option 1 - "Click to copy these commands"`)
+
+4) Push your changes to AWS:
+
+##### Update/deploy all lambdas and layers
 ```
 sls deploy
 ```
-### Update/add a single lambda (fast)
+##### Update/add a single lambda (fast)
 ```
 sls deploy function --function query-handler
 ```
-### Remove all lambdas and layers
+##### Remove all lambdas and layers
 ```
 sls remove
 ```

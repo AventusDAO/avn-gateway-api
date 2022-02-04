@@ -102,10 +102,9 @@ function invalidAmount(testConfig) {
     console.log(testFunction(...Object.values(callData)));
   });
 
-  //TODO Fix error message "Cannot read property 'toString' of undefined"
-  xit(selectionField + ' is undefined', async () => {
+  it(selectionField + ' is undefined', async () => {
     callData[selectionField] = undefined;
-    console.log(await testFunction(...Object.values(callData)));
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid amount type:/);
   });
 
   it(selectionField + ' is zero', async () => {

@@ -337,9 +337,7 @@ const nfts = helper.NFTS;
           testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
-        //TODO: Error returns 'Cannot read property 'proxyTransferFiatNft' of undefined'
-        // instead of addressing the bad recipient address
-        xdescribe('With invalid account: recipient', async () => {
+        describe('With invalid account: recipient', async () => {
           testConfig.selectionField = 'recipient';
           await testPatterns.invalidAccount(testConfig);
         });
@@ -357,7 +355,6 @@ const nfts = helper.NFTS;
           const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Fix error code 500
         it('With an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedSenderNft;
           const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));

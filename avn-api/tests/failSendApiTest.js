@@ -129,6 +129,13 @@ const BN = helper.BN;
           testConfig.selectionField = 'amount';
           await testPatterns.invalidAmount(testConfig);
         });
+        it('With token amount greater than senders balance', async () => {
+          const senderAvtBalance = await api.query.getTokenBalance(accounts.sender.address, testConfig.validCallData.token);
+          const greaterAmount = new BN(senderAvtBalance).add(new BN('1'));
+          testConfig.validCallData.amount = greaterAmount;
+          const requestId = await api.send.transferToken(...Object.values(testConfig.validCallData))
+          await helper.confirmStatus(api, requestId, 'Rejected');
+        });
         //TODO: Fix error code 500 when relayer is not a relayer
         xit('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validUser.address;

@@ -138,7 +138,7 @@ async function getRelayerFees(call, request) {
     const result = avnResponse.data;
     return utils.validResponse(call.id, result);
   } catch (err) {
-    return utils.errorResponse('internal', 'failed to call avn-connector', err, request, call.id);
+    return utils.errorResponse('internal', err.response.data.error, err, request, call.id);
   }
 }
 

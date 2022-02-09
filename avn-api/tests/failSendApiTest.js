@@ -85,10 +85,11 @@ const BN = helper.BN;
           const requestId = await api.send.transferAvt(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Fix error code 500 when relayer is not a relayer
-        xit('With relayer address that is not a relayer', async () => {
+        it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validSender.address;
-          console.log(await api.send.transferAvt(...Object.values(testConfig.validCallData)));
+          await expect(api.send.transferAvt(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Relayer.*is not registered with AvN Gateway/
+          );
         });
       });
     });
@@ -136,10 +137,11 @@ const BN = helper.BN;
           const requestId = await api.send.transferToken(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Fix error code 500 when relayer is not a relayer
-        xit('With relayer address that is not a relayer', async () => {
+        it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validUser.address;
-          console.log(await api.send.transferToken(...Object.values(testConfig.validCallData)));
+          await expect(api.send.transferToken(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Relayer.*is not registered with AvN Gateway/
+          );
         });
       });
     });
@@ -183,10 +185,11 @@ const BN = helper.BN;
           testConfig.selectionField = 'externalReference';
           await testPatterns.invalidExternalReference(testConfig);
         });
-        //TODO: Fix error code 500 when relayer is not a relayer
-        xit('With relayer address that is not a relayer', async () => {
+        it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validUser.address;
-          console.log(await api.send.mintSingleNft(...Object.values(testConfig.validCallData)));
+          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Relayer.*is not registered with AvN Gateway/
+          );
         });
 
         it('With royalties as undefined', async () => {
@@ -312,10 +315,11 @@ const BN = helper.BN;
           testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
-        //TODO: Fix error code 500 when relayer is not a relayer
-        xit('With relayer address that is not a relayer', async () => {
+        it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validUser.address;
-          console.log(await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData)));
+          await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Relayer.*is not registered with AvN Gateway/
+          );
         });
         it('With sender that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
@@ -352,9 +356,7 @@ const BN = helper.BN;
           testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
-        //TODO: Error returns 'Cannot read property 'proxyTransferFiatNft' of undefined'
-        // instead of addressing the bad recipient address
-        xdescribe('With invalid account: recipient', async () => {
+        describe('With invalid account: recipient', async () => {
           testConfig.selectionField = 'recipient';
           await testPatterns.invalidAccount(testConfig);
         });
@@ -362,17 +364,17 @@ const BN = helper.BN;
           testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
-        //TODO: Fix error code 500
-        xit('With relayer address that is not a relayer', async () => {
+        it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validUser.address;
-          console.log(await api.send.transferFiatNft(...Object.values(testConfig.validCallData)));
+          await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Relayer.*is not registered with AvN Gateway/
+          );
         });
         it('With sender that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        //TODO: Fix error code 500
         it('With an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedSenderNft;
           const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
@@ -405,10 +407,11 @@ const BN = helper.BN;
           testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
-        //TODO: Fix error code 500 when relayer is not a relayer
-        xit('With relayer address that is not a relayer', async () => {
+        it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validUser.address;
-          console.log(await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData)));
+          await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Relayer.*is not registered with AvN Gateway/
+          );
         });
         it('With sender that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;

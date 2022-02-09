@@ -82,7 +82,7 @@ const BN = helper.BN;
           const senderAvtBalance = await api.query.getAvtBalance(accounts.sender.address);
           const greaterAmount = new BN(senderAvtBalance).add(new BN('1'));
           testConfig.validCallData.amount = greaterAmount;
-          const requestId = await api.send.transferAvt(...Object.values(testConfig.validCallData))
+          const requestId = await api.send.transferAvt(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
         //TODO: Fix error code 500 when relayer is not a relayer
@@ -133,7 +133,7 @@ const BN = helper.BN;
           const senderAvtBalance = await api.query.getTokenBalance(accounts.sender.address, testConfig.validCallData.token);
           const greaterAmount = new BN(senderAvtBalance).add(new BN('1'));
           testConfig.validCallData.amount = greaterAmount;
-          const requestId = await api.send.transferToken(...Object.values(testConfig.validCallData))
+          const requestId = await api.send.transferToken(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
         //TODO: Fix error code 500 when relayer is not a relayer

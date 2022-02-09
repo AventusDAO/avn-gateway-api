@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const path = require('path');
 const helper = require('../tests/helper.js');
 const yargs = require('yargs');
 let argv = yargs
@@ -77,12 +78,13 @@ const royalties = [
   };
 
   let gatewayFile = argv.gateway;
-  const configPath = gatewayFile ? `avn-api/config/${gatewayFile}.json` : 'avn-api/config/sandbox.json';
+  const configPath = gatewayFile ? `../config/${gatewayFile}.json` : '../config/sandbox.json';
+  const resolvedPath = path.resolve(__dirname, configPath);
 
-  const jsonString = fs.readFileSync(configPath);
-  const sandboxConfig = JSON.parse(jsonString);
+  const jsonString = fs.readFileSync(resolvedPath);
+  const gatewayConfig = JSON.parse(jsonString);
 
-  sandboxConfig['nfts'] = mintedNfts;
-  const data = JSON.stringify(sandboxConfig, null, 2);
-  fs.writeFileSync('avn-api/config/sandbox.json', data);
+  gatewayConfig['nfts'] = mintedNfts;
+  const data = JSON.stringify(gatewayConfig, null, 2);
+  fs.writeFileSync(resolvedPath, data);
 })();

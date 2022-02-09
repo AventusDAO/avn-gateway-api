@@ -1,8 +1,7 @@
-variablesResolutionMode: 20210326
 service: avn-gateway
 package:
   individually: true
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 provider:
   region: ${file(./${env:SLS_ENV}.yml):region}

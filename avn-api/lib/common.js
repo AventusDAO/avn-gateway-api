@@ -45,7 +45,7 @@ function validateAccount(account) {
 }
 
 function validateAndConvertAmountToString(amount) {
-  const amountAsString = !amount || amount.toString();
+  const amountAsString = amount && amount.toString();
   const isValid = /^\d+$/.test(amountAsString) && new BN(amount).isZero() === false;
   if (isValid === false) {
     throw new Error(`Invalid amount type: ${amount}`);

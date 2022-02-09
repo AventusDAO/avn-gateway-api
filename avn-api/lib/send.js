@@ -65,6 +65,7 @@ function listFiatNftForSale(api, queryApi) {
 function transferFiatNft(api, queryApi) {
   return async function (relayer, _recipient, nftId) {
     common.validateAccount(relayer);
+    common.validateAccount(_recipient);
     const recipient = common.convertToPublicKeyIfNeeded(_recipient);
     common.validateNftId(nftId);
 

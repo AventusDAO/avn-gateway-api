@@ -4,7 +4,6 @@ const assert = chai.assert;
 chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
-const BN = helper.BN;
 
 /**
  * This method encapsulates in one call all the possible tests for an invalid account. It could be used with any account.
@@ -93,19 +92,9 @@ function invalidAmount(testConfig) {
   const testFunction = testConfig.testFunction;
   let callData = { ...testConfig.validCallData };
 
-  //TODO: Fix "Cannot read property 'proxyTransfer' of undefined"
-  xit(selectionField + ' is greater than senders balance', async () => {
-    const api = await helper.avnApi();
-    const senderAvtBalance = await api.query.getAvtBalance(accounts.sender.address);
-    const greaterAmount = new BN(senderAvtBalance).add(new BN('1')).toString();
-    callData[selectionField] = greaterAmount;
-    console.log(testFunction(...Object.values(callData)));
-  });
-
-  //TODO Fix error message "Cannot read property 'toString' of undefined"
-  xit(selectionField + ' is undefined', async () => {
+  it(selectionField + ' is undefined', async () => {
     callData[selectionField] = undefined;
-    console.log(await testFunction(...Object.values(callData)));
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid amount type:/);
   });
 
   it(selectionField + ' is zero', async () => {

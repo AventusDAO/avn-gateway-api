@@ -45,7 +45,7 @@ function validateAccount(account) {
 }
 
 function validateAndConvertAmountToString(amount) {
-  const amountAsString = amount.toString();
+  const amountAsString = amount && amount.toString();
   const isValid = /^\d+$/.test(amountAsString) && new BN(amount).isZero() === false;
   if (isValid === false) {
     throw new Error(`Invalid amount type: ${amount}`);
@@ -78,7 +78,7 @@ function validateRoyaltiesStructure(royalties) {
 
 function validateRoyalties(royalties) {
   validateIsArray(royalties);
-  if (royalties.length === 0 ) {
+  if (royalties.length === 0) {
     return;
   }
   validateRoyaltiesStructure(royalties);
@@ -87,7 +87,7 @@ function validateRoyalties(royalties) {
     validateEthereumAddress(royalty.recipient_t1_address);
     if (
       royalty.rate.parts_per_million === false ||
-      Number.isInteger(royalty.rate.parts_per_million) === false  ||
+      Number.isInteger(royalty.rate.parts_per_million) === false ||
       royalty.rate.parts_per_million <= 0 ||
       royalty.rate.parts_per_million > 1000000
     ) {

@@ -6,6 +6,7 @@ chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const nfts = helper.NFTS;
+const BN = helper.BN;
 
 // Immediately Invoked Function Expression to make async calls available before the test suite
 // This makes run() method available to be called with --delay flag
@@ -77,6 +78,13 @@ const nfts = helper.NFTS;
           testConfig.selectionField = 'amount';
           await testPatterns.invalidAmount(testConfig);
         });
+        it('With amount greater than senders balance', async () => {
+          const senderAvtBalance = await api.query.getAvtBalance(accounts.sender.address);
+          const greaterAmount = new BN(senderAvtBalance).add(new BN('1'));
+          testConfig.validCallData.amount = greaterAmount;
+          const requestId = await api.send.transferAvt(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
+        });
         it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validSender.address;
           await expect(api.send.transferAvt(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
@@ -121,6 +129,13 @@ const nfts = helper.NFTS;
         describe('With invalid token amount', async () => {
           testConfig.selectionField = 'amount';
           await testPatterns.invalidAmount(testConfig);
+        });
+        it('With token amount greater than senders balance', async () => {
+          const senderAvtBalance = await api.query.getTokenBalance(accounts.sender.address, testConfig.validCallData.token);
+          const greaterAmount = new BN(senderAvtBalance).add(new BN('1'));
+          testConfig.validCallData.amount = greaterAmount;
+          const requestId = await api.send.transferToken(...Object.values(testConfig.validCallData));
+          await helper.confirmStatus(api, requestId, 'Rejected');
         });
         it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validUser.address;

@@ -128,10 +128,11 @@ const nfts = helper.NFTS;
           testConfig.selectionField = 'user';
           await testPatterns.invalidAccount(testConfig);
         });
-        //TODO: Fix 500 error when calling the function with a relayer that is not a relayer
-        xit('With relayer address that is not a relayer', async () => {
+        it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validSender.address;
-          console.log(await api.query.getRelayerFees(...Object.values(testConfig.validCallData)));
+          await expect(api.query.getRelayerFees(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Relayer.*is not registered with AvN Gateway/
+          );
         });
         it('With invalid transaction type', async () => {
           testConfig.validCallData.transaction_type = 'invalid_type';

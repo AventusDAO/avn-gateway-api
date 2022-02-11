@@ -41,14 +41,16 @@ function bnEquals(a, b) {
 async function confirmStatus(api, requestId, expectedStatus) {
   if (!requestId) throw new Error('RequestId cannot be null');
 
+  let status;
   for (i = 0; i < 10; i++) {
     await sleep(3000);
-    const status = await api.poll.requestState(requestId);
+    status = await api.poll.requestState(requestId);
     if (status !== 'Pending' && status !== 'Transaction not found') {
       assert.equal(status, expectedStatus);
-      break;
+      return;
     }
   }
+  assert.equal(status, expectedStatus);
 }
 
 // keep alphabetical

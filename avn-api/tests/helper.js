@@ -42,7 +42,7 @@ async function confirmStatus(api, requestId, expectedStatus) {
   if (!requestId) throw new Error('RequestId cannot be null');
 
   let status;
-  for (i = 0; i < 20; i++) {
+  for (i = 0; i < 10; i++) {
     await sleep(3000);
     status = await api.poll.requestState(requestId);
     if (status !== 'Pending' && status !== 'Transaction not found') {

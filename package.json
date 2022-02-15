@@ -1,7 +1,7 @@
 {
   "scripts": {
     "smokeTests": "mocha --timeout 100000 ./tests/gateway-smoke-tests.js --gateway",
-    "apiTests": "mocha --timeout 100000 ./avn-api/tests --recursive --gateway",
+    "apiTests": "mocha --timeout 100000 ./avn-api/tests --recursive --delay --gateway",
     "solo": "mocha --timeout 100000 ",
     "pretty": "prettier --config ./.prettierrc.json --check \"**/*.{js,json}\"",
     "pretty:fix": "prettier --config ./.prettierrc.json --write \"**/*.{js,json}\"",

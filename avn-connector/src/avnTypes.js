@@ -51,8 +51,7 @@ const common_types = {
     token_contract: 'H160',
     sender_address: 'H160',
     receiver_address: 'H256',
-    amount: 'u128',
-    nonce: 'U256'
+    amount: 'u128'
   },
   NftMintData: {
     batch_id: 'U256',

@@ -1,0 +1,12 @@
+categories:
+  default:
+    level: trace
+    appenders:
+      - console
+
+appenders:
+  console:
+    type: console
+    layout:
+      type: json
+      separator: ','

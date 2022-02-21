@@ -10,6 +10,7 @@ pipeline {
     string(name: 'additional_terraform_args', defaultValue: '', description: 'Supply additional terraform arguments, The environment can be destroyed by supplying the arg -destroy', trim: true)
     choice(name: 'apply_third_party_charts', choices: ['false', 'true'], description: 'Apply third party helm charts to kubernetes')
     choice(name: 'new_environment', choices: ['false', 'true'], description: 'Apply a new environment, if true then the VPC will be built before the rest of the infrastructure.')
+    choice(name: 'ephemeral', choices: ['false', 'true'], description: 'Ephemeral environments are cheaper environments with a reduced cost, Eg. Rabbit/redis deployed within Kubernetes')
   }
 
   agent any
@@ -187,9 +188,38 @@ pipeline {
           helmInstallThirdParty("external-dns", 
             "--set external-dns.txtOwnderId=${private_hosted_zone_id} \
             --set domainFilters[0]=${env.environment}.aventus.internal")
+        }
+      }
+    }
+
+    stage("Deploy Minimal Nginx") {
+      when {
+        expression {
+            return env.apply_third_party_charts == 'true' && env.additional_terraform_args != '-destroy' && env.ephemeral == 'false';
+        }
+      }
+      steps {
+        withAWS(roleAccount:accountId(), role:'jenkins-access') {
           sh "kubectl create ns nginx || true"
           generateContext("avn-gateway", "nginx")
           helmInstallThirdParty("nginx")
+        }
+      }
+    }
+
+    stage("Deploy Ephemeral helm charts") {
+      when {
+        expression {
+            return env.apply_third_party_charts == 'true' && env.additional_terraform_args != '-destroy' && env.ephemeral == 'true';
+        }
+      }
+      steps {
+        withAWS(roleAccount:accountId(), role:'jenkins-access') {
+          generateContext("avn-gateway", "kube-system")
+          helmInstallThirdParty("rabbit", "--set environment=${env.environment}")
+          sh "kubectl create ns nginx || true"
+          generateContext("avn-gateway", "nginx")
+          helmInstallThirdParty("nginx", "--values values-ephemeral.yaml")
         }
       }
     }

@@ -20,3 +20,5 @@ FROM node:14.18.2-alpine3.12
 COPY --from=builder /opt/relayer /opt/relayer
 
 RUN addgroup -S relayer && adduser -S -g relayer -D relayer && chown -R relayer:relayer /opt/relayer
+USER relayer
+WORKDIR /opt/relayer

@@ -4,6 +4,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const transactionObject = {
+  transactionHash: 'transactionHash',
   senderAddress: 'senderAddress',
   senderNonce: 'senderNonce',
   status: 'status',
@@ -121,6 +122,7 @@ async function resolvePendingAvnTransactions(transactions) {
     }
 
     const newValue = {};
+    newValue[transactionObject.transactionHash] = tx.transactionHash;
     newValue[transactionObject.status] = tx.status;
     newValue[transactionObject.blockNumber] = tx.blockNumber;
 

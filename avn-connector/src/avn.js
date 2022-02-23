@@ -51,7 +51,7 @@ async function poll(requestId) {
       log.error(`No transaction found for requestId: ${requestId}`);
       return { error: 'Transaction not found' };
     }
-
+    console.log("TXTXTXTXTXTXTXTXTXXTXTXTXXTXTXTXTXTXTXTXTX", tx)
     return { status: tx.status };
   } catch (error) {
     log.error(`Error getting transaction status for requestId ${requestId}: ${error}`);

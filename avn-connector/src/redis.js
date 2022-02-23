@@ -122,7 +122,6 @@ async function resolvePendingAvnTransactions(transactions) {
     }
 
     const newValue = {};
-    newValue[transactionObject.transactionHash] = tx.transactionHash;
     newValue[transactionObject.status] = tx.status;
     newValue[transactionObject.blockNumber] = tx.blockNumber;
 

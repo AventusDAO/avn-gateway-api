@@ -753,7 +753,8 @@ curl https://AVN-API-URL/poll \
 ```
 
 **RESULT FIELDS** \
-`VALUE` - string detailing the current status:
+`txHash` - string representing the transaction hash
+`status` - string detailing the current status:
 ```
 'Pending'
 'Rejected'

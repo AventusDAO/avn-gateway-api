@@ -12,28 +12,22 @@ const logger = require('log4js').configure(config.log4Js).getLogger();
 const SecretsManager = require('./secretsManager');
 
 async function connectToMQ() {
-  let mqConsumer = new MQConsumer(
-    config.mq.secretManagerRegion,
-    config.mq.mqSecretArn,
-    config.mq.mqBrokerAmqpEndpoint,
-    config.mq.components
-  );
+  let mqConsumer = new MQConsumer();
   await processMessagesFromMq(mqConsumer);
 }
 
-function MQConsumer(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint, mqComponents) {
-  this.secretsManager = new SecretsManager(secretsManagerRegion, logger);
-  this.secretArn = secretArn;
-  this.mqBrokerAmqpEndpoint = mqBrokerAmqpEndpoint;
-  this.mqComponents = mqComponents;
+function MQConsumer() {
+  this.mqBrokerAmqpEndpoint = config.mq.mqBrokerAmqpEndpoint;
+  this.mqComponents = config.mq.components;
+  this.secretsManager = new SecretsManager(config.mq.secretsManagerRegion, logger);
+  this.secretArn = config.mq.mqSecretArn;
+  this.mqProtocol = config.mq.protocol;
 }
 
 MQConsumer.prototype.getMqConnectionUrl = async function () {
   const secret = await this.secretsManager.getSecret(this.secretArn);
-  return this.mqBrokerAmqpEndpoint.replace(
-    'amqps://',
-    `amqps://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`
-  );
+  const rabbitEndpointPrefix = `${this.mqProtocol}://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`
+  return rabbitEndpointPrefix.concat(this.mqBrokerAmqpEndpoint)
 };
 
 async function processMessagesFromMq(mqConsumer) {

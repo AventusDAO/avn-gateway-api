@@ -78,7 +78,7 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
 
   await redisClient
     .multi()
-    .hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed))
+    .hset(txHashOrRequestIdKey, buildTransactionJson(transactionHash, senderAddress, senderNonce, transactionStatus.SendingFailed))
     .set(requestIdKey, txHashOrRequestId)
     .exec();
 }
@@ -93,7 +93,7 @@ async function addPendingAvnTransaction(requestId, transactionHash, senderAddres
 
   await redisClient
     .multi()
-    .hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
+    .hset(transactionHashKey, buildTransactionJson(transactionHash, senderAddress, senderNonce, transactionStatus.Pending))
     .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
     .set(requestIdKey, transactionHash)
     .exec();
@@ -151,8 +151,9 @@ async function getTransactionHashByRequestId(requestId) {
   return await redisClient.get(requestIdKey);
 }
 
-function buildTransactionJson(senderAddress, senderNonce, status) {
+function buildTransactionJson(transactionHash, senderAddress, senderNonce, status) {
   const result = {};
+  result[transactionObject.transactionHash] = transactionHash;
   result[transactionObject.senderAddress] = senderAddress;
   result[transactionObject.senderNonce] = senderNonce || '';
   result[transactionObject.status] = status;

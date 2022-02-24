@@ -122,7 +122,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getAvtContractAddress", "params":{}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getAvtContractAddress", "params":[], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -154,7 +154,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getTotalAvt", "params":{}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getTotalAvt", "params":[], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -189,7 +189,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getAvtBalance", "params":{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getAvtBalance", "params":[{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -225,7 +225,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getTokenBalance", "params":{"accountId":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "token":"0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getTokenBalance", "params":[{"accountId":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "token":"0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -260,7 +260,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getAccountNonce", "params":{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getAccountNonce", "params":[{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -295,7 +295,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getAccountPaymentNonce", "params":{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getAccountPaymentNonce", "params":[{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -330,7 +330,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getNftNonce", "params":{"nftId":"0x4184aa1d0e5a1a44d36d92b02ad07ab4285a43086f538a7e5b7d5cbd858e0e71"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getNftNonce", "params":[{"nftId":"0x4184aa1d0e5a1a44d36d92b02ad07ab4285a43086f538a7e5b7d5cbd858e0e71"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -365,7 +365,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getNftId", "params":{"externalRef":"my_unique_nft_2022-01-17T12:15:31Z"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getNftId", "params":[{"externalRef":"my_unique_nft_2022-01-17T12:15:31Z"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -400,7 +400,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getNftOwner", "params":{"nftId":"0x4184aa1d0e5a1a44d36d92b02ad07ab4285a43086f538a7e5b7d5cbd858e0e71"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getNftOwner", "params":[{"nftId":"0x4184aa1d0e5a1a44d36d92b02ad07ab4285a43086f538a7e5b7d5cbd858e0e71"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -445,7 +445,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getRelayerFees", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5GnPqcyiruWxK5HWVZSdvZk25y2kZjmeaSBaTvpygyLcDTCg", "transactionType":"proxyTokenTransfer"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getNftOwner", "params":[{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5GnPqcyiruWxK5HWVZSdvZk25y2kZjmeaSBaTvpygyLcDTCg", "transactionType":"proxyTokenTransfer"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -479,7 +479,7 @@ OR
 
 ### Transactions
 
-#### proxyAvtTransfer
+#### transferAvt
 Transfers the specified amount of AVT from the sender account to the destination account, using a relayer account
 
 **REQUEST** \
@@ -506,7 +506,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyAvtTransfer", "params":{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", token":"0x405df1b38510c455ef81500a3dc7e9ae599e18f6", amount":"20000", proxySignature":"0xc2f5deeede54698bffd1779532cf66590ff5302ea624b5d3b8e72d5a949e90027eed2a19f2a12161c293204dbb1ccc4032e4248760f6385a83d5e44188cf9d8b", feePaymentSignature":"0xde49e7ab095debda05f86a122d064d24bc9c31360d1e5ebc1357076918ca78465a5428f77507f966531e29eee43070611d07f5a1632c11ff1741c3c12b22db83", paymentNonce":"200"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"transferAvt", "params":[{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", token":"0x405df1b38510c455ef81500a3dc7e9ae599e18f6", amount":"20000", proxySignature":"0xc2f5deeede54698bffd1779532cf66590ff5302ea624b5d3b8e72d5a949e90027eed2a19f2a12161c293204dbb1ccc4032e4248760f6385a83d5e44188cf9d8b", feePaymentSignature":"0xde49e7ab095debda05f86a122d064d24bc9c31360d1e5ebc1357076918ca78465a5428f77507f966531e29eee43070611d07f5a1632c11ff1741c3c12b22db83", paymentNonce":"200"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -521,7 +521,7 @@ curl https://AVN-API-URL/send \
 }
 ```
 
-#### proxyTokenTransfer
+#### transferToken
 Transfers the specified amount of an ERC20 or ERC777 token, from the sender account to the destination account, using a relayer account
 
 **REQUEST**\
@@ -548,7 +548,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyTokenTransfer", "params":{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", token":"0xb130395ae89acbe32999f8eb6e6114a56d676199", amount":"1000000", proxySignature":"0x883e4300581dcaf3373c81eff1ec86776c58aa12fd184d4500d1aab8b7832076484d967ca01c96e7ab6d20903145c9efebac38ed521f30fe52da2e27beecf08f", feePaymentSignature":"0x7cff997be6fb98db949da0eceee2480b46a3b3aeaf4dbc7862bf6617a4c23319f666dfc2bb9e9a365ffd67ab279d980a0139fa6ce0165cdd76aaf555e7a1ba80", paymentNonce":"199"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"transferToken", "params":[{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", token":"0xb130395ae89acbe32999f8eb6e6114a56d676199", amount":"1000000", proxySignature":"0x883e4300581dcaf3373c81eff1ec86776c58aa12fd184d4500d1aab8b7832076484d967ca01c96e7ab6d20903145c9efebac38ed521f30fe52da2e27beecf08f", feePaymentSignature":"0x7cff997be6fb98db949da0eceee2480b46a3b3aeaf4dbc7862bf6617a4c23319f666dfc2bb9e9a365ffd67ab279d980a0139fa6ce0165cdd76aaf555e7a1ba80", paymentNonce":"199"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -590,7 +590,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyMintSingleNft", "params":{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", externalRef":"my-unique-ref-2022-01-18T10:32:45.199Z", "royalties": [{"recipient_t1_address":"0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03", "rate": {"parts_per_million":"10000"}}, t1Authority":"0xd6ae8250b8348c94847280928c79fb3b63ca453e", proxySignature":"0xd4d20c5be0943cd1e784b7d83f7bf69d1c2419411c1b6b6d60c1e6d2c636742c30f44100d0fe24717104cad467890272d47a36f8daf497ebd2ec3ed106c58d8f", feePaymentSignature":"0x4e4ec2190d44765d1b5fa88f6aabbf87744ef964c171f0ec48763fcfbc99e47e9b0ccd633403f75068604cf3b94336c7e93a56b13a0973d181432d381b5b0f8a", paymentNonce":"201"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyMintSingleNft", "params":[{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", externalRef":"my-unique-ref-2022-01-18T10:32:45.199Z", "royalties": [{"recipient_t1_address":"0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03", "rate": {"parts_per_million":"10000"}}], t1Authority":"0xd6ae8250b8348c94847280928c79fb3b63ca453e", proxySignature":"0xd4d20c5be0943cd1e784b7d83f7bf69d1c2419411c1b6b6d60c1e6d2c636742c30f44100d0fe24717104cad467890272d47a36f8daf497ebd2ec3ed106c58d8f", feePaymentSignature":"0x4e4ec2190d44765d1b5fa88f6aabbf87744ef964c171f0ec48763fcfbc99e47e9b0ccd633403f75068604cf3b94336c7e93a56b13a0973d181432d381b5b0f8a", paymentNonce":"201"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -631,7 +631,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyListNftOpenForSale", "params":{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", nftId":"0x2c94a703a7b01f0c2d1eed5ccf82b9cbadd0bdd5e4e5283ddf01b249586181c2", market": 2, proxySignature":"0xc695f01932ce42204d9a0102e74d32d3d43f4ac6a9d615647aec29f68c707e42dc372d29fbb2d0d303d4b5d184fbe294ce5e06c93d9771a56cfe7533e0cdb488", feePaymentSignature":"0x02529e00606006ef98d70e8c32cd6a495faf362767366d01060a4fe43c1c5410f4c5260dde125da581b772909b5ed2756b83c71a5ef6568a36a79ab565cd158e", paymentNonce":"205"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyListNftOpenForSale", "params":[{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", nftId":"0x2c94a703a7b01f0c2d1eed5ccf82b9cbadd0bdd5e4e5283ddf01b249586181c2", market": 2, proxySignature":"0xc695f01932ce42204d9a0102e74d32d3d43f4ac6a9d615647aec29f68c707e42dc372d29fbb2d0d303d4b5d184fbe294ce5e06c93d9771a56cfe7533e0cdb488", feePaymentSignature":"0x02529e00606006ef98d70e8c32cd6a495faf362767366d01060a4fe43c1c5410f4c5260dde125da581b772909b5ed2756b83c71a5ef6568a36a79ab565cd158e", paymentNonce":"205"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -672,7 +672,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyTransferFiatNft", "params":{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", nftId":"0x3044598a96da039d27802b300ba6197d6a023752efaccf598e62516f6ee7587c", recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", proxySignature":"0xaa3b454549de3a941e19293c0da9e47e83b920df232d5db56d5912f83b1e0c43083b1103f9655c52290221bf590facd9e99a839cafc383c30567055a56c97c8a", feePaymentSignature":"0x500da1ab75346f2b4459cc2b958a3eb690a4b8c50cc1e6f3d49fe786cb6acd0be0ca93da71bbe55d11f8df8f64f3b99c2c47a053495bf6eb842ecc4fbfad6b87", paymentNonce":"212"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyTransferFiatNft", "params":[{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", nftId":"0x3044598a96da039d27802b300ba6197d6a023752efaccf598e62516f6ee7587c", recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", proxySignature":"0xaa3b454549de3a941e19293c0da9e47e83b920df232d5db56d5912f83b1e0c43083b1103f9655c52290221bf590facd9e99a839cafc383c30567055a56c97c8a", feePaymentSignature":"0x500da1ab75346f2b4459cc2b958a3eb690a4b8c50cc1e6f3d49fe786cb6acd0be0ca93da71bbe55d11f8df8f64f3b99c2c47a053495bf6eb842ecc4fbfad6b87", paymentNonce":"212"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -712,7 +712,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyCancelListFiatNft", "params":{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", nftId":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", proxySignature":"0x7e8fb895d9c33fbfd2b0122a586d2d29a6c606ee2ca485c8eb69163be8ef7a6ddd2a52e6802f40720e192d4ca407d657cdfa703a8ce502e9c4f0feedfc3e5e8b", feePaymentSignature":"0xaae7983775fc1a5bc04b500af156dcba343f1d305549737821b7e31a12f6ce430941856c1259d520759548281afd465b3d66b7e48e72fc2c8c0a3a5bb9f8fa87", paymentNonce":"209"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyCancelListFiatNft", "params":[{relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", nftId":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", proxySignature":"0x7e8fb895d9c33fbfd2b0122a586d2d29a6c606ee2ca485c8eb69163be8ef7a6ddd2a52e6802f40720e192d4ca407d657cdfa703a8ce502e9c4f0feedfc3e5e8b", feePaymentSignature":"0xaae7983775fc1a5bc04b500af156dcba343f1d305549737821b7e31a12f6ce430941856c1259d520759548281afd465b3d66b7e48e72fc2c8c0a3a5bb9f8fa87", paymentNonce":"209"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -749,12 +749,11 @@ curl https://AVN-API-URL/poll \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"requestState", "params":{"requestId":"410fe1c5-5deb-4a52-b89d-8bc9fc682415"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"requestState", "params":[{"requestId":"410fe1c5-5deb-4a52-b89d-8bc9fc682415"}], "id":1}'
 ```
 
 **RESULT FIELDS** \
-`txHash` - string representing the transaction hash
-`status` - string detailing the current status:
+`VALUE` - string detailing the current status:
 ```
 'Pending'
 'Rejected'

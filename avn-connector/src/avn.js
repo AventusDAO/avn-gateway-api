@@ -42,6 +42,7 @@ async function poll(requestId) {
 
   try {
     const transactionHash = isTransactionHash(requestId) ? requestId : await redis.getTransactionHashByRequestId(requestId);
+
     const tx = await redis.getAvnTransaction(requestId);
 
     if (!tx) {

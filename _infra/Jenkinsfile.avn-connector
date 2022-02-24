@@ -50,7 +50,8 @@ def accountId() {
     sandbox: "352429414196",
     cba: "602004642405",
     testnet: "189013141504",
-    mainnet: "503742778456"
+    mainnet: "503742778456",
+    pentest: "791662239430"
   ]
   return environmentMap[env.environment]
 }

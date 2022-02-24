@@ -41,8 +41,10 @@ async function poll(requestId) {
   }
 
   try {
+    let transactionHash;
+
     if (!isTransactionHash(requestId)) {
-      requestId = await redis.getTransactionHashByRequestId(requestId);
+      transactionHash = await redis.getTransactionHashByRequestId(requestId);
     }
 
     let tx = await redis.getAvnTransaction(requestId);
@@ -52,7 +54,7 @@ async function poll(requestId) {
       return { error: 'Transaction not found' };
     }
 
-    return { transactionHash: tx.transactionHash, status: tx.status };
+    return { txHash: transactionHash, status: tx.status };
   } catch (error) {
     log.error(`Error getting transaction status for requestId ${requestId}: ${error}`);
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);

@@ -56,6 +56,7 @@ Follow these steps to deploy a new environment. If you are deploying into a new 
   certbot certonly --manual -d "vault.\<envrionment\>.gateway.aventus.io" --agree-tos --manual-public-ip-logging-ok --preferred-challenges dns-01 --register-unsafely-without-email --rsa-key-size 4096 --config-dir=./ --work-dir=./ --logs-dir=./
   ```
   Keep the output on the screen and **DO NOT** press enter yet.
+  
   4. you will be prompted to insert a TXT record into the aventus managed zone in the aventus main account. Navigate to the aventus main account `707061609910`, If you have no access then an SSO admin can provide that to you.
   5. Within the aventus main account, navigate to route53 and to the `aventus.io` DNS management hosted zone.
   6. Click the `create record` button and paste in the cert-bot _acme_challenge address from step 3 into the `record name` field. Select `TXT` as the `record type` and paste in the txt field from step 3 into the `value` field. click the create records button

@@ -41,13 +41,8 @@ async function poll(requestId) {
   }
 
   try {
-    let transactionHash = requestId;
-
-    if (!isTransactionHash(requestId)) {
-      transactionHash = await redis.getTransactionHashByRequestId(requestId);
-    }
-
-    let tx = await redis.getAvnTransaction(requestId);
+    const transactionHash = !isTransactionHash(requestId) ? await redis.getTransactionHashByRequestId(requestId) : requestId;
+    const tx = await redis.getAvnTransaction(requestId);
 
     if (!tx) {
       log.error(`No transaction found for requestId: ${requestId}`);

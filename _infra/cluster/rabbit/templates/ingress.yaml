@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-rabbitmq
+  labels:
+    app.kubernetes.io/name: rabbitmq
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: rabbitmq.{{ .Values.environment }}.aventus.internal
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: rabbitmq.{{ .Values.environment }}.aventus.internal
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Release.Name }}-rabbitmq
+                port:
+                  name: amqp

@@ -25,12 +25,14 @@ spec:
       initContainers:
         {{- if and (not (eq .Values.environment "mainnet")) (not (eq .Values.environment "testnet"))}}
         - name: relayer-account
-          image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-account:latest"
+          image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-account:{{ .Values.deployment.image.tag }}"
           command: ["node", "scripts/addRelayer.js", "setRelayer", "-u", "$(RELAYER_ADDRESS)", "-s", "$(RELAYER_SEED)"]
           envFrom:
             - configMapRef:
                 name: vault
           env:
+            - name: NODE_ENV
+              value: {{ .Values.nodeEnv }}
             - name: VAULT_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:
@@ -48,12 +50,14 @@ spec:
               value: "0xa343da434e14c8cef7c474551a63e7e4c0cb4670a2374368ee01e670ab0d2464"
         {{- end }}
         - name: relayer-fees
-          image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-fees:latest"
+          image: "189013141504.dkr.ecr.eu-west-2.amazonaws.com/gateway-api/relayer-fees:{{ .Values.deployment.image.tag }}"
           command: ["node", "scripts/insertTestFees.js"]
           envFrom:
             - configMapRef:
                 name: {{ .Chart.Name }}
           env:
+            - name: NODE_ENV
+              value: {{ .Values.nodeEnv }}
             - name: ENVIRONMENT
               value: {{ .Values.environment }}
             - name: MONGO_USERNAME
@@ -89,7 +93,7 @@ spec:
                 name: vault
           env:
             - name: NODE_ENV
-              value: docker
+              value: {{ .Values.nodeEnv }}
             - name: MONGO_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -107,11 +111,20 @@ spec:
                   key: server
             - name: MONGO_SERVER
               value: $(DOCUMENT_DB_ADDRESS):27017/?ssl=true
+            {{- if eq .Values.nodeEnv "production" }}
             - name: MQ_BROKER_AMQP_ENDPOINT
               valueFrom:
                 secretKeyRef:
                   name: rabbit-credentials
                   key: server
+            - name: MQ_PROTOCOL
+              value: amqps
+            {{- else }}
+            - name: MQ_BROKER_AMQP_ENDPOINT
+              value: rabbit-rabbitmq:5672
+            - name: MQ_PROTOCOL
+              value: amqp
+            {{- end }}
             - name: VAULT_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:

@@ -14,11 +14,6 @@ variable "environment" {
   type        = string
 }
 
-variable "rabbit_address" {
-  description = "Address of the rabbit broker"
-  type        = string
-}
-
 variable "documentdb_address" {
   description = "Address of the Mongo database"
   type        = string

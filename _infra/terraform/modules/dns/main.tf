@@ -129,14 +129,6 @@ resource "aws_route53_record" "api_gateway" {
   }
 }
 
-resource "aws_route53_record" "rabbit" {
-  zone_id = aws_route53_zone.private.zone_id
-  name    = "rabbit.${aws_route53_zone.private.name}"
-  type    = "CNAME"
-  ttl     = "300"
-  records = [var.rabbit_address]
-}
-
 resource "aws_route53_record" "documentdb" {
   zone_id = aws_route53_zone.private.zone_id
   name    = "documentdb.${aws_route53_zone.private.name}"

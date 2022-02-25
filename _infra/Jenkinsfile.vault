@@ -93,7 +93,9 @@ pipeline {
 
       steps {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
+          sh "gpg --output _infra/ansible/config.json --decrypt _infra/ansible/avn-vault-config.json.gpg"
           sh "aws secretsmanager put-secret-value --region ${env.region} --secret-id vault --secret-string file://_infra/ansible/config.json";
+          sh "rm _infra/ansible/config.json"
         }
       }
     }

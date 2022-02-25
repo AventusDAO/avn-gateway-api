@@ -24,6 +24,7 @@ resource "aws_secretsmanager_secret_policy" "secret_policy" {
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "EnableAllPermissions",
       "Effect": "Allow",
       "Principal": {
         "AWS": "*"

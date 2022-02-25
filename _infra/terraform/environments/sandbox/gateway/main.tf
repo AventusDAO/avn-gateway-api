@@ -18,7 +18,6 @@ module "dns" {
   source             = "../../../modules/dns"
   vpc_id             = data.terraform_remote_state.vpc.outputs.vpc_id
   environment        = local.environment
-  rabbit_address     = module.rabbitmq.broker_address
   documentdb_address = module.documentdb.address
   api_gateway_url    = module.api_gateway.url
   api_gateway_id     = module.api_gateway.api_id
@@ -30,10 +29,9 @@ module "dns" {
   }
 }
 
-module "rabbitmq" {
-  source     = "../../../modules/rabbitmq"
-  vpc_id     = data.terraform_remote_state.vpc.outputs.vpc_id
-  subnet_ids = setunion(data.terraform_remote_state.vpc.outputs.private_subnets, data.terraform_remote_state.vpc.outputs.public_subnets)
+module "rabbit_credentials" {
+  source      = "../../../modules/credential-generator"
+  secret_name = "rabbitmq"
 }
 
 data "aws_eks_cluster" "eks" {
@@ -106,7 +104,7 @@ module "k8s_service_account_permissions" {
   source = "../../../modules/k8s-service-account-permissions"
 
   oidc_provider     = module.eks.oidc_provider_arn
-  rabbit_secret_arn = module.rabbitmq.secret_arn
+  rabbit_secret_arn = module.rabbit_credentials.secret_arn
 
   depends_on = [
     module.eks,

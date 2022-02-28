@@ -117,8 +117,6 @@ spec:
                 secretKeyRef:
                   name: rabbit-credentials
                   key: server
-            - name: MQ_PROTOCOL
-              value: amqps
             {{- else }}
             - name: MQ_BROKER_AMQP_ENDPOINT
               value: rabbit-rabbitmq:5672

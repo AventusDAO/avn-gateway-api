@@ -26,8 +26,14 @@ function MQConsumer() {
 
 MQConsumer.prototype.getMqConnectionUrl = async function () {
   const secret = await this.secretsManager.getSecret(this.secretArn);
-  const rabbitEndpointPrefix = `${this.mqProtocol}://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`
-  return rabbitEndpointPrefix.concat(this.mqBrokerAmqpEndpoint)
+  if (process.env.NODE_ENV === "docker") {
+    const rabbitEndpointPrefix = `${this.mqProtocol}://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`
+    return rabbitEndpointPrefix.concat(this.mqBrokerAmqpEndpoint)
+  }
+  return this.mqBrokerAmqpEndpoint.replace(
+    'amqps://',
+    `amqps://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`
+  );
 };
 
 async function processMessagesFromMq(mqConsumer) {

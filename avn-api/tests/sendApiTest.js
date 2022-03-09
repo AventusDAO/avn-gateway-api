@@ -8,16 +8,19 @@ const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 
 describe('SendTx api calls:', async () => {
   let api;
-  let relayer, sender, recipient;
+  let token;
+  let relayer, sender, recipient, t1Recipient;
   let relayerFee;
 
   before(async () => {
     api = await helper.avnApi();
+    token = helper.token;
     relayer = accounts.relayer.address;
     sender = accounts.sender.address;
     recipient = accounts.user1.address;
     recipientPubKey = accounts.user1.publicKey;
     relayerFee = new BN((await api.query.getRelayerFees(relayer, sender)).proxyAvtTransfer);
+    t1Recipient = '0xFad45995bc1ceE164E7565e301F5736F3eed3Bb1'; // a dummy recipient as we are not checking the full lower path
   });
 
   describe('transferAVT', async () => {
@@ -47,6 +50,41 @@ describe('SendTx api calls:', async () => {
 
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey));
       bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)));
+      // TODO: include network fees when we've sorted the accounts out
+      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+    });
+  });
+
+  describe('lowerToken', async () => {
+    let senderAvtBalanceBefore, senderTokenBalanceBefore, relayerAvtBalanceBefore, senderNonceBefore;
+
+    beforeEach(async () => {
+      senderAvtBalanceBefore = new BN(await api.query.getAvtBalance(sender));
+      senderTokenBalanceBefore = new BN(await api.query.getTokenBalance(sender, token));
+      relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));
+      senderNonceBefore = new BN(await api.query.getAccountNonce(sender));
+    });
+
+    it('can lower tokens', async () => {
+      const amount = new BN(2);
+      const requestId = await api.send.lowerToken(relayer, t1Recipient, token, amount);
+      await helper.confirmStatus(api, requestId, 'Processed');
+
+      bnEquals(senderTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(sender, token)));
+      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)));
+      bnEquals(senderAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(sender)));
+      // TODO: include network fees when we've sorted the accounts out
+      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+    });
+
+    it('can lower AVT', async () => {
+      const avtAddress = await api.query.getAvtContractAddress();
+      const amount = new BN(3);
+      const requestId = await api.send.lowerToken(relayer, t1Recipient, avtAddress, amount);
+      await helper.confirmStatus(api, requestId, 'Processed');
+
+      bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)));
+      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });

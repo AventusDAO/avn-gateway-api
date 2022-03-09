@@ -53,6 +53,8 @@ async function callSwitch(call, request, requestId) {
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':
       return await processProxyTransfer(call, request, requestId);
+    case 'proxyTokenLower':
+      return await processProxyLower(call, request, requestId);
     case 'proxyCancelListFiatNft':
       return await processProxyCancelListFiatNft(call, request, requestId);
     case 'proxyListNftOpenForSale':
@@ -77,6 +79,24 @@ async function processProxyTransfer(call, request, requestId) {
     if (utils.isValidAccountId(recipient) === false) throw 'recipient';
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
     if (utils.isValidAmount(amount) === false) throw 'amount';
+  } catch (param) {
+    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyLower(call, request, requestId) {
+  const pallet = 'tokenManager';
+  const method = 'signedLower';
+  const { signer, token, amount, t1Recipient } = call.params;
+  const methodParams = [signer, token, amount, t1Recipient];
+
+  try {
+    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidEthereumAddress(token) === false) throw 'token';
+    if (utils.isValidAmount(amount) === false) throw 'amount';
+    if (utils.isValidEthereumAddress(t1Recipient) === false) throw 't1Recipient';
   } catch (param) {
     return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
   }

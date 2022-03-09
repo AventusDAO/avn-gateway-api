@@ -10,7 +10,7 @@ describe('SendTx api calls:', async () => {
   let api;
   let token;
   let relayer, sender, recipient, t1Recipient;
-  let relayerFee;
+  let relayerFee, relayerLowerFee;
 
   before(async () => {
     api = await helper.avnApi();
@@ -20,6 +20,7 @@ describe('SendTx api calls:', async () => {
     recipient = accounts.user1.address;
     recipientPubKey = accounts.user1.publicKey;
     relayerFee = new BN((await api.query.getRelayerFees(relayer, sender)).proxyAvtTransfer);
+    relayerLowerFee = new BN((await api.query.getRelayerFees(relayer, sender)).proxyTokenLower);
     t1Recipient = '0xFad45995bc1ceE164E7565e301F5736F3eed3Bb1'; // a dummy recipient as we are not checking the full lower path
   });
 
@@ -72,9 +73,9 @@ describe('SendTx api calls:', async () => {
 
       bnEquals(senderTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(sender, token)));
       bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)));
-      bnEquals(senderAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(sender)));
+      bnEquals(senderAvtBalanceBefore.sub(relayerLowerFee), new BN(await api.query.getAvtBalance(sender)));
       // TODO: include network fees when we've sorted the accounts out
-      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerLowerFee)));
     });
 
     it('can lower AVT', async () => {
@@ -83,10 +84,10 @@ describe('SendTx api calls:', async () => {
       const requestId = await api.send.lowerToken(relayer, t1Recipient, avtAddress, amount);
       await helper.confirmStatus(api, requestId, 'Processed');
 
-      bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)));
+      bnEquals(senderAvtBalanceBefore.sub(relayerLowerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)));
       bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)));
       // TODO: include network fees when we've sorted the accounts out
-      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerLowerFee)));
     });
   });
 

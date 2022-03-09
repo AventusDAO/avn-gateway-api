@@ -565,7 +565,8 @@ curl https://AVN-API-URL/send \
 ```
 
 #### proxyTokenLower
-Triggers a "lower" of the specified amount of an ERC20 or ERC777 token, from the sender's AvN account to the recipient's Ethereum address, using a relayer account. The recipient must complete the process on layer 1 once a summary containing the lower has been published, in order to receive the amount lowered.
+Triggers a "lower" of an amount of ETH (0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) or any available ERC20 or ERC777 token, deducting the amount from the sender's AvN account, via a relayer account.\
+The process is completed on Ethereum by calling the AvN tier1 contract's lower method, after a summary containing the transaction has been published, in order for the recipient to receive the lowered amount.
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`

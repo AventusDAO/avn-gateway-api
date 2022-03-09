@@ -16,6 +16,7 @@ describe('Query api calls:', async () => {
   const expectedRelayerFees = {
     proxyAvtTransfer: '7000000000000000',
     proxyTokenTransfer: '7000000000000000',
+    proxyTokenLower: '1000000000000000',
     proxyMintSingleNft: '7000000000000000',
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',
@@ -25,6 +26,7 @@ describe('Query api calls:', async () => {
   const expectedUserFees = {
     proxyAvtTransfer: '7000000000000000',
     proxyTokenTransfer: '30000000000000000',
+    proxyTokenLower: '1000000000000000',
     proxyMintSingleNft: '7000000000000000',
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',

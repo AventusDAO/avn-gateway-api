@@ -45,9 +45,10 @@ To do so follow these steps (note: these manual api actions require **SURI** to 
   - `api.proxy.createProxyListNftOpenForSaleSignature(relayer, signer, nftId, market, nftNonce)`
   - `api.proxy.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)`
   - `api.proxy.createProxyTransferFiatNftSignature(relayer, signer, nftId, recipient, nftNonce)`
-  - `api.proxy.createProxyStakeAvt(relayer, signer, ????)`
-  - `api.proxy.createProxyIncreaseStakeSignature(relayer, signer, ????)`
-  - `api.proxy.createProxyUnstakeSignature(relayer, signer, ????)`
+  - `api.proxy.createProxyBondSignature(relayer, signer, amount, accountNonce)`
+  - `api.proxy.createProxyNominateSignature(relayer, signer, amount, targets, accountNonce)`
+  - `api.proxy.createProxyIncreaseStakeSignature(relayer, signer, amount, accountNonce)`
+  - `api.proxy.createProxyUnstakeSignature(relayer, signer, amount, accountNonce)`
 - Make a `getPaymentNonce` query to retrieve the signer's **paymentNonce**
 - Get the **relayerFee** by making a query request to `getRelayerFees(relayer, signer, transactionType)`
 - Finally, use the collected data to generate the **feePaymentSignature**:

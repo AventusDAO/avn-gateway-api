@@ -442,8 +442,8 @@ curl https://AVN-API-URL/query \
 `totalBalance` - string integer value representing the account's total AVT balance \
 `freeBalance` - string integer value representing the portion of the total that is freely usable (not staked or locked) \
 `stakedBalance` - string integer value representing the portion that is staked and currently earning rewards \
-`unlockedBalance` - string integer value representing the portion of the total that is unstaked and unlocked and can be converted to free balance \
-`unstakedBalance` - string integer value representing the portion of the total that is currently unstaked but still locked \
+`unlockedBalance` - string integer value representing the portion that is unstaked and unlocked and can be converted to free balance \
+`unstakedBalance` - string integer value representing the portion that is unstaked but still currently locked \
 
 **BODY**
 ```

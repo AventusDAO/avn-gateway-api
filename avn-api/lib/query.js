@@ -13,6 +13,7 @@ function Query(api) {
   this.getNftNonce = generateFunction(getNftNonce, api);
   this.getNftId = generateFunction(getNftId, api);
   this.getNftOwner = generateFunction(getNftOwner, api);
+  this.getAccountInfo = generateFunction(getAccountInfo, api);
   this.nftsMap = {};
 }
 
@@ -101,6 +102,14 @@ function getRelayerFees(api) {
 
 function generateFunction(functionName, api) {
   return functionName(api);
+}
+
+function getAccountInfo(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getAccountInfo', { accountId });
+  };
 }
 
 Query.prototype.postRequest = async function (api, method, params) {

@@ -50,6 +50,9 @@ async function callSwitch(call, request) {
       return await getTokenBalance(call, request);
     case 'getTotalAvt':
       return await getTotalAvt(call, request);
+    case `getAccountInfo`:
+      return await getAccountInfo(call, request);
+
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -160,6 +163,16 @@ async function getTotalAvt(call, request) {
   return await queryChain(call, request, 'balances', 'totalIssuance', [], formatNumAsString);
 }
 
+async function getAccountInfo(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryAccountInfoFromChain(call, request, accountId, formatJsonAsString);
+  }
+}
+
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
   try {
     const callId = call.id;
@@ -176,6 +189,21 @@ async function queryChain(call, request, palletName, storageName, params, respon
   }
 }
 
+async function queryAccountInfoFromChain(call, request, accountId, responseFormatter) {
+  try {
+    const callId = call.id;
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnAccountInfo', {
+      callId,
+      accountId
+    });
+    const result = avnResponse.data.error || responseFormatter(avnResponse.data);
+    return utils.validResponse(callId, result);
+  } catch (err) {
+    return utils.errorResponse('internal', 'failed to query account_info from the chain', err, request, call.id);
+  }
+}
+
+
 const formatAsString = data => data.toString();
 
 const formatNumAsString = data => utils.toBnString(data);
@@ -183,6 +211,8 @@ const formatNumAsString = data => utils.toBnString(data);
 const formatBalanceAsString = data => utils.toBnString(data.data.free);
 
 const formatNftNonceAsString = data => utils.toBnString(data.nonce);
+
+const formatJsonAsString = data => utils.toJsonString(data);
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (data, params) => {

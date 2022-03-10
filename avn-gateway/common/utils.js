@@ -114,6 +114,10 @@ function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString();
 }
 
+function toJsonString(val) {
+  return typeof val === 'object' ? JSON.stringify(val) : val;
+}
+
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
   const encodedContext = registry.createType('Text', SIGNING_CONTEXT);
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
@@ -166,6 +170,7 @@ module.exports = {
   isValidString,
   isValidTransactionType,
   toBnString,
+  toJsonString,
   validResponse,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature

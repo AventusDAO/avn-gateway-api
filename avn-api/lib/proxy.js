@@ -5,6 +5,7 @@ const { u8aToHex, u8aConcat } = require('@polkadot/util');
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation';
+const PROXY_LOWER_CONTEXT = 'authorization for lower operation';
 const PROXY_MINT_SINGLE_NFT_CONTEXT = 'authorization for mint single nft operation';
 const PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT = 'authorization for list nft open for sale operation';
 const PROXY_TRANSFER_FIAT_NFT_CONTEXT = 'authorization for transfer fiat nft operation';
@@ -26,6 +27,24 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
   };
 
   const hexEncodedData = encodeProxyTransferSignatureData(dataToSign);
+  return signData(hexEncodedData);
+}
+
+function createProxyLowerSignature(_relayer, _signer, t1Recipient, token, amount, proxyNonce) {
+  const relayer = common.convertToPublicKeyIfNeeded(_relayer);
+  const signer = common.convertToPublicKeyIfNeeded(_signer);
+
+  const dataToSign = {
+    context: PROXY_LOWER_CONTEXT,
+    relayer,
+    signer,
+    t1Recipient,
+    token,
+    amount,
+    proxyNonce
+  };
+
+  const hexEncodedData = encodeProxyLowerSignatureData(dataToSign);
   return signData(hexEncodedData);
 }
 
@@ -128,6 +147,28 @@ function encodeProxyTransferSignatureData(params) {
     encodedRecipient.toU8a(true),
     encodedToken.toU8a(true),
     encodedAmount.toU8a(true),
+    encodedNonce.toU8a(true)
+  );
+
+  return u8aToHex(encodedData);
+}
+
+function encodeProxyLowerSignatureData(params) {
+  const encodedContext = common.registry.createType('Text', params.context);
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
+  const encodedSigner = common.registry.createType('AccountId', params.signer);
+  const encodedToken = common.registry.createType('H160', params.token);
+  const encodedAmount = common.registry.createType('u128', params.amount);
+  const encodedT1Recipient = common.registry.createType('H160', params.t1Recipient);
+  const encodedNonce = common.registry.createType('u64', params.proxyNonce);
+
+  const encodedData = u8aConcat(
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedSigner.toU8a(true),
+    encodedToken.toU8a(true),
+    encodedAmount.toU8a(true),
+    encodedT1Recipient.toU8a(true),
     encodedNonce.toU8a(true)
   );
 
@@ -249,6 +290,7 @@ function signData(encodedData) {
 module.exports = {
   createFeePaymentSignature,
   createProxyTransferSignature,
+  createProxyLowerSignature,
   createProxyListNftOpenForSaleSignature,
   createProxyMintSingleNftSignature,
   createProxyTransferFiatNftSignature,

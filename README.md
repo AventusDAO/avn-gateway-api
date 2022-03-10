@@ -469,6 +469,7 @@ OR
   "result": {
     "proxyAvtTransfer": "7000000000000000",
     "proxyTokenTransfer": "7000000000000000",
+    "proxyTokenLower": "7000000000000000",
     "proxyMintSingleNft": "7000000000000000",
     "proxyListNftOpenForSale": "7000000000000000",
     "proxyTransferFiatNft": "7000000000000000",
@@ -549,6 +550,49 @@ curl https://AVN-API-URL/send \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"proxyTokenTransfer", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", token":"0xb130395ae89acbe32999f8eb6e6114a56d676199", "amount":"1000000", "proxySignature":"0x883e4300581dcaf3373c81eff1ec86776c58aa12fd184d4500d1aab8b7832076484d967ca01c96e7ab6d20903145c9efebac38ed521f30fe52da2e27beecf08f", "feePaymentSignature":"0x7cff997be6fb98db949da0eceee2480b46a3b3aeaf4dbc7862bf6617a4c23319f666dfc2bb9e9a365ffd67ab279d980a0139fa6ce0165cdd76aaf555e7a1ba80", "paymentNonce":"199"}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - a request ID that can be queried for the transaction's status
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "8b62441c-e032-46e3-bd1d-0f8a0a764442"
+}
+```
+
+#### proxyTokenLower
+Triggers a "lower" of an amount of ETH (0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) or any available ERC20 or ERC777 token, deducting the amount from the sender's AvN account, via a relayer account.\
+The process is completed on Ethereum by calling the AvN tier1 contract's lower method after a summary containing the transaction has been published, in order for the recipient to receive the lowered amount.
+
+**REQUEST**\
+`POST https://AVN-API-URL/send`
+
+**HEADERS**\
+`Content-Type: application/json`\
+`Authorization': bearer <awtToken>`
+
+**REQUEST PARAMS**\
+`relayer` *[required]* - a string representing the relayer's SS58 address \
+`signer` *[required]* - a string representing the sender's SS58 address \
+`t1Recipient` *[required]* - a string representing the t1 recipient's 20 byte Ethereum address \
+`token` *[required]* - a hex string representing the token ID (20 bytes) of the token being checked \
+`amount` *[required]* - a string integer value representing the amount (in lowest fraction) of the token being transferred \
+`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current account payment nonce
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/send \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"proxyTokenLower", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "t1Recipient":"0xFad45995bc1ceE164E7565e301F5736F3eed3Bb1", "token":"0x405df1b38510c455ef81500a3dc7e9ae599e18f6", "amount":"3", "proxySignature":"0x8e38f2809d58c2a75cd0529ebb650e4447c3b192e6b9eb4a7ae346049b1e18552565e94981e3bece4bf71667b88e54c39340aa931872f1f332ab72b94cb9938c", "feePaymentSignature":"0x9ae648e3c25ba12ae2272024ad7b0ed954e2f8057c544b825f800e886b7a79213f24c884f9aac6d2cd5d0a7bff6a813140ee20e38e7374c054d31d0834250684", "paymentNonce":"10"}, "id":1}'
 ```
 
 **RESULT FIELDS** \

@@ -11,6 +11,7 @@ const MARKET = { Ethereum: 1, Fiat: 2 };
 function Send(api, queryApi, avtContractAddress) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi);
   this.transferToken = generateFunction(transferToken, api, queryApi);
+  this.lowerToken = generateFunction(lowerToken, api, queryApi);
   this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi);
   this.listFiatNftForSale = generateFunction(listFiatNftForSale, api, queryApi);
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi);
@@ -38,6 +39,17 @@ function transferToken(api, queryApi) {
     amount = common.validateAndConvertAmountToString(amount);
 
     return await this.proxyTransfer(api, queryApi, relayer, recipient, token, amount);
+  };
+}
+
+function lowerToken(api, queryApi) {
+  return async function (relayer, t1Recipient, token, amount) {
+    common.validateAccount(relayer);
+    common.validateEthereumAddress(t1Recipient);
+    common.validateEthereumAddress(token);
+    amount = common.validateAndConvertAmountToString(amount);
+
+    return await this.proxyLower(api, queryApi, relayer, t1Recipient, token, amount);
   };
 }
 
@@ -99,6 +111,24 @@ Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient
   if (!response && !retry) {
     retry = true;
     await this.proxyTransfer(api, queryApi, relayer, recipient, token, amount, retry);
+  }
+
+  return response;
+};
+
+Send.prototype.proxyLower = async function (api, queryApi, relayer, t1Recipient, token, amount, retry) {
+  const transactionType = TX_TYPE.ProxyTokenLower;
+  const signer = common.getClientAddress();
+  const proxyNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy, retry);
+  const proxySignature = proxyApi.createProxyLowerSignature(relayer, signer, t1Recipient, token, amount, proxyNonce);
+  const paymentArgs = { relayer, signer, proxySignature, transactionType };
+  const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
+  const params = { relayer, signer, t1Recipient, token, amount, proxySignature, feePaymentSignature, paymentNonce };
+  const response = await this.postRequest(api, transactionType, retry, params);
+
+  if (!response && !retry) {
+    retry = true;
+    await this.proxyLower(api, queryApi, relayer, t1Recipient, token, amount, retry);
   }
 
   return response;

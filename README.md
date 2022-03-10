@@ -5,14 +5,11 @@
 # avn-gateway-api
 
 ## AvN-API
-Aventus AvN javascript API which connects to generic JSON-RPC spec
-Please see the [avn-api repo](https://www.npmjs.com/package/avn-api) for JS functionality and example usage
+Aventus AvN javascript API which connects to generic JSON-RPC spec.\
+Please see the [avn-api repo](https://www.npmjs.com/package/avn-api) for JS functionality and example usage.
 
 #### Running
-Before using the api, set your AvN mnemonic or secret seed as the **SURI** environment variable:
-```
-export SURI=<mnemonic OR secret seed>
-```
+Before using the api, set your AvN mnemonic or secret seed as the **SURI** environment variable: `export SURI=<mnemonic OR secret seed>``
 examples: \
 `export SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"` \
 `export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
@@ -32,10 +29,11 @@ const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
 // replace <mnemonic OR secret seed> with process.env.SURI if you have already set the environment variable
 ```
 
-### Proofs
-Each transaction request requires 2 proofs; **proxySignature** and **feePaymentSignature**\
+### Proof sets
+Each transaction request requires 1 or 2 proof sets, each comprising a **proxySignature** and a **feePaymentSignature**\
 These are automatically generated internally by the api but can also be created manually (for CURL requests etc).\
-To do so follow these steps (note: these manual api actions require **SURI** to be set to the intended sender/signer account):
+To do so follow these steps:
+**Note:** these manual api actions require **SURI** to be set to the intended sender/signer account
 
 - If required, make a `getAccountNonce` or `getNftNonce` query to retrieve the transaction nonce
 - The api then exposes the following methods to generate a relevant **proxySignature**:
@@ -400,7 +398,7 @@ curl https://AVN-API-URL/query \
 `freeBalance` - string integer value representing the portion of the total that is freely usable (not staked or locked) \
 `stakedBalance` - string integer value representing the portion that is staked and currently earning rewards \
 `unlockedBalance` - string integer value representing the portion that is unstaked and unlocked and can be converted to free balance \
-`unstakedBalance` - string integer value representing the portion that is unstaked but still currently locked \
+`unstakedBalance` - string integer value representing the portion that is unstaked but still currently locked
 
 **BODY**
 ```
@@ -428,7 +426,7 @@ Returns the staking status of the given AvN account
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`accountId` *[required]* - a string representing the public key or SS58 address of the account to check \
+`accountId` *[required]* - a string representing the public key or SS58 address of the account to check
 
 **EXAMPLE**
 ```
@@ -500,7 +498,7 @@ Returns fees for a particular relayer, optionally by user and/or transaction typ
 **REQUEST PARAMS** \
 `relayer` *[required]* - a string representing the relayer's public key or SS58 address \
 `user` *[optional]* - a string representing the user's public key or SS58 address \
-`transactionType` *[optional]* - a string representing the transaction type. One of: \
+`transactionType` *[optional]* - a string representing the transaction type. One of:
 ```
 "proxyAvtTransfer"
 "proxyTokenTransfer"
@@ -906,7 +904,7 @@ Stakes the specified amount of AVT, locking its free usage in order to earn rewa
 `proxyNominateSignature` *[required]* - a proof signed by the sender/signer account allowing the nominate transaction to be proxied \
 `bondFeePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the bond relayer fees to be paid \
 `nominateFeePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the nominate relayer fees to be paid \
-`bondPaymentNonce` *[required]* - string integer value of the current account payment nonce \
+`bondPaymentNonce` *[required]* - string integer value of the current account payment nonce
 
 
 **EXAMPLE**

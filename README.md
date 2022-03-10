@@ -415,8 +415,8 @@ curl https://AVN-API-URL/query \
 }
 ```
 
-#### getStakingAccountInfo
-Returns a breakdown of the staking status of a given AvN account
+#### getAccountAvtInfo
+Returns a breakdown of the current AVT utilisation in a given AvN account
 
 **REQUEST** \
 `POST https://AVN-API-URL/query`
@@ -435,22 +435,28 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getStakingAccountInfo", "params":{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getAccountInfo", "params":{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
-`total` - string integer value representing the account's total AVT balance \
-`freeBalance` - string integer value representing the account's total unstaked and unlocked AVT \
-`bonded` - string integer value representing the account's total currently staked AVT \
-`readyToClaim` - string integer value representing the account's total currently unclaimed staking rewards \
-`unbonding` - string integer value representing the account's total currently locked but unstaked AVT \
+`totalBalance` - string integer value representing the account's total AVT balance \
+`freeBalance` - string integer value representing the portion of the total that is freely usable (not staked or locked) \
+`stakedBalance` - string integer value representing the portion that is staked and currently earning rewards \
+`unlockedBalance` - string integer value representing the portion of the total that is unstaked and unlocked and can be converted to free balance \
+`unstakedBalance` - string integer value representing the portion of the total that is currently unstaked but still locked \
 
 **BODY**
 ```
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "result": {"total": "10000000000000000000", "freeBalance": "10000000000000000000", "bonded": "0", "readyToClaim": "0", "unbonding": "0"}
+  "result": {
+    "totalBalance": "10000000000000000",
+    "freeBalance": "5000000000000000",
+    "stakedBalance": "2000000000000000",
+    "unlockedBalance": "1000000000000000",
+    "unstakedBalance": "2000000000000000"
+  }
 }
 ```
 
@@ -852,7 +858,7 @@ curl https://AVN-API-URL/send \
 ```
 
 #### proxyStakeAvt
-Stakes the specified amount of AVT
+Stakes the specified amount of AVT, locking its free usage in order to earn rewards
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`
@@ -864,7 +870,7 @@ Stakes the specified amount of AVT
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
 `signer` *[required]* - a string representing the sender's SS58 address \
-`value` *[required]* - a string integer value representing the full amount of AVT to stake \
+`amount` *[required]* - a string integer value representing the full amount of AVT to stake \
 `proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
 `feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
@@ -876,7 +882,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyStakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "value":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x4bd139e3ac19d8fe217574c138ca320a73041b15527ba220280117588ad3597c20788049b4fbb6df2d96e579af68d6643c1cd4234812f8c9adb0e102a5840145", "feePaymentSignature":"0x123ad5e9df7e5443b29de409e5668753aea836b97d73af3b491c018d11a1269ef091f712b27e75847f8e5d056a996b4186d0ee80b3eb05ef0d1991c05539b0c8", "paymentNonce":"305"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyStakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x4bd139e3ac19d8fe217574c138ca320a73041b15527ba220280117588ad3597c20788049b4fbb6df2d96e579af68d6643c1cd4234812f8c9adb0e102a5840145", "feePaymentSignature":"0x123ad5e9df7e5443b29de409e5668753aea836b97d73af3b491c018d11a1269ef091f712b27e75847f8e5d056a996b4186d0ee80b3eb05ef0d1991c05539b0c8", "paymentNonce":"305"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -892,7 +898,7 @@ curl https://AVN-API-URL/send \
 ```
 
 #### proxyUnstakeAvt
-Unstakes the specified amount of AVT
+Unstakes the specified amount of AVT, removing it from earning further staking rewards and (after a period) allowing it to be withdrawn back to the free balance
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`
@@ -904,7 +910,7 @@ Unstakes the specified amount of AVT
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
 `signer` *[required]* - a string representing the sender's SS58 address \
-`value` *[required]* - a string integer value representing the full amount of AVT to unstake \
+`amount` *[required]* - a string integer value representing the full amount of AVT to unstake \
 `proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
 `feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
@@ -916,7 +922,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyUnstakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "value":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x642e2bf73020f8bbdee84543fe696fd0fcfa0792702afd47b33dce5f0d986747dc75f255bc1e7881a90dd146ce0a1344316a5923deff2ee6b2ea867cdbfb2865", "feePaymentSignature":"0xbab9b458e835338e73b6d2ae1f33b1bcb34e3743f286c0adf9c49f23e0c9be1d5ae9e43a93ba1eb7af76f924e92e7693a6b4ab299299e02e6fc6388e89989bcf", "paymentNonce":"312"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyUnstakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x642e2bf73020f8bbdee84543fe696fd0fcfa0792702afd47b33dce5f0d986747dc75f255bc1e7881a90dd146ce0a1344316a5923deff2ee6b2ea867cdbfb2865", "feePaymentSignature":"0xbab9b458e835338e73b6d2ae1f33b1bcb34e3743f286c0adf9c49f23e0c9be1d5ae9e43a93ba1eb7af76f924e92e7693a6b4ab299299e02e6fc6388e89989bcf", "paymentNonce":"312"}, "id":1}'
 ```
 
 **RESULT FIELDS** \

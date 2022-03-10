@@ -48,7 +48,7 @@ To do so follow these steps (note: these manual api actions require **SURI** to 
 - Make a `getPaymentNonce` query to retrieve the signer's **paymentNonce**
 - Get the **relayerFee** by making a query request to `getRelayerFees(relayer, signer, transactionType)`
 - Finally, use the collected data to generate the **feePaymentSignature**:
--- `api.proxy.createFeePaymentSignature(relayer, signer, proxySignature, relayerFee, paymentNonce)`
+  - `api.proxy.createFeePaymentSignature(relayer, signer, proxySignature, relayerFee, paymentNonce)`
 
 ### AvN accounts format
 AvN accounts can be identified by either their public key or their address. The former is represented by a 32-byte hex string. The latter is a string represented in [SS58 format](https://substrate.dev/docs/en/knowledgebase/advanced/ss58-address-format).\

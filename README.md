@@ -17,7 +17,7 @@ examples: \
 `export SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"` \
 `export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
 
-**Please note:** It's important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
+**Note:** It's important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
 
 
 ### AWT tokens
@@ -38,14 +38,14 @@ Each transaction request requires 2 proofs; **proxySignature** and **feePaymentS
 These are automatically generated internally by the api but can also be created manually (for CURL requests etc).\
 To do so follow these steps (note: these manual api actions require **SURI** to be set to the intended sender/signer account):
 
-- If required, make a `getAccountNonce` or `getNftNonce` query to retrieve the transaction nonce
-- The api then exposes the following methods to generate a relevant **proxySignature**:
--- `api.proxy.createProxyTransferSignature(relayer, signer, recipient, token, amount, accountNonce)`
--- `api.proxy.createProxyLowerSignature(relayer, signer, t1Recipient, token, amount, accountNonce)`
--- `api.proxy.createProxyListNftOpenForSaleSignature(relayer, signer, nftId, market, nftNonce)`
--- `api.proxy.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)`
--- `api.proxy.createProxyTransferFiatNftSignature(relayer, signer, nftId, recipient, nftNonce)`
--- `api.proxy.createProxyCancelListFiatNftSignature(relayer, signer, nftId, nftNonce)`
+- If required, make a `getAccountNonce` or `getNftNonce` query to retrieve the transaction nonce\
+- The api then exposes the following methods to generate a relevant **proxySignature**:\
+-- `api.proxy.createProxyTransferSignature(relayer, signer, recipient, token, amount, accountNonce)`\
+-- `api.proxy.createProxyLowerSignature(relayer, signer, t1Recipient, token, amount, accountNonce)`\
+-- `api.proxy.createProxyListNftOpenForSaleSignature(relayer, signer, nftId, market, nftNonce)`\
+-- `api.proxy.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)`\
+-- `api.proxy.createProxyTransferFiatNftSignature(relayer, signer, nftId, recipient, nftNonce)`\
+-- `api.proxy.createProxyCancelListFiatNftSignature(relayer, signer, nftId, nftNonce)`\
 - Make a `getPaymentNonce` query to retrieve the signer's **paymentNonce**
 - Get the **relayerFee** by making a query request to `getRelayerFees(relayer, signer, transactionType)`
 - Finally, use the collected data to generate the **feePaymentSignature**:

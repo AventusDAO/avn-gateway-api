@@ -11,7 +11,7 @@ const PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT = 'authorization for list nft open fo
 const PROXY_TRANSFER_FIAT_NFT_CONTEXT = 'authorization for transfer fiat nft operation';
 const PROXY_CANCEL_LIST_FIAT_NFT_CONTEXT = 'authorization for cancel list fiat nft for sale operation';
 
-function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, proxyNonce) {
+function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, accountNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
   const signer = common.convertToPublicKeyIfNeeded(_signer);
   const recipient = common.convertToPublicKeyIfNeeded(_recipient);
@@ -23,14 +23,14 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
     recipient,
     token,
     amount,
-    proxyNonce
+    accountNonce
   };
 
   const hexEncodedData = encodeProxyTransferSignatureData(dataToSign);
   return signData(hexEncodedData);
 }
 
-function createProxyLowerSignature(_relayer, _signer, t1Recipient, token, amount, proxyNonce) {
+function createProxyLowerSignature(_relayer, _signer, t1Recipient, token, amount, accountNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
   const signer = common.convertToPublicKeyIfNeeded(_signer);
 
@@ -41,7 +41,7 @@ function createProxyLowerSignature(_relayer, _signer, t1Recipient, token, amount
     t1Recipient,
     token,
     amount,
-    proxyNonce
+    accountNonce
   };
 
   const hexEncodedData = encodeProxyLowerSignatureData(dataToSign);
@@ -78,7 +78,7 @@ function createProxyListNftOpenForSaleSignature(_relayer, signer, nftId, market,
   return signData(hexEncodedData);
 }
 
-function createProxyTransferFiatNftSignature(_relayer, signer, nftId, _recipient, opId) {
+function createProxyTransferFiatNftSignature(_relayer, signer, nftId, _recipient, nftNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
   const recipient = common.convertToPublicKeyIfNeeded(_recipient);
 
@@ -87,21 +87,21 @@ function createProxyTransferFiatNftSignature(_relayer, signer, nftId, _recipient
     relayer,
     nftId,
     recipient,
-    opId
+    nftNonce
   };
 
   const hexEncodedData = encodeProxyTransferFiatNftSignature(dataToSign);
   return signData(hexEncodedData);
 }
 
-function createProxyCancelListFiatNftSignature(_relayer, signer, nftId, opId) {
+function createProxyCancelListFiatNftSignature(_relayer, signer, nftId, nftNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   const dataToSign = {
     context: PROXY_CANCEL_LIST_FIAT_NFT_CONTEXT,
     relayer,
     nftId,
-    opId
+    nftNonce
   };
 
   const hexEncodedData = encodeProxyCancelListFiatNftSignature(dataToSign);
@@ -138,7 +138,7 @@ function encodeProxyTransferSignatureData(params) {
   const encodedRecipient = common.registry.createType('AccountId', params.recipient);
   const encodedToken = common.registry.createType('H160', params.token);
   const encodedAmount = common.registry.createType('u128', params.amount);
-  const encodedNonce = common.registry.createType('u64', params.proxyNonce);
+  const encodedNonce = common.registry.createType('u64', params.accountNonce);
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
@@ -160,7 +160,7 @@ function encodeProxyLowerSignatureData(params) {
   const encodedToken = common.registry.createType('H160', params.token);
   const encodedAmount = common.registry.createType('u128', params.amount);
   const encodedT1Recipient = common.registry.createType('H160', params.t1Recipient);
-  const encodedNonce = common.registry.createType('u64', params.proxyNonce);
+  const encodedNonce = common.registry.createType('u64', params.accountNonce);
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
@@ -216,14 +216,14 @@ function encodeProxyTransferFiatNftSignature(params) {
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedNftId = common.registry.createType('U256', params.nftId);
   const encodedRecipient = common.registry.createType('AccountId', params.recipient);
-  const encodedOpId = common.registry.createType('u64', params.opId);
+  const encodedNftNonce = common.registry.createType('u64', params.nftNonce);
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedNftId.toU8a(true),
     encodedRecipient.toU8a(true),
-    encodedOpId.toU8a(true)
+    encodedNftNonce.toU8a(true)
   );
 
   return u8aToHex(encodedData);
@@ -233,13 +233,13 @@ function encodeProxyCancelListFiatNftSignature(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedNftId = common.registry.createType('U256', params.nftId);
-  const encodedOpId = common.registry.createType('u64', params.opId);
+  const encodedNftNonce = common.registry.createType('u64', params.nftNonce);
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedNftId.toU8a(true),
-    encodedOpId.toU8a(true)
+    encodedNftNonce.toU8a(true)
   );
 
   return u8aToHex(encodedData);

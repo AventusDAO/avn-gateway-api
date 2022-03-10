@@ -4,104 +4,60 @@
 
 # avn-gateway-api
 
-## AvN API
+## AvN-API
 Aventus AvN javascript API which connects to generic JSON-RPC spec
+Please the [avn-api repo](https://www.npmjs.com/package/avn-api) for JS functionality and example usage
 
-### Installation
-`npm install avn-api`
-
-### Usage
-```
-const AvnApi = require('avn-api');
-const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
-await api.init();
-```
 #### Running
-Before running the script, set your AvN mnemonic or secret seed as an environment variable by running:
+Before using the api, set your AvN mnemonic or secret seed as the **SURI** environment variable:
 ```
 export SURI=<mnemonic OR secret seed>
 ```
 examples: \
-`export SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"`
- \
+`export SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"` \
 `export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
 
 **Please note:** It's important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
 
 
 ### AWT tokens
-AWT (Aventus Web Token) is an authorisation token that is included in the header of every request sent to the api gateway.
-This token is automatically generated, and included in the request header, using the environment variable (SURI) set before using the api.
-
-If you want to test the api using a different way (curl or postman...), you can generate this token using the following code:
+AWT (Aventus Web Token) is an authorisation token that must be included in the header of every request sent to the api gateway.\
+The token can be generated manually using the following code:
 ```
 const AvnApi = require('avn-api');
 const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
 await api.init();
 
 const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
-// you can replace <mnemonic OR secret seed> with process.env.SURI if you have already set the environment variable
-```
-### Queries
-
-Note: AvN accounts can be identified by either their public key or their address. The former is represented by a 32-byte hex string. The latter is a string represented in [SS58 format](https://substrate.dev/docs/en/knowledgebase/advanced/ss58-address-format). Unless otherwise specifically noted, in the notes below, every argument that represents an AvN account can receive a value in either format.
-
-```
-// Return the total amount of AVT in the AvN:
-let totalAvt = await api.query.getTotalAvt();
-
-
-// Return an account's AVT balance:
-const user1AvtBalance = await api.query.getAvtBalance('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH');
-const user2AvtBalance = await api.query.getAvtBalance('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e');
-
-
-// Return an account's token balance, specified by its Ethereum address:
-const token = '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e';
-const totalAvt = await api.query.getTokenBalance('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH', token);
-const totalAvt = await api.query.getTokenBalance('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', token);
-
-
-// Return the nonce of an AvN account:
-const user1Nonce = api.query.getAccountNonce('5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH');
-const user2Nonce = api.query.getAccountNonce('0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e');
-
+// replace <mnemonic OR secret seed> with process.env.SURI if you have already set the environment variable
 ```
 
-### Transactions
+### Proofs
 
-```
-// Transfer an amount of AVT from the sender account to the destination account.
-// This operation uses a relayer account that the sender authorises to submit the transfer:
+Each transaction request requires 2 proofs; **proxySignature** and **feePaymentSignature**\
+These are automatically generated internally by the api but can also be created manually (for CURL requests etc).\
+To do so follow these steps (note: these manual api actions require **SURI** to be set to the intended sender/signer account):
 
-const requestId1 = await api.send.transferAvt('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh', '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr','100000000000000000000');
+- If required, make a `getAccountNonce` or `getNftNonce` query to retrieve the transaction nonce
+- The api then exposes the following methods to generate a relevant **proxySignature**:
+-- `api.proxy.createProxyTransferSignature(relayer, signer, recipient, token, amount, accountNonce)`
+-- `api.proxy.createProxyLowerSignature(relayer, signer, t1Recipient, token, amount, accountNonce)`
+-- `api.proxy.createProxyListNftOpenForSaleSignature(relayer, signer, nftId, market, nftNonce)`
+-- `api.proxy.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)`
+-- `api.proxy.createProxyTransferFiatNftSignature(relayer, signer, nftId, recipient, nftNonce)`
+-- `api.proxy.createProxyCancelListFiatNftSignature(relayer, signer, nftId, nftNonce)`
+- Make a `getPaymentNonce` query to retrieve the signer's **paymentNonce**
+- Get the **relayerFee** by making a query request to `getRelayerFees(relayer, signer, transactionType)`
+- Finally, use the collected data to generate the **feePaymentSignature**:
+-- `api.proxy.createFeePaymentSignature(relayer, signer, proxySignature, relayerFee, paymentNonce)`
 
-const requestId2 = await api.send.transferAvt('0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004', '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', 10);
-
-// Transfer an amount of an ERC20 or ERC777 token from the sender account to the destination account.
-// This operation uses a relayer account that the sender authorises to submit the transfer:
-
-const requestId1 = await api.send.transferToken('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh', '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr', '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e', '100000000000000000000');
-
-const requestId2 = await api.send.transferToken('0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004', '0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e', '0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e', 10);
-
-```
-
-### Polling
-
-```
-// Get the current state of a previously sent transaction:
-const requestId3 = await api.send.transferAvt('5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh', '5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr','100');
-const status = await api.poll.requestState(requestId);
-
-```
-
+### AvN accounts format
+AvN accounts can be identified by either their public key or their address. The former is represented by a 32-byte hex string. The latter is a string represented in [SS58 format](https://substrate.dev/docs/en/knowledgebase/advanced/ss58-address-format).\
+Unless otherwise specifically noted below, every argument that represents an AvN account can receive either format.
 
 ## JSON-RPC Methods
-Accessing the gateway API requires an authorisation token to be included in the request header. The format for this header should be:
-`Authorization': bearer <awtToken>` where `<awtToken>` is the unique token for this request.
-
-This token will be generated for you automatically by the library.
+Accessing the gateway requires an authorisation token to be included in the request header. The format for this header should be:
+`Authorization': bearer <awtToken>`, where `<awtToken>` is the unique token for this request.
 
 ### Queries
 
@@ -477,6 +433,7 @@ Returns fees for a particular relayer, optionally by user and/or transaction typ
 ```
 "proxyAvtTransfer"
 "proxyTokenTransfer"
+"proxyTokenLower"
 "proxyMintSingleNft"
 "proxyListNftOpenForSale"
 "proxyTransferFiatNft"

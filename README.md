@@ -6,7 +6,7 @@
 
 ## AvN-API
 Aventus AvN javascript API which connects to generic JSON-RPC spec
-Please the [avn-api repo](https://www.npmjs.com/package/avn-api) for JS functionality and example usage
+Please see the [avn-api repo](https://www.npmjs.com/package/avn-api) for JS functionality and example usage
 
 #### Running
 Before using the api, set your AvN mnemonic or secret seed as the **SURI** environment variable:

@@ -426,7 +426,7 @@ Returns a breakdown of the current AVT utilisation in a given AvN account
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`accountId` *[required]* - a string representing the public key or SS58 address of the account to check for AVT balance
+`accountId` *[required]* - a string representing the public key or SS58 address of the account to check
 
 **EXAMPLE**
 ```

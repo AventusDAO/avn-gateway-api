@@ -39,13 +39,15 @@ To do so follow these steps (note: these manual api actions require **SURI** to 
 
 - If required, make a `getAccountNonce` or `getNftNonce` query to retrieve the transaction nonce
 - The api then exposes the following methods to generate a relevant **proxySignature**:
-  - `api.proxy.createProxyTransferSignature(relayer, signer, recipient, token, amount, accountNonce)`
-  - `api.proxy.createProxyConfirmLiftSignature(relayer, signer, ethereumTransactionHash, accountNonce)`
+  - `api.proxy.createProxyTransferSignature(relayer, signer, recipient, token, amount, accountNonce)` - _used for both AVT and non-AVT transfers_
+  - `api.proxy.createProxyConfirmTokenLiftSignature(relayer, signer, ethereumTransactionHash, accountNonce)`
   - `api.proxy.createProxyLowerSignature(relayer, signer, t1Recipient, token, amount, accountNonce)`
   - `api.proxy.createProxyListNftOpenForSaleSignature(relayer, signer, nftId, market, nftNonce)`
   - `api.proxy.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)`
   - `api.proxy.createProxyTransferFiatNftSignature(relayer, signer, nftId, recipient, nftNonce)`
-  - `api.proxy.createProxyCancelListFiatNftSignature(relayer, signer, nftId, nftNonce)`
+  - `api.proxy.createProxyStakeAvt(relayer, signer, ????)`
+  - `api.proxy.createProxyIncreaseStakeSignature(relayer, signer, ????)`
+  - `api.proxy.createProxyUnstakeSignature(relayer, signer, ????)`
 - Make a `getPaymentNonce` query to retrieve the signer's **paymentNonce**
 - Get the **relayerFee** by making a query request to `getRelayerFees(relayer, signer, transactionType)`
 - Finally, use the collected data to generate the **feePaymentSignature**:

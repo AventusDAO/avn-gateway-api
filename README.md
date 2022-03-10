@@ -19,9 +19,9 @@ examples: \
 
 **Note:** It's important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
 
-
 ### AWT tokens
 AWT (Aventus Web Token) is an authorisation token that must be included in the header of every request sent to the api gateway.\
+The format for this header should be: `Authorization': bearer <awtToken>` (where `<awtToken>` is the unique token for this request).\
 The token can be generated manually using the following code:
 ```
 const AvnApi = require('avn-api');
@@ -33,7 +33,6 @@ const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
 ```
 
 ### Proofs
-
 Each transaction request requires 2 proofs; **proxySignature** and **feePaymentSignature**\
 These are automatically generated internally by the api but can also be created manually (for CURL requests etc).\
 To do so follow these steps (note: these manual api actions require **SURI** to be set to the intended sender/signer account):
@@ -56,8 +55,6 @@ AvN accounts can be identified by either their public key or their address. The 
 Unless otherwise specifically noted below, every argument that represents an AvN account can receive either format.
 
 ## JSON-RPC Methods
-Accessing the gateway requires an authorisation token to be included in the request header. The format for this header should be:
-`Authorization': bearer <awtToken>`, where `<awtToken>` is the unique token for this request.
 
 ### Queries
 

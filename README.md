@@ -40,6 +40,7 @@ To do so follow these steps (note: these manual api actions require **SURI** to 
 - If required, make a `getAccountNonce` or `getNftNonce` query to retrieve the transaction nonce
 - The api then exposes the following methods to generate a relevant **proxySignature**:
   - `api.proxy.createProxyTransferSignature(relayer, signer, recipient, token, amount, accountNonce)`
+  - `api.proxy.createProxyConfirmLiftSignature(relayer, signer, ethereumTransactionHash, accountNonce)`
   - `api.proxy.createProxyLowerSignature(relayer, signer, t1Recipient, token, amount, accountNonce)`
   - `api.proxy.createProxyListNftOpenForSaleSignature(relayer, signer, nftId, market, nftNonce)`
   - `api.proxy.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)`
@@ -410,6 +411,76 @@ curl https://AVN-API-URL/query \
     "unlockedBalance": "1000000000000000",
     "unstakedBalance": "2000000000000000"
   }
+}
+```
+
+#### getStakingStatus
+Returns the staking status of the given AvN account
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**REQUEST PARAMS** \
+`accountId` *[required]* - a string representing the public key or SS58 address of the account to check \
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getStakingStatus", "params":{"accountId":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr"}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - string detailing the current staking status:
+```
+'isStaking'
+'isNotStaking'
+```
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "isNotStaking"
+}
+```
+
+#### getValidatorsToNominate
+Returns the validator nomination list required to create first-time staker proofs
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getValidatorsToNominate", "params":{}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - array of hex strings representing the list of validator public keys
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": ["0x", "0x", "0x"]
 }
 ```
 
@@ -812,7 +883,55 @@ curl https://AVN-API-URL/send \
 ```
 
 #### proxyStakeAvt
-Stakes the specified amount of AVT, locking its free usage in order to earn rewards
+Stakes the specified amount of AVT, locking its free usage in order to earn rewards.\
+**Note** This should only be used for _first time_ stakers - please query `getStakingStatus` to check first.\
+**Note-2** The initial staking requires 2 sets of proofs, one to cover the bonding step and one to cover the nominating step
+
+**REQUEST**\
+`POST https://AVN-API-URL/send`
+
+**HEADERS**\
+`Content-Type: application/json`\
+`Authorization': bearer <awtToken>`
+
+**REQUEST PARAMS**\
+`relayer` *[required]* - a string representing the relayer's SS58 address \
+`signer` *[required]* - a string representing the sender's SS58 address \
+`amount` *[required]* - a string integer value representing the full amount of AVT to stake \
+`targets` *[required]* - The list of validators to nominate \
+`proxyBondSignature` *[required]* - a proof signed by the sender/signer account allowing the bond transaction to be proxied \
+`proxyNominateSignature` *[required]* - a proof signed by the sender/signer account allowing the nominate transaction to be proxied \
+`bondFeePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the bond relayer fees to be paid \
+`nominateFeePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the nominate relayer fees to be paid \
+`bondPaymentNonce` *[required]* - string integer value of the current account payment nonce \
+
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/send \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"proxyStakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxyBondSignature":"0x8cd139e3ac19d8fe217574c138ca320a73041b15527ba220280117588ad3597c20788049b4fbb6df2d96e579af68d6643c1cd4234812f8c9adb0e102a5840145",
+    "proxyNominateSignature":"0x4bd139e3ac19d8fe217574c138ca320a73041b15527ba220280117588ad3597c20788049b4fbb6df2d96e579af68d6643c1cd4234812f8c9adb0e102a5840145", "bondFeePaymentSignature":"0x243ad5e9df7e5443b29de409e5668753aea836b97d73af3b491c018d11a1269ef091f712b27e75847f8e5d056a996b4186d0ee80b3eb05ef0d1991c05539b0c8","nominateFeePaymentSignature":"0x123ad5e9df7e5443b29de409e5668753aea836b97d73af3b491c018d11a1269ef091f712b27e75847f8e5d056a996b4186d0ee80b3eb05ef0d1991c05539b0c8", "bondPaymentNonce":"305", "targets": ["0x", "0x", "0x"]}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - a request ID that can be queried for the transaction's status
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "80ada166-e4f7-441d-9f1d-1be266a2f89c"
+}
+```
+
+#### proxyIncreaseStake
+Stakes the specified amount of AVT, locking its free usage in order to earn rewards.
+**Note** This should only be used for _existing_ stakers - please query `getStakingStatus` to check first.\
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`

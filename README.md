@@ -415,7 +415,7 @@ curl https://AVN-API-URL/query \
 }
 ```
 
-#### getAccountAvtInfo
+#### getAccountInfo
 Returns a breakdown of the current AVT utilisation in a given AvN account
 
 **REQUEST** \

@@ -169,7 +169,7 @@ async function getAccountInfo(call, request) {
   if (utils.isValidAccountId(accountId) === false) {
     return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
   } else {
-    return await queryAccountInfoFromChain(call, request, accountId, formatJsonAsString);
+    return await queryAccountInfoFromChain(call, request, accountId);
   }
 }
 

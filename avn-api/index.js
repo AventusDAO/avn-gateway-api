@@ -4,6 +4,7 @@ const Axios = require('axios');
 const Query = require('./lib/query.js');
 const Send = require('./lib/send.js');
 const Poll = require('./lib/poll.js');
+const Proxy = require('./lib/proxy.js');
 const Awt = require('./lib/awt.js');
 const Utils = require('./lib/utils.js');
 const version = require('./package.json').version;
@@ -28,6 +29,7 @@ AvnApi.prototype.init = async function () {
   const avtContractAddress = await this.query.getAvtContractAddress(avnApi);
   this.send = new Send(avnApi, this.query, avtContractAddress);
   this.poll = new Poll(avnApi);
+  this.proxy = Proxy;
   this.awt = Awt;
   this.utils = Utils;
 };

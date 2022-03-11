@@ -124,7 +124,7 @@ Query.prototype.postRequest = async function (api, method, params) {
     return response.data.result;
   }
 
-  throw new Error(`Error processing query: ${JSON.stringify(response.data.error)}`);
+  throw new Error(`Error processing query. Response: ${JSON.stringify(response.data)}`);
 };
 
 module.exports = Query;

@@ -128,4 +128,15 @@ describe('Query api calls:', async () => {
     //getNftOwner(nftId)
     it('returns correct nft owner for specific nft id');
   });
+
+  describe('AccountInfo', async () => {
+    it('returns correct data for user by address', async () => {
+      const returnedData = await api.query.getAccountInfo(user.address);
+      assert.equal(returnedData.totalBalance, returnedData.freeBalance);
+      assert.equal(returnedData.stakedBalance, "0");
+      assert.equal(returnedData.unlockedBalance, "0");
+      assert.equal(returnedData.unstakedBalance, "0");
+    });
+  });
+
 });

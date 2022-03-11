@@ -59,16 +59,22 @@ async function poll(requestId) {
 }
 
 async function accountInfo(accountId) {
+  console.log("avn-connector: accountInfo");
   let stakingInfo = await api.derive.staking.account(accountId);
   let balancesAll = await api.derive.balances.all(accountId);
 
-  return {
+  console.log("getting data");
+
+  const accountData = {
       totalBalance: balancesAll.freeBalance.add(balancesAll.reservedBalance).toString(),
       freeBalance: balancesAll.availableBalance.toString(),
       stakedBalance: stakingHelper.calculateBondedAmount(stakingInfo).toString(),
       unlockedBalance: stakingInfo.redeemable.toString(),
       unstakedBalance: stakingHelper.calculateUnbondingAmount(stakingInfo).toString()
     }
+
+  console.log(JSON.stringify(accountData, null, 2));
+  return accountData;
 }
 
 async function getNonce(senderAddress) {

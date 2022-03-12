@@ -16,6 +16,7 @@ function Send(api, queryApi, avtContractAddress) {
   this.listFiatNftForSale = generateFunction(listFiatNftForSale, api, queryApi);
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi);
   this.cancelFiatNftListing = generateFunction(cancelFiatNftListing, api, queryApi);
+  this.stake = generateFunction(stake(api, queryApi));
   this.avtContractAddress = avtContractAddress;
   this.nonceMap = {};
   this.feesMap = {};
@@ -91,6 +92,15 @@ function cancelFiatNftListing(api, queryApi) {
     common.validateNftId(nftId);
 
     return await this.proxyCancelListFiatNft(api, queryApi, relayer, nftId);
+  };
+}
+
+function stake(api, queryApi) {
+  return async function (relayer, amount, targets) {
+    common.validateAccount(relayer);
+    amount = common.validateAndConvertAmountToString(amount);
+    targets = common.validateStakingTargets(targets);
+    return await this.proxyStakeAvt(api, queryApi, amount, targets);
   };
 }
 
@@ -200,6 +210,42 @@ Send.prototype.proxyCancelListFiatNft = async function (api, queryApi, relayer, 
   if (!response && !retry) {
     retry = true;
     await this.proxyCancelListFiatNft(api, queryApi, relayer, nftId, retry);
+  }
+
+  return response;
+};
+
+Send.prototype.proxyStakeAvt = async function (api, queryApi, relayer, amount, targets, retry) {
+  const method = 'proxyStakeAvt';
+  const signer = common.getClientAddress();
+  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
+  const stakingNonce = await queryApi.getStakingNonce();
+  const {proxyBondSignature, proxyNominateSignature} = proxyApi.createProxyStakeAvtSignature(relayer, signer, amount, targets, stakingNonce);
+
+  let paymentArgs = { relayer, signer, proxySignature: proxyBondSignature, transactionType: TX_TYPE.ProxyBond };
+  const { bondPaymentNonce, bondFeePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
+
+  paymentArgs = {...paymentArgs, proxySignature: proxyNominateSignature, transactionType: TX_TYPE.ProxyNominate};
+  const { nominatePaymentNonce, nominateFeePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
+
+  const params = {
+    relayer,
+    signer,
+    amount,
+    proxyBondSignature,
+    bondFeePaymentSignature,
+    bondPaymentNonce,
+    targets,
+    proxyNominateSignature,
+    nominateFeePaymentSignature,
+    nominatePaymentNonce
+  };
+
+  const response = await this.postRequest(api, method, retry, params);
+
+  if (!response && !retry) {
+    retry = true;
+    await this.proxyStakeAvt(api, queryApi, relayer, amount, targets, retry);
   }
 
   return response;

@@ -63,6 +63,8 @@ async function callSwitch(call, request, requestId) {
       return await processProxyMintSingleNft(call, request, requestId);
     case 'proxyTransferFiatNft':
       return await processProxyTransferFiatNft(call, request, requestId);
+    case 'proxyStakeAvt':
+      return await processProxyStakeAvt(call, request, requestId);
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -168,39 +170,31 @@ async function processProxyTransferFiatNft(call, request, requestId) {
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
+async function processProxyStakeAvt(call, request, requestId) {
+  const pallet = 'utility';
+  const method = 'batchAll';
+
+  const bond = {
+    palletName: 'validatorsManager',
+    method: 'signedBond',
+    params: await getBondParams(call, request)
+  };
+
+  const nominate = {
+    palletName: 'validatorsManager',
+    method: 'signedNominate',
+    params: await getNominateParams(call, request)
+  }
+
+  return await sendTx(call, request, requestId, pallet, method, [bond, nominate]);
+}
+
 async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {
   const { relayer, signer, proxySignature, feePaymentSignature, paymentNonce } = call.params;
 
-  try {
-    if (utils.isValidAccountId(relayer) === false) throw 'relayer';
-    if (utils.isValidAccountId(signer) === false) throw 'signer';
-    if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format';
-    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format';
-    if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce';
-  } catch (param) {
-    return utils.errorResponse('param', 'invalid' + param, param, request, call.id);
-  }
+  validateMethodParams(call.id, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce);
 
-  const proxyProof = getProxyProof(signer, relayer, proxySignature);
-
-  let relayerFee;
-  try {
-    relayerFee = await getRelayerFee(relayer, signer, call.method);
-  } catch (error) {
-    return utils.errorResponse('internal', 'could not get relayer fee', error, request, call.id);
-  }
-
-  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
-  if (!paymentInfo) {
-    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, call.id);
-  }
-
-  const params = {
-    proxyParams: [proxyProof].concat(methodParams),
-    relayerAddress: relayer,
-    paymentInfo
-  };
-
+  const params = await getProxyParams(call, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams);
   return await sendTx(call, request, requestId, pallet, method, params);
 }
 
@@ -237,6 +231,89 @@ function getProxyProof(signer, relayer, proxySignature) {
       Sr25519: proxySignature
     }
   };
+}
+
+function validateMethodParams(callId, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce) {
+  try {
+    if (utils.isValidAccountId(relayer) === false) throw 'relayer';
+    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format';
+    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format';
+    if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce';
+  } catch (errParam) {
+    return utils.errorResponse('param', 'invalid' + errParam, errParam, request, callId);
+  }
+}
+
+async function getProxyParams(call, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams) {
+  const proxyProof = getProxyProof(signer, relayer, proxySignature);
+
+  let relayerFee;
+  try {
+    relayerFee = await getRelayerFee(relayer, signer, call.method);
+  } catch (error) {
+    return utils.errorResponse('internal', 'could not get relayer fee', error, request, call.id);
+  }
+
+  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
+  if (!paymentInfo) {
+    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, call.id);
+  }
+
+  return {
+    proxyParams: [proxyProof].concat(methodParams),
+    relayerAddress: relayer,
+    paymentInfo
+  };
+}
+
+async function getBondParams(call, request) {
+  const { relayer, signer, amount, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce } = call.params;
+
+  const bondMethodParams = [signer, amount, utils.STASH_REWARD_DESTINATION];
+  try {
+    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidAmount(amount) === false) throw 'amount';
+  } catch (errParam) {
+    return utils.errorResponse('params', 'invalid ' + errParam, errParam, request, call.id);
+  }
+
+  validateMethodParams(call.id, request, relayer, signer, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
+
+  return await getProxyParams(
+    call,
+    request,
+    relayer,
+    signer,
+    proxyBondSignature,
+    bondFeePaymentSignature,
+    bondPaymentNonce,
+    bondMethodParams
+  );
+}
+
+async function getNominateParams(call, request) {
+  const { relayer, signer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce  } = call.params;
+  const nominateMethodParams = [targets];
+
+  try {
+    if (utils.isValidArray(targets) === false || targets.length === 0) throw 'targets';
+  } catch (errParam) {
+    return utils.errorResponse('params', 'invalid ' + errParam, errParam, request, call.id);
+  }
+
+  validateMethodParams(call.id, request, relayer, signer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
+
+  return await getProxyParams(
+    call,
+    request,
+    relayer,
+    signer,
+    proxyNominateSignature,
+    nominateFeePaymentSignature,
+    nominatePaymentNonce,
+    nominateMethodParams
+  );
 }
 
 async function sendTx(call, request, requestId, palletName, method, params) {

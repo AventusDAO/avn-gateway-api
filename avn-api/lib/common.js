@@ -16,8 +16,13 @@ const TX_TYPE = {
   ProxyMintSingleNft: 'proxyMintSingleNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
   ProxyTransferFiatNft: 'proxyTransferFiatNft',
-  ProxyCancelListFiatNft: 'proxyCancelListFiatNft'
+  ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
+  ProxyBond: 'proxyBond',
+  ProxyNominate: 'proxyNominate',
 };
+
+const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
+const RATE_STRUCTURE = ['parts_per_million'];
 
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
   if (isAccountPK(accountAddressOrPublicKey)) {
@@ -61,17 +66,12 @@ function validateEthereumAddress(ethereumAddress) {
   }
 }
 
-function validateRoyaltiesStructure(royalties) {
-  const royaltiesStructure = ['recipient_t1_address', 'rate'];
-  const rateStructure = ['parts_per_million'];
-  let structureCheck;
+function validateRoyaltyStructure(royalty) {
+  let structureCheck = JSON.stringify(Object.keys(royalty)) === JSON.stringify(ROYALTY_STRUCTURE);
+  if (structureCheck) {
+    structureCheck = JSON.stringify(Object.keys(royalty.rate)) === JSON.stringify(RATE_STRUCTURE);
+  }
 
-  royalties.forEach(royalty => {
-    structureCheck = JSON.stringify(Object.keys(royalty)) === JSON.stringify(royaltiesStructure);
-    if (structureCheck) {
-      structureCheck = JSON.stringify(Object.keys(royalty.rate)) === JSON.stringify(rateStructure);
-    }
-  });
   if (!structureCheck) {
     throw new Error(`Invalid royalties format: ${royalties}`);
   }
@@ -82,9 +82,9 @@ function validateRoyalties(royalties) {
   if (royalties.length === 0) {
     return;
   }
-  validateRoyaltiesStructure(royalties);
 
   royalties.forEach(royalty => {
+    validateRoyaltyStructure(royalty);
     validateEthereumAddress(royalty.recipient_t1_address);
     if (
       royalty.rate.parts_per_million === false ||
@@ -129,6 +129,13 @@ function validateTransactionType(transactionType) {
   }
 }
 
+function validateStakingTargets(targets) {
+  validateIsArray(targets);
+  if (targets.length === 0) {
+    throw new Error(`Staking targets is a mandatory field. You must select at least 1 target to nominate.`);
+  }
+}
+
 function getClientSigner() {
   const suri = process.env.SURI;
   if (!suri) throw new Error('Please set SURI environment variable');
@@ -162,5 +169,6 @@ module.exports = {
   validateRequestId,
   validateStringIsPopulated,
   validateTransactionType,
-  validateRoyalties
+  validateRoyalties,
+  validateStakingTargets
 };

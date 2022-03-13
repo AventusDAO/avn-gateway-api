@@ -170,25 +170,6 @@ async function processProxyTransferFiatNft(call, request, requestId) {
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyStakeAvt(call, request, requestId) {
-  const pallet = 'utility';
-  const method = 'batchAll';
-
-  const bond = {
-    palletName: 'validatorsManager',
-    method: 'signedBond',
-    params: await getBondParams(call, request)
-  };
-
-  const nominate = {
-    palletName: 'validatorsManager',
-    method: 'signedNominate',
-    params: await getNominateParams(call, request)
-  }
-
-  return await sendTx(call, request, requestId, pallet, method, [bond, nominate]);
-}
-
 async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {
   const { relayer, signer, proxySignature, feePaymentSignature, paymentNonce } = call.params;
 
@@ -231,6 +212,25 @@ function getProxyProof(signer, relayer, proxySignature) {
       Sr25519: proxySignature
     }
   };
+}
+
+async function processProxyStakeAvt(call, request, requestId) {
+  const pallet = 'utility';
+  const method = 'batchAll';
+
+  const bond = {
+    palletName: 'validatorsManager',
+    method: 'signedBond',
+    params: await getBondParams(call, request)
+  };
+
+  const nominate = {
+    palletName: 'validatorsManager',
+    method: 'signedNominate',
+    params: await getNominateParams(call, request)
+  }
+
+  return await sendTx(call, request, requestId, pallet, method, [bond, nominate]);
 }
 
 function validateMethodParams(callId, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce) {

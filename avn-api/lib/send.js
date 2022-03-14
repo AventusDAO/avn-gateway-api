@@ -17,7 +17,6 @@ function Send(api, queryApi, avtContractAddress) {
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi);
   this.cancelFiatNftListing = generateFunction(cancelFiatNftListing, api, queryApi);
   this.stake = generateFunction(stake(api, queryApi));
-  this.increaseStake = generateFunction(increaseStake(api, queryApi));
   this.avtContractAddress = avtContractAddress;
   this.nonceMap = {};
   this.feesMap = {};
@@ -97,19 +96,20 @@ function cancelFiatNftListing(api, queryApi) {
 }
 
 function stake(api, queryApi) {
-  return async function (relayer, amount, targets) {
-    common.validateAccount(relayer);
-    amount = common.validateAndConvertAmountToString(amount);
-    targets = common.validateStakingTargets(targets);
-    return await this.proxyStakeAvt(api, queryApi, amount, targets);
-  };
-}
-
-function increaseStake(api, queryApi) {
   return async function (relayer, amount) {
     common.validateAccount(relayer);
     amount = common.validateAndConvertAmountToString(amount);
-    return await this.proxyIncreaseStake(api, queryApi, amount);
+
+    const signer = common.convertToPublicKeyIfNeeded(common.getClientAddress());
+    const stakingStatus = await queryApi.getStakingStatus(signer);
+
+    if (stakingStatus === common.STAKING_STATUS.isStaking) {
+      return await this.proxyIncreaseStake(api, queryApi, amount);
+    } else {
+      const targets = await queryApi.getValidatorsToNominate();
+      common.validateStakingTargets(targets);
+      return await this.proxyStakeAvt(api, queryApi, amount, targets);
+    }
   };
 }
 

@@ -25,6 +25,11 @@ const TX_TYPE = {
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
 const RATE_STRUCTURE = ['parts_per_million'];
 
+const STAKING_STATUS = {
+  isStaking: 'isStaking',
+  isNotStaking: 'isNotStaking'
+}
+
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
   if (isAccountPK(accountAddressOrPublicKey)) {
     return accountAddressOrPublicKey;
@@ -161,6 +166,7 @@ module.exports = {
   keyring,
   registry,
   sleep,
+  STAKING_STATUS,
   TX_TYPE,
   validateAccount,
   validateAndConvertAmountToString,

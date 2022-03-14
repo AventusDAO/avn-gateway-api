@@ -13,10 +13,15 @@ const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const TX_TYPES = [
   'proxyAvtTransfer',
   'proxyTokenTransfer',
+  'proxyTokenLower',
   'proxyMintSingleNft',
   'proxyListNftOpenForSale',
   'proxyTransferFiatNft',
-  'proxyCancelListFiatNft'
+  'proxyCancelListFiatNft',
+  'proxyBond',
+  'proxyNominate',
+  'proxyIncreaseStake',
+  'proxyUnstake'
 ];
 
 let initialised;

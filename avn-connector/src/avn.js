@@ -58,7 +58,7 @@ async function poll(requestId) {
   }
 }
 
-async function accountInfo(accountId) {
+async function getAccountInfo(accountId) {
   let stakingInfo = await api.derive.staking.account(accountId);
   let balancesAll = await api.derive.balances.all(accountId);
 
@@ -159,7 +159,7 @@ function isTransactionHash(requestId) {
 }
 
 module.exports = {
-  accountInfo,
+  getAccountInfo,
   init,
   query,
   proxy,

@@ -351,10 +351,10 @@ function encodeNominateSignatureData(params) {
 }
 
 function encodeIncreaseStakeSignatureData(params) {
-  const context = registry.createType('Text', params.context);
-  const relayer = registry.createType('AccountId', hexToU8a(params.relayer));
-  const amount = registry.createType('BalanceOf', params.amount);
-  const nonce = registry.createType('u64', params.nonce);
+  const context = common.registry.createType('Text', params.context);
+  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const amount = common.registry.createType('BalanceOf', params.amount);
+  const nonce = common.registry.createType('u64', params.nonce);
 
   const encoded_params = u8aConcat(
     context.toU8a(false),

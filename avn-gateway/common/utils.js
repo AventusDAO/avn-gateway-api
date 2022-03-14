@@ -11,6 +11,8 @@ const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const TX_TYPES = [
   'proxyAvtTransfer',
   'proxyTokenTransfer',
+  'proxyConfirmTokenLift',
+  'proxyTokenLower',
   'proxyMintSingleNft',
   'proxyListNftOpenForSale',
   'proxyTransferFiatNft',
@@ -76,6 +78,14 @@ function isValidArray(value) {
 
 function isValidEthereumAddress(tokenId) {
   return isHex(tokenId) && tokenId.split('').length == 42;
+}
+
+function isValidEthereumTransactionHash(transactionHash) {
+  return isHex(transactionHash) && tokenId.split('').length == 66;
+}
+
+function isValidEventType(eventType) {
+  return [0, 1, 2, 3, 4, 5].includes(eventType);
 }
 
 function isValidMarket(market) {
@@ -158,6 +168,8 @@ module.exports = {
   isValidAmount,
   isValidArray,
   isValidEthereumAddress,
+  isValidEthereumTransactionHash,
+  isValidEventType,
   isValidMarket,
   isValidNftId,
   isValidNonce,

@@ -70,7 +70,7 @@ async function poll(requestId) {
   }
 }
 
-async function accountInfo(accountId) {
+async function getAccountInfo(accountId) {
   let stakingInfo = await api.derive.staking.account(accountId);
   let balancesAll = await api.derive.balances.all(accountId);
 
@@ -92,6 +92,21 @@ async function getNonce(senderAddress) {
     redis.refreshNonce(senderAddress);
   }
   return nonce;
+}
+
+async function getValidatorsToNominate() {
+  let validators = await redis.getValidatorsToNominate();
+
+  if (!validators) {
+    let validatorsInfo = await api.derive.staking.electedInfo({ withPrefs: true });
+    validators = validatorsInfo.info
+      .filter(i => i.validatorPrefs.blocked && i.validatorPrefs.blocked.isFalse === true)
+      .map(i => i.accountId);
+
+    await redis.setValidatorsToNominate(JSON.stringify(validators));
+  }
+
+  return validators;
 }
 
 async function signAndSend(requestId, relayerAddress, txn) {
@@ -171,7 +186,8 @@ function isTransactionHash(requestId) {
 }
 
 module.exports = {
-  accountInfo,
+  getAccountInfo,
+  getValidatorsToNominate,
   init,
   query,
   proxy,

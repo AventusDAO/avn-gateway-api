@@ -65,6 +65,8 @@ async function callSwitch(call, request, requestId) {
       return await processProxyTransferFiatNft(call, request, requestId);
     case 'proxyStakeAvt':
       return await processProxyStakeAvt(call, request, requestId);
+    case 'proxyIncreaseStake':
+      return await processProxyIncreaseStake(call, request, requestId);
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -231,6 +233,22 @@ async function processProxyStakeAvt(call, request, requestId) {
   }
 
   return await sendTx(call, request, requestId, pallet, method, [bond, nominate]);
+}
+
+async function processProxyIncreaseStake(call, request, requestId) {
+  const pallet = 'validatorsManager';
+  const method = 'signedBondExtra';
+  const { signer, amount } = call.params;
+  const methodParams = [signer, amount];
+
+  try {
+    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidAmount(amount) === false) throw 'amount';
+  } catch (param) {
+    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
 function validateMethodParams(callId, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce) {

@@ -19,6 +19,7 @@ const TX_TYPE = {
   ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
   ProxyBond: 'proxyBond',
   ProxyNominate: 'proxyNominate',
+  ProxyIncreaseStake: 'proxyIncreaseStake',
 };
 
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];

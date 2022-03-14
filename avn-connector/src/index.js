@@ -82,8 +82,18 @@ app.post('/relayerFees', async (req, res, next) => {
 
 app.post('/avnAccountInfo', async (req, res, next) => {
   try {
-    log.trace({ avnQueryRequest: req.body });
-    const result = await avn.accountInfo(req.body.accountId);
+    log.trace({ avnAccountInfoRequest: req.body });
+    const result = await avn.getAccountInfo(req.body.accountId);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/avnValidatorsToNominate', async (req, res, next) => {
+  try {
+    log.trace({ avnValidatorsToNominateRequest: req.body });
+    const result = await avn.getValidatorsToNominate();
     res.send(result);
   } catch (err) {
     next(err);

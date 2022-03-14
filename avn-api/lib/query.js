@@ -14,6 +14,9 @@ function Query(api) {
   this.getNftId = generateFunction(getNftId, api);
   this.getNftOwner = generateFunction(getNftOwner, api);
   this.getAccountInfo = generateFunction(getAccountInfo, api);
+  this.getStakingNonce = generateFunction(getStakingNonce, api);
+  this.getStakingStatus = generateFunction(getStakingStatus, api);
+  this.getValidatorsToNominate = generateFunction(getValidatorsToNominate, api);
   this.nftsMap = {};
 }
 
@@ -61,6 +64,28 @@ function getNftNonce(api) {
     common.validateNftId(nftId);
 
     return await this.postRequest(api, 'getNftNonce', { nftId });
+  };
+}
+
+function getStakingNonce(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getStakingNonce', { accountId });
+  };
+}
+
+function getStakingStatus(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getStakingStatus', { accountId });
+  };
+}
+
+function getValidatorsToNominate(api) {
+  return async function () {
+    return await this.postRequest(api, 'getValidatorsToNominate');
   };
 }
 

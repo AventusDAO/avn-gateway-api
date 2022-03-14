@@ -84,8 +84,8 @@ async function getNonce(senderAddress) {
 
 async function getValidatorsToNominate() {
   let validators = await redis.getValidatorsToNominate();
-  if (!validators) {
 
+  if (!validators) {
     let validatorsInfo = await api.derive.staking.electedInfo({ withPrefs: true });
     validators = validatorsInfo.info
       .filter(i => i.validatorPrefs.blocked && i.validatorPrefs.blocked.isFalse === true)

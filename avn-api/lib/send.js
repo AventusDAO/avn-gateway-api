@@ -100,7 +100,7 @@ function stake(api, queryApi) {
     common.validateAccount(relayer);
     amount = common.validateAndConvertAmountToString(amount);
     targets = common.validateStakingTargets(targets);
-    return await this.proxyStakeAvt(api, queryApi, amount, targets);
+    return await this.proxyStakeAvt(api, queryApi, relayer, amount, targets);
   };
 }
 

@@ -14,6 +14,7 @@ const PROXY_CANCEL_LIST_FIAT_NFT_CONTEXT = 'authorization for cancel list fiat n
 const PROXY_BOND_CONTEXT = 'authorization for bond operation';
 const PROXY_NOMINATE_CONTEXT = 'authorization for nominate operation';
 const PROXY_BOND_EXTRA_CONTEXT = 'authorization for bond extra operation';
+const PROXY_UNBOND_CONTEXT = 'authorization for unbond operation';
 
 const STASH_REWARD_DESTINATION = 'Stash';
 
@@ -185,6 +186,20 @@ function createProxyIncreaseStakeSignature(_relayer, signer, amount, stakingNonc
   return signData(hexEncodedData);
 }
 
+function createProxyUnstakeSignature(_relayer, amount, stakingNonce) {
+  const relayer = common.convertToPublicKeyIfNeeded(_relayer);
+
+  let dataToSign = {
+    context: PROXY_UNBOND_CONTEXT,
+    relayer,
+    amount: amount,
+    nonce: stakingNonce
+  };
+
+  const hexEncodedData = encodeUnstakeSignatureData(dataToSign);
+  return signData(hexEncodedData);
+}
+
 function encodeProxyTransferSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
@@ -351,6 +366,22 @@ function encodeIncreaseStakeSignatureData(params) {
   return u8aToHex(encoded_params);
 }
 
+function encodeUnstakeSignatureData(params) {
+  const context = common.registry.createType('Text', params.context);
+  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const amount = common.registry.createType('BalanceOf', params.amount);
+  const nonce = common.registry.createType('u64', params.nonce);
+
+  const encoded_params = u8aConcat(
+    context.toU8a(false),
+    relayer.toU8a(true),
+    amount.toU8a(true),
+    nonce.toU8a(true)
+  );
+
+  return u8aToHex(encoded_params);
+}
+
 function encodeFeePaymentSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedProxyProof = encodeProxyProof(params.proxyProof);
@@ -402,5 +433,6 @@ module.exports = {
   createProxyTransferFiatNftSignature,
   createProxyCancelListFiatNftSignature,
   createProxyStakeAvtSignature,
-  createProxyIncreaseStakeSignature
+  createProxyIncreaseStakeSignature,
+  createProxyUnstakeSignature
 };

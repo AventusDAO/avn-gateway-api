@@ -178,6 +178,13 @@ async function getAccountInfo(call, request) {
   }
 }
 
+async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
+  const method = 'avnQuery'
+  const params = { callId: call.id, palletName, storageName, params }
+
+  return await query(call, request, method, params, responseFormatter);
+}
+
 async function getStakingNonce(call, request) {
   const { accountId } = call.params;
 
@@ -196,13 +203,6 @@ async function getStakingStatus(call, request) {
   } else {
     return await queryChain(call, request, 'staking', 'nominators', [accountId], formatAsNominatingEnum);
   }
-}
-
-async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
-  const method = 'avnQuery'
-  const params = { callId: call.id, palletName, storageName, params }
-
-  return await query(call, request, method, params, responseFormatter);
 }
 
 async function queryAccountInfoFromChain(call, request, accountId) {

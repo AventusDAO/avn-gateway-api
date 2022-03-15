@@ -26,6 +26,7 @@ function Send(api, queryApi, avtContractAddress) {
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi);
   this.cancelFiatNftListing = generateFunction(cancelFiatNftListing, api, queryApi);
   this.stake = generateFunction(stake(api, queryApi));
+  this.unstake = generateFunction(unstake(api, queryApi));
   this.avtContractAddress = avtContractAddress;
   this.nonceMap = {};
   this.feesMap = {};
@@ -128,6 +129,15 @@ function stake(api, queryApi) {
       common.validateStakingTargets(targets);
       return await this.proxyStakeAvt(api, queryApi, relayer, amount, targets);
     }
+  };
+}
+
+function unstake(api, queryApi) {
+  return async function (relayer, amount) {
+    common.validateAccount(relayer);
+    amount = common.validateAndConvertAmountToString(amount);
+
+    return await this.proxyUnstakeAvt(api, queryApi, relayer, amount);
   };
 }
 
@@ -311,6 +321,25 @@ Send.prototype.proxyIncreaseStake = async function (api, queryApi, relayer, amou
   if (!response && !retry) {
     retry = true;
     await this.proxyIncreaseStake(api, queryApi, relayer, amount, retry);
+  }
+
+  return response;
+};
+
+Send.prototype.proxyUnstakeAvt = async function (api, queryApi, relayer, amount, retry) {
+  const transactionType = TX_TYPE.ProxyUnstake;
+  const signer = common.getClientAddress();
+  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
+  const stakingNonce = await queryApi.getStakingNonce();
+  const proxySignature = proxyApi.createProxyUnstakeSignature(relayer, amount, stakingNonce);
+  const paymentArgs = { relayer, signer, proxySignature, transactionType };
+  const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
+  const params = { relayer, signer, amount, proxySignature, feePaymentSignature, paymentNonce };
+  const response = await this.postRequest(api, transactionType, retry, params);
+
+  if (!response && !retry) {
+    retry = true;
+    await this.proxyUnstakeAvt(api, queryApi, relayer, amount, retry);
   }
 
   return response;

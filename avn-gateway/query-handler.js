@@ -174,18 +174,26 @@ async function getAccountInfo(call, request) {
 }
 
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
+  const method = 'avnQuery'
+  const params = { callId: call.id, palletName, storageName, params }
+
+  return await query(call, request, method, params, responseFormatter);
+}
+
+async function queryAccountInfoFromChain(call, request, accountId) {
+  const method = 'avnAccountInfo'
+  const params = { callId: call.id, accountId }
+
+  return await query(call, request, method, params);
+}
+
+async function query(call, request, method, params, responseFormatter) {
   try {
-    const callId = call.id;
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
-      callId,
-      palletName,
-      storageName,
-      params
-    });
-    const result = avnResponse.data.error || responseFormatter(avnResponse.data, params);
-    return utils.validResponse(callId, result);
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + method, params);
+    const result = avnResponse.data.error || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
+    return utils.validResponse(call.id, result);
   } catch (err) {
-    return utils.errorResponse('internal', 'failed to query chain', err, request, call.id);
+    return utils.errorResponse('internal', `failed to invoke ${method} when querying the chain`, err, request, call.id);
   }
 }
 

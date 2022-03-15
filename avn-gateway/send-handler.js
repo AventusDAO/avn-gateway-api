@@ -391,7 +391,7 @@ async function getBondParams(call, request) {
   validateMethodParams(call.id, request, relayer, signer, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
 
   return await getProxyParams(
-    call.bondMethodName,
+    call.params.bondMethodName,
     relayer,
     signer,
     proxyBondSignature,
@@ -414,7 +414,7 @@ async function getNominateParams(call, request) {
   validateMethodParams(call.id, request, relayer, signer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
 
   return await getProxyParams(
-    call.nominateMethodName,
+    call.params.nominateMethodName,
     relayer,
     signer,
     proxyNominateSignature,

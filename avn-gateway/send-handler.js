@@ -200,9 +200,19 @@ async function processProxyTransferFiatNft(call, request, requestId) {
 async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {
   const { relayer, signer, proxySignature, feePaymentSignature, paymentNonce } = call.params;
 
-  validateMethodParams(call.id, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce);
+  try {
+    validateMethodParams(call.id, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce);
+  } catch (err) {
+    return utils.errorResponse('params', err.toString(), err, request, call.id);
+  }
 
-  const params = await getProxyParams(call, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams);
+  let params;
+  try {
+    params = await getProxyParams(call, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams);
+  } catch (err) {
+    return utils.errorResponse('internal', err.toString(), err, request, call.id);
+  }
+
   return await sendTx(call, request, requestId, pallet, method, params);
 }
 
@@ -245,16 +255,25 @@ async function processProxyStakeAvt(call, request, requestId) {
   const pallet = 'utility';
   const method = 'batchAll';
 
+  let bondParams, nominateParams;
+
+  try {
+    bondParams = await getBondParams(call, request);
+    nominateParams = await getNominateParams(call, request);
+  } catch (err) {
+    return utils.errorResponse('params', err.toString(), err, request, call.id);
+  }
+
   const bond = {
     palletName: 'validatorsManager',
     method: 'signedBond',
-    params: await getBondParams(call, request)
+    params: bondParams
   };
 
   const nominate = {
     palletName: 'validatorsManager',
     method: 'signedNominate',
-    params: await getNominateParams(call, request)
+    params: nominateParams
   }
 
   return await sendTx(call, request, requestId, pallet, method, [bond, nominate]);
@@ -332,7 +351,7 @@ function validateMethodParams(callId, request, relayer, signer, proxySignature, 
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format';
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce';
   } catch (errParam) {
-    return utils.errorResponse('params', 'invalid' + errParam, errParam, request, callId);
+    throw new Error(`invalid parameter (${errParam}) passed to validateMethodParams`);
   }
 }
 
@@ -343,12 +362,12 @@ async function getProxyParams(call, request, relayer, signer, proxySignature, fe
   try {
     relayerFee = await getRelayerFee(relayer, signer, call.method);
   } catch (error) {
-    return utils.errorResponse('internal', 'could not get relayer fee', error, request, call.id);
+    throw new Error(`could not get relayer fee: ${error.toString()}`);
   }
 
   const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
   if (!paymentInfo) {
-    return utils.errorResponse('params', 'invalid fee authorisation', feePaymentSignature, request, call.id);
+    throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
   }
 
   return {
@@ -366,7 +385,7 @@ async function getBondParams(call, request) {
     if (utils.isValidAccountId(signer) === false) throw 'signer';
     if (utils.isValidAmount(amount) === false) throw 'amount';
   } catch (errParam) {
-    return utils.errorResponse('params', 'invalid ' + errParam, errParam, request, call.id);
+    throw new Error(`invalid parameter (${errParam}) passed to getBondParams`);
   }
 
   validateMethodParams(call.id, request, relayer, signer, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
@@ -390,7 +409,7 @@ async function getNominateParams(call, request) {
   try {
     if (utils.isValidArray(targets) === false || targets.length === 0) throw 'targets';
   } catch (errParam) {
-    return utils.errorResponse('params', 'invalid ' + errParam, errParam, request, call.id);
+    throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
   }
 
   validateMethodParams(call.id, request, relayer, signer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);

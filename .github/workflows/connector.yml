@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-      - nahu-sys1983-withdrawUnlocked
+      - feature/*
     paths:
       - 'avn-connector/**'
   push:
@@ -70,7 +70,7 @@ jobs:
           registry: ${{ env.ECR_REGISTRY }}
           context: avn-connector/
           build_extra_args: --compress=true
-  
+
   add-relayer:
     runs-on: ubuntu-latest
     name: package addRelayer init container
@@ -112,7 +112,7 @@ jobs:
           context: avn-connector/
           build_extra_args: --compress=true
           dockerfile: Dockerfile.addrelayer
-  
+
   insert-fees:
     runs-on: ubuntu-latest
     name: package insertFees init container

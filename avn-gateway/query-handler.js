@@ -222,13 +222,13 @@ async function queryValidatorsToNominateFromChain(call, request) {
   const method = 'avnValidatorsToNominate'
   const params = { callId: call.id }
 
-  return await query(call, request, method, params, formatAsNominatingEnum);
+  return await query(call, request, method, params);
 }
 
 async function query(call, request, method, params, responseFormatter) {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + method, params);
-    const result = avnResponse.data.error || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
+    const result = (avnResponse.data && avnResponse.data.error) || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return utils.validResponse(call.id, result);
   } catch (err) {
     return utils.errorResponse('internal', `failed to invoke ${method} when querying the chain`, err, request, call.id);

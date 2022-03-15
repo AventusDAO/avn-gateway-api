@@ -222,7 +222,7 @@ async function queryValidatorsToNominateFromChain(call, request) {
   const method = 'avnValidatorsToNominate'
   const params = { callId: call.id }
 
-  return await query(call, request, method, params);
+  return await query(call, request, method, params, formatAsNominatingEnum);
 }
 
 async function query(call, request, method, params, responseFormatter) {

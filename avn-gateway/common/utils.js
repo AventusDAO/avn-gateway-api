@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();
-const { hexToU8a, isHex, u8aToHex, u8aConcat } = require('@polkadot/util');
+const { hexToU8a, isHex, u8aToHex, u8aConcat, isNumber } = require('@polkadot/util');
 const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = require('@polkadot/util-crypto');
 const BN = require('bn.js');
 const { validate: uuidValidate } = require('uuid');
@@ -115,7 +115,7 @@ function isValidTransactionType(transactionType) {
 }
 
 function isValidNumber(val) {
-  return /^\d+$/.test(val);
+  return isNumber(val);
 }
 
 function convertToAddress(accountId) {

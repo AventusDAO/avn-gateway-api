@@ -1,6 +1,6 @@
 'use strict';
 
-const { hexToU8a, isHex, u8aToHex } = require('@polkadot/util');
+const { hexToU8a, isHex, u8aToHex, isNumber } = require('@polkadot/util');
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const { TypeRegistry, createTypeUnsafe } = require('@polkadot/types');
 const { Keyring } = require('@polkadot/keyring');
@@ -21,7 +21,8 @@ const TX_TYPE = {
   ProxyNominate: 'proxyNominate',
   ProxyIncreaseStake: 'proxyIncreaseStake',
   ProxyUnstake: 'proxyUnstake',
-  ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked'
+  ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
+  ProxyPayoutStakers: 'proxyPayoutStakers'
 };
 
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
@@ -144,6 +145,12 @@ function validateStakingTargets(targets) {
   }
 }
 
+function validateNumber(num) {
+  if (isNumber(num) === false) {
+    throw new Error(`Value is not a valid number: ${num}`);
+  }
+}
+
 function getClientSigner() {
   const suri = process.env.SURI;
   if (!suri) throw new Error('Please set SURI environment variable');
@@ -179,5 +186,6 @@ module.exports = {
   validateStringIsPopulated,
   validateTransactionType,
   validateRoyalties,
-  validateStakingTargets
+  validateStakingTargets,
+  validateNumber
 };

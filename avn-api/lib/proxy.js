@@ -15,7 +15,8 @@ const PROXY_BOND_CONTEXT = 'authorization for bond operation';
 const PROXY_NOMINATE_CONTEXT = 'authorization for nominate operation';
 const PROXY_BOND_EXTRA_CONTEXT = 'authorization for bond extra operation';
 const PROXY_UNBOND_CONTEXT = 'authorization for unbond operation';
-const WITHDRAW_UNBONDED_CONTEXT = 'authorization for withdraw unbonded operation';
+const PROXY_WITHDRAW_UNBONDED_CONTEXT = 'authorization for withdraw unbonded operation';
+const PROXY_PAYOUT_STAKERS_CONTEXT = 'authorization for signed payout stakers operation';
 
 const STASH_REWARD_DESTINATION = 'Stash';
 
@@ -205,13 +206,27 @@ function createProxyWithdrawUnlockedSignature(_relayer, numSlashSpan, stakingNon
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   let dataToSign = {
-    context: WITHDRAW_UNBONDED_CONTEXT,
+    context: PROXY_WITHDRAW_UNBONDED_CONTEXT,
     relayer,
     numSlashSpan,
     nonce: stakingNonce
   };
 
   const hexEncodedData = encodeWithdrawUnlockedSignatureData(dataToSign);
+  return signData(hexEncodedData);
+}
+
+function createProxyPayoutStakersSignature(_relayer, era, stakingNonce) {
+  const relayer = common.convertToPublicKeyIfNeeded(_relayer);
+
+  let dataToSign = {
+    context: PROXY_PAYOUT_STAKERS_CONTEXT,
+    relayer,
+    era,
+    nonce: stakingNonce
+  };
+
+  const hexEncodedData = encodePayoutStakersSignatureData(dataToSign);
   return signData(hexEncodedData);
 }
 
@@ -413,6 +428,22 @@ function encodeWithdrawUnlockedSignatureData(params) {
   return u8aToHex(encoded_params);
 }
 
+function encodePayoutStakersSignatureData(params) {
+  const context = common.registry.createType('Text', params.context);
+  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const era = common.registry.createType('EraIndex', params.era);
+  const nonce = common.registry.createType('u64', params.nonce);
+
+  const encoded_params = u8aConcat(
+    context.toU8a(false),
+    relayer.toU8a(true),
+    era.toU8a(true),
+    nonce.toU8a(true)
+  );
+
+  return u8aToHex(encoded_params);
+}
+
 function encodeFeePaymentSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedProxyProof = encodeProxyProof(params.proxyProof);
@@ -466,5 +497,6 @@ module.exports = {
   createProxyStakeAvtSignature,
   createProxyIncreaseStakeSignature,
   createProxyUnstakeSignature,
-  createProxyWithdrawUnlockedSignature
+  createProxyWithdrawUnlockedSignature,
+  createProxyPayoutStakersSignature
 };

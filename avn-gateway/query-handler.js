@@ -52,7 +52,12 @@ async function callSwitch(call, request) {
       return await getTotalAvt(call, request);
     case `getAccountInfo`:
       return await getAccountInfo(call, request);
-
+    case 'getStakingNonce':
+      return await getStakingNonce(call, request);
+    case 'getStakingStatus':
+      return await getStakingStatus(call, request);
+    case 'getValidatorsToNominate':
+      return await queryValidatorsToNominateFromChain(call, request);
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -180,9 +185,36 @@ async function queryChain(call, request, palletName, storageName, params, respon
   return await query(call, request, method, params, responseFormatter);
 }
 
+async function getStakingNonce(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'validatorsManager', 'proxyNonces', [accountId], formatNumAsString);
+  }
+}
+
+async function getStakingStatus(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'staking', 'nominators', [accountId], formatAsNominatingEnum);
+  }
+}
+
 async function queryAccountInfoFromChain(call, request, accountId) {
   const method = 'avnAccountInfo'
   const params = { callId: call.id, accountId }
+
+  return await query(call, request, method, params);
+}
+
+async function queryValidatorsToNominateFromChain(call, request) {
+  const method = 'avnValidatorsToNominate'
+  const params = { callId: call.id }
 
   return await query(call, request, method, params);
 }
@@ -197,21 +229,6 @@ async function query(call, request, method, params, responseFormatter) {
   }
 }
 
-async function queryAccountInfoFromChain(call, request, accountId, responseFormatter) {
-  try {
-    const callId = call.id;
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnAccountInfo', {
-      callId,
-      accountId
-    });
-    const result = avnResponse.data.error || avnResponse.data; // the response is JSON so no need to format it
-    return utils.validResponse(callId, result);
-  } catch (err) {
-    return utils.errorResponse('internal', 'failed to query account_info from the chain', err, request, call.id);
-  }
-}
-
-
 const formatAsString = data => data.toString();
 
 const formatNumAsString = data => utils.toBnString(data);
@@ -219,6 +236,8 @@ const formatNumAsString = data => utils.toBnString(data);
 const formatBalanceAsString = data => utils.toBnString(data.data.free);
 
 const formatNftNonceAsString = data => utils.toBnString(data.nonce);
+
+const formatAsNominatingEnum = data => data ? 'isStaking' : 'isNotStaking';
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (data, params) => {

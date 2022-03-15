@@ -82,6 +82,21 @@ async function getNonce(senderAddress) {
   return nonce;
 }
 
+async function getValidatorsToNominate() {
+  let validators = await redis.getValidatorsToNominate();
+
+  if (!validators) {
+    let validatorsInfo = await api.derive.staking.electedInfo({ withPrefs: true });
+    validators = validatorsInfo.info
+      .filter(i => i.validatorPrefs.blocked && i.validatorPrefs.blocked.isFalse === true)
+      .map(i => i.accountId);
+
+    await redis.setValidatorsToNominate(JSON.stringify(validators));
+  }
+
+  return validators;
+}
+
 async function signAndSend(requestId, relayerAddress, txn) {
   let result, nonce, relayerAccount;
 
@@ -160,6 +175,7 @@ function isTransactionHash(requestId) {
 
 module.exports = {
   getAccountInfo,
+  getValidatorsToNominate,
   init,
   query,
   proxy,

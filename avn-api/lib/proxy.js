@@ -7,6 +7,7 @@ const BN = require('bn.js');
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation';
 const PROXY_LOWER_CONTEXT = 'authorization for lower operation';
+const PROXY_ADD_ETHEREUM_LOG_CONTEXT = 'authorization for add ethereum log operation';
 const PROXY_MINT_SINGLE_NFT_CONTEXT = 'authorization for mint single nft operation';
 const PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT = 'authorization for list nft open for sale operation';
 const PROXY_TRANSFER_FIAT_NFT_CONTEXT = 'authorization for transfer fiat nft operation';
@@ -38,7 +39,24 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
   return signData(hexEncodedData);
 }
 
-function createProxyLowerSignature(_relayer, _signer, t1Recipient, token, amount, accountNonce) {
+function createProxyConfirmTokenLiftSignature(_relayer, _signer, eventType, ethereumTransactionHash, accountNonce) {
+  const relayer = common.convertToPublicKeyIfNeeded(_relayer);
+  const signer = common.convertToPublicKeyIfNeeded(_signer);
+
+  const dataToSign = {
+    context: PROXY_ADD_ETHEREUM_LOG_CONTEXT,
+    relayer,
+    signer,
+    eventType,
+    ethereumTransactionHash,
+    accountNonce
+  };
+
+  const hexEncodedData = encodeProxyConfirmTokenLiftSignatureData(dataToSign);
+  return signData(hexEncodedData);
+}
+
+function createProxyTokenLowerSignature(_relayer, _signer, t1Recipient, token, amount, accountNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
   const signer = common.convertToPublicKeyIfNeeded(_signer);
 
@@ -52,7 +70,7 @@ function createProxyLowerSignature(_relayer, _signer, t1Recipient, token, amount
     accountNonce
   };
 
-  const hexEncodedData = encodeProxyLowerSignatureData(dataToSign);
+  const hexEncodedData = encodeProxyTokenLowerSignatureData(dataToSign);
   return signData(hexEncodedData);
 }
 
@@ -237,7 +255,27 @@ function encodeProxyTransferSignatureData(params) {
   return u8aToHex(encodedData);
 }
 
-function encodeProxyLowerSignatureData(params) {
+function encodeProxyConfirmTokenLiftSignatureData(params) {
+  const encodedContext = common.registry.createType('Text', params.context);
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
+  const encodedSigner = common.registry.createType('AccountId', params.signer);
+  const encodedEventType = common.registry.createType('u8', params.eventType);
+  const encodedEthereumTransactionHash = common.registry.createType('H256', params.ethereumTransactionHash);
+  const encodedNonce = common.registry.createType('u64', params.accountNonce);
+
+  const encodedData = u8aConcat(
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedSigner.toU8a(true),
+    encodedEventType.toU8a(true),
+    encodedEthereumTransactionHash.toU8a(true),
+    encodedNonce.toU8a(true)
+  );
+
+  return u8aToHex(encodedData);
+}
+
+function encodeProxyTokenLowerSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedSigner = common.registry.createType('AccountId', params.signer);
@@ -458,7 +496,8 @@ function signData(encodedData) {
 module.exports = {
   createFeePaymentSignature,
   createProxyTransferSignature,
-  createProxyLowerSignature,
+  createProxyConfirmTokenLiftSignature,
+  createProxyTokenLowerSignature,
   createProxyListNftOpenForSaleSignature,
   createProxyMintSingleNftSignature,
   createProxyTransferFiatNftSignature,

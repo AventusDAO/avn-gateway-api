@@ -56,6 +56,15 @@ describe('SendTx api calls:', async () => {
     });
   });
 
+  describe('confirmTokenLift', async () => {
+    xit('can lower tokens', async () => {
+      // TODO: IMPLEMENT ME
+      const ethereumTransactionHash = '';
+      const requestId = await api.send.confirmTokenLift(relayer, ethereumTransactionHash);
+      await helper.confirmStatus(api, requestId, 'Processed');
+    });
+  });
+
   describe('lowerToken', async () => {
     let senderAvtBalanceBefore, senderTokenBalanceBefore, relayerAvtBalanceBefore, senderNonceBefore;
 

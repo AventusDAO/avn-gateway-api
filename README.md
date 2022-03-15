@@ -38,8 +38,8 @@ To do so follow these steps:
 - If required, make a `getAccountNonce` or `getNftNonce` query to retrieve the transaction nonce
 - The api then exposes the following methods to generate a relevant **proxySignature**:
   - `api.proxy.createProxyTransferSignature(relayer, signer, recipient, token, amount, accountNonce)` - _used for both AVT and non-AVT transfers_
-  - `api.proxy.createProxyConfirmTokenLiftSignature(relayer, signer, ethereumTransactionHash, accountNonce)`
-  - `api.proxy.createProxyLowerSignature(relayer, signer, t1Recipient, token, amount, accountNonce)`
+  - `api.proxy.createProxyConfirmTokenLiftSignature(relayer, signer, eventType, ethereumTransactionHash, accountNonce)`
+  - `api.proxy.createProxyTokenLowerSignature(relayer, signer, t1Recipient, token, amount, accountNonce)`
   - `api.proxy.createProxyListNftOpenForSaleSignature(relayer, signer, nftId, market, nftNonce)`
   - `api.proxy.createProxyMintSingleNftSignature(relayer, signer, externalRef, royalties, t1Authority)`
   - `api.proxy.createProxyTransferFiatNftSignature(relayer, signer, nftId, recipient, nftNonce)`
@@ -502,6 +502,7 @@ Returns fees for a particular relayer, optionally by user and/or transaction typ
 ```
 "proxyAvtTransfer"
 "proxyTokenTransfer"
+"proxyConfirmTokenLift"
 "proxyTokenLower"
 "proxyMintSingleNft"
 "proxyListNftOpenForSale"
@@ -540,6 +541,7 @@ OR
   "result": {
     "proxyAvtTransfer": "7000000000000000",
     "proxyTokenTransfer": "7000000000000000",
+    "proxyConfirmTokenLift": "7000000000000000",
     "proxyTokenLower": "7000000000000000",
     "proxyMintSingleNft": "7000000000000000",
     "proxyListNftOpenForSale": "7000000000000000",
@@ -649,6 +651,7 @@ Trigger the AvN confirmation of a lift operation that has previously occurred on
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
 `signer` *[required]* - a string representing the sender's SS58 address \
+`eventType` *[required]* - the integer value 1 - representing the enum value for a Lifted event type \
 `ethereumTransactionHash` *[required]* - a string representing the 32 byte Ethereum transaction hash of the lift \
 `proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
 `feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
@@ -661,7 +664,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyConfirmTokenLift", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "ethereumTransactionHash": "0xad7190f148fbd57b2a615c964b3ad2dcf17574ebf0d1c9778f6aab09657814ca", "proxySignature":"0x362f3e1f9f8f8802b84a54562be6ae1451a959b84b037f98604d9fa78d4f9ab068d6385baeaa16cd3a060829d5f776444af59d07c0755483acca220007422319", "feePaymentSignature":"0x5f3f0ca4ed32b4172998f816cf5e296553b29ec042a7b564c493568d3cf89687f08b9b48b17ca84f1935e8d844a9f133a239df12d7fa3d0fda58bb9a9d65eb10", "paymentNonce":"314"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyConfirmTokenLift", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "eventType": 1, "ethereumTransactionHash": "0xad7190f148fbd57b2a615c964b3ad2dcf17574ebf0d1c9778f6aab09657814ca", "proxySignature":"0x362f3e1f9f8f8802b84a54562be6ae1451a959b84b037f98604d9fa78d4f9ab068d6385baeaa16cd3a060829d5f776444af59d07c0755483acca220007422319", "feePaymentSignature":"0x5f3f0ca4ed32b4172998f816cf5e296553b29ec042a7b564c493568d3cf89687f08b9b48b17ca84f1935e8d844a9f133a239df12d7fa3d0fda58bb9a9d65eb10", "paymentNonce":"314"}, "id":1}'
 ```
 
 **RESULT FIELDS** \

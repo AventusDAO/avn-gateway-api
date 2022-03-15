@@ -33,6 +33,7 @@ async function proxy(requestId, palletName, method, params) {
     log.trace({ message: `Creating batch transactions.`, extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ') });
 
     const innerCalls = params.map(p => {
+      log.trace(`p.params: ${JSON.stringify(p.params, null, 2)}`);
       let innerCall = api.tx[p.palletName][p.method](...p.params.proxyParams);
       return api.tx.avnProxy.proxy(innerCall, p.paymentInfo);
     });

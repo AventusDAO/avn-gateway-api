@@ -53,8 +53,10 @@ async function callSwitch(call, request, requestId) {
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':
       return await processProxyTransfer(call, request, requestId);
+    case 'proxyConfirmTokenLift':
+      return await processProxyAddEthereumLog(call, request, requestId);
     case 'proxyTokenLower':
-      return await processProxyLower(call, request, requestId);
+      return await processProxyTokenLower(call, request, requestId);
     case 'proxyCancelListFiatNft':
       return await processProxyCancelListFiatNft(call, request, requestId);
     case 'proxyListNftOpenForSale':
@@ -86,7 +88,24 @@ async function processProxyTransfer(call, request, requestId) {
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyLower(call, request, requestId) {
+async function processProxyAddEthereumLog(call, request, requestId) {
+  const pallet = 'ethereumEvents';
+  const method = 'signedAddEthereumLog';
+  const { signer, token, eventType, ethereumTransactionHash } = call.params;
+  const methodParams = [signer, eventType, ethereumTransactionHash];
+
+  try {
+    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidEventType(eventType) === false) throw 'eventType';
+    if (utils.isValidEthereumTransactionHash(ethereumTransactionHash) === false) throw 'ethereumTransactionHash';
+  } catch (param) {
+    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyTokenLower(call, request, requestId) {
   const pallet = 'tokenManager';
   const method = 'signedLower';
   const { signer, token, amount, t1Recipient } = call.params;

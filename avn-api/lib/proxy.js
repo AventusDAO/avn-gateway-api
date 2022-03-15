@@ -2,6 +2,7 @@
 
 const common = require('./common.js');
 const { u8aToHex, u8aConcat } = require('@polkadot/util');
+const BN = require('bn.js');
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation';
@@ -11,6 +12,10 @@ const PROXY_MINT_SINGLE_NFT_CONTEXT = 'authorization for mint single nft operati
 const PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT = 'authorization for list nft open for sale operation';
 const PROXY_TRANSFER_FIAT_NFT_CONTEXT = 'authorization for transfer fiat nft operation';
 const PROXY_CANCEL_LIST_FIAT_NFT_CONTEXT = 'authorization for cancel list fiat nft for sale operation';
+const PROXY_BOND_CONTEXT = 'authorization for bond operation';
+const PROXY_NOMINATE_CONTEXT = 'authorization for nominate operation';
+
+const STASH_REWARD_DESTINATION = 'Stash';
 
 function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, accountNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
@@ -149,6 +154,40 @@ function createFeePaymentSignature(_relayer, signer, proxySignature, relayerFee,
   return signData(hexEncodedData);
 }
 
+// first time staking is made up of 2 transactions: Bond + Nominate
+function createProxyStakeAvtSignature(_relayer, signer, amount, targets, stakingNonce) {
+  const relayer = common.convertToPublicKeyIfNeeded(_relayer);
+
+  let dataToSign = {
+    context: PROXY_BOND_CONTEXT,
+    relayer,
+    controller: common.convertToPublicKeyIfNeeded(signer), // stash and controller are the same
+    amount: amount,
+    payee: STASH_REWARD_DESTINATION, // The reward will be paid into the stash account
+    nonce: stakingNonce
+  };
+
+  const hexEncodedBondData = encodeBondSignatureData(dataToSign);
+  const hexBondSignature = signData(hexEncodedBondData);
+
+  stakingNonce = new BN(senderProxyNonce).add(BN_ONE);
+
+  dataToSign = {
+    context: PROXY_NOMINATE_CONTEXT,
+    relayer,
+    targets,
+    nonce: stakingNonce
+  };
+
+  const hexEncodedNominateData = encodeNominateSignatureData(dataToSign);
+  const hexNominateSignature = signData(hexEncodedNominateData);
+
+  return {
+    hexBondSignature,
+    hexNominateSignature
+  };
+}
+
 function encodeProxyTransferSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
@@ -283,6 +322,42 @@ function encodeProxyCancelListFiatNftSignature(params) {
   return u8aToHex(encodedData);
 }
 
+function encodeBondSignatureData(params) {
+  const context = common.registry.createType('Text', params.context);
+  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const controller = common.registry.createType('LookupSource', hexToU8a(params.controller));
+  const amount = common.registry.createType('BalanceOf', params.amount);
+  const payee = common.registry.createType('RewardDestination', params.payee);
+  const nonce = common.registry.createType('u64', params.nonce);
+
+  const encoded_params = u8aConcat(
+    context.toU8a(false),
+    relayer.toU8a(true),
+    controller.toU8a(false),
+    amount.toU8a(true),
+    payee.toU8a(false),
+    nonce.toU8a(true)
+  );
+
+  return u8aToHex(encoded_params);
+}
+
+function encodeNominateSignatureData(params) {
+  const context = common.registry.createType('Text', params.context);
+  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const targets = common.registry.createType('Vec<LookupSource>', params.targets);
+  const nonce = common.registry.createType('u64', params.nonce);
+
+  const encoded_params = u8aConcat(
+    context.toU8a(false),
+    relayer.toU8a(true),
+    targets.toU8a(false),
+    nonce.toU8a(true)
+  );
+
+  return u8aToHex(encoded_params);
+}
+
 function encodeFeePaymentSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedProxyProof = encodeProxyProof(params.proxyProof);
@@ -333,5 +408,6 @@ module.exports = {
   createProxyListNftOpenForSaleSignature,
   createProxyMintSingleNftSignature,
   createProxyTransferFiatNftSignature,
-  createProxyCancelListFiatNftSignature
+  createProxyCancelListFiatNftSignature,
+  createProxyStakeAvtSignature
 };

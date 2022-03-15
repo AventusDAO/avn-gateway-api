@@ -6,6 +6,8 @@ const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = requi
 const BN = require('bn.js');
 const { validate: uuidValidate } = require('uuid');
 
+const STASH_REWARD_DESTINATION = 'Stash';
+
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const TX_TYPES = [
@@ -161,6 +163,7 @@ function encodeProxyProof(params) {
 module.exports = {
   axios,
   BN,
+  STASH_REWARD_DESTINATION,
   convertToAddress,
   errorResponse,
   init,

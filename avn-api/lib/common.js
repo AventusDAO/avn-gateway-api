@@ -17,7 +17,9 @@ const TX_TYPE = {
   ProxyMintSingleNft: 'proxyMintSingleNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
   ProxyTransferFiatNft: 'proxyTransferFiatNft',
-  ProxyCancelListFiatNft: 'proxyCancelListFiatNft'
+  ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
+  ProxyBond: 'proxyBond',
+  ProxyNominate: 'proxyNominate',
 };
 
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
@@ -128,6 +130,13 @@ function validateTransactionType(transactionType) {
   }
 }
 
+function validateStakingTargets(targets) {
+  validateIsArray(targets);
+  if (targets.length === 0) {
+    throw new Error(`Staking targets is a mandatory field. You must select at least 1 target to nominate.`);
+  }
+}
+
 function getClientSigner() {
   const suri = process.env.SURI;
   if (!suri) throw new Error('Please set SURI environment variable');
@@ -161,5 +170,6 @@ module.exports = {
   validateRequestId,
   validateStringIsPopulated,
   validateTransactionType,
-  validateRoyalties
+  validateRoyalties,
+  validateStakingTargets
 };

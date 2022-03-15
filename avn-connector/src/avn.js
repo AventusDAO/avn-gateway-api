@@ -29,10 +29,22 @@ async function query(palletName, storageName, params) {
 }
 
 async function proxy(requestId, palletName, method, params) {
-  log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
-  const innerCall = api.tx[palletName][method](...params.proxyParams);
-  const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
-  return await signAndSend(requestId, params.relayerAddress, txn);
+  if (palletName === 'utility' && method === 'batchAll') {
+    log.trace({ message: `Creating batch transactions.`, extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ') });
+
+    const innerCalls = params.map(p => {
+      let innerCall = api.tx[p.palletName][p.method](...p.proxyParams);
+      return api.tx.avnProxy.proxy(innerCall, p.paymentInfo);
+    });
+    const txn = api.tx.utility.batchAll(innerCalls);
+    return await signAndSend(requestId, params[0].relayerAddress, txn);
+  } else {
+    log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
+
+    const innerCall = api.tx[palletName][method](...params.proxyParams);
+    const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
+    return await signAndSend(requestId, params.relayerAddress, txn);
+  }
 }
 
 async function poll(requestId) {

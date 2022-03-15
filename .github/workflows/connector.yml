@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - nahu-sys1983-withdrawUnlocked
     paths:
       - 'avn-connector/**'
   push:

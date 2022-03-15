@@ -12,6 +12,7 @@ const DEFAULT_RELAYER_FEE = '1000000000000000'; //0.001 AVT
 const TransactionType = {
   ProxyAvtTransfer: 'proxyAvtTransfer',
   ProxyTokenTransfer: 'proxyTokenTransfer',
+  ProxyConfirmTokenLift: 'proxyConfirmTokenLift',
   ProxyTokenLower: 'proxyTokenLower',
   ProxyMintSingleNft: 'proxyMintSingleNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
@@ -82,6 +83,7 @@ async function init() {
 function setupDefaultFees() {
   defaultFees[TransactionType.ProxyAvtTransfer] = DEFAULT_RELAYER_FEE;
   defaultFees[TransactionType.ProxyTokenTransfer] = DEFAULT_RELAYER_FEE;
+  defaultFees[TransactionType.ProxyConfirmTokenLift] = DEFAULT_RELAYER_FEE;
   defaultFees[TransactionType.ProxyTokenLower] = DEFAULT_RELAYER_FEE;
   defaultFees[TransactionType.ProxyMintSingleNft] = DEFAULT_RELAYER_FEE;
   defaultFees[TransactionType.ProxyListNftOpenForSale] = DEFAULT_RELAYER_FEE;

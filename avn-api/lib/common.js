@@ -12,6 +12,7 @@ const BN = require('bn.js');
 const TX_TYPE = {
   ProxyAvtTransfer: 'proxyAvtTransfer',
   ProxyTokenTransfer: 'proxyTokenTransfer',
+  ProxyConfirmTokenLift: 'proxyConfirmTokenLift',
   ProxyTokenLower: 'proxyTokenLower',
   ProxyMintSingleNft: 'proxyMintSingleNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',

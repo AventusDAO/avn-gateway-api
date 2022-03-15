@@ -7,10 +7,19 @@ const TX_PROCESSING_TIME = 3000;
 const NONCE_TYPE = { proxy: 0, payment: 1 };
 const TX_TYPE = common.TX_TYPE;
 const MARKET = { Ethereum: 1, Fiat: 2 };
+const ETHEREUM_LOG_EVENT_TYPE = {
+  AddedValidator: 0,
+  Lifted: 1,
+  NftMint: 2,
+  NftTransferTo: 3,
+  NftCancelListing: 4,
+  NftCancelBatchListing: 5
+};
 
 function Send(api, queryApi, avtContractAddress) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi);
   this.transferToken = generateFunction(transferToken, api, queryApi);
+  this.confirmTokenLift = generateFunction(confirmTokenLift, api, queryApi);
   this.lowerToken = generateFunction(lowerToken, api, queryApi);
   this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi);
   this.listFiatNftForSale = generateFunction(listFiatNftForSale, api, queryApi);
@@ -43,6 +52,15 @@ function transferToken(api, queryApi) {
   };
 }
 
+function confirmTokenLift(api, queryApi) {
+  return async function (relayer, ethereumTransactionHash) {
+    common.validateAccount(relayer);
+    common.validateEthereumTransactionHash(ethereumTransactionHash);
+
+    return await this.proxyConfirmTokenLift(api, queryApi, relayer, ethereumTransactionHash);
+  };
+}
+
 function lowerToken(api, queryApi) {
   return async function (relayer, t1Recipient, token, amount) {
     common.validateAccount(relayer);
@@ -50,7 +68,7 @@ function lowerToken(api, queryApi) {
     common.validateEthereumAddress(token);
     amount = common.validateAndConvertAmountToString(amount);
 
-    return await this.proxyLower(api, queryApi, relayer, t1Recipient, token, amount);
+    return await this.proxyTokenLower(api, queryApi, relayer, t1Recipient, token, amount);
   };
 }
 
@@ -126,7 +144,26 @@ Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient
   return response;
 };
 
-Send.prototype.proxyLower = async function (api, queryApi, relayer, t1Recipient, token, amount, retry) {
+Send.prototype.proxyConfirmTokenLift = async function (api, queryApi, relayer, ethereumTransactionHash, retry) {
+  const transactionType = TX_TYPE.ProxyConfirmTokenLift;
+  const eventType = ETHEREUM_LOG_EVENT_TYPE.Lifted;
+  const signer = common.getClientAddress();
+  const accountNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy, retry);
+  const proxySignature = proxyApi.createProxyConfirmTokenLiftSignature(relayer, signer, eventType, thereumTransactionHash, accountNonce);
+  const paymentArgs = { relayer, signer, proxySignature, transactionType };
+  const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
+  const params = { relayer, signer, eventType, ethereumTransactionHash, proxySignature, feePaymentSignature, paymentNonce };
+  const response = await this.postRequest(api, transactionType, retry, params);
+
+  if (!response && !retry) {
+    retry = true;
+    await this.proxyConfirmTokenLift(api, queryApi, relayer, ethereumTransactionHash, retry);
+  }
+
+  return response;
+};
+
+Send.prototype.proxyTokenLower = async function (api, queryApi, relayer, t1Recipient, token, amount, retry) {
   const transactionType = TX_TYPE.ProxyTokenLower;
   const signer = common.getClientAddress();
   const accountNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy, retry);
@@ -138,7 +175,7 @@ Send.prototype.proxyLower = async function (api, queryApi, relayer, t1Recipient,
 
   if (!response && !retry) {
     retry = true;
-    await this.proxyLower(api, queryApi, relayer, t1Recipient, token, amount, retry);
+    await this.proxyTokenLower(api, queryApi, relayer, t1Recipient, token, amount, retry);
   }
 
   return response;

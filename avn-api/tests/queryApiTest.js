@@ -76,7 +76,7 @@ describe('Query api calls:', async () => {
       assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'staking'));
     });
 
-    it('returns the same confirmation nonce by address as by public key', async () => {
+    xit('returns the same confirmation nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(sender.address, 'confirmation');
       assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'confirmation'));
     });

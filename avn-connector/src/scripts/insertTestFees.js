@@ -53,6 +53,7 @@ async function run() {
 function populateTestFees() {
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyAvtTransfer] = DEFAULT_RELAYER_FEE;
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyTokenTransfer] = DEFAULT_RELAYER_FEE;
+  testRelayerFees.fees[gatewayDb.TransactionType.ProxyConfirmTokenLift] = DEFAULT_RELAYER_FEE;
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyTokenLower] = DEFAULT_RELAYER_FEE;
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyMintSingleNft] = DEFAULT_RELAYER_FEE;
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyListNftOpenForSale] = DEFAULT_RELAYER_FEE;

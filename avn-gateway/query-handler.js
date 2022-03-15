@@ -197,6 +197,21 @@ async function query(call, request, method, params, responseFormatter) {
   }
 }
 
+async function queryAccountInfoFromChain(call, request, accountId, responseFormatter) {
+  try {
+    const callId = call.id;
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnAccountInfo', {
+      callId,
+      accountId
+    });
+    const result = avnResponse.data.error || avnResponse.data; // the response is JSON so no need to format it
+    return utils.validResponse(callId, result);
+  } catch (err) {
+    return utils.errorResponse('internal', 'failed to query account_info from the chain', err, request, call.id);
+  }
+}
+
+
 const formatAsString = data => data.toString();
 
 const formatNumAsString = data => utils.toBnString(data);

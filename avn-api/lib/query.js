@@ -17,6 +17,7 @@ function Query(api) {
   this.getStakingNonce = generateFunction(getStakingNonce, api);
   this.getStakingStatus = generateFunction(getStakingStatus, api);
   this.getValidatorsToNominate = generateFunction(getValidatorsToNominate, api);
+  this.getActiveEra = generateFunction(getActiveEra, api);
   this.nftsMap = {};
 }
 
@@ -86,6 +87,12 @@ function getStakingStatus(api) {
 function getValidatorsToNominate(api) {
   return async function () {
     return await this.postRequest(api, 'getValidatorsToNominate');
+  };
+}
+
+function getActiveEra(api) {
+  return async function () {
+    return await this.postRequest(api, 'getActiveEra');
   };
 }
 

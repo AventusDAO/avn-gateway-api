@@ -28,6 +28,7 @@ function Send(api, queryApi, avtContractAddress) {
   this.stake = generateFunction(stake(api, queryApi));
   this.unstake = generateFunction(unstake(api, queryApi));
   this.withdrawUnlocked = generateFunction(withdrawUnlocked(api, queryApi));
+  this.payoutStakers = generateFunction(payoutStakers(api, queryApi));
   this.avtContractAddress = avtContractAddress;
   this.nonceMap = {};
   this.feesMap = {};
@@ -147,6 +148,20 @@ function withdrawUnlocked(api, queryApi) {
     common.validateAccount(relayer);
 
     return await this.proxyWithdrawUnlocked(api, queryApi, relayer);
+  };
+}
+
+function payoutStakers(api, queryApi) {
+  return async function (relayer, eraIndex) {
+    common.validateAccount(relayer);
+
+    if (!eraIndex) {
+      eraIndex = await queryApi.getActiveEra();
+      eraIndex = eraIndex === 0 ? 0 : eraIndex - 1; // the default is to payout the previous era because the current one won't be ready yet.
+    }
+    common.validateNumber(eraIndex);
+
+    return await this.proxyPayoutStakers(api, queryApi, relayer, eraIndex);
   };
 }
 
@@ -363,12 +378,32 @@ Send.prototype.proxyWithdrawUnlocked = async function (api, queryApi, relayer, r
   const proxySignature = proxyApi.createProxyWithdrawUnlockedSignature(relayer, numSlashSpan, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
-  const params = { relayer, signer, amount, proxySignature, feePaymentSignature, paymentNonce };
+  const params = { relayer, signer, proxySignature, feePaymentSignature, paymentNonce };
   const response = await this.postRequest(api, transactionType, retry, params);
 
   if (!response && !retry) {
     retry = true;
     await this.proxyWithdrawUnlocked(api, queryApi, relayer, retry);
+  }
+
+  return response;
+};
+
+Send.prototype.proxyPayoutStakers = async function (api, queryApi, relayer, era, retry) {
+  const transactionType = TX_TYPE.ProxyPayoutStakers;
+  const signer = common.getClientAddress();
+  const numSlashSpan = 0; // We dont use slashing
+  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
+  const stakingNonce = await queryApi.getStakingNonce();
+  const proxySignature = proxyApi.createProxyPayoutStakersSignature(relayer, era, stakingNonce);
+  const paymentArgs = { relayer, signer, proxySignature, transactionType };
+  const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
+  const params = { relayer, signer, era, proxySignature, feePaymentSignature, paymentNonce };
+  const response = await this.postRequest(api, transactionType, retry, params);
+
+  if (!response && !retry) {
+    retry = true;
+    await this.proxyPayoutStakers(api, queryApi, relayer, era, retry);
   }
 
   return response;

@@ -4,7 +4,7 @@ const common = require('./common.js');
 const proxyApi = require('./proxy.js');
 
 const TX_PROCESSING_TIME = 3000;
-const NONCE_TYPE = { proxy: 0, payment: 1 };
+const NONCE_TYPE = common.NONCE_TYPE;
 const TX_TYPE = common.TX_TYPE;
 const MARKET = { Ethereum: 1, Fiat: 2 };
 const ETHEREUM_LOG_EVENT_TYPE = {
@@ -172,8 +172,8 @@ function generateFunction(functionName, api, queryApi) {
 Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient, token, amount, retry) {
   const transactionType = token === this.avtContractAddress ? TX_TYPE.ProxyAvtTransfer : TX_TYPE.ProxyTokenTransfer;
   const signer = common.getClientAddress();
-  const accountNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy, retry);
-  const proxySignature = proxyApi.createProxyTransferSignature(relayer, signer, recipient, token, amount, accountNonce);
+  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Token, retry);
+  const proxySignature = proxyApi.createProxyTransferSignature(relayer, signer, recipient, token, amount, tokenNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
   const params = { relayer, signer, recipient, token, amount, proxySignature, feePaymentSignature, paymentNonce };
@@ -191,8 +191,8 @@ Send.prototype.proxyConfirmTokenLift = async function (api, queryApi, relayer, e
   const transactionType = TX_TYPE.ProxyConfirmTokenLift;
   const eventType = ETHEREUM_LOG_EVENT_TYPE.Lifted;
   const signer = common.getClientAddress();
-  const accountNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy, retry);
-  const proxySignature = proxyApi.createProxyConfirmTokenLiftSignature(relayer, signer, eventType, thereumTransactionHash, accountNonce);
+  const confirmationNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Confirmation, retry);
+  const proxySignature = proxyApi.createProxyConfirmTokenLiftSignature(relayer, signer, eventType, thereumTransactionHash, confirmationNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
   const params = { relayer, signer, eventType, ethereumTransactionHash, proxySignature, feePaymentSignature, paymentNonce };
@@ -209,8 +209,8 @@ Send.prototype.proxyConfirmTokenLift = async function (api, queryApi, relayer, e
 Send.prototype.proxyTokenLower = async function (api, queryApi, relayer, t1Recipient, token, amount, retry) {
   const transactionType = TX_TYPE.ProxyTokenLower;
   const signer = common.getClientAddress();
-  const accountNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.proxy, retry);
-  const proxySignature = proxyApi.createProxyLowerSignature(relayer, signer, t1Recipient, token, amount, accountNonce);
+  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Token, retry);
+  const proxySignature = proxyApi.createProxyLowerSignature(relayer, signer, t1Recipient, token, amount, tokenNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
   const params = { relayer, signer, t1Recipient, token, amount, proxySignature, feePaymentSignature, paymentNonce };
@@ -298,8 +298,7 @@ Send.prototype.proxyCancelListFiatNft = async function (api, queryApi, relayer, 
 Send.prototype.proxyStakeAvt = async function (api, queryApi, relayer, amount, targets, retry) {
   const method = 'proxyStakeAvt';
   const signer = common.getClientAddress();
-  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
-  const stakingNonce = await queryApi.getStakingNonce(signer);
+  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const [proxyBondSignature, proxyNominateSignature] = proxyApi.createProxyStakeAvtSignature(relayer, signer, amount, targets, stakingNonce);
 
   let paymentArgs = { relayer, signer, proxySignature: proxyBondSignature, transactionType: TX_TYPE.ProxyBond };
@@ -338,8 +337,7 @@ Send.prototype.proxyStakeAvt = async function (api, queryApi, relayer, amount, t
 Send.prototype.proxyIncreaseStake = async function (api, queryApi, relayer, amount, retry) {
   const transactionType = TX_TYPE.ProxyIncreaseStake;
   const signer = common.getClientAddress();
-  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
-  const stakingNonce = await queryApi.getStakingNonce(signer);
+  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const proxySignature = proxyApi.createProxyIncreaseStakeSignature(relayer, signer, amount, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
@@ -357,8 +355,7 @@ Send.prototype.proxyIncreaseStake = async function (api, queryApi, relayer, amou
 Send.prototype.proxyUnstakeAvt = async function (api, queryApi, relayer, amount, retry) {
   const transactionType = TX_TYPE.ProxyUnstake;
   const signer = common.getClientAddress();
-  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
-  const stakingNonce = await queryApi.getStakingNonce(signer);
+  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const proxySignature = proxyApi.createProxyUnstakeSignature(relayer, amount, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
@@ -377,8 +374,7 @@ Send.prototype.proxyWithdrawUnlocked = async function (api, queryApi, relayer, r
   const transactionType = TX_TYPE.ProxyWithdrawUnlocked;
   const signer = common.getClientAddress();
   const numSlashSpan = 0; // We dont use slashing
-  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
-  const stakingNonce = await queryApi.getStakingNonce(signer);
+  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const proxySignature = proxyApi.createProxyWithdrawUnlockedSignature(relayer, numSlashSpan, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
@@ -397,8 +393,7 @@ Send.prototype.proxyPayoutStakers = async function (api, queryApi, relayer, era,
   const transactionType = TX_TYPE.ProxyPayoutStakers;
   const signer = common.getClientAddress();
   const numSlashSpan = 0; // We dont use slashing
-  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
-  const stakingNonce = await queryApi.getStakingNonce(signer);
+  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const proxySignature = proxyApi.createProxyPayoutStakersSignature(relayer, era, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
@@ -435,35 +430,18 @@ Send.prototype.postRequest = async function (api, method, retry, params) {
 };
 
 Send.prototype.smartNonce = async function (queryApi, _account, nonceType, retry) {
+  common.validateNonceType(nonceType);
   const account = common.convertToPublicKeyIfNeeded(_account);
-  if (!this.nonceMap[account]) this.nonceMap[account] = { proxy: {}, payment: {} };
-  const nonceData = this.nonceMap[account];
-  const updated = Date.now();
-  let nonce;
 
-  switch (nonceType) {
-    case NONCE_TYPE.proxy:
-      nonce =
-        nonceData.proxy.nonce === undefined || updated - nonceData.proxy.updated >= TX_PROCESSING_TIME * 2 || retry === true
-          ? parseInt(await queryApi.getAccountNonce(account))
-          : nonceData.proxy.nonce + 1;
-
-      this.nonceMap[account].proxy = { nonce: nonce, updated: updated };
-      break;
-
-    case NONCE_TYPE.payment:
-      nonce =
-        nonceData.payment.nonce === undefined || updated - nonceData.payment.updated >= TX_PROCESSING_TIME * 2 || retry === true
-          ? parseInt(await queryApi.getAccountPaymentNonce(account))
-          : nonceData.payment.nonce + 1;
-
-      this.nonceMap[account].payment = { nonce: nonce, updated: updated };
-      break;
-
-    default:
-      throw new Error(`Invalid nonce type (${nonceType}) provided`);
+  if (this.nonceMap[account] === undefined) {
+    this.nonceMap[account] = Object.values(NONCE_TYPE).reduce((o, key) => ({ ...o, [key]: {}}), {});
   }
 
+  const nonceData = this.nonceMap[account][nonceType];
+  const updated = Date.now();
+  const refreshNonce = nonceData.nonce === undefined || updated - nonceData.updated >= TX_PROCESSING_TIME * 2 || retry === true;
+  let nonce = refreshNonce ? parseInt(await queryApi.getNonce(account, nonceType)) : nonceData.nonce + 1;
+  this.nonceMap[account][nonceType] = { nonce, updated };
   return nonce.toString();
 };
 
@@ -475,7 +453,7 @@ Send.prototype.getRelayerFee = async function (queryApi, relayer, user, transact
 
 Send.prototype.getPaymentNonceAndSignature = async function (queryApi, paymentArgs, retry) {
   const { relayer, signer, proxySignature, transactionType } = paymentArgs;
-  const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.payment, retry);
+  const paymentNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Payment, retry);
   const relayerFee = await this.getRelayerFee(queryApi, relayer, signer, transactionType);
   const feePaymentSignature = proxyApi.createFeePaymentSignature(relayer, signer, proxySignature, relayerFee, paymentNonce);
   return { paymentNonce, feePaymentSignature };

@@ -60,17 +60,25 @@ describe('Query api calls:', async () => {
     });
   });
 
-  describe('getAccountNonce', async () => {
-    it('returns the same nonce by address as by public key', async () => {
-      const nonce = await api.query.getAccountNonce(sender.address);
-      assert.equal(nonce, await api.query.getAccountNonce(sender.publicKey));
+  describe('getNonce', async () => {
+    it('returns the same token nonce by address as by public key', async () => {
+      const nonce = await api.query.getNonce(sender.address, 'token');
+      assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'token'));
     });
-  });
 
-  describe('getAccountPaymentNonce', async () => {
-    it('returns the same nonce by address as by public key', async () => {
-      const nonce = await api.query.getAccountPaymentNonce(sender.address);
-      assert.equal(nonce, await api.query.getAccountPaymentNonce(sender.publicKey));
+    it('returns the same payment nonce by address as by public key', async () => {
+      const nonce = await api.query.getNonce(sender.address, 'payment');
+      assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'payment'));
+    });
+
+    it('returns the same staking nonce by address as by public key', async () => {
+      const nonce = await api.query.getNonce(sender.address, 'staking');
+      assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'staking'));
+    });
+
+    it('returns the same confirmation nonce by address as by public key', async () => {
+      const nonce = await api.query.getNonce(sender.address, 'confirmation');
+      assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'confirmation'));
     });
   });
 
@@ -116,15 +124,10 @@ describe('Query api calls:', async () => {
     it('returns correct token balance for specific user by address');
     it('returns correct token balance for specific user by publicKey');
   });
-  describe('getAccountNonce', async () => {
+  describe('getNonce', async () => {
     //getAccountNonce(account)
     it('returns correct account nonce for specific user by address');
     it('returns correct account nonce for specific user by publicKey');
-  });
-  describe('getAccountPaymentNonce', async () => {
-    //getAccountPaymentNonce(account)
-    it('returns correct account payment nonce for specific user by address');
-    it('returns correct account payment nonce for specific user by publicKey');
   });
   describe('getAvtContractAddress', async () => {
     //getAvtContractAddress()

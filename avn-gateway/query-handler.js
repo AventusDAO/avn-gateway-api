@@ -30,10 +30,8 @@ async function processRequest(request) {
 // Keep alphabetical
 async function callSwitch(call, request) {
   switch (call.method) {
-    case 'getAccountNonce':
-      return await getAccountNonce(call, request);
-    case 'getAccountPaymentNonce':
-      return await getAccountPaymentNonce(call, request);
+    case 'getNonce':
+      return await getNonce(call, request);
     case 'getAvtBalance':
       return await getAvtBalance(call, request);
     case 'getAvtContractAddress':
@@ -52,8 +50,6 @@ async function callSwitch(call, request) {
       return await getTotalAvt(call, request);
     case `getAccountInfo`:
       return await getAccountInfo(call, request);
-    case 'getStakingNonce':
-      return await getStakingNonce(call, request);
     case 'getStakingStatus':
       return await getStakingStatus(call, request);
     case 'getValidatorsToNominate':
@@ -65,23 +61,24 @@ async function callSwitch(call, request) {
   }
 }
 
-async function getAccountNonce(call, request) {
-  const { accountId } = call.params;
+async function getNonce(call, request) {
+  const { accountId, nonceType } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
     return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryChain(call, request, 'tokenManager', 'nonces', [accountId], formatNumAsString);
   }
-}
 
-async function getAccountPaymentNonce(call, request) {
-  const { accountId } = call.params;
-
-  if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryChain(call, request, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString);
+  switch (nonceType) {
+    case 'token':
+      return await queryChain(call, request, 'tokenManager', 'nonces', [accountId], formatNumAsString);
+    case 'payment':
+      return await queryChain(call, request, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString);
+    case 'staking':
+      return await queryChain(call, request, 'validatorsManager', 'proxyNonces', [accountId], formatNumAsString);
+    case 'confirmation':
+      return await queryChain(call, request, 'ethereumEvents', 'proxyNonces', [accountId], formatNumAsString);
+    default:
+      return utils.errorResponse('params', 'invalid nonce type', nonceType, request, call.id);
   }
 }
 
@@ -189,16 +186,6 @@ async function queryChain(call, request, palletName, storageName, params, respon
   const requestParams = { callId: call.id, palletName, storageName, params }
 
   return await query(call, request, method, requestParams, responseFormatter);
-}
-
-async function getStakingNonce(call, request) {
-  const { accountId } = call.params;
-
-  if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryChain(call, request, 'validatorsManager', 'proxyNonces', [accountId], formatNumAsString);
-  }
 }
 
 async function getStakingStatus(call, request) {

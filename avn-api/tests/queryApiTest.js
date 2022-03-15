@@ -21,7 +21,13 @@ describe('Query api calls:', async () => {
     proxyMintSingleNft: '7000000000000000',
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',
-    proxyCancelListFiatNft: '7000000000000000'
+    proxyCancelListFiatNft: '7000000000000000',
+    proxyBond: '1000000000000000',
+    proxyNominate: '1000000000000000',
+    proxyIncreaseStake: '1000000000000000',
+    proxyUnstake: '1000000000000000',
+    proxyWithdrawUnlocked: '1000000000000000',
+    proxyPayoutStakers: '1000000000000000'
   };
 
   const expectedUserFees = {
@@ -32,7 +38,13 @@ describe('Query api calls:', async () => {
     proxyMintSingleNft: '7000000000000000',
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',
-    proxyCancelListFiatNft: '7000000000000000'
+    proxyCancelListFiatNft: '7000000000000000',
+    proxyBond: '1000000000000000',
+    proxyNominate: '1000000000000000',
+    proxyIncreaseStake: '1000000000000000',
+    proxyUnstake: '1000000000000000',
+    proxyWithdrawUnlocked: '1000000000000000',
+    proxyPayoutStakers: '1000000000000000'
   };
 
   before(async () => {

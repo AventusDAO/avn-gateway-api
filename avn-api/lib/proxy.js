@@ -234,13 +234,13 @@ function createProxyWithdrawUnlockedSignature(_relayer, numSlashSpan, stakingNon
   return signData(hexEncodedData);
 }
 
-function createProxyPayoutStakersSignature(_relayer, era, stakingNonce) {
+function createProxyPayoutStakersSignature(_relayer, eraIndex, stakingNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   let dataToSign = {
     context: PROXY_PAYOUT_STAKERS_CONTEXT,
     relayer,
-    era,
+    eraIndex,
     nonce: stakingNonce
   };
 
@@ -383,100 +383,100 @@ function encodeProxyCancelListFiatNftSignature(params) {
 }
 
 function encodeBondSignatureData(params) {
-  const context = common.registry.createType('Text', params.context);
+  const encodedContext = common.registry.createType('Text', params.context);
   const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
   const controller = common.registry.createType('LookupSource', hexToU8a(params.controller));
-  const amount = common.registry.createType('BalanceOf', params.amount);
-  const payee = common.registry.createType('RewardDestination', params.payee);
-  const nonce = common.registry.createType('u64', params.nonce);
+  const encodedAmount = common.registry.createType('BalanceOf', params.amount);
+  const encodedPayee = common.registry.createType('RewardDestination', params.payee);
+  const encodedNonce = common.registry.createType('u64', params.nonce);
 
   const encoded_params = u8aConcat(
-    context.toU8a(false),
+    encodedContext.toU8a(false),
     relayer.toU8a(true),
     controller.toU8a(false),
-    amount.toU8a(true),
-    payee.toU8a(false),
-    nonce.toU8a(true)
+    encodedAmount.toU8a(true),
+    encodedPayee.toU8a(false),
+    encodedNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
 }
 
 function encodeNominateSignatureData(params) {
-  const context = common.registry.createType('Text', params.context);
-  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
-  const targets = common.registry.createType('Vec<LookupSource>', params.targets);
-  const nonce = common.registry.createType('u64', params.nonce);
+  const encodedContext = common.registry.createType('Text', params.context);
+  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedTargets = common.registry.createType('Vec<LookupSource>', params.targets);
+  const encodedNonce = common.registry.createType('u64', params.nonce);
 
   const encoded_params = u8aConcat(
-    context.toU8a(false),
-    relayer.toU8a(true),
-    targets.toU8a(false),
-    nonce.toU8a(true)
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedTargets.toU8a(false),
+    encodedNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
 }
 
 function encodeIncreaseStakeSignatureData(params) {
-  const context = common.registry.createType('Text', params.context);
-  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
-  const amount = common.registry.createType('BalanceOf', params.amount);
-  const nonce = common.registry.createType('u64', params.nonce);
+  const encodedContext = common.registry.createType('Text', params.context);
+  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedAmount = common.registry.createType('BalanceOf', params.amount);
+  const encodedNonce = common.registry.createType('u64', params.nonce);
 
   const encoded_params = u8aConcat(
-    context.toU8a(false),
-    relayer.toU8a(true),
-    amount.toU8a(true),
-    nonce.toU8a(true)
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedAmount.toU8a(true),
+    encodedNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
 }
 
 function encodeUnstakeSignatureData(params) {
-  const context = common.registry.createType('Text', params.context);
-  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
-  const amount = common.registry.createType('BalanceOf', params.amount);
-  const nonce = common.registry.createType('u64', params.nonce);
+  const encodedContext = common.registry.createType('Text', params.context);
+  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedAmount = common.registry.createType('BalanceOf', params.amount);
+  const encodedNonce = common.registry.createType('u64', params.nonce);
 
   const encoded_params = u8aConcat(
-    context.toU8a(false),
-    relayer.toU8a(true),
-    amount.toU8a(true),
-    nonce.toU8a(true)
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedAmount.toU8a(true),
+    encodedNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
 }
 
 function encodeWithdrawUnlockedSignatureData(params) {
-  const context = common.registry.createType('Text', params.context);
-  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
-  const numSlashSpan = common.registry.createType('u32', params.numSlashSpan);
-  const nonce = common.registry.createType('u64', params.nonce);
+  const encodedContext = common.registry.createType('Text', params.context);
+  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedNumSlashSpan = common.registry.createType('u32', params.numSlashSpan);
+  const encodedNonce = common.registry.createType('u64', params.nonce);
 
   const encoded_params = u8aConcat(
-    context.toU8a(false),
-    relayer.toU8a(true),
-    numSlashSpan.toU8a(true),
-    nonce.toU8a(true)
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedNumSlashSpan.toU8a(true),
+    encodedNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
 }
 
 function encodePayoutStakersSignatureData(params) {
-  const context = common.registry.createType('Text', params.context);
-  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
-  const era = common.registry.createType('EraIndex', params.era);
-  const nonce = common.registry.createType('u64', params.nonce);
+  const encodedContext = common.registry.createType('Text', params.context);
+  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedEraIndex = common.registry.createType('EraIndex', params.eraIndex);
+  const encodedNonce = common.registry.createType('u64', params.nonce);
 
   const encoded_params = u8aConcat(
-    context.toU8a(false),
-    relayer.toU8a(true),
-    era.toU8a(true),
-    nonce.toU8a(true)
+    encodedContext.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedEraIndex.toU8a(true),
+    encodedNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);

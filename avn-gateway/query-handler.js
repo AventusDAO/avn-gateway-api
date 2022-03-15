@@ -186,9 +186,9 @@ async function queryActiveEra(call, request) {
 
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
   const method = 'avnQuery'
-  const params = { callId: call.id, palletName, storageName, params }
+  const requestParams = { callId: call.id, palletName, storageName, params }
 
-  return await query(call, request, method, params, responseFormatter);
+  return await query(call, request, method, requestParams, responseFormatter);
 }
 
 async function getStakingNonce(call, request) {

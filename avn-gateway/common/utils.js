@@ -22,7 +22,8 @@ const TX_TYPES = [
   'proxyNominate',
   'proxyIncreaseStake',
   'proxyUnstake',
-  'proxyWithdrawUnlocked'
+  'proxyWithdrawUnlocked',
+  'proxyPayoutStakers'
 ];
 
 let initialised;

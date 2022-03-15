@@ -25,10 +25,10 @@ function Send(api, queryApi, avtContractAddress) {
   this.listFiatNftForSale = generateFunction(listFiatNftForSale, api, queryApi);
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi);
   this.cancelFiatNftListing = generateFunction(cancelFiatNftListing, api, queryApi);
-  this.stake = generateFunction(stake(api, queryApi));
-  this.unstake = generateFunction(unstake(api, queryApi));
-  this.withdrawUnlocked = generateFunction(withdrawUnlocked(api, queryApi));
-  this.payoutStakers = generateFunction(payoutStakers(api, queryApi));
+  this.stake = generateFunction(stake, api, queryApi);
+  this.unstake = generateFunction(unstake, api, queryApi);
+  this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
+  this.payoutStakers = generateFunction(payoutStakers, api, queryApi);
   this.avtContractAddress = avtContractAddress;
   this.nonceMap = {};
   this.feesMap = {};

@@ -159,8 +159,6 @@ function verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feeP
     encodedPaymentNonce.toU8a(true)
   );
 
-  console.log("\n\n******verifyFeePaymentSignature.encodedData: ", u8aToHex(encodedData));
-
   return signatureVerify(u8aToHex(encodedData), feePaymentSignature, signer).isValid;
 }
 

@@ -58,6 +58,8 @@ async function callSwitch(call, request) {
       return await getStakingStatus(call, request);
     case 'getValidatorsToNominate':
       return await queryValidatorsToNominateFromChain(call, request);
+    case 'getActiveEra':
+      return await queryActiveEra(call, request);
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -178,6 +180,10 @@ async function getAccountInfo(call, request) {
   }
 }
 
+async function queryActiveEra(call, request) {
+  return await queryChain(call, request, 'staking', 'activeEra', [], formatEraAsString);
+}
+
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
   const method = 'avnQuery'
   const params = { callId: call.id, palletName, storageName, params }
@@ -238,6 +244,8 @@ const formatBalanceAsString = data => utils.toBnString(data.data.free);
 const formatNftNonceAsString = data => utils.toBnString(data.nonce);
 
 const formatAsNominatingEnum = data => data ? 'isStaking' : 'isNotStaking';
+
+const formatEraAsString = data => data ? data.toJSON().index : 0;
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (data, params) => {

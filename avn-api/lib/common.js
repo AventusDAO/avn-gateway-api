@@ -22,6 +22,7 @@ const TX_TYPE = {
   ProxyNominate: 'proxyNominate',
   ProxyIncreaseStake: 'proxyIncreaseStake',
   ProxyUnstake: 'proxyUnstake',
+  ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked'
 };
 
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];

@@ -208,7 +208,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 
   let params;
   try {
-    params = await getProxyParams(call, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams);
+    params = await getProxyParams(call.method, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams);
   } catch (err) {
     return utils.errorResponse('internal', err.toString(), err, request, call.id);
   }
@@ -355,12 +355,12 @@ function validateMethodParams(callId, request, relayer, signer, proxySignature, 
   }
 }
 
-async function getProxyParams(call, request, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams) {
+async function getProxyParams(callMethod, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams) {
   const proxyProof = getProxyProof(signer, relayer, proxySignature);
 
   let relayerFee;
   try {
-    relayerFee = await getRelayerFee(relayer, signer, call.method);
+    relayerFee = await getRelayerFee(relayer, signer, callMethod);
   } catch (error) {
     throw new Error(`could not get relayer fee: ${error.toString()}`);
   }
@@ -391,8 +391,7 @@ async function getBondParams(call, request) {
   validateMethodParams(call.id, request, relayer, signer, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
 
   return await getProxyParams(
-    call,
-    request,
+    call.bondMethodName,
     relayer,
     signer,
     proxyBondSignature,
@@ -415,8 +414,7 @@ async function getNominateParams(call, request) {
   validateMethodParams(call.id, request, relayer, signer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
 
   return await getProxyParams(
-    call,
-    request,
+    call.nominateMethodName,
     relayer,
     signer,
     proxyNominateSignature,

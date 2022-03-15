@@ -315,10 +315,12 @@ Send.prototype.proxyStakeAvt = async function (api, queryApi, relayer, amount, t
     proxyBondSignature,
     bondFeePaymentSignature: bondPaymentData.feePaymentSignature,
     bondPaymentNonce: bondPaymentData.paymentNonce,
+    bondMethodName: TX_TYPE.ProxyBond,
     targets,
     proxyNominateSignature,
     nominateFeePaymentSignature: nominatePaymentData.feePaymentSignature,
-    nominatePaymentNonce: nominatePaymentData.paymentNonce
+    nominatePaymentNonce: nominatePaymentData.paymentNonce,
+    nominateMethodName: TX_TYPE.ProxyNominate
   };
 
   console.log("Stake params: ", JSON.stringify(params, null, 2));

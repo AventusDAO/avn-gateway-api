@@ -33,11 +33,11 @@ async function proxy(requestId, palletName, method, params) {
     log.trace({ message: `Creating batch transactions.`, extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ') });
 
     const innerCalls = params.map(p => {
-      let innerCall = api.tx[p.palletName][p.method](...p.proxyParams);
+      let innerCall = api.tx[p.palletName][p.method](...p.params.proxyParams);
       return api.tx.avnProxy.proxy(innerCall, p.paymentInfo);
     });
     const txn = api.tx.utility.batchAll(innerCalls);
-    return await signAndSend(requestId, params[0].relayerAddress, txn);
+    return await signAndSend(requestId, params[0].params.relayerAddress, txn);
   } else {
     log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
 

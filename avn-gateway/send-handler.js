@@ -332,7 +332,7 @@ function validateMethodParams(callId, request, relayer, signer, proxySignature, 
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format';
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce';
   } catch (errParam) {
-    return utils.errorResponse('param', 'invalid' + errParam, errParam, request, callId);
+    return utils.errorResponse('params', 'invalid' + errParam, errParam, request, callId);
   }
 }
 

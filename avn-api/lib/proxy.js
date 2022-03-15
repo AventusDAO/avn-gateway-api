@@ -174,7 +174,7 @@ function createProxyStakeAvtSignature(_relayer, signer, amount, targets, staking
   const hexEncodedBondData = encodeBondSignatureData(dataToSign);
   const hexBondSignature = signData(hexEncodedBondData);
 
-  stakingNonce = new BN(senderProxyNonce).add(BN_ONE);
+  stakingNonce = new BN(stakingNonce).add(new BN(1));
 
   dataToSign = {
     context: PROXY_NOMINATE_CONTEXT,
@@ -186,10 +186,7 @@ function createProxyStakeAvtSignature(_relayer, signer, amount, targets, staking
   const hexEncodedNominateData = encodeNominateSignatureData(dataToSign);
   const hexNominateSignature = signData(hexEncodedNominateData);
 
-  return {
-    hexBondSignature,
-    hexNominateSignature
-  };
+  return [hexBondSignature, hexNominateSignature];
 }
 
 function createProxyIncreaseStakeSignature(_relayer, signer, amount, stakingNonce) {
@@ -384,8 +381,8 @@ function encodeProxyCancelListFiatNftSignature(params) {
 
 function encodeBondSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
-  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
-  const controller = common.registry.createType('LookupSource', hexToU8a(params.controller));
+  const relayer = common.registry.createType('AccountId', params.relayer);
+  const controller = common.registry.createType('LookupSource', params.controller);
   const encodedAmount = common.registry.createType('BalanceOf', params.amount);
   const encodedPayee = common.registry.createType('RewardDestination', params.payee);
   const encodedNonce = common.registry.createType('u64', params.nonce);
@@ -404,7 +401,7 @@ function encodeBondSignatureData(params) {
 
 function encodeNominateSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedTargets = common.registry.createType('Vec<LookupSource>', params.targets);
   const encodedNonce = common.registry.createType('u64', params.nonce);
 
@@ -420,7 +417,7 @@ function encodeNominateSignatureData(params) {
 
 function encodeIncreaseStakeSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedAmount = common.registry.createType('BalanceOf', params.amount);
   const encodedNonce = common.registry.createType('u64', params.nonce);
 
@@ -436,7 +433,7 @@ function encodeIncreaseStakeSignatureData(params) {
 
 function encodeUnstakeSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedAmount = common.registry.createType('BalanceOf', params.amount);
   const encodedNonce = common.registry.createType('u64', params.nonce);
 
@@ -452,7 +449,7 @@ function encodeUnstakeSignatureData(params) {
 
 function encodeWithdrawUnlockedSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedNumSlashSpan = common.registry.createType('u32', params.numSlashSpan);
   const encodedNonce = common.registry.createType('u64', params.nonce);
 
@@ -468,7 +465,7 @@ function encodeWithdrawUnlockedSignatureData(params) {
 
 function encodePayoutStakersSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedEraIndex = common.registry.createType('EraIndex', params.eraIndex);
   const encodedNonce = common.registry.createType('u64', params.nonce);
 

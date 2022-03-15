@@ -21,7 +21,8 @@ const TX_TYPES = [
   'proxyBond',
   'proxyNominate',
   'proxyIncreaseStake',
-  'proxyUnstake'
+  'proxyUnstake',
+  'proxyWithdrawUnlocked'
 ];
 
 let initialised;
@@ -113,6 +114,10 @@ function isValidTransactionType(transactionType) {
   return TX_TYPES.includes(transactionType);
 }
 
+function isValidNumber(val) {
+  return /^\d+$/.test(val);
+}
+
 function convertToAddress(accountId) {
   return isHex(accountId) ? encodeAddress(accountId) : accountId;
 }
@@ -169,6 +174,7 @@ module.exports = {
   isValidMarket,
   isValidNftId,
   isValidNonce,
+  isValidNumber,
   isValidRequestId,
   isValidSignatureFormat,
   isValidString,

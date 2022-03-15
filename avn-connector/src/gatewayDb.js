@@ -21,6 +21,7 @@ const TransactionType = {
   ProxyNominate: 'proxyNominate',
   ProxyIncreaseStake: 'proxyIncreaseStake',
   ProxyUnstake: 'proxyUnstake',
+  ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked'
 };
 
 const defaultFees = {};
@@ -89,6 +90,7 @@ function setupDefaultFees() {
   defaultFees[TransactionType.ProxyNominate] = DEFAULT_RELAYER_FEE;
   defaultFees[TransactionType.ProxyIncreaseStake] = DEFAULT_RELAYER_FEE;
   defaultFees[TransactionType.ProxyUnstake] = DEFAULT_RELAYER_FEE;
+  defaultFees[TransactionType.ProxyWithdrawUnlocked] = DEFAULT_RELAYER_FEE;
 }
 
 async function createCollections(db) {

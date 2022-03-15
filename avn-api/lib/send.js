@@ -18,6 +18,7 @@ function Send(api, queryApi, avtContractAddress) {
   this.cancelFiatNftListing = generateFunction(cancelFiatNftListing, api, queryApi);
   this.stake = generateFunction(stake(api, queryApi));
   this.unstake = generateFunction(unstake(api, queryApi));
+  this.withdrawUnlocked = generateFunction(withdrawUnlocked(api, queryApi));
   this.avtContractAddress = avtContractAddress;
   this.nonceMap = {};
   this.feesMap = {};
@@ -120,6 +121,14 @@ function unstake(api, queryApi) {
     amount = common.validateAndConvertAmountToString(amount);
 
     return await this.proxyUnstakeAvt(api, queryApi, relayer, amount);
+  };
+}
+
+function withdrawUnlocked(api, queryApi) {
+  return async function (relayer) {
+    common.validateAccount(relayer);
+
+    return await this.proxyWithdrawUnlocked(api, queryApi, relayer);
   };
 }
 
@@ -303,6 +312,26 @@ Send.prototype.proxyUnstakeAvt = async function (api, queryApi, relayer, amount,
   if (!response && !retry) {
     retry = true;
     await this.proxyUnstakeAvt(api, queryApi, relayer, amount, retry);
+  }
+
+  return response;
+};
+
+Send.prototype.proxyWithdrawUnlocked = async function (api, queryApi, relayer, retry) {
+  const transactionType = TX_TYPE.ProxyWithdrawUnlocked;
+  const signer = common.getClientAddress();
+  const numSlashSpan = 0; // We dont use slashing
+  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
+  const stakingNonce = await queryApi.getStakingNonce();
+  const proxySignature = proxyApi.createProxyWithdrawUnlockedSignature(relayer, numSlashSpan, stakingNonce);
+  const paymentArgs = { relayer, signer, proxySignature, transactionType };
+  const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
+  const params = { relayer, signer, amount, proxySignature, feePaymentSignature, paymentNonce };
+  const response = await this.postRequest(api, transactionType, retry, params);
+
+  if (!response && !retry) {
+    retry = true;
+    await this.proxyWithdrawUnlocked(api, queryApi, relayer, retry);
   }
 
   return response;

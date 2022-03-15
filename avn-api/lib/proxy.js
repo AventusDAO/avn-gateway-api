@@ -15,6 +15,7 @@ const PROXY_BOND_CONTEXT = 'authorization for bond operation';
 const PROXY_NOMINATE_CONTEXT = 'authorization for nominate operation';
 const PROXY_BOND_EXTRA_CONTEXT = 'authorization for bond extra operation';
 const PROXY_UNBOND_CONTEXT = 'authorization for unbond operation';
+const WITHDRAW_UNBONDED_CONTEXT = 'authorization for withdraw unbonded operation';
 
 const STASH_REWARD_DESTINATION = 'Stash';
 
@@ -200,6 +201,20 @@ function createProxyUnstakeSignature(_relayer, amount, stakingNonce) {
   return signData(hexEncodedData);
 }
 
+function createProxyWithdrawUnlockedSignature(_relayer, numSlashSpan, stakingNonce) {
+  const relayer = common.convertToPublicKeyIfNeeded(_relayer);
+
+  let dataToSign = {
+    context: WITHDRAW_UNBONDED_CONTEXT,
+    relayer,
+    numSlashSpan,
+    nonce: stakingNonce
+  };
+
+  const hexEncodedData = encodeWithdrawUnlockedSignatureData(dataToSign);
+  return signData(hexEncodedData);
+}
+
 function encodeProxyTransferSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
@@ -382,6 +397,22 @@ function encodeUnstakeSignatureData(params) {
   return u8aToHex(encoded_params);
 }
 
+function encodeWithdrawUnlockedSignatureData(params) {
+  const context = common.registry.createType('Text', params.context);
+  const relayer = common.registry.createType('AccountId', hexToU8a(params.relayer));
+  const numSlashSpan = common.registry.createType('u32', params.numSlashSpan);
+  const nonce = common.registry.createType('u64', params.nonce);
+
+  const encoded_params = u8aConcat(
+    context.toU8a(false),
+    relayer.toU8a(true),
+    numSlashSpan.toU8a(true),
+    nonce.toU8a(true)
+  );
+
+  return u8aToHex(encoded_params);
+}
+
 function encodeFeePaymentSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedProxyProof = encodeProxyProof(params.proxyProof);
@@ -434,5 +465,6 @@ module.exports = {
   createProxyCancelListFiatNftSignature,
   createProxyStakeAvtSignature,
   createProxyIncreaseStakeSignature,
-  createProxyUnstakeSignature
+  createProxyUnstakeSignature,
+  createProxyWithdrawUnlockedSignature
 };

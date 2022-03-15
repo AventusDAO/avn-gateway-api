@@ -69,6 +69,8 @@ async function callSwitch(call, request, requestId) {
       return await processProxyIncreaseStake(call, request, requestId);
     case 'proxyUnstake':
         return await processProxyUnstake(call, request, requestId);
+    case 'proxyWithdrawUnlocked':
+      return await processProxyWithdrawUnlocked(call, request, requestId);
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -262,6 +264,22 @@ async function processProxyUnstake(call, request, requestId) {
   try {
     if (utils.isValidAccountId(signer) === false) throw 'signer';
     if (utils.isValidAmount(amount) === false) throw 'amount';
+  } catch (param) {
+    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyWithdrawUnlocked(call, request, requestId) {
+  const pallet = 'validatorsManager';
+  const method = 'signedWithdrawUnbonded';
+  const { signer, numSlashSpan } = call.params;
+  const methodParams = [signer, numSlashSpan];
+
+  try {
+    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidNumber(numSlashSpan) === false) throw 'numSlashSpan';
   } catch (param) {
     return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
   }

@@ -7,6 +7,7 @@ const log = log4js.getLogger();
 const avn_types = require('./avnTypes');
 const redis = require('./redis');
 const Vault = require('./vaultApp');
+const stakingHelper = require('./stakingHelper');
 
 const AVN_URL = config.avnUrl;
 
@@ -54,6 +55,19 @@ async function poll(requestId) {
   } catch (error) {
     log.error(`Error getting transaction status for requestId ${requestId}: ${error}`);
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);
+  }
+}
+
+async function getAccountInfo(accountId) {
+  let stakingInfo = await api.derive.staking.account(accountId);
+  let balancesAll = await api.derive.balances.all(accountId);
+
+  return {
+      totalBalance: balancesAll.freeBalance.add(balancesAll.reservedBalance).toString(),
+      freeBalance: balancesAll.availableBalance.toString(),
+      stakedBalance: stakingHelper.calculateBondedAmount(stakingInfo).toString(),
+      unlockedBalance: stakingInfo.redeemable.toString(),
+      unstakedBalance: stakingHelper.calculateUnbondingAmount(stakingInfo).toString()
   }
 }
 
@@ -145,6 +159,7 @@ function isTransactionHash(requestId) {
 }
 
 module.exports = {
+  getAccountInfo,
   init,
   query,
   proxy,

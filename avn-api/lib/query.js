@@ -13,6 +13,7 @@ function Query(api) {
   this.getNftNonce = generateFunction(getNftNonce, api);
   this.getNftId = generateFunction(getNftId, api);
   this.getNftOwner = generateFunction(getNftOwner, api);
+  this.getAccountInfo = generateFunction(getAccountInfo, api);
   this.nftsMap = {};
 }
 
@@ -103,6 +104,14 @@ function generateFunction(functionName, api) {
   return functionName(api);
 }
 
+function getAccountInfo(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getAccountInfo', { accountId });
+  };
+}
+
 Query.prototype.postRequest = async function (api, method, params) {
   const endpoint = api.gateway + '/query';
   const response = await api.axios().post(endpoint, { jsonrpc: '2.0', id: api.uuid(), method: method, params: params });
@@ -115,7 +124,7 @@ Query.prototype.postRequest = async function (api, method, params) {
     return response.data.result;
   }
 
-  throw new Error(`Error processing query: ${JSON.stringify(response.data.error)}`);
+  throw new Error(`Error processing query. Response: ${JSON.stringify(response.data)}`);
 };
 
 module.exports = Query;

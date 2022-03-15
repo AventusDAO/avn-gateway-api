@@ -20,10 +20,16 @@ const TX_TYPE = {
   ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
   ProxyBond: 'proxyBond',
   ProxyNominate: 'proxyNominate',
+  ProxyIncreaseStake: 'proxyIncreaseStake',
 };
 
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
 const RATE_STRUCTURE = ['parts_per_million'];
+
+const STAKING_STATUS = {
+  isStaking: 'isStaking',
+  isNotStaking: 'isNotStaking'
+}
 
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
   if (isAccountPK(accountAddressOrPublicKey)) {
@@ -161,6 +167,7 @@ module.exports = {
   keyring,
   registry,
   sleep,
+  STAKING_STATUS,
   TX_TYPE,
   validateAccount,
   validateAndConvertAmountToString,

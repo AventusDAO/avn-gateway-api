@@ -114,11 +114,20 @@ function cancelFiatNftListing(api, queryApi) {
 }
 
 function stake(api, queryApi) {
-  return async function (relayer, amount, targets) {
+  return async function (relayer, amount) {
     common.validateAccount(relayer);
     amount = common.validateAndConvertAmountToString(amount);
-    targets = common.validateStakingTargets(targets);
-    return await this.proxyStakeAvt(api, queryApi, relayer, amount, targets);
+
+    const signer = common.convertToPublicKeyIfNeeded(common.getClientAddress());
+    const stakingStatus = await queryApi.getStakingStatus(signer);
+
+    if (stakingStatus === common.STAKING_STATUS.isStaking) {
+      return await this.proxyIncreaseStake(api, queryApi, amount);
+    } else {
+      const targets = await queryApi.getValidatorsToNominate();
+      common.validateStakingTargets(targets);
+      return await this.proxyStakeAvt(api, queryApi, relayer, amount, targets);
+    }
   };
 }
 
@@ -283,6 +292,25 @@ Send.prototype.proxyStakeAvt = async function (api, queryApi, relayer, amount, t
   if (!response && !retry) {
     retry = true;
     await this.proxyStakeAvt(api, queryApi, relayer, amount, targets, retry);
+  }
+
+  return response;
+};
+
+Send.prototype.proxyIncreaseStake = async function (api, queryApi, relayer, amount, retry) {
+  const transactionType = TX_TYPE.ProxyIncreaseStake;
+  const signer = common.getClientAddress();
+  // TOOD: Replace this with a smart nonce once we refactor it to include validatorsManager.ProxyNonces
+  const stakingNonce = await queryApi.getStakingNonce();
+  const proxySignature = proxyApi.createProxyIncreaseStakeSignature(relayer, signer, amount, stakingNonce);
+  const paymentArgs = { relayer, signer, proxySignature, transactionType };
+  const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
+  const params = { relayer, signer, amount, proxySignature, feePaymentSignature, paymentNonce };
+  const response = await this.postRequest(api, transactionType, retry, params);
+
+  if (!response && !retry) {
+    retry = true;
+    await this.proxyIncreaseStake(api, queryApi, relayer, amount, retry);
   }
 
   return response;

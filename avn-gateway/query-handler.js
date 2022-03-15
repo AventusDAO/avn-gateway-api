@@ -245,7 +245,7 @@ const formatNftNonceAsString = data => utils.toBnString(data.nonce);
 
 const formatAsNominatingEnum = data => data ? 'isStaking' : 'isNotStaking';
 
-const formatEraAsString = data => data ? data.toJSON().index : 0
+const formatEraAsString = data => data ? data.toJSON().index : 0;
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (data, params) => {

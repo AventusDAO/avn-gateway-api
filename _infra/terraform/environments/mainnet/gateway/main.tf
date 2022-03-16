@@ -71,7 +71,6 @@ module "dns" {
   source             = "../../../modules/dns"
   vpc_id             = data.terraform_remote_state.vpc.outputs.vpc_id
   environment        = local.environment
-  rabbit_address     = module.rabbitmq.broker_address
   documentdb_address = module.documentdb.address
   api_gateway_url    = module.api_gateway.url
   api_gateway_id     = module.api_gateway.api_id

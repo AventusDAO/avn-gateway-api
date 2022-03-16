@@ -78,7 +78,7 @@ const common_types = {
   Keys: 'SessionKeys5',
   TxHash: 'H256',
   RecipientAccountId: 'AccountId',
-  EethereumTransactionHash: 'H256',
+  EthereumTransactionHash: 'H256',
   AmountLifted: 'u128',
   TokenId: 'H160',
   TokenBalance: 'u128',

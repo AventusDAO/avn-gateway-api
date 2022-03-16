@@ -101,12 +101,12 @@ async function processProxyTransfer(call, request, requestId) {
 async function processProxyAddEthereumLog(call, request, requestId) {
   const pallet = 'ethereumEvents';
   const method = 'signedAddEthereumLog';
-  const { eventType, eethereumTransactionHash } = call.params;
-  const methodParams = [eventType, eethereumTransactionHash];
+  const { eventType, ethereumTransactionHash } = call.params;
+  const methodParams = [eventType, ethereumTransactionHash];
 
   try {
     if (utils.isValidEventType(eventType) === false) throw 'eventType';
-    if (utils.isValidEthereumTransactionHash(eethereumTransactionHash) === false) throw 'eethereumTransactionHash';
+    if (utils.isValidEthereumTransactionHash(ethereumTransactionHash) === false) throw 'ethereumTransactionHash';
   } catch (param) {
     return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
   }

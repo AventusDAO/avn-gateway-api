@@ -40,14 +40,14 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
   return signData(hexEncodedData);
 }
 
-function createProxyConfirmTokenLiftSignature(_relayer, eventType, eethereumTransactionHash, confirmationNonce) {
+function createProxyConfirmTokenLiftSignature(_relayer, eventType, ethereumTransactionHash, confirmationNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   const dataToSign = {
     context: PROXY_ADD_ETHEREUM_LOG_CONTEXT,
     relayer,
     eventType,
-    eethereumTransactionHash,
+    ethereumTransactionHash,
     confirmationNonce
   };
 
@@ -271,7 +271,7 @@ function encodeProxyConfirmTokenLiftSignatureData(params) {
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedSigner = common.registry.createType('AccountId', params.signer);
   const encodedEventType = common.registry.createType('u8', params.eventType);
-  const encodedEethereumTransactionHash = common.registry.createType('H256', params.eethereumTransactionHash);
+  const encodedEthereumTransactionHash = common.registry.createType('H256', params.ethereumTransactionHash);
   const encodedConfirmationNonce = common.registry.createType('u64', params.confirmationNonce);
 
   const encodedData = u8aConcat(
@@ -279,7 +279,7 @@ function encodeProxyConfirmTokenLiftSignatureData(params) {
     encodedRelayer.toU8a(true),
     encodedSigner.toU8a(true),
     encodedEventType.toU8a(true),
-    encodedEethereumTransactionHash.toU8a(true),
+    encodedEthereumTransactionHash.toU8a(true),
     encodedConfirmationNonce.toU8a(true)
   );
 

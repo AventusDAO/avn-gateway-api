@@ -83,6 +83,13 @@ function validateEthereumAddress(ethereumAddress) {
   }
 }
 
+function validateEthereumTransactionHash(ethereumTransactionHash) {
+  const isValid = isHex(ethereumTransactionHash) && ethereumTransactionHash.split('').length == 66;
+  if (isValid === false) {
+    throw new Error(`Invalid ethereum address type: ${ethereumTransactionHash}`);
+  }
+}
+
 function validateRoyaltyStructure(royalty) {
   let structureCheck = JSON.stringify(Object.keys(royalty)) === JSON.stringify(ROYALTY_STRUCTURE);
   if (structureCheck) {
@@ -196,6 +203,7 @@ module.exports = {
   validateAccount,
   validateAndConvertAmountToString,
   validateEthereumAddress,
+  validateEthereumTransactionHash,
   validateIsArray,
   validateNonceType,
   validateNftId,

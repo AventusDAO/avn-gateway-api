@@ -56,11 +56,11 @@ function transferToken(api, queryApi) {
 }
 
 function confirmTokenLift(api, queryApi) {
-  return async function (relayer, eethereumTransactionHash) {
+  return async function (relayer, ethereumTransactionHash) {
     common.validateAccount(relayer);
-    common.validateeethereumTransactionHash(eethereumTransactionHash);
+    common.validateEthereumTransactionHash(ethereumTransactionHash);
 
-    return await this.proxyConfirmTokenLift(api, queryApi, relayer, eethereumTransactionHash);
+    return await this.proxyConfirmTokenLift(api, queryApi, relayer, ethereumTransactionHash);
   };
 }
 
@@ -187,20 +187,25 @@ Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient
   return response;
 };
 
-Send.prototype.proxyConfirmTokenLift = async function (api, queryApi, relayer, eethereumTransactionHash, retry) {
+Send.prototype.proxyConfirmTokenLift = async function (api, queryApi, relayer, ethereumTransactionHash, retry) {
   const transactionType = TX_TYPE.ProxyConfirmTokenLift;
   const eventType = ETHEREUM_LOG_EVENT_TYPE.Lifted;
   const signer = common.getClientAddress();
   const confirmationNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Confirmation, retry);
-  const proxySignature = proxyApi.createProxyConfirmTokenLiftSignature(relayer, eventType, eethereumTransactionHash, confirmationNonce);
+  const proxySignature = proxyApi.createProxyConfirmTokenLiftSignature(
+    relayer,
+    eventType,
+    ethereumTransactionHash,
+    confirmationNonce
+  );
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
-  const params = { relayer, signer, eventType, eethereumTransactionHash, proxySignature, feePaymentSignature, paymentNonce };
+  const params = { relayer, signer, eventType, ethereumTransactionHash, proxySignature, feePaymentSignature, paymentNonce };
   const response = await this.postRequest(api, transactionType, retry, params);
 
   if (!response && !retry) {
     retry = true;
-    await this.proxyConfirmTokenLift(api, queryApi, relayer, eethereumTransactionHash, retry);
+    await this.proxyConfirmTokenLift(api, queryApi, relayer, ethereumTransactionHash, retry);
   }
 
   return response;

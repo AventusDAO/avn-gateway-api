@@ -6,36 +6,51 @@
 
 ## AvN-API
 Aventus AvN javascript API which connects to generic JSON-RPC spec.\
-Please see the [avn-api repo](https://www.npmjs.com/package/avn-api) for JS functionality and example usage.
+Please see the [avn-api](https://www.npmjs.com/package/avn-api) NPM module for JS functionality and example usage.
 
-#### Running
+## Running
 Before using the api, set your AvN mnemonic or secret seed as the **SURI** environment variable: `export SURI=<mnemonic OR secret seed>``
-examples: \
-`export SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"` \
-`export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
+examples:
+- `export SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"`
+- `export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
 
-**Note:** It's important that you keep the mnemonic/seed secret safe and not expose it anywhere else. If this data is compromised, you could lose your funds.
+**Note:** _It's important to keep the mnemonic/seed secret safe and not expose it anywhere else. If compromised you could lose all your funds._
+
+#### Offline mode
+Running the api in offline mode exposes AWT token generation, proof generation, and account generation tools.\
+This is useful for configuring JSON-RPC methods.
+To run in offline mode:
+```
+const AvnApi = require('avn-api');
+const api = new AvnApi();
+await api.init();
+```
+
+#### Online mode
+Passing a gateway URL enables the full api:
+```
+const AvnApi = require('avn-api');
+const api = new AvnApi('https://sandbox.gateway.aventus.io');
+await api.init();
+```
 
 ### AWT tokens
 AWT (Aventus Web Token) is an authorisation token that must be included in the header of every request sent to the api gateway.\
 The format for this header should be: `Authorization': bearer <awtToken>` (where `<awtToken>` is the unique token for this request).\
 The token can be generated manually using the following code:
 ```
-const AvnApi = require('avn-api');
-const api = new AvnApi('https://n67ibi1ujh.execute-api.eu-west-2.amazonaws.com');
-await api.init();
-
 const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
 // replace <mnemonic OR secret seed> with process.env.SURI if you have already set the environment variable
 ```
 
-### Proof sets
+### Proof sets and nonces
 Each transaction request requires 1 or 2 proof sets, each comprising a **proxySignature** and a **feePaymentSignature**\
-These are automatically generated internally by the api but can also be created manually (for CURL requests etc).\
-To do so follow these steps:
-**Note:** these manual api actions require **SURI** to be set to the intended sender/signer account
+Proofs may require nonces.
+These are all automatically generated internally by the JS api but can also be created manually (for CURL requests etc).\
+For manual creation follow these steps:
+**Note:** _These methods still require **SURI** to be set to the intended sender/signer account_
 
-- If required, make a `getAccountNonce` or `getNftNonce` query to retrieve the transaction nonce
+- If required, first make a query to retrieve the relevant transaction nonce.
 - The api then exposes the following methods to generate a relevant **proxySignature**:
   - `api.proxy.createProxyTransferSignature(relayer, signer, recipient, token, amount, accountNonce)` - _used for both AVT and non-AVT transfers_
   - `api.proxy.createProxyConfirmTokenLiftSignature(relayer, signer, eventType, ethereumTransactionHash, accountNonce)`
@@ -47,7 +62,7 @@ To do so follow these steps:
   - `api.proxy.createProxyNominateSignature(relayer, signer, amount, targets, accountNonce)`
   - `api.proxy.createProxyIncreaseStakeSignature(relayer, signer, amount, accountNonce)`
   - `api.proxy.createProxyUnstakeSignature(relayer, signer, amount, accountNonce)`
-- Make a `getPaymentNonce` query to retrieve the signer's **paymentNonce**
+- Next make a `getPaymentNonce` query to retrieve the signer's **paymentNonce**
 - Get the **relayerFee** by making a query request to `getRelayerFees(relayer, signer, transactionType)`
 - Finally, use the collected data to generate the **feePaymentSignature**:
   - `api.proxy.createFeePaymentSignature(relayer, signer, proxySignature, relayerFee, paymentNonce)`

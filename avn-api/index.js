@@ -10,28 +10,33 @@ const Utils = require('./lib/utils.js');
 const version = require('./package.json').version;
 
 function AvnApi(gateway) {
-  this.gateway = gateway;
   this.version = version;
   this.awtToken;
+  if (gateway) {
+    this.gateway = gateway;
+  }
 }
 
 AvnApi.prototype.init = async function () {
   await cryptoWaitReady();
-
-  awtToken = Awt.generateAwtToken(process.env.SURI);
-  const avnApi = {
-    gateway: this.gateway,
-    uuid: () => uuidv4(),
-    axios: () => setupAxios(Awt)
-  };
-
-  this.query = new Query(avnApi);
-  const avtContractAddress = await this.query.getAvtContractAddress(avnApi);
-  this.send = new Send(avnApi, this.query, avtContractAddress);
-  this.poll = new Poll(avnApi);
-  this.proxy = Proxy;
   this.awt = Awt;
+  this.proxy = Proxy;
   this.utils = Utils;
+
+  if (this.gateway) {
+    awtToken = Awt.generateAwtToken(process.env.SURI);
+
+    const avnApi = {
+      gateway: this.gateway,
+      uuid: () => uuidv4(),
+      axios: () => setupAxios(Awt)
+    };
+
+    this.query = new Query(avnApi);
+    const avtContractAddress = await this.query.getAvtContractAddress(avnApi);
+    this.send = new Send(avnApi, this.query, avtContractAddress);
+    this.poll = new Poll(avnApi);
+  }
 };
 
 function setupAxios(awtTokenManager) {

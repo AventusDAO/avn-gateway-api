@@ -72,7 +72,7 @@ describe('SendTx api calls:', async () => {
       senderAvtBalanceBefore = new BN(await api.query.getAvtBalance(sender));
       senderTokenBalanceBefore = new BN(await api.query.getTokenBalance(sender, token));
       relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));
-      senderNonceBefore = new BN(await api.query.getAccountNonce(sender));
+      senderNonceBefore = new BN(await api.query.getNonce(sender, 'token'));
     });
 
     it('can lower tokens', async () => {
@@ -81,7 +81,7 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(api, requestId, 'Processed');
 
       bnEquals(senderTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(sender, token)));
-      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)));
+      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getNonce(sender, 'token')));
       bnEquals(senderAvtBalanceBefore.sub(relayerLowerFee), new BN(await api.query.getAvtBalance(sender)));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerLowerFee)));
@@ -94,7 +94,7 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(api, requestId, 'Processed');
 
       bnEquals(senderAvtBalanceBefore.sub(relayerLowerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)));
-      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)));
+      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getNonce(sender, 'token')));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerLowerFee)));
     });

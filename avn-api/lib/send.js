@@ -323,8 +323,6 @@ Send.prototype.proxyStakeAvt = async function (api, queryApi, relayer, amount, t
     nominateMethodName: TX_TYPE.ProxyNominate
   };
 
-  console.log("Stake params: ", JSON.stringify(params, null, 2));
-
   const response = await this.postRequest(api, method, retry, params);
 
   if (!response && !retry) {

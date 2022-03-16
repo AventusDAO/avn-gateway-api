@@ -101,13 +101,12 @@ async function processProxyTransfer(call, request, requestId) {
 async function processProxyAddEthereumLog(call, request, requestId) {
   const pallet = 'ethereumEvents';
   const method = 'signedAddEthereumLog';
-  const { signer, token, eventType, ethereumTransactionHash } = call.params;
-  const methodParams = [signer, eventType, ethereumTransactionHash];
+  const { eventType, ethTxHash } = call.params;
+  const methodParams = [eventType, ethTxHash];
 
   try {
-    if (utils.isValidAccountId(signer) === false) throw 'signer';
     if (utils.isValidEventType(eventType) === false) throw 'eventType';
-    if (utils.isValidEthereumTransactionHash(ethereumTransactionHash) === false) throw 'ethereumTransactionHash';
+    if (utils.isValidEthereumTransactionHash(ethTxHash) === false) throw 'ethTxHash';
   } catch (param) {
     return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
   }
@@ -314,14 +313,12 @@ async function processProxyUnstake(call, request, requestId) {
 async function processProxyWithdrawUnlocked(call, request, requestId) {
   const pallet = 'validatorsManager';
   const method = 'signedWithdrawUnbonded';
-  const { signer, numSlashSpan } = call.params;
+  const { signer } = call.params;
+  const numSlashSpan = 0;
   const methodParams = [signer, numSlashSpan];
 
-  try {
-    if (utils.isValidAccountId(signer) === false) throw 'signer';
-    if (utils.isValidNumber(numSlashSpan) === false) throw 'numSlashSpan';
-  } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+  if (utils.isValidAccountId(signer) === false) {
+    return utils.errorResponse('params', 'invalid signer', signer request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);

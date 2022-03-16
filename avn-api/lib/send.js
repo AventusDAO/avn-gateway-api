@@ -56,11 +56,11 @@ function transferToken(api, queryApi) {
 }
 
 function confirmTokenLift(api, queryApi) {
-  return async function (relayer, ethereumTransactionHash) {
+  return async function (relayer, ethTxHash) {
     common.validateAccount(relayer);
-    common.validateEthereumTransactionHash(ethereumTransactionHash);
+    common.validateethTxHash(ethTxHash);
 
-    return await this.proxyConfirmTokenLift(api, queryApi, relayer, ethereumTransactionHash);
+    return await this.proxyConfirmTokenLift(api, queryApi, relayer, ethTxHash);
   };
 }
 
@@ -187,20 +187,20 @@ Send.prototype.proxyTransfer = async function (api, queryApi, relayer, recipient
   return response;
 };
 
-Send.prototype.proxyConfirmTokenLift = async function (api, queryApi, relayer, ethereumTransactionHash, retry) {
+Send.prototype.proxyConfirmTokenLift = async function (api, queryApi, relayer, ethTxHash, retry) {
   const transactionType = TX_TYPE.ProxyConfirmTokenLift;
   const eventType = ETHEREUM_LOG_EVENT_TYPE.Lifted;
   const signer = common.getClientAddress();
   const confirmationNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Confirmation, retry);
-  const proxySignature = proxyApi.createProxyConfirmTokenLiftSignature(relayer, signer, eventType, thereumTransactionHash, confirmationNonce);
+  const proxySignature = proxyApi.createProxyConfirmTokenLiftSignature(relayer, eventType, ethTxHash, confirmationNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
-  const params = { relayer, signer, eventType, ethereumTransactionHash, proxySignature, feePaymentSignature, paymentNonce };
+  const params = { relayer, signer, eventType, ethTxHash, proxySignature, feePaymentSignature, paymentNonce };
   const response = await this.postRequest(api, transactionType, retry, params);
 
   if (!response && !retry) {
     retry = true;
-    await this.proxyConfirmTokenLift(api, queryApi, relayer, ethereumTransactionHash, retry);
+    await this.proxyConfirmTokenLift(api, queryApi, relayer, ethTxHash, retry);
   }
 
   return response;
@@ -336,7 +336,7 @@ Send.prototype.proxyIncreaseStake = async function (api, queryApi, relayer, amou
   const transactionType = TX_TYPE.ProxyIncreaseStake;
   const signer = common.getClientAddress();
   const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
-  const proxySignature = proxyApi.createProxyIncreaseStakeSignature(relayer, signer, amount, stakingNonce);
+  const proxySignature = proxyApi.createProxyIncreaseStakeSignature(relayer, amount, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
   const params = { relayer, signer, amount, proxySignature, feePaymentSignature, paymentNonce };
@@ -371,9 +371,8 @@ Send.prototype.proxyUnstakeAvt = async function (api, queryApi, relayer, amount,
 Send.prototype.proxyWithdrawUnlocked = async function (api, queryApi, relayer, retry) {
   const transactionType = TX_TYPE.ProxyWithdrawUnlocked;
   const signer = common.getClientAddress();
-  const numSlashSpan = 0; // We dont use slashing
   const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
-  const proxySignature = proxyApi.createProxyWithdrawUnlockedSignature(relayer, numSlashSpan, stakingNonce);
+  const proxySignature = proxyApi.createProxyWithdrawUnlockedSignature(relayer, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
   const params = { relayer, signer, proxySignature, feePaymentSignature, paymentNonce };

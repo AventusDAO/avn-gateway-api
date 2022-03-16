@@ -40,16 +40,14 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
   return signData(hexEncodedData);
 }
 
-function createProxyConfirmTokenLiftSignature(_relayer, _signer, eventType, ethereumTransactionHash, confirmationNonce) {
+function createProxyConfirmTokenLiftSignature(_relayer, eventType, ethTxHash, confirmationNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
-  const signer = common.convertToPublicKeyIfNeeded(_signer);
 
   const dataToSign = {
     context: PROXY_ADD_ETHEREUM_LOG_CONTEXT,
     relayer,
-    signer,
     eventType,
-    ethereumTransactionHash,
+    ethTxHash,
     confirmationNonce
   };
 
@@ -189,7 +187,7 @@ function createProxyStakeAvtSignature(_relayer, signer, amount, targets, staking
   return [hexBondSignature, hexNominateSignature];
 }
 
-function createProxyIncreaseStakeSignature(_relayer, signer, amount, stakingNonce) {
+function createProxyIncreaseStakeSignature(_relayer, amount, stakingNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   let dataToSign = {
@@ -217,8 +215,9 @@ function createProxyUnstakeSignature(_relayer, amount, stakingNonce) {
   return signData(hexEncodedData);
 }
 
-function createProxyWithdrawUnlockedSignature(_relayer, numSlashSpan, stakingNonce) {
+function createProxyWithdrawUnlockedSignature(_relayer, stakingNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
+  const numSlashSpan = 0;  // We dont use slashing
 
   let dataToSign = {
     context: PROXY_WITHDRAW_UNBONDED_CONTEXT,
@@ -272,7 +271,7 @@ function encodeProxyConfirmTokenLiftSignatureData(params) {
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedSigner = common.registry.createType('AccountId', params.signer);
   const encodedEventType = common.registry.createType('u8', params.eventType);
-  const encodedEthereumTransactionHash = common.registry.createType('H256', params.ethereumTransactionHash);
+  const encodedEthTxHash = common.registry.createType('H256', params.ethTxHash);
   const encodedConfirmationNonce = common.registry.createType('u64', params.confirmationNonce);
 
   const encodedData = u8aConcat(
@@ -280,7 +279,7 @@ function encodeProxyConfirmTokenLiftSignatureData(params) {
     encodedRelayer.toU8a(true),
     encodedSigner.toU8a(true),
     encodedEventType.toU8a(true),
-    encodedEthereumTransactionHash.toU8a(true),
+    encodedEthTxHash.toU8a(true),
     encodedConfirmationNonce.toU8a(true)
   );
 

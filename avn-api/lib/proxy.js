@@ -381,16 +381,16 @@ function encodeProxyCancelListFiatNftSignature(params) {
 
 function encodeBondSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
-  const relayer = common.registry.createType('AccountId', params.relayer);
-  const controller = common.registry.createType('LookupSource', params.controller);
+  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
+  const encodedController = common.registry.createType('LookupSource', params.controller);
   const encodedAmount = common.registry.createType('BalanceOf', params.amount);
   const encodedPayee = common.registry.createType('RewardDestination', params.payee);
   const encodedNonce = common.registry.createType('u64', params.nonce);
 
   const encoded_params = u8aConcat(
     encodedContext.toU8a(false),
-    relayer.toU8a(true),
-    controller.toU8a(false),
+    encodedRelayer.toU8a(true),
+    encodedController.toU8a(false),
     encodedAmount.toU8a(true),
     encodedPayee.toU8a(false),
     encodedNonce.toU8a(true)

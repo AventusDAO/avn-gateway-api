@@ -30,10 +30,8 @@ async function processRequest(request) {
 // Keep alphabetical
 async function callSwitch(call, request) {
   switch (call.method) {
-    case 'getAccountNonce':
-      return await getAccountNonce(call, request);
-    case 'getAccountPaymentNonce':
-      return await getAccountPaymentNonce(call, request);
+    case 'getNonce':
+      return await getNonce(call, request);
     case 'getAvtBalance':
       return await getAvtBalance(call, request);
     case 'getAvtContractAddress':
@@ -52,8 +50,6 @@ async function callSwitch(call, request) {
       return await getTotalAvt(call, request);
     case `getAccountInfo`:
       return await getAccountInfo(call, request);
-    case 'getStakingNonce':
-      return await getStakingNonce(call, request);
     case 'getStakingStatus':
       return await getStakingStatus(call, request);
     case 'getValidatorsToNominate':
@@ -65,23 +61,24 @@ async function callSwitch(call, request) {
   }
 }
 
-async function getAccountNonce(call, request) {
-  const { accountId } = call.params;
+async function getNonce(call, request) {
+  const { accountId, nonceType } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
     return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryChain(call, request, 'tokenManager', 'nonces', [accountId], formatNumAsString);
   }
-}
 
-async function getAccountPaymentNonce(call, request) {
-  const { accountId } = call.params;
-
-  if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryChain(call, request, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString);
+  switch (nonceType) {
+    case 'token':
+      return await queryChain(call, request, 'tokenManager', 'nonces', [accountId], formatNumAsString);
+    case 'payment':
+      return await queryChain(call, request, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString);
+    case 'staking':
+      return await queryChain(call, request, 'validatorsManager', 'proxyNonces', [accountId], formatNumAsString);
+    case 'confirmation':
+      return await queryChain(call, request, 'ethereumEvents', 'proxyNonces', [accountId], formatNumAsString);
+    default:
+      return utils.errorResponse('params', 'invalid nonce type', nonceType, request, call.id);
   }
 }
 
@@ -186,19 +183,9 @@ async function queryActiveEra(call, request) {
 
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
   const method = 'avnQuery'
-  const params = { callId: call.id, palletName, storageName, params }
+  const requestParams = { callId: call.id, palletName, storageName, params }
 
-  return await query(call, request, method, params, responseFormatter);
-}
-
-async function getStakingNonce(call, request) {
-  const { accountId } = call.params;
-
-  if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryChain(call, request, 'validatorsManager', 'proxyNonces', [accountId], formatNumAsString);
-  }
+  return await query(call, request, method, requestParams, responseFormatter);
 }
 
 async function getStakingStatus(call, request) {
@@ -228,7 +215,7 @@ async function queryValidatorsToNominateFromChain(call, request) {
 async function query(call, request, method, params, responseFormatter) {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + method, params);
-    const result = avnResponse.data.error || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
+    const result = (avnResponse.data && avnResponse.data.error) || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return utils.validResponse(call.id, result);
   } catch (err) {
     return utils.errorResponse('internal', `failed to invoke ${method} when querying the chain`, err, request, call.id);

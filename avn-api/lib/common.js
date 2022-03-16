@@ -26,13 +26,20 @@ const TX_TYPE = {
   ProxyPayoutStakers: 'proxyPayoutStakers'
 };
 
-const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
-const RATE_STRUCTURE = ['parts_per_million'];
+const NONCE_TYPE = {
+  Token: 'token',
+  Payment: 'payment',
+  Staking: 'staking',
+  Confirmation: 'confirmation',
+};
 
 const STAKING_STATUS = {
   isStaking: 'isStaking',
   isNotStaking: 'isNotStaking'
 }
+
+const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
+const RATE_STRUCTURE = ['parts_per_million'];
 
 function convertToPublicKeyIfNeeded(accountAddressOrPublicKey) {
   if (isAccountPK(accountAddressOrPublicKey)) {
@@ -152,6 +159,13 @@ function validateNumber(num) {
   }
 }
 
+function validateNonceType(nonceType) {
+  const isValid = Object.values(NONCE_TYPE).includes(nonceType);
+  if (isValid === false) {
+    throw new Error(`Invalid nonce type: ${nonceType}`);
+  }
+}
+
 function getClientSigner() {
   const suri = process.env.SURI;
   if (!suri) throw new Error('Please set SURI environment variable');
@@ -174,6 +188,7 @@ module.exports = {
   getClientAddress,
   getClientSigner,
   keyring,
+  NONCE_TYPE,
   registry,
   sleep,
   STAKING_STATUS,
@@ -182,6 +197,7 @@ module.exports = {
   validateAndConvertAmountToString,
   validateEthereumAddress,
   validateIsArray,
+  validateNonceType,
   validateNftId,
   validateRequestId,
   validateStringIsPopulated,

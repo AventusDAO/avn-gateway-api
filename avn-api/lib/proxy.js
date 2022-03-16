@@ -217,7 +217,7 @@ function createProxyUnstakeSignature(_relayer, amount, stakingNonce) {
 
 function createProxyWithdrawUnlockedSignature(_relayer, stakingNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
-  const numSlashSpan = 0;  // We dont use slashing
+  const numSlashSpan = 0; // We dont use slashing
 
   let dataToSign = {
     context: PROXY_WITHDRAW_UNBONDED_CONTEXT,

@@ -182,8 +182,8 @@ async function queryActiveEra(call, request) {
 }
 
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
-  const method = 'avnQuery'
-  const requestParams = { callId: call.id, palletName, storageName, params }
+  const method = 'avnQuery';
+  const requestParams = { callId: call.id, palletName, storageName, params };
 
   return await query(call, request, method, requestParams, responseFormatter);
 }
@@ -199,15 +199,15 @@ async function getStakingStatus(call, request) {
 }
 
 async function queryAccountInfoFromChain(call, request, accountId) {
-  const method = 'avnAccountInfo'
-  const params = { callId: call.id, accountId }
+  const method = 'avnAccountInfo';
+  const params = { callId: call.id, accountId };
 
   return await query(call, request, method, params);
 }
 
 async function queryValidatorsToNominateFromChain(call, request) {
-  const method = 'avnValidatorsToNominate'
-  const params = { callId: call.id }
+  const method = 'avnValidatorsToNominate';
+  const params = { callId: call.id };
 
   return await query(call, request, method, params);
 }
@@ -215,7 +215,9 @@ async function queryValidatorsToNominateFromChain(call, request) {
 async function query(call, request, method, params, responseFormatter) {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + method, params);
-    const result = (avnResponse.data && avnResponse.data.error) || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
+    const result =
+      (avnResponse.data && avnResponse.data.error) ||
+      (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return utils.validResponse(call.id, result);
   } catch (err) {
     return utils.errorResponse('internal', `failed to invoke ${method} when querying the chain`, err, request, call.id);
@@ -230,9 +232,9 @@ const formatBalanceAsString = data => utils.toBnString(data.data.free);
 
 const formatNftNonceAsString = data => utils.toBnString(data.nonce);
 
-const formatAsNominatingEnum = data => data ? 'isStaking' : 'isNotStaking';
+const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
-const formatEraAsString = data => data ? data.toJSON().index : 0;
+const formatEraAsString = data => (data ? data.toJSON().index : 0);
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (data, params) => {

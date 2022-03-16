@@ -30,13 +30,13 @@ const NONCE_TYPE = {
   Token: 'token',
   Payment: 'payment',
   Staking: 'staking',
-  Confirmation: 'confirmation',
+  Confirmation: 'confirmation'
 };
 
 const STAKING_STATUS = {
   isStaking: 'isStaking',
   isNotStaking: 'isNotStaking'
-}
+};
 
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
 const RATE_STRUCTURE = ['parts_per_million'];

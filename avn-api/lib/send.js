@@ -299,12 +299,18 @@ Send.prototype.proxyStakeAvt = async function (api, queryApi, relayer, amount, t
   const method = 'proxyStakeAvt';
   const signer = common.getClientAddress();
   const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
-  const [proxyBondSignature, proxyNominateSignature] = proxyApi.createProxyStakeAvtSignature(relayer, signer, amount, targets, stakingNonce);
+  const [proxyBondSignature, proxyNominateSignature] = proxyApi.createProxyStakeAvtSignature(
+    relayer,
+    signer,
+    amount,
+    targets,
+    stakingNonce
+  );
 
   let paymentArgs = { relayer, signer, proxySignature: proxyBondSignature, transactionType: TX_TYPE.ProxyBond };
   const bondPaymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
 
-  paymentArgs = {...paymentArgs, proxySignature: proxyNominateSignature, transactionType: TX_TYPE.ProxyNominate};
+  paymentArgs = { ...paymentArgs, proxySignature: proxyNominateSignature, transactionType: TX_TYPE.ProxyNominate };
   const nominatePaymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
 
   const params = {
@@ -431,7 +437,7 @@ Send.prototype.smartNonce = async function (queryApi, _account, nonceType, retry
   const account = common.convertToPublicKeyIfNeeded(_account);
 
   if (this.nonceMap[account] === undefined) {
-    this.nonceMap[account] = Object.values(NONCE_TYPE).reduce((o, key) => ({ ...o, [key]: {}}), {});
+    this.nonceMap[account] = Object.values(NONCE_TYPE).reduce((o, key) => ({ ...o, [key]: {} }), {});
   }
 
   const nonceData = this.nonceMap[account][nonceType];

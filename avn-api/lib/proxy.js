@@ -21,7 +21,7 @@ const PROXY_PAYOUT_STAKERS_CONTEXT = 'authorization for signed payout stakers op
 
 const STASH_REWARD_DESTINATION = 'Stash';
 
-function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, accountNonce) {
+function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, tokenNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
   const signer = common.convertToPublicKeyIfNeeded(_signer);
   const recipient = common.convertToPublicKeyIfNeeded(_recipient);
@@ -33,14 +33,14 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
     recipient,
     token,
     amount,
-    accountNonce
+    tokenNonce
   };
 
   const hexEncodedData = encodeProxyTransferSignatureData(dataToSign);
   return signData(hexEncodedData);
 }
 
-function createProxyConfirmTokenLiftSignature(_relayer, _signer, eventType, ethereumTransactionHash, accountNonce) {
+function createProxyConfirmTokenLiftSignature(_relayer, _signer, eventType, ethereumTransactionHash, confirmationNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
   const signer = common.convertToPublicKeyIfNeeded(_signer);
 
@@ -50,14 +50,14 @@ function createProxyConfirmTokenLiftSignature(_relayer, _signer, eventType, ethe
     signer,
     eventType,
     ethereumTransactionHash,
-    accountNonce
+    confirmationNonce
   };
 
   const hexEncodedData = encodeProxyConfirmTokenLiftSignatureData(dataToSign);
   return signData(hexEncodedData);
 }
 
-function createProxyTokenLowerSignature(_relayer, _signer, t1Recipient, token, amount, accountNonce) {
+function createProxyTokenLowerSignature(_relayer, _signer, t1Recipient, token, amount, tokenNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
   const signer = common.convertToPublicKeyIfNeeded(_signer);
 
@@ -68,7 +68,7 @@ function createProxyTokenLowerSignature(_relayer, _signer, t1Recipient, token, a
     t1Recipient,
     token,
     amount,
-    accountNonce
+    tokenNonce
   };
 
   const hexEncodedData = encodeProxyTokenLowerSignatureData(dataToSign);
@@ -168,7 +168,7 @@ function createProxyStakeAvtSignature(_relayer, signer, amount, targets, staking
     controller: common.convertToPublicKeyIfNeeded(signer), // stash and controller are the same
     amount: amount,
     payee: STASH_REWARD_DESTINATION, // The reward will be paid into the stash account
-    nonce: stakingNonce
+    stakingNonce
   };
 
   const hexEncodedBondData = encodeBondSignatureData(dataToSign);
@@ -180,7 +180,7 @@ function createProxyStakeAvtSignature(_relayer, signer, amount, targets, staking
     context: PROXY_NOMINATE_CONTEXT,
     relayer,
     targets,
-    nonce: stakingNonce
+    stakingNonce
   };
 
   const hexEncodedNominateData = encodeNominateSignatureData(dataToSign);
@@ -196,7 +196,7 @@ function createProxyIncreaseStakeSignature(_relayer, signer, amount, stakingNonc
     context: PROXY_BOND_EXTRA_CONTEXT,
     relayer,
     amount: amount,
-    nonce: stakingNonce
+    stakingNonce
   };
 
   const hexEncodedData = encodeIncreaseStakeSignatureData(dataToSign);
@@ -210,7 +210,7 @@ function createProxyUnstakeSignature(_relayer, amount, stakingNonce) {
     context: PROXY_UNBOND_CONTEXT,
     relayer,
     amount: amount,
-    nonce: stakingNonce
+    stakingNonce
   };
 
   const hexEncodedData = encodeUnstakeSignatureData(dataToSign);
@@ -224,7 +224,7 @@ function createProxyWithdrawUnlockedSignature(_relayer, numSlashSpan, stakingNon
     context: PROXY_WITHDRAW_UNBONDED_CONTEXT,
     relayer,
     numSlashSpan,
-    nonce: stakingNonce
+    stakingNonce
   };
 
   const hexEncodedData = encodeWithdrawUnlockedSignatureData(dataToSign);
@@ -238,7 +238,7 @@ function createProxyPayoutStakersSignature(_relayer, eraIndex, stakingNonce) {
     context: PROXY_PAYOUT_STAKERS_CONTEXT,
     relayer,
     eraIndex,
-    nonce: stakingNonce
+    stakingNonce
   };
 
   const hexEncodedData = encodePayoutStakersSignatureData(dataToSign);
@@ -252,7 +252,7 @@ function encodeProxyTransferSignatureData(params) {
   const encodedRecipient = common.registry.createType('AccountId', params.recipient);
   const encodedToken = common.registry.createType('H160', params.token);
   const encodedAmount = common.registry.createType('u128', params.amount);
-  const encodedNonce = common.registry.createType('u64', params.accountNonce);
+  const encodedTokenNonce = common.registry.createType('u64', params.tokenNonce);
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
@@ -261,7 +261,7 @@ function encodeProxyTransferSignatureData(params) {
     encodedRecipient.toU8a(true),
     encodedToken.toU8a(true),
     encodedAmount.toU8a(true),
-    encodedNonce.toU8a(true)
+    encodedTokenNonce.toU8a(true)
   );
 
   return u8aToHex(encodedData);
@@ -273,7 +273,7 @@ function encodeProxyConfirmTokenLiftSignatureData(params) {
   const encodedSigner = common.registry.createType('AccountId', params.signer);
   const encodedEventType = common.registry.createType('u8', params.eventType);
   const encodedEthereumTransactionHash = common.registry.createType('H256', params.ethereumTransactionHash);
-  const encodedNonce = common.registry.createType('u64', params.accountNonce);
+  const encodedConfirmationNonce = common.registry.createType('u64', params.confirmationNonce);
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
@@ -281,7 +281,7 @@ function encodeProxyConfirmTokenLiftSignatureData(params) {
     encodedSigner.toU8a(true),
     encodedEventType.toU8a(true),
     encodedEthereumTransactionHash.toU8a(true),
-    encodedNonce.toU8a(true)
+    encodedConfirmationNonce.toU8a(true)
   );
 
   return u8aToHex(encodedData);
@@ -294,7 +294,7 @@ function encodeProxyTokenLowerSignatureData(params) {
   const encodedToken = common.registry.createType('H160', params.token);
   const encodedAmount = common.registry.createType('u128', params.amount);
   const encodedT1Recipient = common.registry.createType('H160', params.t1Recipient);
-  const encodedNonce = common.registry.createType('u64', params.accountNonce);
+  const encodedTokenNonce = common.registry.createType('u64', params.tokenNonce);
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
@@ -303,7 +303,7 @@ function encodeProxyTokenLowerSignatureData(params) {
     encodedToken.toU8a(true),
     encodedAmount.toU8a(true),
     encodedT1Recipient.toU8a(true),
-    encodedNonce.toU8a(true)
+    encodedTokenNonce.toU8a(true)
   );
 
   return u8aToHex(encodedData);
@@ -385,7 +385,7 @@ function encodeBondSignatureData(params) {
   const encodedController = common.registry.createType('LookupSource', params.controller);
   const encodedAmount = common.registry.createType('BalanceOf', params.amount);
   const encodedPayee = common.registry.createType('RewardDestination', params.payee);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
+  const encodedStakingNonce = common.registry.createType('u64', params.stakingNonce);
 
   const encoded_params = u8aConcat(
     encodedContext.toU8a(false),
@@ -393,7 +393,7 @@ function encodeBondSignatureData(params) {
     encodedController.toU8a(false),
     encodedAmount.toU8a(true),
     encodedPayee.toU8a(false),
-    encodedNonce.toU8a(true)
+    encodedStakingNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
@@ -403,13 +403,13 @@ function encodeNominateSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedTargets = common.registry.createType('Vec<LookupSource>', params.targets);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
+  const encodedStakingNonce = common.registry.createType('u64', params.stakingNonce);
 
   const encoded_params = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedTargets.toU8a(false),
-    encodedNonce.toU8a(true)
+    encodedStakingNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
@@ -419,13 +419,13 @@ function encodeIncreaseStakeSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedAmount = common.registry.createType('BalanceOf', params.amount);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
+  const encodedStakingNonce = common.registry.createType('u64', params.stakingNonce);
 
   const encoded_params = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedAmount.toU8a(true),
-    encodedNonce.toU8a(true)
+    encodedStakingNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
@@ -435,13 +435,13 @@ function encodeUnstakeSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedAmount = common.registry.createType('BalanceOf', params.amount);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
+  const encodedStakingNonce = common.registry.createType('u64', params.stakingNonce);
 
   const encoded_params = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedAmount.toU8a(true),
-    encodedNonce.toU8a(true)
+    encodedStakingNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
@@ -451,13 +451,13 @@ function encodeWithdrawUnlockedSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedNumSlashSpan = common.registry.createType('u32', params.numSlashSpan);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
+  const encodedStakingNonce = common.registry.createType('u64', params.stakingNonce);
 
   const encoded_params = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedNumSlashSpan.toU8a(true),
-    encodedNonce.toU8a(true)
+    encodedStakingNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);
@@ -467,13 +467,13 @@ function encodePayoutStakersSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedEraIndex = common.registry.createType('EraIndex', params.eraIndex);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
+  const encodedStakingNonce = common.registry.createType('u64', params.stakingNonce);
 
   const encoded_params = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
     encodedEraIndex.toU8a(true),
-    encodedNonce.toU8a(true)
+    encodedStakingNonce.toU8a(true)
   );
 
   return u8aToHex(encoded_params);

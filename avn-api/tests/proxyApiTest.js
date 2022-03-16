@@ -29,7 +29,7 @@ describe('Proxy api calls:', async () => {
       senderTokenBalanceBefore = new BN(await api.query.getTokenBalance(sender, token));
       recipientTokenBalanceBefore = new BN(await api.query.getTokenBalance(recipient, token));
       relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));
-      senderNonceBefore = new BN(await api.query.getAccountNonce(sender));
+      senderNonceBefore = new BN(await api.query.getNonce(sender, 'token'));
     });
 
     it('can transfer tokens', async () => {
@@ -40,7 +40,7 @@ describe('Proxy api calls:', async () => {
 
       bnEquals(senderTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(sender, token)));
       bnEquals(recipientTokenBalanceBefore.add(amount), new BN(await api.query.getTokenBalance(recipient, token)));
-      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getAccountNonce(sender)));
+      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getNonce(sender, 'token')));
       bnEquals(senderAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(sender)));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
@@ -62,7 +62,7 @@ describe('Proxy api calls:', async () => {
 
       bnEquals(senderTokenBalanceBefore.sub(amount.mul(numTxBn)), new BN(await api.query.getTokenBalance(sender, token)));
       bnEquals(recipientTokenBalanceBefore.add(amount.mul(numTxBn)), new BN(await api.query.getTokenBalance(recipient, token)));
-      bnEquals(senderNonceBefore.add(numTxBn), new BN(await api.query.getAccountNonce(sender)));
+      bnEquals(senderNonceBefore.add(numTxBn), new BN(await api.query.getNonce(sender, 'token')));
       bnEquals(senderAvtBalanceBefore.sub(relayerFee.mul(numTxBn)), new BN(await api.query.getAvtBalance(sender)));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee.mul(numTxBn))));

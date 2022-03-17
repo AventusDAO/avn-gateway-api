@@ -30,13 +30,13 @@ const NONCE_TYPE = {
   Token: 'token',
   Payment: 'payment',
   Staking: 'staking',
-  Confirmation: 'confirmation',
+  Confirmation: 'confirmation'
 };
 
 const STAKING_STATUS = {
   isStaking: 'isStaking',
   isNotStaking: 'isNotStaking'
-}
+};
 
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
 const RATE_STRUCTURE = ['parts_per_million'];
@@ -80,6 +80,13 @@ function validateEthereumAddress(ethereumAddress) {
   const isValid = isHex(ethereumAddress) && ethereumAddress.split('').length == 42;
   if (isValid === false) {
     throw new Error(`Invalid ethereum address type: ${ethereumAddress}`);
+  }
+}
+
+function validateEthereumTransactionHash(ethereumTransactionHash) {
+  const isValid = isHex(ethereumTransactionHash) && ethereumTransactionHash.split('').length == 66;
+  if (isValid === false) {
+    throw new Error(`Invalid ethereum address type: ${ethereumTransactionHash}`);
   }
 }
 
@@ -196,6 +203,7 @@ module.exports = {
   validateAccount,
   validateAndConvertAmountToString,
   validateEthereumAddress,
+  validateEthereumTransactionHash,
   validateIsArray,
   validateNonceType,
   validateNftId,

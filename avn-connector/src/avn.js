@@ -30,7 +30,10 @@ async function query(palletName, storageName, params) {
 
 async function proxy(requestId, palletName, method, params) {
   if (palletName === 'utility' && method === 'batchAll') {
-    log.trace({ message: `Creating batch transactions.`, extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ') });
+    log.trace({
+      message: `Creating batch transactions.`,
+      extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ')
+    });
 
     const innerCalls = params.map(p => {
       let innerCall = api.tx[p.palletName][p.method](...p.params.proxyParams);
@@ -75,12 +78,12 @@ async function getAccountInfo(accountId) {
   let balancesAll = await api.derive.balances.all(accountId);
 
   return {
-      totalBalance: balancesAll.freeBalance.add(balancesAll.reservedBalance).toString(),
-      freeBalance: balancesAll.availableBalance.toString(),
-      stakedBalance: stakingHelper.calculateBondedAmount(stakingInfo).toString(),
-      unlockedBalance: stakingInfo.redeemable.toString(),
-      unstakedBalance: stakingHelper.calculateUnbondingAmount(stakingInfo).toString()
-  }
+    totalBalance: balancesAll.freeBalance.add(balancesAll.reservedBalance).toString(),
+    freeBalance: balancesAll.availableBalance.toString(),
+    stakedBalance: stakingHelper.calculateBondedAmount(stakingInfo).toString(),
+    unlockedBalance: stakingInfo.redeemable.toString(),
+    unstakedBalance: stakingHelper.calculateUnbondingAmount(stakingInfo).toString()
+  };
 }
 
 async function getNonce(senderAddress) {

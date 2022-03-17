@@ -70,7 +70,7 @@ async function callSwitch(call, request, requestId) {
     case 'proxyIncreaseStake':
       return await processProxyIncreaseStake(call, request, requestId);
     case 'proxyUnstake':
-        return await processProxyUnstake(call, request, requestId);
+      return await processProxyUnstake(call, request, requestId);
     case 'proxyWithdrawUnlocked':
       return await processProxyWithdrawUnlocked(call, request, requestId);
     case 'proxyPayoutStakers':
@@ -101,11 +101,10 @@ async function processProxyTransfer(call, request, requestId) {
 async function processProxyAddEthereumLog(call, request, requestId) {
   const pallet = 'ethereumEvents';
   const method = 'signedAddEthereumLog';
-  const { signer, token, eventType, ethereumTransactionHash } = call.params;
-  const methodParams = [signer, eventType, ethereumTransactionHash];
+  const { eventType, ethereumTransactionHash } = call.params;
+  const methodParams = [eventType, ethereumTransactionHash];
 
   try {
-    if (utils.isValidAccountId(signer) === false) throw 'signer';
     if (utils.isValidEventType(eventType) === false) throw 'eventType';
     if (utils.isValidEthereumTransactionHash(ethereumTransactionHash) === false) throw 'ethereumTransactionHash';
   } catch (param) {
@@ -208,7 +207,15 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 
   let params;
   try {
-    params = await getProxyParams(call.method, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams);
+    params = await getProxyParams(
+      call.method,
+      relayer,
+      signer,
+      proxySignature,
+      feePaymentSignature,
+      paymentNonce,
+      methodParams
+    );
   } catch (err) {
     return utils.errorResponse('internal', err.toString(), err, request, call.id);
   }
@@ -274,7 +281,7 @@ async function processProxyStakeAvt(call, request, requestId) {
     palletName: 'validatorsManager',
     method: 'signedNominate',
     params: nominateParams
-  }
+  };
 
   return await sendTx(call, request, requestId, pallet, method, [bond, nominate]);
 }
@@ -314,14 +321,12 @@ async function processProxyUnstake(call, request, requestId) {
 async function processProxyWithdrawUnlocked(call, request, requestId) {
   const pallet = 'validatorsManager';
   const method = 'signedWithdrawUnbonded';
-  const { signer, numSlashSpan } = call.params;
+  const { signer } = call.params;
+  const numSlashSpan = 0;
   const methodParams = [signer, numSlashSpan];
 
-  try {
-    if (utils.isValidAccountId(signer) === false) throw 'signer';
-    if (utils.isValidNumber(numSlashSpan) === false) throw 'numSlashSpan';
-  } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+  if (utils.isValidAccountId(signer) === false) {
+    return utils.errorResponse('params', 'invalid signer', signer, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -402,7 +407,7 @@ async function getBondParams(call, request) {
 }
 
 async function getNominateParams(call, request) {
-  const { relayer, signer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce  } = call.params;
+  const { relayer, signer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } = call.params;
   const nominateMethodParams = [targets];
 
   try {
@@ -411,7 +416,15 @@ async function getNominateParams(call, request) {
     throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
   }
 
-  validateMethodParams(call.id, request, relayer, signer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
+  validateMethodParams(
+    call.id,
+    request,
+    relayer,
+    signer,
+    proxyNominateSignature,
+    nominateFeePaymentSignature,
+    nominatePaymentNonce
+  );
 
   return await getProxyParams(
     call.params.nominateMethodName,

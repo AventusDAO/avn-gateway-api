@@ -40,14 +40,12 @@ function createProxyTransferSignature(_relayer, _signer, _recipient, token, amou
   return signData(hexEncodedData);
 }
 
-function createProxyConfirmTokenLiftSignature(_relayer, _signer, eventType, ethereumTransactionHash, confirmationNonce) {
+function createProxyConfirmTokenLiftSignature(_relayer, eventType, ethereumTransactionHash, confirmationNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
-  const signer = common.convertToPublicKeyIfNeeded(_signer);
 
   const dataToSign = {
     context: PROXY_ADD_ETHEREUM_LOG_CONTEXT,
     relayer,
-    signer,
     eventType,
     ethereumTransactionHash,
     confirmationNonce
@@ -189,7 +187,7 @@ function createProxyStakeAvtSignature(_relayer, signer, amount, targets, staking
   return [hexBondSignature, hexNominateSignature];
 }
 
-function createProxyIncreaseStakeSignature(_relayer, signer, amount, stakingNonce) {
+function createProxyIncreaseStakeSignature(_relayer, amount, stakingNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   let dataToSign = {
@@ -217,8 +215,9 @@ function createProxyUnstakeSignature(_relayer, amount, stakingNonce) {
   return signData(hexEncodedData);
 }
 
-function createProxyWithdrawUnlockedSignature(_relayer, numSlashSpan, stakingNonce) {
+function createProxyWithdrawUnlockedSignature(_relayer, stakingNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
+  const numSlashSpan = 0; // We dont use slashing
 
   let dataToSign = {
     context: PROXY_WITHDRAW_UNBONDED_CONTEXT,

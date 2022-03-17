@@ -936,9 +936,10 @@ Stakes the specified amount of AVT, locking its free usage in order to earn rewa
 `proxyBondSignature` *[required]* - a proof signed by the sender/signer account allowing the bond transaction to be proxied \
 `proxyNominateSignature` *[required]* - a proof signed by the sender/signer account allowing the nominate transaction to be proxied \
 `bondFeePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the bond relayer fees to be paid \
-`nominateFeePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the nominate relayer fees to be paid - **Note**: the payment nonce used to generate this signature must succeed the one used to generate bondFeePaymentSignature\
-`bondPaymentNonce` *[required]* - string integer value of the current account payment nonce
-`nominatePaymentNonce` *[required]* - string integer value of the current account payment nonce - **Note**: the payment nonce used to generate this signature must succeed the one used to generate bondFeePaymentSignature\
+`nominateFeePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the nominate relayer fees to be paid \
+`bondPaymentNonce` *[required]* - string integer value of the payment nonce used in the bondFeePaymentSignature \
+`nominatePaymentNonce` *[required]* - string integer value of the payment nonce used in the nominateFeePaymentSignature \
+**Note**: nominatePaymentNonce must succeed bondPaymentNonce \
 
 
 **EXAMPLE**

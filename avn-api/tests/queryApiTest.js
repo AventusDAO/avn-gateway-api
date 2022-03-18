@@ -3,6 +3,7 @@ const expect = chai.expect;
 const assert = chai.assert;
 chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
+const common = require('../lib/common.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 
@@ -149,10 +150,15 @@ describe('Query api calls:', async () => {
   describe('AccountInfo', async () => {
     it('returns correct data for user by address', async () => {
       const returnedData = await api.query.getAccountInfo(user.address);
-      assert.equal(returnedData.totalBalance, returnedData.freeBalance);
-      assert.equal(returnedData.stakedBalance, '0');
-      assert.equal(returnedData.unlockedBalance, '0');
-      assert.equal(returnedData.unstakedBalance, '0');
+
+      if (await api.query.getStakingStatus(user.address) === common.STAKING_STATUS.isNotStaking) {
+        assert.equal(returnedData.totalBalance, returnedData.freeBalance);
+        assert.equal(returnedData.stakedBalance, '0');
+        assert.equal(returnedData.unlockedBalance, '0');
+        assert.equal(returnedData.unstakedBalance, '0');
+      } else {
+        assert(new BN(returnedData.stakedBalance).gt(new BN(0)));
+      }
     });
   });
 });

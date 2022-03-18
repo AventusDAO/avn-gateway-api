@@ -2,7 +2,7 @@ const BN = require('bn.js');
 const BN_ZERO = new BN(0);
 
 function calculateBondedAmount(stakingInfo) {
-  let bonded = BN_ZERO;
+  let bonded = new BN(0);
 
   if (
     stakingInfo &&
@@ -25,7 +25,9 @@ function calculateUnbondingAmount(stakingInfo) {
     .filter(({ remainingEras, value }) => value.gt(BN_ZERO) && remainingEras.gt(BN_ZERO))
     .map(unlock => unlock.value);
 
-  return filtered.reduce((total, value) => total.iadd(value), BN_ZERO);
+  const amount = filtered.reduce((total, value) => total.iadd(value), new BN(0));
+
+  return amount;
 }
 
 module.exports = {

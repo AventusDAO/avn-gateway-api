@@ -125,7 +125,7 @@ function stake(api, queryApi) {
     const stakingStatus = await queryApi.getStakingStatus(signer);
 
     if (stakingStatus === common.STAKING_STATUS.isStaking) {
-      return await this.proxyIncreaseStake(api, queryApi, amount);
+      return await this.proxyIncreaseStake(api, queryApi, relayer, amount);
     } else {
       const targets = await queryApi.getValidatorsToNominate();
       common.validateStakingTargets(targets);
@@ -157,7 +157,12 @@ function payoutStakers(api, queryApi) {
 
     if (!eraIndex) {
       eraIndex = await queryApi.getActiveEra();
-      eraIndex = eraIndex === 0 ? 0 : eraIndex - 1; // the default is to payout the previous era because the current one won't be ready yet.
+
+      if (eraIndex === 0) {
+        throw new Error("You must wait for at least 1 era to pass before calling this method. Current era index: ", eraIndex);
+      }
+
+      eraIndex = eraIndex - 1; // the default is to payout the previous era because the current one won't be ready yet.
     }
     common.validateNumber(eraIndex);
 
@@ -303,7 +308,7 @@ Send.prototype.proxyCancelListFiatNft = async function (api, queryApi, relayer, 
 Send.prototype.proxyStakeAvt = async function (api, queryApi, relayer, amount, targets, retry) {
   const method = 'proxyStakeAvt';
   const signer = common.getClientAddress();
-  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
+  const stakingNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const [proxyBondSignature, proxyNominateSignature] = proxyApi.createProxyStakeAvtSignature(
     relayer,
     signer,
@@ -346,7 +351,7 @@ Send.prototype.proxyStakeAvt = async function (api, queryApi, relayer, amount, t
 Send.prototype.proxyIncreaseStake = async function (api, queryApi, relayer, amount, retry) {
   const transactionType = TX_TYPE.ProxyIncreaseStake;
   const signer = common.getClientAddress();
-  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
+  const stakingNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const proxySignature = proxyApi.createProxyIncreaseStakeSignature(relayer, amount, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
@@ -364,7 +369,7 @@ Send.prototype.proxyIncreaseStake = async function (api, queryApi, relayer, amou
 Send.prototype.proxyUnstakeAvt = async function (api, queryApi, relayer, amount, retry) {
   const transactionType = TX_TYPE.ProxyUnstake;
   const signer = common.getClientAddress();
-  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
+  const stakingNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const proxySignature = proxyApi.createProxyUnstakeSignature(relayer, amount, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
@@ -382,7 +387,7 @@ Send.prototype.proxyUnstakeAvt = async function (api, queryApi, relayer, amount,
 Send.prototype.proxyWithdrawUnlocked = async function (api, queryApi, relayer, retry) {
   const transactionType = TX_TYPE.ProxyWithdrawUnlocked;
   const signer = common.getClientAddress();
-  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
+  const stakingNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const proxySignature = proxyApi.createProxyWithdrawUnlockedSignature(relayer, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
@@ -400,8 +405,7 @@ Send.prototype.proxyWithdrawUnlocked = async function (api, queryApi, relayer, r
 Send.prototype.proxyPayoutStakers = async function (api, queryApi, relayer, era, retry) {
   const transactionType = TX_TYPE.ProxyPayoutStakers;
   const signer = common.getClientAddress();
-  const numSlashSpan = 0; // We dont use slashing
-  const tokenNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
+  const stakingNonce = await this.smartNonce(queryApi, signer, NONCE_TYPE.Staking, retry);
   const proxySignature = proxyApi.createProxyPayoutStakersSignature(relayer, era, stakingNonce);
   const paymentArgs = { relayer, signer, proxySignature, transactionType };
   const { paymentNonce, feePaymentSignature } = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);

@@ -1,6 +1,5 @@
 const BN = require('bn.js');
-const log4js = require('log4js');
-const log = log4js.getLogger();
+const BN_ZERO = new BN(0);
 
 function calculateBondedAmount(stakingInfo) {
   let bonded = new BN(0);
@@ -18,27 +17,15 @@ function calculateBondedAmount(stakingInfo) {
 }
 
 function calculateUnbondingAmount(stakingInfo) {
-  const BN_ZERO = new BN(0);
-
   if (!stakingInfo.unlocking) {
     return BN_ZERO;
   }
 
-  log.info("BN_ZERO: ", BN_ZERO.toString());
-  log.info(`BN_ZERO: ${BN_ZERO.toString()}`);
-
-  log.info("Unlocking data:", JSON.stringify(stakingInfo.unlocking, null, 2));
-
   const filtered = stakingInfo.unlocking
-    .filter(({ remainingEras, value }) => new BN(value).gt(BN_ZERO) && new BN(remainingEras).gt(BN_ZERO))
-    .map(unlock => {
-      log.warn("Filtered value: ", new BN(unlock.value).toString());
-      return unlock.value;
-    });
+    .filter(({ remainingEras, value }) => value.gt(BN_ZERO) && remainingEras.gt(BN_ZERO))
+    .map(unlock => unlock.value);
 
   const amount = filtered.reduce((total, value) => total.iadd(value), new BN(0));
-
-  log.warn("Amount: ", amount.toString());
 
   return amount;
 }

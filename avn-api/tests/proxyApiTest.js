@@ -4,6 +4,7 @@ const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 const bnEquals = helper.bnEquals;
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000';
+const ONE_AVT = new BN("1000000000000000000");
 
 describe('Proxy api calls:', async () => {
   let api, token;
@@ -68,4 +69,58 @@ describe('Proxy api calls:', async () => {
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee.mul(numTxBn))));
     });
   });
+
+  describe('staking', async () => {
+    let stakerStakingStatusBefore, stakerAvtBalance;
+
+    beforeEach(async () => {
+      stakerStakingStatusBefore = await api.query.getAccountInfo(sender);
+      stakerAvtBalance = new BN(await api.query.getAvtBalance(sender));
+    });
+
+    it('can stake', async () => {
+      assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
+
+      const amount = (new BN("100").mul(ONE_AVT));
+
+      const requestId = await api.send.stake(relayer, amount.toString());
+      await helper.confirmStatus(api, requestId, 'Processed');
+
+      let stakerStakingStatusAfter = await api.query.getAccountInfo(staker);
+
+      bnEquals(new BN(stakerStakingStatusBefore.stakedBalance).add(amount), new BN(stakerStakingStatusAfter.stakedBalance));
+    });
+
+     it('can stake more funds', async () => {
+      assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
+
+      const amount = (new BN("10").mul(ONE_AVT));
+
+      const requestId = await api.send.stake(relayer, amount.toString());
+      await helper.confirmStatus(api, requestId, 'Processed');
+
+      let stakerStakingStatusAfter = await api.query.getAccountInfo(sender);
+
+      bnEquals(new BN(stakerStakingStatusBefore.stakedBalance).add(amount), new BN(stakerStakingStatusAfter.stakedBalance));
+    });
+
+    it('can request to withdraw stake', async () => {
+      assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
+
+      const amount = (new BN("10").mul(ONE_AVT));
+
+      const requestId = await api.send.unstake(relayer, amount.toString());
+      await helper.confirmStatus(api, requestId, 'Processed');
+
+      let stakerStakingStatusAfter = await api.query.getAccountInfo(sender);
+
+      //Staked balance decreases by amount
+      bnEquals(new BN(stakerStakingStatusBefore.stakedBalance).sub(amount), new BN(stakerStakingStatusAfter.stakedBalance));
+      //Unstaked balance increases by amount
+      bnEquals(new BN(stakerStakingStatusBefore.unstakedBalance).add(amount), new BN(stakerStakingStatusAfter.unstakedBalance));
+    });
+
+  });
+
+
 });

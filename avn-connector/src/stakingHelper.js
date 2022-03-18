@@ -28,9 +28,9 @@ function calculateUnbondingAmount(stakingInfo) {
     .filter(({ remainingEras, value }) => {
       log.warn("value: ", new BN(value).toString());
       log.warn("remainingEras: ", new BN(remainingEras).toString());
-      log.warn("value.gt(BN_ZERO): ", value.gt(BN_ZERO));
-      log.warn("remainingEras.gt(BN_ZERO): ", remainingEras.gt(BN_ZERO));
-      return value.gt(BN_ZERO) && remainingEras.gt(BN_ZERO);
+      log.warn("value.gt(BN_ZERO): ", new BN(value).gt(BN_ZERO));
+      log.warn("remainingEras.gt(BN_ZERO): ", new BN(remainingEras).gt(BN_ZERO));
+      return new BN(value).gt(BN_ZERO) && new BN(remainingEras).gt(BN_ZERO);
     })
     .map(unlock => {
       log.warn("Value: ", new BN(unlock.value).toString());

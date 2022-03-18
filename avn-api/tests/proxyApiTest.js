@@ -86,15 +86,15 @@ describe('Proxy api calls:', async () => {
       const requestId = await api.send.stake(relayer, amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
 
-      let stakerStakingStatusAfter = await api.query.getAccountInfo(staker);
+      let stakerStakingStatusAfter = await api.query.getAccountInfo(sender);
 
       bnEquals(new BN(stakerStakingStatusBefore.stakedBalance).add(amount), new BN(stakerStakingStatusAfter.stakedBalance));
     });
 
-     it('can stake more funds', async () => {
+    it('can stake more funds', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
-      const amount = (new BN("10").mul(ONE_AVT));
+      const amount = (new BN("1").mul(ONE_AVT));
 
       const requestId = await api.send.stake(relayer, amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
@@ -107,7 +107,7 @@ describe('Proxy api calls:', async () => {
     it('can request to withdraw stake', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
-      const amount = (new BN("10").mul(ONE_AVT));
+      const amount = (new BN("1").mul(ONE_AVT));
 
       const requestId = await api.send.unstake(relayer, amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
@@ -120,7 +120,24 @@ describe('Proxy api calls:', async () => {
       bnEquals(new BN(stakerStakingStatusBefore.unstakedBalance).add(amount), new BN(stakerStakingStatusAfter.unstakedBalance));
     });
 
-  });
+    it('can withdraw unlocked stake', async () => {
+      assert(new BN(stakerStakingStatusBefore.unstakedBalance).gt(new BN(1)), 'Staker must have unlocked AVT to withdraw');
 
+      const requestId = await api.send.withdrawUnlocked(relayer);
+      await helper.confirmStatus(api, requestId, 'Processed');
+
+      let stakerStakingStatusAfter = await api.query.getAccountInfo(sender);
+
+      //Free balance has increased
+      bnEquals(
+        new BN(stakerStakingStatusBefore.freeBalance).add(new BN(stakerStakingStatusBefore.unstakedBalance)),
+        new BN(stakerStakingStatusAfter.freeBalance)
+      );
+
+      //Unstaked balance increases by amount
+      bnEquals(new BN(stakerStakingStatusAfter.unstakedBalance), new BN(0));
+    });
+
+  });
 
 });

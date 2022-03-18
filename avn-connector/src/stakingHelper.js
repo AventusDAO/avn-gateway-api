@@ -32,7 +32,7 @@ function calculateUnbondingAmount(stakingInfo) {
     });
 
   const amount = filtered.reduce((total, value) => total.iadd(value), BN_ZERO);
-  log.info("Amount: ", amount);
+  log.info("Amount: ", amount.toString());
 
   return amount;
 }

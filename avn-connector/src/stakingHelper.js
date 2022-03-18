@@ -1,10 +1,9 @@
 const BN = require('bn.js');
-const BN_ZERO = new BN(0);
 const log4js = require('log4js');
 const log = log4js.getLogger();
 
 function calculateBondedAmount(stakingInfo) {
-  let bonded = BN_ZERO;
+  let bonded = new BN(0);
 
   if (
     stakingInfo &&
@@ -19,6 +18,8 @@ function calculateBondedAmount(stakingInfo) {
 }
 
 function calculateUnbondingAmount(stakingInfo) {
+  const BN_ZERO = new BN(0);
+
   if (!stakingInfo.unlocking) {
     return BN_ZERO;
   }
@@ -35,12 +36,7 @@ function calculateUnbondingAmount(stakingInfo) {
       return unlock.value;
     });
 
-  log.warn("filtered JSON: ", JSON.stringify(filtered));
-  log.warn(`filtered String: ${JSON.stringify(filtered)}`);
-  log.warn(`filtered raw: `, filtered);
-  log.warn(`filtered raw: ${filtered}`);
-
-  const amount = filtered.reduce((total, value) => total.iadd(value), BN_ZERO);
+  const amount = filtered.reduce((total, value) => total.iadd(value), new BN(0));
 
   log.warn("Amount: ", amount.toString());
 

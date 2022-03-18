@@ -149,7 +149,6 @@ describe('Query api calls:', async () => {
   describe('AccountInfo', async () => {
     it('returns correct data for user by address', async () => {
       const returnedData = await api.query.getAccountInfo(user.address);
-      console.log("returnedData: ", returnedData);
 
       assert.equal(returnedData.totalBalance, returnedData.freeBalance);
       assert.equal(returnedData.stakedBalance, '0');

@@ -138,6 +138,19 @@ describe('Proxy api calls:', async () => {
       bnEquals(new BN(stakerStakingStatusAfter.unlockedBalance), new BN(0));
     });
 
+    it('can payout stakers', async () => {
+      let validator = accounts.avnValidator.address;
+      let validatorStakingStatusBefore = await api.query.getAccountInfo(validator);
+
+      const requestId = await api.send.payoutStakers(relayer);
+      await helper.confirmStatus(api, requestId, 'Processed');
+
+      let validatorStakingStatusAfter = await api.query.getAccountInfo(validator);
+
+      //Free balance has increased
+      assert(new BN(validatorStakingStatusAfter.freeBalance).gt(validatorStakingStatusBefore.freeBalance), 'Rewards should have been paid');
+    });
+
   });
 
 });

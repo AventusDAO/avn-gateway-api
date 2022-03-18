@@ -23,16 +23,24 @@ function calculateUnbondingAmount(stakingInfo) {
     return BN_ZERO;
   }
 
-  log.info("Unlocking data:", JSON.stringify(stakingInfo.unlocking, null, 2));
+  log.info("\nUnlocking data:", JSON.stringify(stakingInfo.unlocking, null, 2));
   const filtered = stakingInfo.unlocking
-    .filter(({ remainingEras, value }) => value.gt(BN_ZERO) && remainingEras.gt(BN_ZERO))
+    .filter(({ remainingEras, value }) => {
+      log.warn("value: ", new BN(value).toString());
+      log.warn("remainingEras: ", new BN(remainingEras).toString());
+      log.warn("value.gt(BN_ZERO): ", value.gt(BN_ZERO));
+      log.warn("remainingEras.gt(BN_ZERO): ", remainingEras.gt(BN_ZERO));
+      return value.gt(BN_ZERO) && remainingEras.gt(BN_ZERO);
+    })
     .map(unlock => {
-      log.info("Value: ", new BN(unlock.value).toString());
+      log.warn("Value: ", new BN(unlock.value).toString());
       return unlock.value;
     });
 
+  log.warn("filtered: ", JSON.stringify(filtered));
+
   const amount = filtered.reduce((total, value) => total.iadd(value), BN_ZERO);
-  log.info("Amount: ", amount.toString());
+  log.warn("\n\nAmount: ", amount.toString());
 
   return amount;
 }

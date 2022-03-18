@@ -130,12 +130,12 @@ describe('Proxy api calls:', async () => {
 
       //Free balance has increased
       bnEquals(
-        new BN(stakerStakingStatusBefore.freeBalance).add(new BN(stakerStakingStatusBefore.unstakedBalance)),
+        new BN(stakerStakingStatusBefore.freeBalance).add(new BN(stakerStakingStatusBefore.unlockedBalance)),
         new BN(stakerStakingStatusAfter.freeBalance)
       );
 
       //Unstaked balance increases by amount
-      bnEquals(new BN(stakerStakingStatusAfter.unstakedBalance), new BN(0));
+      bnEquals(new BN(stakerStakingStatusAfter.unlockedBalance), new BN(0));
     });
 
   });

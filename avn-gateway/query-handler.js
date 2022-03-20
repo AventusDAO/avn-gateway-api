@@ -52,6 +52,8 @@ async function callSwitch(call, request) {
       return await getTotalAvt(call, request);
     case `getAccountInfo`:
       return await getAccountInfo(call, request);
+    case 'getOwnedNfts':
+      return await getOwnedNfts(call, request);
 
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
@@ -185,6 +187,16 @@ async function queryAccountInfoFromChain(call, request, accountId) {
   const params = { callId: call.id, accountId }
 
   return await query(call, request, method, params);
+}
+
+async function getOwnedNfts(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'nftManager', 'ownedNfts', [accountId]);
+  }
 }
 
 async function query(call, request, method, params, responseFormatter) {

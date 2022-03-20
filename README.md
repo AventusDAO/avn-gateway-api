@@ -566,6 +566,41 @@ OR
 }
 ```
 
+#### getOwnedNfts
+Returns an array of nft ids owned by the specified user
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**REQUEST PARAMS** \
+`accountId` *[required]* - a string representing the public key or SS58 address of the account to check for nonce
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getOwnedNfts", "params":{"accountId":"5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH"}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - an array of nft ids owned by the user
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+   "result": ["abc123", "abc123", "abc123"]
+}
+```
+
 ### Transactions
 All gateway transactions are processed via a relayer, which requires a pair of signed proofs; one to confirm the validity of the transaction and the other to confirm payment of the relayer fee
 

@@ -32,7 +32,7 @@ pipeline {
     stage("Deploy Vault & avn-vault files via ansible.") {
       when {
         expression {
-            return env.deploy || env.vault_init || env.setup_avn_vault;
+            env.deploy == 'true' || env.vault_init == 'true' || env.setup_avn_vault == 'true'
         }
       }
 
@@ -87,7 +87,7 @@ pipeline {
     stage("Store app-role and secret-id in secrets manager") {
       when {
         expression {
-            return env.setup_avn_vault;
+            env.setup_avn_vault == 'true'
         }
       }
 

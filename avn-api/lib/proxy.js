@@ -580,5 +580,6 @@ module.exports = {
   createProxyIncreaseStakeSignature,
   createProxyUnstakeSignature,
   createProxyWithdrawUnlockedSignature,
-  createProxyPayoutStakersSignature
+  createProxyPayoutStakersSignature,
+  getProxySignature
 };

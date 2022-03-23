@@ -7,21 +7,21 @@ const TOKEN_LIFETIME = 60000;
 
 describe('AWT authorisation', async () => {
   let api;
-  let sender;
+  let user;
 
   before(async () => {
     api = await helper.avnApi();
-    sender = accounts.sender;
+    user = accounts.user;
   });
 
   describe('generateAwtToken', async () => {
     it('from a mnemonic', async () => {
-      let token = api.awt.generateAwtToken(sender.mnemonic);
+      let token = api.awt.generateAwtToken(user.mnemonic);
       assert.equal(token.split('').length, TOKEN_LENGTH);
     });
 
     it('from a seed', async () => {
-      let token = api.awt.generateAwtToken(sender.seed);
+      let token = api.awt.generateAwtToken(user.seed);
       assert.equal(token.split('').length, TOKEN_LENGTH);
     });
   });
@@ -30,7 +30,7 @@ describe('AWT authorisation', async () => {
     let token;
 
     before(async () => {
-      token = api.awt.generateAwtToken(sender.mnemonic);
+      token = api.awt.generateAwtToken(user.mnemonic);
     });
 
     it('is valid within its lifetime', async () => {

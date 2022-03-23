@@ -11,7 +11,7 @@ describe('Polling api calls:', async () => {
   before(async () => {
     api = await helper.avnApi();
     relayer = accounts.relayer.address;
-    sender = accounts.sender.address;
+    user = accounts.user.address;
     recipient = accounts.user1.address;
   });
 
@@ -19,9 +19,9 @@ describe('Polling api calls:', async () => {
     let requestId, invalidRequestId;
 
     before(async () => {
-      const senderAvtBalance = await api.query.getAvtBalance(sender);
+      const userAvtBalance = await api.query.getAvtBalance(user);
       const validAmount = new BN('1');
-      const invalidAmount = new BN(senderAvtBalance).add(new BN('1')).toString();
+      const invalidAmount = new BN(userAvtBalance).add(new BN('1')).toString();
 
       requestId = await api.send.transferAvt(relayer, recipient, validAmount);
       invalidRequestId = await api.send.transferAvt(relayer, recipient, invalidAmount);

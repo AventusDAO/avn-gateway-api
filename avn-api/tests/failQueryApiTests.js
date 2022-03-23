@@ -16,10 +16,10 @@ const nfts = helper.NFTS;
 
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
-  const validSender = accounts.sender;
+  const validUser = accounts.user;
   const validUser = accounts.user1;
   const validToken = helper.token;
-  const unlistedSenderNft = nfts.sender.unlistedNft;
+  const unlistedUserNft = nfts.user.unlistedNft;
   let testConfig;
 
   describe('Fail Query api calls:', async done => {
@@ -27,7 +27,7 @@ const nfts = helper.NFTS;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            account: validSender.address
+            account: validUser.address
           },
           selectionField: undefined,
           testFunction: api.query.getAvtBalance
@@ -43,7 +43,7 @@ const nfts = helper.NFTS;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            account: validSender.address,
+            account: validUser.address,
             token: validToken
           },
           selectionField: undefined,
@@ -64,7 +64,7 @@ const nfts = helper.NFTS;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            account: validSender.address
+            account: validUser.address
           },
           selectionField: undefined,
           testFunction: api.query.getAccountNonce
@@ -80,7 +80,7 @@ const nfts = helper.NFTS;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            account: validSender.address
+            account: validUser.address
           },
           selectionField: undefined,
           testFunction: api.query.getAccountNonce
@@ -129,7 +129,7 @@ const nfts = helper.NFTS;
           await testPatterns.invalidAccount(testConfig);
         });
         it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validSender.address;
+          testConfig.validCallData.relayer = validUser.address;
           await expect(api.query.getRelayerFees(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Relayer.*is not registered with AvN Gateway/
           );
@@ -147,7 +147,7 @@ const nfts = helper.NFTS;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            nftId: unlistedSenderNft
+            nftId: unlistedUserNft
           },
           selectionField: undefined,
           testFunction: api.query.getNftNonce
@@ -182,7 +182,7 @@ const nfts = helper.NFTS;
         };
         testConfig = {
           validCallData: {
-            nftId: unlistedSenderNft
+            nftId: unlistedUserNft
           },
           selectionField: undefined,
           testFunction: api.query.getNftOwner

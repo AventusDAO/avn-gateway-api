@@ -18,7 +18,7 @@ const BN = helper.BN;
 
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
-  const validSender = accounts.sender;
+  const validUser = accounts.user;
   const validUser = accounts.user1;
   const validToken = helper.token;
 
@@ -37,9 +37,9 @@ const BN = helper.BN;
     }
   ];
 
-  //Nfts owned by Sender
-  const unlistedSenderNft = nfts.sender.unlistedNft;
-  const listedSenderNft = nfts.sender.listedNft;
+  //Nfts owned by User
+  const unlistedUserNft = nfts.user.unlistedNft;
+  const listedUserNft = nfts.user.listedNft;
 
   //Nfts owned by User
   const unlistedUserNft = nfts.user.unlistedNft;
@@ -78,15 +78,15 @@ const BN = helper.BN;
           testConfig.selectionField = 'amount';
           await testPatterns.invalidAmount(testConfig);
         });
-        it('With amount greater than senders balance', async () => {
-          const senderAvtBalance = await api.query.getAvtBalance(accounts.sender.address);
-          const greaterAmount = new BN(senderAvtBalance).add(new BN('1'));
+        it('With amount greater than users balance', async () => {
+          const userAvtBalance = await api.query.getAvtBalance(accounts.user.address);
+          const greaterAmount = new BN(userAvtBalance).add(new BN('1'));
           testConfig.validCallData.amount = greaterAmount;
           const requestId = await api.send.transferAvt(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
         it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validSender.address;
+          testConfig.validCallData.relayer = validUser.address;
           await expect(api.send.transferAvt(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Relayer.*is not registered with AvN Gateway/
           );
@@ -130,9 +130,9 @@ const BN = helper.BN;
           testConfig.selectionField = 'amount';
           await testPatterns.invalidAmount(testConfig);
         });
-        it('With token amount greater than senders balance', async () => {
-          const senderAvtBalance = await api.query.getTokenBalance(accounts.sender.address, testConfig.validCallData.token);
-          const greaterAmount = new BN(senderAvtBalance).add(new BN('1'));
+        it('With token amount greater than users balance', async () => {
+          const userAvtBalance = await api.query.getTokenBalance(accounts.user.address, testConfig.validCallData.token);
+          const greaterAmount = new BN(userAvtBalance).add(new BN('1'));
           testConfig.validCallData.amount = greaterAmount;
           const requestId = await api.send.transferToken(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
@@ -296,7 +296,7 @@ const BN = helper.BN;
         testConfig = {
           validCallData: {
             relayer: validRelayer.address,
-            nftId: unlistedSenderNft
+            nftId: unlistedUserNft
           },
           selectionField: undefined,
           testFunction: api.send.listFiatNftForSale
@@ -304,7 +304,7 @@ const BN = helper.BN;
         beforeEach(async () => {
           testConfig.validCallData = {
             relayer: validRelayer.address,
-            nftId: unlistedSenderNft
+            nftId: unlistedUserNft
           };
         });
         describe('With invalid account: relayer', async () => {
@@ -321,13 +321,13 @@ const BN = helper.BN;
             /Relayer.*is not registered with AvN Gateway/
           );
         });
-        it('With sender that doesnt own this nft', async () => {
+        it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           const requestId = await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
         it('With an NFT that is already listed', async () => {
-          testConfig.validCallData.nftId = listedSenderNft;
+          testConfig.validCallData.nftId = listedUserNft;
           const requestId = await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
@@ -340,7 +340,7 @@ const BN = helper.BN;
           validCallData: {
             relayer: validRelayer.address,
             recipient: validUser.address,
-            nftId: listedSenderNft
+            nftId: listedUserNft
           },
           selectionField: undefined,
           testFunction: api.send.transferFiatNft
@@ -349,7 +349,7 @@ const BN = helper.BN;
           testConfig.validCallData = {
             relayer: validRelayer.address,
             recipient: validUser.address,
-            nftId: listedSenderNft
+            nftId: listedUserNft
           };
         });
         describe('With invalid account: relayer', async () => {
@@ -370,13 +370,13 @@ const BN = helper.BN;
             /Relayer.*is not registered with AvN Gateway/
           );
         });
-        it('With sender that doesnt own this nft', async () => {
+        it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
         it('With an NFT that is not listed', async () => {
-          testConfig.validCallData.nftId = unlistedSenderNft;
+          testConfig.validCallData.nftId = unlistedUserNft;
           const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
@@ -388,7 +388,7 @@ const BN = helper.BN;
         testConfig = {
           validCallData: {
             relayer: validRelayer.address,
-            nftId: listedSenderNft
+            nftId: listedUserNft
           },
           selectionField: undefined,
           testFunction: api.send.cancelFiatNftListing
@@ -396,7 +396,7 @@ const BN = helper.BN;
         beforeEach(async () => {
           testConfig.validCallData = {
             relayer: validRelayer.address,
-            nftId: listedSenderNft
+            nftId: listedUserNft
           };
         });
         describe('With invalid account: relayer', async () => {
@@ -413,13 +413,13 @@ const BN = helper.BN;
             /Relayer.*is not registered with AvN Gateway/
           );
         });
-        it('With sender that doesnt own this nft', async () => {
+        it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           const requestId = await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
         it('with an NFT that is not listed', async () => {
-          testConfig.validCallData.nftId = unlistedSenderNft;
+          testConfig.validCallData.nftId = unlistedUserNft;
           const requestId = await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });

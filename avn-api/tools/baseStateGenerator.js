@@ -15,7 +15,7 @@ let argv = yargs
 
 const accounts = helper.ACCOUNTS;
 const validRelayer = accounts.relayer;
-const validSender = accounts.sender;
+const validUser = accounts.user;
 const validUser = accounts.user1;
 
 const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
@@ -32,20 +32,20 @@ const royalties = [
   const api = await helper.avnApi();
 
   //SURI env variable updated so we can mint nfts owned by this account
-  process.env.SURI = validSender.seed;
+  process.env.SURI = validUser.seed;
 
-  //Mint nft owned by sender
-  let externalRef = 'avn-gateway-test-sender-unlisted-' + new Date().toISOString();
+  //Mint nft owned by user
+  let externalRef = 'avn-gateway-test-user-unlisted-' + new Date().toISOString();
   let requestId = await api.send.mintSingleNft(validRelayer.address, externalRef, royalties, dummyT1Authority);
   await helper.confirmStatus(api, requestId, 'Processed');
-  const unlistedSenderNftId = await api.query.getNftId(externalRef);
+  const unlistedUserNftId = await api.query.getNftId(externalRef);
 
-  //Mint and list nft owned by sender
-  externalRef = 'avn-gateway-test-sender-listed-' + new Date().toISOString();
+  //Mint and list nft owned by user
+  externalRef = 'avn-gateway-test-user-listed-' + new Date().toISOString();
   requestId = await api.send.mintSingleNft(validRelayer.address, externalRef, royalties, dummyT1Authority);
   await helper.confirmStatus(api, requestId, 'Processed');
-  const listedSenderNftId = await api.query.getNftId(externalRef);
-  requestId = await api.send.listFiatNftForSale(validRelayer.address, listedSenderNftId);
+  const listedUserNftId = await api.query.getNftId(externalRef);
+  requestId = await api.send.listFiatNftForSale(validRelayer.address, listedUserNftId);
   await helper.confirmStatus(api, requestId, 'Processed');
 
   process.env.SURI = validUser.seed;
@@ -65,10 +65,10 @@ const royalties = [
   await helper.confirmStatus(api, requestId, 'Processed');
 
   const mintedNfts = {
-    sender: {
-      owner_address: validSender.address,
-      listedNft: listedSenderNftId,
-      unlistedNft: unlistedSenderNftId
+    user: {
+      owner_address: validUser.address,
+      listedNft: listedUserNftId,
+      unlistedNft: unlistedUserNftId
     },
     user: {
       owner_address: validUser.address,

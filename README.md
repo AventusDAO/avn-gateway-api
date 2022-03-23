@@ -1056,6 +1056,8 @@ curl https://AVN-API-URL/poll \
 
 **RESULT FIELDS** \
 `txHash` - string representing the transaction hash\
+`blockNumber` - number representing the block number that contains this transaction\
+`transactionIndex` - number representing the zero based index of this transaction in the block. The first transaction will have index 0. \
 `status` - string detailing the current status:
 ```
 'Pending'
@@ -1069,7 +1071,11 @@ curl https://AVN-API-URL/poll \
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "result": {"txHash": "0x37b5aa64e1b56c2d250588ffe0c73d810783ef8ec60eaae1c773c0acbc63dc90", "status": "Processed"}
+  "result": {
+    "txHash": "0x37b5aa64e1b56c2d250588ffe0c73d810783ef8ec60eaae1c773c0acbc63dc90",
+    "status": "Processed",
+    "blockNumber": 125412,
+    "transactionIndex": 2}
 }
 ```
 

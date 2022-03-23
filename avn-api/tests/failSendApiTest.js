@@ -19,7 +19,7 @@ const BN = helper.BN;
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
   const validUser = accounts.user;
-  const validUser = accounts.user1;
+  const validUser = accounts.recipientUser;
   const validToken = helper.token;
 
   const royaltyRecipient1 = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03';

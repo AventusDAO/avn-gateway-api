@@ -16,7 +16,7 @@ let argv = yargs
 const accounts = helper.ACCOUNTS;
 const validRelayer = accounts.relayer;
 const validUser = accounts.user;
-const validUser = accounts.user1;
+const validUser = accounts.recipientUser;
 
 const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 const royalties = [

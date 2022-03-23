@@ -11,7 +11,7 @@
       "address": "5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr",
       "publicKey": "0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e"
     },
-    "user1": {
+    "recipientUser": {
       "mnemonic": "skate almost song wood lake giant stomach pupil know ugly check image",
       "seed": "0x197bcdc6a4f99683346ada29b1ec2beb62aafffff487a55070a9c9e13d36d86a",
       "address": "5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF",

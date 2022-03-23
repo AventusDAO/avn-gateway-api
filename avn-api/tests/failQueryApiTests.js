@@ -17,7 +17,7 @@ const nfts = helper.NFTS;
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
   const validUser = accounts.user;
-  const validUser = accounts.user1;
+  const validUser = accounts.recipientUser;
   const validToken = helper.token;
   const unlistedUserNft = nfts.user.unlistedNft;
   let testConfig;

@@ -2,7 +2,6 @@
 
 const common = require('./common.js');
 const { u8aToHex, u8aConcat } = require('@polkadot/util');
-const BN = require('bn.js');
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation';
@@ -38,6 +37,10 @@ function getProxySignature(transactionType, proxyArgs) {
       return createProxyTransferFiatNftSignature(proxyArgs);
     case 'proxyCancelListFiatNft':
       return createProxyCancelListFiatNftSignature(proxyArgs);
+    case 'proxyBond':
+      return createProxyBondSignature(proxyArgs);
+    case 'proxyNominate':
+      return createProxyNominateSignature(proxyArgs);
     case 'proxyIncreaseStake':
       return createProxyIncreaseStakeSignature(proxyArgs);
     case 'proxyUnstake':
@@ -47,7 +50,7 @@ function getProxySignature(transactionType, proxyArgs) {
     case 'proxyPayoutStakers':
       return createProxyPayoutStakersSignature(proxyArgs);
     default:
-      return null;
+      throw new Error(`No such transaction type: ${transactionType}`);
     }
 }
 
@@ -194,9 +197,8 @@ function createFeePaymentSignature(feePaymentArgs) {
   return signData(hexEncodedData);
 }
 
-// first time staking is made up of 2 transactions: Bond + Nominate
-function createProxyStakeAvtSignatures(proxyArgs) {
-  let { relayer, user, amount, targets, nonce } = proxyArgs;
+function createProxyBondSignature(proxyArgs) {
+  let { relayer, user, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   let dataToSign = {
@@ -208,22 +210,23 @@ function createProxyStakeAvtSignatures(proxyArgs) {
     nonce
   };
 
-  const hexEncodedBondData = encodeBondSignatureData(dataToSign);
-  const hexBondSignature = signData(hexEncodedBondData);
+  const hexEncodedData = encodeBondSignatureData(dataToSign);
+  return signData(hexEncodedData);
+}
 
-  nonce = new BN(nonce).add(new BN(1));
+function createProxyNominateSignature(proxyArgs) {
+  let { relayer, targets, nonce } = proxyArgs;
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  dataToSign = {
+  let dataToSign = {
     context: PROXY_NOMINATE_CONTEXT,
     relayer,
     targets,
     nonce
   };
 
-  const hexEncodedNominateData = encodeNominateSignatureData(dataToSign);
-  const hexNominateSignature = signData(hexEncodedNominateData);
-
-  return [hexBondSignature, hexNominateSignature];
+  const hexEncodedData = encodeNominateSignatureData(dataToSign);
+  return signData(hexEncodedData);
 }
 
 function createProxyIncreaseStakeSignature(proxyArgs) {
@@ -572,7 +575,8 @@ module.exports = {
   createProxyMintSingleNftSignature,
   createProxyTransferFiatNftSignature,
   createProxyCancelListFiatNftSignature,
-  createProxyStakeAvtSignatures,
+  createProxyBondSignature,
+  createProxyNominateSignature,
   createProxyIncreaseStakeSignature,
   createProxyUnstakeSignature,
   createProxyWithdrawUnlockedSignature,

@@ -40,9 +40,9 @@ function transferAvt(api, queryApi) {
     common.validateAccount(recipient);
     amount = common.validateAndConvertAmountToString(amount);
     const token = this.avtContractAddress;
-    const innerArgs = { recipient, token, amount };
+    const methodArgs = { recipient, token, amount };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyAvtTransfer, NONCE_TYPE.Token, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyAvtTransfer, NONCE_TYPE.Token, methodArgs);
 
 }
 
@@ -52,9 +52,9 @@ function transferToken(api, queryApi) {
     common.validateAccount(recipient);
     common.validateEthereumAddress(token);
     amount = common.validateAndConvertAmountToString(amount);
-    const innerArgs = { recipient, token, amount };
+    const methodArgs = { recipient, token, amount };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyTokenTransfer, NONCE_TYPE.Token, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyTokenTransfer, NONCE_TYPE.Token, methodArgs);
   };
 }
 
@@ -63,9 +63,9 @@ function confirmTokenLift(api, queryApi) {
     common.validateAccount(relayer);
     common.validateEthereumTransactionHash(ethereumTransactionHash);
     const eventType = ETHEREUM_LOG_EVENT_TYPE.Lifted;
-    const innerArgs = { ethereumTransactionHash, eventType };
+    const methodArgs = { ethereumTransactionHash, eventType };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyConfirmTokenLift, NONCE_TYPE.Confirmation, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyConfirmTokenLift, NONCE_TYPE.Confirmation, methodArgs);
   };
 }
 
@@ -75,9 +75,9 @@ function lowerToken(api, queryApi) {
     common.validateEthereumAddress(t1Recipient);
     common.validateEthereumAddress(token);
     amount = common.validateAndConvertAmountToString(amount);
-    const innerArgs = { t1Recipient, token, amount };
+    const methodArgs = { t1Recipient, token, amount };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyTokenLower, NONCE_TYPE.Token, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyTokenLower, NONCE_TYPE.Token, methodArgs);
   };
 }
 
@@ -87,9 +87,9 @@ function mintSingleNft(api, queryApi) {
     common.validateStringIsPopulated(externalRef);
     common.validateRoyalties(royalties);
     common.validateEthereumAddress(t1Authority);
-    const innerArgs = { externalRef, royalties, t1Authority };
+    const methodArgs = { externalRef, royalties, t1Authority };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyMintSingleNft, NONCE_TYPE.None, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyMintSingleNft, NONCE_TYPE.None, methodArgs);
   };
 }
 
@@ -98,9 +98,9 @@ function listFiatNftForSale(api, queryApi) {
     common.validateAccount(relayer);
     common.validateNftId(nftId);
     const market = MARKET.Fiat;
-    const innerArgs = { nftId, market };
+    const methodArgs = { nftId, market };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyListNftOpenForSale, NONCE_TYPE.Nft, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyListNftOpenForSale, NONCE_TYPE.Nft, methodArgs);
   };
 }
 
@@ -110,9 +110,9 @@ function transferFiatNft(api, queryApi) {
     common.validateAccount(_recipient);
     const recipient = common.convertToPublicKeyIfNeeded(_recipient);
     common.validateNftId(nftId);
-    const innerArgs = { nftId, recipient };
+    const methodArgs = { nftId, recipient };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyTransferFiatNft, NONCE_TYPE.Nft, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyTransferFiatNft, NONCE_TYPE.Nft, methodArgs);
   };
 }
 
@@ -120,9 +120,9 @@ function cancelFiatNftListing(api, queryApi) {
   return async function (relayer, nftId) {
     common.validateAccount(relayer);
     common.validateNftId(nftId);
-    const innerArgs = { nftId };
+    const methodArgs = { nftId };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyCancelListFiatNft, NONCE_TYPE.Nft, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyCancelListFiatNft, NONCE_TYPE.Nft, methodArgs);
   };
 }
 
@@ -135,13 +135,13 @@ function stake(api, queryApi) {
     const stakingStatus = await queryApi.getStakingStatus(user);
 
     if (stakingStatus === common.STAKING_STATUS.isStaking) {
-      const innerArgs = { amount };
-      return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyIncreaseStake, NONCE_TYPE.Staking, innerArgs);
+      const methodArgs = { amount };
+      return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyIncreaseStake, NONCE_TYPE.Staking, methodArgs);
     } else {
       const targets = await queryApi.getValidatorsToNominate();
       common.validateStakingTargets(targets);
-      const innerArgs = { amount, targets };
-      return await this.proxyStakeAvtRequest(api, queryApi, relayer, innerArgs);
+      const methodArgs = { amount, targets };
+      return await this.proxyStakeAvtRequest(api, queryApi, relayer, methodArgs);
     }
   };
 }
@@ -150,18 +150,18 @@ function unstake(api, queryApi) {
   return async function (relayer, amount) {
     common.validateAccount(relayer);
     amount = common.validateAndConvertAmountToString(amount);
-    const innerArgs = { amount };
+    const methodArgs = { amount };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyUnstake, NONCE_TYPE.Staking, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyUnstake, NONCE_TYPE.Staking, methodArgs);
   };
 }
 
 function withdrawUnlocked(api, queryApi) {
   return async function (relayer) {
     common.validateAccount(relayer);
-    const innerArgs = {};
+    const methodArgs = {};
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking, methodArgs);
   };
 }
 
@@ -179,9 +179,9 @@ function payoutStakers(api, queryApi) {
       eraIndex = eraIndex - 1; // the default is to payout the previous era because the current one won't be ready yet.
     }
     common.validateNumber(eraIndex);
-    const innerArgs = { eraIndex };
+    const methodArgs = { eraIndex };
 
-    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyPayoutStakers, NONCE_TYPE.Staking, innerArgs);
+    return await this.proxyRequest(api, queryApi, relayer, TX_TYPE.ProxyPayoutStakers, NONCE_TYPE.Staking, methodArgs);
   };
 }
 
@@ -189,7 +189,7 @@ function generateFunction(functionName, api, queryApi) {
   return functionName(api, queryApi);
 }
 
-Send.prototype.proxyRequest = async function (api, queryApi, relayer, transactionType, nonceType, innerArgs, retry) {
+Send.prototype.proxyRequest = async function (api, queryApi, relayer, transactionType, nonceType, methodArgs, retry) {
   const user = common.getUserAddress();
 
   let proxyArgs = {};
@@ -203,7 +203,7 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, transactio
     proxyArgs = { relayer, user, nonce };
   }
 
-  const proxySignature = proxyApi.getProxySignature(transactionType, Object.assign(proxyArgs, innerArgs));
+  const proxySignature = proxyApi.getProxySignature(transactionType, Object.assign(proxyArgs, methodArgs));
   const paymentArgs = { relayer, user, proxySignature, transactionType };
   const paymentDetails = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
   let params = { relayer, user, recipient, token, amount, proxySignature };
@@ -212,7 +212,7 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, transactio
 
   if (!response && !retry) {
     retry = true;
-    await this.proxyRequest(api, queryApi, relayer, transactionType, innerArgs, retry);
+    await this.proxyRequest(api, queryApi, relayer, transactionType, methodArgs, retry);
   }
 
   return response;

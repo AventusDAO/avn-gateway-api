@@ -24,7 +24,7 @@ function getProxySignature(transactionType, proxyArgs) {
   switch (transactionType) {
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':
-      return createProxyTransferSignature(proxyArgs);
+      return createProxyTokenTransferSignature(proxyArgs);
     case 'proxyConfirmTokenLift':
       return createProxyConfirmTokenLiftSignature(proxyArgs);
     case 'proxyTokenLower':
@@ -54,7 +54,7 @@ function getProxySignature(transactionType, proxyArgs) {
     }
 }
 
-function createProxyTransferSignature(proxyArgs) {
+function createProxyTokenTransferSignature(proxyArgs) {
   let { relayer, user, recipient, token, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   user = common.convertToPublicKeyIfNeeded(user);
@@ -568,7 +568,7 @@ function signData(encodedData) {
 
 module.exports = {
   createFeePaymentSignature,
-  createProxyTransferSignature,
+  createProxyTokenTransferSignature,
   createProxyConfirmTokenLiftSignature,
   createProxyTokenLowerSignature,
   createProxyListNftOpenForSaleSignature,

@@ -68,7 +68,7 @@ data "aws_iam_policy_document" "ecr_policy_document" {
 
     principals {
       type = "AWS"
-      identifiers = [local.role_arns]
+      identifiers = local.role_arns
     }
   }
 }

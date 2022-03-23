@@ -19,7 +19,7 @@ const BN = helper.BN;
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
   const validUser = accounts.user;
-  const validUser = accounts.recipientUser;
+  const validOtherUser = accounts.otherUser;
   const validToken = helper.token;
 
   const royaltyRecipient1 = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03';
@@ -53,7 +53,7 @@ const BN = helper.BN;
         testConfig = {
           validCallData: {
             relayer: validRelayer.address,
-            recipient: validUser.address,
+            recipient: validOtherUser.address,
             amount: 22
           },
           selectionField: undefined,
@@ -62,7 +62,7 @@ const BN = helper.BN;
         beforeEach(async () => {
           testConfig.validCallData = {
             relayer: validRelayer.address,
-            recipient: validUser.address,
+            recipient: validOtherUser.address,
             amount: 22
           };
         });
@@ -99,7 +99,7 @@ const BN = helper.BN;
         testConfig = {
           validCallData: {
             relayer: validRelayer.address,
-            recipient: validUser.address,
+            recipient: validOtherUser.address,
             token: validToken,
             amount: 22
           },
@@ -109,7 +109,7 @@ const BN = helper.BN;
         beforeEach(async () => {
           testConfig.validCallData = {
             relayer: validRelayer.address,
-            recipient: validUser.address,
+            recipient: validOtherUser.address,
             token: validToken,
             amount: 22
           };
@@ -138,7 +138,7 @@ const BN = helper.BN;
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
         it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validUser.address;
+          testConfig.validCallData.relayer = validOtherUser.address;
           await expect(api.send.transferToken(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Relayer.*is not registered with AvN Gateway/
           );
@@ -186,7 +186,7 @@ const BN = helper.BN;
           await testPatterns.invalidExternalReference(testConfig);
         });
         it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validUser.address;
+          testConfig.validCallData.relayer = validOtherUser.address;
           await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Relayer.*is not registered with AvN Gateway/
           );
@@ -316,7 +316,7 @@ const BN = helper.BN;
           await testPatterns.invalidNftId(testConfig);
         });
         it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validUser.address;
+          testConfig.validCallData.relayer = validOtherUser.address;
           await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Relayer.*is not registered with AvN Gateway/
           );
@@ -339,7 +339,7 @@ const BN = helper.BN;
         testConfig = {
           validCallData: {
             relayer: validRelayer.address,
-            recipient: validUser.address,
+            recipient: validOtherUser.address,
             nftId: listedUserNft
           },
           selectionField: undefined,
@@ -348,7 +348,7 @@ const BN = helper.BN;
         beforeEach(async () => {
           testConfig.validCallData = {
             relayer: validRelayer.address,
-            recipient: validUser.address,
+            recipient: validOtherUser.address,
             nftId: listedUserNft
           };
         });
@@ -365,7 +365,7 @@ const BN = helper.BN;
           await testPatterns.invalidNftId(testConfig);
         });
         it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validUser.address;
+          testConfig.validCallData.relayer = validOtherUser.address;
           await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Relayer.*is not registered with AvN Gateway/
           );
@@ -408,7 +408,7 @@ const BN = helper.BN;
           await testPatterns.invalidNftId(testConfig);
         });
         it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validUser.address;
+          testConfig.validCallData.relayer = validOtherUser.address;
           await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Relayer.*is not registered with AvN Gateway/
           );

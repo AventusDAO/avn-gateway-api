@@ -16,8 +16,8 @@ describe('Proxy api calls:', async () => {
     api = await helper.avnApi();
     relayer = accounts.relayer.address;
     user = accounts.user.address;
-    recipient = accounts.recipientUser.address;
-    recipientPubKey = accounts.recipientUser.publicKey;
+    recipient = accounts.otherUser.address;
+    recipientPubKey = accounts.otherUser.publicKey;
     relayerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyTokenTransfer);
   });
 

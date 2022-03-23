@@ -17,7 +17,7 @@ const nfts = helper.NFTS;
   const api = await helper.avnApi();
   const validRelayer = accounts.relayer;
   const validUser = accounts.user;
-  const validUser = accounts.recipientUser;
+  const otherUser = accounts.otherUser;
   const validToken = helper.token;
   const unlistedUserNft = nfts.user.unlistedNft;
   let testConfig;
@@ -96,7 +96,7 @@ const nfts = helper.NFTS;
       testConfig = {
         validCallData: {
           relayer: validRelayer.address,
-          user: validUser.address,
+          user: validOtherUser.address,
           transaction_type: 'proxyAvtTransfer'
         },
         selectionField: undefined,
@@ -105,7 +105,7 @@ const nfts = helper.NFTS;
       beforeEach(async () => {
         testConfig.validCallData = {
           relayer: validRelayer.address,
-          user: validUser.address,
+          user: validOtherUser.address,
           transaction_type: 'proxyAvtTransfer'
         };
       });

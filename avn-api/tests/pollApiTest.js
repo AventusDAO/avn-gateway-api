@@ -12,7 +12,7 @@ describe('Polling api calls:', async () => {
     api = await helper.avnApi();
     relayer = accounts.relayer.address;
     user = accounts.user.address;
-    recipient = accounts.recipientUser.address;
+    recipient = accounts.otherUser.address;
   });
 
   describe('requestState', async () => {

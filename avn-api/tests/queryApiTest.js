@@ -52,7 +52,6 @@ describe('Query api calls:', async () => {
     api = await helper.avnApi();
     relayer = accounts.relayer;
     user = accounts.user;
-    user = accounts.user;
   });
 
   describe('getTotalAvt', async () => {

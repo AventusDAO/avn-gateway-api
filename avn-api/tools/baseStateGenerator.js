@@ -70,7 +70,7 @@ const royalties = [
       listedNft: listedUserNftId,
       unlistedNft: unlistedUserNftId
     },
-    user: {
+    otherUser: {
       owner_address: validOtherUser.address,
       listedNft: listedUserNftId,
       unlistedNft: unlistedUserNftId

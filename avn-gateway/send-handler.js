@@ -83,11 +83,11 @@ async function callSwitch(call, request, requestId) {
 async function processProxyTransfer(call, request, requestId) {
   const pallet = 'tokenManager';
   const method = 'signedTransfer';
-  const { signer, recipient, token, amount } = call.params;
-  const methodParams = [signer, recipient, token, amount];
+  const { user, recipient, token, amount } = call.params;
+  const methodParams = [user, recipient, token, amount];
 
   try {
-    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidAccountId(recipient) === false) throw 'recipient';
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
     if (utils.isValidAmount(amount) === false) throw 'amount';
@@ -117,11 +117,11 @@ async function processProxyAddEthereumLog(call, request, requestId) {
 async function processProxyTokenLower(call, request, requestId) {
   const pallet = 'tokenManager';
   const method = 'signedLower';
-  const { signer, token, amount, t1Recipient } = call.params;
-  const methodParams = [signer, token, amount, t1Recipient];
+  const { user, token, amount, t1Recipient } = call.params;
+  const methodParams = [user, token, amount, t1Recipient];
 
   try {
-    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidEthereumAddress(t1Recipient) === false) throw 't1Recipient';
@@ -197,10 +197,10 @@ async function processProxyTransferFiatNft(call, request, requestId) {
 }
 
 async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {
-  const { relayer, signer, proxySignature, feePaymentSignature, paymentNonce } = call.params;
+  const { relayer, user, proxySignature, feePaymentSignature, paymentNonce } = call.params;
 
   try {
-    validateMethodParams(relayer, signer, proxySignature, feePaymentSignature, paymentNonce);
+    validateMethodParams(relayer, user, proxySignature, feePaymentSignature, paymentNonce);
   } catch (err) {
     return utils.errorResponse('params', err.toString(), err, request, call.id);
   }
@@ -210,7 +210,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
     params = await getProxyParams(
       call.method,
       relayer,
-      signer,
+      user,
       proxySignature,
       feePaymentSignature,
       paymentNonce,
@@ -232,8 +232,8 @@ async function getRelayerFee(relayer, user, transactionType) {
   }
 }
 
-function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const verified = utils.verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
+function getPaymentInfo(user, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+  const verified = utils.verifyFeePaymentSignature(user, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
 
   if (verified === false) {
     return undefined;
@@ -248,9 +248,9 @@ function getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSigna
   };
 }
 
-function getProxyProof(signer, relayer, proxySignature) {
+function getProxyProof(user, relayer, proxySignature) {
   return {
-    signer,
+    user,
     relayer,
     signature: {
       Sr25519: proxySignature
@@ -340,10 +340,10 @@ async function processProxyPayoutStakers(call, request, requestId) {
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
-function validateMethodParams(relayer, signer, proxySignature, feePaymentSignature, paymentNonce) {
+function validateMethodParams(relayer, user, proxySignature, feePaymentSignature, paymentNonce) {
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer';
-    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format';
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format';
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce';
@@ -352,17 +352,17 @@ function validateMethodParams(relayer, signer, proxySignature, feePaymentSignatu
   }
 }
 
-async function getProxyParams(callMethod, relayer, signer, proxySignature, feePaymentSignature, paymentNonce, methodParams) {
-  const proxyProof = getProxyProof(signer, relayer, proxySignature);
+async function getProxyParams(callMethod, relayer, user, proxySignature, feePaymentSignature, paymentNonce, methodParams) {
+  const proxyProof = getProxyProof(user, relayer, proxySignature);
 
   let relayerFee;
   try {
-    relayerFee = await getRelayerFee(relayer, signer, callMethod);
+    relayerFee = await getRelayerFee(relayer, user, callMethod);
   } catch (error) {
     throw new Error(`could not get relayer fee: ${error.toString()}`);
   }
 
-  const paymentInfo = getPaymentInfo(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
+  const paymentInfo = getPaymentInfo(user, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
   if (!paymentInfo) {
     throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
   }
@@ -375,22 +375,22 @@ async function getProxyParams(callMethod, relayer, signer, proxySignature, feePa
 }
 
 async function getBondParams(call) {
-  const { relayer, signer, amount, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce } = call.params;
+  const { relayer, user, amount, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce } = call.params;
 
-  const bondMethodParams = [signer, amount, utils.STASH_REWARD_DESTINATION];
+  const bondMethodParams = [user, amount, utils.STASH_REWARD_DESTINATION];
   try {
-    if (utils.isValidAccountId(signer) === false) throw 'signer';
+    if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidAmount(amount) === false) throw 'amount';
   } catch (errParam) {
     throw new Error(`invalid parameter (${errParam}) passed to getBondParams`);
   }
 
-  validateMethodParams(relayer, signer, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
+  validateMethodParams(relayer, user, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
 
   return await getProxyParams(
     call.params.bondMethodName,
     relayer,
-    signer,
+    user,
     proxyBondSignature,
     bondFeePaymentSignature,
     bondPaymentNonce,
@@ -399,7 +399,7 @@ async function getBondParams(call) {
 }
 
 async function getNominateParams(call) {
-  const { relayer, signer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } = call.params;
+  const { relayer, user, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } = call.params;
   const nominateMethodParams = [targets];
 
   try {
@@ -410,7 +410,7 @@ async function getNominateParams(call) {
 
   validateMethodParams(
     relayer,
-    signer,
+    user,
     proxyNominateSignature,
     nominateFeePaymentSignature,
     nominatePaymentNonce
@@ -419,7 +419,7 @@ async function getNominateParams(call) {
   return await getProxyParams(
     call.params.nominateMethodName,
     relayer,
-    signer,
+    user,
     proxyNominateSignature,
     nominateFeePaymentSignature,
     nominatePaymentNonce,

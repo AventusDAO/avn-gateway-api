@@ -21,15 +21,15 @@ const PROXY_PAYOUT_STAKERS_CONTEXT = 'authorization for signed payout stakers op
 
 const STASH_REWARD_DESTINATION = 'Stash';
 
-function createProxyTransferSignature(_relayer, _signer, _recipient, token, amount, tokenNonce) {
+function createProxyTransferSignature(_relayer, _user, _recipient, token, amount, tokenNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
-  const signer = common.convertToPublicKeyIfNeeded(_signer);
+  const user = common.convertToPublicKeyIfNeeded(_user);
   const recipient = common.convertToPublicKeyIfNeeded(_recipient);
 
   const dataToSign = {
     context: PROXY_TRANSFER_CONTEXT,
     relayer,
-    signer,
+    user,
     recipient,
     token,
     amount,
@@ -55,14 +55,14 @@ function createProxyConfirmTokenLiftSignature(_relayer, eventType, ethereumTrans
   return signData(hexEncodedData);
 }
 
-function createProxyTokenLowerSignature(_relayer, _signer, t1Recipient, token, amount, tokenNonce) {
+function createProxyTokenLowerSignature(_relayer, _user, t1Recipient, token, amount, tokenNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
-  const signer = common.convertToPublicKeyIfNeeded(_signer);
+  const user = common.convertToPublicKeyIfNeeded(_user);
 
   const dataToSign = {
     context: PROXY_LOWER_CONTEXT,
     relayer,
-    signer,
+    user,
     t1Recipient,
     token,
     amount,
@@ -73,7 +73,7 @@ function createProxyTokenLowerSignature(_relayer, _signer, t1Recipient, token, a
   return signData(hexEncodedData);
 }
 
-function createProxyMintSingleNftSignature(_relayer, signer, externalRef, royalties, t1Authority) {
+function createProxyMintSingleNftSignature(_relayer, user, externalRef, royalties, t1Authority) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   const dataToSign = {
@@ -88,7 +88,7 @@ function createProxyMintSingleNftSignature(_relayer, signer, externalRef, royalt
   return signData(hexEncodedData);
 }
 
-function createProxyListNftOpenForSaleSignature(_relayer, signer, nftId, market, nftNonce) {
+function createProxyListNftOpenForSaleSignature(_relayer, user, nftId, market, nftNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   const dataToSign = {
@@ -103,7 +103,7 @@ function createProxyListNftOpenForSaleSignature(_relayer, signer, nftId, market,
   return signData(hexEncodedData);
 }
 
-function createProxyTransferFiatNftSignature(_relayer, signer, nftId, _recipient, nftNonce) {
+function createProxyTransferFiatNftSignature(_relayer, user, nftId, _recipient, nftNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
   const recipient = common.convertToPublicKeyIfNeeded(_recipient);
 
@@ -119,7 +119,7 @@ function createProxyTransferFiatNftSignature(_relayer, signer, nftId, _recipient
   return signData(hexEncodedData);
 }
 
-function createProxyCancelListFiatNftSignature(_relayer, signer, nftId, nftNonce) {
+function createProxyCancelListFiatNftSignature(_relayer, user, nftId, nftNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   const dataToSign = {
@@ -133,11 +133,11 @@ function createProxyCancelListFiatNftSignature(_relayer, signer, nftId, nftNonce
   return signData(hexEncodedData);
 }
 
-function createFeePaymentSignature(_relayer, signer, proxySignature, relayerFee, paymentNonce) {
+function createFeePaymentSignature(_relayer, user, proxySignature, relayerFee, paymentNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   const proxyProof = {
-    signer,
+    user,
     relayer,
     signature: {
       Sr25519: proxySignature
@@ -157,13 +157,13 @@ function createFeePaymentSignature(_relayer, signer, proxySignature, relayerFee,
 }
 
 // first time staking is made up of 2 transactions: Bond + Nominate
-function createProxyStakeAvtSignature(_relayer, signer, amount, targets, stakingNonce) {
+function createProxyStakeAvtSignature(_relayer, user, amount, targets, stakingNonce) {
   const relayer = common.convertToPublicKeyIfNeeded(_relayer);
 
   let dataToSign = {
     context: PROXY_BOND_CONTEXT,
     relayer,
-    controller: common.convertToPublicKeyIfNeeded(signer), // stash and controller are the same
+    controller: common.convertToPublicKeyIfNeeded(user), // stash and controller are the same
     amount: amount,
     payee: STASH_REWARD_DESTINATION, // The reward will be paid into the stash account
     stakingNonce
@@ -247,7 +247,7 @@ function createProxyPayoutStakersSignature(_relayer, eraIndex, stakingNonce) {
 function encodeProxyTransferSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedSigner = common.registry.createType('AccountId', params.signer);
+  const encodedUser = common.registry.createType('AccountId', params.user);
   const encodedRecipient = common.registry.createType('AccountId', params.recipient);
   const encodedToken = common.registry.createType('H160', params.token);
   const encodedAmount = common.registry.createType('u128', params.amount);
@@ -256,7 +256,7 @@ function encodeProxyTransferSignatureData(params) {
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
-    encodedSigner.toU8a(true),
+    encodedUser.toU8a(true),
     encodedRecipient.toU8a(true),
     encodedToken.toU8a(true),
     encodedAmount.toU8a(true),
@@ -269,7 +269,7 @@ function encodeProxyTransferSignatureData(params) {
 function encodeProxyConfirmTokenLiftSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedSigner = common.registry.createType('AccountId', params.signer);
+  const encodedUser = common.registry.createType('AccountId', params.user);
   const encodedEventType = common.registry.createType('u8', params.eventType);
   const encodedEthereumTransactionHash = common.registry.createType('H256', params.ethereumTransactionHash);
   const encodedConfirmationNonce = common.registry.createType('u64', params.confirmationNonce);
@@ -277,7 +277,7 @@ function encodeProxyConfirmTokenLiftSignatureData(params) {
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
-    encodedSigner.toU8a(true),
+    encodedUser.toU8a(true),
     encodedEventType.toU8a(true),
     encodedEthereumTransactionHash.toU8a(true),
     encodedConfirmationNonce.toU8a(true)
@@ -289,7 +289,7 @@ function encodeProxyConfirmTokenLiftSignatureData(params) {
 function encodeProxyTokenLowerSignatureData(params) {
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedSigner = common.registry.createType('AccountId', params.signer);
+  const encodedUser = common.registry.createType('AccountId', params.user);
   const encodedToken = common.registry.createType('H160', params.token);
   const encodedAmount = common.registry.createType('u128', params.amount);
   const encodedT1Recipient = common.registry.createType('H160', params.t1Recipient);
@@ -298,7 +298,7 @@ function encodeProxyTokenLowerSignatureData(params) {
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),
     encodedRelayer.toU8a(true),
-    encodedSigner.toU8a(true),
+    encodedUser.toU8a(true),
     encodedToken.toU8a(true),
     encodedAmount.toU8a(true),
     encodedT1Recipient.toU8a(true),
@@ -497,10 +497,10 @@ function encodeFeePaymentSignatureData(params) {
 }
 
 function encodeProxyProof(params) {
-  const signer = common.registry.createType('AccountId', params.signer);
+  const user = common.registry.createType('AccountId', params.user);
   const relayer = common.registry.createType('AccountId', params.relayer);
   const signature = common.registry.createType('MultiSignature', params.signature);
-  return u8aConcat(signer.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
+  return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
 }
 
 function encodeRoyalty(royalties) {
@@ -515,8 +515,8 @@ function encodeRoyalty(royalties) {
 }
 
 function signData(encodedData) {
-  const signer = common.getClientSigner();
-  const signature = u8aToHex(signer.sign(encodedData));
+  const user = common.getUserAccount();
+  const signature = u8aToHex(user.sign(encodedData));
   return signature;
 }
 

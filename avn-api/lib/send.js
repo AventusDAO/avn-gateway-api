@@ -287,10 +287,11 @@ Send.prototype.smartNonce = async function (queryApi, account, nonceType, retry)
   return nonce.toString();
 };
 
-Send.prototype.getRelayerFee = async function (queryApi, relayer, user, transactionType) {
+Send.prototype.getRelayerFee = async function (queryApi, relayer, account, transactionType) {
+  account = common.convertToPublicKeyIfNeeded(account);
   if (!this.feesMap[relayer]) this.feesMap[relayer] = {};
-  if (!this.feesMap[relayer][user]) this.feesMap[relayer][user] = await queryApi.getRelayerFees(relayer, user);
-  return this.feesMap[relayer][user][transactionType];
+  if (!this.feesMap[relayer][account]) this.feesMap[relayer][account] = await queryApi.getRelayerFees(relayer, account);
+  return this.feesMap[relayer][account][transactionType];
 };
 
 Send.prototype.getPaymentNonceAndSignature = async function (queryApi, paymentArgs, retry) {

@@ -150,7 +150,7 @@ describe('Query api calls:', async () => {
     it('returns correct data for user by address', async () => {
       const returnedData = await api.query.getAccountInfo(user.address);
 
-      if (await api.query.getStakingStatus(user.address) === common.STAKING_STATUS.isNotStaking) {
+      if ((await api.query.getStakingStatus(user.address)) === common.STAKING_STATUS.isNotStaking) {
         assert.equal(returnedData.totalBalance, returnedData.freeBalance);
         assert.equal(returnedData.stakedBalance, '0');
         assert.equal(returnedData.unlockedBalance, '0');
@@ -165,7 +165,7 @@ describe('Query api calls:', async () => {
     const royalties = [];
     const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 
-    function mint() {
+    async function mint() {
       const externalRef = 'avn-gateway-test-' + new Date().toISOString();
       const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');
@@ -180,7 +180,6 @@ describe('Query api calls:', async () => {
       assert(returnedData.length > 2);
       assert(returnedData.includes(firstNftId));
       assert(returnedData.includes(secondNftId));
-    })
-  })
-
+    });
+  });
 });

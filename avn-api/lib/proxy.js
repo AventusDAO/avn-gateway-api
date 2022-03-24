@@ -20,7 +20,6 @@ const PROXY_PAYOUT_STAKERS_CONTEXT = 'authorization for signed payout stakers op
 const STASH_REWARD_DESTINATION = 'Stash';
 
 const isNumType = {
-  Text: false,
   AccountId: true,
   BalanceOf: true,
   EraIndex: true,
@@ -34,6 +33,7 @@ const isNumType = {
   LookupSource: false,
   MultiSignature: false,
   RewardDestination: false,
+  Text: false,
   'Vec<u8>': false,
   'Vec<LookupSource>': false
 };

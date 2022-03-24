@@ -41,9 +41,9 @@ const BN = helper.BN;
   const unlistedUserNft = nfts.user.unlistedNft;
   const listedUserNft = nfts.user.listedNft;
 
-  //Nfts owned by User
-  const unlistedUserNft = nfts.user.unlistedNft;
-  const listedUserNft = nfts.user.listedNft;
+  //Nfts owned by Other User
+  const unlistedOtherUserNft = nfts.otherUser.unlistedNft;
+  const listedOtherUserNft = nfts.otherUser.listedNft;
 
   let testConfig;
 

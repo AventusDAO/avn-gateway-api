@@ -44,7 +44,7 @@ function transferAvt(api, queryApi) {
     const methodArgs = { recipient, token, amount };
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyAvtTransfer, NONCE_TYPE.Token);
-
+  };
 }
 
 function transferToken(api, queryApi) {
@@ -174,7 +174,7 @@ function payoutStakers(api, queryApi) {
       eraIndex = await queryApi.getActiveEra();
 
       if (eraIndex === 0) {
-        throw new Error("You must wait for at least 1 era to pass before calling this method. Current era index: ", eraIndex);
+        throw new Error('You must wait for at least 1 era to pass before calling this method. Current era index: ', eraIndex);
       }
 
       eraIndex = eraIndex - 1; // the default is to payout the previous era because the current one won't be ready yet.
@@ -193,9 +193,10 @@ function generateFunction(functionName, api, queryApi) {
 Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs, transactionType, nonceType, retry) {
   const user = common.getUserAddress();
   let proxyArgs = Object.assign({ relayer, user }, methodArgs);
-  let params = {...proxyArgs};
+  let params = { ...proxyArgs };
   if (nonceType !== 'none') {
-    proxyArgs.nonce = (nonceType === 'nft') ? await queryApi.getNftNonce(nftId) : await this.smartNonce(queryApi, user, nonceType, retry);
+    proxyArgs.nonce =
+      nonceType === 'nft' ? await queryApi.getNftNonce(nftId) : await this.smartNonce(queryApi, user, nonceType, retry);
   }
 
   const proxySignature = proxyApi.getProxySignature(transactionType, proxyArgs);
@@ -212,15 +213,15 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
   }
 
   return response;
-}
+};
 
 Send.prototype.proxyStakeAvtRequest = async function (api, queryApi, relayer, methodArgs, methodName, nonceType, retry) {
   const user = common.getUserAddress();
   let proxyArgs = Object.assign({ relayer, user }, methodArgs);
-  let params = {...proxyArgs};
+  let params = { ...proxyArgs };
   proxyArgs.nonce = await this.smartNonce(queryApi, user, nonceType, retry);
 
-  let transactionType = TX_TYPE.ProxyBond
+  let transactionType = TX_TYPE.ProxyBond;
   params.bondMethodName = transactionType;
   let proxySignature = proxyApi.getProxySignature(transactionType, proxyArgs);
   params.proxyBondSignature = proxySignature;
@@ -231,7 +232,7 @@ Send.prototype.proxyStakeAvtRequest = async function (api, queryApi, relayer, me
 
   proxyArgs.nonce = new BN(nonce).add(new BN(1));
 
-  transactionType = TX_TYPE.ProxyNominate
+  transactionType = TX_TYPE.ProxyNominate;
   params.nominateMethodName = transactionType;
   proxySignature = proxyApi.getProxySignature(transactionType, proxyArgs);
   params.proxyNominateSignature = proxySignature;

@@ -4,7 +4,7 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 
-describe('Polling api calls:', async () => {
+describe('Polling api calls', async () => {
   let api;
   let recipient;
 

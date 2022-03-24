@@ -173,16 +173,16 @@ function validateNonceType(nonceType) {
   }
 }
 
-function getClientSigner() {
+function getUserAccount() {
   const suri = process.env.SURI;
   if (!suri) throw new Error('Please set SURI environment variable');
-  const signer = keyring.addFromUri(suri);
-  return signer;
+  const user = keyring.addFromUri(suri);
+  return user;
 }
 
-function getClientAddress() {
-  const signer = getClientSigner();
-  return signer.address;
+function getUserAddress() {
+  const user = getUserAccount();
+  return user.address;
 }
 
 async function sleep(ms) {
@@ -192,8 +192,8 @@ async function sleep(ms) {
 module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
-  getClientAddress,
-  getClientSigner,
+  getUserAddress,
+  getUserAccount,
   keyring,
   NONCE_TYPE,
   registry,

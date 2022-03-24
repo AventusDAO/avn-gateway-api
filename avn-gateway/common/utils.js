@@ -144,7 +144,7 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
   return signatureVerify(u8aToHex(encodedData), signature, publicKey).isValid;
 }
 
-function verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+function verifyFeePaymentSignature(user, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
   const encodedProxyProof = encodeProxyProof(proxyProof);
   const encodedRelayer = registry.createType('AccountId', relayer);
@@ -159,14 +159,14 @@ function verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feeP
     encodedPaymentNonce.toU8a(true)
   );
 
-  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, signer).isValid;
+  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, user).isValid;
 }
 
 function encodeProxyProof(params) {
-  const signer = registry.createType('AccountId', params.signer);
+  const user = registry.createType('AccountId', params.user);
   const relayer = registry.createType('AccountId', params.relayer);
   const signature = registry.createType('MultiSignature', params.signature);
-  return u8aConcat(signer.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
+  return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
 }
 
 // Keep alphabetical

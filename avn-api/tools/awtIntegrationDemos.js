@@ -45,17 +45,17 @@ async function demoCbaAwt() {
   let configPath = args[0] ? `../config/${args[0]}.json` : '../config/sandbox.json';
   const { gateway } = require(configPath);
 
-  let sender = accounts.cbaTestAccount;
+  let user = accounts.cbaTestAccount;
   let api = await init(gateway);
 
   let iat = cbaSet.iat;
-  let pk = sender.publicKey;
+  let pk = user.publicKey;
 
   let sigPayload = api.awt.encodeAvnPublicKeyForSigning(pk, iat);
   console.log('\nAwt Signature: Public Key\n'.blue.bold, pk);
   console.log('\nAwt Signature: Encoded Payload\n'.blue.bold, sigPayload);
 
-  let payload = api.awt.generateAwtPayload(sender.mnemonic, iat);
+  let payload = api.awt.generateAwtPayload(user.mnemonic, iat);
   let myToken = await api.awt.generateAwtTokenFromPayload(payload);
   console.log('\nAwt Signature: Raw Payload\n'.blue.bold, payload);
   console.log('\nAwt Token:'.blue.bold, myToken);

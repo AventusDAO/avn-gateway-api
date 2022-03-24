@@ -9,26 +9,26 @@ const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 describe('SendTx api calls:', async () => {
   let api;
   let token;
-  let relayer, sender, recipient, t1Recipient;
+  let relayer, user, recipient, t1Recipient;
   let relayerFee, relayerLowerFee;
 
   before(async () => {
     api = await helper.avnApi();
     token = helper.token;
     relayer = accounts.relayer.address;
-    sender = accounts.sender.address;
-    recipient = accounts.user1.address;
-    recipientPubKey = accounts.user1.publicKey;
-    relayerFee = new BN((await api.query.getRelayerFees(relayer, sender)).proxyAvtTransfer);
-    relayerLowerFee = new BN((await api.query.getRelayerFees(relayer, sender)).proxyTokenLower);
+    user = accounts.user.address;
+    recipient = accounts.otherUser.address;
+    recipientPubKey = accounts.otherUser.publicKey;
+    relayerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyAvtTransfer);
+    relayerLowerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyTokenLower);
     t1Recipient = '0xFad45995bc1ceE164E7565e301F5736F3eed3Bb1'; // a dummy recipient as we are not checking the full lower path
   });
 
   describe('transferAVT', async () => {
-    let senderAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore;
+    let userAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore;
 
     beforeEach(async () => {
-      senderAvtBalanceBefore = new BN(await api.query.getAvtBalance(sender));
+      userAvtBalanceBefore = new BN(await api.query.getAvtBalance(user));
       recipientAvtBalanceBefore = new BN(await api.query.getAvtBalance(recipient));
       relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));
     });
@@ -39,7 +39,7 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(api, requestId, 'Processed');
 
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient));
-      bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)));
+      bnEquals(userAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
@@ -50,7 +50,7 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(api, requestId, 'Processed');
 
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey));
-      bnEquals(senderAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)));
+      bnEquals(userAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
@@ -66,13 +66,13 @@ describe('SendTx api calls:', async () => {
   });
 
   describe('lowerToken', async () => {
-    let senderAvtBalanceBefore, senderTokenBalanceBefore, relayerAvtBalanceBefore, senderNonceBefore;
+    let userAvtBalanceBefore, userTokenBalanceBefore, relayerAvtBalanceBefore, userNonceBefore;
 
     beforeEach(async () => {
-      senderAvtBalanceBefore = new BN(await api.query.getAvtBalance(sender));
-      senderTokenBalanceBefore = new BN(await api.query.getTokenBalance(sender, token));
+      userAvtBalanceBefore = new BN(await api.query.getAvtBalance(user));
+      userTokenBalanceBefore = new BN(await api.query.getTokenBalance(user, token));
       relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));
-      senderNonceBefore = new BN(await api.query.getNonce(sender, 'token'));
+      userNonceBefore = new BN(await api.query.getNonce(user, 'token'));
     });
 
     it('can lower tokens', async () => {
@@ -80,9 +80,9 @@ describe('SendTx api calls:', async () => {
       const requestId = await api.send.lowerToken(relayer, t1Recipient, token, amount);
       await helper.confirmStatus(api, requestId, 'Processed');
 
-      bnEquals(senderTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(sender, token)));
-      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getNonce(sender, 'token')));
-      bnEquals(senderAvtBalanceBefore.sub(relayerLowerFee), new BN(await api.query.getAvtBalance(sender)));
+      bnEquals(userTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(user, token)));
+      bnEquals(userNonceBefore.add(new BN(1)), new BN(await api.query.getNonce(user, 'token')));
+      bnEquals(userAvtBalanceBefore.sub(relayerLowerFee), new BN(await api.query.getAvtBalance(user)));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerLowerFee)));
     });
@@ -93,8 +93,8 @@ describe('SendTx api calls:', async () => {
       const requestId = await api.send.lowerToken(relayer, t1Recipient, avtAddress, amount);
       await helper.confirmStatus(api, requestId, 'Processed');
 
-      bnEquals(senderAvtBalanceBefore.sub(relayerLowerFee).sub(amount), new BN(await api.query.getAvtBalance(sender)));
-      bnEquals(senderNonceBefore.add(new BN(1)), new BN(await api.query.getNonce(sender, 'token')));
+      bnEquals(userAvtBalanceBefore.sub(relayerLowerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
+      bnEquals(userNonceBefore.add(new BN(1)), new BN(await api.query.getNonce(user, 'token')));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerLowerFee)));
     });
@@ -119,7 +119,7 @@ describe('SendTx api calls:', async () => {
       const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');
       nftId = await api.query.getNftId(externalRef);
-      assert.equal(sender, await api.query.getNftOwner(nftId));
+      assert.equal(user, await api.query.getNftOwner(nftId));
     });
 
     it('can mint single nft with a single royalty', async () => {
@@ -187,7 +187,7 @@ describe('SendTx api calls:', async () => {
     });
 
     it('can transfer an NFT after an offline fiat sale', async () => {
-      assert.equal(sender, await api.query.getNftOwner(nftId));
+      assert.equal(user, await api.query.getNftOwner(nftId));
       const requestId = await api.send.transferFiatNft(relayer, recipient, nftId);
       await helper.confirmStatus(api, requestId, 'Processed');
       assert.equal(recipient, await api.query.getNftOwner(nftId));

@@ -5,13 +5,13 @@
       "address": "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh",
       "publicKey": "0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004"
     },
-    "sender": {
+    "user": {
       "mnemonic": "cabbage bone maid dentist sniff load shaft portion flavor gym shine debris",
       "seed": "0x079306effc5d804326b4740ef12da0d126a993d31eaff519ac6d183a4a4e652a",
       "address": "5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr",
       "publicKey": "0x30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e"
     },
-    "user1": {
+    "otherUser": {
       "mnemonic": "skate almost song wood lake giant stomach pupil know ugly check image",
       "seed": "0x197bcdc6a4f99683346ada29b1ec2beb62aafffff487a55070a9c9e13d36d86a",
       "address": "5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF",

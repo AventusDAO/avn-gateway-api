@@ -51,8 +51,7 @@ describe('Query api calls:', async () => {
   before(async () => {
     api = await helper.avnApi();
     relayer = accounts.relayer;
-    user = accounts.sender;
-    sender = accounts.sender;
+    user = accounts.user;
   });
 
   describe('getTotalAvt', async () => {
@@ -63,23 +62,23 @@ describe('Query api calls:', async () => {
 
   describe('getNonce', async () => {
     it('returns the same token nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(sender.address, 'token');
-      assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'token'));
+      const nonce = await api.query.getNonce(user.address, 'token');
+      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'token'));
     });
 
     it('returns the same payment nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(sender.address, 'payment');
-      assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'payment'));
+      const nonce = await api.query.getNonce(user.address, 'payment');
+      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'payment'));
     });
 
     it('returns the same staking nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(sender.address, 'staking');
-      assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'staking'));
+      const nonce = await api.query.getNonce(user.address, 'staking');
+      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'staking'));
     });
 
     xit('returns the same confirmation nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(sender.address, 'confirmation');
-      assert.equal(nonce, await api.query.getNonce(sender.publicKey, 'confirmation'));
+      const nonce = await api.query.getNonce(user.address, 'confirmation');
+      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'confirmation'));
     });
   });
 

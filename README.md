@@ -9,7 +9,7 @@ Aventus AvN javascript API which connects to generic JSON-RPC spec.\
 Please see the [avn-api](https://www.npmjs.com/package/avn-api) NPM module for JS functionality and example usage.
 
 ## Running
-Before using the api, set your AvN mnemonic or secret seed as the **SURI** environment variable: `export SURI=<mnemonic OR secret seed>``
+Before using the api, set the user's AvN mnemonic or secret seed as the **SURI** environment variable: `export SURI=<mnemonic OR secret seed>``
 examples:
 - `export SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"`
 - `export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
@@ -46,27 +46,27 @@ const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
 Each transaction request requires 1 or 2 proof sets, each comprising both a **proxySignature** and a **feePaymentSignature**\
 Most proofs require nonces.
 Proofs are created automatically and internally by the api but can also be created manually for use with JSON-RPC: \
-**Note:** _These methods still require **SURI** to be set to the intended sender/signer account_
+**Note:** _These methods still require **SURI** to be set to the intended user account_
 
 - If required, first make a [nonce](#getNonce) or [NFT nonce](#getNftNonce) query to retrieve the relevant type of transaction nonce/s
 - The api then exposes the following methods to generate a relevant **proxySignature**:
-  - `api.proxy.createProxyTransferSignature([relayer], [signer], [recipient], [token], [amount], [tokenNonce)` - _used for AVT and non-AVT transfers_
+  - `api.proxy.createProxyTransferSignature([relayer], [user], [recipient], [token], [amount], [tokenNonce)` - _used for AVT and non-AVT transfers_
   - `api.proxy.createProxyConfirmTokenLiftSignature([relayer], 1, [ethereumTransactionHash], [confirmationNonce])`
-  - `api.proxy.createProxyTokenLowerSignature([relayer], [signer], [t1Recipient], [token], [amount], [tokenNonce])`
-  - `api.proxy.createProxyListNftOpenForSaleSignature([relayer], [signer], [nftId], 2, [nftNonce])`
-  - `api.proxy.createProxyMintSingleNftSignature([relayer], [signer], [externalRef], [royalties], [t1Authority])`
-  - `api.proxy.createProxyTransferFiatNftSignature([relayer], [signer], [nftId], [recipient], [nftNonce])`
-  - `api.proxy.createProxyCancelListFiatNftSignature([relayer], [signer], [nftId], [nftNonce])`
-  - `api.proxy.createProxyStakeAvtSignature([relayer], [signer], [amount], [targets], [stakingNonce])` - _returns the 2 signatures required by proxyStakeAvt_
+  - `api.proxy.createProxyTokenLowerSignature([relayer], [user], [t1Recipient], [token], [amount], [tokenNonce])`
+  - `api.proxy.createProxyListNftOpenForSaleSignature([relayer], [user], [nftId], 2, [nftNonce])`
+  - `api.proxy.createProxyMintSingleNftSignature([relayer], [user], [externalRef], [royalties], [t1Authority])`
+  - `api.proxy.createProxyTransferFiatNftSignature([relayer], [user], [nftId], [recipient], [nftNonce])`
+  - `api.proxy.createProxyCancelListFiatNftSignature([relayer], [user], [nftId], [nftNonce])`
+  - `api.proxy.createProxyStakeAvtSignature([relayer], [user], [amount], [targets], [stakingNonce])` - _returns the 2 signatures required by proxyStakeAvt_
   - `api.proxy.createProxyIncreaseStakeSignature([relayer], [amount], [stakingNonce])`
   - `api.proxy.createProxyUnstakeSignature([relayer], [amount], [stakingNonce])`
   - `api.proxy.createProxyWithdrawUnlockedSignature([relayer], [stakingNonce])`
   - `api.proxy.createProxyPayoutStakersSignature([relayer], [eraIndex], [stakingNonce])`
 
-- Next make a [nonce](#getNonce) query to retrieve the signer's **paymentNonce**
+- Next make a [nonce](#getNonce) query to retrieve the user's **paymentNonce**
 - Get the **relayerFee** by making a [getRelayerFees](#getRelayerFees) request, passing the correct transactionType
 - Finally, use the collected data to generate the **feePaymentSignature**:
-  - `api.proxy.createFeePaymentSignature([relayer], [signer], [proxySignature], [relayerFee], [paymentNonce])`
+  - `api.proxy.createFeePaymentSignature([relayer], [user], [proxySignature], [relayerFee], [paymentNonce])`
 
 ### AvN accounts format
 AvN accounts can be identified by either their public key or their address. The former is represented by a 32-byte hex string. The latter is a string represented in [SS58 format](https://substrate.dev/docs/en/knowledgebase/advanced/ss58-address-format).\
@@ -620,7 +620,7 @@ curl https://AVN-API-URL/query \
 All gateway transactions are processed via a relayer, which requires a pair of signed proofs; one to confirm the validity of the transaction and the other to confirm payment of the relayer fee
 
 #### proxyAvtTransfer
-Transfers the specified amount of AVT from the sender account to the destination account
+Transfers the specified amount of AVT from the user account to the destination account
 
 **REQUEST** \
 `POST https://AVN-API-URL/send`
@@ -631,12 +631,12 @@ Transfers the specified amount of AVT from the sender account to the destination
 
 **REQUEST PARAMS** \
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `recipient` *[required]* - a string representing the recipient's SS58 address \
 `token` *[required]* - a hex string representing the token ID (20 bytes) of the AVT contract \
 `amount` *[required]* - a string integer value representing the amount (in atto AVT) being transferred \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -646,7 +646,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyAvtTransfer", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", "token":"0x405df1b38510c455ef81500a3dc7e9ae599e18f6", "amount":"20000", "proxySignature":"0xc2f5deeede54698bffd1779532cf66590ff5302ea624b5d3b8e72d5a949e90027eed2a19f2a12161c293204dbb1ccc4032e4248760f6385a83d5e44188cf9d8b", "feePaymentSignature":"0xde49e7ab095debda05f86a122d064d24bc9c31360d1e5ebc1357076918ca78465a5428f77507f966531e29eee43070611d07f5a1632c11ff1741c3c12b22db83", "paymentNonce":"200"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyAvtTransfer", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", "token":"0x405df1b38510c455ef81500a3dc7e9ae599e18f6", "amount":"20000", "proxySignature":"0xc2f5deeede54698bffd1779532cf66590ff5302ea624b5d3b8e72d5a949e90027eed2a19f2a12161c293204dbb1ccc4032e4248760f6385a83d5e44188cf9d8b", "feePaymentSignature":"0xde49e7ab095debda05f86a122d064d24bc9c31360d1e5ebc1357076918ca78465a5428f77507f966531e29eee43070611d07f5a1632c11ff1741c3c12b22db83", "paymentNonce":"200"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -662,7 +662,7 @@ curl https://AVN-API-URL/send \
 ```
 
 #### proxyTokenTransfer
-Transfers the specified amount of an ERC20 or ERC777 token, from the sender account to the destination account
+Transfers the specified amount of an ERC20 or ERC777 token, from the user account to the destination account
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`
@@ -673,12 +673,12 @@ Transfers the specified amount of an ERC20 or ERC777 token, from the sender acco
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `recipient` *[required]* - a string representing the recipient's SS58 address \
 `token` *[required]* - a hex string representing the token ID (20 bytes) of the token being checked \
 `amount` *[required]* - a string integer value representing the amount (in lowest fraction) of the token being transferred \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -688,7 +688,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyTokenTransfer", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", token":"0xb130395ae89acbe32999f8eb6e6114a56d676199", "amount":"1000000", "proxySignature":"0x883e4300581dcaf3373c81eff1ec86776c58aa12fd184d4500d1aab8b7832076484d967ca01c96e7ab6d20903145c9efebac38ed521f30fe52da2e27beecf08f", "feePaymentSignature":"0x7cff997be6fb98db949da0eceee2480b46a3b3aeaf4dbc7862bf6617a4c23319f666dfc2bb9e9a365ffd67ab279d980a0139fa6ce0165cdd76aaf555e7a1ba80", "paymentNonce":"199"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyTokenTransfer", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", token":"0xb130395ae89acbe32999f8eb6e6114a56d676199", "amount":"1000000", "proxySignature":"0x883e4300581dcaf3373c81eff1ec86776c58aa12fd184d4500d1aab8b7832076484d967ca01c96e7ab6d20903145c9efebac38ed521f30fe52da2e27beecf08f", "feePaymentSignature":"0x7cff997be6fb98db949da0eceee2480b46a3b3aeaf4dbc7862bf6617a4c23319f666dfc2bb9e9a365ffd67ab279d980a0139fa6ce0165cdd76aaf555e7a1ba80", "paymentNonce":"199"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -715,11 +715,11 @@ Trigger the AvN confirmation of a lift operation that has previously occurred on
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `eventType` *[required]* - the integer value 1 - representing the enum value for a Lifted event type \
 `ethereumTransactionHash` *[required]* - a string representing the 32 byte Ethereum transaction hash of the lift \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -729,7 +729,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyConfirmTokenLift", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "eventType": 1, "ethereumTransactionHash": "0xad7190f148fbd57b2a615c964b3ad2dcf17574ebf0d1c9778f6aab09657814ca", "proxySignature":"0x362f3e1f9f8f8802b84a54562be6ae1451a959b84b037f98604d9fa78d4f9ab068d6385baeaa16cd3a060829d5f776444af59d07c0755483acca220007422319", "feePaymentSignature":"0x5f3f0ca4ed32b4172998f816cf5e296553b29ec042a7b564c493568d3cf89687f08b9b48b17ca84f1935e8d844a9f133a239df12d7fa3d0fda58bb9a9d65eb10", "paymentNonce":"314"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyConfirmTokenLift", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "eventType": 1, "ethereumTransactionHash": "0xad7190f148fbd57b2a615c964b3ad2dcf17574ebf0d1c9778f6aab09657814ca", "proxySignature":"0x362f3e1f9f8f8802b84a54562be6ae1451a959b84b037f98604d9fa78d4f9ab068d6385baeaa16cd3a060829d5f776444af59d07c0755483acca220007422319", "feePaymentSignature":"0x5f3f0ca4ed32b4172998f816cf5e296553b29ec042a7b564c493568d3cf89687f08b9b48b17ca84f1935e8d844a9f133a239df12d7fa3d0fda58bb9a9d65eb10", "paymentNonce":"314"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -745,7 +745,7 @@ curl https://AVN-API-URL/send \
 ```
 
 #### proxyTokenLower
-Triggers a "lower" of an amount of ETH (0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) or any available ERC20 or ERC777 token, deducting the amount from the sender's AvN account.\
+Triggers a "lower" of an amount of ETH (0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) or any available ERC20 or ERC777 token, deducting the amount from the user's AvN account.\
 The process is completed on Ethereum by calling the AvN tier1 contract's lower method after a summary containing the transaction has been published, in order for the recipient to receive the lowered amount.
 
 **REQUEST**\
@@ -757,12 +757,12 @@ The process is completed on Ethereum by calling the AvN tier1 contract's lower m
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `t1Recipient` *[required]* - a string representing the t1 recipient's 20 byte Ethereum address \
 `token` *[required]* - a hex string representing the token ID (20 bytes) of the token being checked \
 `amount` *[required]* - a string integer value representing the amount (in lowest fraction) of the token being transferred \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -772,7 +772,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyTokenLower", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "t1Recipient":"0xFad45995bc1ceE164E7565e301F5736F3eed3Bb1", "token":"0x405df1b38510c455ef81500a3dc7e9ae599e18f6", "amount":"3", "proxySignature":"0x8e38f2809d58c2a75cd0529ebb650e4447c3b192e6b9eb4a7ae346049b1e18552565e94981e3bece4bf71667b88e54c39340aa931872f1f332ab72b94cb9938c", "feePaymentSignature":"0x9ae648e3c25ba12ae2272024ad7b0ed954e2f8057c544b825f800e886b7a79213f24c884f9aac6d2cd5d0a7bff6a813140ee20e38e7374c054d31d0834250684", "paymentNonce":"10"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyTokenLower", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "t1Recipient":"0xFad45995bc1ceE164E7565e301F5736F3eed3Bb1", "token":"0x405df1b38510c455ef81500a3dc7e9ae599e18f6", "amount":"3", "proxySignature":"0x8e38f2809d58c2a75cd0529ebb650e4447c3b192e6b9eb4a7ae346049b1e18552565e94981e3bece4bf71667b88e54c39340aa931872f1f332ab72b94cb9938c", "feePaymentSignature":"0x9ae648e3c25ba12ae2272024ad7b0ed954e2f8057c544b825f800e886b7a79213f24c884f9aac6d2cd5d0a7bff6a813140ee20e38e7374c054d31d0834250684", "paymentNonce":"10"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -788,7 +788,7 @@ curl https://AVN-API-URL/send \
 ```
 
 #### proxyMintSingleNft
-Mints a single NFT to the sender
+Mints a single NFT to the user
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`
@@ -798,13 +798,13 @@ Mints a single NFT to the sender
 `Authorization': bearer <awtToken>`
 
 **REQUEST PARAMS**\
-`relayer` *[required]* - a string representing the relayer's \
-`signer` *[required]* - a string representing the sender's \
+`relayer` *[required]* - a string representing the relayer's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `externalRef` *[required]* - a unique string representing the NFT's external reference \
 `royalties` *[optional]* - an array of royalty rates with percentages set in parts per million - accepts empty array if no royalties\
 `t1Authority` *[required]* - a hex string representing the 20 byte Ethereum address of the relevant authority \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -814,7 +814,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyMintSingleNft", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "externalRef":"my-unique-ref-2022-01-18T10:32:45.199Z", "royalties": [{"recipient_t1_address":"0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03", "rate": {"parts_per_million":"10000"}}], "t1Authority":"0xd6ae8250b8348c94847280928c79fb3b63ca453e", "proxySignature":"0xd4d20c5be0943cd1e784b7d83f7bf69d1c2419411c1b6b6d60c1e6d2c636742c30f44100d0fe24717104cad467890272d47a36f8daf497ebd2ec3ed106c58d8f", "feePaymentSignature":"0x4e4ec2190d44765d1b5fa88f6aabbf87744ef964c171f0ec48763fcfbc99e47e9b0ccd633403f75068604cf3b94336c7e93a56b13a0973d181432d381b5b0f8a", "paymentNonce":"201"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyMintSingleNft", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "externalRef":"my-unique-ref-2022-01-18T10:32:45.199Z", "royalties": [{"recipient_t1_address":"0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03", "rate": {"parts_per_million":"10000"}}], "t1Authority":"0xd6ae8250b8348c94847280928c79fb3b63ca453e", "proxySignature":"0xd4d20c5be0943cd1e784b7d83f7bf69d1c2419411c1b6b6d60c1e6d2c636742c30f44100d0fe24717104cad467890272d47a36f8daf497ebd2ec3ed106c58d8f", "feePaymentSignature":"0x4e4ec2190d44765d1b5fa88f6aabbf87744ef964c171f0ec48763fcfbc99e47e9b0ccd633403f75068604cf3b94336c7e93a56b13a0973d181432d381b5b0f8a", "paymentNonce":"201"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -841,11 +841,11 @@ Lists an NFT as open for sale in a particular market
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `nftId` *[required]* - a string representing the NFT ID (32 bytes) to check for nonce \
 `market` *[required]* - an integer enum representing the market to list the NFT on (1 = Ethereum, 2 = Fiat)\
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -855,7 +855,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyListNftOpenForSale", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "nftId":"0x2c94a703a7b01f0c2d1eed5ccf82b9cbadd0bdd5e4e5283ddf01b249586181c2", "market": 2, "proxySignature":"0xc695f01932ce42204d9a0102e74d32d3d43f4ac6a9d615647aec29f68c707e42dc372d29fbb2d0d303d4b5d184fbe294ce5e06c93d9771a56cfe7533e0cdb488", "feePaymentSignature":"0x02529e00606006ef98d70e8c32cd6a495faf362767366d01060a4fe43c1c5410f4c5260dde125da581b772909b5ed2756b83c71a5ef6568a36a79ab565cd158e", "paymentNonce":"205"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyListNftOpenForSale", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "nftId":"0x2c94a703a7b01f0c2d1eed5ccf82b9cbadd0bdd5e4e5283ddf01b249586181c2", "market": 2, "proxySignature":"0xc695f01932ce42204d9a0102e74d32d3d43f4ac6a9d615647aec29f68c707e42dc372d29fbb2d0d303d4b5d184fbe294ce5e06c93d9771a56cfe7533e0cdb488", "feePaymentSignature":"0x02529e00606006ef98d70e8c32cd6a495faf362767366d01060a4fe43c1c5410f4c5260dde125da581b772909b5ed2756b83c71a5ef6568a36a79ab565cd158e", "paymentNonce":"205"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -882,11 +882,11 @@ Transfers an NFT that is currently listed for sale in fiat
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `nftId` *[required]* - a string representing the NFT ID (32 bytes) to check for nonce \
 `recipient` *[required]* - a hex string representing the recipient's public key \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -896,7 +896,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyTransferFiatNft", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "nftId":"0x3044598a96da039d27802b300ba6197d6a023752efaccf598e62516f6ee7587c", "recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", "proxySignature":"0xaa3b454549de3a941e19293c0da9e47e83b920df232d5db56d5912f83b1e0c43083b1103f9655c52290221bf590facd9e99a839cafc383c30567055a56c97c8a", "feePaymentSignature":"0x500da1ab75346f2b4459cc2b958a3eb690a4b8c50cc1e6f3d49fe786cb6acd0be0ca93da71bbe55d11f8df8f64f3b99c2c47a053495bf6eb842ecc4fbfad6b87", "paymentNonce":"212"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyTransferFiatNft", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "nftId":"0x3044598a96da039d27802b300ba6197d6a023752efaccf598e62516f6ee7587c", "recipient":"5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF", "proxySignature":"0xaa3b454549de3a941e19293c0da9e47e83b920df232d5db56d5912f83b1e0c43083b1103f9655c52290221bf590facd9e99a839cafc383c30567055a56c97c8a", "feePaymentSignature":"0x500da1ab75346f2b4459cc2b958a3eb690a4b8c50cc1e6f3d49fe786cb6acd0be0ca93da71bbe55d11f8df8f64f3b99c2c47a053495bf6eb842ecc4fbfad6b87", "paymentNonce":"212"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -923,10 +923,10 @@ Cancels a listing for an NFT as open for sale in fiat
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `nftId` *[required]* - a string representing the NFT ID (32 bytes) to check for nonce \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -936,7 +936,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyCancelListFiatNft", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "nftId":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x7e8fb895d9c33fbfd2b0122a586d2d29a6c606ee2ca485c8eb69163be8ef7a6ddd2a52e6802f40720e192d4ca407d657cdfa703a8ce502e9c4f0feedfc3e5e8b", "feePaymentSignature":"0xaae7983775fc1a5bc04b500af156dcba343f1d305549737821b7e31a12f6ce430941856c1259d520759548281afd465b3d66b7e48e72fc2c8c0a3a5bb9f8fa87", "paymentNonce":"209"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyCancelListFiatNft", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "nftId":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x7e8fb895d9c33fbfd2b0122a586d2d29a6c606ee2ca485c8eb69163be8ef7a6ddd2a52e6802f40720e192d4ca407d657cdfa703a8ce502e9c4f0feedfc3e5e8b", "feePaymentSignature":"0xaae7983775fc1a5bc04b500af156dcba343f1d305549737821b7e31a12f6ce430941856c1259d520759548281afd465b3d66b7e48e72fc2c8c0a3a5bb9f8fa87", "paymentNonce":"209"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -965,13 +965,13 @@ Stakes the specified amount of AVT, locking its free usage in order to earn rewa
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `amount` *[required]* - a string integer value representing the full amount of AVT to stake \
 `targets` *[required]* - The list of validators to nominate \
-`proxyBondSignature` *[required]* - a proof signed by the sender/signer account allowing the bond transaction to be proxied \
-`proxyNominateSignature` *[required]* - a proof signed by the sender/signer account allowing the nominate transaction to be proxied \
-`bondFeePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the bond relayer fees to be paid \
-`nominateFeePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the nominate relayer fees to be paid \
+`proxyBondSignature` *[required]* - a proof signed by the user allowing the bond transaction to be proxied \
+`proxyNominateSignature` *[required]* - a proof signed by the user allowing the nominate transaction to be proxied \
+`bondFeePaymentSignature` *[required]* - a proof signed by the user allowing the bond relayer fees to be paid \
+`nominateFeePaymentSignature` *[required]* - a proof signed by the user allowing the nominate relayer fees to be paid \
 `bondPaymentNonce` *[required]* - string integer value of the payment nonce used in the bondFeePaymentSignature \
 `nominatePaymentNonce` *[required]* - string integer value of the payment nonce used in the nominateFeePaymentSignature \
 **Note**: nominatePaymentNonce must succeed bondPaymentNonce \
@@ -984,7 +984,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyStakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxyBondSignature":"0x8cd139e3ac19d8fe217574c138ca320a73041b15527ba220280117588ad3597c20788049b4fbb6df2d96e579af68d6643c1cd4234812f8c9adb0e102a5840145",
+    -d '{"jsonrpc":"2.0", "method":"proxyStakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxyBondSignature":"0x8cd139e3ac19d8fe217574c138ca320a73041b15527ba220280117588ad3597c20788049b4fbb6df2d96e579af68d6643c1cd4234812f8c9adb0e102a5840145",
     "proxyNominateSignature":"0x4bd139e3ac19d8fe217574c138ca320a73041b15527ba220280117588ad3597c20788049b4fbb6df2d96e579af68d6643c1cd4234812f8c9adb0e102a5840145", "bondFeePaymentSignature":"0x243ad5e9df7e5443b29de409e5668753aea836b97d73af3b491c018d11a1269ef091f712b27e75847f8e5d056a996b4186d0ee80b3eb05ef0d1991c05539b0c8","nominateFeePaymentSignature":"0x123ad5e9df7e5443b29de409e5668753aea836b97d73af3b491c018d11a1269ef091f712b27e75847f8e5d056a996b4186d0ee80b3eb05ef0d1991c05539b0c8", "bondPaymentNonce":"305", "targets": ["0x9c64fea89ee6743bc48fb637f4d0349d299c4254676e44ecca989d9b34690f98", "0x67dfe6abf2495977d56ef4870333c0f00b78e0a5a3b7172e4b5e7b33716f00ab", "0x1ad675be22638c4257b059941ad4556e42369f5617d51ed012aa927af22f29ca"]}, "id":1}'
 ```
 
@@ -1013,10 +1013,10 @@ Stakes the specified amount of AVT, locking its free usage in order to earn rewa
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `amount` *[required]* - a string integer value representing the full amount of AVT to stake \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -1026,7 +1026,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyIncreaseStake", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x4bd139e3ac19d8fe217574c138ca320a73041b15527ba220280117588ad3597c20788049b4fbb6df2d96e579af68d6643c1cd4234812f8c9adb0e102a5840145", "feePaymentSignature":"0x123ad5e9df7e5443b29de409e5668753aea836b97d73af3b491c018d11a1269ef091f712b27e75847f8e5d056a996b4186d0ee80b3eb05ef0d1991c05539b0c8", "paymentNonce":"305"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyIncreaseStake", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x4bd139e3ac19d8fe217574c138ca320a73041b15527ba220280117588ad3597c20788049b4fbb6df2d96e579af68d6643c1cd4234812f8c9adb0e102a5840145", "feePaymentSignature":"0x123ad5e9df7e5443b29de409e5668753aea836b97d73af3b491c018d11a1269ef091f712b27e75847f8e5d056a996b4186d0ee80b3eb05ef0d1991c05539b0c8", "paymentNonce":"305"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -1053,10 +1053,10 @@ Unstakes the specified amount of AVT, removing it from earning further staking r
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `amount` *[required]* - a string integer value representing the full amount of AVT to unstake \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -1066,7 +1066,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyUnstakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x642e2bf73020f8bbdee84543fe696fd0fcfa0792702afd47b33dce5f0d986747dc75f255bc1e7881a90dd146ce0a1344316a5923deff2ee6b2ea867cdbfb2865", "feePaymentSignature":"0xbab9b458e835338e73b6d2ae1f33b1bcb34e3743f286c0adf9c49f23e0c9be1d5ae9e43a93ba1eb7af76f924e92e7693a6b4ab299299e02e6fc6388e89989bcf", "paymentNonce":"312"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyUnstakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x642e2bf73020f8bbdee84543fe696fd0fcfa0792702afd47b33dce5f0d986747dc75f255bc1e7881a90dd146ce0a1344316a5923deff2ee6b2ea867cdbfb2865", "feePaymentSignature":"0xbab9b458e835338e73b6d2ae1f33b1bcb34e3743f286c0adf9c49f23e0c9be1d5ae9e43a93ba1eb7af76f924e92e7693a6b4ab299299e02e6fc6388e89989bcf", "paymentNonce":"312"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -1093,9 +1093,9 @@ Withdraws previously unstaked AVT back to free balance
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`user` *[required]* - a string representing the user's SS58 address \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -1105,7 +1105,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyWithdrawUnlocked", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "proxySignature":"0x2d43738e47e395d2d1386f04b558c440f3806e13a5a64b1ceaa40360023b210aab69e9f3871d8410d63c42509ef047ffa7979fe697e53d39169c7a2a11917438", "feePaymentSignature":"0x7a1266bd213c15fbdfe4e399647f5d7b3d625b59cc0058252039009974da26b335ac5dc07973d2afb9a3062ccd6cd3b8caf915829820db50e1985b82c844c703", "paymentNonce":"339"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyWithdrawUnlocked", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "proxySignature":"0x2d43738e47e395d2d1386f04b558c440f3806e13a5a64b1ceaa40360023b210aab69e9f3871d8410d63c42509ef047ffa7979fe697e53d39169c7a2a11917438", "feePaymentSignature":"0x7a1266bd213c15fbdfe4e399647f5d7b3d625b59cc0058252039009974da26b335ac5dc07973d2afb9a3062ccd6cd3b8caf915829820db50e1985b82c844c703", "paymentNonce":"339"}, "id":1}'
 ```
 
 **RESULT FIELDS** \
@@ -1132,10 +1132,10 @@ Triggers the payment of staking rewards to the next XXX stakers
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
-`signer` *[required]* - a string representing the sender's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
 `era` *[required]* - a string integer value representing the era to payout \
-`proxySignature` *[required]* - a proof signed by the sender/signer account allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the sender/signer account allowing the relayer fees to be paid \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
 `paymentNonce` *[required]* - string integer value of the current account payment nonce
 
 **EXAMPLE**
@@ -1145,7 +1145,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyPayoutstakers", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "signer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "era":"1599", "proxySignature":"0x22ad3b01db96bf5b22d998a4296ff2d58180dc6eab357300b9613583f9570016fc5c439a80f17639e47ffb7100aa8cbea8def6ab2add7837ba0074321ed9c739", "feePaymentSignature":"0x6efb3277c7ee6f965bbf07d6a3faf2acb2fff71029ccd96f9c39b8ba3e2b27084420eae53fecc2bad956c90c5150df9bc3edbbddae5ef1dc538965b25f9efe41", "paymentNonce":"332"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyPayoutstakers", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "era":"1599", "proxySignature":"0x22ad3b01db96bf5b22d998a4296ff2d58180dc6eab357300b9613583f9570016fc5c439a80f17639e47ffb7100aa8cbea8def6ab2add7837ba0074321ed9c739", "feePaymentSignature":"0x6efb3277c7ee6f965bbf07d6a3faf2acb2fff71029ccd96f9c39b8ba3e2b27084420eae53fecc2bad956c90c5150df9bc3edbbddae5ef1dc538965b25f9efe41", "paymentNonce":"332"}, "id":1}'
 ```
 
 **RESULT FIELDS** \

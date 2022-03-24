@@ -136,7 +136,7 @@ function createProxyMintSingleNftSignature(proxyArgs) {
     { Text: PROXY_MINT_SINGLE_NFT_CONTEXT },
     { AccountId: relayer },
     { 'Vec<u8>': externalRef },
-    { SkipConversion: encodeRoyalties(royalties) },
+    { SkipEncode: encodeRoyalties(royalties) },
     { H160: t1Authority }
   ];
 
@@ -195,7 +195,7 @@ function createFeePaymentSignature(feePaymentArgs) {
 
   const dataToSign = [
     { Text: FEE_PAYMENT_CONTEXT },
-    { SkipConversion: encodeData(proxyProofData) },
+    { SkipEncode: encodeData(proxyProofData) },
     { AccountId: relayer },
     { Balance: relayerFee },
     { u64: nonce }
@@ -282,7 +282,7 @@ function createProxyPayoutStakersSignature(proxyArgs) {
 function encodeData(data) {
   const encodedData = data.map(d => {
     const [type, value] = Object.entries(d);
-    return (type === 'SkipConversion') ? value : common.registry.createType(type, value).toU8a(requiresConversion(type));
+    return (type === 'SkipEncode') ? value : common.registry.createType(type, value).toU8a(requiresConversion(type));
   });
   return u8aConcat(...encodeData);
 }

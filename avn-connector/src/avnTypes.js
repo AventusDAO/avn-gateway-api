@@ -100,6 +100,7 @@ const common_types = {
     signature: 'MultiSignature'
   },
   PaymentInfo: {
+    payer: 'AccountId',
     recipient: 'AccountId',
     amount: 'Balance',
     signature: 'MultiSignature'
@@ -263,8 +264,6 @@ const common_types = {
     recipient_t1_address: 'H160',
     rate: 'RoyaltyRate'
   },
-  Address: 'MultiAddress',
-  LookupSource: 'MultiAddress',
   NftSaleType: {
     _enum: ['Unknown', 'Ethereum', 'Fiat']
   },
@@ -278,7 +277,9 @@ const common_types = {
       Lifting: '{}',
       NftMarketplace: 'MarketplaceId'
     }
-  }
+  },
+  Address: 'MultiAddress',
+  LookupSource: 'MultiAddress'
 };
 
 module.exports = {

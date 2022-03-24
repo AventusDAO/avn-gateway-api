@@ -19,7 +19,7 @@ const PROXY_WITHDRAW_UNBONDED_CONTEXT = 'authorization for withdraw unbonded ope
 const PROXY_PAYOUT_STAKERS_CONTEXT = 'authorization for signed payout stakers operation';
 const STASH_REWARD_DESTINATION = 'Stash';
 
-const requiresConversion = {
+const isNumType = {
   Text: false,
   AccountId: true,
   BalanceOf: true,
@@ -282,7 +282,7 @@ function createProxyPayoutStakersSignature(proxyArgs) {
 function encodeData(data) {
   const encodedData = data.map(d => {
     const [type, value] = Object.entries(d);
-    return type === 'SkipFurtherEncode' ? value : common.registry.createType(type, value).toU8a(requiresConversion(type));
+    return type === 'SkipFurtherEncode' ? value : common.registry.createType(type, value).toU8a(isNumType(type));
   });
   return u8aConcat(...encodeData);
 }

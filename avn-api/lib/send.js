@@ -159,7 +159,7 @@ function payoutStakers(api, queryApi) {
       eraIndex = await queryApi.getActiveEra();
 
       if (eraIndex === 0) {
-        throw new Error("You must wait for at least 1 era to pass before calling this method. Current era index: ", eraIndex);
+        throw new Error('You must wait for at least 1 era to pass before calling this method. Current era index: ', eraIndex);
       }
 
       eraIndex = eraIndex - 1; // the default is to payout the previous era because the current one won't be ready yet.

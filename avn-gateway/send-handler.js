@@ -207,15 +207,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 
   let params;
   try {
-    params = await getProxyParams(
-      call.method,
-      relayer,
-      user,
-      proxySignature,
-      feePaymentSignature,
-      paymentNonce,
-      methodParams
-    );
+    params = await getProxyParams(call.method, relayer, user, proxySignature, feePaymentSignature, paymentNonce, methodParams);
   } catch (err) {
     return utils.errorResponse('internal', err.toString(), err, request, call.id);
   }
@@ -408,13 +400,7 @@ async function getNominateParams(call) {
     throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
   }
 
-  validateMethodParams(
-    relayer,
-    user,
-    proxyNominateSignature,
-    nominateFeePaymentSignature,
-    nominatePaymentNonce
-  );
+  validateMethodParams(relayer, user, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
 
   return await getProxyParams(
     call.params.nominateMethodName,

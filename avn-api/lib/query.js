@@ -16,6 +16,7 @@ function Query(api) {
   this.getStakingStatus = generateFunction(getStakingStatus, api);
   this.getValidatorsToNominate = generateFunction(getValidatorsToNominate, api);
   this.getActiveEra = generateFunction(getActiveEra, api);
+  this.getOwnedNfts = generateFunction(getOwnedNfts, api);
   this.nftsMap = {};
 }
 
@@ -124,6 +125,14 @@ function getAccountInfo(api) {
     common.validateAccount(accountId);
 
     return await this.postRequest(api, 'getAccountInfo', { accountId });
+  };
+}
+
+function getOwnedNfts(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getOwnedNfts', { nftId });
   };
 }
 

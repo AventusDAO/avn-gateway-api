@@ -1,0 +1,2 @@
+mongodb:
+  replicaCount: 1

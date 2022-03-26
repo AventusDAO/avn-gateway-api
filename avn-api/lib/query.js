@@ -132,7 +132,7 @@ function getOwnedNfts(api) {
   return async function (accountId) {
     common.validateAccount(accountId);
 
-    return await this.postRequest(api, 'getOwnedNfts', { nftId });
+    return await this.postRequest(api, 'getOwnedNfts', { accountId });
   };
 }
 

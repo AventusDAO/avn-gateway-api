@@ -1,4 +1,4 @@
-const common_types = {
+const baseTypes = {
   CheckResult: {
     _enum: ['Ok', 'Invalid', 'HttpErrorCheckingEvent', 'Unknown']
   },
@@ -100,7 +100,6 @@ const common_types = {
     signature: 'MultiSignature'
   },
   PaymentInfo: {
-    payer: 'AccountId',
     recipient: 'AccountId',
     amount: 'Balance',
     signature: 'MultiSignature'
@@ -278,10 +277,44 @@ const common_types = {
       NftMarketplace: 'MarketplaceId'
     }
   },
-  Address: 'MultiAddress',
-  LookupSource: 'MultiAddress'
+  Address: "LookupSource",
+  LookupSource: "IndicesLookupSource",
+  AccountInfo: "AccountInfoWithDualRefCount"
 };
 
-module.exports = {
-  description: common_types
-};
+const specVer264Types = {
+  PaymentInfo: {
+    payer: 'AccountId',
+    recipient: 'AccountId',
+    amount: 'Balance',
+    signature: 'MultiSignature'
+  },
+  Address: 'MultiAddress',
+  LookupSource: 'MultiAddress',
+}
+
+const versionedTypes = [
+  {
+    minmax: [0, 264],
+    types: {
+      ...baseTypes
+    }
+  },
+  {
+    minmax: [264, undefined],
+    types: {
+      ...baseTypes,
+      ...specVer264Types
+    }
+  }
+]
+
+const typesBundle = {
+  spec: {
+    avn: {
+      types: versionedTypes
+    }
+  }
+}
+
+module.exports = typesBundle

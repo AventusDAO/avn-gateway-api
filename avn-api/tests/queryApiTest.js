@@ -147,7 +147,7 @@ describe('Query api calls:', async () => {
 
     function mint() {
       const externalRef = 'avn-gateway-test-' + new Date().toISOString();
-      const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      const requestId = await api.send.mintSingleNft(relayer.address, externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');
       return await api.query.getNftId(externalRef);
     }

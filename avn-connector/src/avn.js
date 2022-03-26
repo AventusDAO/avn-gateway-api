@@ -37,7 +37,7 @@ async function proxy(requestId, palletName, method, params) {
 
     const innerCalls = params.map(p => {
       let innerCall = api.tx[p.palletName][p.method](...p.params.proxyParams);
-      return api.tx.avnProxy.proxy(innerCall, p.paymentInfo);
+      return api.tx.avnProxy.proxy(innerCall, p.params.paymentInfo);
     });
     const txn = api.tx.utility.batchAll(innerCalls);
     return await signAndSend(requestId, params[0].params.relayerAddress, txn);

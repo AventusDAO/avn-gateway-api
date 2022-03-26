@@ -59,6 +59,12 @@ function populateTestFees() {
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyListNftOpenForSale] = DEFAULT_RELAYER_FEE;
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyTransferFiatNft] = DEFAULT_RELAYER_FEE;
   testRelayerFees.fees[gatewayDb.TransactionType.ProxyCancelListFiatNft] = DEFAULT_RELAYER_FEE;
+  testRelayerFees.fees[gatewayDb.TransactionType.ProxyBond] = DEFAULT_RELAYER_FEE;
+  testRelayerFees.fees[gatewayDb.TransactionType.ProxyNominate] = DEFAULT_RELAYER_FEE;
+  testRelayerFees.fees[gatewayDb.TransactionType.ProxyIncreaseStake] = DEFAULT_RELAYER_FEE;
+  testRelayerFees.fees[gatewayDb.TransactionType.ProxyUnstake] = DEFAULT_RELAYER_FEE;
+  testRelayerFees.fees[gatewayDb.TransactionType.ProxyWithdrawUnlocked] = DEFAULT_RELAYER_FEE;
+  testRelayerFees.fees[gatewayDb.TransactionType.ProxyPayoutStakers] = DEFAULT_RELAYER_FEE;
 
   testUser1Fees.fees[gatewayDb.TransactionType.ProxyAvtTransfer] = TEST_USER1_RELAYER_FEE;
 

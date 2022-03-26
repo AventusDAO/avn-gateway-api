@@ -4,7 +4,7 @@ const { isHex } = require('@polkadot/util');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
-const avn_types = require('./avnTypes');
+const avnTypes = require('./avnTypes');
 const redis = require('./redis');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
@@ -37,7 +37,7 @@ async function proxy(requestId, palletName, method, params) {
 
     const innerCalls = params.map(p => {
       let innerCall = api.tx[p.palletName][p.method](...p.params.proxyParams);
-      return api.tx.avnProxy.proxy(innerCall, p.paymentInfo);
+      return api.tx.avnProxy.proxy(innerCall, p.params.paymentInfo);
     });
     const txn = api.tx.utility.batchAll(innerCalls);
     return await signAndSend(requestId, params[0].params.relayerAddress, txn);
@@ -166,8 +166,7 @@ async function connectToAvN() {
   let provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({
     provider,
-    types: avn_types.description,
-    typesSpec: avn_types.nodeTypes
+    typesBundle: avnTypes
   });
 
   const [chain, nodeName, nodeVersion] = await Promise.all([

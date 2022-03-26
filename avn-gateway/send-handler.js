@@ -243,7 +243,7 @@ function getPaymentInfo(user, relayer, relayerFee, proxyProof, feePaymentSignatu
 
 function getProxyProof(user, relayer, proxySignature) {
   return {
-    user,
+    signer: user,
     relayer,
     signature: {
       Sr25519: proxySignature

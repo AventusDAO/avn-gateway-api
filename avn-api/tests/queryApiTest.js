@@ -157,7 +157,7 @@ describe('Query api calls:', async () => {
       let secondNftId = await mint();
       const returnedData = await api.query.getOwnedNfts(user.address);
       // We can't be sure how many nfts are owned by `user` but we can make sure it contains the 2 we just minted
-      assert(returnedData.length > 2);
+      assert(returnedData.length >= 2);
       assert(returnedData.includes(firstNftId));
       assert(returnedData.includes(secondNftId));
     })

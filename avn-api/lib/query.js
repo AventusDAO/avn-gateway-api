@@ -14,6 +14,7 @@ function Query(api) {
   this.getNftId = generateFunction(getNftId, api);
   this.getNftOwner = generateFunction(getNftOwner, api);
   this.getAccountInfo = generateFunction(getAccountInfo, api);
+  this.getOwnedNfts = generateFunction(getOwnedNfts, api);
   this.nftsMap = {};
 }
 
@@ -109,6 +110,14 @@ function getAccountInfo(api) {
     common.validateAccount(accountId);
 
     return await this.postRequest(api, 'getAccountInfo', { accountId });
+  };
+}
+
+function getOwnedNfts(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getOwnedNfts', { accountId });
   };
 }
 

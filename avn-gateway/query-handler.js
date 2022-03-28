@@ -130,7 +130,7 @@ async function getNftOwner(call, request) {
   if (utils.isValidNftId(nftId) === false) {
     return utils.errorResponse('params', 'invalid nft id', nftId, request, call.id);
   } else {
-    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', nftId], filterNftOwner);
+    return await queryChain(call, request, 'nftManager', 'nfts', [nftId], filterNftOwner);
   }
 }
 
@@ -254,17 +254,12 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
 const formatEraAsString = data => (data ? data.index : 0);
 
+const filterNftOwner = (data) => (data ? data.owner : null);
+
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (uniqueExternalRef, data) => {
   const uniqueExternalRefAsHex = '0x' + Buffer.from(uniqueExternalRef, 'utf8').toString('hex');
   const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex);
   const nftId = index > -1 ? data[index][1].nft_id : undefined;
   return nftId;
-};
-
-// TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT owners
-const filterNftOwner = (data, params) => {
-  const index = data.findIndex(nft => nft[1].nft_id === params[1]);
-  const owner = index > -1 ? data[index][1].owner : undefined;
-  return owner;
 };

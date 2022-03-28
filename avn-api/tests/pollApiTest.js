@@ -29,6 +29,8 @@ describe('Polling api calls:', async () => {
 
     it('returns a pending status and transaction hash for a valid request ID', async () => {
       let result = await api.poll.requestState(requestId);
+      assert.equal(result.txHash.length, 66);
+      assert.equal(result.status, 'Pending');
     });
 
     it('returns a rejected status when a transaction fails to be executed', async () => {

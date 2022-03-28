@@ -56,6 +56,9 @@ async function callSwitch(call, request) {
       return await queryValidatorsToNominateFromChain(call, request);
     case 'getActiveEra':
       return await queryActiveEra(call, request);
+    case 'getOwnedNfts':
+      return await getOwnedNfts(call, request);
+
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -210,6 +213,16 @@ async function queryValidatorsToNominateFromChain(call, request) {
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
+}
+
+async function getOwnedNfts(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'nftManager', 'ownedNfts', [accountId]);
+  }
 }
 
 async function query(call, request, method, params, responseFormatter) {

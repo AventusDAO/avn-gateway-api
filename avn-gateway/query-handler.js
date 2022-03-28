@@ -105,7 +105,12 @@ async function getNftId(call, request) {
   if (utils.isValidString(externalRef) === false) {
     return utils.errorResponse('params', 'invalid external ref', externalRef, request, call.id);
   } else {
-    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', externalRef], filterNftId);
+    function getNftIdFunction(externalRef) {
+      return function(nftData) {
+        return filterNftId(externalRef, nftData);
+      };
+    }
+    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', externalRef], getNftIdFunction(externalRef));
   }
 }
 
@@ -250,8 +255,8 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 const formatEraAsString = data => (data ? data.index : 0);
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
-const filterNftId = (data, params) => {
-  const uniqueExternalRefAsHex = '0x' + Buffer.from(params[1], 'utf8').toString('hex');
+const filterNftId = (uniqueExternalRef, data) => {
+  const uniqueExternalRefAsHex = '0x' + Buffer.from(uniqueExternalRef, 'utf8').toString('hex');
   const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex);
   const nftId = index > -1 ? data[index][1].nft_id : undefined;
   return nftId;

@@ -163,7 +163,7 @@ function verifyFeePaymentSignature(user, relayer, relayerFee, proxyProof, feePay
 }
 
 function encodeProxyProof(params) {
-  const user = registry.createType('AccountId', params.user);
+  const user = registry.createType('AccountId', params.signer);
   const relayer = registry.createType('AccountId', params.relayer);
   const signature = registry.createType('MultiSignature', params.signature);
   return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));

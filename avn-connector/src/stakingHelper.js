@@ -1,26 +1,33 @@
 const BN = require('bn.js');
 const BN_ZERO = new BN(0);
 
-function calculateBondedAmount (stakingInfo) {
-  let bonded = BN_ZERO;
+function calculateBondedAmount(stakingInfo) {
+  let bonded = new BN(0);
 
-  if (stakingInfo && stakingInfo.stakingLedger && stakingInfo.stakingLedger.active && stakingInfo.accountId.eq(stakingInfo.stashId)) {
-      bonded = stakingInfo.stakingLedger.active.unwrap();
+  if (
+    stakingInfo &&
+    stakingInfo.stakingLedger &&
+    stakingInfo.stakingLedger.active &&
+    stakingInfo.accountId.eq(stakingInfo.stashId)
+  ) {
+    bonded = stakingInfo.stakingLedger.active.unwrap();
   }
 
   return bonded;
 }
 
-function calculateUnbondingAmount (stakingInfo) {
+function calculateUnbondingAmount(stakingInfo) {
   if (!stakingInfo.unlocking) {
     return BN_ZERO;
   }
 
   const filtered = stakingInfo.unlocking
-      .filter(({ remainingEras, value }) => value.gt(BN_ZERO) && remainingEras.gt(BN_ZERO))
-      .map((unlock) => unlock.value);
+    .filter(({ remainingEras, value }) => value.gt(BN_ZERO) && remainingEras.gt(BN_ZERO))
+    .map(unlock => unlock.value);
 
-  return filtered.reduce((total, value) => total.iadd(value), BN_ZERO);
+  const amount = filtered.reduce((total, value) => total.iadd(value), new BN(0));
+
+  return amount;
 }
 
 module.exports = {

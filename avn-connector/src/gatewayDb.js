@@ -17,7 +17,13 @@ const TransactionType = {
   ProxyMintSingleNft: 'proxyMintSingleNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
   ProxyTransferFiatNft: 'proxyTransferFiatNft',
-  ProxyCancelListFiatNft: 'proxyCancelListFiatNft'
+  ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
+  ProxyBond: 'proxyBond',
+  ProxyNominate: 'proxyNominate',
+  ProxyIncreaseStake: 'proxyIncreaseStake',
+  ProxyUnstake: 'proxyUnstake',
+  ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
+  ProxyPayoutStakers: 'proxyPayoutStakers'
 };
 
 const defaultFees = {};
@@ -83,6 +89,12 @@ function setupDefaultFees() {
   defaultFees[TransactionType.ProxyListNftOpenForSale] = DEFAULT_RELAYER_FEE;
   defaultFees[TransactionType.ProxyTransferFiatNft] = DEFAULT_RELAYER_FEE;
   defaultFees[TransactionType.ProxyCancelListFiatNft] = DEFAULT_RELAYER_FEE;
+  defaultFees[TransactionType.ProxyBond] = DEFAULT_RELAYER_FEE;
+  defaultFees[TransactionType.ProxyNominate] = DEFAULT_RELAYER_FEE;
+  defaultFees[TransactionType.ProxyIncreaseStake] = DEFAULT_RELAYER_FEE;
+  defaultFees[TransactionType.ProxyUnstake] = DEFAULT_RELAYER_FEE;
+  defaultFees[TransactionType.ProxyWithdrawUnlocked] = DEFAULT_RELAYER_FEE;
+  defaultFees[TransactionType.ProxyPayoutStakers] = DEFAULT_RELAYER_FEE;
 }
 
 async function createCollections(db) {

@@ -13,8 +13,10 @@ function MQSender(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint) {
 
 MQSender.prototype.getMqConnectionUrl = async function () {
   const secret = await this.secretsManager.getSecret(this.secretArn);
-  const rabbitEndpointPrefix = `${process.env.MQ_PROTOCOL}://${encodeURIComponent(secret.username)}:${encodeURIComponent(secret.password)}@`
-  return rabbitEndpointPrefix.concat(this.mqBrokerAmqpEndpoint)
+  const rabbitEndpointPrefix = `${process.env.MQ_PROTOCOL}://${encodeURIComponent(secret.username)}:${encodeURIComponent(
+    secret.password
+  )}@`;
+  return rabbitEndpointPrefix.concat(this.mqBrokerAmqpEndpoint);
 };
 
 MQSender.prototype.sendMessageToMQ = async function (queue, message, persistent = true) {

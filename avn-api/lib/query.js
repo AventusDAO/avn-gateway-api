@@ -6,14 +6,16 @@ function Query(api) {
   this.getTotalAvt = generateFunction(getTotalAvt, api);
   this.getAvtBalance = generateFunction(getAvtBalance, api);
   this.getTokenBalance = generateFunction(getTokenBalance, api);
-  this.getAccountNonce = generateFunction(getAccountNonce, api);
-  this.getAccountPaymentNonce = generateFunction(getAccountPaymentNonce, api);
+  this.getNonce = generateFunction(getNonce, api);
   this.getAvtContractAddress = generateFunction(getAvtContractAddress, api);
   this.getRelayerFees = generateFunction(getRelayerFees, api);
   this.getNftNonce = generateFunction(getNftNonce, api);
   this.getNftId = generateFunction(getNftId, api);
   this.getNftOwner = generateFunction(getNftOwner, api);
   this.getAccountInfo = generateFunction(getAccountInfo, api);
+  this.getStakingStatus = generateFunction(getStakingStatus, api);
+  this.getValidatorsToNominate = generateFunction(getValidatorsToNominate, api);
+  this.getActiveEra = generateFunction(getActiveEra, api);
   this.getOwnedNfts = generateFunction(getOwnedNfts, api);
   this.nftsMap = {};
 }
@@ -41,19 +43,12 @@ function getTokenBalance(api) {
   };
 }
 
-function getAccountNonce(api) {
-  return async function (accountId) {
+function getNonce(api) {
+  return async function (accountId, nonceType) {
     common.validateAccount(accountId);
+    common.validateNonceType(nonceType);
 
-    return await this.postRequest(api, 'getAccountNonce', { accountId });
-  };
-}
-
-function getAccountPaymentNonce(api) {
-  return async function (accountId) {
-    common.validateAccount(accountId);
-
-    return await this.postRequest(api, 'getAccountPaymentNonce', { accountId });
+    return await this.postRequest(api, 'getNonce', { accountId, nonceType });
   };
 }
 
@@ -62,6 +57,26 @@ function getNftNonce(api) {
     common.validateNftId(nftId);
 
     return await this.postRequest(api, 'getNftNonce', { nftId });
+  };
+}
+
+function getStakingStatus(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getStakingStatus', { accountId });
+  };
+}
+
+function getValidatorsToNominate(api) {
+  return async function () {
+    return await this.postRequest(api, 'getValidatorsToNominate');
+  };
+}
+
+function getActiveEra(api) {
+  return async function () {
+    return await this.postRequest(api, 'getActiveEra');
   };
 }
 

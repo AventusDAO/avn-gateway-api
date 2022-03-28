@@ -1,6 +1,6 @@
 'use strict';
 
-const { hexToU8a, isHex, u8aToHex } = require('@polkadot/util');
+const { hexToU8a, isHex, u8aToHex, isNumber } = require('@polkadot/util');
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const { TypeRegistry, createTypeUnsafe } = require('@polkadot/types');
 const { Keyring } = require('@polkadot/keyring');
@@ -17,7 +17,25 @@ const TX_TYPE = {
   ProxyMintSingleNft: 'proxyMintSingleNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
   ProxyTransferFiatNft: 'proxyTransferFiatNft',
-  ProxyCancelListFiatNft: 'proxyCancelListFiatNft'
+  ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
+  ProxyBond: 'proxyBond',
+  ProxyNominate: 'proxyNominate',
+  ProxyIncreaseStake: 'proxyIncreaseStake',
+  ProxyUnstake: 'proxyUnstake',
+  ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
+  ProxyPayoutStakers: 'proxyPayoutStakers'
+};
+
+const NONCE_TYPE = {
+  Token: 'token',
+  Payment: 'payment',
+  Staking: 'staking',
+  Confirmation: 'confirmation'
+};
+
+const STAKING_STATUS = {
+  isStaking: 'isStaking',
+  isNotStaking: 'isNotStaking'
 };
 
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
@@ -62,6 +80,13 @@ function validateEthereumAddress(ethereumAddress) {
   const isValid = isHex(ethereumAddress) && ethereumAddress.split('').length == 42;
   if (isValid === false) {
     throw new Error(`Invalid ethereum address type: ${ethereumAddress}`);
+  }
+}
+
+function validateEthereumTransactionHash(ethereumTransactionHash) {
+  const isValid = isHex(ethereumTransactionHash) && ethereumTransactionHash.split('').length == 66;
+  if (isValid === false) {
+    throw new Error(`Invalid ethereum address type: ${ethereumTransactionHash}`);
   }
 }
 
@@ -128,16 +153,36 @@ function validateTransactionType(transactionType) {
   }
 }
 
-function getClientSigner() {
-  const suri = process.env.SURI;
-  if (!suri) throw new Error('Please set SURI environment variable');
-  const signer = keyring.addFromUri(suri);
-  return signer;
+function validateStakingTargets(targets) {
+  validateIsArray(targets);
+  if (targets.length === 0) {
+    throw new Error(`Staking targets is a mandatory field. You must select at least 1 target to nominate.`);
+  }
 }
 
-function getClientAddress() {
-  const signer = getClientSigner();
-  return signer.address;
+function validateNumber(num) {
+  if (isNumber(num) === false) {
+    throw new Error(`Value is not a valid number: ${num}`);
+  }
+}
+
+function validateNonceType(nonceType) {
+  const isValid = Object.values(NONCE_TYPE).includes(nonceType);
+  if (isValid === false) {
+    throw new Error(`Invalid nonce type: ${nonceType}`);
+  }
+}
+
+function getUserAccount() {
+  const suri = process.env.SURI;
+  if (!suri) throw new Error('Please set SURI environment variable');
+  const user = keyring.addFromUri(suri);
+  return user;
+}
+
+function getUserAddress() {
+  const user = getUserAccount();
+  return user.address;
 }
 
 async function sleep(ms) {
@@ -147,19 +192,25 @@ async function sleep(ms) {
 module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
-  getClientAddress,
-  getClientSigner,
+  getUserAddress,
+  getUserAccount,
   keyring,
+  NONCE_TYPE,
   registry,
   sleep,
+  STAKING_STATUS,
   TX_TYPE,
   validateAccount,
   validateAndConvertAmountToString,
   validateEthereumAddress,
+  validateEthereumTransactionHash,
   validateIsArray,
+  validateNonceType,
   validateNftId,
   validateRequestId,
   validateStringIsPopulated,
   validateTransactionType,
-  validateRoyalties
+  validateRoyalties,
+  validateStakingTargets,
+  validateNumber
 };

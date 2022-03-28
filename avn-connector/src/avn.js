@@ -29,10 +29,25 @@ async function query(palletName, storageName, params) {
 }
 
 async function proxy(requestId, palletName, method, params) {
-  log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
-  const innerCall = api.tx[palletName][method](...params.proxyParams);
-  const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
-  return await signAndSend(requestId, params.relayerAddress, txn);
+  if (palletName === 'utility' && method === 'batchAll') {
+    log.trace({
+      message: `Creating batch transactions.`,
+      extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ')
+    });
+
+    const innerCalls = params.map(p => {
+      let innerCall = api.tx[p.palletName][p.method](...p.params.proxyParams);
+      return api.tx.avnProxy.proxy(innerCall, p.paymentInfo);
+    });
+    const txn = api.tx.utility.batchAll(innerCalls);
+    return await signAndSend(requestId, params[0].params.relayerAddress, txn);
+  } else {
+    log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
+
+    const innerCall = api.tx[palletName][method](...params.proxyParams);
+    const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
+    return await signAndSend(requestId, params.relayerAddress, txn);
+  }
 }
 
 async function poll(requestId) {
@@ -63,12 +78,12 @@ async function getAccountInfo(accountId) {
   let balancesAll = await api.derive.balances.all(accountId);
 
   return {
-      totalBalance: balancesAll.freeBalance.add(balancesAll.reservedBalance).toString(),
-      freeBalance: balancesAll.availableBalance.toString(),
-      stakedBalance: stakingHelper.calculateBondedAmount(stakingInfo).toString(),
-      unlockedBalance: stakingInfo.redeemable.toString(),
-      unstakedBalance: stakingHelper.calculateUnbondingAmount(stakingInfo).toString()
-  }
+    totalBalance: balancesAll.freeBalance.add(balancesAll.reservedBalance).toString(),
+    freeBalance: balancesAll.availableBalance.toString(),
+    stakedBalance: stakingHelper.calculateBondedAmount(stakingInfo).toString(),
+    unlockedBalance: stakingInfo.redeemable.toString(),
+    unstakedBalance: stakingHelper.calculateUnbondingAmount(stakingInfo).toString()
+  };
 }
 
 async function getNonce(senderAddress) {
@@ -80,6 +95,21 @@ async function getNonce(senderAddress) {
     redis.refreshNonce(senderAddress);
   }
   return nonce;
+}
+
+async function getValidatorsToNominate() {
+  let validators = await redis.getValidatorsToNominate();
+
+  if (!validators) {
+    let validatorsInfo = await api.derive.staking.electedInfo({ withPrefs: true });
+    validators = validatorsInfo.info
+      .filter(i => i.validatorPrefs.blocked && i.validatorPrefs.blocked.isFalse === true)
+      .map(i => i.accountId);
+
+    await redis.setValidatorsToNominate(JSON.stringify(validators));
+  }
+
+  return validators;
 }
 
 async function signAndSend(requestId, relayerAddress, txn) {
@@ -160,6 +190,7 @@ function isTransactionHash(requestId) {
 
 module.exports = {
   getAccountInfo,
+  getValidatorsToNominate,
   init,
   query,
   proxy,

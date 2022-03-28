@@ -21,6 +21,7 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
+const VALIDATORS_KEY = 'validators';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -31,6 +32,7 @@ const PENDING_TX_KEY = {
 const MAX_PENDING_TX_TO_CHECK = 100;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
 const NONCE_EXPIRY_IN_SECONDS = 5;
+const VALIDATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 
 let redisClient;
 
@@ -177,6 +179,14 @@ function refreshNonce(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
+async function getValidatorsToNominate(validatorsJsonString) {
+  await redisClient.setex(VALIDATORS_KEY, VALIDATORS_EXPIRY_IN_SECONDS, validatorsJsonString);
+}
+
+async function setValidatorsToNominate() {
+  return await redisClient.get(VALIDATORS_KEY);
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
@@ -188,5 +198,7 @@ module.exports = {
   refreshNonce,
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,
-  getTransactionHashByRequestId
+  getTransactionHashByRequestId,
+  getValidatorsToNominate,
+  setValidatorsToNominate
 };

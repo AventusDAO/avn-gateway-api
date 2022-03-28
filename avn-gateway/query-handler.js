@@ -30,10 +30,8 @@ async function processRequest(request) {
 // Keep alphabetical
 async function callSwitch(call, request) {
   switch (call.method) {
-    case 'getAccountNonce':
-      return await getAccountNonce(call, request);
-    case 'getAccountPaymentNonce':
-      return await getAccountPaymentNonce(call, request);
+    case 'getNonce':
+      return await getNonce(call, request);
     case 'getAvtBalance':
       return await getAvtBalance(call, request);
     case 'getAvtContractAddress':
@@ -52,6 +50,12 @@ async function callSwitch(call, request) {
       return await getTotalAvt(call, request);
     case `getAccountInfo`:
       return await getAccountInfo(call, request);
+    case 'getStakingStatus':
+      return await getStakingStatus(call, request);
+    case 'getValidatorsToNominate':
+      return await queryValidatorsToNominateFromChain(call, request);
+    case 'getActiveEra':
+      return await queryActiveEra(call, request);
     case 'getOwnedNfts':
       return await getOwnedNfts(call, request);
 
@@ -60,23 +64,24 @@ async function callSwitch(call, request) {
   }
 }
 
-async function getAccountNonce(call, request) {
-  const { accountId } = call.params;
+async function getNonce(call, request) {
+  const { accountId, nonceType } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
     return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryChain(call, request, 'tokenManager', 'nonces', [accountId], formatNumAsString);
   }
-}
 
-async function getAccountPaymentNonce(call, request) {
-  const { accountId } = call.params;
-
-  if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryChain(call, request, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString);
+  switch (nonceType) {
+    case 'token':
+      return await queryChain(call, request, 'tokenManager', 'nonces', [accountId], formatNumAsString);
+    case 'payment':
+      return await queryChain(call, request, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString);
+    case 'staking':
+      return await queryChain(call, request, 'validatorsManager', 'proxyNonces', [accountId], formatNumAsString);
+    case 'confirmation':
+      return await queryChain(call, request, 'ethereumEvents', 'proxyNonces', [accountId], formatNumAsString);
+    default:
+      return utils.errorResponse('params', 'invalid nonce type', nonceType, request, call.id);
   }
 }
 
@@ -175,16 +180,37 @@ async function getAccountInfo(call, request) {
   }
 }
 
-async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
-  const method = 'avnQuery'
-  const params = { callId: call.id, palletName, storageName, params }
+async function queryActiveEra(call, request) {
+  return await queryChain(call, request, 'staking', 'activeEra', [], formatEraAsString);
+}
 
-  return await query(call, request, method, params, responseFormatter);
+async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
+  const method = 'avnQuery';
+  const requestParams = { callId: call.id, palletName, storageName, params };
+
+  return await query(call, request, method, requestParams, responseFormatter);
+}
+
+async function getStakingStatus(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'staking', 'nominators', [accountId], formatAsNominatingEnum);
+  }
 }
 
 async function queryAccountInfoFromChain(call, request, accountId) {
-  const method = 'avnAccountInfo'
-  const params = { callId: call.id, accountId }
+  const method = 'avnAccountInfo';
+  const params = { callId: call.id, accountId };
+
+  return await query(call, request, method, params);
+}
+
+async function queryValidatorsToNominateFromChain(call, request) {
+  const method = 'avnValidatorsToNominate';
+  const params = { callId: call.id };
 
   return await query(call, request, method, params);
 }
@@ -202,27 +228,14 @@ async function getOwnedNfts(call, request) {
 async function query(call, request, method, params, responseFormatter) {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + method, params);
-    const result = avnResponse.data.error || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
+    const result =
+      (avnResponse.data && avnResponse.data.error) ||
+      (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return utils.validResponse(call.id, result);
   } catch (err) {
     return utils.errorResponse('internal', `failed to invoke ${method} when querying the chain`, err, request, call.id);
   }
 }
-
-async function queryAccountInfoFromChain(call, request, accountId, responseFormatter) {
-  try {
-    const callId = call.id;
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnAccountInfo', {
-      callId,
-      accountId
-    });
-    const result = avnResponse.data.error || avnResponse.data; // the response is JSON so no need to format it
-    return utils.validResponse(callId, result);
-  } catch (err) {
-    return utils.errorResponse('internal', 'failed to query account_info from the chain', err, request, call.id);
-  }
-}
-
 
 const formatAsString = data => data.toString();
 
@@ -231,6 +244,10 @@ const formatNumAsString = data => utils.toBnString(data);
 const formatBalanceAsString = data => utils.toBnString(data.data.free);
 
 const formatNftNonceAsString = data => utils.toBnString(data.nonce);
+
+const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
+
+const formatEraAsString = data => (data ? data.index : 0);
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (data, params) => {

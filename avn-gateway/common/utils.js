@@ -1,10 +1,12 @@
 const axios = require('axios');
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();
-const { hexToU8a, isHex, u8aToHex, u8aConcat } = require('@polkadot/util');
+const { hexToU8a, isHex, u8aToHex, u8aConcat, isNumber } = require('@polkadot/util');
 const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = require('@polkadot/util-crypto');
 const BN = require('bn.js');
 const { validate: uuidValidate } = require('uuid');
+
+const STASH_REWARD_DESTINATION = 'Stash';
 
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
@@ -16,7 +18,13 @@ const TX_TYPES = [
   'proxyMintSingleNft',
   'proxyListNftOpenForSale',
   'proxyTransferFiatNft',
-  'proxyCancelListFiatNft'
+  'proxyCancelListFiatNft',
+  'proxyBond',
+  'proxyNominate',
+  'proxyIncreaseStake',
+  'proxyUnstake',
+  'proxyWithdrawUnlocked',
+  'proxyPayoutStakers'
 ];
 
 let initialised;
@@ -116,6 +124,10 @@ function isValidTransactionType(transactionType) {
   return TX_TYPES.includes(transactionType);
 }
 
+function isValidNumber(val) {
+  return isNumber(val);
+}
+
 function convertToAddress(accountId) {
   return isHex(accountId) ? encodeAddress(accountId) : accountId;
 }
@@ -132,7 +144,7 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
   return signatureVerify(u8aToHex(encodedData), signature, publicKey).isValid;
 }
 
-function verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+function verifyFeePaymentSignature(user, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
   const encodedProxyProof = encodeProxyProof(proxyProof);
   const encodedRelayer = registry.createType('AccountId', relayer);
@@ -147,20 +159,21 @@ function verifyFeePaymentSignature(signer, relayer, relayerFee, proxyProof, feeP
     encodedPaymentNonce.toU8a(true)
   );
 
-  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, signer).isValid;
+  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, user).isValid;
 }
 
 function encodeProxyProof(params) {
-  const signer = registry.createType('AccountId', params.signer);
+  const user = registry.createType('AccountId', params.user);
   const relayer = registry.createType('AccountId', params.relayer);
   const signature = registry.createType('MultiSignature', params.signature);
-  return u8aConcat(signer.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
+  return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
 }
 
 // Keep alphabetical
 module.exports = {
   axios,
   BN,
+  STASH_REWARD_DESTINATION,
   convertToAddress,
   errorResponse,
   init,
@@ -173,6 +186,7 @@ module.exports = {
   isValidMarket,
   isValidNftId,
   isValidNonce,
+  isValidNumber,
   isValidRequestId,
   isValidSignatureFormat,
   isValidString,

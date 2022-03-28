@@ -29,18 +29,20 @@ describe('Polling api calls:', async () => {
 
     it('returns a pending status and transaction hash for a valid request ID', async () => {
       let result = await api.poll.requestState(requestId);
+      assert.equal(result.txHash.length, 66);
+      assert.equal(result.status, 'Pending');
     });
 
     it('returns a rejected status when a transaction fails to be executed', async () => {
-      let result = await api.poll.requestState(requestId);
       await helper.confirmStatus(api, invalidRequestId, 'Rejected');
-      assert(result.blockNumber > 0);
-      assert(result.transactionIndex >= 0);
+      let result = await api.poll.requestState(invalidRequestId);
+      assert(result.blockNumber > 0, 'block number is expected to be set');
+      assert(result.transactionIndex >= 0), 'transaction index is expected to be set';
     });
 
     it('returns a processed status for a valid request ID', async () => {
-      let result = await api.poll.requestState(requestId);
       await helper.confirmStatus(api, requestId, 'Processed');
+      let result = await api.poll.requestState(requestId);
       assert(result.blockNumber > 0);
       assert(result.transactionIndex >= 0);
     });

@@ -240,6 +240,7 @@ function getPaymentInfo(user, relayer, relayerFee, proxyProof, feePaymentSignatu
   }
 
   return {
+    payer: user,
     recipient: relayer,
     amount: relayerFee,
     signature: {

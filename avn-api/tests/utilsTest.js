@@ -1,5 +1,6 @@
 const assert = require('chai').assert;
 const helper = require('./helper.js');
+const accounts = helper.ACCOUNTS;
 
 describe('Utilities', async () => {
   let api;
@@ -12,6 +13,13 @@ describe('Utilities', async () => {
     it('can generate a new account', async () => {
       const account = api.utils.generateNewAccount();
       console.log(account);
+    });
+  });
+
+  describe('addressToPublicKey', async () => {
+    it('can generate a new account', async () => {
+      const publicKey = api.utils.addressToPublicKey(accounts.otherUser.address);
+      assert.equal(publicKey, accounts.otherUser.publicKey);
     });
   });
 });

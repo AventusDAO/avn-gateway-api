@@ -42,8 +42,12 @@ const signatures = {
   proxyPayoutStakers: proxyArgs => signProxyPayoutStakers(proxyArgs)
 };
 
-function signProxyTokenTransfer(proxyArgs) {
-  let { relayer, user, recipient, token, amount, nonce } = proxyArgs;
+function checkArgs(proxyArgs, ...expected) {
+  console.log(Object.keys(proxyArgs))
+  console.log(arguments.slice(1))
+}
+
+function signProxyTokenTransfer({ relayer, user, recipient, token, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   user = common.convertToPublicKeyIfNeeded(user);
   recipient = common.convertToPublicKeyIfNeeded(recipient);
@@ -62,8 +66,7 @@ function signProxyTokenTransfer(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyConfirmTokenLift(proxyArgs) {
-  let { relayer, eventType, ethereumTransactionHash, nonce } = proxyArgs;
+function signProxyConfirmTokenLift({ relayer, eventType, ethereumTransactionHash, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
@@ -79,8 +82,7 @@ function signProxyConfirmTokenLift(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyTokenLower(proxyArgs) {
-  let { relayer, user, t1Recipient, token, amount, nonce } = proxyArgs;
+function signProxyTokenLower({ relayer, user, t1Recipient, token, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   user = common.convertToPublicKeyIfNeeded(user);
 
@@ -98,8 +100,7 @@ function signProxyTokenLower(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyMintSingleNft(proxyArgs) {
-  let { relayer, user, externalRef, royalties, t1Authority } = proxyArgs;
+function signProxyMintSingleNft({ relayer, user, externalRef, royalties, t1Authority }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
@@ -114,8 +115,7 @@ function signProxyMintSingleNft(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyListNftOpenForSale(proxyArgs) {
-  let { relayer, user, nftId, market, nonce } = proxyArgs;
+function signProxyListNftOpenForSale({ relayer, user, nftId, market, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
@@ -130,8 +130,7 @@ function signProxyListNftOpenForSale(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyTransferFiatNft(proxyArgs) {
-  let { relayer, user, nftId, recipient, nonce } = proxyArgs;
+function signProxyTransferFiatNft({ relayer, user, nftId, recipient, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   recipient = common.convertToPublicKeyIfNeeded(recipient);
 
@@ -147,8 +146,7 @@ function signProxyTransferFiatNft(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyCancelListFiatNft(proxyArgs) {
-  let { relayer, user, nftId, nonce } = proxyArgs;
+function signProxyCancelListFiatNft({ relayer, user, nftId, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
@@ -162,8 +160,7 @@ function signProxyCancelListFiatNft(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyBond(proxyArgs) {
-  let { relayer, user, amount, nonce } = proxyArgs;
+function signProxyBond({ relayer, user, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   controller = common.convertToPublicKeyIfNeeded(user);
 
@@ -180,8 +177,7 @@ function signProxyBond(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyNominate(proxyArgs) {
-  let { relayer, targets, nonce } = proxyArgs;
+function signProxyNominate({ relayer, targets, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
@@ -195,8 +191,7 @@ function signProxyNominate(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyIncreaseStake(proxyArgs) {
-  let { relayer, amount, nonce } = proxyArgs;
+function signProxyIncreaseStake({ relayer, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
@@ -210,8 +205,7 @@ function signProxyIncreaseStake(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyUnstake(proxyArgs) {
-  let { relayer, amount, nonce } = proxyArgs;
+function signProxyUnstake({ relayer, amount, nonce } ) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
@@ -225,8 +219,7 @@ function signProxyUnstake(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyWithdrawUnlocked(proxyArgs) {
-  let { relayer, nonce } = proxyArgs;
+function signProxyWithdrawUnlocked({ relayer, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   const numSlashSpan = 0; // We dont use slashing
 
@@ -241,8 +234,7 @@ function signProxyWithdrawUnlocked(proxyArgs) {
   return signData(encodedData);
 }
 
-function signProxyPayoutStakers(proxyArgs) {
-  let { relayer, eraIndex, nonce } = proxyArgs;
+function signProxyPayoutStakers({ relayer, eraIndex, nonce } ) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
@@ -256,8 +248,7 @@ function signProxyPayoutStakers(proxyArgs) {
   return signData(encodedData);
 }
 
-function getFeePaymentSignature(feePaymentArgs) {
-  let { relayer, user, proxySignature, relayerFee, paymentNonce } = feePaymentArgs;
+function getFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const proxyProofData = [{ AccountId: user }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];

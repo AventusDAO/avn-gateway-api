@@ -3,22 +3,6 @@
 const common = require('./common.js');
 const { u8aToHex, u8aConcat } = require('@polkadot/util');
 
-const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
-const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation';
-const PROXY_LOWER_CONTEXT = 'authorization for lower operation';
-const PROXY_ADD_ETHEREUM_LOG_CONTEXT = 'authorization for add ethereum log operation';
-const PROXY_MINT_SINGLE_NFT_CONTEXT = 'authorization for mint single nft operation';
-const PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT = 'authorization for list nft open for sale operation';
-const PROXY_TRANSFER_FIAT_NFT_CONTEXT = 'authorization for transfer fiat nft operation';
-const PROXY_CANCEL_LIST_FIAT_NFT_CONTEXT = 'authorization for cancel list fiat nft for sale operation';
-const PROXY_BOND_CONTEXT = 'authorization for bond operation';
-const PROXY_NOMINATE_CONTEXT = 'authorization for nominate operation';
-const PROXY_BOND_EXTRA_CONTEXT = 'authorization for bond extra operation';
-const PROXY_UNBOND_CONTEXT = 'authorization for unbond operation';
-const PROXY_WITHDRAW_UNBONDED_CONTEXT = 'authorization for withdraw unbonded operation';
-const PROXY_PAYOUT_STAKERS_CONTEXT = 'authorization for signed payout stakers operation';
-const STASH_REWARD_DESTINATION = 'Stash';
-
 const isNumType = {
   AccountId: true,
   BalanceOf: true,
@@ -41,21 +25,21 @@ const isNumType = {
 const getProxySignature = (transactionType, proxyArgs) => signatures[transactionType](proxyArgs);
 
 const signatures = {
-  proxyAvtTransfer: (proxyArgs) => signProxyTokenTransfer(proxyArgs),
-  proxyTokenTransfer: (proxyArgs) => signProxyTokenTransfer(proxyArgs),
-  proxyConfirmTokenLift: (proxyArgs) => signProxyConfirmTokenLift(proxyArgs),
-  proxyTokenLower: (proxyArgs) => signProxyTokenLower(proxyArgs),
-  proxyMintSingleNft: (proxyArgs) => signProxyMintSingleNft(proxyArgs),
-  proxyListNftOpenForSale: (proxyArgs) => signProxyListNftOpenForSale(proxyArgs),
-  proxyTransferFiatNft: (proxyArgs) => signProxyTransferFiatNft(proxyArgs),
-  proxyCancelListFiatNft: (proxyArgs) => signProxyCancelListFiatNft(proxyArgs),
-  proxyBond: (proxyArgs) => signProxyBond(proxyArgs),
-  proxyNominate: (proxyArgs) => signProxyNominate(proxyArgs),
-  proxyIncreaseStake: (proxyArgs) => signProxyIncreaseStake(proxyArgs),
-  proxyUnstake: (proxyArgs) => signProxyUnstake(proxyArgs),
-  proxyWithdrawUnlocked: (proxyArgs) => signProxyWithdrawUnlocked(proxyArgs),
-  proxyPayoutStakers: (proxyArgs) => signProxyPayoutStakers(proxyArgs)
-}
+  proxyAvtTransfer: proxyArgs => signProxyTokenTransfer(proxyArgs),
+  proxyTokenTransfer: proxyArgs => signProxyTokenTransfer(proxyArgs),
+  proxyConfirmTokenLift: proxyArgs => signProxyConfirmTokenLift(proxyArgs),
+  proxyTokenLower: proxyArgs => signProxyTokenLower(proxyArgs),
+  proxyMintSingleNft: proxyArgs => signProxyMintSingleNft(proxyArgs),
+  proxyListNftOpenForSale: proxyArgs => signProxyListNftOpenForSale(proxyArgs),
+  proxyTransferFiatNft: proxyArgs => signProxyTransferFiatNft(proxyArgs),
+  proxyCancelListFiatNft: proxyArgs => signProxyCancelListFiatNft(proxyArgs),
+  proxyBond: proxyArgs => signProxyBond(proxyArgs),
+  proxyNominate: proxyArgs => signProxyNominate(proxyArgs),
+  proxyIncreaseStake: proxyArgs => signProxyIncreaseStake(proxyArgs),
+  proxyUnstake: proxyArgs => signProxyUnstake(proxyArgs),
+  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs),
+  proxyPayoutStakers: proxyArgs => signProxyPayoutStakers(proxyArgs)
+};
 
 function signProxyTokenTransfer(proxyArgs) {
   let { relayer, user, recipient, token, amount, nonce } = proxyArgs;
@@ -64,7 +48,7 @@ function signProxyTokenTransfer(proxyArgs) {
   recipient = common.convertToPublicKeyIfNeeded(recipient);
 
   const dataToSign = [
-    { Text: PROXY_TRANSFER_CONTEXT },
+    { Text: 'authorization for transfer operation' },
     { AccountId: relayer },
     { AccountId: user },
     { AccountId: recipient },
@@ -82,7 +66,7 @@ function signProxyConfirmTokenLift(proxyArgs) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
-    { Text: PROXY_ADD_ETHEREUM_LOG_CONTEXT },
+    { Text: 'authorization for add ethereum log operation' },
     { AccountId: relayer },
     { AccountId: user },
     { u8: eventType },
@@ -100,7 +84,7 @@ function signProxyTokenLower(proxyArgs) {
   user = common.convertToPublicKeyIfNeeded(user);
 
   const dataToSign = [
-    { Text: PROXY_LOWER_CONTEXT },
+    { Text: 'authorization for lower operation' },
     { AccountId: relayer },
     { AccountId: user },
     { H160: token },
@@ -118,7 +102,7 @@ function signProxyMintSingleNft(proxyArgs) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
-    { Text: PROXY_MINT_SINGLE_NFT_CONTEXT },
+    { Text: 'authorization for mint single nft operation' },
     { AccountId: relayer },
     { 'Vec<u8>': externalRef },
     { SkipFurtherEncode: encodeRoyalties(royalties) },
@@ -134,7 +118,7 @@ function signProxyListNftOpenForSale(proxyArgs) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
-    { Text: PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT },
+    { Text: 'authorization for list nft open for sale operation' },
     { AccountId: relayer },
     { U256: nftId },
     { u8: market },
@@ -151,7 +135,7 @@ function signProxyTransferFiatNft(proxyArgs) {
   recipient = common.convertToPublicKeyIfNeeded(recipient);
 
   const dataToSign = [
-    { Text: PROXY_TRANSFER_FIAT_NFT_CONTEXT },
+    { Text: 'authorization for transfer fiat nft operation' },
     { AccountId: relayer },
     { U256: nftId },
     { AccountId: recipient },
@@ -166,7 +150,12 @@ function signProxyCancelListFiatNft(proxyArgs) {
   let { relayer, user, nftId, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const dataToSign = [{ Text: PROXY_CANCEL_LIST_FIAT_NFT_CONTEXT }, { AccountId: relayer }, { U256: nftId }, { u64: nonce }];
+  const dataToSign = [
+    { Text: 'authorization for cancel list fiat nft for sale operation' },
+    { AccountId: relayer },
+    { U256: nftId },
+    { u64: nonce }
+  ];
 
   const encodedData = encodeData(dataToSign);
   return signData(encodedData);
@@ -179,7 +168,7 @@ function signFeePayment(feePaymentArgs) {
   const proxyProofData = [{ AccountId: user }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];
 
   const dataToSign = [
-    { Text: FEE_PAYMENT_CONTEXT },
+    { Text: 'authorization for proxy payment' },
     { SkipFurtherEncode: encodeData(proxyProofData) },
     { AccountId: relayer },
     { Balance: relayerFee },
@@ -196,11 +185,11 @@ function signProxyBond(proxyArgs) {
   controller = common.convertToPublicKeyIfNeeded(user);
 
   const dataToSign = [
-    { Text: PROXY_BOND_CONTEXT },
+    { Text: 'authorization for bond operation' },
     { AccountId: relayer },
     { LookupSource: controller },
     { BalanceOf: amount },
-    { RewardDestination: STASH_REWARD_DESTINATION },
+    { RewardDestination: 'Stash' },
     { u64: nonce }
   ];
 
@@ -213,7 +202,7 @@ function signProxyNominate(proxyArgs) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
-    { Text: PROXY_NOMINATE_CONTEXT },
+    { Text: 'authorization for nominate operation' },
     { AccountId: relayer },
     { 'Vec<LookupSource>': targets },
     { u64: nonce }
@@ -227,7 +216,12 @@ function signProxyIncreaseStake(proxyArgs) {
   let { relayer, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const dataToSign = [{ Text: PROXY_BOND_EXTRA_CONTEXT }, { AccountId: relayer }, { BalanceOf: amount }, { u64: nonce }];
+  const dataToSign = [
+    { Text: 'authorization for bond extra operation' },
+    { AccountId: relayer },
+    { BalanceOf: amount },
+    { u64: nonce }
+  ];
 
   const encodedData = encodeData(dataToSign);
   return signData(encodedData);
@@ -237,7 +231,12 @@ function signProxyUnstake(proxyArgs) {
   let { relayer, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const dataToSign = [{ Text: PROXY_UNBOND_CONTEXT }, { AccountId: relayer }, { BalanceOf: amount }, { u64: nonce }];
+  const dataToSign = [
+    { Text: 'authorization for unbond operation' },
+    { AccountId: relayer },
+    { BalanceOf: amount },
+    { u64: nonce }
+  ];
 
   const encodedData = encodeData(dataToSign);
   return signData(encodedData);
@@ -248,7 +247,12 @@ function signProxyWithdrawUnlocked(proxyArgs) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   const numSlashSpan = 0; // We dont use slashing
 
-  const dataToSign = [{ Text: PROXY_WITHDRAW_UNBONDED_CONTEXT }, { AccountId: relayer }, { u32: numSlashSpan }, { u64: nonce }];
+  const dataToSign = [
+    { Text: 'authorization for withdraw unbonded operation' },
+    { AccountId: relayer },
+    { u32: numSlashSpan },
+    { u64: nonce }
+  ];
 
   const encodedData = encodeData(dataToSign);
   return signData(encodedData);
@@ -258,7 +262,12 @@ function signProxyPayoutStakers(proxyArgs) {
   let { relayer, eraIndex, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const dataToSign = [{ Text: PROXY_PAYOUT_STAKERS_CONTEXT }, { AccountId: relayer }, { EraIndex: eraIndex }, { u64: nonce }];
+  const dataToSign = [
+    { Text: 'authorization for signed payout stakers operation' },
+    { AccountId: relayer },
+    { EraIndex: eraIndex },
+    { u64: nonce }
+  ];
 
   const encodedData = encodeData(dataToSign);
   return signData(encodedData);
@@ -290,5 +299,5 @@ function signData(encodedData) {
 
 module.exports = {
   getProxySignature,
-  signFeePayment,
+  signFeePayment
 };

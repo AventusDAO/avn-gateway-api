@@ -304,7 +304,7 @@ Send.prototype.getPaymentNonceAndSignature = async function (queryApi, paymentAr
   const paymentNonce = await this.smartNonce(queryApi, user, NONCE_TYPE.Payment, retry);
   const relayerFee = await this.getRelayerFee(queryApi, relayer, user, transactionType);
   const feePaymentArgs = { relayer, user, proxySignature, relayerFee, paymentNonce };
-  const feePaymentSignature = proxyApi.createFeePaymentSignature(feePaymentArgs);
+  const feePaymentSignature = proxyApi.signFeePayment(feePaymentArgs);
   return { paymentNonce, feePaymentSignature };
 };
 

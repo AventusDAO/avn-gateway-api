@@ -38,41 +38,26 @@ const isNumType = {
   'Vec<LookupSource>': false
 };
 
-function getProxySignature(transactionType, proxyArgs) {
-  switch (transactionType) {
-    case 'proxyAvtTransfer':
-    case 'proxyTokenTransfer':
-      return createProxyTokenTransferSignature(proxyArgs);
-    case 'proxyConfirmTokenLift':
-      return createProxyConfirmTokenLiftSignature(proxyArgs);
-    case 'proxyTokenLower':
-      return createProxyTokenLowerSignature(proxyArgs);
-    case 'proxyMintSingleNft':
-      return createProxyMintSingleNftSignature(proxyArgs);
-    case 'proxyListNftOpenForSale':
-      return createProxyListNftOpenForSaleSignature(proxyArgs);
-    case 'proxyTransferFiatNft':
-      return createProxyTransferFiatNftSignature(proxyArgs);
-    case 'proxyCancelListFiatNft':
-      return createProxyCancelListFiatNftSignature(proxyArgs);
-    case 'proxyBond':
-      return createProxyBondSignature(proxyArgs);
-    case 'proxyNominate':
-      return createProxyNominateSignature(proxyArgs);
-    case 'proxyIncreaseStake':
-      return createProxyIncreaseStakeSignature(proxyArgs);
-    case 'proxyUnstake':
-      return createProxyUnstakeSignature(proxyArgs);
-    case 'proxyWithdrawUnlocked':
-      return createProxyWithdrawUnlockedSignature(proxyArgs);
-    case 'proxyPayoutStakers':
-      return createProxyPayoutStakersSignature(proxyArgs);
-    default:
-      throw new Error(`No such transaction type: ${transactionType}`);
-  }
+const getProxySignature = (transactionType, proxyArgs) => signatures[transactionType](proxyArgs);
+
+const signatures = {
+  proxyAvtTransfer: (proxyArgs) => signProxyTokenTransfer(proxyArgs),
+  proxyTokenTransfer: (proxyArgs) => signProxyTokenTransfer(proxyArgs),
+  proxyConfirmTokenLift: (proxyArgs) => signProxyConfirmTokenLift(proxyArgs),
+  proxyTokenLower: (proxyArgs) => signProxyTokenLower(proxyArgs),
+  proxyMintSingleNft: (proxyArgs) => signProxyMintSingleNft(proxyArgs),
+  proxyListNftOpenForSale: (proxyArgs) => signProxyListNftOpenForSale(proxyArgs),
+  proxyTransferFiatNft: (proxyArgs) => signProxyTransferFiatNft(proxyArgs),
+  proxyCancelListFiatNft: (proxyArgs) => signProxyCancelListFiatNft(proxyArgs),
+  proxyBond: (proxyArgs) => signProxyBond(proxyArgs),
+  proxyNominate: (proxyArgs) => signProxyNominate(proxyArgs),
+  proxyIncreaseStake: (proxyArgs) => signProxyIncreaseStake(proxyArgs),
+  proxyUnstake: (proxyArgs) => signProxyUnstake(proxyArgs),
+  proxyWithdrawUnlocked: (proxyArgs) => signProxyWithdrawUnlocked(proxyArgs),
+  proxyPayoutStakers: (proxyArgs) => signProxyPayoutStakers(proxyArgs)
 }
 
-function createProxyTokenTransferSignature(proxyArgs) {
+function signProxyTokenTransfer(proxyArgs) {
   let { relayer, user, recipient, token, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   user = common.convertToPublicKeyIfNeeded(user);
@@ -92,7 +77,7 @@ function createProxyTokenTransferSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyConfirmTokenLiftSignature(proxyArgs) {
+function signProxyConfirmTokenLift(proxyArgs) {
   let { relayer, eventType, ethereumTransactionHash, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -109,7 +94,7 @@ function createProxyConfirmTokenLiftSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyTokenLowerSignature(proxyArgs) {
+function signProxyTokenLower(proxyArgs) {
   let { relayer, user, t1Recipient, token, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   user = common.convertToPublicKeyIfNeeded(user);
@@ -128,7 +113,7 @@ function createProxyTokenLowerSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyMintSingleNftSignature(proxyArgs) {
+function signProxyMintSingleNft(proxyArgs) {
   let { relayer, user, externalRef, royalties, t1Authority } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -144,7 +129,7 @@ function createProxyMintSingleNftSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyListNftOpenForSaleSignature(proxyArgs) {
+function signProxyListNftOpenForSale(proxyArgs) {
   let { relayer, user, nftId, market, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -160,7 +145,7 @@ function createProxyListNftOpenForSaleSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyTransferFiatNftSignature(proxyArgs) {
+function signProxyTransferFiatNft(proxyArgs) {
   let { relayer, user, nftId, recipient, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   recipient = common.convertToPublicKeyIfNeeded(recipient);
@@ -177,7 +162,7 @@ function createProxyTransferFiatNftSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyCancelListFiatNftSignature(proxyArgs) {
+function signProxyCancelListFiatNft(proxyArgs) {
   let { relayer, user, nftId, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -187,7 +172,7 @@ function createProxyCancelListFiatNftSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createFeePaymentSignature(feePaymentArgs) {
+function signFeePayment(feePaymentArgs) {
   let { relayer, user, proxySignature, relayerFee, paymentNonce } = feePaymentArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -205,7 +190,7 @@ function createFeePaymentSignature(feePaymentArgs) {
   return signData(encodedData);
 }
 
-function createProxyBondSignature(proxyArgs) {
+function signProxyBond(proxyArgs) {
   let { relayer, user, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   controller = common.convertToPublicKeyIfNeeded(user);
@@ -223,7 +208,7 @@ function createProxyBondSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyNominateSignature(proxyArgs) {
+function signProxyNominate(proxyArgs) {
   let { relayer, targets, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -238,7 +223,7 @@ function createProxyNominateSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyIncreaseStakeSignature(proxyArgs) {
+function signProxyIncreaseStake(proxyArgs) {
   let { relayer, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -248,7 +233,7 @@ function createProxyIncreaseStakeSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyUnstakeSignature(proxyArgs) {
+function signProxyUnstake(proxyArgs) {
   let { relayer, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -258,7 +243,7 @@ function createProxyUnstakeSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyWithdrawUnlockedSignature(proxyArgs) {
+function signProxyWithdrawUnlocked(proxyArgs) {
   let { relayer, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   const numSlashSpan = 0; // We dont use slashing
@@ -269,7 +254,7 @@ function createProxyWithdrawUnlockedSignature(proxyArgs) {
   return signData(encodedData);
 }
 
-function createProxyPayoutStakersSignature(proxyArgs) {
+function signProxyPayoutStakers(proxyArgs) {
   let { relayer, eraIndex, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -304,19 +289,6 @@ function signData(encodedData) {
 }
 
 module.exports = {
-  createFeePaymentSignature,
-  createProxyTokenTransferSignature,
-  createProxyConfirmTokenLiftSignature,
-  createProxyTokenLowerSignature,
-  createProxyListNftOpenForSaleSignature,
-  createProxyMintSingleNftSignature,
-  createProxyTransferFiatNftSignature,
-  createProxyCancelListFiatNftSignature,
-  createProxyBondSignature,
-  createProxyNominateSignature,
-  createProxyIncreaseStakeSignature,
-  createProxyUnstakeSignature,
-  createProxyWithdrawUnlockedSignature,
-  createProxyPayoutStakersSignature,
-  getProxySignature
+  getProxySignature,
+  signFeePayment,
 };

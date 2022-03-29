@@ -1,0 +1,10 @@
+mongodb:
+  replicaCount: 1
+
+  auth:
+    usernames:
+      - "connector"
+    passwords:
+      - "insecure"
+    databases:
+      - "avn-gateway"

@@ -215,8 +215,9 @@ pipeline {
       }
       steps {
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
-          generateContext("avn-gateway", "kube-system")
+          generateContext("avn-gateway", "dev")
           helmInstallThirdParty("rabbit", "--set environment=${env.environment}")
+          helmInstallThirdParty("mongodb")
           sh "kubectl create ns nginx || true"
           generateContext("avn-gateway", "nginx")
           helmInstallThirdParty("nginx", "--values values-ephemeral.yaml")

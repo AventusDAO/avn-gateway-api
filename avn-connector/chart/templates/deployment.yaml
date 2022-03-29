@@ -60,6 +60,7 @@ spec:
               value: {{ .Values.nodeEnv }}
             - name: ENVIRONMENT
               value: {{ .Values.environment }}
+            {{- if eq .Values.nodeEnv "production" }}
             - name: MONGO_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -70,8 +71,6 @@ spec:
                 secretKeyRef:
                   name: mongo-credentials
                   key: password
-            - name: MONGO_OPTIONS
-              value: $(MONGO_OPTIONS)&retryWrites=false
             - name: DOCUMENT_DB_ADDRESS
               valueFrom:
                 secretKeyRef:
@@ -79,6 +78,19 @@ spec:
                   key: server
             - name: MONGO_SERVER
               value: $(DOCUMENT_DB_ADDRESS):27017/?ssl=true
+            {{- else }}
+            - name: MONGO_USERNAME
+              value: connector
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-mongodb
+                  key: mongodb-passwords
+            - name: MONGO_SERVER
+              value: mongodb-mongodb:27017
+            {{- end}}
+            - name: MONGO_OPTIONS
+              value: $(MONGO_OPTIONS)&retryWrites=false
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.deployment.image.repo }}:{{ .Values.deployment.image.tag }}"
@@ -94,6 +106,7 @@ spec:
           env:
             - name: NODE_ENV
               value: {{ .Values.nodeEnv }}
+            {{- if eq .Values.nodeEnv "production" }}
             - name: MONGO_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -111,6 +124,17 @@ spec:
                   key: server
             - name: MONGO_SERVER
               value: $(DOCUMENT_DB_ADDRESS):27017/?ssl=true
+            {{- else }}
+            - name: MONGO_USERNAME
+              value: connector
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-mongodb
+                  key: mongodb-passwords
+            - name: MONGO_SERVER
+              value: mongodb-mongodb:27017
+            {{- end}}
             {{- if eq .Values.nodeEnv "production" }}
             - name: MQ_BROKER_AMQP_ENDPOINT
               valueFrom:

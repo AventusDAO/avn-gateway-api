@@ -17,7 +17,7 @@ describe('Utilities', async () => {
   });
 
   describe('addressToPublicKey', async () => {
-    it('can generate a new account', async () => {
+    it('can convert an address to a public key', async () => {
       const publicKey = api.utils.addressToPublicKey(accounts.otherUser.address);
       assert.equal(publicKey, accounts.otherUser.publicKey);
     });

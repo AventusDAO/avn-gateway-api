@@ -30,7 +30,9 @@ const NONCE_TYPE = {
   Token: 'token',
   Payment: 'payment',
   Staking: 'staking',
-  Confirmation: 'confirmation'
+  Confirmation: 'confirmation',
+  Nft: 'nft',
+  None: 'none'
 };
 
 const STAKING_STATUS = {

@@ -174,7 +174,7 @@ function createProxyCancelListFiatNftSignature(proxyArgs) {
 }
 
 function createFeePaymentSignature(feePaymentArgs) {
-  let { relayer, user, proxySignature, relayerFee, nonce } = feePaymentArgs;
+  let { relayer, user, proxySignature, relayerFee, paymentNonce } = feePaymentArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const proxyProof = {
@@ -190,7 +190,7 @@ function createFeePaymentSignature(feePaymentArgs) {
     proxyProof,
     relayer,
     relayerFee,
-    nonce
+    paymentNonce
   };
 
   const hexEncodedData = encodeFeePaymentSignatureData(dataToSign);
@@ -291,6 +291,7 @@ function createProxyPayoutStakersSignature(proxyArgs) {
 }
 
 function encodeProxyTransferSignatureData(params) {
+  console.log("ENCODE TRANSFER", params)
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedUser = common.registry.createType('AccountId', params.user);
@@ -525,11 +526,12 @@ function encodePayoutStakersSignatureData(params) {
 }
 
 function encodeFeePaymentSignatureData(params) {
+  console.log("ENCODE FEE", params)
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedProxyProof = encodeProxyProof(params.proxyProof);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedRelayerFee = common.registry.createType('Balance', params.relayerFee);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
+  const encodedNonce = common.registry.createType('u64', params.paymentNonce);
 
   const encodedData = u8aConcat(
     encodedContext.toU8a(false),

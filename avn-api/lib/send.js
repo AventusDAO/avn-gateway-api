@@ -110,6 +110,7 @@ function transferFiatNft(api, queryApi) {
     common.validateAccount(relayer);
     common.validateAccount(recipient);
     common.validateNftId(nftId);
+    recipient = common.convertToPublicKeyIfNeeded(recipient);
     const methodArgs = { nftId, recipient };
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyTransferFiatNft, NONCE_TYPE.Nft);
@@ -194,6 +195,7 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
   const user = common.getUserAddress();
   let proxyArgs = Object.assign({ relayer, user }, methodArgs);
   let params = { ...proxyArgs };
+
   if (nonceType !== NONCE_TYPE.None) {
     proxyArgs.nonce =
       nonceType === NONCE_TYPE.Nft

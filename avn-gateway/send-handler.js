@@ -240,6 +240,7 @@ function getPaymentInfo(user, relayer, relayerFee, proxyProof, feePaymentSignatu
   }
 
   return {
+    payer: user,
     recipient: relayer,
     amount: relayerFee,
     signature: {
@@ -250,7 +251,11 @@ function getPaymentInfo(user, relayer, relayerFee, proxyProof, feePaymentSignatu
 
 function getProxyProof(user, relayer, proxySignature) {
   return {
+<<<<<<< HEAD
     user,
+=======
+    signer: user,
+>>>>>>> main
     relayer,
     signature: {
       Sr25519: proxySignature

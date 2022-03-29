@@ -56,6 +56,12 @@ async function callSwitch(call, request) {
       return await queryValidatorsToNominateFromChain(call, request);
     case 'getActiveEra':
       return await queryActiveEra(call, request);
+<<<<<<< HEAD
+=======
+    case 'getOwnedNfts':
+      return await getOwnedNfts(call, request);
+
+>>>>>>> main
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -102,7 +108,12 @@ async function getNftId(call, request) {
   if (utils.isValidString(externalRef) === false) {
     return utils.errorResponse('params', 'invalid external ref', externalRef, request, call.id);
   } else {
-    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', externalRef], filterNftId);
+    function getNftIdFunction(externalRef) {
+      return function(nftData) {
+        return filterNftId(externalRef, nftData);
+      };
+    }
+    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', externalRef], getNftIdFunction(externalRef));
   }
 }
 
@@ -122,7 +133,7 @@ async function getNftOwner(call, request) {
   if (utils.isValidNftId(nftId) === false) {
     return utils.errorResponse('params', 'invalid nft id', nftId, request, call.id);
   } else {
-    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', nftId], filterNftOwner);
+    return await queryChain(call, request, 'nftManager', 'nfts', [nftId], filterNftOwner);
   }
 }
 
@@ -184,6 +195,7 @@ async function queryActiveEra(call, request) {
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
   const method = 'avnQuery';
   const requestParams = { callId: call.id, palletName, storageName, params };
+<<<<<<< HEAD
 
   return await query(call, request, method, requestParams, responseFormatter);
 }
@@ -191,6 +203,15 @@ async function queryChain(call, request, palletName, storageName, params, respon
 async function getStakingStatus(call, request) {
   const { accountId } = call.params;
 
+=======
+
+  return await query(call, request, method, requestParams, responseFormatter);
+}
+
+async function getStakingStatus(call, request) {
+  const { accountId } = call.params;
+
+>>>>>>> main
   if (utils.isValidAccountId(accountId) === false) {
     return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
   } else {
@@ -201,6 +222,16 @@ async function getStakingStatus(call, request) {
 async function queryAccountInfoFromChain(call, request, accountId) {
   const method = 'avnAccountInfo';
   const params = { callId: call.id, accountId };
+<<<<<<< HEAD
+
+  return await query(call, request, method, params);
+}
+
+async function queryValidatorsToNominateFromChain(call, request) {
+  const method = 'avnValidatorsToNominate';
+  const params = { callId: call.id };
+=======
+>>>>>>> main
 
   return await query(call, request, method, params);
 }
@@ -210,6 +241,16 @@ async function queryValidatorsToNominateFromChain(call, request) {
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
+}
+
+async function getOwnedNfts(call, request) {
+  const { accountId } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'nftManager', 'ownedNfts', [accountId]);
+  }
 }
 
 async function query(call, request, method, params, responseFormatter) {
@@ -236,17 +277,15 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
 const formatEraAsString = data => (data ? data.index : 0);
 
+<<<<<<< HEAD
+=======
+const filterNftOwner = (data) => (data ? data.owner : null);
+
+>>>>>>> main
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
-const filterNftId = (data, params) => {
-  const uniqueExternalRefAsHex = '0x' + Buffer.from(params[1], 'utf8').toString('hex');
+const filterNftId = (uniqueExternalRef, data) => {
+  const uniqueExternalRefAsHex = '0x' + Buffer.from(uniqueExternalRef, 'utf8').toString('hex');
   const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex);
   const nftId = index > -1 ? data[index][1].nft_id : undefined;
   return nftId;
-};
-
-// TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT owners
-const filterNftOwner = (data, params) => {
-  const index = data.findIndex(nft => nft[1].nft_id === params[1]);
-  const owner = index > -1 ? data[index][1].owner : undefined;
-  return owner;
 };

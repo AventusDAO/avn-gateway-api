@@ -160,4 +160,27 @@ describe('Query api calls:', async () => {
       }
     });
   });
+
+  describe('getOwnedNfts', async () => {
+    const royalties = [];
+    const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
+
+    async function mint() {
+      const externalRef = 'avn-gateway-test-' + new Date().toISOString();
+      const requestId = await api.send.mintSingleNft(relayer.address, externalRef, royalties, dummyT1Authority);
+      await helper.confirmStatus(api, requestId, 'Processed');
+      return await api.query.getNftId(externalRef);
+    }
+
+    it('returns the correct list of owned nft ids', async () => {
+      let firstNftId = await mint();
+      let secondNftId = await mint();
+      const returnedData = await api.query.getOwnedNfts(user.address);
+      // We can't be sure how many nfts are owned by `user` but we can make sure it contains the 2 we just minted
+      assert(returnedData.length >= 2);
+      assert(returnedData.includes(firstNftId));
+      assert(returnedData.includes(secondNftId));
+    })
+  })
+
 });

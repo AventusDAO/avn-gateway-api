@@ -196,7 +196,7 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
   let params = { ...proxyArgs };
   if (nonceType !== 'none') {
     proxyArgs.nonce =
-      nonceType === 'nft' ? await queryApi.getNftNonce(nftId) : await this.smartNonce(queryApi, user, nonceType, retry);
+      nonceType === 'nft' ? await queryApi.getNftNonce(methodArgs.nftId) : await this.smartNonce(queryApi, user, nonceType, retry);
   }
 
   const proxySignature = proxyApi.getProxySignature(transactionType, proxyArgs);

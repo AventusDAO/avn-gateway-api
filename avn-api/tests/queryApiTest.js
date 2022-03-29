@@ -165,7 +165,7 @@ describe('Query api calls:', async () => {
     const royalties = [];
     const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 
-    function mint() {
+    async function mint() {
       const externalRef = 'avn-gateway-test-' + new Date().toISOString();
       const requestId = await api.send.mintSingleNft(relayer.address, externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');

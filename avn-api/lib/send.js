@@ -143,7 +143,7 @@ function stake(api, queryApi) {
       common.validateStakingTargets(targets);
       const methodArgs = { amount, targets };
       // first time staking is made up of 2 transactions: Bond + Nominate, so we cannot use the standard proxyRequest function
-      return await this.proxyStakeAvtRequest(api, queryApi, relayer, 'proxyStakeAvt', NONCE_TYPE.Staking);
+      return await this.proxyStakeAvtRequest(api, queryApi, relayer, methodArgs, 'proxyStakeAvt', NONCE_TYPE.Staking);
     }
   };
 }

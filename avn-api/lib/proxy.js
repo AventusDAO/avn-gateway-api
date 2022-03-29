@@ -190,10 +190,8 @@ function createProxyCancelListFiatNftSignature(proxyArgs) {
 function createFeePaymentSignature(feePaymentArgs) {
   let { relayer, user, proxySignature, relayerFee, paymentNonce } = feePaymentArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
-  const signer = user;
-  const signature = { Sr25519: proxySignature }
 
-  const proxyProofData = [{ AccountId: signer }, { AccountId: relayer }, { MultiSignature: signature }];
+  const proxyProofData = [{ AccountId: user }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];
 
   const dataToSign = [
     { Text: FEE_PAYMENT_CONTEXT },

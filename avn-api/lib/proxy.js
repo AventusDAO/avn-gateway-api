@@ -256,7 +256,7 @@ function signProxyPayoutStakers(proxyArgs) {
   return signData(encodedData);
 }
 
-function signFeePayment(feePaymentArgs) {
+function getFeePaymentSignature(feePaymentArgs) {
   let { relayer, user, proxySignature, relayerFee, paymentNonce } = feePaymentArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -300,5 +300,5 @@ function signData(encodedData) {
 
 module.exports = {
   getProxySignature,
-  signFeePayment
+  getFeePaymentSignature
 };

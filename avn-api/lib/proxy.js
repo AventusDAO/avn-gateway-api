@@ -543,7 +543,7 @@ function encodeFeePaymentSignatureData(params) {
 }
 
 function encodeProxyProof(params) {
-  const user = common.registry.createType('AccountId', params.user);
+  const user = common.registry.createType('AccountId', params.signer);
   const relayer = common.registry.createType('AccountId', params.relayer);
   const signature = common.registry.createType('MultiSignature', params.signature);
   return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));

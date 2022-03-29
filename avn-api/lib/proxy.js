@@ -19,7 +19,8 @@ const isNumType = {
   RewardDestination: false,
   Text: false,
   'Vec<u8>': false,
-  'Vec<LookupSource>': false
+  'Vec<LookupSource>': false,
+  SkipEncode: undefined, // use for pre-encoded values
 };
 
 const getProxySignature = (transactionType, proxyArgs) => signatures[transactionType](proxyArgs);
@@ -105,7 +106,7 @@ function signProxyMintSingleNft(proxyArgs) {
     { Text: 'authorization for mint single nft operation' },
     { AccountId: relayer },
     { 'Vec<u8>': externalRef },
-    { SkipFurtherEncode: encodeRoyalties(royalties) },
+    { SkipEncode: encodeRoyalties(royalties) },
     { H160: t1Authority }
   ];
 
@@ -263,7 +264,7 @@ function signFeePayment(feePaymentArgs) {
 
   const dataToSign = [
     { Text: 'authorization for proxy payment' },
-    { SkipFurtherEncode: encodeData(proxyProofData) },
+    { SkipEncode: encodeData(proxyProofData) },
     { AccountId: relayer },
     { Balance: relayerFee },
     { u64: paymentNonce }
@@ -276,7 +277,7 @@ function signFeePayment(feePaymentArgs) {
 function encodeData(data) {
   const encodedData = data.map(d => {
     const [type, value] = Object.entries(d)[0];
-    return type === 'SkipFurtherEncode' ? value : common.registry.createType(type, value).toU8a(isNumType[type]);
+    return type === 'SkipEncode' ? value : common.registry.createType(type, value).toU8a(isNumType[type]);
   });
   return u8aConcat(...encodedData);
 }

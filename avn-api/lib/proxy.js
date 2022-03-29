@@ -161,24 +161,6 @@ function signProxyCancelListFiatNft(proxyArgs) {
   return signData(encodedData);
 }
 
-function signFeePayment(feePaymentArgs) {
-  let { relayer, user, proxySignature, relayerFee, paymentNonce } = feePaymentArgs;
-  relayer = common.convertToPublicKeyIfNeeded(relayer);
-
-  const proxyProofData = [{ AccountId: user }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];
-
-  const dataToSign = [
-    { Text: 'authorization for proxy payment' },
-    { SkipFurtherEncode: encodeData(proxyProofData) },
-    { AccountId: relayer },
-    { Balance: relayerFee },
-    { u64: paymentNonce }
-  ];
-
-  const encodedData = encodeData(dataToSign);
-  return signData(encodedData);
-}
-
 function signProxyBond(proxyArgs) {
   let { relayer, user, amount, nonce } = proxyArgs;
   relayer = common.convertToPublicKeyIfNeeded(relayer);
@@ -267,6 +249,24 @@ function signProxyPayoutStakers(proxyArgs) {
     { AccountId: relayer },
     { EraIndex: eraIndex },
     { u64: nonce }
+  ];
+
+  const encodedData = encodeData(dataToSign);
+  return signData(encodedData);
+}
+
+function signFeePayment(feePaymentArgs) {
+  let { relayer, user, proxySignature, relayerFee, paymentNonce } = feePaymentArgs;
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const proxyProofData = [{ AccountId: user }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];
+
+  const dataToSign = [
+    { Text: 'authorization for proxy payment' },
+    { SkipFurtherEncode: encodeData(proxyProofData) },
+    { AccountId: relayer },
+    { Balance: relayerFee },
+    { u64: paymentNonce }
   ];
 
   const encodedData = encodeData(dataToSign);

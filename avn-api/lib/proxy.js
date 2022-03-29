@@ -291,7 +291,6 @@ function createProxyPayoutStakersSignature(proxyArgs) {
 }
 
 function encodeProxyTransferSignatureData(params) {
-  console.log("ENCODE TRANSFER", params)
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);
   const encodedUser = common.registry.createType('AccountId', params.user);
@@ -526,7 +525,6 @@ function encodePayoutStakersSignatureData(params) {
 }
 
 function encodeFeePaymentSignatureData(params) {
-  console.log("ENCODE FEE", params)
   const encodedContext = common.registry.createType('Text', params.context);
   const encodedProxyProof = encodeProxyProof(params.proxyProof);
   const encodedRelayer = common.registry.createType('AccountId', params.relayer);

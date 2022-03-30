@@ -12,6 +12,7 @@ describe('AWT authorisation', async () => {
   before(async () => {
     api = await helper.avnApi();
     user = accounts.user;
+    console.log(await api.query.getAvtContractAddress())
   });
 
   describe('generateAwtToken', async () => {

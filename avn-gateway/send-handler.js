@@ -224,9 +224,9 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
   return await sendTx(call, request, requestId, pallet, method, params);
 }
 
-async function getRelayerFee(relayer, user, transactionType) {
+async function getRelayerFee(relayer, payer, transactionType) {
   try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, payer, transactionType });
     return avnResponse.data.toString();
   } catch (error) {
     throw error;
@@ -360,7 +360,7 @@ async function getProxyParams(callMethod, relayer, user, payer, proxySignature, 
 
   let relayerFee;
   try {
-    relayerFee = await getRelayerFee(relayer, user, callMethod);
+    relayerFee = await getRelayerFee(relayer, payer, callMethod);
   } catch (error) {
     throw new Error(`could not get relayer fee: ${error.toString()}`);
   }

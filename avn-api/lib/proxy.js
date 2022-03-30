@@ -224,10 +224,11 @@ function signProxyPayoutStakers({ relayer, eraIndex, nonce } ) {
   return signData(encodedDataToSign);
 }
 
-function generateFeePaymentSignature({ relayer, payer, proxySignature, relayerFee, paymentNonce }) {
+function generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
+  user = common.convertToPublicKeyIfNeeded(user);
 
-  const proxyProofData = [{ AccountId: payer }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];
+  const proxyProofData = [{ AccountId: user }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];
 
   const orderedData = [
     { Text: 'authorization for proxy payment' },

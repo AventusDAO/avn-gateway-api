@@ -48,6 +48,7 @@ async function main() {
   await jsonRpcRequest('send', 'proxyTokenTransfer', proxyTokenTransferParams);
   await sleep(10 * 1000);
   await logBalances('\nBALANCES AFTER');
+  process.env.SURI = user.seed;
 }
 
 function userGeneratesProxyTokenTransferSignature(nonce) {

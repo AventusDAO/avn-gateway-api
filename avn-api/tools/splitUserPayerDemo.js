@@ -18,12 +18,14 @@ async function main() {
 
   await logBalances('\nBALANCES BEFORE');
 
-  // The user gets their nonce then uses the api in offline mode to generate a signature for the transfer they wish to make
+  // The user retrieves their token nonce,
+  // then uses the api in offline mode to generate a signature for the transfer they wish to make
   process.env.SURI = user.seed;
   let userTokenNonce = await jsonRpcRequest('query', 'getNonce', { accountId: user.address, nonceType: 'token' });
-  let userProxySignature = userGeneratesProxyTokenTransferSignature(userTokenNonce);
+  let userProxySignature = userGeneratedProxyTokenTransferSignature(userTokenNonce);
 
-  // We switch to the payer who takes the user's signature, gets fee and payment nonce and generates a payment signature offline
+  // We switch to the payer who takes the transfer signature the user generated,
+  // gets their own fee and payment nonce, and then generates a payment signature using the api in offline mode
   process.env.SURI = payer.seed;
   let relayerFeeForPayer = await jsonRpcRequest('query', 'getRelayerFees', {
     relayer: relayer.address,
@@ -31,7 +33,7 @@ async function main() {
     transactionType: 'proxyTokenTransfer'
   });
   let payerPaymentNonce = await jsonRpcRequest('query', 'getNonce', { accountId: payer.address, nonceType: 'payment' });
-  let payerFeePaymentSignature = payerGeneratesFeePaymentSignature(userProxySignature, relayerFeeForPayer, payerPaymentNonce);
+  let payerFeePaymentSignature = payerGeneratedFeePaymentSignature(userProxySignature, relayerFeeForPayer, payerPaymentNonce);
 
   const proxyTokenTransferParams = {
     relayer: relayer.address,
@@ -45,13 +47,13 @@ async function main() {
     paymentNonce: payerPaymentNonce
   };
 
+  // The request gets sent
   await jsonRpcRequest('send', 'proxyTokenTransfer', proxyTokenTransferParams);
   await sleep(10 * 1000);
   await logBalances('\nBALANCES AFTER');
-  process.env.SURI = user.seed;
 }
 
-function userGeneratesProxyTokenTransferSignature(nonce) {
+function userGeneratedProxyTokenTransferSignature(nonce) {
   const tokenTransferParams = {
     relayer: relayer.address,
     user: user.address,
@@ -64,7 +66,7 @@ function userGeneratesProxyTokenTransferSignature(nonce) {
   return api.proxy.generateProxySignature('proxyTokenTransfer', tokenTransferParams);
 }
 
-function payerGeneratesFeePaymentSignature(proxySignature, relayerFee, paymentNonce) {
+function payerGeneratedFeePaymentSignature(proxySignature, relayerFee, paymentNonce) {
   const feePaymentParams = {
     relayer: relayer.address,
     user: user.address,

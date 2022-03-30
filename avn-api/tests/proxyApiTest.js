@@ -4,7 +4,7 @@ const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 const bnEquals = helper.bnEquals;
 const BAD_TOKEN = '0x0000000000000000000000000000000000000000';
-const ONE_AVT = new BN("1000000000000000000");
+const ONE_AVT = new BN('1000000000000000000');
 
 describe('Proxy api calls:', async () => {
   let api, token;
@@ -81,7 +81,7 @@ describe('Proxy api calls:', async () => {
     it('can stake', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
-      const amount = (new BN("100").mul(ONE_AVT));
+      const amount = new BN('100').mul(ONE_AVT);
 
       const requestId = await api.send.stake(relayer, amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
@@ -94,7 +94,7 @@ describe('Proxy api calls:', async () => {
     it('can stake more funds', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
-      const amount = (new BN("1").mul(ONE_AVT));
+      const amount = new BN('1').mul(ONE_AVT);
 
       const requestId = await api.send.stake(relayer, amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
@@ -108,7 +108,7 @@ describe('Proxy api calls:', async () => {
     xit('can request to withdraw stake', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
-      const amount = (new BN("1").mul(ONE_AVT));
+      const amount = new BN('1').mul(ONE_AVT);
 
       const requestId = await api.send.unstake(relayer, amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
@@ -142,7 +142,7 @@ describe('Proxy api calls:', async () => {
     });
 
     it('can payout stakers', async () => {
-      let validator = accounts.avnValidator.address;
+      let validator = accounts.otherUser2.address;
       let validatorStakingStatusBefore = await api.query.getAccountInfo(validator);
 
       const requestId = await api.send.payoutStakers(relayer);
@@ -151,9 +151,10 @@ describe('Proxy api calls:', async () => {
       let validatorStakingStatusAfter = await api.query.getAccountInfo(validator);
 
       //Free balance has increased
-      assert(new BN(validatorStakingStatusAfter.freeBalance).gt(validatorStakingStatusBefore.freeBalance), 'Rewards should have been paid');
+      assert(
+        new BN(validatorStakingStatusAfter.freeBalance).gt(validatorStakingStatusBefore.freeBalance),
+        'Rewards should have been paid'
+      );
     });
-
   });
-
 });

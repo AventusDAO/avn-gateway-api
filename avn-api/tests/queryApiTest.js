@@ -85,22 +85,22 @@ describe('Query api calls:', async () => {
   describe('getRelayerFees', async () => {
     it('returns default fees for a relayer by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.address);
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
+      assert.equal(returnedFees, expectedRelayerFees);
     });
 
     it('returns default fees for a relayer by publicKey', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.publicKey);
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
+      assert.equal(returnedFees, expectedRelayerFees);
     });
 
     it('returns fees for a specific user by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.address, user.address);
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
+      assert.equal(returnedFees, expectedUserFees);
     });
 
     it('returns fees for a specific user by publicKey', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey);
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
+      assert.equal(returnedFees, expectedUserFees);
     });
 
     it('returns the fee for a specific user and transaction type', async () => {
@@ -150,7 +150,7 @@ describe('Query api calls:', async () => {
     it('returns correct data for user by address', async () => {
       const returnedData = await api.query.getAccountInfo(user.address);
 
-      if (await api.query.getStakingStatus(user.address) === common.STAKING_STATUS.isNotStaking) {
+      if ((await api.query.getStakingStatus(user.address)) === common.STAKING_STATUS.isNotStaking) {
         assert.equal(returnedData.totalBalance, returnedData.freeBalance);
         assert.equal(returnedData.stakedBalance, '0');
         assert.equal(returnedData.unlockedBalance, '0');
@@ -180,7 +180,6 @@ describe('Query api calls:', async () => {
       assert(returnedData.length >= 2);
       assert(returnedData.includes(firstNftId));
       assert(returnedData.includes(secondNftId));
-    })
-  })
-
+    });
+  });
 });

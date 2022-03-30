@@ -17,8 +17,8 @@ function generateNewAccount(api) {
 }
 
 function addressToPublicKey(address) {
-  common.validateAccount(address)
-  return common.convertToPublicKeyIfNeeded(address)
+  common.validateAccount(address);
+  return common.convertToPublicKeyIfNeeded(address);
 }
 
 module.exports = {

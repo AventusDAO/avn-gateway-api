@@ -106,7 +106,7 @@ async function getNftId(call, request) {
     return utils.errorResponse('params', 'invalid external ref', externalRef, request, call.id);
   } else {
     function getNftIdFunction(externalRef) {
-      return function(nftData) {
+      return function (nftData) {
         return filterNftId(externalRef, nftData);
       };
     }
@@ -254,7 +254,7 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
 const formatEraAsString = data => (data ? data.index : 0);
 
-const filterNftOwner = (data) => (data ? data.owner : null);
+const filterNftOwner = data => (data ? data.owner : null);
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (uniqueExternalRef, data) => {

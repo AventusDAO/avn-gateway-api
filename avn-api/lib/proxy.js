@@ -22,7 +22,7 @@ const signing = {
   proxyPayoutStakers: proxyArgs => signProxyPayoutStakers(proxyArgs)
 };
 
-const numTypes = ['AccountId','BalanceOf','EraIndex','u8','u32','u64','u128','U256','H160','H256'];
+const numTypes = ['AccountId', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
 
 function signProxyTokenTransfer({ relayer, user, recipient, token, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
@@ -181,7 +181,7 @@ function signProxyIncreaseStake({ relayer, amount, nonce }) {
   return signData(encodedDataToSign);
 }
 
-function signProxyUnstake({ relayer, amount, nonce } ) {
+function signProxyUnstake({ relayer, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
@@ -210,7 +210,7 @@ function signProxyWithdrawUnlocked({ relayer, nonce }) {
   return signData(encodedDataToSign);
 }
 
-function signProxyPayoutStakers({ relayer, eraIndex, nonce } ) {
+function signProxyPayoutStakers({ relayer, eraIndex, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [

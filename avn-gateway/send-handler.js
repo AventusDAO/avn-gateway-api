@@ -355,7 +355,16 @@ function validateMethodParams(relayer, user, payer, proxySignature, feePaymentSi
   }
 }
 
-async function getProxyParams(callMethod, relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce, methodParams) {
+async function getProxyParams(
+  callMethod,
+  relayer,
+  user,
+  payer,
+  proxySignature,
+  feePaymentSignature,
+  paymentNonce,
+  methodParams
+) {
   const proxyProof = getProxyProof(user, relayer, proxySignature);
 
   let relayerFee;
@@ -412,14 +421,7 @@ async function getNominateParams(call) {
     throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
   }
 
-  validateMethodParams(
-    relayer,
-    user,
-    payer,
-    proxyNominateSignature,
-    nominateFeePaymentSignature,
-    nominatePaymentNonce
-  );
+  validateMethodParams(relayer, user, payer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
 
   return await getProxyParams(
     call.params.nominateMethodName,

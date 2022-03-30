@@ -142,7 +142,7 @@ describe('Proxy api calls:', async () => {
     });
 
     it('can payout stakers', async () => {
-      let validator = accounts.otherUser2.address;
+      let validator = accounts.avnValidator.address;
       let validatorStakingStatusBefore = await api.query.getAccountInfo(validator);
 
       const requestId = await api.send.payoutStakers(relayer);

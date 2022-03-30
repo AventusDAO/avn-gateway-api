@@ -12,7 +12,7 @@ async function main() {
   await api.init();
   payer = accounts.user;
   user = accounts.otherUser;
-  recipient = accounts.otherUser2;
+  recipient = accounts.avnValidator;
   relayer = accounts.relayer;
   requestId = 1;
 

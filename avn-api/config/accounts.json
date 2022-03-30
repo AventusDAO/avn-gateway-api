@@ -17,7 +17,7 @@
       "address": "5FgyNN84CzQfwHBUJWvQkr36hiQYEXjDhcUYVx9tCTdgqosF",
       "publicKey": "0xa05dc0c30b73e2d3f3d3542c2389adb40e96f87233c2f93d06a46973dd1c3972"
     },
-    "otherUser2": {
+    "avnValidator": {
       "mnemonic": "rapid pet capable tooth wisdom utility child luggage never toddler gather sea",
       "seed": "0x3eee10b8d28ea5a8fb165174022d637a8ec4b632c1e66472b234683a159bf6dd",
       "address": "5GLVUNb9oKLesAjDt17X1N49xyp2fr62sKPAKLgmmNbDB9MH",

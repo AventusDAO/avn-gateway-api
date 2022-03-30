@@ -3,583 +3,269 @@
 const common = require('./common.js');
 const { u8aToHex, u8aConcat } = require('@polkadot/util');
 
-const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
-const PROXY_TRANSFER_CONTEXT = 'authorization for transfer operation';
-const PROXY_LOWER_CONTEXT = 'authorization for lower operation';
-const PROXY_ADD_ETHEREUM_LOG_CONTEXT = 'authorization for add ethereum log operation';
-const PROXY_MINT_SINGLE_NFT_CONTEXT = 'authorization for mint single nft operation';
-const PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT = 'authorization for list nft open for sale operation';
-const PROXY_TRANSFER_FIAT_NFT_CONTEXT = 'authorization for transfer fiat nft operation';
-const PROXY_CANCEL_LIST_FIAT_NFT_CONTEXT = 'authorization for cancel list fiat nft for sale operation';
-const PROXY_BOND_CONTEXT = 'authorization for bond operation';
-const PROXY_NOMINATE_CONTEXT = 'authorization for nominate operation';
-const PROXY_BOND_EXTRA_CONTEXT = 'authorization for bond extra operation';
-const PROXY_UNBOND_CONTEXT = 'authorization for unbond operation';
-const PROXY_WITHDRAW_UNBONDED_CONTEXT = 'authorization for withdraw unbonded operation';
-const PROXY_PAYOUT_STAKERS_CONTEXT = 'authorization for signed payout stakers operation';
+// signing object contains functions called by passing transaction type and the arguments to sign to generateProxySignature
+const generateProxySignature = (transactionType, proxyArgs) => signing[transactionType](proxyArgs);
+const signing = {
+  proxyAvtTransfer: proxyArgs => signProxyTokenTransfer(proxyArgs),
+  proxyTokenTransfer: proxyArgs => signProxyTokenTransfer(proxyArgs),
+  proxyConfirmTokenLift: proxyArgs => signProxyConfirmTokenLift(proxyArgs),
+  proxyTokenLower: proxyArgs => signProxyTokenLower(proxyArgs),
+  proxyMintSingleNft: proxyArgs => signProxyMintSingleNft(proxyArgs),
+  proxyListNftOpenForSale: proxyArgs => signProxyListNftOpenForSale(proxyArgs),
+  proxyTransferFiatNft: proxyArgs => signProxyTransferFiatNft(proxyArgs),
+  proxyCancelListFiatNft: proxyArgs => signProxyCancelListFiatNft(proxyArgs),
+  proxyBond: proxyArgs => signProxyBond(proxyArgs),
+  proxyNominate: proxyArgs => signProxyNominate(proxyArgs),
+  proxyIncreaseStake: proxyArgs => signProxyIncreaseStake(proxyArgs),
+  proxyUnstake: proxyArgs => signProxyUnstake(proxyArgs),
+  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs),
+  proxyPayoutStakers: proxyArgs => signProxyPayoutStakers(proxyArgs)
+};
 
-const STASH_REWARD_DESTINATION = 'Stash';
+const numTypes = ['AccountId','BalanceOf','EraIndex','u8','u32','u64','u128','U256','H160','H256'];
 
-function getProxySignature(transactionType, proxyArgs) {
-  switch (transactionType) {
-    case 'proxyAvtTransfer':
-    case 'proxyTokenTransfer':
-      return createProxyTokenTransferSignature(proxyArgs);
-    case 'proxyConfirmTokenLift':
-      return createProxyConfirmTokenLiftSignature(proxyArgs);
-    case 'proxyTokenLower':
-      return createProxyTokenLowerSignature(proxyArgs);
-    case 'proxyMintSingleNft':
-      return createProxyMintSingleNftSignature(proxyArgs);
-    case 'proxyListNftOpenForSale':
-      return createProxyListNftOpenForSaleSignature(proxyArgs);
-    case 'proxyTransferFiatNft':
-      return createProxyTransferFiatNftSignature(proxyArgs);
-    case 'proxyCancelListFiatNft':
-      return createProxyCancelListFiatNftSignature(proxyArgs);
-    case 'proxyBond':
-      return createProxyBondSignature(proxyArgs);
-    case 'proxyNominate':
-      return createProxyNominateSignature(proxyArgs);
-    case 'proxyIncreaseStake':
-      return createProxyIncreaseStakeSignature(proxyArgs);
-    case 'proxyUnstake':
-      return createProxyUnstakeSignature(proxyArgs);
-    case 'proxyWithdrawUnlocked':
-      return createProxyWithdrawUnlockedSignature(proxyArgs);
-    case 'proxyPayoutStakers':
-      return createProxyPayoutStakersSignature(proxyArgs);
-    default:
-      throw new Error(`No such transaction type: ${transactionType}`);
-    }
-}
-
-function createProxyTokenTransferSignature(proxyArgs) {
-  let { relayer, user, recipient, token, amount, nonce } = proxyArgs;
+function signProxyTokenTransfer({ relayer, user, recipient, token, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   user = common.convertToPublicKeyIfNeeded(user);
   recipient = common.convertToPublicKeyIfNeeded(recipient);
 
-  const dataToSign = {
-    context: PROXY_TRANSFER_CONTEXT,
-    relayer,
-    user,
-    recipient,
-    token,
-    amount,
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for transfer operation' },
+    { AccountId: relayer },
+    { AccountId: user },
+    { AccountId: recipient },
+    { H160: token },
+    { u128: amount },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodeProxyTransferSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyConfirmTokenLiftSignature(proxyArgs) {
-  let { relayer, eventType, ethereumTransactionHash, nonce } = proxyArgs;
+function signProxyConfirmTokenLift({ relayer, eventType, ethereumTransactionHash, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const dataToSign = {
-    context: PROXY_ADD_ETHEREUM_LOG_CONTEXT,
-    relayer,
-    eventType,
-    ethereumTransactionHash,
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for add ethereum log operation' },
+    { AccountId: relayer },
+    { u8: eventType },
+    { H256: ethereumTransactionHash },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodeProxyConfirmTokenLiftSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyTokenLowerSignature(proxyArgs) {
-  let { relayer, user, t1Recipient, token, amount, nonce } = proxyArgs;
+function signProxyTokenLower({ relayer, user, token, amount, t1Recipient, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   user = common.convertToPublicKeyIfNeeded(user);
 
-  const dataToSign = {
-    context: PROXY_LOWER_CONTEXT,
-    relayer,
-    user,
-    t1Recipient,
-    token,
-    amount,
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for lower operation' },
+    { AccountId: relayer },
+    { AccountId: user },
+    { H160: token },
+    { u128: amount },
+    { H160: t1Recipient },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodeProxyTokenLowerSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyMintSingleNftSignature(proxyArgs) {
-  let { relayer, user, externalRef, royalties, t1Authority } = proxyArgs;
+function signProxyMintSingleNft({ relayer, externalRef, royalties, t1Authority }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const dataToSign = {
-    context: PROXY_MINT_SINGLE_NFT_CONTEXT,
-    relayer,
-    externalRef,
-    royalties,
-    t1Authority
-  };
+  const orderedData = [
+    { Text: 'authorization for mint single nft operation' },
+    { AccountId: relayer },
+    { 'Vec<u8>': externalRef },
+    { SkipEncode: encodeRoyalties(royalties) },
+    { H160: t1Authority }
+  ];
 
-  const hexEncodedData = encodeProxyMintSingleNftSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyListNftOpenForSaleSignature(proxyArgs) {
-  let { relayer, user, nftId, market, nonce } = proxyArgs;
+function signProxyListNftOpenForSale({ relayer, user, nftId, market, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const dataToSign = {
-    context: PROXY_LIST_NFT_OPEN_FOR_SALE_CONTEXT,
-    relayer,
-    nftId,
-    market,
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for list nft open for sale operation' },
+    { AccountId: relayer },
+    { U256: nftId },
+    { u8: market },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodeProxyListNftOpenForSaleSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyTransferFiatNftSignature(proxyArgs) {
-  let { relayer, user, nftId, recipient, nonce } = proxyArgs;
+function signProxyTransferFiatNft({ relayer, nftId, recipient, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   recipient = common.convertToPublicKeyIfNeeded(recipient);
 
-  const dataToSign = {
-    context: PROXY_TRANSFER_FIAT_NFT_CONTEXT,
-    relayer,
-    nftId,
-    recipient,
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for transfer fiat nft operation' },
+    { AccountId: relayer },
+    { U256: nftId },
+    { AccountId: recipient },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodeProxyTransferFiatNftSignature(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyCancelListFiatNftSignature(proxyArgs) {
-  let { relayer, user, nftId, nonce } = proxyArgs;
+function signProxyCancelListFiatNft({ relayer, nftId, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const dataToSign = {
-    context: PROXY_CANCEL_LIST_FIAT_NFT_CONTEXT,
-    relayer,
-    nftId,
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for cancel list fiat nft for sale operation' },
+    { AccountId: relayer },
+    { U256: nftId },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodeProxyCancelListFiatNftSignature(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createFeePaymentSignature(feePaymentArgs) {
-  let { relayer, user, proxySignature, relayerFee, paymentNonce } = feePaymentArgs;
+function signProxyBond({ relayer, user, amount, nonce }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+  controller = common.convertToPublicKeyIfNeeded(user);
+
+  const orderedData = [
+    { Text: 'authorization for bond operation' },
+    { AccountId: relayer },
+    { LookupSource: controller },
+    { BalanceOf: amount },
+    { RewardDestination: 'Stash' },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
+}
+
+function signProxyNominate({ relayer, targets, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const proxyProof = {
-    signer: user,
-    relayer,
-    signature: {
-      Sr25519: proxySignature
-    }
-  };
+  const orderedData = [
+    { Text: 'authorization for nominate operation' },
+    { AccountId: relayer },
+    { 'Vec<LookupSource>': targets },
+    { u64: nonce }
+  ];
 
-  const dataToSign = {
-    context: FEE_PAYMENT_CONTEXT,
-    proxyProof,
-    relayer,
-    relayerFee,
-    paymentNonce
-  };
-
-  const hexEncodedData = encodeFeePaymentSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyBondSignature(proxyArgs) {
-  let { relayer, user, amount, nonce } = proxyArgs;
+function signProxyIncreaseStake({ relayer, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  let dataToSign = {
-    context: PROXY_BOND_CONTEXT,
-    relayer,
-    controller: common.convertToPublicKeyIfNeeded(user), // stash and controller are the same
-    amount,
-    payee: STASH_REWARD_DESTINATION, // The reward will be paid into the stash account
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for bond extra operation' },
+    { AccountId: relayer },
+    { BalanceOf: amount },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodeBondSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyNominateSignature(proxyArgs) {
-  let { relayer, targets, nonce } = proxyArgs;
+function signProxyUnstake({ relayer, amount, nonce } ) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  let dataToSign = {
-    context: PROXY_NOMINATE_CONTEXT,
-    relayer,
-    targets,
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for unbond operation' },
+    { AccountId: relayer },
+    { BalanceOf: amount },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodeNominateSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyIncreaseStakeSignature(proxyArgs) {
-  let { relayer, amount, nonce } = proxyArgs;
-  relayer = common.convertToPublicKeyIfNeeded(relayer);
-
-  let dataToSign = {
-    context: PROXY_BOND_EXTRA_CONTEXT,
-    relayer,
-    amount,
-    nonce
-  };
-
-  const hexEncodedData = encodeIncreaseStakeSignatureData(dataToSign);
-  return signData(hexEncodedData);
-}
-
-function createProxyUnstakeSignature(proxyArgs) {
-  let { relayer, amount, nonce } = proxyArgs;
-  relayer = common.convertToPublicKeyIfNeeded(relayer);
-
-  let dataToSign = {
-    context: PROXY_UNBOND_CONTEXT,
-    relayer,
-    amount,
-    nonce
-  };
-
-  const hexEncodedData = encodeUnstakeSignatureData(dataToSign);
-  return signData(hexEncodedData);
-}
-
-function createProxyWithdrawUnlockedSignature(proxyArgs) {
-  let { relayer, nonce } = proxyArgs;
+function signProxyWithdrawUnlocked({ relayer, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   const numSlashSpan = 0; // We dont use slashing
 
-  let dataToSign = {
-    context: PROXY_WITHDRAW_UNBONDED_CONTEXT,
-    relayer,
-    numSlashSpan,
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for withdraw unbonded operation' },
+    { AccountId: relayer },
+    { u32: numSlashSpan },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodeWithdrawUnlockedSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function createProxyPayoutStakersSignature(proxyArgs) {
-  let { relayer, eraIndex, nonce } = proxyArgs;
+function signProxyPayoutStakers({ relayer, eraIndex, nonce } ) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  let dataToSign = {
-    context: PROXY_PAYOUT_STAKERS_CONTEXT,
-    relayer,
-    eraIndex,
-    nonce
-  };
+  const orderedData = [
+    { Text: 'authorization for signed payout stakers operation' },
+    { AccountId: relayer },
+    { EraIndex: eraIndex },
+    { u64: nonce }
+  ];
 
-  const hexEncodedData = encodePayoutStakersSignatureData(dataToSign);
-  return signData(hexEncodedData);
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function encodeProxyTransferSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedUser = common.registry.createType('AccountId', params.user);
-  const encodedRecipient = common.registry.createType('AccountId', params.recipient);
-  const encodedToken = common.registry.createType('H160', params.token);
-  const encodedAmount = common.registry.createType('u128', params.amount);
-  const encodednonce = common.registry.createType('u64', params.nonce);
+function generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
 
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedUser.toU8a(true),
-    encodedRecipient.toU8a(true),
-    encodedToken.toU8a(true),
-    encodedAmount.toU8a(true),
-    encodednonce.toU8a(true)
-  );
+  const proxyProofData = [{ AccountId: user }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];
 
-  return u8aToHex(encodedData);
+  const orderedData = [
+    { Text: 'authorization for proxy payment' },
+    { SkipEncode: encodeOrderedData(proxyProofData) },
+    { AccountId: relayer },
+    { Balance: relayerFee },
+    { u64: paymentNonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(encodedDataToSign);
 }
 
-function encodeProxyConfirmTokenLiftSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedUser = common.registry.createType('AccountId', params.user);
-  const encodedEventType = common.registry.createType('u8', params.eventType);
-  const encodedEthereumTransactionHash = common.registry.createType('H256', params.ethereumTransactionHash);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedUser.toU8a(true),
-    encodedEventType.toU8a(true),
-    encodedEthereumTransactionHash.toU8a(true),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encodedData);
+function encodeOrderedData(data) {
+  const encodedDataToSign = data.map(d => {
+    const [type, value] = Object.entries(d)[0];
+    return type === 'SkipEncode' ? value : common.registry.createType(type, value).toU8a(numTypes.includes(type));
+  });
+  return u8aConcat(...encodedDataToSign);
 }
 
-function encodeProxyTokenLowerSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedUser = common.registry.createType('AccountId', params.user);
-  const encodedToken = common.registry.createType('H160', params.token);
-  const encodedAmount = common.registry.createType('u128', params.amount);
-  const encodedT1Recipient = common.registry.createType('H160', params.t1Recipient);
-  const encodednonce = common.registry.createType('u64', params.nonce);
-
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedUser.toU8a(true),
-    encodedToken.toU8a(true),
-    encodedAmount.toU8a(true),
-    encodedT1Recipient.toU8a(true),
-    encodednonce.toU8a(true)
-  );
-
-  return u8aToHex(encodedData);
-}
-
-function encodeProxyMintSingleNftSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedExternalRef = common.registry.createType('Vec<u8>', params.externalRef);
-  const encodedRoyalties = encodeRoyalty(params.royalties);
-  const encodedT1Authority = common.registry.createType('H160', params.t1Authority);
-
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedExternalRef.toU8a(false),
-    encodedRoyalties,
-    encodedT1Authority.toU8a(true)
-  );
-
-  return u8aToHex(encodedData);
-}
-
-function encodeProxyListNftOpenForSaleSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedNftId = common.registry.createType('U256', params.nftId);
-  const encodedMarket = common.registry.createType('u8', params.market);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedNftId.toU8a(true),
-    encodedMarket.toU8a(true),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encodedData);
-}
-
-function encodeProxyTransferFiatNftSignature(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedNftId = common.registry.createType('U256', params.nftId);
-  const encodedRecipient = common.registry.createType('AccountId', params.recipient);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedNftId.toU8a(true),
-    encodedRecipient.toU8a(true),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encodedData);
-}
-
-function encodeProxyCancelListFiatNftSignature(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedNftId = common.registry.createType('U256', params.nftId);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedNftId.toU8a(true),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encodedData);
-}
-
-function encodeBondSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedController = common.registry.createType('LookupSource', params.controller);
-  const encodedAmount = common.registry.createType('BalanceOf', params.amount);
-  const encodedPayee = common.registry.createType('RewardDestination', params.payee);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encoded_params = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedController.toU8a(false),
-    encodedAmount.toU8a(true),
-    encodedPayee.toU8a(false),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encoded_params);
-}
-
-function encodeNominateSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedTargets = common.registry.createType('Vec<LookupSource>', params.targets);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encoded_params = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedTargets.toU8a(false),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encoded_params);
-}
-
-function encodeIncreaseStakeSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedAmount = common.registry.createType('BalanceOf', params.amount);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encoded_params = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedAmount.toU8a(true),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encoded_params);
-}
-
-function encodeUnstakeSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedAmount = common.registry.createType('BalanceOf', params.amount);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encoded_params = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedAmount.toU8a(true),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encoded_params);
-}
-
-function encodeWithdrawUnlockedSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedNumSlashSpan = common.registry.createType('u32', params.numSlashSpan);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encoded_params = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedNumSlashSpan.toU8a(true),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encoded_params);
-}
-
-function encodePayoutStakersSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedEraIndex = common.registry.createType('EraIndex', params.eraIndex);
-  const encodedNonce = common.registry.createType('u64', params.nonce);
-
-  const encoded_params = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedRelayer.toU8a(true),
-    encodedEraIndex.toU8a(true),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encoded_params);
-}
-
-function encodeFeePaymentSignatureData(params) {
-  const encodedContext = common.registry.createType('Text', params.context);
-  const encodedProxyProof = encodeProxyProof(params.proxyProof);
-  const encodedRelayer = common.registry.createType('AccountId', params.relayer);
-  const encodedRelayerFee = common.registry.createType('Balance', params.relayerFee);
-  const encodedNonce = common.registry.createType('u64', params.paymentNonce);
-
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedProxyProof,
-    encodedRelayer.toU8a(true),
-    encodedRelayerFee.toU8a(true),
-    encodedNonce.toU8a(true)
-  );
-
-  return u8aToHex(encodedData);
-}
-
-function encodeProxyProof(params) {
-  const user = common.registry.createType('AccountId', params.signer);
-  const relayer = common.registry.createType('AccountId', params.relayer);
-  const signature = common.registry.createType('MultiSignature', params.signature);
-  return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
-}
-
-function encodeRoyalty(royalties) {
+function encodeRoyalties(royalties) {
   const encodedRoyalties = royalties.map(r => {
-    const recipientT1Address = common.registry.createType('H160', r.recipient_t1_address);
-    const partsPerMillion = common.registry.createType('u32', r.rate.parts_per_million);
-    return u8aConcat(recipientT1Address.toU8a(true), partsPerMillion.toU8a(true));
+    const orderedData = [{ H160: r.recipient_t1_address }, { u32: r.rate.parts_per_million }];
+    return encodeOrderedData(orderedData);
   });
 
   const encodedResult = common.createTypeUnsafe(common.registry, 'Vec<(H160, u32)>', [encodedRoyalties]);
   return encodedResult.toU8a(false);
 }
 
-function signData(encodedData) {
+function signData(encodedDataToSign) {
   const user = common.getUserAccount();
-  const signature = u8aToHex(user.sign(encodedData));
+  const signature = u8aToHex(user.sign(encodedDataToSign));
   return signature;
 }
 
 module.exports = {
-  createFeePaymentSignature,
-  createProxyTokenTransferSignature,
-  createProxyConfirmTokenLiftSignature,
-  createProxyTokenLowerSignature,
-  createProxyListNftOpenForSaleSignature,
-  createProxyMintSingleNftSignature,
-  createProxyTransferFiatNftSignature,
-  createProxyCancelListFiatNftSignature,
-  createProxyBondSignature,
-  createProxyNominateSignature,
-  createProxyIncreaseStakeSignature,
-  createProxyUnstakeSignature,
-  createProxyWithdrawUnlockedSignature,
-  createProxyPayoutStakersSignature,
-  getProxySignature
+  generateProxySignature,
+  generateFeePaymentSignature
 };

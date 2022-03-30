@@ -16,6 +16,12 @@ function generateNewAccount(api) {
   return account;
 }
 
+function addressToPublicKey(address) {
+  common.validateAccount(address)
+  return common.convertToPublicKeyIfNeeded(address)
+}
+
 module.exports = {
+  addressToPublicKey,
   generateNewAccount
 };

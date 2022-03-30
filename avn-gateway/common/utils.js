@@ -89,7 +89,7 @@ function isValidEthereumAddress(tokenId) {
 }
 
 function isValidEthereumTransactionHash(transactionHash) {
-  return isHex(transactionHash) && tokenId.split('').length == 66;
+  return isHex(transactionHash) && transactionHash.split('').length == 66;
 }
 
 function isValidEventType(eventType) {

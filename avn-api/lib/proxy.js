@@ -22,7 +22,7 @@ const signing = {
   proxyPayoutStakers: proxyArgs => signProxyPayoutStakers(proxyArgs)
 };
 
-const numTypes = ['AccountId', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
+const numTypes = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
 
 function signProxyTokenTransfer({ relayer, user, recipient, token, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);

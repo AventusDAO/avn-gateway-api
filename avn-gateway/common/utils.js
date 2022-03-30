@@ -144,7 +144,7 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
   return signatureVerify(u8aToHex(encodedData), signature, publicKey).isValid;
 }
 
-function verifyFeePaymentSignature(user, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
   const encodedProxyProof = encodeProxyProof(proxyProof);
   const encodedRelayer = registry.createType('AccountId', relayer);
@@ -159,7 +159,7 @@ function verifyFeePaymentSignature(user, relayer, relayerFee, proxyProof, feePay
     encodedPaymentNonce.toU8a(true)
   );
 
-  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, user).isValid;
+  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, payer).isValid;
 }
 
 function encodeProxyProof(params) {

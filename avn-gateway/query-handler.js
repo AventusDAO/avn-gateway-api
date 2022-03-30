@@ -151,7 +151,7 @@ async function getRelayerFees(call, request) {
     user = utils.convertToAddress(user);
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
     const result = avnResponse.data;
-    return utils.validResponse(call.id, result.toString());
+    return utils.validResponse(call.id, result);
   } catch (err) {
     return utils.errorResponse('internal', err.response.data.error, err, request, call.id);
   }

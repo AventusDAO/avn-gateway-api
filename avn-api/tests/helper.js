@@ -3,6 +3,7 @@ const assert = require('chai').assert;
 const BN = require('bn.js');
 const { accounts } = require('../config/accounts.json');
 const yargs = require('yargs');
+const { randomAsHex } = require('@polkadot/util-crypto');
 
 let argv = yargs
   .usage('Run smoke tests using a given Gateway environment')
@@ -53,6 +54,10 @@ async function confirmStatus(api, requestId, expectedStatus) {
   assert.equal(status, expectedStatus);
 }
 
+function randomEthTxHash() {
+  return randomAsHex();
+}
+
 // keep alphabetical
 module.exports = {
   ACCOUNTS: accounts,
@@ -61,6 +66,7 @@ module.exports = {
   avnApi,
   BN,
   bnEquals,
+  randomEthTxHash,
   sleep,
   token
 };

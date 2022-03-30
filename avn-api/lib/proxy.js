@@ -72,7 +72,6 @@ function signProxyConfirmTokenLift({ relayer, eventType, ethereumTransactionHash
   const dataToSign = [
     { Text: 'authorization for add ethereum log operation' },
     { AccountId: relayer },
-    { AccountId: user },
     { u8: eventType },
     { H256: ethereumTransactionHash },
     { u64: nonce }
@@ -82,7 +81,7 @@ function signProxyConfirmTokenLift({ relayer, eventType, ethereumTransactionHash
   return signData(encodedData);
 }
 
-function signProxyTokenLower({ relayer, user, t1Recipient, token, amount, nonce }) {
+function signProxyTokenLower({ relayer, user, token, amount, t1Recipient, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   user = common.convertToPublicKeyIfNeeded(user);
 
@@ -100,7 +99,7 @@ function signProxyTokenLower({ relayer, user, t1Recipient, token, amount, nonce 
   return signData(encodedData);
 }
 
-function signProxyMintSingleNft({ relayer, user, externalRef, royalties, t1Authority }) {
+function signProxyMintSingleNft({ relayer, externalRef, royalties, t1Authority }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [
@@ -130,7 +129,7 @@ function signProxyListNftOpenForSale({ relayer, user, nftId, market, nonce }) {
   return signData(encodedData);
 }
 
-function signProxyTransferFiatNft({ relayer, user, nftId, recipient, nonce }) {
+function signProxyTransferFiatNft({ relayer, nftId, recipient, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   recipient = common.convertToPublicKeyIfNeeded(recipient);
 
@@ -146,7 +145,7 @@ function signProxyTransferFiatNft({ relayer, user, nftId, recipient, nonce }) {
   return signData(encodedData);
 }
 
-function signProxyCancelListFiatNft({ relayer, user, nftId, nonce }) {
+function signProxyCancelListFiatNft({ relayer, nftId, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const dataToSign = [

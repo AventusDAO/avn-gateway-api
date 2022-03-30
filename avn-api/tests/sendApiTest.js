@@ -98,4 +98,117 @@ describe('SendTx api calls:', async () => {
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerLowerFee)));
     });
   });
+
+  describe('mintSingleNft', async () => {
+    let externalRef, royalties, royaltyRecipient1, royaltyRecipient2, royaltyRate1, royaltyRate2;
+
+    before(async () => {
+      royalties = [];
+      royaltyRecipient1 = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03';
+      royaltyRecipient2 = '0xE566A65705F2d8D6C1Da9063A29b6F0f1Ac1e6Da';
+      royaltyRate1 = 10000;
+      royaltyRate2 = 20000;
+    });
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString(); // This must be unique across all mints
+    });
+
+    it('can mint a single nft and confirm the owner', async () => {
+      const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      await helper.confirmStatus(api, requestId, 'Processed');
+      nftId = await api.query.getNftId(externalRef);
+      assert.equal(user, await api.query.getNftOwner(nftId));
+    });
+
+    it('can mint single nft with a single royalty', async () => {
+      royalties = [
+        {
+          recipient_t1_address: royaltyRecipient1,
+          rate: {
+            parts_per_million: royaltyRate1
+          }
+        }
+      ];
+      const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      await helper.confirmStatus(api, requestId, 'Processed');
+    });
+
+    it('can mint single nft with multiple royalties', async () => {
+      royalties = [
+        {
+          recipient_t1_address: royaltyRecipient1,
+          rate: {
+            parts_per_million: royaltyRate1
+          }
+        },
+        {
+          recipient_t1_address: royaltyRecipient2,
+          rate: {
+            parts_per_million: royaltyRate2
+          }
+        }
+      ];
+
+      const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      await helper.confirmStatus(api, requestId, 'Processed');
+    });
+  });
+
+  describe('listFiatNftForSale', async () => {
+    let externalRef, nftId;
+    const royalties = [];
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString();
+      const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      await helper.confirmStatus(api, requestId, 'Processed');
+      nftId = await api.query.getNftId(externalRef);
+    });
+
+    it('can list an NFT as open for sale', async () => {
+      const requestId = await api.send.listFiatNftForSale(relayer, nftId);
+      await helper.confirmStatus(api, requestId, 'Processed');
+    });
+  });
+
+  describe('transferFiatNft', async () => {
+    let externalRef, nftId;
+    const royalties = [];
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString();
+      let requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      await helper.confirmStatus(api, requestId, 'Processed');
+      nftId = await api.query.getNftId(externalRef);
+      requestId = await api.send.listFiatNftForSale(relayer, nftId);
+      await helper.confirmStatus(api, requestId, 'Processed');
+    });
+
+    it('can transfer an NFT after an offline fiat sale', async () => {
+      assert.equal(user, await api.query.getNftOwner(nftId));
+      const requestId = await api.send.transferFiatNft(relayer, recipient, nftId);
+      await helper.confirmStatus(api, requestId, 'Processed');
+      assert.equal(recipient, await api.query.getNftOwner(nftId));
+    });
+  });
+
+  describe('cancelFiatNftListing', async () => {
+    let externalRef, nftId;
+    const royalties = [];
+
+    beforeEach(async () => {
+      externalRef = 'avn-gateway-test-' + new Date().toISOString();
+      let requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      await helper.confirmStatus(api, requestId, 'Processed');
+      nftId = await api.query.getNftId(externalRef);
+      requestId = await api.send.listFiatNftForSale(relayer, nftId);
+      await helper.confirmStatus(api, requestId, 'Processed');
+    });
+
+    it('can cancel a fiat listing', async () => {
+      const requestId = await api.send.cancelFiatNftListing(relayer, nftId);
+      await helper.confirmStatus(api, requestId, 'Processed');
+    });
+  });
 });

@@ -104,7 +104,7 @@ describe('Proxy api calls:', async () => {
       bnEquals(new BN(stakerStakingStatusBefore.stakedBalance).add(amount), new BN(stakerStakingStatusAfter.stakedBalance));
     });
 
-    // TODO: Re-enable when we can free up user's unlocked chunks
+    // TODO: Re-enable when we can free up the staker's unlocked chunks quota
     xit('can request to withdraw stake', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 

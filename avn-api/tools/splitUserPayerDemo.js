@@ -16,7 +16,7 @@ async function main() {
   relayer = accounts.relayer;
   requestId = 1;
 
-  await logBalances('\nBALANCE BEFORE');
+  await logBalances('\nBALANCES BEFORE');
 
   process.env.SURI = user.seed;
   let userTokenNonce = await postJSONRPCRequest('query', 'getNonce', {accountId: user.address, nonceType: 'token'});

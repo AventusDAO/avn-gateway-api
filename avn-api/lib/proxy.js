@@ -3,28 +3,8 @@
 const common = require('./common.js');
 const { u8aToHex, u8aConcat } = require('@polkadot/util');
 
-const isNumType = {
-  AccountId: true,
-  BalanceOf: true,
-  EraIndex: true,
-  u8: true,
-  u32: true,
-  u64: true,
-  u128: true,
-  U256: true,
-  H160: true,
-  H256: true,
-  LookupSource: false,
-  MultiSignature: false,
-  RewardDestination: false,
-  Text: false,
-  'Vec<u8>': false,
-  'Vec<LookupSource>': false,
-  SkipEncode: undefined, // use for pre-encoded values
-};
-
-const getProxySignature = (transactionType, proxyArgs) => signatures[transactionType](proxyArgs);
-
+// signatures object contains functions called by passing transaction type and the arguments to sign to generateProxySignature
+const generateProxySignature = (transactionType, proxyArgs) => signatures[transactionType](proxyArgs);
 const signatures = {
   proxyAvtTransfer: proxyArgs => signProxyTokenTransfer(proxyArgs),
   proxyTokenTransfer: proxyArgs => signProxyTokenTransfer(proxyArgs),
@@ -42,10 +22,7 @@ const signatures = {
   proxyPayoutStakers: proxyArgs => signProxyPayoutStakers(proxyArgs)
 };
 
-function checkArgs(proxyArgs, ...expected) {
-  console.log(Object.keys(proxyArgs))
-  console.log(arguments.slice(1))
-}
+const numTypes = ['AccountId','BalanceOf','EraIndex','u8','u32','u64','u128','U256','H160','H256'];
 
 function signProxyTokenTransfer({ relayer, user, recipient, token, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
@@ -247,7 +224,7 @@ function signProxyPayoutStakers({ relayer, eraIndex, nonce } ) {
   return signData(encodedData);
 }
 
-function getFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce }) {
+function generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const proxyProofData = [{ AccountId: user }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];
@@ -267,7 +244,7 @@ function getFeePaymentSignature({ relayer, user, proxySignature, relayerFee, pay
 function encodeData(data) {
   const encodedData = data.map(d => {
     const [type, value] = Object.entries(d)[0];
-    return type === 'SkipEncode' ? value : common.registry.createType(type, value).toU8a(isNumType[type]);
+    return type === 'SkipEncode' ? value : common.registry.createType(type, value).toU8a(numTypes.includes(type));
   });
   return u8aConcat(...encodedData);
 }
@@ -289,6 +266,6 @@ function signData(encodedData) {
 }
 
 module.exports = {
-  getProxySignature,
-  getFeePaymentSignature
+  generateProxySignature,
+  generateFeePaymentSignature
 };

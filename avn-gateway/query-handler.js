@@ -106,7 +106,7 @@ async function getNftId(call, request) {
     return utils.errorResponse('params', 'invalid external ref', externalRef, request, call.id);
   } else {
     function getNftIdFunction(externalRef) {
-      return function(nftData) {
+      return function (nftData) {
         return filterNftId(externalRef, nftData);
       };
     }
@@ -150,7 +150,8 @@ async function getRelayerFees(call, request) {
     relayer = utils.convertToAddress(relayer);
     user = utils.convertToAddress(user);
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
-    const result = avnResponse.data;
+    let result = avnResponse.data;
+    result = (typeof result === 'number') ? result.toString() : result;
     return utils.validResponse(call.id, result);
   } catch (err) {
     return utils.errorResponse('internal', err.response.data.error, err, request, call.id);
@@ -254,7 +255,7 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
 const formatEraAsString = data => (data ? data.index : 0);
 
-const filterNftOwner = (data) => (data ? data.owner : null);
+const filterNftOwner = data => (data ? data.owner : null);
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (uniqueExternalRef, data) => {

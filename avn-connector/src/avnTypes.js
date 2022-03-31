@@ -277,9 +277,9 @@ const baseTypes = {
       NftMarketplace: 'MarketplaceId'
     }
   },
-  Address: "LookupSource",
-  LookupSource: "IndicesLookupSource",
-  AccountInfo: "AccountInfoWithDualRefCount"
+  Address: 'LookupSource',
+  LookupSource: 'IndicesLookupSource',
+  AccountInfo: 'AccountInfoWithDualRefCount'
 };
 
 const specVer264Types = {
@@ -290,8 +290,8 @@ const specVer264Types = {
     signature: 'MultiSignature'
   },
   Address: 'MultiAddress',
-  LookupSource: 'MultiAddress',
-}
+  LookupSource: 'MultiAddress'
+};
 
 const versionedTypes = [
   {
@@ -307,7 +307,7 @@ const versionedTypes = [
       ...specVer264Types
     }
   }
-]
+];
 
 const typesBundle = {
   spec: {
@@ -315,6 +315,6 @@ const typesBundle = {
       types: versionedTypes
     }
   }
-}
+};
 
-module.exports = typesBundle
+module.exports = typesBundle;

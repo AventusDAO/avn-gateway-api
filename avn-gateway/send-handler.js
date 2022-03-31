@@ -197,10 +197,10 @@ async function processProxyTransferFiatNft(call, request, requestId) {
 }
 
 async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {
-  const { relayer, user, proxySignature, feePaymentSignature, paymentNonce } = call.params;
+  const { relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce } = call.params;
 
   try {
-    validateMethodParams(relayer, user, proxySignature, feePaymentSignature, paymentNonce);
+    validateMethodParams(relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce);
   } catch (err) {
     return utils.errorResponse('params', err.toString(), err, request, call.id);
   }
@@ -211,6 +211,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
       call.method,
       relayer,
       user,
+      payer,
       proxySignature,
       feePaymentSignature,
       paymentNonce,
@@ -223,24 +224,24 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
   return await sendTx(call, request, requestId, pallet, method, params);
 }
 
-async function getRelayerFee(relayer, user, transactionType) {
+async function getRelayerFee(relayer, payer, transactionType) {
   try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, payer, transactionType });
     return avnResponse.data.toString();
   } catch (error) {
     throw error;
   }
 }
 
-function getPaymentInfo(user, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const verified = utils.verifyFeePaymentSignature(user, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
+function getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+  const verified = utils.verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
 
   if (verified === false) {
     return undefined;
   }
 
   return {
-    payer: user,
+    payer,
     recipient: relayer,
     amount: relayerFee,
     signature: {
@@ -341,10 +342,11 @@ async function processProxyPayoutStakers(call, request, requestId) {
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
-function validateMethodParams(relayer, user, proxySignature, feePaymentSignature, paymentNonce) {
+function validateMethodParams(relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce) {
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer';
     if (utils.isValidAccountId(user) === false) throw 'user';
+    if (utils.isValidAccountId(payer) === false) throw 'payer';
     if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format';
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'fee signature format';
     if (utils.isValidNonce(paymentNonce) === false) throw 'payment nonce';
@@ -353,17 +355,26 @@ function validateMethodParams(relayer, user, proxySignature, feePaymentSignature
   }
 }
 
-async function getProxyParams(callMethod, relayer, user, proxySignature, feePaymentSignature, paymentNonce, methodParams) {
+async function getProxyParams(
+  callMethod,
+  relayer,
+  user,
+  payer,
+  proxySignature,
+  feePaymentSignature,
+  paymentNonce,
+  methodParams
+) {
   const proxyProof = getProxyProof(user, relayer, proxySignature);
 
   let relayerFee;
   try {
-    relayerFee = await getRelayerFee(relayer, user, callMethod);
+    relayerFee = await getRelayerFee(relayer, payer, callMethod);
   } catch (error) {
     throw new Error(`could not get relayer fee: ${error.toString()}`);
   }
 
-  const paymentInfo = getPaymentInfo(user, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
+  const paymentInfo = getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
   if (!paymentInfo) {
     throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
   }
@@ -386,12 +397,13 @@ async function getBondParams(call) {
     throw new Error(`invalid parameter (${errParam}) passed to getBondParams`);
   }
 
-  validateMethodParams(relayer, user, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
+  validateMethodParams(relayer, user, payer, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
 
   return await getProxyParams(
     call.params.bondMethodName,
     relayer,
     user,
+    payer,
     proxyBondSignature,
     bondFeePaymentSignature,
     bondPaymentNonce,
@@ -409,18 +421,13 @@ async function getNominateParams(call) {
     throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
   }
 
-  validateMethodParams(
-    relayer,
-    user,
-    proxyNominateSignature,
-    nominateFeePaymentSignature,
-    nominatePaymentNonce
-  );
+  validateMethodParams(relayer, user, payer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
 
   return await getProxyParams(
     call.params.nominateMethodName,
     relayer,
     user,
+    payer,
     proxyNominateSignature,
     nominateFeePaymentSignature,
     nominatePaymentNonce,

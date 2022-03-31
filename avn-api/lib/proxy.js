@@ -22,7 +22,7 @@ const signing = {
   proxyPayoutStakers: proxyArgs => signProxyPayoutStakers(proxyArgs)
 };
 
-const numTypes = ['AccountId','BalanceOf','EraIndex','u8','u32','u64','u128','U256','H160','H256'];
+const numTypes = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
 
 function signProxyTokenTransfer({ relayer, user, recipient, token, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
@@ -181,7 +181,7 @@ function signProxyIncreaseStake({ relayer, amount, nonce }) {
   return signData(encodedDataToSign);
 }
 
-function signProxyUnstake({ relayer, amount, nonce } ) {
+function signProxyUnstake({ relayer, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
@@ -210,13 +210,13 @@ function signProxyWithdrawUnlocked({ relayer, nonce }) {
   return signData(encodedDataToSign);
 }
 
-function signProxyPayoutStakers({ relayer, eraIndex, nonce } ) {
+function signProxyPayoutStakers({ relayer, era, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
     { Text: 'authorization for signed payout stakers operation' },
     { AccountId: relayer },
-    { EraIndex: eraIndex },
+    { EraIndex: era },
     { u64: nonce }
   ];
 
@@ -226,6 +226,7 @@ function signProxyPayoutStakers({ relayer, eraIndex, nonce } ) {
 
 function generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
+  user = common.convertToPublicKeyIfNeeded(user);
 
   const proxyProofData = [{ AccountId: user }, { AccountId: relayer }, { MultiSignature: { Sr25519: proxySignature } }];
 
@@ -260,8 +261,8 @@ function encodeRoyalties(royalties) {
 }
 
 function signData(encodedDataToSign) {
-  const user = common.getUserAccount();
-  const signature = u8aToHex(user.sign(encodedDataToSign));
+  const signer = common.getSigner();
+  const signature = u8aToHex(signer.sign(encodedDataToSign));
   return signature;
 }
 

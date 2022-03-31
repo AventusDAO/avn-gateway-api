@@ -210,13 +210,13 @@ function signProxyWithdrawUnlocked({ relayer, nonce }) {
   return signData(encodedDataToSign);
 }
 
-function signProxyPayoutStakers({ relayer, eraIndex, nonce }) {
+function signProxyPayoutStakers({ relayer, era, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
     { Text: 'authorization for signed payout stakers operation' },
     { AccountId: relayer },
-    { EraIndex: eraIndex },
+    { EraIndex: era },
     { u64: nonce }
   ];
 

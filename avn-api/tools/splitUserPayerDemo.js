@@ -1,8 +1,7 @@
 const AvnApi = require('../index.js');
 const { accounts } = require('../config/accounts.json');
 const axios = require('axios');
-const gateway = 'https://sandbox.gateway.aventus.io';
-const token = '0xb2775da467266dfbc4bdfe8a7d9d7a5b1a15d954';
+const { gateway, token } = require('.../config/sandbox.json')
 
 let api, payer, user, recipient, relayer, requestId;
 const transferAmount = '1';
@@ -34,6 +33,9 @@ async function main() {
   });
   let payerPaymentNonce = await jsonRpcRequest('query', 'getNonce', { accountId: payer.address, nonceType: 'payment' });
   let payerFeePaymentSignature = payerGeneratedFeePaymentSignature(userProxySignature, relayerFeeForPayer, payerPaymentNonce);
+
+  // No further signing required
+  process.env.SURI = null;
 
   const proxyTokenTransferParams = {
     relayer: relayer.address,

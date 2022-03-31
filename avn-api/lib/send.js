@@ -193,6 +193,7 @@ function generateFunction(functionName, api, queryApi) {
 
 Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs, transactionType, nonceType, retry) {
   const user = common.getSignerAddress();
+  // By default the user pays the relayer fees but this can be changed to any `payer`
   const payer = user;
   let proxyArgs = Object.assign({ relayer, user, payer }, methodArgs);
   let params = { ...proxyArgs };
@@ -222,6 +223,7 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
 
 Send.prototype.proxyStakeAvtRequest = async function (api, queryApi, relayer, methodArgs, methodName, nonceType, retry) {
   const user = common.getSignerAddress();
+  // By default the user pays the relayer fees but this can be changed to any `payer`
   const payer = user;
   let proxyArgs = Object.assign({ relayer, user, payer }, methodArgs);
   let params = { ...proxyArgs };

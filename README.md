@@ -45,14 +45,12 @@ const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
 ### Proofs
 Each send transaction requires 2 types of proof:
 - a **proxySignature** of the transaction details. This is signed by the transaction originator (ie: the user)
-- a **feePaymentSignature** signed by either the user or any party willing to pay the required relayer sending fee
-
-Most proofs require nonces of the correct type.\
-Proofs are created automatically and internally by the api but can also be created for use with JSON-RPC via the api proxy library: \
+- a **feePaymentSignature** signed by either the user or any party willing to pay the required relayer sending fee (ie: the payer)
+Proofs are generated internally by the api but can also be constructed manually for JSON-RPC usage via the api proxy library: \
+Most proofs require nonces of the correct type which can be retrieved by calling [getNonce](#getNonce) or [getNftNonce](#getNftNonce) .\
 **Note:** _These signing methods only require **SURI** to be set to the intended signer account and can be run offline_
 
-- If required make a [nonce](#getNonce) or [NFT nonce](#getNftNonce) query to retrieve the relevant type of nonce
-- The api then exposes the following methods to generate a relevant **proxySignature**, each taking a `transaction type` followed by its specific named parameters object:
+- The api exposes the following methods to generate a relevant **proxySignature**, each taking a `transaction type` followed by its specific named parameters object:
   - `api.proxy.generateProxySignature('proxyAvtTransfer', { relayer, user, recipient, token, amount, nonce }) // nonce required is of 'token' type`
   - `api.proxy.generateProxySignature('proxyTokenTransfer', { relayer, user, recipient, token, amount, nonce }) // nonce required is of 'token' type`
   - `api.proxy.generateProxySignature('proxyConfirmTokenLift', { relayer, eventType, ethereumTransactionHash, nonce }) // nonce required is of 'confirmation' type`
@@ -68,8 +66,8 @@ Proofs are created automatically and internally by the api but can also be creat
   - `api.proxy.generateProxySignature('proxyWithdrawUnlocked', { relayer, nonce }) // nonce required is of 'staking' type`
   - `api.proxy.generateProxySignature('proxyPayoutStakers', { relayer, era, nonce }) // nonce required is of 'staking' type`
 
-- To generate a **feePaymentSignature** ensure you have the correct **relayerFee** by making a [getRelayerFees](#getRelayerFees) request for the payer signing for the fee and the relevant `transaction type`
-  - `api.proxy.generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce }) // nonce required is of 'payment' type`
+- To generate a **feePaymentSignature** ensure you have the correct **relayerFee** by making a [getRelayerFees](#getRelayerFees) request that specifies the `transaction type` and the payer
+  - `api.proxy.generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce })
 
 ### AvN accounts format
 AvN accounts can be identified by either their public key or their address. The former is represented by a 32-byte hex string. The latter is a string represented in [SS58 format](https://substrate.dev/docs/en/knowledgebase/advanced/ss58-address-format).\
@@ -639,8 +637,8 @@ Transfers the specified amount of AVT from the user account to the destination a
 `token` *[required]* - a hex string representing the token ID (20 bytes) of the AVT contract \
 `amount` *[required]* - a string integer value representing the amount (in atto AVT) being transferred \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -681,8 +679,8 @@ Transfers the specified amount of an ERC20 or ERC777 token, from the user accoun
 `token` *[required]* - a hex string representing the token ID (20 bytes) of the token being checked \
 `amount` *[required]* - a string integer value representing the amount (in lowest fraction) of the token being transferred \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -722,8 +720,8 @@ Trigger the AvN confirmation of a lift operation that has previously occurred on
 `eventType` *[required]* - the integer value 1 - representing the enum value for a Lifted event type \
 `ethereumTransactionHash` *[required]* - a string representing the 32 byte Ethereum transaction hash of the lift \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -765,8 +763,8 @@ The process is completed on Ethereum by calling the AvN tier1 contract's lower m
 `token` *[required]* - a hex string representing the token ID (20 bytes) of the token being checked \
 `amount` *[required]* - a string integer value representing the amount (in lowest fraction) of the token being transferred \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -807,8 +805,8 @@ Mints a single NFT to the user
 `royalties` *[optional]* - an array of royalty rates with percentages set in parts per million - accepts empty array if no royalties\
 `t1Authority` *[required]* - a hex string representing the 20 byte Ethereum address of the relevant authority \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -848,8 +846,8 @@ Lists an NFT as open for sale in a particular market
 `nftId` *[required]* - a string representing the NFT ID (32 bytes) to check for nonce \
 `market` *[required]* - an integer enum representing the market to list the NFT on (1 = Ethereum, 2 = Fiat)\
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -889,8 +887,8 @@ Transfers an NFT that is currently listed for sale in fiat
 `nftId` *[required]* - a string representing the NFT ID (32 bytes) to check for nonce \
 `recipient` *[required]* - a hex string representing the recipient's public key \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -929,8 +927,8 @@ Cancels a listing for an NFT as open for sale in fiat
 `user` *[required]* - a string representing the user's SS58 address \
 `nftId` *[required]* - a string representing the NFT ID (32 bytes) to check for nonce \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -1019,8 +1017,8 @@ Stakes the specified amount of AVT, locking its free usage in order to earn rewa
 `user` *[required]* - a string representing the user's SS58 address \
 `amount` *[required]* - a string integer value representing the full amount of AVT to stake \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -1059,8 +1057,8 @@ Unstakes the specified amount of AVT, removing it from earning further staking r
 `user` *[required]* - a string representing the user's SS58 address \
 `amount` *[required]* - a string integer value representing the full amount of AVT to unstake \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -1098,8 +1096,8 @@ Withdraws previously unstaked AVT back to free balance
 `relayer` *[required]* - a string representing the relayer's SS58 address \
 `user` *[required]* - a string representing the user's SS58 address \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```
@@ -1138,8 +1136,8 @@ Triggers the payment of staking rewards to the next XXX stakers
 `user` *[required]* - a string representing the user's SS58 address \
 `era` *[required]* - a string integer value representing the era to payout \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the user allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current account payment nonce
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
 
 **EXAMPLE**
 ```

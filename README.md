@@ -228,7 +228,7 @@ Returns the nonce of a given AvN account and nonce type
 
 **REQUEST PARAMS** \
 `accountId` *[required]* - a string representing the public key or SS58 address of the account to check for nonce
-`nonceType` *[optional]* - a string representing the nonce type. One of:
+`nonceType` *[required]* - a string representing the nonce type. One of:
 ```
 "token"
 "payment"

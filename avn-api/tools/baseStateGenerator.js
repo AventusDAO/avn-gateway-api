@@ -54,14 +54,14 @@ const royalties = [
   externalRef = 'avn-gateway-test-user-unlisted-' + new Date().toISOString();
   requestId = await api.send.mintSingleNft(validRelayer.address, externalRef, royalties, dummyT1Authority);
   await helper.confirmStatus(api, requestId, 'Processed');
-  const unlistedUserNftId = await api.query.getNftId(externalRef);
+  const unlistedOtherUserNftId = await api.query.getNftId(externalRef);
 
   //Mint and list nft owned by user
   externalRef = 'avn-gateway-test-user-listed-' + new Date().toISOString();
   requestId = await api.send.mintSingleNft(validRelayer.address, externalRef, royalties, dummyT1Authority);
   await helper.confirmStatus(api, requestId, 'Processed');
-  const listedUserNftId = await api.query.getNftId(externalRef);
-  requestId = await api.send.listFiatNftForSale(validRelayer.address, listedUserNftId);
+  const listedOtherUserNftId = await api.query.getNftId(externalRef);
+  requestId = await api.send.listFiatNftForSale(validRelayer.address, listedOtherUserNftId);
   await helper.confirmStatus(api, requestId, 'Processed');
 
   const mintedNfts = {
@@ -72,8 +72,8 @@ const royalties = [
     },
     otherUser: {
       owner_address: validOtherUser.address,
-      listedNft: listedUserNftId,
-      unlistedNft: unlistedUserNftId
+      listedNft: listedOtherUserNftId,
+      unlistedNft: unlistedOtherUserNftId
     }
   };
 

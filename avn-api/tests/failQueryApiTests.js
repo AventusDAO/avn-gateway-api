@@ -20,6 +20,7 @@ const nfts = helper.NFTS;
   const otherUser = accounts.otherUser;
   const validToken = helper.token;
   const unlistedUserNft = nfts.user.unlistedNft;
+  const validNonceType = 'token';
   let testConfig;
 
   describe('Fail Query api calls:', async done => {
@@ -64,30 +65,19 @@ const nfts = helper.NFTS;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            account: validUser.address
+            account: validUser.address,
+            nonceType: validNonceType
           },
           selectionField: undefined,
-          testFunction: api.query.getAccountNonce
+          testFunction: api.query.getNonce
         };
         describe('With invalid account', async () => {
           testConfig.selectionField = 'account';
           await testPatterns.invalidAccount(testConfig);
         });
-      });
-    });
-
-    describe('getAccountPaymentNonce', async () => {
-      describe('fails when called', async () => {
-        testConfig = {
-          validCallData: {
-            account: validUser.address
-          },
-          selectionField: undefined,
-          testFunction: api.query.getAccountNonce
-        };
-        describe('With invalid account', async () => {
-          testConfig.selectionField = 'account';
-          await testPatterns.invalidAccount(testConfig);
+        describe('With invalid nonce type', async () => {
+          testConfig.selectionField = 'nonceType';
+          await testPatterns.invalidNonceType(testConfig);
         });
       });
     });

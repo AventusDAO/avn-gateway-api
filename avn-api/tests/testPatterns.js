@@ -120,17 +120,17 @@ function invalidNftId(testConfig) {
 
   it(selectionField + ' is empty', async () => {
     callData[selectionField] = '';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read property.*of undefined/);
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read properties of undefined/);
   });
 
   it(selectionField + ' is undefined', async () => {
     callData[selectionField] = undefined;
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read property.*of undefined/);
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read properties of undefined/);
   });
 
   it(selectionField + ' doesnt exist', async () => {
     callData[selectionField] = 'idThatDoesntExist';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read property.*of undefined/);
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read properties of undefined/);
   });
 }
 
@@ -171,11 +171,33 @@ function invalidRequestState(testConfig) {
   });
 }
 
+function invalidNonceType(testConfig) {
+  const selectionField = testConfig.selectionField;
+  const testFunction = testConfig.testFunction;
+  let callData = { ...testConfig.validCallData };
+
+  it(selectionField + ' is empty', async () => {
+    callData[selectionField] = '';
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid nonce type:/);
+  });
+
+  it(selectionField + ' is undefined', async () => {
+    callData[selectionField] = undefined;
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid nonce type:/);
+  });
+
+  it(selectionField + ' doesnt exist', async () => {
+    callData[selectionField] = 'idThatDoesntExist';
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid nonce type:/);
+  });
+}
+
 module.exports = {
   invalidAccount,
   invalidAmount,
   invalidEthereumAddress,
   invalidNftId,
   invalidExternalReference,
-  invalidRequestState
+  invalidRequestState,
+  invalidNonceType
 };

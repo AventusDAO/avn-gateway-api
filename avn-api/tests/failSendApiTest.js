@@ -206,7 +206,7 @@ const BN = helper.BN;
             }
           ];
           await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Invalid royalties format:/
+            /royalties is not defined/
           );
         });
         it('With royalties where recipient address is empty string', async () => {

@@ -25,8 +25,8 @@ describe('AVN Gateway Smoke Tests', function () {
     await api.init();
 
     relayer = accounts.relayer.address;
-    sender = accounts.sender.address;
-    recipient = accounts.user1.address;
+    sender = accounts.user.address;
+    recipient = accounts.otherUser.address;
   });
 
   it('query account balance', async () => {
@@ -40,7 +40,7 @@ describe('AVN Gateway Smoke Tests', function () {
     assert(requestId !== undefined, 'requestId is undefined');
     assert(requestId !== 'Invalid params', 'request contains invalid params');
     assert(
-      ['Pending', 'Processed'].includes(await api.poll.requestState(requestId)),
+      ['Pending', 'Processed'].includes((await api.poll.requestState(requestId)).status),
       'transaction state is neither Pending nor Processed'
     );
   });

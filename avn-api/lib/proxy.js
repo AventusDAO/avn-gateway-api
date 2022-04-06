@@ -138,12 +138,12 @@ function signProxyCancelListFiatNft({ relayer, nftId, nonce }) {
 
 function signProxyBond({ relayer, user, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
-  controller = common.convertToPublicKeyIfNeeded(user);
+  user = common.convertToPublicKeyIfNeeded(user);
 
   const orderedData = [
     { Text: 'authorization for bond operation' },
     { AccountId: relayer },
-    { LookupSource: controller },
+    { LookupSource: user },
     { BalanceOf: amount },
     { RewardDestination: 'Stash' },
     { u64: nonce }

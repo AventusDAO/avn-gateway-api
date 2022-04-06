@@ -387,7 +387,7 @@ async function getProxyParams(
 }
 
 async function getBondParams(call) {
-  const { relayer, user, amount, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce } = call.params;
+  const { relayer, user, payer, amount, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce } = call.params;
 
   const bondMethodParams = [user, amount, utils.STASH_REWARD_DESTINATION];
   try {
@@ -412,7 +412,7 @@ async function getBondParams(call) {
 }
 
 async function getNominateParams(call) {
-  const { relayer, user, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } = call.params;
+  const { relayer, user, payer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } = call.params;
   const nominateMethodParams = [targets];
 
   try {

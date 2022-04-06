@@ -238,7 +238,7 @@ Send.prototype.proxyStakeAvtRequest = async function (api, queryApi, relayer, me
   params.bondFeePaymentSignature = paymentData.feePaymentSignature;
   params.bondPaymentNonce = paymentData.paymentNonce;
 
-  proxyArgs.nonce = new BN(nonce).add(new BN(1));
+  proxyArgs.nonce = new BN(proxyArgs.nonce).add(new BN(1));
 
   transactionType = TX_TYPE.ProxyNominate;
   params.nominateMethodName = transactionType;

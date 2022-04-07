@@ -16,6 +16,24 @@ describe('Utilities', async () => {
     });
   });
 
+  describe('myAddress', async () => {
+    it('can get my address', async () => {
+      assert.equal(accounts.user.address, api.utils.myAddress());
+      process.env.SURI = accounts.otherUser.seed;
+      assert.equal(accounts.otherUser.address, api.utils.myAddress());
+      process.env.SURI = accounts.user.seed;
+    });
+  });
+
+  describe('myPublicKey', async () => {
+    it('can get my public key', async () => {
+      assert.equal(accounts.user.address, api.utils.myPublicKey());
+      process.env.SURI = accounts.otherUser.mnemonic;
+      assert.equal(accounts.otherUser.address, api.utils.myPublicKey());
+      process.env.SURI = accounts.user.seed;
+    });
+  });
+
   describe('addressToPublicKey', async () => {
     it('can convert an address to a public key', async () => {
       const publicKey = api.utils.addressToPublicKey(accounts.otherUser.address);

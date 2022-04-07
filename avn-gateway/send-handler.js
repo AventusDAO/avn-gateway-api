@@ -412,7 +412,8 @@ async function getBondParams(call) {
 }
 
 async function getNominateParams(call) {
-  const { relayer, user, payer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } = call.params;
+  const { relayer, user, payer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } =
+    call.params;
   const nominateMethodParams = [targets];
 
   try {

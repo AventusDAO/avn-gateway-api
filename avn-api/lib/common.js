@@ -35,11 +35,17 @@ const NONCE_TYPE = {
   None: 'none'
 };
 
-const STAKING_STATUS = {
-  isStaking: 'isStaking',
-  isNotStaking: 'isNotStaking'
+const ETHEREUM_LOG_EVENT_TYPE = {
+  AddedValidator: 0,
+  Lifted: 1,
+  NftMint: 2,
+  NftTransferTo: 3,
+  NftCancelListing: 4,
+  NftCancelBatchListing: 5
 };
 
+const MARKET = { Ethereum: 1, Fiat: 2 };
+const STAKING_STATUS = { isStaking: 'isStaking', isNotStaking: 'isNotStaking' };
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
 const RATE_STRUCTURE = ['parts_per_million'];
 
@@ -187,6 +193,11 @@ function getSignerAddress() {
   return signer.address;
 }
 
+function getSignerPublicKey() {
+  const signer = getSigner();
+  return signer.publicKey;
+}
+
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -194,9 +205,12 @@ async function sleep(ms) {
 module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
-  getSignerAddress,
+  ETHEREUM_LOG_EVENT_TYPE,
   getSigner,
+  getSignerAddress,
+  getSignerPublicKey,
   keyring,
+  MARKET,
   NONCE_TYPE,
   registry,
   sleep,

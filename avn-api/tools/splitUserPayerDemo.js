@@ -1,7 +1,7 @@
 const AvnApi = require('../index.js');
 const { accounts } = require('../config/accounts.json');
 const axios = require('axios');
-const { gateway, token } = require('../config/sandbox.json')
+const { gateway, token } = require('../config/sandbox.json');
 
 let api, payer, user, recipient, relayer, requestId;
 const transferAmount = '1';

@@ -21,7 +21,17 @@ function addressToPublicKey(address) {
   return common.convertToPublicKeyIfNeeded(address);
 }
 
+function myAddress() {
+  return common.getSignerAddress();
+}
+
+function myPublicKey() {
+  return common.getSignerPublicKey();
+}
+
 module.exports = {
   addressToPublicKey,
-  generateNewAccount
+  generateNewAccount,
+  myAddress,
+  myPublicKey
 };

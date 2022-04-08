@@ -27,7 +27,7 @@ async function validateAwtToken(event) {
     return InvalidRequestResponse;
   }
 
-  if (await isNewUser(awtToken) && !(await userHasAvtBalance(awtToken))) {
+  if ((await isNewUser(awtToken)) && !(await userHasAvtBalance(awtToken))) {
     console.info('User does not have enough AVT to access the gateway');
     return InvalidRequestResponse;
   }

@@ -19,18 +19,18 @@ describe('Utilities', async () => {
   describe('myAddress', async () => {
     it('can get my address', async () => {
       assert.equal(accounts.user.address, api.utils.myAddress());
-      process.env.SURI = accounts.otherUser.seed;
+      process.env.AVN_SURI = accounts.otherUser.seed;
       assert.equal(accounts.otherUser.address, api.utils.myAddress());
-      process.env.SURI = accounts.user.seed;
+      process.env.AVN_SURI = accounts.user.seed;
     });
   });
 
   describe('myPublicKey', async () => {
     it('can get my public key', async () => {
       assert.equal(accounts.user.publicKey, api.utils.myPublicKey());
-      process.env.SURI = accounts.otherUser.mnemonic;
+      process.env.AVN_SURI = accounts.otherUser.mnemonic;
       assert.equal(accounts.otherUser.publicKey, api.utils.myPublicKey());
-      process.env.SURI = accounts.user.seed;
+      process.env.AVN_SURI = accounts.user.seed;
     });
   });
 

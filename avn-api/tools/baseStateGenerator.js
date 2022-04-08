@@ -31,8 +31,8 @@ const royalties = [
 (async () => {
   const api = await helper.avnApi();
 
-  //SURI env variable updated so we can mint nfts owned by this account
-  process.env.SURI = validUser.seed;
+  //AVN_SURI env variable updated so we can mint nfts owned by this account
+  process.env.AVN_SURI = validUser.seed;
 
   //Mint nft owned by user
   let externalRef = 'avn-gateway-test-user-unlisted-' + new Date().toISOString();
@@ -48,7 +48,7 @@ const royalties = [
   requestId = await api.send.listFiatNftForSale(validRelayer.address, listedUserNftId);
   await helper.confirmStatus(api, requestId, 'Processed');
 
-  process.env.SURI = validOtherUser.seed;
+  process.env.AVN_SURI = validOtherUser.seed;
 
   //Mint nft owned by user
   externalRef = 'avn-gateway-test-user-unlisted-' + new Date().toISOString();

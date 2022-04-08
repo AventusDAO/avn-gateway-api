@@ -185,8 +185,8 @@ function validateNonceType(nonceType) {
 }
 
 function getSigner() {
-  const suri = process.env.SURI;
-  if (!suri) throw new Error('Please set SURI environment variable');
+  const suri = process.env.AVN_SURI;
+  if (!suri) throw new Error('Please set AVN_SURI environment variable');
   const user = keyring.addFromUri(suri);
   return user;
 }

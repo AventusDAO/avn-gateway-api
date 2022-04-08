@@ -113,6 +113,70 @@ curl https://AVN-API-URL/query \
 }
 ```
 
+#### getAvnContractAddress
+Returns the 20 byte Ethereum address of the AVN bridging contract
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getAvnContractAddress", "params":{}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - string value of AVN contract ethereum address
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x2130f4987ff4c192ff04cad07ae7aad65009f5a"
+}
+```
+
+#### getNftContractAddress
+Returns the 20 byte Ethereum address of the NFT Listings contract
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getNftContractAddress", "params":{}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - string value of NFT contract ethereum address
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0xb8608e90ae5bfbdf6156558a5231e0b291a74330"
+}
+```
+
 #### getTotalAvt
 Returns the total amount of AVT in the AvN
 

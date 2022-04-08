@@ -54,6 +54,20 @@ describe('Query api calls:', async () => {
     user = accounts.user;
   });
 
+  describe('get contract addresses', async () => {
+    it('getAvtContractAddress', async () => {
+      assert((await api.query.getAvtContractAddress()).length == 42);
+    });
+
+    it('getAvnContractAddress', async () => {
+      assert((await api.query.getAvnContractAddress()).length == 42);
+    });
+
+    it('getNftContractAddress', async () => {
+      assert((await api.query.getNftContractAddress()).length == 42);
+    });
+  });
+
   describe('getTotalAvt', async () => {
     it('returns total AVT supply', async () => {
       assert(new BN(await api.query.getTotalAvt()).gt(MIN_TOTAL_AVT_SUPPLY));

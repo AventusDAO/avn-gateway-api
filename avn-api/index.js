@@ -35,8 +35,7 @@ AvnApi.prototype.init = async function () {
     };
 
     this.query = new Query(avnApi);
-    const avtContractAddress = await this.query.getAvtContractAddress(avnApi);
-    this.send = new Send(avnApi, this.query, avtContractAddress);
+    this.send = new Send(avnApi, this.query);
     this.poll = new Poll(avnApi);
   }
 };

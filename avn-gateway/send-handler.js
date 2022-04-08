@@ -224,9 +224,9 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
   return await sendTx(call, request, requestId, pallet, method, params);
 }
 
-async function getRelayerFee(relayer, payer, transactionType) {
+async function getRelayerFee(relayer, user, transactionType) {
   try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, payer, transactionType });
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
     return avnResponse.data.toString();
   } catch (error) {
     throw error;

@@ -7,15 +7,8 @@ const BN = require('bn.js');
 const TX_PROCESSING_TIME = 3000;
 const NONCE_TYPE = common.NONCE_TYPE;
 const TX_TYPE = common.TX_TYPE;
-const MARKET = { Ethereum: 1, Fiat: 2 };
-const ETHEREUM_LOG_EVENT_TYPE = {
-  AddedValidator: 0,
-  Lifted: 1,
-  NftMint: 2,
-  NftTransferTo: 3,
-  NftCancelListing: 4,
-  NftCancelBatchListing: 5
-};
+const MARKET = common.MARKET;
+const ETHEREUM_LOG_EVENT_TYPE = common.ETHEREUM_LOG_EVENT_TYPE;
 
 function Send(api, queryApi, avtContractAddress) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi);

@@ -17,35 +17,35 @@ describe('Query api calls:', async () => {
   const expectedRelayerFees = {
     proxyAvtTransfer: '7000000000000000',
     proxyTokenTransfer: '7000000000000000',
-    proxyConfirmTokenLift: '1000000000000000',
-    proxyTokenLower: '1000000000000000',
+    proxyConfirmTokenLift: '7000000000000000',
+    proxyTokenLower: '7000000000000000',
     proxyMintSingleNft: '7000000000000000',
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',
     proxyCancelListFiatNft: '7000000000000000',
-    proxyBond: '1000000000000000',
-    proxyNominate: '1000000000000000',
-    proxyIncreaseStake: '1000000000000000',
-    proxyUnstake: '1000000000000000',
-    proxyWithdrawUnlocked: '1000000000000000',
-    proxyPayoutStakers: '1000000000000000'
+    proxyBond: '7000000000000000',
+    proxyNominate: '7000000000000000',
+    proxyIncreaseStake: '7000000000000000',
+    proxyUnstake: '7000000000000000',
+    proxyWithdrawUnlocked: '7000000000000000',
+    proxyPayoutStakers: '7000000000000000'
   };
 
   const expectedUserFees = {
     proxyAvtTransfer: '7000000000000000',
     proxyTokenTransfer: '30000000000000000',
-    proxyConfirmTokenLift: '1000000000000000',
-    proxyTokenLower: '1000000000000000',
+    proxyConfirmTokenLift: '7000000000000000',
+    proxyTokenLower: '7000000000000000',
     proxyMintSingleNft: '7000000000000000',
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',
     proxyCancelListFiatNft: '7000000000000000',
-    proxyBond: '1000000000000000',
-    proxyNominate: '1000000000000000',
-    proxyIncreaseStake: '1000000000000000',
-    proxyUnstake: '1000000000000000',
-    proxyWithdrawUnlocked: '1000000000000000',
-    proxyPayoutStakers: '1000000000000000'
+    proxyBond: '7000000000000000',
+    proxyNominate: '7000000000000000',
+    proxyIncreaseStake: '7000000000000000',
+    proxyUnstake: '7000000000000000',
+    proxyWithdrawUnlocked: '7000000000000000',
+    proxyPayoutStakers: '7000000000000000'
   };
 
   before(async () => {

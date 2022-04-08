@@ -3,21 +3,27 @@
 const common = require('./common.js');
 
 function Query(api) {
+  this.getAvtContractAddress = generateFunction(getAvtContractAddress, api);
   this.getTotalAvt = generateFunction(getTotalAvt, api);
   this.getAvtBalance = generateFunction(getAvtBalance, api);
   this.getTokenBalance = generateFunction(getTokenBalance, api);
   this.getNonce = generateFunction(getNonce, api);
-  this.getAvtContractAddress = generateFunction(getAvtContractAddress, api);
-  this.getRelayerFees = generateFunction(getRelayerFees, api);
   this.getNftNonce = generateFunction(getNftNonce, api);
   this.getNftId = generateFunction(getNftId, api);
   this.getNftOwner = generateFunction(getNftOwner, api);
+  this.getOwnedNfts = generateFunction(getOwnedNfts, api);
   this.getAccountInfo = generateFunction(getAccountInfo, api);
   this.getStakingStatus = generateFunction(getStakingStatus, api);
   this.getValidatorsToNominate = generateFunction(getValidatorsToNominate, api);
   this.getActiveEra = generateFunction(getActiveEra, api);
-  this.getOwnedNfts = generateFunction(getOwnedNfts, api);
+  this.getRelayerFees = generateFunction(getRelayerFees, api);
   this.nftsMap = {};
+}
+
+function getAvtContractAddress(api) {
+  return async function () {
+    return await this.postRequest(api, 'getAvtContractAddress');
+  };
 }
 
 function getTotalAvt(api) {
@@ -60,26 +66,6 @@ function getNftNonce(api) {
   };
 }
 
-function getStakingStatus(api) {
-  return async function (accountId) {
-    common.validateAccount(accountId);
-
-    return await this.postRequest(api, 'getStakingStatus', { accountId });
-  };
-}
-
-function getValidatorsToNominate(api) {
-  return async function () {
-    return await this.postRequest(api, 'getValidatorsToNominate');
-  };
-}
-
-function getActiveEra(api) {
-  return async function () {
-    return await this.postRequest(api, 'getActiveEra');
-  };
-}
-
 function getNftId(api) {
   return async function (externalRef) {
     common.validateStringIsPopulated(externalRef);
@@ -100,9 +86,39 @@ function getNftOwner(api) {
   };
 }
 
-function getAvtContractAddress(api) {
+function getOwnedNfts(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getOwnedNfts', { accountId });
+  };
+}
+
+function getAccountInfo(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getAccountInfo', { accountId });
+  };
+}
+
+function getStakingStatus(api) {
+  return async function (accountId) {
+    common.validateAccount(accountId);
+
+    return await this.postRequest(api, 'getStakingStatus', { accountId });
+  };
+}
+
+function getValidatorsToNominate(api) {
   return async function () {
-    return await this.postRequest(api, 'getAvtContractAddress');
+    return await this.postRequest(api, 'getValidatorsToNominate');
+  };
+}
+
+function getActiveEra(api) {
+  return async function () {
+    return await this.postRequest(api, 'getActiveEra');
   };
 }
 
@@ -118,22 +134,6 @@ function getRelayerFees(api) {
 
 function generateFunction(functionName, api) {
   return functionName(api);
-}
-
-function getAccountInfo(api) {
-  return async function (accountId) {
-    common.validateAccount(accountId);
-
-    return await this.postRequest(api, 'getAccountInfo', { accountId });
-  };
-}
-
-function getOwnedNfts(api) {
-  return async function (accountId) {
-    common.validateAccount(accountId);
-
-    return await this.postRequest(api, 'getOwnedNfts', { accountId });
-  };
 }
 
 Query.prototype.postRequest = async function (api, method, params) {

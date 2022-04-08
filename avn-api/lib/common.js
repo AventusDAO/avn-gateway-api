@@ -35,11 +35,17 @@ const NONCE_TYPE = {
   None: 'none'
 };
 
-const STAKING_STATUS = {
-  isStaking: 'isStaking',
-  isNotStaking: 'isNotStaking'
+const ETHEREUM_LOG_EVENT_TYPE = {
+  AddedValidator: 0,
+  Lifted: 1,
+  NftMint: 2,
+  NftTransferTo: 3,
+  NftCancelListing: 4,
+  NftCancelBatchListing: 5
 };
 
+const MARKET = { Ethereum: 1, Fiat: 2 };
+const STAKING_STATUS = { isStaking: 'isStaking', isNotStaking: 'isNotStaking' };
 const ROYALTY_STRUCTURE = ['recipient_t1_address', 'rate'];
 const RATE_STRUCTURE = ['parts_per_million'];
 
@@ -131,7 +137,10 @@ function validateIsArray(array) {
 }
 
 function validateNftId(nftId) {
-  return isHex(nftId);
+  const isValid = isHex(nftId);
+  if (isValid === false) {
+    throw new Error(`Invalid nftId type: ${nftId}`);
+  }
 }
 
 function validateRequestId(requestId) {
@@ -194,9 +203,11 @@ async function sleep(ms) {
 module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
-  getSignerAddress,
+  ETHEREUM_LOG_EVENT_TYPE,
   getSigner,
+  getSignerAddress,
   keyring,
+  MARKET,
   NONCE_TYPE,
   registry,
   sleep,

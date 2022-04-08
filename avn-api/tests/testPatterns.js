@@ -120,17 +120,17 @@ function invalidNftId(testConfig) {
 
   it(selectionField + ' is empty', async () => {
     callData[selectionField] = '';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read properties of undefined/);
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid nftId type:/);
   });
 
   it(selectionField + ' is undefined', async () => {
     callData[selectionField] = undefined;
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read properties of undefined/);
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid nftId type:/);
   });
 
   it(selectionField + ' doesnt exist', async () => {
     callData[selectionField] = 'idThatDoesntExist';
-    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Cannot read properties of undefined/);
+    await expect(testFunction(...Object.values(callData))).to.be.rejectedWith(/Invalid nftId type:/);
   });
 }
 

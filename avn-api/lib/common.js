@@ -137,7 +137,10 @@ function validateIsArray(array) {
 }
 
 function validateNftId(nftId) {
-  return isHex(nftId);
+  const isValid = isHex(nftId);
+  if (isValid === false) {
+    throw new Error(`Invalid nftId type: ${nftId}`);
+  }
 }
 
 function validateRequestId(requestId) {

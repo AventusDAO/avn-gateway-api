@@ -9,7 +9,6 @@ const ONE_AVT = new BN('1000000000000000000');
 describe('Access rights:', async () => {
   let api;
   let relayer, user, userSURI, newUser, newUserSURI;
-  let activeEra;
 
   async function canAccess() {
     try {
@@ -28,7 +27,6 @@ describe('Access rights:', async () => {
     newUserAccount = api.utils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserSURI = newUserAccount.seed;
-    activeEra = await api.query.getActiveEra();
   });
 
   afterEach(async () => {

@@ -26,7 +26,7 @@ function myAddress() {
 }
 
 function myPublicKey() {
-  return common.getSignerPublicKey();
+  return common.convertToPublicKeyIfNeeded(myAddress());
 }
 
 module.exports = {

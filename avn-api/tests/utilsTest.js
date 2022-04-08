@@ -27,9 +27,9 @@ describe('Utilities', async () => {
 
   describe('myPublicKey', async () => {
     it('can get my public key', async () => {
-      assert.equal(accounts.user.address, api.utils.myPublicKey());
+      assert.equal(accounts.user.publicKey, api.utils.myPublicKey());
       process.env.SURI = accounts.otherUser.mnemonic;
-      assert.equal(accounts.otherUser.address, api.utils.myPublicKey());
+      assert.equal(accounts.otherUser.publicKey, api.utils.myPublicKey());
       process.env.SURI = accounts.user.seed;
     });
   });

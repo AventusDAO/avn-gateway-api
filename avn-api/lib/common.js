@@ -196,11 +196,6 @@ function getSignerAddress() {
   return signer.address;
 }
 
-function getSignerPublicKey() {
-  const signer = getSigner();
-  return signer.publicKey;
-}
-
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -211,7 +206,6 @@ module.exports = {
   ETHEREUM_LOG_EVENT_TYPE,
   getSigner,
   getSignerAddress,
-  getSignerPublicKey,
   keyring,
   MARKET,
   NONCE_TYPE,

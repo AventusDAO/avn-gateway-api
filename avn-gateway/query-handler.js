@@ -36,6 +36,10 @@ async function callSwitch(call, request) {
       return await getAvtBalance(call, request);
     case 'getAvtContractAddress':
       return await getAvtContractAddress(call, request);
+    case 'getAvnContractAddress':
+      return await getAvnContractAddress(call, request);
+    case 'getNftContractAddress':
+      return await getNftContractAddress(call, request);
     case 'getNftId':
       return await getNftId(call, request);
     case 'getNftNonce':
@@ -97,6 +101,15 @@ async function getAvtBalance(call, request) {
 
 async function getAvtContractAddress(call, request) {
   return await queryChain(call, request, 'tokenManager', 'aVTTokenContract', [], formatAsString);
+}
+
+async function getAvnContractAddress(call, request) {
+  return await queryChain(call, request, 'ethereumEvents', 'liftingContractAddress', [], formatAsString);
+}
+
+async function getNftContractAddress(call, request) {
+  const marketPlaceId = 1;
+  return await queryChain(call, request, 'ethereumEvents', 'nftContractAddresses', [marketPlaceId], formatAsString);
 }
 
 async function getNftId(call, request) {

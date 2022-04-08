@@ -4,6 +4,8 @@ const common = require('./common.js');
 
 function Query(api) {
   this.getAvtContractAddress = generateFunction(getAvtContractAddress, api);
+  this.getAvnContractAddress = generateFunction(getAvnContractAddress, api);
+  this.getNftContractAddress = generateFunction(getNftContractAddress, api);
   this.getTotalAvt = generateFunction(getTotalAvt, api);
   this.getAvtBalance = generateFunction(getAvtBalance, api);
   this.getTokenBalance = generateFunction(getTokenBalance, api);
@@ -17,12 +19,34 @@ function Query(api) {
   this.getValidatorsToNominate = generateFunction(getValidatorsToNominate, api);
   this.getActiveEra = generateFunction(getActiveEra, api);
   this.getRelayerFees = generateFunction(getRelayerFees, api);
+  this.contracts = {};
   this.nftsMap = {};
 }
 
 function getAvtContractAddress(api) {
   return async function () {
-    return await this.postRequest(api, 'getAvtContractAddress');
+    if (this.contracts.avt === undefined) {
+      this.contracts.avt = await this.postRequest(api, 'getAvtContractAddress');
+    }
+    return this.contracts.avt;
+  };
+}
+
+function getAvnContractAddress(api) {
+  return async function () {
+    if (this.contracts.avn === undefined) {
+      this.contracts.avn = await this.postRequest(api, 'getAvnContractAddress');
+    }
+    return this.contracts.avn;
+  };
+}
+
+function getNftContractAddress(api) {
+  return async function () {
+    if (this.contracts.nft === undefined) {
+      this.contracts.nft = await this.postRequest(api, 'getNftContractAddress');
+    }
+    return this.contracts.nft;
   };
 }
 

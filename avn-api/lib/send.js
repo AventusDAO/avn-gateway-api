@@ -10,7 +10,7 @@ const TX_TYPE = common.TX_TYPE;
 const MARKET = common.MARKET;
 const ETHEREUM_LOG_EVENT_TYPE = common.ETHEREUM_LOG_EVENT_TYPE;
 
-function Send(api, queryApi, avtContractAddress) {
+function Send(api, queryApi) {
   this.transferAvt = generateFunction(transferAvt, api, queryApi);
   this.transferToken = generateFunction(transferToken, api, queryApi);
   this.confirmTokenLift = generateFunction(confirmTokenLift, api, queryApi);
@@ -23,7 +23,6 @@ function Send(api, queryApi, avtContractAddress) {
   this.unstake = generateFunction(unstake, api, queryApi);
   this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
   this.payoutStakers = generateFunction(payoutStakers, api, queryApi);
-  this.avtContractAddress = avtContractAddress;
   this.nonceMap = {};
   this.feesMap = {};
 }
@@ -33,7 +32,7 @@ function transferAvt(api, queryApi) {
     common.validateAccount(relayer);
     common.validateAccount(recipient);
     amount = common.validateAndConvertAmountToString(amount);
-    const token = this.avtContractAddress;
+    const token = await queryApi.getAvtContractAddress();
     const methodArgs = { recipient, token, amount };
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyAvtTransfer, NONCE_TYPE.Token);

@@ -9,10 +9,10 @@ Aventus AvN javascript API which connects to generic JSON-RPC spec.\
 Please see the [avn-api](https://www.npmjs.com/package/avn-api) NPM module for JS functionality and example usage.
 
 ## Running
-Before using the api, set the user's AvN mnemonic or secret seed as the **SURI** environment variable: `export SURI=<mnemonic OR secret seed>``
+Before using the api, set the user's AvN mnemonic or secret seed as the **AVN_SURI** environment variable: `export AVN_SURI=<mnemonic OR secret seed>``
 examples:
-- `export SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"`
-- `export SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
+- `export AVN_SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"`
+- `export AVN_SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
 
 **Note:** _It's important to keep the mnemonic/seed secret safe and not expose it anywhere else. If compromised you could lose all your funds._
 
@@ -39,7 +39,7 @@ The format for this header should be: `Authorization': bearer <awtToken>` (where
 The tokens are generated and refreshed automatically by the api but can also be generated manually for use with JSON-RPC:
 ```
 const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
-// replace <mnemonic OR secret seed> with process.env.SURI if you have already set the environment variable
+// replace <mnemonic OR secret seed> with process.env.AVN_SURI if you have already set the environment variable
 ```
 
 ### Proofs
@@ -48,7 +48,7 @@ Each send transaction requires 2 types of proof:
 - a **feePaymentSignature** signed by either the user or any party willing to pay the required relayer sending fee (ie: the payer). \
 Proofs are generated internally by the api but can also be constructed manually for JSON-RPC usage via the api proxy library. \
 Most proofs require nonces of the correct type which can be retrieved by calling [getNonce](#getNonce) or [getNftNonce](#getNftNonce) .\
-**Note:** _These signing methods only require **SURI** to be set to the intended signer account and can be run offline_
+**Note:** _These signing methods only require **AVN_SURI** to be set to the intended signer account and can be run offline_
 
 - The api exposes the following methods to generate a relevant **proxySignature**, each taking a `transaction type` followed by its specific named parameters object:
   - `api.proxy.generateProxySignature('proxyAvtTransfer', { relayer, user, recipient, token, amount, nonce })` // nonce required is of 'token' type

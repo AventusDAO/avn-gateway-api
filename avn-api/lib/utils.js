@@ -4,7 +4,7 @@ const common = require('./common.js');
 const { mnemonicGenerate, mnemonicToMiniSecret } = require('@polkadot/util-crypto');
 const { u8aToHex } = require('@polkadot/util');
 
-function generateNewAccount(api) {
+function generateNewAccount() {
   const mnemonic = mnemonicGenerate();
   const keyPair = common.keyring.createFromUri(mnemonic);
   const account = {

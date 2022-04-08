@@ -37,7 +37,7 @@ async function demoCbaAwt() {
   // Run this script with node ./testTools.js <config file name without extension>
   // If you get an error at startup similar to this
   // TypeError: Cannot read property 'startsWith' of undefined
-  // it may be because you have not defined your SURI environment variable
+  // it may be because you have not defined your AVN_SURI environment variable
   console.log(SEPARATOR.blue.bold);
   console.log('Verifying Awt token generation by the api with custom time'.bold);
   console.log(SEPARATOR.blue.bold);

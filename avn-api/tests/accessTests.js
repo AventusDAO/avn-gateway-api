@@ -29,7 +29,7 @@ describe('Access rights:', async () => {
     });
 
     it('can set AVN_SURI via the options', async () => {
-      const options = { suri: newUserSURI }
+      const options = { suri: newUserSURI };
       const apiWithOptions = new AvnApi(null, options);
       await apiWithOptions.init();
       assert.equal(process.env.AVN_SURI, newUserSURI);

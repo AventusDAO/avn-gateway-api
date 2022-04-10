@@ -112,6 +112,17 @@ async function getValidatorsToNominate() {
   return validators;
 }
 
+async function getStakingStats() {
+  let stakingStats = await redis.getStakingStats();
+
+  if (!stakingStats) {
+    stakingStats = await stakingHelper.calculateStakingStats();
+    await redis.setStakingStats(JSON.stringify(stakingStats));
+  }
+
+  return stakingStats;
+}
+
 async function signAndSend(requestId, relayerAddress, txn) {
   let result, nonce, relayerAccount;
 
@@ -193,5 +204,6 @@ module.exports = {
   init,
   query,
   proxy,
-  poll
+  poll,
+  getStakingStats
 };

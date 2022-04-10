@@ -22,6 +22,7 @@ const transactionStatus = {
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
 const VALIDATORS_KEY = 'validators';
+const STAKING_STAT_KEY = 'stakingStats';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -33,6 +34,7 @@ const MAX_PENDING_TX_TO_CHECK = 100;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
 const NONCE_EXPIRY_IN_SECONDS = 5;
 const VALIDATORS_EXPIRY_IN_SECONDS = 86400; //1 day
+const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 
 let redisClient;
 
@@ -179,12 +181,20 @@ function refreshNonce(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
-async function getValidatorsToNominate(validatorsJsonString) {
+async function setValidatorsToNominate(validatorsJsonString) {
   await redisClient.setex(VALIDATORS_KEY, VALIDATORS_EXPIRY_IN_SECONDS, validatorsJsonString);
 }
 
-async function setValidatorsToNominate() {
+async function getValidatorsToNominate() {
   return await redisClient.get(VALIDATORS_KEY);
+}
+
+async function setStakingStats(stakingStatJsonString) {
+  await redisClient.setex(STAKING_STAT_KEY, STAKING_STAT_EXPIRY_IN_SECONDS, stakingStatJsonString);
+}
+
+async function getStakingStats() {
+  return await redisClient.get(STAKING_STAT_KEY);
 }
 
 module.exports = {
@@ -200,5 +210,7 @@ module.exports = {
   resolvePendingAvnTransactions,
   getTransactionHashByRequestId,
   getValidatorsToNominate,
-  setValidatorsToNominate
+  setValidatorsToNominate,
+  getStakingStats,
+  setStakingStats
 };

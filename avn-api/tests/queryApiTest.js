@@ -7,6 +7,7 @@ const common = require('../lib/common.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 
+const BN_ZERO = new BN(0);
 const MIN_TOTAL_AVT_SUPPLY = new BN('100000000000000000000');
 
 describe('Query api calls:', async () => {
@@ -194,6 +195,18 @@ describe('Query api calls:', async () => {
       assert(returnedData.length >= 2);
       assert(returnedData.includes(firstNftId));
       assert(returnedData.includes(secondNftId));
+    });
+  });
+
+  describe('getStakingStats', async () => {
+    it('returns the correct data', async () => {
+      const returnedData = await api.query.getStakingStats();
+      // We can't be sure how about the values but we can check the structure
+      const totalStakedBN = new BN(returnedData.totalStaked);
+      const averageStakedBN = new BN(returnedData.averageStaked);
+      assert(totalStakedBN.gte(BN_ZERO));
+      assert(averageStakedBN.gte(BN_ZERO));
+      assert(averageStakedBN.lte(totalStakedBN));
     });
   });
 });

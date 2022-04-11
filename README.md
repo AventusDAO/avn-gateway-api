@@ -721,6 +721,42 @@ curl https://AVN-API-URL/query \
 }
 ```
 
+#### getStakingStats
+Returns data related to the staking activities on the chain
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization': bearer <awtToken>`
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getStakingStats", "params":{}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`totalStaked` - the total amount of AVT actively staked \
+`averageStaked` - the average stake, calculated as `totalStaked` divided by `total number of active stakers` \
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+   "result": {
+     "totalStaked": "26421999999999999916890",
+     "averageStaked": "5284399999999999983378"
+   }
+}
+```
+
 ### Transactions
 All gateway transactions are processed via a relayer, which requires a pair of signed proofs; one to confirm the validity of the transaction and the other to confirm payment of the relayer fee
 

@@ -51,38 +51,52 @@ Each send transaction requires 2 types of proof:
 Ensure you suply the relevant transaction type and correct nonce (which can be retrieved by calling either [getNonce](#getNonce) or [getNftNonce](#getNftNonce) ).\
 The api exposes the following methods:
   - `api.proxy.generateProxySignature('proxyAvtTransfer', { relayer, user, recipient, token, amount, nonce })`\
-  nonce type required = 'token'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_\
+
   - `api.proxy.generateProxySignature('proxyTokenTransfer', { relayer, user, recipient, token, amount, nonce })`\
-  nonce type required = 'token'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_\
+
   - `api.proxy.generateProxySignature('proxyConfirmTokenLift', { relayer, eventType, ethereumTransactionHash, nonce })`\
-  nonce type required = 'confirmation'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'confirmation'_\
+
   - `api.proxy.generateProxySignature('proxyTokenLower', { relayer, user, token, amount, t1Recipient, nonce })`\
-  nonce type required = 'token'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_\
+
   - `api.proxy.generateProxySignature('proxyMintSingleNft', { relayer, externalRef, royalties, t1Authority })`\
-  no nonce required
+  _no nonce required_
+
   - `api.proxy.generateProxySignature('proxyListNftOpenForSale', { relayer, user, nftId, market, nonce })`\
-  nonce type required = 'nft'
+  _for nonce call [getNftNonce](#getNftNonce) with nftId = nftId_\
+
   - `api.proxy.generateProxySignature('proxyTransferFiatNft', { relayer, nftId, recipient, nonce })`\
-  nonce type required = 'nft'
+  _for nonce call [getNftNonce](#getNftNonce) with nftId = nftId_\
+
   - `api.proxy.generateProxySignature('proxyCancelListFiatNft', { relayer, nftId, nonce })`\
-  nonce type required = 'nft'
+  _for nonce call [getNftNonce](#getNftNonce) with nftId = nftId_\
+
   - `api.proxy.generateProxySignature('proxyBond', { relayer, user, amount, nonce })`\
-  nonce type required = 'staking'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_\
+
   - `api.proxy.generateProxySignature('proxyNominate', { relayer, targets, nonce })`\
-  nonce type required = 'staking'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_\
+
   - `api.proxy.generateProxySignature('proxyIncreaseStake', { relayer, amount, nonce })`\
-  nonce type required = 'staking'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_\
+
   - `api.proxy.generateProxySignature('proxyUnstake', { relayer, amount, nonce })`\
-  nonce type required = 'staking'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_\
+
   - `api.proxy.generateProxySignature('proxyWithdrawUnlocked', { relayer, nonce })`\
-  nonce type required = 'staking'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_\
+
   - `api.proxy.generateProxySignature('proxyPayoutStakers', { relayer, era, nonce })`\
-  nonce type required = 'staking'
+  _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
 ##### Fee Payment Signature Generation
-Ensure you supply the correct **relayerFee** by first making a [getRelayerFees](#getRelayerFees) request (specifying the `transaction type` and payer).
+The fee payment signature is the same for all transactions, only the `transactionType differs` (must match the proxy signature type)
   - `api.proxy.generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce })`\
-    nonce type required = 'payment'
+  _for relayerFee call [getNonce](#getNonce) with `user` = payer, `transactionType` = eg: 'proxyCancelListFiatNft'_
+  _for nonce call [getNonce](#getNonce) with `accountId` = payer, `nonceType` = 'payment'_
 
 ### AvN accounts format
 AvN accounts can be identified by either their public key or their address. The former is represented by a 32-byte hex string. The latter is a string represented in [SS58 format](https://substrate.dev/docs/en/knowledgebase/advanced/ss58-address-format).\

@@ -62,6 +62,8 @@ async function callSwitch(call, request) {
       return await queryActiveEra(call, request);
     case 'getOwnedNfts':
       return await getOwnedNfts(call, request);
+    case 'getStakingStats':
+      return await getStakingStats(call, request);
 
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
@@ -242,6 +244,13 @@ async function getOwnedNfts(call, request) {
   } else {
     return await queryChain(call, request, 'nftManager', 'ownedNfts', [accountId]);
   }
+}
+
+async function getStakingStats(call, request) {
+  const method = 'avnStakingStats';
+  const params = { callId: call.id };
+
+  return await query(call, request, method, params);
 }
 
 async function query(call, request, method, params, responseFormatter) {

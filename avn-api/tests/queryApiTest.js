@@ -144,10 +144,6 @@ describe('Query api calls:', async () => {
     it('returns correct account nonce for specific user by address');
     it('returns correct account nonce for specific user by publicKey');
   });
-  describe('getAvtContractAddress', async () => {
-    //getAvtContractAddress()
-    it('returns correct avt contract address');
-  });
   describe('getNftNonce', async () => {
     //getNftNonce(nftId)
     it('returns correct nft nonce for specific nft id');

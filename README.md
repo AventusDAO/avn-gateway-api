@@ -9,7 +9,7 @@ Aventus AvN javascript API which connects to generic JSON-RPC spec.\
 Please see the [avn-api](https://www.npmjs.com/package/avn-api) NPM module for JS functionality and example usage.
 
 ## Running
-Before using the api, set the user's AvN mnemonic or secret seed as the **AVN_SURI** environment variable: `export AVN_SURI=<mnemonic OR secret seed>``
+Before using the api, set the user's AvN mnemonic or secret seed as the **AVN_SURI** environment variable: `export AVN_SURI=<mnemonic OR secret seed>`
 examples:
 - `export AVN_SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"`
 - `export AVN_SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
@@ -31,6 +31,11 @@ Passing a gateway URL enables the full api:
 const AvnApi = require('avn-api');
 const api = new AvnApi('https://sandbox.gateway.aventus.io');
 await api.init();
+```
+SURI may also be passed as an option:
+```
+const options = { suri: '0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0'}
+const api = new AvnApi('https://sandbox.gateway.aventus.io', options);
 ```
 
 ### AWT tokens

@@ -254,8 +254,6 @@ async function getStakingStats(call, request) {
   } catch (err) {
     return utils.errorResponse('internal', err.response.data.error, err, request, call.id);
   }
-
-  return await query(call, request, method, params);
 }
 
 async function query(call, request, method, params, responseFormatter) {

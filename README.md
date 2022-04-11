@@ -9,8 +9,8 @@ Aventus AvN javascript API which connects to generic JSON-RPC spec.\
 Please see the [avn-api](https://www.npmjs.com/package/avn-api) NPM module for JS functionality and example usage.
 
 ## Running
-Before using the api, set the user's AvN mnemonic or secret seed as the **AVN_SURI** environment variable: `export AVN_SURI=<mnemonic OR secret seed>``
-examples:
+Before using the api, set the user's AvN mnemonic or secret seed as the **AVN_SURI** environment variable.\
+Examples:
 - `export AVN_SURI="industry icon train animal assist park sister wrong hammer cruise faint describe"`
 - `export AVN_SURI=0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0`
 
@@ -24,7 +24,6 @@ const AvnApi = require('avn-api');
 const api = new AvnApi();
 await api.init();
 ```
-
 #### Online mode
 Passing a gateway URL enables the full api:
 ```
@@ -32,42 +31,76 @@ const AvnApi = require('avn-api');
 const api = new AvnApi('https://sandbox.gateway.aventus.io');
 await api.init();
 ```
+The AVN_SURI may also be passed as an option:
+```
+const options = { suri: '0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0'}
+const api = new AvnApi('https://sandbox.gateway.aventus.io', options);
+```
 
 ### AWT tokens
 AWT (Aventus Web Token) is an authorisation token that must be included in the header of every request sent to the gateway.\
-The format for this header should be: `Authorization': bearer <awtToken>` (where `<awtToken>` is the unique token for this request).\
-The tokens are generated and refreshed automatically by the api but can also be generated manually for use with JSON-RPC:
+The format for this header should be: `Authorization': bearer <awtToken>`.\
+Tokens are generated and refreshed automatically by the api (liftimes are 1 minute) but they can also be generated manually for JSON-RPC use:
 ```
-const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
-// replace <mnemonic OR secret seed> with process.env.AVN_SURI if you have already set the environment variable
+const awtToken = api.awt.generateAwtToken();
 ```
 
 ### Proofs
-Each send transaction requires 2 types of proof:
-- a **proxySignature** of the transaction details. This is signed by the transaction originator (ie: the user). \
-- a **feePaymentSignature** signed by either the user or any party willing to pay the required relayer sending fee (ie: the payer). \
-Proofs are generated internally by the api but can also be constructed manually for JSON-RPC usage via the api proxy library. \
-Most proofs require nonces of the correct type which can be retrieved by calling [getNonce](#getNonce) or [getNftNonce](#getNftNonce) .\
-**Note:** _These signing methods only require **AVN_SURI** to be set to the intended signer account and can be run offline_
+Proofs are generated internally by the api but can also be constructed manually for JSON-RPC usage. \
+Each transaction send request requires 2 types of proof:
+1) a **proxySignature** confirming the transaction details. This is signed by the transaction originator (ie: the user).
+2) a **feePaymentSignature** signed by either the user or any party willing to pay the relayer fee (ie: the payer).
 
-- The api exposes the following methods to generate a relevant **proxySignature**, each taking a `transaction type` followed by its specific named parameters object:
-  - `api.proxy.generateProxySignature('proxyAvtTransfer', { relayer, user, recipient, token, amount, nonce })` // nonce required is of 'token' type
-  - `api.proxy.generateProxySignature('proxyTokenTransfer', { relayer, user, recipient, token, amount, nonce })` // nonce required is of 'token' type
-  - `api.proxy.generateProxySignature('proxyConfirmTokenLift', { relayer, eventType, ethereumTransactionHash, nonce })` // nonce required is of 'confirmation' type
-  - `api.proxy.generateProxySignature('proxyTokenLower', { relayer, user, token, amount, t1Recipient, nonce })` // nonce required is of 'token' type
-  - `api.proxy.generateProxySignature('proxyMintSingleNft', { relayer, externalRef, royalties, t1Authority })`
-  - `api.proxy.generateProxySignature('proxyListNftOpenForSale', { relayer, user, nftId, market, nonce })` // nonce required is of 'nft' type
-  - `api.proxy.generateProxySignature('proxyTransferFiatNft', { relayer, nftId, recipient, nonce })` // nonce required is of 'nft' type
-  - `api.proxy.generateProxySignature('proxyCancelListFiatNft', { relayer, nftId, nonce })` // nonce required is of 'nft' type
-  - `api.proxy.generateProxySignature('proxyBond', { relayer, user, amount, nonce })` // nonce required is of 'staking' type
-  - `api.proxy.generateProxySignature('proxyNominate', { relayer, targets, nonce })` // nonce required is of 'staking' type
-  - `api.proxy.generateProxySignature('proxyIncreaseStake', { relayer, amount, nonce })` // nonce required is of 'staking' type
-  - `api.proxy.generateProxySignature('proxyUnstake', { relayer, amount, nonce })` // nonce required is of 'staking' type
-  - `api.proxy.generateProxySignature('proxyWithdrawUnlocked', { relayer, nonce })` // nonce required is of 'staking' type
-  - `api.proxy.generateProxySignature('proxyPayoutStakers', { relayer, era, nonce })` // nonce required is of 'staking' type
+#### Proxy Signature Generation
+Ensure you suply the relevant transaction type and correct nonce.\
+The api exposes the following methods:
+  - `api.proxy.generateProxySignature('proxyAvtTransfer', { relayer, user, recipient, token, amount, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_
 
-- To generate a **feePaymentSignature** ensure you have the correct **relayerFee** by making a [getRelayerFees](#getRelayerFees) request that specifies the `transaction type` and the payer
-  - `api.proxy.generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce })
+  - `api.proxy.generateProxySignature('proxyTokenTransfer', { relayer, user, recipient, token, amount, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_
+
+  - `api.proxy.generateProxySignature('proxyConfirmTokenLift', { relayer, eventType, ethereumTransactionHash, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'confirmation'_
+
+  - `api.proxy.generateProxySignature('proxyTokenLower', { relayer, user, token, amount, t1Recipient, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_
+
+  - `api.proxy.generateProxySignature('proxyMintSingleNft', { relayer, externalRef, royalties, t1Authority })`\
+  _no nonce required_
+
+  - `api.proxy.generateProxySignature('proxyListNftOpenForSale', { relayer, user, nftId, market, nonce })`\
+  _for the nonce call [getNftNonce](#getNftNonce) with nftId = nftId_
+
+  - `api.proxy.generateProxySignature('proxyTransferFiatNft', { relayer, nftId, recipient, nonce })`\
+  _for the nonce call [getNftNonce](#getNftNonce) with nftId = nftId_
+
+  - `api.proxy.generateProxySignature('proxyCancelListFiatNft', { relayer, nftId, nonce })`\
+  _for the nonce call [getNftNonce](#getNftNonce) with nftId = nftId_
+
+  - `api.proxy.generateProxySignature('proxyBond', { relayer, user, amount, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
+
+  - `api.proxy.generateProxySignature('proxyNominate', { relayer, targets, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
+
+  - `api.proxy.generateProxySignature('proxyIncreaseStake', { relayer, amount, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
+
+  - `api.proxy.generateProxySignature('proxyUnstake', { relayer, amount, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
+
+  - `api.proxy.generateProxySignature('proxyWithdrawUnlocked', { relayer, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
+
+  - `api.proxy.generateProxySignature('proxyPayoutStakers', { relayer, era, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
+
+#### Fee Payment Signature Generation
+The fee payment signature is the same for all transactions, only the `transactionType` differs (and must match the proxy signature type)
+  - `api.proxy.generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce })`\
+  _for the relayerFee call [getNonce](#getNonce) with `relayer` = relayer, `user` = payer, `transactionType` = eg: 'proxyCancelListFiatNft'_\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = payer, `nonceType` = 'payment'_
 
 ### AvN accounts format
 AvN accounts can be identified by either their public key or their address. The former is represented by a 32-byte hex string. The latter is a string represented in [SS58 format](https://substrate.dev/docs/en/knowledgebase/advanced/ss58-address-format).\

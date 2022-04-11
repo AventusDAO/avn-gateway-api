@@ -38,8 +38,7 @@ AWT (Aventus Web Token) is an authorisation token that must be included in the h
 The format for this header should be: `Authorization': bearer <awtToken>` (where `<awtToken>` is the unique token for this request).\
 The tokens are generated and refreshed automatically by the api but can also be generated manually for use with JSON-RPC:
 ```
-const awtToken = api.awt.generateAwtToken(<mnemonic OR secret seed>);
-// replace <mnemonic OR secret seed> with process.env.AVN_SURI if you have already set the environment variable
+const awtToken = api.awt.generateAwtToken();
 ```
 
 ### Proofs

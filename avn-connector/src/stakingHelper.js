@@ -30,7 +30,7 @@ function calculateUnbondingAmount(stakingInfo) {
   return amount;
 }
 
-async function calculateStakingStats(stakersData) {
+function calculateStakingStats(stakersData) {
   let totalStaked = new BN("0");
   let numActiveStakes = 0;
 

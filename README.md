@@ -47,7 +47,7 @@ Each send transaction requires 2 types of proof:
 1) a **proxySignature** confirming the transaction details. This is signed by the transaction originator (ie: the user).
 2) a **feePaymentSignature** signed by either the user or any party willing to pay the required relayer sending fee (ie: the payer).
 
-##### Proxy Signature Generation
+#### Proxy Signature Generation
 Ensure you suply the relevant transaction type and correct nonce (which can be retrieved by calling either [getNonce](#getNonce) or [getNftNonce](#getNftNonce) ).\
 The api exposes the following methods:
   - `api.proxy.generateProxySignature('proxyAvtTransfer', { relayer, user, recipient, token, amount, nonce })`\
@@ -92,7 +92,7 @@ The api exposes the following methods:
   - `api.proxy.generateProxySignature('proxyPayoutStakers', { relayer, era, nonce })`\
   _for nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
-##### Fee Payment Signature Generation
+#### Fee Payment Signature Generation
 The fee payment signature is the same for all transactions, only the `transactionType differs` (must match the proxy signature type)
   - `api.proxy.generateFeePaymentSignature({ relayer, user, proxySignature, relayerFee, paymentNonce })`\
   _for relayerFee call [getNonce](#getNonce) with `user` = payer, `transactionType` = eg: 'proxyCancelListFiatNft'_

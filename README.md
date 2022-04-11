@@ -39,7 +39,7 @@ const api = new AvnApi('https://sandbox.gateway.aventus.io', options);
 
 ### AWT tokens
 AWT (Aventus Web Token) is an authorisation token that must be included in the header of every request sent to the gateway.\
-The format for this header should be: `Authorization': bearer <awtToken>`.\
+The format for this header should be: `Authorization: bearer <awtToken>`.\
 Tokens are generated and refreshed automatically by the api (lifetimes are 1 minute) but they can also be generated manually for JSON-RPC use:
 ```
 const awtToken = api.awt.generateAwtToken();
@@ -123,7 +123,7 @@ Returns the 20 byte Ethereum address of the AVT token contract
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **EXAMPLE**
 ```
@@ -155,7 +155,7 @@ Returns the 20 byte Ethereum address of the AVN bridging contract
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **EXAMPLE**
 ```
@@ -187,7 +187,7 @@ Returns the 20 byte Ethereum address of the NFT Listings contract
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **EXAMPLE**
 ```
@@ -219,7 +219,7 @@ Returns the total amount of AVT in the AvN
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **EXAMPLE**
 ```
@@ -251,7 +251,7 @@ Returns the AVT balance of a given AvN account
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `accountId` *[required]* - a string representing the public key or SS58 address of the account to check for AVT balance
@@ -286,7 +286,7 @@ Returns the balance of a given token for a given AvN account
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `accountId` *[required]* - a string representing the public key or SS58 address of the account to check for token balance \
@@ -322,7 +322,7 @@ Returns the nonce of a given AvN account and nonce type
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `accountId` *[required]* - a string representing the public key or SS58 address of the account to check for nonce
@@ -364,7 +364,7 @@ Returns the nonce of a given NFT
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `nftId` *[required]* - a string representing the NFT ID (32 bytes) to check for nonce
@@ -399,7 +399,7 @@ Returns the NFT ID for a given external reference
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `externalRef` *[required]* - a unique string representing the NFT's external reference
@@ -434,7 +434,7 @@ Returns the owner of a given NFT
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `nftId` *[required]* - a hex string representing the NFT ID (32 bytes)
@@ -469,7 +469,7 @@ Returns a breakdown of the current AVT utilisation in a given AvN account
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `accountId` *[required]* - a string representing the public key or SS58 address of the account to check
@@ -514,7 +514,7 @@ Returns the staking status of the given AvN account
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `accountId` *[required]* - a string representing the public key or SS58 address of the account to check
@@ -552,7 +552,7 @@ Returns the target validator nomination list required to create first-time stake
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **EXAMPLE**
 ```
@@ -584,7 +584,7 @@ Returns the current active era to call payoutStakers with
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **EXAMPLE**
 ```
@@ -616,7 +616,7 @@ Returns fees for a particular relayer, optionally by user and/or transaction typ
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `relayer` *[required]* - a string representing the relayer's public key or SS58 address \
@@ -694,7 +694,7 @@ Returns an array of nft ids owned by the specified user
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `accountId` *[required]* - a string representing the public key or SS58 address of the account to check for nonce
@@ -729,7 +729,7 @@ Returns data related to the staking activities on the chain
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **EXAMPLE**
 ```
@@ -768,7 +768,7 @@ Transfers the specified amount of AVT from the user account to the destination a
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -810,7 +810,7 @@ Transfers the specified amount of an ERC20 or ERC777 token, from the user accoun
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -852,7 +852,7 @@ Trigger the AvN confirmation of a lift operation that has previously occurred on
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -894,7 +894,7 @@ The process is completed on Ethereum by calling the AvN tier1 contract's lower m
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -936,7 +936,7 @@ Mints a single NFT to the user
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -978,7 +978,7 @@ Lists an NFT as open for sale in a particular market
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -1019,7 +1019,7 @@ Transfers an NFT that is currently listed for sale in fiat
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -1060,7 +1060,7 @@ Cancels a listing for an NFT as open for sale in fiat
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -1102,7 +1102,7 @@ Stakes the specified amount of AVT, locking its free usage in order to earn rewa
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -1150,7 +1150,7 @@ Stakes the specified amount of AVT, locking its free usage in order to earn rewa
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -1190,7 +1190,7 @@ Unstakes the specified amount of AVT, removing it from earning further staking r
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -1230,7 +1230,7 @@ Withdraws previously unstaked AVT back to free balance
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -1269,7 +1269,7 @@ Triggers the payment of staking rewards to the next XXX stakers
 
 **HEADERS**\
 `Content-Type: application/json`\
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS**\
 `relayer` *[required]* - a string representing the relayer's SS58 address \
@@ -1311,7 +1311,7 @@ Gets the current state of a previously sent asynchronous transaction request
 
 **HEADERS** \
 `Content-Type: application/json`
-`Authorization': bearer <awtToken>`
+`Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
 `requestId` *[required]* - string representing the request ID
@@ -1347,7 +1347,8 @@ curl https://AVN-API-URL/poll \
     "txHash": "0x37b5aa64e1b56c2d250588ffe0c73d810783ef8ec60eaae1c773c0acbc63dc90",
     "status": "Processed",
     "blockNumber": 125412,
-    "transactionIndex": 2}
+    "transactionIndex": 2
+  }
 }
 ```
 

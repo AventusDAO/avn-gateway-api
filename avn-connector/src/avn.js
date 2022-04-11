@@ -116,6 +116,7 @@ async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
 
   if (!stakingStats) {
+    const stakersData = await api.derive.staking.electedInfo({withExposure: true});
     stakingStats = await stakingHelper.calculateStakingStats();
     await redis.setStakingStats(JSON.stringify(stakingStats));
   }

@@ -30,11 +30,10 @@ function calculateUnbondingAmount(stakingInfo) {
   return amount;
 }
 
-async function calculateStakingStats() {
+async function calculateStakingStats(stakersData) {
   let totalStaked = new BN("0");
   let numActiveStakes = 0;
 
-  const stakersData = await api.derive.staking.electedInfo({withExposure: true});
   stakersData.info.forEach(({ exposure }) => {
     const bondTotal = exposure.total.unwrap();
     if (!bondTotal.isZero()) {

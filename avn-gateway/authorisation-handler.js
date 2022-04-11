@@ -27,8 +27,8 @@ async function validateAwtToken(event) {
     return InvalidRequestResponse;
   }
 
-  if (!(await userHasAvtBalance(awtToken))) {
-    console.info('User does not have enough AVT to use the gateway');
+  if ((await isNewUser(awtToken)) && !(await userHasAvtBalance(awtToken))) {
+    console.info('User does not have enough AVT to access the gateway');
     return InvalidRequestResponse;
   }
 
@@ -56,6 +56,21 @@ function tokenAgeIsValid(token) {
   } catch (err) {
     console.error('failed to check AWT token age', err);
     return false;
+  }
+}
+
+async function isNewUser(awtToken) {
+  try {
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
+      palletName: 'avnProxy',
+      storageName: 'paymentNonces',
+      params: [awtToken.pk]
+    });
+    const paymentNonce = avnResponse.data.toString();
+    return paymentNonce === '0';
+  } catch (err) {
+    console.error('failed to check if existing user', err);
+    return true;
   }
 }
 

@@ -247,13 +247,10 @@ async function getOwnedNfts(call, request) {
 }
 
 async function getStakingStats(call, request) {
-  try {
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnStakingStats', {});
-    let result = response.data;
-    return utils.validResponse(call.id, result);
-  } catch (err) {
-    return utils.errorResponse('internal', err.response.data.error, err, request, call.id);
-  }
+  const method = 'avnStakingStats';
+  const params = { callId: call.id };
+
+  return await query(call, request, method, params);
 }
 
 async function query(call, request, method, params, responseFormatter) {

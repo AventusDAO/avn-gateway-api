@@ -44,7 +44,7 @@ const awtToken = api.awt.generateAwtToken();
 ### Proofs
 Proofs are generated internally by the api but can also be constructed manually for JSON-RPC usage. \
 Each send transaction requires 2 types of proof:
-1) **proxySignature** of the transaction details. This is signed by the transaction originator (ie: the user).
+1) a **proxySignature** confirming the transaction details. This is signed by the transaction originator (ie: the user).
 2) a **feePaymentSignature** signed by either the user or any party willing to pay the required relayer sending fee (ie: the payer).
 
 ##### Proxy Signature Generation

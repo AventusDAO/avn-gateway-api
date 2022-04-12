@@ -25,7 +25,7 @@ pipeline {
         withCredentials([string(credentialsId: "avn_gateway_suri_${env.environment}", variable: "SURI")]) {
           script {
             sh "cd avn-api && npm i && cd ../tests && npm i && cd ../ && npm i"
-            sh "SURI=${SURI} npm run smokeTests ${env.environment}"
+            sh "AVN_SURI=${SURI} npm run smokeTests ${env.environment}"
           }
         }
       }

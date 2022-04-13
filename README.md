@@ -1109,7 +1109,7 @@ curl https://AVN-API-URL/send \
 #### proxyStakeAvt
 Stakes the specified amount of AVT, locking its free usage in order to earn rewards.\
 _**Note** This should only be used for first time stakers - please query [getStakingStatus](#getStakingStatus) to check first._\
-_**Note-2** The initial staking requires 2, ordered sets of proofs, one to cover the bonding step and one to cover the nominating step._
+_**Note-2** The initial staking requires two, ordered sets of proofs; one to cover the bonding step and one to cover the nominating step._
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`

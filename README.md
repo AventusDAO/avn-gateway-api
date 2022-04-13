@@ -325,7 +325,7 @@ Returns the nonce of a given AvN account and nonce type
 `Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`accountId` *[required]* - a string representing the public key or SS58 address of the account to check for nonce
+`accountId` *[required]* - a string representing the public key or SS58 address of the account to check for nonce\
 `nonceType` *[required]* - a string representing the nonce type. One of:
 ```
   "token"
@@ -749,7 +749,7 @@ curl https://AVN-API-URL/query \
 
 **RESULT FIELDS** \
 `totalStaked` - the total amount of AVT actively staked \
-`averageStaked` - the average stake, calculated as `totalStaked` divided by `total number of active stakers` \
+`averageStaked` - the average stake, calculated as `totalStaked` divided by `total number of active stakers`
 
 **BODY**
 ```
@@ -1108,8 +1108,8 @@ curl https://AVN-API-URL/send \
 
 #### proxyStakeAvt
 Stakes the specified amount of AVT, locking its free usage in order to earn rewards.\
-**Note** This should only be used for _first time_ stakers - please query [getStakingStatus](#getStakingStatus) to check first.\
-**Note-2** The initial staking requires 2, ordered sets of proofs, one to cover the bonding step and one to cover the nominating step
+_**Note** This should only be used for first time stakers - please query [getStakingStatus](#getStakingStatus) to check first._\
+_**Note-2** The initial staking requires 2, ordered sets of proofs, one to cover the bonding step and one to cover the nominating step._
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`
@@ -1132,7 +1132,7 @@ Stakes the specified amount of AVT, locking its free usage in order to earn rewa
 `proxyNominateSignature` *[required]* - a proof signed by the user allowing the nominate transaction to be proxied \
 `nominateFeePaymentSignature` *[required]* - a proof signed by the user allowing the nominate relayer fees to be paid \
 `nominatePaymentNonce` *[required]* - string integer value of the payment nonce used in the nominateFeePaymentSignature \
-**Note**: nominatePaymentNonce must succeed bondPaymentNonce \
+_**Note**: nominatePaymentNonce must succeed bondPaymentNonce_
 
 **EXAMPLE**
 ```
@@ -1158,7 +1158,7 @@ curl https://AVN-API-URL/send \
 
 #### proxyIncreaseStake
 Stakes the specified amount of AVT, locking its free usage in order to earn rewards.
-**Note** This should only be used for _existing_ stakers - please query `getStakingStatus` to check first.\
+_**Note** This should only be used for _existing_ stakers - please query `getStakingStatus` to check first._
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`

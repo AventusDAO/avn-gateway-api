@@ -328,10 +328,10 @@ Returns the nonce of a given AvN account and nonce type
 `accountId` *[required]* - a string representing the public key or SS58 address of the account to check for nonce
 `nonceType` *[required]* - a string representing the nonce type. One of:
 ```
-"token"
-"payment"
-"staking"
-"confirmation"
+  "token"
+  "payment"
+  "staking"
+  "confirmation"
 ```
 
 **EXAMPLE**
@@ -532,8 +532,8 @@ curl https://AVN-API-URL/query \
 **RESULT FIELDS** \
 `VALUE` - string detailing the current staking status:
 ```
-'isStaking'
-'isNotStaking'
+  'isStaking'
+  'isNotStaking'
 ```
 **BODY**
 ```
@@ -629,20 +629,20 @@ Returns fees for a particular relayer, optionally by user and/or transaction typ
 `user` *[optional]* - a string representing the user's public key or SS58 address \
 `transactionType` *[optional]* - a string representing the transaction type. One of:
 ```
-"proxyAvtTransfer"
-"proxyTokenTransfer"
-"proxyConfirmTokenLift"
-"proxyTokenLower"
-"proxyMintSingleNft"
-"proxyListNftOpenForSale"
-"proxyTransferFiatNft"
-"proxyCancelListFiatNft"
-"proxyBond"
-"proxyNominate"
-"proxyIncreaseStake"
-"proxyUnstake"
-"proxyWithdrawUnlocked"
-"proxyPayoutStakers"
+  "proxyAvtTransfer"
+  "proxyTokenTransfer"
+  "proxyConfirmTokenLift"
+  "proxyTokenLower"
+  "proxyMintSingleNft"
+  "proxyListNftOpenForSale"
+  "proxyTransferFiatNft"
+  "proxyCancelListFiatNft"
+  "proxyBond"
+  "proxyNominate"
+  "proxyIncreaseStake"
+  "proxyUnstake"
+  "proxyWithdrawUnlocked"
+  "proxyPayoutStakers"
 ```
 
 **EXAMPLE**
@@ -1349,10 +1349,10 @@ curl https://AVN-API-URL/poll \
 `txHash` - string representing the transaction hash\
 `status` - string detailing the current status:
 ```
-'Pending'
-'Rejected'
-'Processed'
-'Transaction not found'
+  'Pending'
+  'Rejected'
+  'Processed'
+  'Transaction not found'
 ```
 `blockNumber` *[if status is 'Processed' or 'Rejected']* - string integer representing the block number containing this transaction\
 `transactionIndex` *[if status is 'Processed' or 'Rejected']* - string integer representing the (zero-based) index of this transaction in the block.\

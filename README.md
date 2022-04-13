@@ -1355,7 +1355,7 @@ curl https://AVN-API-URL/poll \
 'Transaction not found'
 ```
 `blockNumber` *[if status is 'Processed' or 'Rejected']* - string integer representing the block number containing this transaction\
-`transactionIndex` *[if status is 'Processed' or 'Rejected']* - string integer representing the zero based index of this transaction in the block.\
+`transactionIndex` *[if status is 'Processed' or 'Rejected']* - string integer representing the (zero-based) index of this transaction in the block.\
 
 **BODY**
 ```

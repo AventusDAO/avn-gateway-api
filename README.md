@@ -1158,7 +1158,7 @@ curl https://AVN-API-URL/send \
 
 #### proxyIncreaseStake
 Stakes the specified amount of AVT, locking its free usage in order to earn rewards.\
-_**Note** This should only be used for existing stakers - please query `getStakingStatus` to check first._
+_**Note** This should only be used for existing stakers - please query [getStakingStatus](#getStakingStatus) to check first._
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`

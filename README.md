@@ -1224,7 +1224,7 @@ curl https://AVN-API-URL/send \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyUnstakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "payer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x642e2bf73020f8bbdee84543fe696fd0fcfa0792702afd47b33dce5f0d986747dc75f255bc1e7881a90dd146ce0a1344316a5923deff2ee6b2ea867cdbfb2865", "feePaymentSignature":"0xbab9b458e835338e73b6d2ae1f33b1bcb34e3743f286c0adf9c49f23e0c9be1d5ae9e43a93ba1eb7af76f924e92e7693a6b4ab299299e02e6fc6388e89989bcf", "paymentNonce":"312"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"proxyUnstakeAvt", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "payer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "amount":"1000000000000000000", "proxySignature":"0x58fb48fdc865c557d9b6135f4f868090e9be76b07a9cf44b65e1e4ec1a6248167bcffbdbeaa9f1eb9b03d6aea0260ea6a941b0b168f9a1e3729ee3a4e94e8088", "feePaymentSignature":"0x5a1538a4931d310ad948db3553e027026bc7e1f4e73feb1497620458f69b906aaaea6632810f4c1cd25a81218463a5550efa53229f8b4e033aaf476a5e72c881", "paymentNonce": "779"}, "id":1}'
 ```
 
 **RESULT FIELDS** \

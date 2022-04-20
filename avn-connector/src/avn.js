@@ -108,7 +108,7 @@ async function getSummaryBlock(blockNumber) {
   if (!summaryBlock) {
     let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
     summaryBlock = await api.query.summary.nextSlotAtBlock.at(blockHash);
-    await redis.setSummaryBlock(blockNumber, hexToString(summaryBlock, 16));
+    await redis.setSummaryBlock(blockNumber, hexToString(summaryBlock));
   }
   return summaryBlock;
 }

@@ -21,6 +21,7 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
+const SUMMARY_BLOCK_NAMESPACE = 's.';
 const VALIDATORS_KEY = 'validators';
 const STAKING_STAT_KEY = 'stakingStats';
 
@@ -35,6 +36,7 @@ const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
 const NONCE_EXPIRY_IN_SECONDS = 5;
 const VALIDATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
+const SUMMARY_BLOCK_EXPIRY_IN_SECONDS = 86400 * 7 ; //1 week
 
 let redisClient;
 
@@ -197,6 +199,14 @@ async function getStakingStats() {
   return await redisClient.get(STAKING_STAT_KEY);
 }
 
+async function setSummaryBlock(blockNumber, summaryBlock) {
+  await redisClient.setex(SUMMARY_BLOCK_NAMESPACE + blockNumber, SUMMARY_BLOCK_EXPIRY_IN_SECONDS, summaryBlock.toString());
+}
+
+async function getSummaryBlock(blockNumber) {
+  return await redisClient.get(SUMMARY_BLOCK_NAMESPACE + blockNumber);
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
@@ -212,5 +222,7 @@ module.exports = {
   getValidatorsToNominate,
   setValidatorsToNominate,
   getStakingStats,
-  setStakingStats
+  setStakingStats,
+  getSummaryBlock,
+  setSummaryBlock
 };

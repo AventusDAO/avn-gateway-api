@@ -57,16 +57,18 @@ async function poll(requestId) {
   }
 
   try {
-    let transactionHash = isTransactionHash(requestId) ? requestId : await redis.getTransactionHashByRequestId(requestId);
+    let txHash = isTransactionHash(requestId) ? requestId : await redis.getTransactionHashByRequestId(requestId);
 
-    let tx = await redis.getAvnTransaction(transactionHash);
+    let tx = await redis.getAvnTransaction(txHash);
 
     if (!tx) {
       log.error(`No transaction found for requestId: ${requestId}`);
       return { error: 'Transaction not found' };
     }
 
-    return { txHash: transactionHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex };
+    let summaryBlock = await getSummaryBlock(tx.blockNumber);
+
+    return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex, summaryBlock };
   } catch (error) {
     log.error(`Error getting transaction status for requestId ${requestId}: ${error}`);
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);
@@ -95,6 +97,16 @@ async function getNonce(senderAddress) {
     redis.refreshNonce(senderAddress);
   }
   return nonce;
+}
+
+async function getSummaryBlock(blockNumber) {
+  let summaryBlock = await redis.getSummaryBlock(blockNumber);
+  if (!summaryBlock) {
+    let blockHash = api.rpc.chain.getBlockHash(blockNumber),
+    summaryBlock = await api.query.summary.nextSlotAtBlock.at(blockHash);
+    await redis.setSummaryBlock(blockNumber, summaryBlock);
+  }
+  return summaryBlock;
 }
 
 async function getValidatorsToNominate() {

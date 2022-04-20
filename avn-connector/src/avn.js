@@ -1,6 +1,6 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { isHex } = require('@polkadot/util');
+const { isHex, hexToString } = require('@polkadot/util');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
@@ -108,7 +108,7 @@ async function getSummaryBlock(blockNumber) {
   if (!summaryBlock) {
     let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
     summaryBlock = await api.query.summary.nextSlotAtBlock.at(blockHash);
-    summaryBlock = parseInt(summaryBlock, 16).toString();
+    summaryBlock = hexToString(summaryBlock);
     await redis.setSummaryBlock(blockNumber, summaryBlock);
   }
   return summaryBlock;

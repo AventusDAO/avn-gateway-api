@@ -102,7 +102,7 @@ async function getNonce(senderAddress) {
 async function getSummaryBlock(blockNumber) {
   let summaryBlock = await redis.getSummaryBlock(blockNumber);
   if (!summaryBlock) {
-    let blockHash = api.rpc.chain.getBlockHash(blockNumber),
+    let blockHash = await api.rpc.chain.getBlockHash(blockNumber),
     summaryBlock = await api.query.summary.nextSlotAtBlock.at(blockHash);
     await redis.setSummaryBlock(blockNumber, summaryBlock);
   }

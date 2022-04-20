@@ -64,6 +64,8 @@ async function callSwitch(call, request) {
       return await getOwnedNfts(call, request);
     case 'getStakingStats':
       return await getStakingStats(call, request);
+    case 'getCurrentBlock':
+      return await getCurrentBlock(call, request);
 
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
@@ -251,6 +253,10 @@ async function getStakingStats(call, request) {
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
+}
+
+async function getCurrentBlock(call, request) {
+  return await queryChain(call, request, 'system', 'number', [], formatNumAsString);
 }
 
 async function query(call, request, method, params, responseFormatter) {

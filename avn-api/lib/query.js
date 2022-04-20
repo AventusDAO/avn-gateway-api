@@ -20,6 +20,7 @@ function Query(api) {
   this.getActiveEra = generateFunction(getActiveEra, api);
   this.getStakingStats = generateFunction(getStakingStats, api);
   this.getRelayerFees = generateFunction(getRelayerFees, api);
+  this.getCurrentBlock = generateFunction(getCurrentBlock, api);
   this.contracts = {};
   this.nftsMap = {};
 }
@@ -160,6 +161,12 @@ function getRelayerFees(api) {
     if (transactionType) common.validateTransactionType(transactionType);
 
     return await this.postRequest(api, 'getRelayerFees', { relayer, user, transactionType });
+  };
+}
+
+function getCurrentBlock(api) {
+  return async function () {
+    return await this.postRequest(api, 'getCurrentBlock');
   };
 }
 

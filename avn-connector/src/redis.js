@@ -200,7 +200,7 @@ async function getStakingStats() {
 }
 
 async function setSummaryBlock(blockNumber, summaryBlock) {
-  await redisClient.setex(SUMMARY_BLOCK_NAMESPACE + blockNumber, SUMMARY_BLOCK_EXPIRY_IN_SECONDS, summaryBlock.toString());
+  await redisClient.setex(SUMMARY_BLOCK_NAMESPACE + blockNumber, SUMMARY_BLOCK_EXPIRY_IN_SECONDS, summaryBlock);
 }
 
 async function getSummaryBlock(blockNumber) {

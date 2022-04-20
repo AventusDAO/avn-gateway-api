@@ -49,7 +49,8 @@ async function poll(call, request, requestId) {
       txHash: avnResponse.data.txHash,
       status: avnResponse.data.status,
       blockNumber: avnResponse.data.blockNumber,
-      transactionIndex: avnResponse.data.transactionIndex
+      transactionIndex: avnResponse.data.transactionIndex,
+      summaryBlock: avnResponse.data.summaryBlock,
     };
     return utils.validResponse(callId, result);
   } catch (err) {

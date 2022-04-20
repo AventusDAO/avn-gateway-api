@@ -66,7 +66,11 @@ async function poll(requestId) {
       return { error: 'Transaction not found' };
     }
 
-    let summaryBlock = tx.blockNumber ? await getSummaryBlock(tx.blockNumber);
+    let summaryBlock;
+
+    if (tx.blockNumber) {
+      summaryBlock = await getSummaryBlock(tx.blockNumber);
+    }
 
     return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex, summaryBlock };
   } catch (error) {
@@ -103,8 +107,8 @@ async function getSummaryBlock(blockNumber) {
   let summaryBlock = await redis.getSummaryBlock(blockNumber);
   if (!summaryBlock) {
     let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
-    summaryBlock = parseInt(await api.query.summary.nextSlotAtBlock.at(blockHash), 16);
-    await redis.setSummaryBlock(blockNumber, summaryBlock);
+    summaryBlock = await api.query.summary.nextSlotAtBlock.at(blockHash);
+    await redis.setSummaryBlock(blockNumber, parseInt(summaryBlock, 16).toString());
   }
   return summaryBlock;
 }

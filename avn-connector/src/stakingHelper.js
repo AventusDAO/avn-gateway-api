@@ -30,9 +30,11 @@ function calculateUnbondingAmount(stakingInfo) {
   return amount;
 }
 
-function calculateStakingStats(stakersData) {
+function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator) {
   let totalStaked = new BN("0");
   let numActiveStakes = 0;
+  let totalStakers = 0;
+  const nominators = {};
 
   stakersData.info.forEach(({ exposure }) => {
     const bondTotal = exposure.total.unwrap();
@@ -40,11 +42,24 @@ function calculateStakingStats(stakersData) {
         totalStaked = totalStaked.add(bondTotal);
         numActiveStakes++;
     }
+
+    (exposure.others || []).forEach((otherStaker) => {
+      const nominator = otherStaker.who.toString();
+      nominators[nominator] = (nominators[nominator] || BN_ZERO).add(otherStaker.value?.toBn() || BN_ZERO);
+    });
   });
   const averageStaked = (totalStaked.divn(numActiveStakes)).toString();
+  const minimumStaked = Object.values(nominators).reduce((minStake, value) => {
+    totalStakers ++;
+    return minStake.isZero() || value.lt(minStake) ? value : minStake;
+  }, BN_ZERO);
 
   return {
     totalStaked: totalStaked.toString(),
+    minimumStaked: minimumStaked.toString(),
+    minUserBond: minUserBond.toString(),
+    maxNominatorsRewardedPerValidator: maxNominatorsRewardedPerValidator.toString(),
+    totalStakers,
     averageStaked
   };
 }

@@ -749,7 +749,12 @@ curl https://AVN-API-URL/query \
 
 **RESULT FIELDS** \
 `totalStaked` - the total amount of AVT actively staked \
+`minimumStaked` - the minimum amount staked by a staker \
+`minUserBond` - the minimum amount of stake allowed by the chain for first time stakers. This restriction does not apply when topping up stake. \
+`maxNominatorsRewardedPerValidator` - the maximum number of stakers that will be rewared per validator. \
+`totalStakers` - the total number of stakers, excluding validators. \
 `averageStaked` - the average stake, calculated as `totalStaked` divided by `total number of active stakers`
+
 
 **BODY**
 ```
@@ -758,6 +763,10 @@ curl https://AVN-API-URL/query \
   "id": 1,
    "result": {
      "totalStaked": "26421999999999999916890",
+     "minimumStaked": "503999999999999995185",
+     "minUserBond": "100000000000000000000",
+     "maxNominatorsRewardedPerValidator": "256",
+     "totalStakers": 10,
      "averageStaked": "5284399999999999983378"
    }
 }

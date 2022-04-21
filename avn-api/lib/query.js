@@ -173,7 +173,7 @@ function getCurrentBlock(api) {
 
 function getSummaryData(api) {
   return async function (blockNumber) {
-    if (number) common.validateNumber(number);
+    if (blockNumber) common.validateNumber(blockNumber);
     return await this.postRequest(api, 'getSummaryData', { blockNumber });
   };
 }

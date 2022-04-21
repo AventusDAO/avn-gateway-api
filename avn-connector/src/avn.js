@@ -122,7 +122,7 @@ async function getSummaryData(blockNumber) {
   let summaryRange = await getSummaryRange(blockNumber);
 
   return {
-    blockNumber,
+    blockNumber: blockNumber.toString(),
     summarystart: summaryRange[0],
     summaryEnd: summaryRange[1]
   };

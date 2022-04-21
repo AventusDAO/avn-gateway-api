@@ -115,17 +115,24 @@ async function getSummaryRange(blockNumber) {
   return JSON.parse(summaryRange);
 }
 
-async function getSummaryData(blockNumber) {
-  if (!blockNumber) {
-    blockNumber = await api.query.system.number();
+async function getEthTxHash(summaryRange) {
+  let rootData = await api.query.summary.roots(summaryRange);
+  if (rootData.length === 0) {
+    return null;
   }
-  let summaryRange = await getSummaryRange(blockNumber);
+  let transactionId = rootData[0][0].tx_id;
+  let ethTransaction = await api.query.ethereumTransactions.repository(transactionId);
+  return ethTransaction.eth_tx_hash;
+}
 
-  return {
-    blockNumber: blockNumber.toString(),
-    summarystart: summaryRange[0],
-    summaryEnd: summaryRange[1]
-  };
+async function getSummaryData(blockNumber) {
+  if (!blockNumber) blockNumber = (await api.query.system.number()).toString();
+  let summaryRange = await getSummaryRange(blockNumber);
+  let summaryFromBlock = summaryRange[0];
+  let summaryToBlock = summaryRange[1];
+  let ethTxHash = getEthTxHash(summaryRange);
+
+  return { blockNumber, summaryFromBlock, summaryToBlock, ethTxHash };
 }
 
 async function getValidatorsToNominate() {

@@ -117,7 +117,7 @@ async function getSummaryRange(blockNumber) {
 
 async function getEthTxHash(summaryRange) {
   let rootData = await api.query.summary.roots(summaryRange, '');
-  console.log("\n\n\n", rootData, "\n\n\n")
+  console.log("\n\n\n", rootData.tx_id, "\n\n\n")
   // if (rootData.length === 0 || rootData.tx_id) {
   //   return null;
   // }

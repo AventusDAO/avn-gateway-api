@@ -195,14 +195,26 @@ describe('Query api calls:', async () => {
   });
 
   describe('getStakingStats', async () => {
+    const defaultMaxNominatorsRewardedPerValidatorBN = new BN(265);
+    const defaultMinUserBondBN = new BN("100000000000000000000");
+
     it('returns the correct data', async () => {
       const returnedData = await api.query.getStakingStats();
       // We can't be sure how about the values but we can check the structure
       const totalStakedBN = new BN(returnedData.totalStaked);
       const averageStakedBN = new BN(returnedData.averageStaked);
+      const minimumStakedBN = new BN(returnedData.minimumStaked);
+      const minUserBondBN = new BN(returnedData.minUserBond);
+      const maxNominatorsRewardedPerValidatorBN = new BN(returnedData.maxNominatorsRewardedPerValidator);
+      const totalStakersBN = new BN(returnedData.totalStakers);
+
       assert(totalStakedBN.gte(BN_ZERO));
       assert(averageStakedBN.gte(BN_ZERO));
       assert(averageStakedBN.lte(totalStakedBN));
+      assert(totalStakersBN.gte(BN_ZERO));
+      assert(minimumStakedBN.lte(averageStakedBN));
+      assert(maxNominatorsRewardedPerValidatorBN.eq(defaultMinUserBondBN));
+      assert(minUserBondBN.eq(defaultMaxNominatorsRewardedPerValidatorBN));
     });
   });
 });

@@ -123,8 +123,9 @@ async function getEthTxHash(summaryRange) {
     return null
   }
   let transactionId = rootData.tx_id;
-  console.log('XXXXXXXXXXXXXXXXXXXXXXX', transactionId)
-  let ethTransaction = await api.query.ethereumTransactions.repository(transactionId);
+  console.log('XXXXXXXXXXXXXXXXXXXXXXX', transactionId.toString())
+  console.log('YYYYYYYYYYYYYYYYYYYYYYY', rootData.tx_id())
+  let ethTransaction = await api.query.ethereumTransactions.repository(transactionId.toString());
   return ethTransaction.eth_tx_hash;
 }
 

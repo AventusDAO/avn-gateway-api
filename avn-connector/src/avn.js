@@ -117,7 +117,7 @@ async function getSummaryRange(blockNumber) {
 
 async function getLowerData(blockNumber, transactionIndex) {
   let summaryRange = await getSummaryRange(blockNumber);
-  let lowerData = await api.rpc.methods.lower_data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
+  let lowerData = await api.rpc.lower.data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
   const data = JSON.parse(Buffer.from(lowerData, 'hex').toString());
   const leaf = '0x'+Buffer.from(data.encoded_leaf).toString('hex');
   const merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
@@ -134,7 +134,8 @@ async function getEthTxHash(summaryRange) {
   }
   let transactionId = rootData.tx_id.toString();
   let ethTransaction = await api.query.ethereumTransactions.repository(transactionId);
-  return ethTransaction.eth_tx_hash;
+  // return ethTransaction.eth_tx_hash;
+  return transactionId;
 }
 
 async function getSummaryData(blockNumber) {

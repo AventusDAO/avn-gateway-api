@@ -104,7 +104,7 @@ async function getNonce(senderAddress) {
 }
 
 async function getLowerData(blockNumber, transactionIndex) {
-  console.log('%j', api.rpc)
+  console.log('%j', api.rpc.rpc)
   // let summaryRange = await getSummaryRange(blockNumber);
   // let lowerData = await api.rpc.lower_data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
   // const data = JSON.parse(Buffer.from(lowerData, 'hex').toString());

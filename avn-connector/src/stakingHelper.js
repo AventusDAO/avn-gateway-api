@@ -50,7 +50,7 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
   });
   const averageStaked = (totalStaked.divn(numActiveStakes)).toString();
   const minimumStaked = Object.values(nominators).reduce((minStake, value) => {
-    totalStakers ++;
+    totalStakers++;
     return minStake.isZero() || value.lt(minStake) ? value : minStake;
   }, BN_ZERO);
 

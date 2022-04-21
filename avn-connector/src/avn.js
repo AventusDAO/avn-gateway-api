@@ -131,7 +131,7 @@ async function getSummaryData(blockNumber) {
   let summaryRange = await getSummaryRange(blockNumber);
   let summaryFromBlock = summaryRange[0];
   let summaryToBlock = summaryRange[1];
-  let ethTxHash = getEthTxHash(summaryRange);
+  let ethTxHash = await getEthTxHash(summaryRange);
 
   return { blockNumber, summaryFromBlock, summaryToBlock, ethTxHash };
 }

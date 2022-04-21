@@ -115,8 +115,8 @@ async function getSummaryRange(blockNumber) {
   return JSON.parse(summaryRange);
 }
 
-async function getEthTxHash(summaryRange) {
-  let rootData = await api.query.summary.roots(summaryRange, null);
+async function getEthTxHash(from_block, to_block) {
+  let rootData = await api.query.summary.roots({ from_block, to_block }, null);
   console.log("\n\n\n", rootData, "\n\n\n")
   if (rootData.length === 0) {
     return null;
@@ -131,7 +131,7 @@ async function getSummaryData(blockNumber) {
   let summaryRange = await getSummaryRange(blockNumber);
   let summaryFromBlock = summaryRange[0];
   let summaryToBlock = summaryRange[1];
-  let ethTxHash = await getEthTxHash(summaryRange);
+  let ethTxHash = await getEthTxHash(summaryFromBlock, summaryToBlock);
 
   return { blockNumber, summaryFromBlock, summaryToBlock, ethTxHash };
 }

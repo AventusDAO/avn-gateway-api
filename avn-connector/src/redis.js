@@ -66,8 +66,6 @@ async function connect() {
             return {}
           end`
   });
-
-  await redisClient.del(STAKING_STAT_KEY);
 }
 
 function getKey(key) {

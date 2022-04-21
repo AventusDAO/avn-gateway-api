@@ -118,12 +118,12 @@ async function getSummaryRange(blockNumber) {
 async function getEthTxHash(summaryRange) {
   let blockHash = await api.rpc.chain.getBlockHash(summaryRange[1]);
   let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
-  let rootData = await api.query.summary.roots([parseInt(summaryRange[0]), parseInt(summaryRange[1])], ingressCounter);
+  let rootData = await api.query.summary.roots(summaryRange, ingressCounter);
   if (!rootData.tx_id) {
     return null
   }
-  let transactionId = rootData.tx_id;
-  let ethTransaction = await api.query.ethereumTransactions.repository(transactionId.toString());
+  let transactionId = rootData.tx_id.toString();
+  let ethTransaction = await api.query.ethereumTransactions.repository(transactionId);
   return ethTransaction.eth_tx_hash;
 }
 

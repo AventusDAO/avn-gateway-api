@@ -68,6 +68,8 @@ async function callSwitch(call, request) {
       return await getCurrentBlock(call, request);
     case 'getSummaryData':
       return await getSummaryData(call, request);
+    case 'getLowerData':
+      return await getLowerData(call, request);
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -267,6 +269,22 @@ async function getSummaryData(call, request) {
   }
   const method = 'avnSummaryData';
   const params = { callId: call.id, blockNumber };
+  return await query(call, request, method, params);
+}
+
+async function getLowerData(call, request) {
+  const { blockNumber, transactionIndex } = call.params;
+
+  try {
+    if (utils.isValidNumber(blockNumber) === false) throw 'block number';
+    if (utils.isValidNumber(transactionIndex) === false) throw 'transaction index';
+  } catch (param) {
+    const gatewayError = 'invalid ' + param;
+    return utils.errorResponse('params', gatewayError, call.params, request, call.id);
+  }
+
+  const method = 'lowerData';
+  const params = { callId: call.id, blockNumber, transactionIndex };
   return await query(call, request, method, params);
 }
 

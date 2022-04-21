@@ -115,6 +115,16 @@ async function getSummaryRange(blockNumber) {
   return JSON.parse(summaryRange);
 }
 
+async function getLowerData(blockNumber, transactionIndex) {
+  let summaryRange = await getSummaryRange(blockNumber);
+  let lowerData = await api.rpc.methods.lower_data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
+  const data = JSON.parse(Buffer.from(lowerData, 'hex').toString());
+  const leaf = '0x'+Buffer.from(data.encoded_leaf).toString('hex');
+  const merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
+
+  return { leaf, merklePath };
+}
+
 async function getEthTxHash(summaryRange) {
   let blockHash = await api.rpc.chain.getBlockHash(summaryRange[1]);
   let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
@@ -241,6 +251,7 @@ function isTransactionHash(requestId) {
 
 module.exports = {
   getAccountInfo,
+  getLowerData,
   getSummaryData,
   getValidatorsToNominate,
   init,

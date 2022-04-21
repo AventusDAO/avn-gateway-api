@@ -105,7 +105,7 @@ async function getNonce(senderAddress) {
 
 async function getLowerData(blockNumber, transactionIndex) {
   let summaryRange = await getSummaryRange(blockNumber);
-  let lowerData = await api.rpc.rpc.lower_data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
+  let lowerData = await api.rpc.lower_data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
   const data = JSON.parse(Buffer.from(lowerData, 'hex').toString());
   const leaf = '0x'+Buffer.from(data.encoded_leaf).toString('hex');
   const merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';

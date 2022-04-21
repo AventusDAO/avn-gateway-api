@@ -208,8 +208,6 @@ describe('Query api calls:', async () => {
       const maxNominatorsRewardedPerValidatorBN = new BN(returnedData.maxNominatorsRewardedPerValidator);
       const totalStakersBN = new BN(returnedData.totalStakers);
 
-      console.log(JSON.stringify(returnedData, null, 2));
-
       assert(totalStakedBN.gte(BN_ZERO), "Total stake is zero");
       assert(averageStakedBN.gte(BN_ZERO), "Average stake is zero");
       assert(averageStakedBN.lte(totalStakedBN), "Average stake must be less than total stake");

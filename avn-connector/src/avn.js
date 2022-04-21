@@ -66,7 +66,7 @@ async function poll(requestId) {
       return { error: 'Transaction not found' };
     }
 
-    let summaryBlock;
+    let summaryAtBlock;
 
     if (tx.blockNumber) {
       summaryAtBlock = (await getSummaryRange(tx.blockNumber))[1];

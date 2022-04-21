@@ -45,7 +45,8 @@ async function confirmStatus(api, requestId, expectedStatus) {
   let status;
   for (i = 0; i < 10; i++) {
     await sleep(3000);
-    status = (await api.poll.requestState(requestId)).status;
+    let response = await api.poll.requestState(requestId);
+    status = response.status;
     if (status !== 'Pending' && status !== 'Transaction not found') {
       assert.equal(status, expectedStatus);
       return;

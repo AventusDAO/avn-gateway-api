@@ -125,7 +125,7 @@ function isValidTransactionType(transactionType) {
 }
 
 function isValidNumber(val) {
-  return isNumber(val);
+  return isNumber(parseInt(val));
 }
 
 function convertToAddress(accountId) {

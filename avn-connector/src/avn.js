@@ -69,10 +69,10 @@ async function poll(requestId) {
     let summaryBlock;
 
     if (tx.blockNumber) {
-      summaryBlock = await getSummaryBlock(tx.blockNumber);
+      summaryAtBlock = (await getSummaryRange(tx.blockNumber))[1];
     }
 
-    return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex, summaryBlock };
+    return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex, summaryAtBlock };
   } catch (error) {
     log.error(`Error getting transaction status for requestId ${requestId}: ${error}`);
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);
@@ -103,15 +103,29 @@ async function getNonce(senderAddress) {
   return nonce;
 }
 
-async function getSummaryBlock(blockNumber) {
-  let summaryBlock = await redis.getSummaryBlock(blockNumber);
-  if (!summaryBlock) {
+async function getSummaryRange(blockNumber) {
+  let summaryRange = await redis.getSummaryRange(blockNumber);
+  if (!summaryRange) {
     let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
-    summaryBlock = await api.query.summary.nextSlotAtBlock.at(blockHash);
-    summaryBlock = summaryBlock.toString();
-    await redis.setSummaryBlock(blockNumber, summaryBlock);
+    let summaryStart = await api.query.summary.nextBlockToProcess.at(blockHash);
+    let summaryEnd = await api.query.summary.nextSlotAtBlock.at(blockHash);
+    summaryRange = JSON.stringify([summaryStart.toString(), summaryEnd.toString()]);
+    await redis.setSummaryRange(blockNumber, summaryRange);
   }
-  return summaryBlock;
+  return JSON.parse(summaryRange);
+}
+
+async function getSummaryData(blockNumber) {
+  if (!blockNumber) {
+    blockNumber = await api.query.system.number();
+  }
+  let summaryRange = await getSummaryRange(blockNumber);
+
+  return {
+    blockNumber,
+    summarystart: summaryRange[0],
+    summaryEnd: summaryRange[1]
+  };
 }
 
 async function getValidatorsToNominate() {
@@ -218,6 +232,7 @@ function isTransactionHash(requestId) {
 
 module.exports = {
   getAccountInfo,
+  getSummaryData,
   getValidatorsToNominate,
   init,
   query,

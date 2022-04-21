@@ -259,6 +259,16 @@ async function getCurrentBlock(call, request) {
   return await queryChain(call, request, 'system', 'number', [], formatNumAsString);
 }
 
+async function getSummaryData(call, request) {
+  const { blockNumber } = call.params;
+  if (blockNumber && utils.isValidNumber(blockNumber) === false) {
+    return utils.errorResponse('params', 'invalid block number', blockNumber, request, call.id);
+  }
+  const method = 'avnSummaryData';
+  const params = { callId: call.id, blockNumber };
+  return await query(call, request, method, params);
+}
+
 async function query(call, request, method, params, responseFormatter) {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + method, params);

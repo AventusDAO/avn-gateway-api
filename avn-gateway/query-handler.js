@@ -66,7 +66,8 @@ async function callSwitch(call, request) {
       return await getStakingStats(call, request);
     case 'getCurrentBlock':
       return await getCurrentBlock(call, request);
-
+    case 'getSummaryData':
+      return await getSummaryData(call, request);
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }

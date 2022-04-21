@@ -115,16 +115,16 @@ async function getSummaryRange(blockNumber) {
   return JSON.parse(summaryRange);
 }
 
-async function getEthTxHash(from_block, to_block) {
-  console.log("\n\n\n", api.query.summary.roots.toJSON(), "\n\n\n")
-  let rootData = await api.query.summary.roots([from_block, to_block], '');
+async function getEthTxHash(summaryRange) {
+  let rootData = await api.query.summary.roots(summaryRange, '');
   console.log("\n\n\n", rootData, "\n\n\n")
-  if (rootData.length === 0) {
-    return null;
-  }
-  let transactionId = rootData[0][0].tx_id;
-  let ethTransaction = await api.query.ethereumTransactions.repository(transactionId);
-  return ethTransaction.eth_tx_hash;
+  // if (rootData.length === 0 || rootData.tx_id) {
+  //   return null;
+  // }
+  // let transactionId = rootData[0][0].tx_id;
+  // let ethTransaction = await api.query.ethereumTransactions.repository(transactionId);
+  // return ethTransaction.eth_tx_hash;
+  return 'aaaa';
 }
 
 async function getSummaryData(blockNumber) {
@@ -132,7 +132,7 @@ async function getSummaryData(blockNumber) {
   let summaryRange = await getSummaryRange(blockNumber);
   let summaryFromBlock = summaryRange[0];
   let summaryToBlock = summaryRange[1];
-  let ethTxHash = await getEthTxHash(summaryFromBlock, summaryToBlock);
+  let ethTxHash = await getEthTxHash(summaryRange);
 
   return { blockNumber, summaryFromBlock, summaryToBlock, ethTxHash };
 }

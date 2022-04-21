@@ -116,7 +116,7 @@ async function getSummaryRange(blockNumber) {
 }
 
 async function getEthTxHash(summaryRange) {
-  let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+  let blockHash = await api.rpc.chain.getBlockHash(summaryRange[1]);
   let ingressCounter = api.query.summary.totalIngresses.at(blockHash);
   ingressCounter++;
   let rootData = await api.query.summary.roots(summaryRange, ingressCounter);

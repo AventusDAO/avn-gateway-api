@@ -116,15 +116,15 @@ async function getSummaryRange(blockNumber) {
 }
 
 async function getEthTxHash(summaryRange) {
-  let rootData = await api.query.summary.roots(summaryRange, '');
-  console.log("\n\n\n", rootData.tx_id(), "\n\n\n")
+  let rootData = await api.query.summary.roots([parseInt(summaryRange[0]), parseInt(summaryRange[1])], '');
+  console.log("\n\n\n", rootData, "\n\n\n")
   // if (rootData.length === 0 || rootData.tx_id) {
   //   return null;
   // }
   // let transactionId = rootData[0][0].tx_id;
   // let ethTransaction = await api.query.ethereumTransactions.repository(transactionId);
   // return ethTransaction.eth_tx_hash;
-  return 'aaaa';
+  return rootData.tx_id;
 }
 
 async function getSummaryData(blockNumber) {

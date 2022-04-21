@@ -229,7 +229,27 @@ async function connectToAvN() {
   let provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({
     provider,
-    typesBundle: avnTypes
+    typesBundle: avnTypes,
+    rpc: {
+      lower_data: {
+        params: [
+          {
+            name: 'from_block',
+            type: 'u32'
+          },{
+            name: 'to_block',
+            type: 'u32'
+          },{
+            name: 'block_number',
+            type: 'u32'
+          },{
+            name: 'extrinsic_index',
+            type: 'u32'
+          }
+        ],
+        type: 'Text'
+      }
+    }
   });
 
   const [chain, nodeName, nodeVersion] = await Promise.all([

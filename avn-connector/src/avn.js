@@ -103,21 +103,9 @@ async function getNonce(senderAddress) {
   return nonce;
 }
 
-async function getSummaryRange(blockNumber) {
-  let summaryRange = await redis.getSummaryRange(blockNumber);
-  if (!summaryRange) {
-    let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
-    let summaryStart = await api.query.summary.nextBlockToProcess.at(blockHash);
-    let summaryEnd = await api.query.summary.nextSlotAtBlock.at(blockHash);
-    summaryRange = JSON.stringify([summaryStart.toString(), summaryEnd.toString()]);
-    await redis.setSummaryRange(blockNumber, summaryRange);
-  }
-  return JSON.parse(summaryRange);
-}
-
 async function getLowerData(blockNumber, transactionIndex) {
   let summaryRange = await getSummaryRange(blockNumber);
-  let lowerData = await api.rpc.lower.data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
+  let lowerData = await api.rpc.lower_data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
   const data = JSON.parse(Buffer.from(lowerData, 'hex').toString());
   const leaf = '0x'+Buffer.from(data.encoded_leaf).toString('hex');
   const merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
@@ -134,8 +122,20 @@ async function getEthTxHash(summaryRange) {
   }
   let transactionId = rootData.tx_id.toString();
   let ethTransaction = await api.query.ethereumTransactions.repository(transactionId);
-  // return ethTransaction.eth_tx_hash;
-  return transactionId;
+  return ethTransaction.eth_tx_hash;
+}
+
+async function getSummaryRange(blockNumber) {
+  let summaryRange = await redis.getSummaryRange(blockNumber);
+  if (!summaryRange) {
+    let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+    let summaryStart = await api.query.summary.nextBlockToProcess.at(blockHash);
+    let schedulePeriod = await api.query.summary.schedulePeriod.at(blockHash);
+    let summaryEnd = summaryStart + schedulePeriod - 1;
+    summaryRange = JSON.stringify([summaryStart.toString(), summaryEnd.toString()]);
+    await redis.setSummaryRange(blockNumber, summaryRange);
+  }
+  return JSON.parse(summaryRange);
 }
 
 async function getSummaryData(blockNumber) {

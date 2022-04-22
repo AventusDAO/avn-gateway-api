@@ -126,15 +126,17 @@ async function getEthTxHash(summaryRange) {
 }
 
 async function getSummaryRange(blockNumber) {
-  let summaryRange = await redis.getSummaryRange(blockNumber);
-  if (!summaryRange) {
+  // let summaryRange = await redis.getSummaryRange(blockNumber);
+  // if (!summaryRange) {
     let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
     let summaryStart = await api.query.summary.nextBlockToProcess.at(blockHash);
     let schedulePeriod = await api.query.summary.schedulePeriod.at(blockHash);
+
     let summaryEnd = summaryStart + schedulePeriod - 1;
+    console.log("\n\n\n", summaryStart, "\n\n\n", schedulePeriod, "\n\n\n", summaryEnd, "\n\n\n")
     summaryRange = JSON.stringify([summaryStart.toString(), summaryEnd.toString()]);
-    await redis.setSummaryRange(blockNumber, summaryRange);
-  }
+    // await redis.setSummaryRange(blockNumber, summaryRange);
+  // }
   return JSON.parse(summaryRange);
 }
 

@@ -1,6 +1,6 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { isHex } = require('@polkadot/util');
+const { isHex, toBN } = require('@polkadot/util');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
@@ -132,7 +132,7 @@ async function getSummaryRange(blockNumber) {
     let summaryStart = await api.query.summary.nextBlockToProcess.at(blockHash);
     let schedulePeriod = await api.query.summary.schedulePeriod.at(blockHash);
 
-    let summaryEnd = summaryStart.add(schedulePeriod).sub(1);
+    let summaryEnd = summaryStart.add(schedulePeriod).sub(toBN(1));
     console.log("\n\n\n", summaryStart.toString(), "\n\n\n", schedulePeriod.toString(), "\n\n\n", summaryEnd.toString(), "\n\n\n")
     let summaryRange = JSON.stringify([summaryStart.toString(), summaryEnd.toString()]);
     // await redis.setSummaryRange(blockNumber, summaryRange);

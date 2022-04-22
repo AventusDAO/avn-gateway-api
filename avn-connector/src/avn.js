@@ -1,6 +1,7 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { isHex, BN } = require('@polkadot/util');
+const { isHex } = require('@polkadot/util');
+const BN = require('bn.js');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();

@@ -160,7 +160,8 @@ function getSummaryRange(blockNumber) {
 }
 
 async function getSummaryData(blockNumber) {
-  if (!blockNumber) blockNumber = (await api.query.system.number()).toString();
+  if (!blockNumber) blockNumber = await api.query.system.number();
+  blockNumber = blockNumber.toString();
   const summaryRange = getSummaryRange(blockNumber);
   let summaryFromBlock = summaryRange[0];
   let summaryToBlock = summaryRange[1];

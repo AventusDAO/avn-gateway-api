@@ -110,7 +110,7 @@ async function getLowerData(blockNumber, transactionIndex) {
   const summaryRange = getSummaryRange(blockNumber);
   let lowerData = await api.rpc.lower.data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
   const data = JSON.parse(Buffer.from(lowerData, 'hex').toString());
-  const leaf = '0x'+Buffer.from(data.encoded_leaf).toString('hex');
+  const leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
   const merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
 
   return { leaf, merklePath };
@@ -133,8 +133,10 @@ async function getEthTxHash(summaryRange) {
     if (ethTxHash === '0x0000000000000000000000000000000000000000000000000000000000000000') {
       return null;
     }
-    let receipt = await axios.get(`${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`);
-    if (receipt.data.result.status !== '1'){
+    let receipt = await axios.get(
+      `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`
+    );
+    if (receipt.data.result.status !== '1') {
       return null;
     } else {
       await redis.setEthTxHashForSummary(summaryToBlock, ethTxHash);
@@ -151,7 +153,7 @@ function getSummaryRange(blockNumber) {
   let summaryFromBlock = 1 + Math.floor(blockNumber / SCHEDULE_PERIOD) * SCHEDULE_PERIOD;
   const summaryToBlock = summaryFromBlock + SCHEDULE_PERIOD - 1;
   summaryFromBlock = summaryFromBlock === 1 ? 0 : summaryFromBlock;
-  return [ summaryFromBlock.toString(), summaryToBlock.toString() ];
+  return [summaryFromBlock.toString(), summaryToBlock.toString()];
 }
 
 async function getSummaryData(blockNumber) {
@@ -259,13 +261,16 @@ async function connectToAvN() {
             {
               name: 'from_block',
               type: 'u32'
-            },{
+            },
+            {
               name: 'to_block',
               type: 'u32'
-            },{
+            },
+            {
               name: 'block_number',
               type: 'u32'
-            },{
+            },
+            {
               name: 'extrinsic_index',
               type: 'u32'
             }

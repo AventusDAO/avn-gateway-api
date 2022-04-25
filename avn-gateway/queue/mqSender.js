@@ -13,7 +13,32 @@ function MQSender(secretsManagerRegion, secretArn, mqBrokerAmqpEndpoint) {
 
 MQSender.prototype.getMqConnectionUrl = async function () {
   const secret = await this.secretsManager.getSecret(this.secretArn);
-  const rabbitEndpointPrefix = `${process.env.MQ_PROTOCOL}://${encodeURIComponent(secret.username)}:${encodeURIComponent(
+  const protocolSeparator = '://';
+  let protocol = process.env.MQ_PROTOCOL;
+
+  // check if the endpoint contains the protocol. We support amqp or amqps
+  if (this.mqBrokerAmqpEndpoint.toLowerCase().startsWith('amqp' + protocolSeparator) ||
+      this.mqBrokerAmqpEndpoint.toLowerCase().startsWith('amqps' + protocolSeparator))
+  {
+    const protocolSeparatorIndex = this.mqBrokerAmqpEndpoint.indexOf(protocolSeparator);
+    const extractedProtocolFromEndpoint = this.mqBrokerAmqpEndpoint.substring(0, protocolSeparatorIndex);
+
+    if (protocol) {
+      // make sure the protocol specified matches the one that is part of the endpoint
+      if (protocol !== extractedProtocolFromEndpoint) {
+        throw new Error(`Protocol specified in env variable (${protocol}) is different to the one found on the endpoint (${extractedProtocolFromEndpoint})`);
+      }
+
+    } else {
+      // Set the protocol by taking it from the endpoint
+      protocol = extractedProtocolFromEndpoint;
+    }
+
+    // remove the protocol and the separator from the endpoint
+    this.mqBrokerAmqpEndpoint = this.mqBrokerAmqpEndpoint.substring(protocolSeparatorIndex + protocolSeparator.length);
+  }
+
+  const rabbitEndpointPrefix = `${protocol}://${encodeURIComponent(secret.username)}:${encodeURIComponent(
     secret.password
   )}@`;
   return rabbitEndpointPrefix.concat(this.mqBrokerAmqpEndpoint);

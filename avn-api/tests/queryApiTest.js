@@ -195,14 +195,26 @@ describe('Query api calls:', async () => {
   });
 
   describe('getStakingStats', async () => {
+    const defaultMaxNominatorsRewardedPerValidatorBN = new BN(256);
+    const defaultMinUserBondBN = new BN("100000000000000000000");
+
     it('returns the correct data', async () => {
       const returnedData = await api.query.getStakingStats();
       // We can't be sure how about the values but we can check the structure
       const totalStakedBN = new BN(returnedData.totalStaked);
       const averageStakedBN = new BN(returnedData.averageStaked);
-      assert(totalStakedBN.gte(BN_ZERO));
-      assert(averageStakedBN.gte(BN_ZERO));
-      assert(averageStakedBN.lte(totalStakedBN));
+      const minimumStakedBN = new BN(returnedData.minimumStaked);
+      const minUserBondBN = new BN(returnedData.minUserBond);
+      const maxNominatorsRewardedPerValidatorBN = new BN(returnedData.maxNominatorsRewardedPerValidator);
+      const totalStakersBN = new BN(returnedData.totalStakers);
+
+      assert(totalStakedBN.gte(BN_ZERO), "Total stake is zero");
+      assert(averageStakedBN.gte(BN_ZERO), "Average stake is zero");
+      assert(averageStakedBN.lte(totalStakedBN), "Average stake must be less than total stake");
+      assert(totalStakersBN.gte(BN_ZERO), "Total number of stakers is zero");
+      assert(minimumStakedBN.lte(averageStakedBN), "Minimum stake must be less than or equal to average stake");
+      assert(minUserBondBN.eq(defaultMinUserBondBN), "Minimum user bond does not match default value");
+      assert(maxNominatorsRewardedPerValidatorBN.eq(defaultMaxNominatorsRewardedPerValidatorBN), "Maximum number of nominators doesn't match default value");
     });
   });
 });

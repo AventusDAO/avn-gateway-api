@@ -171,7 +171,13 @@ async function getStakingStats() {
 
   if (!stakingStats) {
     const stakersData = await api.derive.staking.electedInfo({withExposure: true});
-    stakingStats = stakingHelper.calculateStakingStats(stakersData);
+
+    const [minUserBond, maxNominatorsRewardedPerValidator] = await Promise.all([
+      api.query.validatorsManager.minUserBond(),
+      api.consts.staking.maxNominatorRewardedPerValidator
+    ]);
+
+    stakingStats = stakingHelper.calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator);
     await redis.setStakingStats(JSON.stringify(stakingStats));
   }
 

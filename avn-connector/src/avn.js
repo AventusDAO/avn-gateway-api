@@ -122,7 +122,8 @@ console.log("A", summaryToBlock)
   let ethTxHash = await redis.getEthTxHashForSummary(summaryToBlock);
 console.log("B", ethTxHash)
   if (!ethTxHash) {
-    let blockHash = await api.rpc.chain.getBlockHash(summaryToBlock);
+    console.log("B2", ethTxHash)
+    let blockHash = await api.rpc.chain.getBlockHash(parseInt(summaryToBlock));
     console.log("C", blockHash)
     let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
     console.log("D", ingressCounter)

@@ -125,7 +125,6 @@ async function getEthTxHash(summaryRange) {
     let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
     console.log("D", ingressCounter)
     let rootData = await api.query.summary.roots(summaryRange, ingressCounter);
-    console.log("E", rootData.tx_id)
     if (!rootData.tx_id) {
       return null;
     }

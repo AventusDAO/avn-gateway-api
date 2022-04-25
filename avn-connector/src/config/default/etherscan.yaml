@@ -1,0 +1,2 @@
+url: https://api-rinkeby.etherscan.io/api?
+apiKey: $ENV:ETHERSCAN_API_KEY

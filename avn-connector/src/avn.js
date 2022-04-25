@@ -1,16 +1,18 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
 const { isHex } = require('@polkadot/util');
-const BN = require('bn.js');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
 const avnTypes = require('avn-types');
 const redis = require('./redis');
+const axios = require('axios');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
 
 const AVN_URL = config.avnUrl;
+const ETHERSCAN_URL = config.etherscan.url;
+const ETHERSCAN_API_KEY = config.etherscan.apiKey;
 
 let api, vault;
 let relayers = {};
@@ -70,7 +72,7 @@ async function poll(requestId) {
     let summaryAtBlock;
 
     if (tx.blockNumber) {
-      summaryAtBlock = (await getSummaryRange(tx.blockNumber))[1];
+      summaryAtBlock = getSummaryRange(tx.blockNumber)[1];
     }
 
     return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex, summaryAtBlock };
@@ -105,7 +107,7 @@ async function getNonce(senderAddress) {
 }
 
 async function getLowerData(blockNumber, transactionIndex) {
-  let summaryRange = await getSummaryRange(blockNumber);
+  const summaryRange = getSummaryRange(blockNumber);
   let lowerData = await api.rpc.lower.data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
   const data = JSON.parse(Buffer.from(lowerData, 'hex').toString());
   const leaf = '0x'+Buffer.from(data.encoded_leaf).toString('hex');
@@ -115,35 +117,46 @@ async function getLowerData(blockNumber, transactionIndex) {
 }
 
 async function getEthTxHash(summaryRange) {
-  let blockHash = await api.rpc.chain.getBlockHash(summaryRange[1]);
-  let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
-  let rootData = await api.query.summary.roots(summaryRange, ingressCounter);
-  if (!rootData.tx_id) {
-    return null
+  const summaryToBlock = summaryRange[1];
+  let ethTxHash = await redis.getEthTxHashForSummary(summaryToBlock);
+
+  if (!ethTxHash) {
+    let blockHash = await api.rpc.chain.getBlockHash(summaryToBlock);
+    let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
+    let rootData = await api.query.summary.roots(summaryRange, ingressCounter);
+    if (!rootData.tx_id) {
+      return null;
+    }
+    let transactionId = rootData.tx_id.toString();
+    let ethTransactionCandidate = await api.query.ethereumTransactions.repository(transactionId);
+    ethTxHash = ethTransactionCandidate.eth_tx_hash;
+    if (ethTxHash === '0x0000000000000000000000000000000000000000000000000000000000000000') {
+      return null;
+    }
+    let receipt = await axios.get(`${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`);
+    if (receipt.data.result.status !== '1'){
+      return null;
+    } else {
+      await redis.setEthTxHashForSummary(summaryToBlock, ethTxHash);
+    }
   }
-  let transactionId = rootData.tx_id.toString();
-  let ethTransaction = await api.query.ethereumTransactions.repository(transactionId);
-  return ethTransaction.eth_tx_hash;
+
+  return ethTxHash;
 }
 
-async function getSummaryRange(blockNumber) {
-  // let summaryRange = await redis.getSummaryRange(blockNumber);
-  // if (!summaryRange) {
-    let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
-    let summaryStart = await api.query.summary.nextBlockToProcess.at(blockHash);
-    let schedulePeriod = await api.query.summary.schedulePeriod.at(blockHash);
-
-    let summaryEnd = summaryStart.add(schedulePeriod).sub(new BN(1));
-    console.log("\n\n\n", summaryStart.toString(), "\n\n\n", schedulePeriod.toString(), "\n\n\n", summaryEnd.toString(), "\n\n\n")
-    let summaryRange = JSON.stringify([summaryStart.toString(), summaryEnd.toString()]);
-    // await redis.setSummaryRange(blockNumber, summaryRange);
-  // }
-  return JSON.parse(summaryRange);
+// TODO: Replace this function with DB call for actual summary that accounts for schedule period changes
+function getSummaryRange(blockNumber) {
+  const SCHEDULE_PERIOD = 28800;
+  blockNumber = parseInt(blockNumber);
+  let summaryFromBlock = 1 + Math.floor(blockNumber / SCHEDULE_PERIOD) * SCHEDULE_PERIOD;
+  const summaryToBlock = summaryFromBlock + SCHEDULE_PERIOD - 1;
+  summaryFromBlock = summaryFromBlock === 1 ? 0 : summaryFromBlock;
+  return [ summaryFromBlock.toString(), summaryToBlock.toString() ];
 }
 
 async function getSummaryData(blockNumber) {
   if (!blockNumber) blockNumber = (await api.query.system.number()).toString();
-  let summaryRange = await getSummaryRange(blockNumber);
+  const summaryRange = getSummaryRange(blockNumber);
   let summaryFromBlock = summaryRange[0];
   let summaryToBlock = summaryRange[1];
   let ethTxHash = await getEthTxHash(summaryRange);

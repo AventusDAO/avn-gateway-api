@@ -36,7 +36,6 @@ const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
 const NONCE_EXPIRY_IN_SECONDS = 5;
 const VALIDATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
-const SUMMARY_RANGE_EXPIRY_IN_SECONDS = 86400; //1 day
 
 let redisClient;
 
@@ -51,8 +50,6 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
-
-  await redisClient.flushall();
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
@@ -201,12 +198,12 @@ async function getStakingStats() {
   return await redisClient.get(STAKING_STAT_KEY);
 }
 
-async function setSummaryRange(blockNumber, summaryRange) {
-  await redisClient.setex(SUMMARY_RANGE_NAMESPACE + blockNumber, SUMMARY_RANGE_EXPIRY_IN_SECONDS, summaryRange);
+async function setEthTxHashForSummary(summaryToBlock, ethTxHash) {
+  await redisClient.setex(SUMMARY_RANGE_NAMESPACE + summaryToBlock, ethTxHash);
 }
 
-async function getSummaryRange(blockNumber) {
-  return await redisClient.get(SUMMARY_RANGE_NAMESPACE + blockNumber);
+async function getEthTxHashForSummary(summaryToBlock) {
+  return await redisClient.get(SUMMARY_RANGE_NAMESPACE + summaryToBlock);
 }
 
 module.exports = {
@@ -225,6 +222,6 @@ module.exports = {
   setValidatorsToNominate,
   getStakingStats,
   setStakingStats,
-  getSummaryRange,
-  setSummaryRange
+  getEthTxHashForSummary,
+  setEthTxHashForSummary
 };

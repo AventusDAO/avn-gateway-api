@@ -118,12 +118,16 @@ async function getLowerData(blockNumber, transactionIndex) {
 
 async function getEthTxHash(summaryRange) {
   const summaryToBlock = summaryRange[1];
+console.log("A", summaryToBlock)
   let ethTxHash = await redis.getEthTxHashForSummary(summaryToBlock);
-
+console.log("B", ethTxHash)
   if (!ethTxHash) {
     let blockHash = await api.rpc.chain.getBlockHash(summaryToBlock);
+    console.log("C", blockHash)
     let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
+    console.log("D", ingressCounter)
     let rootData = await api.query.summary.roots(summaryRange, ingressCounter);
+    console.log("E", rootData.tx_id)
     if (!rootData.tx_id) {
       return null;
     }
@@ -161,7 +165,9 @@ async function getSummaryData(blockNumber) {
   const summaryRange = getSummaryRange(blockNumber);
   let summaryFromBlock = summaryRange[0];
   let summaryToBlock = summaryRange[1];
+  console.log("STARTxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
   let ethTxHash = await getEthTxHash(summaryRange);
+  console.log("STOPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", ethTxHash)
 
   return { blockNumber, summaryFromBlock, summaryToBlock, ethTxHash };
 }

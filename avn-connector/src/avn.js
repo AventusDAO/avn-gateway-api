@@ -121,9 +121,7 @@ async function getEthTxHash(summaryRange) {
 
   if (!ethTxHash) {
     let blockHash = await api.rpc.chain.getBlockHash(summaryRange[0]);
-    console.log("C", blockHash)
     let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
-    console.log("D", ingressCounter)
     let rootData = await api.query.summary.roots(summaryRange, ingressCounter);
     if (!rootData.tx_id) {
       return null;

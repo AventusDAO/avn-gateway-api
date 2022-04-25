@@ -219,7 +219,6 @@ describe('Query api calls:', async () => {
   });
 
   describe('getEraElectionStatus', async () => {
-
     it('returns the correct data', async () => {
       const returnedData = await api.query.getEraElectionStatus();
       // We can't be sure how about the values but we can check the structure

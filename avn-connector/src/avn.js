@@ -61,7 +61,6 @@ async function poll(requestId) {
 
   try {
     let txHash = isTransactionHash(requestId) ? requestId : await redis.getTransactionHashByRequestId(requestId);
-
     let tx = await redis.getAvnTransaction(txHash);
 
     if (!tx) {
@@ -225,6 +224,20 @@ async function getStakingStats() {
   return stakingStats;
 }
 
+async function getChainInfo() {
+  let chainInfo = await redis.getChainInfo();
+
+  if (!chainInfo) {
+    chainInfo = {};
+    chainInfo.name = await api.rpc.system.chain();
+    chainInfo.version = api.runtimeVersion.specVersion.toString();
+
+    await redis.setChainInfo(JSON.stringify(chainInfo));
+  }
+
+  return chainInfo;
+}
+
 async function signAndSend(requestId, relayerAddress, txn) {
   let result, nonce, relayerAccount;
 
@@ -334,5 +347,6 @@ module.exports = {
   query,
   proxy,
   poll,
-  getStakingStats
+  getStakingStats,
+  getChainInfo
 };

@@ -24,6 +24,7 @@ const NONCE_NAMESPACE = 'n.';
 const SUMMARY_RANGE_NAMESPACE = 's.';
 const VALIDATORS_KEY = 'validators';
 const STAKING_STAT_KEY = 'stakingStats';
+const CHAIN_INFO_KEY = 'chainInfo';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -36,6 +37,7 @@ const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
 const NONCE_EXPIRY_IN_SECONDS = 5;
 const VALIDATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
+const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
 let redisClient;
 
@@ -198,13 +200,20 @@ async function getStakingStats() {
   return await redisClient.get(STAKING_STAT_KEY);
 }
 
+async function setChainInfo(chainInfoJsonString) {
+  await redisClient.setex(CHAIN_INFO_KEY, CHAIN_INFO_EXPIRY_IN_SECONDS, chainInfoJsonString);
+}
+
+async function getChainInfo() {
+  return await redisClient.get(CHAIN_INFO_KEY);
+}
+
 async function setEthTxHashForSummary(summaryToBlock, ethTxHash) {
   await redisClient.set(SUMMARY_RANGE_NAMESPACE + summaryToBlock, ethTxHash);
 }
 
 async function getEthTxHashForSummary(summaryToBlock) {
   return await redisClient.get(SUMMARY_RANGE_NAMESPACE + summaryToBlock);
-}
 
 module.exports = {
   connect,
@@ -222,6 +231,8 @@ module.exports = {
   setValidatorsToNominate,
   getStakingStats,
   setStakingStats,
+  getChainInfo,
+  setChainInfo,
   getEthTxHashForSummary,
   setEthTxHashForSummary
 };

@@ -66,6 +66,8 @@ async function callSwitch(call, request) {
       return await getStakingStats(call, request);
     case 'getCurrentBlock':
       return await getCurrentBlock(call, request);
+    case 'getChainInfo':
+      return await getChainInfo(call, request);
     case 'getSummaryData':
       return await getSummaryData(call, request);
     case 'getLowerData':
@@ -260,6 +262,12 @@ async function getStakingStats(call, request) {
 
 async function getCurrentBlock(call, request) {
   return await queryChain(call, request, 'system', 'number', [], formatNumAsString);
+}
+
+async function getChainInfo(call, request) {
+  const method = 'avnChainInfo';
+  const params = { callId: call.id };
+  return await query(call, request, method, params);
 }
 
 async function getSummaryData(call, request) {

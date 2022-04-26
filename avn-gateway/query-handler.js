@@ -65,7 +65,7 @@ async function callSwitch(call, request) {
     case 'getStakingStats':
       return await getStakingStats(call, request);
     case 'getChainInfo':
-      return await getStakingStats(call, request);
+      return await getChainInfo(call, request);
 
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);

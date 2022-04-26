@@ -134,7 +134,7 @@ async function getChainInfo() {
   let chainInfo = await redis.getChainInfo();
 
   if (!chainInfo) {
-    chainInfo = { name, version };
+    chainInfo = {};
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = (await api.consts.system.version()).specVersion;
 
@@ -226,5 +226,6 @@ module.exports = {
   query,
   proxy,
   poll,
-  getStakingStats
+  getStakingStats,
+  getChainInfo
 };

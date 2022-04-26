@@ -10,9 +10,10 @@ describe('Access rights:', async () => {
   let api;
   let relayer, user, userSURI, newUser, newUserSURI;
 
-  async function canAccess() {
+  async function canAccessTheGateway() {
     try {
-      await api.query.getActiveEra();
+      // Any call which actually accesses the gateway (ie: is not cached in the api object) will do here
+      await api.query.getTotalAvt();
     } catch (e) {
       return false;
     }
@@ -27,6 +28,7 @@ describe('Access rights:', async () => {
     newUserAccount = api.utils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserSURI = newUserAccount.seed;
+    process.env.AVN_SURI = userSURI;
   });
 
   afterEach(async () => {
@@ -51,7 +53,7 @@ describe('Access rights:', async () => {
   describe('accessing the gateway', async () => {
     it('a new user cannot access the gateway without AVT', async () => {
       api.setSURI(newUserSURI);
-      assert.equal(await canAccess(), false);
+      assert.equal(await canAccessTheGateway(), false);
 
       // Transfer the new user enough AVT for entry
       api.setSURI(userSURI);
@@ -60,7 +62,7 @@ describe('Access rights:', async () => {
       assert.equal(await api.query.getAvtBalance(newUser), ONE_AVT.toString());
 
       api.setSURI(newUserSURI);
-      assert.equal(await canAccess(), true);
+      assert.equal(await canAccessTheGateway(), true);
     });
 
     it('an existing user can access the gateway without AVT', async () => {
@@ -74,7 +76,7 @@ describe('Access rights:', async () => {
       assert.equal(await api.query.getAvtBalance(newUser), '0'); // confirm newUser now holds no AVT
 
       api.setSURI(newUserSURI);
-      assert.equal(await canAccess(), true);
+      assert.equal(await canAccessTheGateway(), true);
     });
   });
 });

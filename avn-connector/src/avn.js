@@ -57,16 +57,15 @@ async function poll(requestId) {
   }
 
   try {
-    let transactionHash = isTransactionHash(requestId) ? requestId : await redis.getTransactionHashByRequestId(requestId);
-
-    let tx = await redis.getAvnTransaction(transactionHash);
+    let txHash = isTransactionHash(requestId) ? requestId : await redis.getTransactionHashByRequestId(requestId);
+    let tx = await redis.getAvnTransaction(txHash);
 
     if (!tx) {
       log.error(`No transaction found for requestId: ${requestId}`);
       return { error: 'Transaction not found' };
     }
 
-    return { txHash: transactionHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex };
+    return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex };
   } catch (error) {
     log.error(`Error getting transaction status for requestId ${requestId}: ${error}`);
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);
@@ -128,6 +127,20 @@ async function getStakingStats() {
   }
 
   return stakingStats;
+}
+
+async function getChainInfo() {
+  let chainInfo = await redis.getChainInfo();
+
+  if (!chainInfo) {
+    chainInfo = {};
+    chainInfo.name = await api.rpc.system.chain();
+    chainInfo.version = api.runtimeVersion.specVersion.toString();
+
+    await redis.setChainInfo(JSON.stringify(chainInfo));
+  }
+
+  return chainInfo;
 }
 
 async function signAndSend(requestId, relayerAddress, txn) {
@@ -212,5 +225,6 @@ module.exports = {
   query,
   proxy,
   poll,
-  getStakingStats
+  getStakingStats,
+  getChainInfo
 };

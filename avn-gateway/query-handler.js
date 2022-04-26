@@ -64,6 +64,10 @@ async function callSwitch(call, request) {
       return await getOwnedNfts(call, request);
     case 'getStakingStats':
       return await getStakingStats(call, request);
+    case 'getCurrentBlock':
+      return await getCurrentBlock(call, request);
+    case 'getChainInfo':
+      return await getChainInfo(call, request);
     case 'getEraElectionStatus':
       return await queryEraElectionStatus(call, request);
 
@@ -254,6 +258,17 @@ async function getOwnedNfts(call, request) {
 
 async function getStakingStats(call, request) {
   const method = 'avnStakingStats';
+  const params = { callId: call.id };
+
+  return await query(call, request, method, params);
+}
+
+async function getCurrentBlock(call, request) {
+  return await queryChain(call, request, 'system', 'number', [], formatNumAsString);
+}
+
+async function getChainInfo(call, request) {
+  const method = 'avnChainInfo';
   const params = { callId: call.id };
 
   return await query(call, request, method, params);

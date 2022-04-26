@@ -91,29 +91,44 @@ describe('Query api calls:', async () => {
   });
 
   describe('getSummaryData', async () => {
+    const SCHEDULE_PERIOD = 28800;
+
     it('returns the correct data for a block falling within a published summary', async () => {
       const block = 1000;
       let summaryData = await api.query.getSummaryData(block);
-      console.log(summaryData);
+      assert.equal(summaryData.blockNumber, block.toString());
+      assert.equal(summaryData.summaryRange[0], '0');
+      assert.equal(summaryData.summaryRange[1], '28800');
+      assert.equal(summaryData.ethTxHash, '0x32c40ef26710a2ed40d2b14ef9a92aab859cb35a92a279d6bc3fbb6fea84089f');
     });
 
     it('returns the correct data for the current block', async () => {
       let block = await api.query.getCurrentBlock();
       let summaryData = await api.query.getSummaryData(block);
-      console.log(summaryData);
+      assert.equal(summaryData.blockNumber, block);
+      const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
+      assert.equal(summaryData.summaryRange[0],  multiplier * SCHEDULE_PERIOD + 1);
+      assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
+      assert.equal(summaryData.ethTxHash, null);
     });
 
     it('returns the current block data when no block is passed', async () => {
       let block = await api.query.getCurrentBlock();
-      let summaryData = await api.query.getSummaryData(block);
-      console.log(summaryData);
+      let summaryData = await api.query.getSummaryData();
+      assert(summaryData.blockNumber >= block);
+      const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
+      assert.equal(summaryData.summaryRange[0],  multiplier * SCHEDULE_PERIOD + 1);
+      assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
+      assert.equal(summaryData.ethTxHash, null);
     });
 
     it('returns limited data when a future block is passed', async () => {
       let block = await api.query.getCurrentBlock();
       block = parseInt(block) + 100000;
       let summaryData = await api.query.getSummaryData(block);
-      console.log(summaryData);
+      assert.equal(summaryData.blockNumber, block.toString());
+      assert.equal(summaryData.summaryRange.length, 0);
+      assert.equal(summaryData.ethTxHash, null);
     });
   });
 

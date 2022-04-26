@@ -150,7 +150,7 @@ async function getSummaryData(blockNumber) {
   if (!blockNumber) {
     blockNumber = currentBlock;
   } else if (parseInt(blockNumber) > parseInt(currentBlock)) {
-    return { blockNumber, summaryRange: [], ethTxHash: null };
+    return { blockNumber: blockNumber.toString(), summaryRange: [], ethTxHash: null };
   } else {
     blockNumber = blockNumber.toString();
   }

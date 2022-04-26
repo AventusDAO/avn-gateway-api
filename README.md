@@ -865,7 +865,7 @@ curl https://AVN-API-URL/query \
 
 **RESULT FIELDS** \
 `blockNumber` - the passed or current block number
-`range` - 2 element array with start and end block numbers of the summary
+`range` - 2 element array with start and end block numbers of the summary (if the block falls within a summary range)
 `ethTxHash` - Ethereum transaction hash of the published summary (if the summary root has been checked in by that point)
 
 **BODY**

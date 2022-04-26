@@ -772,6 +772,42 @@ curl https://AVN-API-URL/query \
 }
 ```
 
+#### getChainInfo
+Returns an object containing the chain name and version
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization: bearer <awtToken>`
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getChainInfo", "params":{}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`name` - the name of the chain (eg: 'AvN MainNet', 'AvN Testnet')
+`version` - string integer value detailing the current spec version
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "name": "AvN TestNet",
+    "version": "270"
+  }
+}
+```
+
 ### Transactions
 All gateway transactions are processed via a relayer, which requires a pair of signed proofs; one to confirm the validity of the transaction and the other to confirm payment of the relayer fee
 

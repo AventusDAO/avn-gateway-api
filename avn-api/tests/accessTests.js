@@ -27,10 +27,19 @@ describe('Access rights:', async () => {
     newUserAccount = api.utils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserSURI = newUserAccount.seed;
+    process.env.AVN_SURI = userSURI;
   });
 
   afterEach(async () => {
     process.env.AVN_SURI = userSURI;
+  });
+
+  describe('chain info', async () => {
+    it('can get the current chain information', async () => {
+      let chainInfo = await api.query.getChainInfo();
+      assert.equal(chainInfo.name, 'AvN TestNet');
+      assert.equal(chainInfo.version, '270');
+    });
   });
 
   describe('setSURI', async () => {

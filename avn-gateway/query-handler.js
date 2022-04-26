@@ -66,6 +66,9 @@ async function callSwitch(call, request) {
       return await getStakingStats(call, request);
     case 'getCurrentBlock':
       return await getCurrentBlock(call, request);
+    case 'getChainInfo':
+      return await getChainInfo(call, request);
+
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -256,6 +259,13 @@ async function getStakingStats(call, request) {
 
 async function getCurrentBlock(call, request) {
   return await queryChain(call, request, 'system', 'number', [], formatNumAsString);
+}
+
+async function getChainInfo(call, request) {
+  const method = 'avnChainInfo';
+  const params = { callId: call.id };
+
+  return await query(call, request, method, params);
 }
 
 async function query(call, request, method, params, responseFormatter) {

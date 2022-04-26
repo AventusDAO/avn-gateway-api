@@ -82,6 +82,13 @@ describe('Query api calls:', async () => {
     });
   });
 
+  describe('getCurrentBlock', async () => {
+    it('returns the current block', async () => {
+      let currentBlock = await api.query.getCurrentBlock();
+      assert(parseInt(currentBlock) > 0);
+    });
+  });
+
   describe('getNonce', async () => {
     it('returns the same token nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'token');

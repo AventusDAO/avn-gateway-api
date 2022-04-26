@@ -121,6 +121,10 @@ async function getLowerData(blockNumber, transactionIndex) {
 }
 
 async function getEthTxHash(summaryRange) {
+  if (!summaryRange[0] || !summaryRange[1]) {
+    return null;
+  }
+
   let ethTxHash = await redis.getEthTxHashForSummary(summaryRange[1]);
 
   if (!ethTxHash) {
@@ -130,15 +134,18 @@ async function getEthTxHash(summaryRange) {
     if (!rootData.tx_id) {
       return null;
     }
+
     let transactionId = rootData.tx_id.toString();
     let ethTransactionCandidate = await api.query.ethereumTransactions.repository(transactionId);
     ethTxHash = ethTransactionCandidate.eth_tx_hash;
     if (ethTxHash === '0x0000000000000000000000000000000000000000000000000000000000000000') {
       return null;
     }
+    
     let receipt = await axios.get(
       `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`
     );
+
     if (receipt.data.result.status !== '1') {
       return null;
     } else {
@@ -151,6 +158,10 @@ async function getEthTxHash(summaryRange) {
 
 // TODO: Replace this function with DB call for actual summary that accounts for schedule period changes
 function getSummaryRange(blockNumber) {
+  if (!blockNumber) {
+    return [null, null];
+  }
+
   const SCHEDULE_PERIOD = 28800;
   blockNumber = parseInt(blockNumber);
   let summaryFromBlock = 1 + Math.floor(blockNumber / SCHEDULE_PERIOD) * SCHEDULE_PERIOD;
@@ -160,13 +171,19 @@ function getSummaryRange(blockNumber) {
 }
 
 async function getSummaryData(blockNumber) {
-  if (!blockNumber) blockNumber = await api.query.system.number();
-  blockNumber = blockNumber.toString();
+  let currentBlock = (await api.query.system.number()).toString();
+
+  if (!blockNumber) {
+    blockNumber = currentBlock;
+  } else if (parseInt(blockNumber) > parseInt(currentBlock)) {
+    blockNumber = null;
+  } else {
+    blockNumber = blockNumber.toString();
+  }
+
   const summaryRange = getSummaryRange(blockNumber);
-  let summaryFromBlock = summaryRange[0];
-  let summaryToBlock = summaryRange[1];
   let ethTxHash = await getEthTxHash(summaryRange);
-  return { blockNumber, summaryFromBlock, summaryToBlock, ethTxHash };
+  return { blockNumber, summaryRange, ethTxHash };
 }
 
 async function getValidatorsToNominate() {

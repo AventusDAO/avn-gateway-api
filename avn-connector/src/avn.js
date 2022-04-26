@@ -107,17 +107,23 @@ async function getNonce(senderAddress) {
 }
 
 async function getLowerData(blockNumber, transactionIndex) {
-  let leaf = null;
-  let merklePath = null;
-  const summaryRange = getSummaryRange(blockNumber);
-  let ethTxHash = await getEthTxHash(summaryRange);
-  if (ethTxHash) {
-    let lowerData = await api.rpc.lower.data(summaryRange[0], summaryRange[1], blockNumber, transactionIndex);
-    const data = JSON.parse(Buffer.from(lowerData, 'hex').toString());
-    leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
-    merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
+  let lowerData = {};
+  let summaryData = await getSummaryData(blockNumber);
+
+  if (summaryData.ethTxHash) {
+    try {
+      let range = summaryData.summaryRange;
+      log.trace({ message: 'Getting lower data', range, blockNumber, transactionIndex, ethTxHash });
+      let rpcData = await api.rpc.lower.data(range[0], range[1], blockNumber, transactionIndex);
+      const data = JSON.parse(Buffer.from(rpcData, 'hex').toString());
+      lowerData.leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
+      lowerData.merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
+    } catch (err) {
+      log.error(`Error getting lower data: ${err}`);
+      throw err;
+    }
   }
-  return { leaf, merklePath };
+  return lowerData;
 }
 
 async function getEthTxHash(summaryRange) {
@@ -141,7 +147,7 @@ async function getEthTxHash(summaryRange) {
     if (ethTxHash === '0x0000000000000000000000000000000000000000000000000000000000000000') {
       return null;
     }
-    
+
     let receipt = await axios.get(
       `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`
     );

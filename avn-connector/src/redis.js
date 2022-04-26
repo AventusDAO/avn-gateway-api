@@ -222,5 +222,7 @@ module.exports = {
   getValidatorsToNominate,
   setValidatorsToNominate,
   getStakingStats,
-  setStakingStats
+  setStakingStats,
+  getChainInfo,
+  setChainInfo
 };

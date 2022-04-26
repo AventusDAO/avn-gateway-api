@@ -115,7 +115,7 @@ describe('Query api calls:', async () => {
     it('returns the current block data when no block is passed', async () => {
       let block = await api.query.getCurrentBlock();
       let summaryData = await api.query.getSummaryData();
-      assert(summaryData.blockNumber >= block);
+      assert(parseInt(summaryData.blockNumber) >= parseInt(block));
       const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
       assert.equal(summaryData.summaryRange[0],  multiplier * SCHEDULE_PERIOD + 1);
       assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);

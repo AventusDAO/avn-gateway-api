@@ -7,7 +7,9 @@ async function transactionExists(txHash) {
   let receipt = await axios.get(
     `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${ETHERSCAN_KEY}`
   );
-  return receipt.data.result.status === '1';
+  console.log('G', `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${ETHERSCAN_KEY}`)
+  console.log('H', receipt.data.result)
+  return receipt.data.result.status === '1'
 }
 
 module.exports = {

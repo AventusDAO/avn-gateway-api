@@ -1200,6 +1200,19 @@ curl https://AVN-API-URL/send \
 }
 ```
 
+**VALIDATION** \
+This endpoint can only be called while the `eraElectionWindow` is closed. If it is called during an election, the following error response will be returned:
+
+```
+{
+  "code":-32600,
+  "message":"Invalid Request",
+  "data": {
+      "gatewayError":"election window is open",
+      "request":"{...}"
+}
+```
+
 #### proxyIncreaseStake
 Stakes the specified amount of AVT, locking its free usage in order to earn rewards.\
 _**Note** This should only be used for existing stakers - please query [getStakingStatus](#getStakingStatus) to check first._
@@ -1239,6 +1252,18 @@ curl https://AVN-API-URL/send \
   "jsonrpc": "2.0",
   "id": 1,
   "result": "80ada166-e4f7-441d-9f1d-1be266a2f89c"
+}
+```
+**VALIDATION** \
+This endpoint can only be called while the `eraElectionWindow` is closed. If it is called during an election, the following error response will be returned:
+
+```
+{
+  "code":-32600,
+  "message":"Invalid Request",
+  "data": {
+      "gatewayError":"election window is open",
+      "request":"{...}"
 }
 ```
 
@@ -1283,6 +1308,19 @@ curl https://AVN-API-URL/send \
 }
 ```
 
+**VALIDATION** \
+This endpoint can only be called while the `eraElectionWindow` is closed. If it is called during an election, the following error response will be returned:
+
+```
+{
+  "code":-32600,
+  "message":"Invalid Request",
+  "data": {
+      "gatewayError":"election window is open",
+      "request":"{...}"
+}
+```
+
 #### proxyWithdrawUnlocked
 Withdraws previously unstaked AVT back to free balance
 
@@ -1320,6 +1358,19 @@ curl https://AVN-API-URL/send \
   "jsonrpc": "2.0",
   "id": 1,
   "result": "7fd01739-2a52-4eba-941a-00497e7e0bf0"
+}
+```
+
+**VALIDATION** \
+This endpoint can only be called while the `eraElectionWindow` is closed. If it is called during an election, the following error response will be returned:
+
+```
+{
+  "code":-32600,
+  "message":"Invalid Request",
+  "data": {
+      "gatewayError":"election window is open",
+      "request":"{...}"
 }
 ```
 
@@ -1361,6 +1412,19 @@ curl https://AVN-API-URL/send \
   "jsonrpc": "2.0",
   "id": 1,
   "result": "5e5f3346-9455-489e-b8dd-ee688046e97d"
+}
+```
+
+**VALIDATION** \
+This endpoint can only be called while the `eraElectionWindow` is closed. If it is called during an election, the following error response will be returned:
+
+```
+{
+  "code":-32600,
+  "message":"Invalid Request",
+  "data": {
+      "gatewayError":"election window is open",
+      "request":"{...}"
 }
 ```
 

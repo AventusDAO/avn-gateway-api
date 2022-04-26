@@ -45,12 +45,7 @@ async function poll(call, request, requestId) {
   try {
     const callId = call.id;
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId });
-    const result = avnResponse.data.error || {
-      txHash: avnResponse.data.txHash,
-      status: avnResponse.data.status,
-      blockNumber: avnResponse.data.blockNumber,
-      transactionIndex: avnResponse.data.transactionIndex
-    };
+    const result = avnResponse.data.error || avnResponse.data;
     return utils.validResponse(callId, result);
   } catch (err) {
     return utils.errorResponse('internal', 'failed to poll chain', err, request, call.id);

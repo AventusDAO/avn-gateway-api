@@ -12,7 +12,7 @@ describe('Access rights:', async () => {
 
   async function canAccess() {
     try {
-      await api.query.getActiveEra();
+      await api.query.getTotalAvt();
     } catch (e) {
       return false;
     }

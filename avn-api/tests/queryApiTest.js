@@ -75,6 +75,14 @@ describe('Query api calls:', async () => {
     });
   });
 
+  describe('chain info', async () => {
+    it('can get the current chain information', async () => {
+      let chainInfo = await api.query.getChainInfo();
+      assert.equal(chainInfo.name, 'AvN TestNet');
+      assert.equal(chainInfo.version, '270');
+    });
+  });
+
   describe('getNonce', async () => {
     it('returns the same token nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'token');

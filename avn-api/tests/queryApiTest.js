@@ -82,11 +82,11 @@ describe('Query api calls:', async () => {
     });
   });
 
-  describe('getCurrentBlock', async () => {
-    it('returns the current block', async () => {
-      let currentBlock = await api.query.getCurrentBlock();
-      assert(parseInt(currentBlock) > 0);
-    });
+  describe('getChainInfo', async () => {
+    it('can get the current chain information', async () => {
+      let chainInfo = await api.query.getChainInfo();
+      assert.equal(chainInfo.name, 'AvN TestNet');
+      assert.equal(chainInfo.version, '270');
   });
 
   describe('getNonce', async () => {

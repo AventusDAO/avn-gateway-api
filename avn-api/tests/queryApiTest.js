@@ -90,6 +90,33 @@ describe('Query api calls:', async () => {
     });
   });
 
+  describe('getSummaryData', async () => {
+    it('returns the correct data for a block falling within a published summary', async () => {
+      const block = 1000;
+      let summaryData = await api.query.getSummaryData(block);
+      console.log(summaryData);
+    });
+
+    it('returns the correct data for the current block', async () => {
+      let block = await api.query.getCurrentBlock();
+      let summaryData = await api.query.getSummaryData(block);
+      console.log(summaryData);
+    });
+
+    it('returns the current block data when no block is passed', async () => {
+      let block = await api.query.getCurrentBlock();
+      let summaryData = await api.query.getSummaryData(block);
+      console.log(summaryData);
+    });
+
+    it('returns limited data when a future block is passed', async () => {
+      let block = await api.query.getCurrentBlock();
+      block = parseInt(block) + 100000;
+      let summaryData = await api.query.getSummaryData(block);
+      console.log(summaryData);
+    });
+  });
+
   describe('getNonce', async () => {
     it('returns the same token nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'token');

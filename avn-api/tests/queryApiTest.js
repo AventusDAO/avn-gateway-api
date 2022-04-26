@@ -87,6 +87,7 @@ describe('Query api calls:', async () => {
       let chainInfo = await api.query.getChainInfo();
       assert.equal(chainInfo.name, 'AvN TestNet');
       assert.equal(chainInfo.version, '270');
+    });
   });
 
   describe('getNonce', async () => {

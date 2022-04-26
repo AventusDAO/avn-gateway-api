@@ -64,6 +64,8 @@ async function callSwitch(call, request) {
       return await getOwnedNfts(call, request);
     case 'getStakingStats':
       return await getStakingStats(call, request);
+    case 'getChainInfo':
+      return await getStakingStats(call, request);
 
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
@@ -248,6 +250,13 @@ async function getOwnedNfts(call, request) {
 
 async function getStakingStats(call, request) {
   const method = 'avnStakingStats';
+  const params = { callId: call.id };
+
+  return await query(call, request, method, params);
+}
+
+async function getChainInfo(call, request) {
+  const method = 'avnChainInfo';
   const params = { callId: call.id };
 
   return await query(call, request, method, params);

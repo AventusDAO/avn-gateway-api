@@ -3,6 +3,7 @@
 const common = require('./common.js');
 
 function Query(api) {
+  this.getChainInfo = generateFunction(getChainInfo, api);
   this.getAvtContractAddress = generateFunction(getAvtContractAddress, api);
   this.getAvnContractAddress = generateFunction(getAvnContractAddress, api);
   this.getNftContractAddress = generateFunction(getNftContractAddress, api);
@@ -22,6 +23,12 @@ function Query(api) {
   this.getRelayerFees = generateFunction(getRelayerFees, api);
   this.contracts = {};
   this.nftsMap = {};
+}
+
+function getChainInfo(api) {
+  return async function () {
+    return await this.postRequest(api, 'getChainInfo');
+  };
 }
 
 function getAvtContractAddress(api) {

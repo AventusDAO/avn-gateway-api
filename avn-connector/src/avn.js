@@ -130,6 +130,20 @@ async function getStakingStats() {
   return stakingStats;
 }
 
+async function getChainInfo() {
+  let chainInfo = await redis.getChainInfo();
+
+  if (!chainInfo) {
+    chainInfo = { name, version };
+    chainInfo.name = await api.rpc.system.chain();
+    chainInfo.version = (await api.consts.system.version()).specVersion;
+
+    await redis.setChainInfo(JSON.stringify(chainInfo));
+  }
+
+  return chainInfo;
+}
+
 async function signAndSend(requestId, relayerAddress, txn) {
   let result, nonce, relayerAccount;
 

@@ -283,7 +283,7 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
 const formatEraAsString = data => (data ? data.index : 0);
 
-const formatEraElectionStatus = data => (data.isOpen === true ? 'isOpen' : 'isClosed');
+const formatEraElectionStatus = data => (Object.keys(x)[0] === 'Open' ? 'isOpen' : 'isClosed');
 
 const filterNftOwner = data => (data ? data.owner : null);
 

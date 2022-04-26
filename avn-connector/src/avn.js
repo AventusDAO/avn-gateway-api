@@ -147,11 +147,11 @@ async function getEthTxHash(summaryRange) {
     if (ethTxHash === '0x0000000000000000000000000000000000000000000000000000000000000000') {
       return null;
     }
-
+console.log('I', `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`)
     let receipt = await axios.get(
       `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`
     );
-    console.log('I', `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`)
+    
     console.log('J', receipt.data)
 
     if (receipt.data.result.status !== '1') {

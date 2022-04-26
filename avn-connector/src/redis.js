@@ -199,7 +199,7 @@ async function getStakingStats() {
 }
 
 async function setEthTxHashForSummary(summaryToBlock, ethTxHash) {
-  await redisClient.setex(SUMMARY_RANGE_NAMESPACE + summaryToBlock, ethTxHash);
+  await redisClient.set(SUMMARY_RANGE_NAMESPACE + summaryToBlock, ethTxHash);
 }
 
 async function getEthTxHashForSummary(summaryToBlock) {

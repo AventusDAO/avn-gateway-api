@@ -156,7 +156,7 @@ async function getSummaryData(blockNumber) {
   }
 
   const summaryRange = calculateSummaryRange(blockNumber);
-  let ethTxHash = await retrieveEthTxHash(summaryRange);
+  let ethTxHash = await retrieveEthTxHashIfExists(summaryRange);
   return { blockNumber, summaryRange, ethTxHash };
 }
 
@@ -170,7 +170,7 @@ function calculateSummaryRange(blockNumber) {
   return [summaryFromBlock.toString(), summaryToBlock.toString()];
 }
 
-async function retrieveEthTxHash(summaryRange) {
+async function retrieveEthTxHashIfExists(summaryRange) {
   let ethTxHash = await redis.getSummaryEthTxHash(summaryRange);
 console.log('A', ethTxHash)
   if (!ethTxHash) {

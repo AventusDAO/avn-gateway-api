@@ -772,6 +772,38 @@ curl https://AVN-API-URL/query \
 }
 ```
 
+#### getCurrentBlock
+Returns the current block number
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization: bearer <awtToken>`
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getCurrentBlock", "params":{}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - string integer value of the current block number
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "31357"
+}
+```
+
 #### getChainInfo
 Returns an object containing the chain name and version
 

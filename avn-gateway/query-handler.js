@@ -64,6 +64,8 @@ async function callSwitch(call, request) {
       return await getOwnedNfts(call, request);
     case 'getStakingStats':
       return await getStakingStats(call, request);
+    case 'getCurrentBlock':
+      return await getCurrentBlock(call, request);
     case 'getChainInfo':
       return await getChainInfo(call, request);
 
@@ -253,6 +255,10 @@ async function getStakingStats(call, request) {
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
+}
+
+async function getCurrentBlock(call, request) {
+  return await queryChain(call, request, 'system', 'number', [], formatNumAsString);
 }
 
 async function getChainInfo(call, request) {

@@ -131,19 +131,28 @@ async function getEthTxHash(summaryRange) {
     return null;
   }
 
+  console.log('A', summaryRange)
+
   let ethTxHash = await redis.getEthTxHashForSummary(summaryRange[1]);
+  console.log('B', ethTxHash)
 
   if (!ethTxHash) {
     let blockHash = await api.rpc.chain.getBlockHash(summaryRange[0]);
+    console.log('C', blockHash)
     let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
+    console.log('D', ingressCounter)
     let rootData = await api.query.summary.roots(summaryRange, ingressCounter);
+    console.log('E', rootData)
     if (!rootData.tx_id) {
       return null;
     }
 
     let transactionId = rootData.tx_id.toString();
+    console.log('F', transactionId)
     let ethTransactionCandidate = await api.query.ethereumTransactions.repository(transactionId);
+    console.log('G', ethTransactionCandidate)
     ethTxHash = ethTransactionCandidate.eth_tx_hash;
+    console.log('H', ethTxHash)
     if (ethTxHash === '0x0000000000000000000000000000000000000000000000000000000000000000') {
       return null;
     }
@@ -151,10 +160,13 @@ async function getEthTxHash(summaryRange) {
     let receipt = await axios.get(
       `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`
     );
+    console.log('I', `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&&apikey=${ETHERSCAN_API_KEY}`)
+    console.log('J', receipt.data)
 
     if (receipt.data.result.status !== '1') {
       return null;
     } else {
+      console.log('K', ethTxHash)
       await redis.setEthTxHashForSummary(summaryRange[1], ethTxHash);
     }
   }

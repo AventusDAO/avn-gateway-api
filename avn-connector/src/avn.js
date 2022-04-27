@@ -160,7 +160,7 @@ async function getSummaryData(blockNumber) {
   }
 
   const summaryRange = calculateSummaryRange(blockNumber);
-  let ethTxHash = (parseInt(currentBlock) >= parseInt(summaryRange[1])) await retrieveEthTxHashIfExists(summaryRange);
+  let ethTxHash = (parseInt(currentBlock) >= parseInt(summaryRange[1])) ? await retrieveEthTxHashIfExists(summaryRange) : null;
   return { blockNumber, summaryRange, ethTxHash };
 }
 

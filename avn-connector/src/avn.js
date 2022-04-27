@@ -179,7 +179,7 @@ console.log('A', ethTxHash)
     let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
     console.log('C', ingressCounter)
     let rootData = await api.query.summary.roots(summaryRange, ingressCounter);
-    console.log('D' rootData.tx_id)
+    console.log('D', rootData.tx_id)
     if (!rootData.tx_id) {
       return null;
     }

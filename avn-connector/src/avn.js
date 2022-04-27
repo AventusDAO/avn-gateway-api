@@ -6,6 +6,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 const avnTypes = require('avn-types');
 const redis = require('./redis');
+const ethereum = require('./ethereum');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
 
@@ -143,6 +144,61 @@ async function getChainInfo() {
   return chainInfo;
 }
 
+async function getSummaryData(blockNumber) {
+  let currentBlock = (await api.query.system.number()).toString();
+
+  if (!blockNumber) {
+    blockNumber = currentBlock;
+  } else if (parseInt(blockNumber) > parseInt(currentBlock)) {
+    return { blockNumber: blockNumber.toString(), summaryRange: [], ethTxHash: null };
+  } else {
+    blockNumber = blockNumber.toString();
+  }
+
+  const summaryRange = calculateSummaryRange(blockNumber);
+  let ethTxHash = await retrieveEthTxHashIfExists(summaryRange);
+  return { blockNumber, summaryRange, ethTxHash };
+}
+
+// TODO: Does not account for changes of schedule period, replace with a function that retrieves summary ranges from a database
+function calculateSummaryRange(blockNumber) {
+  const SCHEDULE_PERIOD = 28800;
+  blockNumber = parseInt(blockNumber);
+  let summaryFromBlock = 1 + Math.floor(blockNumber / SCHEDULE_PERIOD) * SCHEDULE_PERIOD;
+  const summaryToBlock = summaryFromBlock + SCHEDULE_PERIOD - 1;
+  summaryFromBlock = summaryFromBlock === 1 ? 0 : summaryFromBlock;
+  return [summaryFromBlock.toString(), summaryToBlock.toString()];
+}
+
+async function retrieveEthTxHashIfExists(summaryRange) {
+  let ethTxHash = await redis.getSummaryEthTxHash(summaryRange);
+console.log('A', ethTxHash)
+  if (!ethTxHash) {
+    let blockHash = await api.rpc.chain.getBlockHash(summaryRange[0]);
+    console.log('B', blockHash)
+    let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
+    console.log('C', ingressCounter)
+    let rootData = await api.query.summary.roots(summaryRange, ingressCounter);
+    console.log('D' rootData.tx_id)
+    if (!rootData.tx_id) {
+      return null;
+    }
+
+    let transactionId = rootData.tx_id.toString();
+    console.log('E', transactionId)
+    let ethTransactionCandidate = await api.query.ethereumTransactions.repository(transactionId);
+    ethTxHash = ethTransactionCandidate.eth_tx_hash.toString();
+    console.log('F', ethTxHash)
+    if ((await ethereum.transactionExists(ethTxHash)) === false) {
+      return null;
+    }
+
+    await redis.setSummaryEthTxHash(summaryRange, ethTxHash);
+  }
+
+  return ethTxHash;
+}
+
 async function signAndSend(requestId, relayerAddress, txn) {
   let result, nonce, relayerAccount;
 
@@ -226,5 +282,6 @@ module.exports = {
   proxy,
   poll,
   getStakingStats,
-  getChainInfo
+  getChainInfo,
+  getSummaryData
 };

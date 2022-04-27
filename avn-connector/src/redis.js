@@ -21,6 +21,7 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
+const SUMMARY_RANGE_NAMESPACE = 's.';
 const VALIDATORS_KEY = 'validators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
@@ -51,6 +52,8 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
+
+  await redisClient.flushall();
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
@@ -207,6 +210,14 @@ async function getChainInfo() {
   return await redisClient.get(CHAIN_INFO_KEY);
 }
 
+async function setSummaryEthTxHash(summaryRange, ethTxHash) {
+  await redisClient.set(SUMMARY_RANGE_NAMESPACE + summaryRange.join('_'), ethTxHash);
+}
+
+async function getSummaryEthTxHash(summaryRange) {
+  return await redisClient.get(SUMMARY_RANGE_NAMESPACE + summaryRange.join('_'));
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
@@ -224,5 +235,7 @@ module.exports = {
   getStakingStats,
   setStakingStats,
   getChainInfo,
-  setChainInfo
+  setChainInfo,
+  getSummaryEthTxHash,
+  setSummaryEthTxHash
 };

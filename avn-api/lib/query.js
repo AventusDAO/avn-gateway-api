@@ -22,6 +22,7 @@ function Query(api) {
   this.getStakingStats = generateFunction(getStakingStats, api);
   this.getRelayerFees = generateFunction(getRelayerFees, api);
   this.getCurrentBlock = generateFunction(getCurrentBlock, api);
+  this.getSummaryData = generateFunction(getSummaryData, api);
   this.contracts = {};
   this.nftsMap = {};
 }
@@ -174,6 +175,13 @@ function getRelayerFees(api) {
 function getCurrentBlock(api) {
   return async function () {
     return await this.postRequest(api, 'getCurrentBlock');
+  };
+}
+
+function getSummaryData(api) {
+  return async function (blockNumber) {
+    if (blockNumber) common.validateNumber(blockNumber);
+    return await this.postRequest(api, 'getSummaryData', { blockNumber });
   };
 }
 

@@ -232,4 +232,12 @@ describe('Query api calls:', async () => {
       assert(maxNominatorsRewardedPerValidatorBN.eq(defaultMaxNominatorsRewardedPerValidatorBN), "Maximum number of nominators doesn't match default value");
     });
   });
+
+  describe('getEraElectionStatus', async () => {
+    it('returns the correct data', async () => {
+      const returnedData = await api.query.getEraElectionStatus();
+      // We can't be sure about the values but we can check the structure
+      assert(['isOpen', 'isClosed'].includes(returnedData), "Election status is not a valid result");
+    });
+  });
 });

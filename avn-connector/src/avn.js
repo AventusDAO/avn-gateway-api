@@ -178,22 +178,23 @@ async function retrieveEthTxHashIfExists(summaryRange) {
   let ethTxHash = await redis.getSummaryEthTxHash(summaryRange);
 
   if (!ethTxHash) {
+    console.log('A')
     let blockHash = await api.rpc.chain.getBlockHash(summaryRange[1]);
+    console.log('B', blockHash)
     if (!blockHash) {
+      console.log('C')
       return null;
     }
+    console.log('D')
     let ingressCounter = parseInt(await api.query.summary.totalIngresses.at(blockHash)) + 1;
     let transactionId = (await api.query.summary.roots(summaryRange, ingressCounter)).tx_id.toString();
-    console.log('B', ingressCounter, transactionId)
     if (!transactionId) {
       return null;
     }
 
     let ethTransactionCandidate = await api.query.ethereumTransactions.repository(transactionId);
     ethTxHash = ethTransactionCandidate.eth_tx_hash.toString();
-    console.log('C', ethTxHash)
     if ((await ethereum.transactionExists(ethTxHash)) === false) {
-      console.log('D - POST CHECK')
       return null;
     }
 

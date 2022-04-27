@@ -260,7 +260,10 @@ async function getStakingStats(call, request) {
 }
 
 async function getCurrentBlock(call, request) {
-  return await queryChain(call, request, 'system', 'number', [], formatNumAsString);
+  const method = 'avnCurrentBlock';
+  const params = { callId: call.id };
+
+  return await query(call, request, method, params);
 }
 
 async function getChainInfo(call, request) {

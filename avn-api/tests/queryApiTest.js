@@ -94,12 +94,15 @@ describe('Query api calls:', async () => {
     const SCHEDULE_PERIOD = 28800;
 
     it('returns the correct data for a block falling within a published summary', async () => {
-      const block = 1000;
-      let summaryData = await api.query.getSummaryData(block);
-      assert.equal(summaryData.blockNumber, block.toString());
-      assert.equal(summaryData.summaryRange[0], '0');
-      assert.equal(summaryData.summaryRange[1], '28800');
-      assert.equal(summaryData.ethTxHash, '0x32c40ef26710a2ed40d2b14ef9a92aab859cb35a92a279d6bc3fbb6fea84089f');
+      // Only runs if a summary should have been published by now
+      if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD + 1000) {
+        const block = 1;
+        let summaryData = await api.query.getSummaryData(block);
+        assert.equal(summaryData.blockNumber, block.toString());
+        assert.equal(summaryData.summaryRange[0], '0');
+        assert.equal(summaryData.summaryRange[1], SCHEDULE_PERIOD.toString());
+        assert.equal(summaryData.ethTxHash.length, 66);
+      }
     });
 
     it('returns the correct data for the current block', async () => {

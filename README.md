@@ -773,7 +773,7 @@ curl https://AVN-API-URL/query \
 ```
 
 #### getCurrentBlock
-Returns the current block number
+Returns the most recent finalized block number
 
 **REQUEST** \
 `POST https://AVN-API-URL/query`

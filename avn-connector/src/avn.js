@@ -144,8 +144,13 @@ async function getChainInfo() {
   return chainInfo;
 }
 
+async function getCurrentBlock() {
+  let blockHashAtHead = await api.rpc.chain.getFinalizedHead();
+  return (await api.query.system.number.at(blockHashAtHead)).toString();
+}
+
 async function getSummaryData(blockNumber) {
-  let currentBlock = (await api.query.system.number()).toString();
+  let currentBlock = await getCurrentBlock();
 
   if (!blockNumber) {
     blockNumber = currentBlock;
@@ -277,5 +282,6 @@ module.exports = {
   poll,
   getStakingStats,
   getChainInfo,
+  getCurrentBlock,
   getSummaryData
 };

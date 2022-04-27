@@ -120,6 +120,16 @@ app.post('/avnChainInfo', async (req, res, next) => {
   }
 });
 
+app.post('/avnCurrentBlock', async (req, res, next) => {
+  try {
+    log.trace({ avnCurrentBlockRequest: req.body });
+    const result = await avn.getCurrentBlock();
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/avnSummaryData', async (req, res, next) => {
   try {
     log.trace({ avnSummaryDataRequest: req.body });

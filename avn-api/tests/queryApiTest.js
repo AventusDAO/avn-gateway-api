@@ -236,7 +236,7 @@ describe('Query api calls:', async () => {
   describe('getEraElectionStatus', async () => {
     it('returns the correct data', async () => {
       const returnedData = await api.query.getEraElectionStatus();
-      // We can't be sure how about the values but we can check the structure
+      // We can't be sure about the values but we can check the structure
       assert(['isOpen', 'isClosed'].includes(returnedData), "Election status is not a valid result");
     });
   });

@@ -160,7 +160,7 @@ async function getSummaryData(blockNumber) {
   }
 
   const summaryRange = calculateSummaryRange(blockNumber);
-  let ethTxHash = await retrieveEthTxHashIfExists(summaryRange);
+  let ethTxHash = (parseInt(currentBlock) >= parseInt(summaryRange[1])) await retrieveEthTxHashIfExists(summaryRange);
   return { blockNumber, summaryRange, ethTxHash };
 }
 
@@ -178,14 +178,7 @@ async function retrieveEthTxHashIfExists(summaryRange) {
   let ethTxHash = await redis.getSummaryEthTxHash(summaryRange);
 
   if (!ethTxHash) {
-    console.log('A')
     let blockHash = await api.rpc.chain.getBlockHash(summaryRange[1]);
-    console.log('B', blockHash)
-    if (!blockHash) {
-      console.log('C')
-      return null;
-    }
-    console.log('D')
     let ingressCounter = parseInt(await api.query.summary.totalIngresses.at(blockHash)) + 1;
     let transactionId = (await api.query.summary.roots(summaryRange, ingressCounter)).tx_id.toString();
     if (!transactionId) {

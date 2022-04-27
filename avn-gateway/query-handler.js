@@ -302,7 +302,7 @@ async function getLowerData(call, request) {
     return utils.errorResponse('params', gatewayError, call.params, request, call.id);
   }
 
-  const method = 'lowerData';
+  const method = 'avnLowerData';
   const params = { callId: call.id, blockNumber, transactionIndex };
   return await query(call, request, method, params);
 }

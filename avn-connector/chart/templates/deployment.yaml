@@ -33,6 +33,11 @@ spec:
           env:
             - name: NODE_ENV
               value: {{ .Values.nodeEnv }}
+            - name: ETHERSCAN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: etherscan-credentials
+                  key: etherscan_api_key
             - name: VAULT_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:
@@ -147,6 +152,11 @@ spec:
             - name: MQ_PROTOCOL
               value: amqp
             {{- end }}
+            - name: ETHERSCAN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: etherscan-credentials
+                  key: etherscan_api_key
             - name: VAULT_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:

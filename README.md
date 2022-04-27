@@ -808,7 +808,7 @@ curl https://AVN-API-URL/query \
 ```
 
 #### getCurrentBlock
-Returns the current block number
+Returns the most recent finalized block number
 
 **REQUEST** \
 `POST https://AVN-API-URL/query`
@@ -871,6 +871,47 @@ curl https://AVN-API-URL/query \
   "result": {
     "name": "AvN TestNet",
     "version": "270"
+  }
+}
+```
+
+#### getSummaryData
+Returns the summary range (and ethereum transaction hash if the summary is published) which includes the passed block number.
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization: bearer <awtToken>`
+
+**REQUEST PARAMS** \
+`blockNumber` *[optional]* - a string representing the block number to check (if none is passed the current finalized block is used)
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getSummaryRange", "params":{"blockNumber":"1234"}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`blockNumber` - the passed or current finalized block number
+`range` - 2 element array with start and end block numbers of the summary (if the block falls within a summary range)
+`ethTxHash` - Ethereum transaction hash of the published summary (if the summary root has been checked in by that point)
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "blockNumber": "1234",
+    "summaryRange": ["0", "28800"],
+    "ethTxHash": "0x32c40ef26710a2ed40d2b14ef9a92aab859cb35a92a279d6bc3fbb6fea84089f"
   }
 }
 ```

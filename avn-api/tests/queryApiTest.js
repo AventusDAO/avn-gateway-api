@@ -90,6 +90,52 @@ describe('Query api calls:', async () => {
     });
   });
 
+  describe('getSummaryData', async () => {
+    // TODO: Update these tests when we allow the schedule period to be flexible
+    const SCHEDULE_PERIOD = 28800;
+
+    it('returns the correct data for a block falling within a published summary', async () => {
+      // Only runs if a summary should have been published by now
+      if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD + 1000) {
+        const block = 1;
+        let summaryData = await api.query.getSummaryData(block);
+        assert.equal(summaryData.blockNumber, block.toString());
+        assert.equal(summaryData.summaryRange[0], '0');
+        assert.equal(summaryData.summaryRange[1], SCHEDULE_PERIOD.toString());
+        assert.equal(summaryData.ethTxHash.length, 66);
+      }
+    });
+
+    it('returns the correct data for the current block', async () => {
+      let block = await api.query.getCurrentBlock();
+      let summaryData = await api.query.getSummaryData(block);
+      assert.equal(summaryData.blockNumber, block);
+      const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
+      assert.equal(summaryData.summaryRange[0],  multiplier * SCHEDULE_PERIOD + 1);
+      assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
+      assert.equal(summaryData.ethTxHash, null);
+    });
+
+    it('returns the current block data when no block is passed', async () => {
+      let block = await api.query.getCurrentBlock();
+      let summaryData = await api.query.getSummaryData();
+      assert(parseInt(summaryData.blockNumber) >= parseInt(block));
+      const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
+      assert.equal(summaryData.summaryRange[0],  multiplier * SCHEDULE_PERIOD + 1);
+      assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
+      assert.equal(summaryData.ethTxHash, null);
+    });
+
+    it('returns limited data when a future block is passed', async () => {
+      let block = await api.query.getCurrentBlock();
+      block = parseInt(block) + 100000;
+      let summaryData = await api.query.getSummaryData(block);
+      assert.equal(summaryData.blockNumber, block.toString());
+      assert.equal(summaryData.summaryRange.length, 0);
+      assert.equal(summaryData.ethTxHash, null);
+    });
+  });
+
   describe('getNonce', async () => {
     it('returns the same token nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'token');

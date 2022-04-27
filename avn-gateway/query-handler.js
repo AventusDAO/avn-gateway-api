@@ -70,7 +70,9 @@ async function callSwitch(call, request) {
       return await getChainInfo(call, request);
     case 'getEraElectionStatus':
       return await queryEraElectionStatus(call, request);
-
+    case 'getSummaryData':
+      return await getSummaryData(call, request);
+    
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
   }
@@ -264,13 +266,26 @@ async function getStakingStats(call, request) {
 }
 
 async function getCurrentBlock(call, request) {
-  return await queryChain(call, request, 'system', 'number', [], formatNumAsString);
+  const method = 'avnCurrentBlock';
+  const params = { callId: call.id };
+
+  return await query(call, request, method, params);
 }
 
 async function getChainInfo(call, request) {
   const method = 'avnChainInfo';
   const params = { callId: call.id };
 
+  return await query(call, request, method, params);
+}
+
+async function getSummaryData(call, request) {
+  const { blockNumber } = call.params;
+  if (blockNumber && utils.isValidNumber(blockNumber) === false) {
+    return utils.errorResponse('params', 'invalid block number', blockNumber, request, call.id);
+  }
+  const method = 'avnSummaryData';
+  const params = { callId: call.id, blockNumber };
   return await query(call, request, method, params);
 }
 

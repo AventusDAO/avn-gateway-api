@@ -145,8 +145,7 @@ async function getChainInfo() {
 }
 
 async function getCurrentBlock() {
-  let blockHashAtHead = await api.rpc.chain.getFinalizedHead();
-  return (await api.query.system.number.at(blockHashAtHead)).toString();
+  return (await api.derive.chain.bestNumberFinalized()).toString();
 }
 
 async function getSummaryData(blockNumber) {

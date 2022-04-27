@@ -179,7 +179,10 @@ async function retrieveEthTxHashIfExists(summaryRange) {
 
   if (!ethTxHash) {
     let blockHash = await api.rpc.chain.getBlockHash(summaryRange[1]);
-    let ingressCounter = (await api.query.summary.totalIngresses.at(blockHash)) + 1;
+    if (!blockHash) {
+      return null;
+    }
+    let ingressCounter = parseInt(await api.query.summary.totalIngresses.at(blockHash)) + 1;
     let transactionId = (await api.query.summary.roots(summaryRange, ingressCounter)).tx_id.toString();
     console.log('B', ingressCounter, transactionId)
     if (!transactionId) {

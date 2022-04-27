@@ -91,6 +91,7 @@ describe('Query api calls:', async () => {
   });
 
   describe('getSummaryData', async () => {
+    // TODO: Update these tests when we allow the schedule period to be flexible
     const SCHEDULE_PERIOD = 28800;
 
     it('returns the correct data for a block falling within a published summary', async () => {

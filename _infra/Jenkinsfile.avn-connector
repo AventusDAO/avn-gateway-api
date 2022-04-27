@@ -5,8 +5,8 @@ pipeline {
 
   parameters {
     choice(name: 'environment', choices: ['sandbox', 'cba', 'pentest', 'testnet', 'mainnet'], description: 'Deploy to which environment?')
-    choice(name: 'nodeEnv', choices: ['docker', 'production'], description: 'Represents the NODE_ENV variable in the connector. docker will use internal kubernetes services for Rabbit and Redis etc where as production will use the AWS managed resources.')
-    string(name: 'image_tag', defaultValue: 'pr-370', description: 'Docker tag of the avn-connector', trim: true)
+    choice(name: 'nodeEnv', choices: ['production', 'docker'], description: 'Represents the NODE_ENV variable in the connector. docker will use internal kubernetes services for Rabbit and Redis etc where as production will use the AWS managed resources.')
+    string(name: 'image_tag', defaultValue: 'latest', description: 'Docker tag of the avn-connector', trim: true)
   }
 
   agent any

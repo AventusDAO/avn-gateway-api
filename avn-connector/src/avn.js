@@ -164,6 +164,26 @@ async function getSummaryData(blockNumber) {
   return { blockNumber, summaryRange, ethTxHash };
 }
 
+async function getLowerData(blockNumber, transactionIndex) {
+  let lowerData = {};
+  let summaryData = await getSummaryData(blockNumber);
+
+  if (summaryData.ethTxHash) {
+    try {
+      let range = summaryData.summaryRange;
+      log.trace({ message: 'Getting lower data', range, blockNumber, transactionIndex, summaryData.ethTxHash });
+      let rpcData = await api.rpc.lower.data(range[0], range[1], blockNumber, transactionIndex);
+      const data = JSON.parse(Buffer.from(rpcData, 'hex').toString());
+      lowerData.leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
+      lowerData.merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
+    } catch (err) {
+      log.error(`Error getting lower data: ${err}`);
+      throw err;
+    }
+  }
+  return lowerData;
+}
+
 // TODO: Does not account for changes of schedule period, replace with a function that retrieves summary ranges from a database
 function calculateSummaryRange(blockNumber) {
   const SCHEDULE_PERIOD = 28800;
@@ -251,7 +271,32 @@ async function connectToAvN() {
   let provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({
     provider,
-    typesBundle: avnTypes
+    typesBundle: avnTypes,
+    rpc: {
+      lower: {
+        data: {
+          params: [
+            {
+              name: 'from_block',
+              type: 'u32'
+            },
+            {
+              name: 'to_block',
+              type: 'u32'
+            },
+            {
+              name: 'block_number',
+              type: 'u32'
+            },
+            {
+              name: 'extrinsic_index',
+              type: 'u32'
+            }
+          ],
+          type: 'Text'
+        }
+      }
+    }
   });
 
   const [chain, nodeName, nodeVersion] = await Promise.all([
@@ -282,5 +327,6 @@ module.exports = {
   getStakingStats,
   getChainInfo,
   getCurrentBlock,
-  getSummaryData
+  getSummaryData,
+  getLowerData
 };

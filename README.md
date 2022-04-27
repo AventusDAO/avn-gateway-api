@@ -886,7 +886,7 @@ Returns the summary range (and ethereum transaction hash if the summary is publi
 `Authorization: bearer <awtToken>`
 
 **REQUEST PARAMS** \
-`blockNumber` *[optional]* - a string representing the block number to check (if none is passed the current block is used)
+`blockNumber` *[optional]* - a string representing the block number to check (if none is passed the current finalized block is used)
 
 **EXAMPLE**
 ```
@@ -899,7 +899,7 @@ curl https://AVN-API-URL/query \
 ```
 
 **RESULT FIELDS** \
-`blockNumber` - the passed or current block number
+`blockNumber` - the passed or current finalized block number
 `range` - 2 element array with start and end block numbers of the summary (if the block falls within a summary range)
 `ethTxHash` - Ethereum transaction hash of the published summary (if the summary root has been checked in by that point)
 

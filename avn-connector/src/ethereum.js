@@ -1,7 +1,7 @@
 const axios = require('axios');
 const config = require('multiconfig').load();
-const ETHERSCAN_URL = config.etherscan.etherscanUrl;
-const ETHERSCAN_KEY = config.etherscan.etherscanKey;
+const ETHERSCAN_URL = config.etherscan.etherscan_url;
+const ETHERSCAN_KEY = config.etherscan.etherscan_api_key;
 
 async function transactionExists(txHash) {
   let receipt = await axios.get(

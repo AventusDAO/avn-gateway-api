@@ -994,7 +994,8 @@ curl https://AVN-API-URL/query \
 ```
 
 ### Transactions
-All gateway transactions are processed via a relayer, which requires a pair of signed proofs; one to confirm the validity of the transaction and the other to confirm payment of the relayer fee
+All gateway transactions are processed via a relayer, which requires a pair of signed proofs; one to confirm the validity of the user's transaction and the other to confirm payment of the relayer fee.\
+The user and the payer can be the same account or they can be separate accounts.
 
 #### proxyAvtTransfer
 Transfers the specified amount of AVT from the user account to the destination account

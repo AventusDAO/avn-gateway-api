@@ -166,33 +166,42 @@ async function getSummaryData(blockNumber) {
 }
 
 async function getSummaryInclusionData(blockNumber, transactionIndex) {
-  let inclusionData = {};
   let summaryData = await getSummaryData(blockNumber);
   let { summaryRange, ethTxHash } = summaryData;
 
-  if (ethTxHash !== null) {
-    log.trace({ message: 'Getting lower data', summaryRange, blockNumber, transactionIndex, ethTxHash });
-    let rpcData = await api.rpc.lower.data(
-      parseInt(summaryRange[0]),
-      parseInt(summaryRange[1]),
-      parseInt(blockNumber),
-      parseInt(transactionIndex)
-    );
-    console.log("XXXXXXXXX", rpcData)
-    const data = JSON.parse(Buffer.from(rpcData, 'hex').toString());
-    inclusionData.leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
-    inclusionData.leafHash = keccakAsHex(inclusionData.leaf);
-    inclusionData.merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
-    inclusionData.transactionDetails = decodeExtrinsic(data.encoded_leaf);
+  if (ethTxHash === null) {
+    return { info: 'summary not published yet' };
   }
 
-  return inclusionData;
+  log.trace({ message: 'Getting summary inclusion data', summaryRange, blockNumber, transactionIndex, ethTxHash });
+  let rpcData = await api.rpc.lower.data(
+    parseInt(summaryRange[0]),
+    parseInt(summaryRange[1]),
+    parseInt(blockNumber),
+    parseInt(transactionIndex)
+  );
+
+  rpcData = Buffer.from(rpcData, 'hex').toString();
+
+  if (rpcData === '') {
+    return { info: 'transaction not found' };
+  }
+
+  const data = JSON.parse(rpcData);
+  const leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
+
+  return {
+    leaf,
+    leafHash: keccakAsHex(leaf),
+    merklePath: '[' + data.merkle_path.join(',').replace(/'/g, '') + ']',
+    transactionDetails: decodeExtrinsic(data.encoded_leaf)
+  }
 }
 
 function decodeExtrinsic(call) {
   const decodedCall = api.registry.createType('Extrinsic', call);
   const result = decodedCall.toHuman();
-  return result;
+  return result.method;
 }
 
 // TODO: Does not account for changes of schedule period, replace with a function that retrieves summary ranges from a database

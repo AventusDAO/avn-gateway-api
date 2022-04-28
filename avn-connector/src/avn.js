@@ -166,21 +166,21 @@ async function getSummaryData(blockNumber) {
 
 async function getLowerData(blockNumber, transactionIndex) {
   let lowerData = {};
-  let summaryData = await getSummaryData(blockNumber);
+  // let summaryData = await getSummaryData(blockNumber);
 
-  if (summaryData.ethTxHash) {
-    try {
-      let range = summaryData.summaryRange;
-      log.trace({ message: 'Getting lower data', range, blockNumber, transactionIndex, summaryData.ethTxHash });
-      let rpcData = await api.rpc.lower.data(range[0], range[1], blockNumber, transactionIndex);
-      const data = JSON.parse(Buffer.from(rpcData, 'hex').toString());
-      lowerData.leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
-      lowerData.merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
-    } catch (err) {
-      log.error(`Error getting lower data: ${err}`);
-      throw err;
-    }
-  }
+  // if (summaryData.ethTxHash) {
+  //   try {
+  //     let range = summaryData.summaryRange;
+  //     log.trace({ message: 'Getting lower data', range, blockNumber, transactionIndex, summaryData.ethTxHash });
+  //     let rpcData = await api.rpc.lower.data(range[0], range[1], blockNumber, transactionIndex);
+  //     const data = JSON.parse(Buffer.from(rpcData, 'hex').toString());
+  //     lowerData.leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
+  //     lowerData.merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
+  //   } catch (err) {
+  //     log.error(`Error getting lower data: ${err}`);
+  //     throw err;
+  //   }
+  // }
   return lowerData;
 }
 

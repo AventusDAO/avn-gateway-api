@@ -191,9 +191,11 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
   const leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
 
   return {
-    leaf,
-    leafHash: keccakAsHex(leaf),
-    merklePath: '[' + data.merkle_path.join(',').replace(/'/g, '') + ']',
+    inclusionProof: {
+      leaf,
+      leafHash: keccakAsHex(leaf),
+      merklePath: '[' + data.merkle_path.join(',').replace(/'/g, '') + ']'
+    },
     transactionDetails: decodeExtrinsic(data.encoded_leaf)
   }
 }

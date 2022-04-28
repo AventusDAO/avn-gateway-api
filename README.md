@@ -917,10 +917,10 @@ curl https://AVN-API-URL/query \
 ```
 
 #### getSummaryInclusionData
-Returns the proof of a transaction's inclusion in a summary for which the root has been published on Ethereum tier1.\
+Returns information about a transaction and proof of its inclusion in a summary for which the root has been published on Ethereum tier1.\
 The proof can be used to confirm any AvN tier2 transaction on tier1.\
 The proof can also be used, in the case of a lower transaction, to complete the lowering process on tier1.\
-The 2 required arguments are returned from [polling](#requestState) the state of a transaction.
+The 2 arguments required by the function are returned from [polling](#requestState) the state of a transaction.
 
 **REQUEST** \
 `POST https://AVN-API-URL/query`
@@ -931,7 +931,7 @@ The 2 required arguments are returned from [polling](#requestState) the state of
 
 **REQUEST PARAMS** \
 `blockNumber` *[required]* - a string representing the block number containing the transaction
-`transactionIndex` *[required]* - a string representing the index of the transaction within the block
+`transactionIndex` *[required]* - a string representing the index of the transaction within its block
 
 **EXAMPLE**
 ```

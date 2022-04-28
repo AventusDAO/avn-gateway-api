@@ -166,7 +166,8 @@ async function getSummaryData(blockNumber) {
 
 async function getLowerData(blockNumber, transactionIndex) {
   let lowerData = {};
-  // let summaryData = await getSummaryData(blockNumber);
+  let summaryData = await getSummaryData(blockNumber);
+  console.log("SUMMARY ----------------------------", summaryData)
 
   // if (summaryData.ethTxHash) {
   //   try {

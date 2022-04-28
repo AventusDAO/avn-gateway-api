@@ -160,7 +160,7 @@ async function getSummaryData(blockNumber) {
   }
 
   const summaryRange = calculateSummaryRange(blockNumber);
-  let ethTxHash = (parseInt(currentBlock) >= parseInt(summaryRange[1])) ? await retrieveEthTxHashIfExists(summaryRange) : null;
+  let ethTxHash = parseInt(currentBlock) >= parseInt(summaryRange[1]) ? await retrieveEthTxHashIfExists(summaryRange) : null;
   return { blockNumber, summaryRange, ethTxHash };
 }
 
@@ -170,24 +170,23 @@ async function getLowerData(blockNumber, transactionIndex) {
   let { summaryRange, ethTxHash } = summaryData;
 
   if (ethTxHash) {
-    console.log('A')
     try {
       log.trace({ message: 'Getting lower data', summaryRange, blockNumber, transactionIndex, ethTxHash });
-      console.log('B', parseInt(summaryRange[0]), parseInt(summaryRange[1]), parseInt(blockNumber), parseInt(transactionIndex))
-      let rpcData = await api.rpc.lower.data(parseInt(summaryRange[0]), parseInt(summaryRange[1]), parseInt(blockNumber), parseInt(transactionIndex));
-      console.log('C', rpcData)
+      let rpcData = await api.rpc.lower.data(
+        parseInt(summaryRange[0]),
+        parseInt(summaryRange[1]),
+        parseInt(blockNumber),
+        parseInt(transactionIndex)
+      );
       const data = JSON.parse(Buffer.from(rpcData, 'hex').toString());
-      console.log('D', data)
       lowerData.leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
-      console.log('E', lowerData)
       lowerData.merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
-      console.log('F', lowerData)
     } catch (err) {
       log.error(`Error getting lower data: ${err}`);
-      return { error: err };
+      throw err;
     }
   }
-  console.log('G', lowerData)
+
   return lowerData;
 }
 

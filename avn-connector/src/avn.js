@@ -167,14 +167,14 @@ async function getSummaryData(blockNumber) {
 async function getLowerData(blockNumber, transactionIndex) {
   let lowerData = {};
   let summaryData = await getSummaryData(blockNumber);
+  let { summaryRange, ethTxHash } = summaryData;
 
-  if (summaryData.ethTxHash) {
+  if (ethTxHash) {
     console.log('A')
     try {
-      let range = summaryData.summaryRange;
-      log.trace({ message: 'Getting lower data', range, blockNumber, transactionIndex, summaryData.ethTxHash });
-      console.log('B', range, blockNumber, transactionIndex, summaryData.ethTxHash)
-      let rpcData = await api.rpc.lower.data(range[0], range[1], blockNumber, transactionIndex);
+      log.trace({ message: 'Getting lower data', summaryRange, blockNumber, transactionIndex, ethTxHash });
+      console.log('B', parseInt(summaryRange[0]), parseInt(summaryRange[1]), parseInt(blockNumber), parseInt(transactionIndex))
+      let rpcData = await api.rpc.lower.data(parseInt(summaryRange[0]), parseInt(summaryRange[1]), parseInt(blockNumber), parseInt(transactionIndex));
       console.log('C', rpcData)
       const data = JSON.parse(Buffer.from(rpcData, 'hex').toString());
       console.log('D', data)

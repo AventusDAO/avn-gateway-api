@@ -946,7 +946,7 @@ curl https://AVN-API-URL/query \
 **RESULT FIELDS** \
 `inclusionProof:`
 - `leaf` - the raw leaf (in combination with the merklePath) can be used to trigger a **lower** transaction operation on the Ethereum AVN contract
-- `leafHash` - the leafHash (in combination with the merklePath) can be used to prove the transaction is included in a published root via the **confirmAvnTransaction** view method on the tier1 Ethereum AVN contract
+- `leafHash` - the leafHash (in combination with the merklePath) can be used to prove the transaction is included in a published root via the **confirmAvnTransaction** view method on the Ethereum AVN contract
 - `merklePath` - the path in the format required by the Ethereum contract
 
 `transactionDetails` - JSON blob containing the method/s and arguments of the original AvN transaction

@@ -168,8 +168,8 @@ async function getLowerData(blockNumber, transactionIndex) {
   let lowerData = {};
   let summaryData = await getSummaryData(blockNumber);
   let { summaryRange, ethTxHash } = summaryData;
-
-  if (ethTxHash) {
+console.log('XXXXX', summaryRange, ethTxHash)
+  if (ethTxHash !== null) {
     try {
       log.trace({ message: 'Getting lower data', summaryRange, blockNumber, transactionIndex, ethTxHash });
       let rpcData = await api.rpc.lower.data(

@@ -72,8 +72,8 @@ async function callSwitch(call, request) {
       return await queryEraElectionStatus(call, request);
     case 'getSummaryData':
       return await getSummaryData(call, request);
-    case 'getLowerData':
-      return await getLowerData(call, request);
+    case 'getSummaryInclusionData':
+      return await getSummaryInclusionData(call, request);
 
     default:
       return utils.errorResponse('method', 'method not found', call.method, request, call.id);
@@ -291,7 +291,7 @@ async function getSummaryData(call, request) {
   return await query(call, request, method, params);
 }
 
-async function getLowerData(call, request) {
+async function getSummaryInclusionData(call, request) {
   const { blockNumber, transactionIndex } = call.params;
 
   try {
@@ -302,7 +302,7 @@ async function getLowerData(call, request) {
     return utils.errorResponse('params', gatewayError, call.params, request, call.id);
   }
 
-  const method = 'avnLowerData';
+  const method = 'avnSummaryInclusionData';
   const params = { callId: call.id, blockNumber, transactionIndex };
   return await query(call, request, method, params);
 }

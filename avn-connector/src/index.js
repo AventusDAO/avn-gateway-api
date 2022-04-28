@@ -140,10 +140,10 @@ app.post('/avnSummaryData', async (req, res, next) => {
   }
 });
 
-app.post('/avnLowerData', async (req, res, next) => {
+app.post('/avnSummaryInclusionData', async (req, res, next) => {
   try {
-    log.trace({ avnLowerDataRequest: req.body });
-    const result = await avn.getLowerData(req.body.blockNumber, req.body.transactionIndex);
+    log.trace({ avnSummaryInclusionDataRequest: req.body });
+    const result = await avn.getSummaryInclusionData(req.body.blockNumber, req.body.transactionIndex);
     res.send(result);
   } catch (err) {
     next(err);

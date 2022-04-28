@@ -1,6 +1,7 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
 const { isHex } = require('@polkadot/util');
+const { keccakAsHex } = require('@polkadot/util-crypto');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
@@ -164,30 +165,34 @@ async function getSummaryData(blockNumber) {
   return { blockNumber, summaryRange, ethTxHash };
 }
 
-async function getLowerData(blockNumber, transactionIndex) {
-  let lowerData = {};
+async function getSummaryInclusionData(blockNumber, transactionIndex) {
+  let inclusionData = {};
   let summaryData = await getSummaryData(blockNumber);
   let { summaryRange, ethTxHash } = summaryData;
-console.log('XXXXX', summaryRange, ethTxHash)
+
   if (ethTxHash !== null) {
-    try {
-      log.trace({ message: 'Getting lower data', summaryRange, blockNumber, transactionIndex, ethTxHash });
-      let rpcData = await api.rpc.lower.data(
-        parseInt(summaryRange[0]),
-        parseInt(summaryRange[1]),
-        parseInt(blockNumber),
-        parseInt(transactionIndex)
-      );
-      const data = JSON.parse(Buffer.from(rpcData, 'hex').toString());
-      lowerData.leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
-      lowerData.merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
-    } catch (err) {
-      log.error(`Error getting lower data: ${err}`);
-      throw err;
-    }
+    log.trace({ message: 'Getting lower data', summaryRange, blockNumber, transactionIndex, ethTxHash });
+    let rpcData = await api.rpc.lower.data(
+      parseInt(summaryRange[0]),
+      parseInt(summaryRange[1]),
+      parseInt(blockNumber),
+      parseInt(transactionIndex)
+    );
+    console.log("XXXXXXXXX", rpcData)
+    const data = JSON.parse(Buffer.from(rpcData, 'hex').toString());
+    inclusionData.leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
+    inclusionData.leafHash = keccakAsHex(inclusionData.leaf);
+    inclusionData.merklePath = '[' + data.merkle_path.join(',').replace(/'/g, '') + ']';
+    inclusionData.transactionDetails = decodeExtrinsic(data.encoded_leaf);
   }
 
-  return lowerData;
+  return inclusionData;
+}
+
+function decodeExtrinsic(call) {
+  const decodedCall = api.registry.createType('Extrinsic', call);
+  const result = decodedCall.toHuman();
+  return result;
 }
 
 // TODO: Does not account for changes of schedule period, replace with a function that retrieves summary ranges from a database
@@ -334,5 +339,5 @@ module.exports = {
   getChainInfo,
   getCurrentBlock,
   getSummaryData,
-  getLowerData
+  getSummaryInclusionData
 };

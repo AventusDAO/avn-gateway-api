@@ -24,7 +24,7 @@ function Query(api) {
   this.getRelayerFees = generateFunction(getRelayerFees, api);
   this.getCurrentBlock = generateFunction(getCurrentBlock, api);
   this.getSummaryData = generateFunction(getSummaryData, api);
-  this.getLowerData = generateFunction(getLowerData, api);
+  this.getSummaryInclusionData = generateFunction(getSummaryInclusionData, api);
   this.contracts = {};
   this.nftsMap = {};
 }
@@ -193,11 +193,11 @@ function getSummaryData(api) {
   };
 }
 
-function getLowerData(api) {
+function getSummaryInclusionData(api) {
   return async function (blockNumber, transactionIndex) {
     common.validateNumber(blockNumber);
     common.validateNumber(transactionIndex);
-    return await this.postRequest(api, 'getLowerData', { blockNumber, transactionIndex });
+    return await this.postRequest(api, 'getSummaryInclusionData', { blockNumber, transactionIndex });
   };
 }
 

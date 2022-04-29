@@ -53,6 +53,7 @@ describe('Query api calls:', async () => {
     api = await helper.avnApi();
     relayer = accounts.relayer;
     user = accounts.user;
+    recipient = accounts.otherUser;
   });
 
   describe('get contract addresses', async () => {
@@ -133,6 +134,33 @@ describe('Query api calls:', async () => {
       assert.equal(summaryData.blockNumber, block.toString());
       assert.equal(summaryData.summaryRange.length, 0);
       assert.equal(summaryData.ethTxHash, null);
+    });
+  });
+
+  describe('getSummaryInclusionData', async () => {
+    it('gets correct data for a known lower', async () => {
+      const blockNumber = '6042';
+      const transactionIndex = '1';
+      let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
+      assert.equal(inclusionData.inclusionProof.leafHash.length, 66);
+      assert.equal(inclusionData.inclusionProof.leaf.length, 946);
+      assert.equal(inclusionData.inclusionProof.merklePath.length, 1073);
+      assert.equal(inclusionData.transactionDetails.args[0].method, 'signedLower');
+    });
+
+    it('returns info for a transaction that does not exist', async () => {
+      const blockNumber = '1000';
+      const transactionIndex = '10';
+      let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
+      assert.equal(inclusionData.info, 'transaction not found');
+    });
+
+    it('returns info for an as yet unpublished transaction', async () => {
+      const amount = new BN(1);
+      const requestId = await api.send.transferAvt(relayer.address, recipient.address, amount);
+      let response = await helper.confirmStatus(api, requestId, 'Processed');
+      let inclusionData = await api.query.getSummaryInclusionData(response.blockNumber, response.transactionIndex);
+      assert.equal(inclusionData.info, 'summary not published yet');
     });
   });
 

@@ -1,6 +1,7 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
 const { isHex } = require('@polkadot/util');
+const { keccakAsHex } = require('@polkadot/util-crypto');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
@@ -160,8 +161,49 @@ async function getSummaryData(blockNumber) {
   }
 
   const summaryRange = calculateSummaryRange(blockNumber);
-  let ethTxHash = (parseInt(currentBlock) >= parseInt(summaryRange[1])) ? await retrieveEthTxHashIfExists(summaryRange) : null;
+  let ethTxHash = parseInt(currentBlock) >= parseInt(summaryRange[1]) ? await retrieveEthTxHashIfExists(summaryRange) : null;
   return { blockNumber, summaryRange, ethTxHash };
+}
+
+async function getSummaryInclusionData(blockNumber, transactionIndex) {
+  let summaryData = await getSummaryData(blockNumber);
+  let { summaryRange, ethTxHash } = summaryData;
+
+  if (ethTxHash === null) {
+    return { info: 'summary not published yet' };
+  }
+
+  log.trace({ message: 'Getting summary inclusion data', summaryRange, blockNumber, transactionIndex, ethTxHash });
+  let rpcData = await api.rpc.lower.data(
+    parseInt(summaryRange[0]),
+    parseInt(summaryRange[1]),
+    parseInt(blockNumber),
+    parseInt(transactionIndex)
+  );
+
+  rpcData = Buffer.from(rpcData, 'hex').toString();
+
+  if (rpcData === '') {
+    return { info: 'transaction not found' };
+  }
+
+  const data = JSON.parse(rpcData);
+  const leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
+
+  return {
+    inclusionProof: {
+      leaf,
+      leafHash: keccakAsHex(leaf),
+      merklePath: '[' + data.merkle_path.join(',').replace(/'/g, '') + ']'
+    },
+    transactionDetails: decodeExtrinsic(data.encoded_leaf)
+  }
+}
+
+function decodeExtrinsic(call) {
+  const decodedCall = api.registry.createType('Extrinsic', call);
+  const result = decodedCall.toHuman();
+  return result.method;
 }
 
 // TODO: Does not account for changes of schedule period, replace with a function that retrieves summary ranges from a database
@@ -251,7 +293,32 @@ async function connectToAvN() {
   let provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({
     provider,
-    typesBundle: avnTypes
+    typesBundle: avnTypes,
+    rpc: {
+      lower: {
+        data: {
+          params: [
+            {
+              name: 'from_block',
+              type: 'u32'
+            },
+            {
+              name: 'to_block',
+              type: 'u32'
+            },
+            {
+              name: 'block_number',
+              type: 'u32'
+            },
+            {
+              name: 'extrinsic_index',
+              type: 'u32'
+            }
+          ],
+          type: 'Text'
+        }
+      }
+    }
   });
 
   const [chain, nodeName, nodeVersion] = await Promise.all([
@@ -282,5 +349,6 @@ module.exports = {
   getStakingStats,
   getChainInfo,
   getCurrentBlock,
-  getSummaryData
+  getSummaryData,
+  getSummaryInclusionData
 };

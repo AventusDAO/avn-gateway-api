@@ -39,20 +39,20 @@ function bnEquals(a, b) {
   return assert.equal(new BN(a).toString(), new BN(b).toString());
 }
 
-async function confirmStatus(api, requestId, expectedStatus, logResponse) {
+async function confirmStatus(api, requestId, expectedStatus) {
   if (!requestId) throw new Error('RequestId cannot be null');
+  let response, status;
 
-  let status;
   for (i = 0; i < 10; i++) {
     await sleep(3000);
-    let response = await api.poll.requestState(requestId);
+    response = await api.poll.requestState(requestId);
     status = response.status;
     if (status !== 'Pending' && status !== 'Transaction not found') {
-      if (logResponse) console.log(response);
       assert.equal(status, expectedStatus);
-      return;
+      return response;
     }
   }
+  
   assert.equal(status, expectedStatus);
 }
 

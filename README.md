@@ -916,8 +916,86 @@ curl https://AVN-API-URL/query \
 }
 ```
 
+#### getSummaryInclusionData
+Returns information about a transaction and proof of its inclusion in a summary for which the root has been published on Ethereum tier1.\
+The proof can be used to confirm any AvN tier2 transaction on tier1.\
+The proof can also be used, in the case of a lower transaction, to complete the lowering process on tier1.\
+The 2 arguments required by the function are returned from [polling](#requestState) the state of a transaction.
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization: bearer <awtToken>`
+
+**REQUEST PARAMS** \
+`blockNumber` *[required]* - a string representing the block number containing the transaction
+`transactionIndex` *[required]* - a string representing the index of the transaction within its block
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getSummaryInclusionData", "params":{"blockNumber":"6042", "transactionIndex":"1"}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`inclusionProof:`
+- `leaf` - the raw leaf (in combination with the merklePath) can be used to trigger a **lower** transaction operation on the Ethereum AVN contract
+- `leafHash` - the leafHash (in combination with the merklePath) can be used to prove the transaction is included in a published root via the **confirmAvnTransaction** view method on the Ethereum AVN contract
+- `merklePath` - the path in the format required by the Ethereum contract
+
+`transactionDetails` - JSON blob containing the method/s and arguments of the original AvN transaction
+
+**BODY**
+```
+{
+  "inclusionProof": {
+    "leaf": "0x590784009c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004019a0fab268b26a5d77201ed704263dd7a14015d4ba4e712eab629d4712cfeaa4894545d39f4910f0947ebe6617c11764abd572b3364e257ea46e51dff12c8af81660100002d00270330ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b00401507fff4bc2f9f15e0281ed2a507bd7e86171800aaa58a82b8f7377b2b24dd12fbd33d7f69eb3e07e02b95ca303617334a0e7409e2f81751da5b89619ae32e58e30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e405df1b38510c455ef81500a3dc7e9ae599e18f617000000000000000000000000000000de7e1091cde63c05aa4d82c62e4c54edbc701b220130ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b00400806d8176de18000000000000000000016865221a7b2234cbe5fffc25c4423bcb60497e291ddf940f295c07a2217aa03a411c1d1d9e52cd7a79b3f95203eff6304fe45658a54e82d5b9ed7eaebfb56986",
+    "leafHash": "0xe3479fd158fddcf61715bcaf892cfe64ca0b09370cbba817944e13402adbc285",
+    "merklePath": "[0x4fc3651d601f947edf0f77d85c728726a4f7865ca5d41cb58c171cb918770c24,0x9794215960d349ee3a90ca3d55183dcf46f32c79a95764097e6c3a776ed5e614,0x4bf740636dd543b4ce9e124c724b49a2f5fca8ff67ba795630c6724dd0d87a62,0xf7f7ba083defa6697a117f3cc1f3ab713329fd8054f0decffb3b33d4b5f24b54,0x31a652bd6015b63d779f8afd375e9681c9189ec2a12e4ffda56a1e07e258fdad,0x13a155b5b822668921f415a8ddd861b8833c9de74e84fe6b52f3ab495d34bef6,0x3a5f81321f1798d96545ded22bec16940d49b293124d88abf3aaf507856e1e9a,0xce5503d5f43a3de45f5c10beafc4e70906a1bb67ead41f6bd48875459193e121,0x40acb9081bf0b1988fa54ab3d1ef2e8ef4400a51cab8657a9cfcbc111967a671,0x50092cca094736c95fa812183c0bd5f1d1d3df38d266416e5670ef2be26581ab,0x5ff75b66fbcde510aa88f80fae41ce6175bb2a149eff17e767ffd06e2ee6ed05,0x38bd0db26065aa241ab920ab427bb1580dfbb05838c52d81fa92cdec9ecc8a9a,0x353fcbb419b9cce1c3a025ad7c8e57ce993c729a6626e29d3df344ca55a02177,0x5da597c90971d36417f7f7d49f48f6850346c7df300dd5a82fc1f55efe40c3fc,0x0c808a1db253e9f140a02762bd7ebb6d5490ebcb41af0db144338ccd2700bdb9,0x5ad4b6d0de546f84d8d191484cbb47fd156cef315839678a1eefdf3800d1c821]"
+  },
+  "transactionDetails": {
+    "args": [
+      {
+        "args": [
+          {
+            "signer": "5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr",
+            "relayer": "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh",
+            "signature": {
+              "Sr25519": "0x507fff4bc2f9f15e0281ed2a507bd7e86171800aaa58a82b8f7377b2b24dd12fbd33d7f69eb3e07e02b95ca303617334a0e7409e2f81751da5b89619ae32e58e"
+            }
+          },
+          "5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr",
+          "0x405df1b38510c455ef81500a3dc7e9ae599e18f6",
+          "23",
+          "0xde7e1091cde63c05aa4d82c62e4c54edbc701b22"
+        ],
+        "method": "signedLower",
+        "section": "tokenManager"
+      },
+      {
+        "payer": "5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr",
+        "recipient": "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh",
+        "amount": "7.0000 mAVT",
+        "signature": {
+          "Sr25519": "0x6865221a7b2234cbe5fffc25c4423bcb60497e291ddf940f295c07a2217aa03a411c1d1d9e52cd7a79b3f95203eff6304fe45658a54e82d5b9ed7eaebfb56986"
+        }
+      }
+    ],
+    "method": "proxy",
+    "section": "avnProxy"
+  }
+}
+```
+
 ### Transactions
-All gateway transactions are processed via a relayer, which requires a pair of signed proofs; one to confirm the validity of the transaction and the other to confirm payment of the relayer fee
+All gateway transactions are processed via a relayer, which requires a pair of signed proofs; one to confirm the validity of the user's transaction and the other to confirm payment of the relayer fee.\
+The user and the payer can be the same account or they can be separate accounts.
 
 #### proxyAvtTransfer
 Transfers the specified amount of AVT from the user account to the destination account

@@ -142,6 +142,7 @@ describe('Query api calls:', async () => {
       const blockNumber = '6042';
       const transactionIndex = '1';
       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
+      assert.equal(inclusionData.status, 'Published');
       assert.equal(inclusionData.inclusionProof.leafHash.length, 66);
       assert.equal(inclusionData.inclusionProof.leaf.length, 946);
       assert.equal(inclusionData.inclusionProof.merklePath.length, 1073);
@@ -152,7 +153,7 @@ describe('Query api calls:', async () => {
       const blockNumber = '1000';
       const transactionIndex = '10';
       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
-      assert.equal(inclusionData.info, 'transaction not found');
+      assert.equal(inclusionData.status, 'Transaction not found');
     });
 
     it('returns info for an as yet unpublished transaction', async () => {
@@ -160,7 +161,7 @@ describe('Query api calls:', async () => {
       const requestId = await api.send.transferAvt(relayer.address, recipient.address, amount);
       let response = await helper.confirmStatus(api, requestId, 'Processed');
       let inclusionData = await api.query.getSummaryInclusionData(response.blockNumber, response.transactionIndex);
-      assert.equal(inclusionData.info, 'summary not published yet');
+      assert.equal(inclusionData.status, 'Not yet published');
     });
   });
 

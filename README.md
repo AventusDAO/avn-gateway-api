@@ -944,6 +944,12 @@ curl https://AVN-API-URL/query \
 ```
 
 **RESULT FIELDS** \
+`status` - string detailing the current status of the transaction:
+```
+  'Published'
+  'Not yet published'
+  'Transaction not found'
+```
 `inclusionProof:`
 - `leaf` - the raw leaf (in combination with the merklePath) can be used to trigger a **lower** transaction operation on the Ethereum AVN contract
 - `leafHash` - the leafHash (in combination with the merklePath) can be used to prove the transaction is included in a published root via the **confirmAvnTransaction** view method on the Ethereum AVN contract
@@ -954,6 +960,7 @@ curl https://AVN-API-URL/query \
 **BODY**
 ```
 {
+  "status": "Published",
   "inclusionProof": {
     "leaf": "0x590784009c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004019a0fab268b26a5d77201ed704263dd7a14015d4ba4e712eab629d4712cfeaa4894545d39f4910f0947ebe6617c11764abd572b3364e257ea46e51dff12c8af81660100002d00270330ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b00401507fff4bc2f9f15e0281ed2a507bd7e86171800aaa58a82b8f7377b2b24dd12fbd33d7f69eb3e07e02b95ca303617334a0e7409e2f81751da5b89619ae32e58e30ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e405df1b38510c455ef81500a3dc7e9ae599e18f617000000000000000000000000000000de7e1091cde63c05aa4d82c62e4c54edbc701b220130ccad92fa31a27621c5fdf872c0244d92b0211662c5bce869d93edf79120f2e9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b00400806d8176de18000000000000000000016865221a7b2234cbe5fffc25c4423bcb60497e291ddf940f295c07a2217aa03a411c1d1d9e52cd7a79b3f95203eff6304fe45658a54e82d5b9ed7eaebfb56986",
     "leafHash": "0xe3479fd158fddcf61715bcaf892cfe64ca0b09370cbba817944e13402adbc285",

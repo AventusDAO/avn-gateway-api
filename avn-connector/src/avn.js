@@ -170,7 +170,7 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
   let { summaryRange, ethTxHash } = summaryData;
 
   if (ethTxHash === null) {
-    return { info: 'summary not published yet' };
+    return { status: 'Not yet published' };
   }
 
   log.trace({ message: 'Getting summary inclusion data', summaryRange, blockNumber, transactionIndex, ethTxHash });
@@ -184,13 +184,14 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
   rpcData = Buffer.from(rpcData, 'hex').toString();
 
   if (rpcData === '') {
-    return { info: 'transaction not found' };
+    return { status: 'Transaction not found' };
   }
 
   const data = JSON.parse(rpcData);
   const leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
 
   return {
+    status: 'Published'
     inclusionProof: {
       leaf,
       leafHash: keccakAsHex(leaf),

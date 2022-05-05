@@ -14,17 +14,12 @@ async function transactionExists(ethTxHash) {
 }
 
 async function getLiftEvents(avnContract, fromBlock) {
-  console.log('AAAAAAAAAAAAAAAAAAA', fromBlock)
   fromBlock = (!fromBlock) ? await getBlocknumber(MAX_LIFT_AGE, 0) : fromBlock;
-  console.log('BBBBBBBBBBBBBBBB', fromBlock)
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
-  console.log('CCCCCCCCCCC', toBlock)
 
   let response = await axios.get(
     `${ETHERSCAN_URL}module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}&apikey=${ETHERSCAN_KEY}`
   );
-
-  console.log("XXXXXXXXXXXXXXX", response.data.result)
 
   const txList = response.data.result;
   return { liftEvents: txList.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]), toBlock: toBlock + 1 };
@@ -36,7 +31,6 @@ async function getBlocknumber(timeOffset, blockOffset) {
   let response = await axios.get(
     `${ETHERSCAN_URL}module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${ETHERSCAN_KEY}`
   );
-  console.log(response)
   return parseInt(response.data.result) - blockOffset;
 }
 

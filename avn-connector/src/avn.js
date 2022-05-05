@@ -246,17 +246,19 @@ async function processLifts() {
   let avnContract = JSON.parse(await getChainInfo()).avnContract;
   let fromBlock = await redis.getLiftsFromBlock();
   let { liftEvents, toBlock } = await ethereum.getLiftEvents(avnContract, fromBlock);
-  console.log("ZZZZZZZZZ", liftEvents)
-  console.log("YYYYYYYYYYY", toBlock)
-  return []
-  // let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
-  // for (let [i, isProcessed] of liftStatuses.entries()) {
-  //   if (isProcessed === false) {
-  //     unprocessedLifts.push(liftEvents[i][1]);
-  //   }
-  // }
-  // await redis.setLiftsFromBlock(toBlock);
-  // return unprocessedLifts;
+  await redis.setLiftsFromBlock(toBlock);
+  console.log("XXXXXXXXXXXXXXX LIFT EVENTS:", liftEvents.join(' '), toBlock)
+  if (liftEvents.length !== 0) {
+    let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
+    console.log("ZZZZZZZZZ LIFT STATUSES:", liftStatuses)
+    for (let [i, isProcessed] of liftStatuses.entries()) {
+      if (isProcessed === false) {
+        unprocessedLifts.push(liftEvents[i][1]);
+      }
+    }
+  }
+
+  return unprocessedLifts;
 }
 
 async function signAndSend(requestId, relayerAddress, txn) {

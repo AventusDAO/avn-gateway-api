@@ -242,13 +242,12 @@ async function retrieveEthTxHashIfExists(summaryRange) {
 }
 
 async function processLifts() {
-  return ['a', 'b', 'c']
-  // let unprocessedLifts = [];
-  // let avnContract = JSON.parse(await getChainInfo()).avnContract;
-  // let fromBlock = await redis.getLiftsFromBlock();
-  // let { liftEvents, toBlock, url } = await ethereum.getLiftEvents(avnContract, fromBlock);
-  // console.log('XXXXXXXXXXXXXXXXXXXXXX', url);
-  // return liftEvents
+  let unprocessedLifts = [];
+  let avnContract = JSON.parse(await getChainInfo()).avnContract;
+  let fromBlock = await redis.getLiftsFromBlock();
+  let { liftEvents, toBlock, url } = await ethereum.getLiftEvents(avnContract, fromBlock);
+  console.log('XXXXXXXXXXXXXXXXXXXXXX', url);
+  return liftEvents
   // let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
   // for (let [i, isProcessed] of liftStatuses.entries()) {
   //   if (isProcessed === false) {

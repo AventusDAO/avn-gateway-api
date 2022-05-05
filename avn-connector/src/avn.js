@@ -14,6 +14,7 @@ const stakingHelper = require('./stakingHelper');
 const AVN_URL = config.avnUrl;
 const SCHEDULE_PERIOD = 28800;
 const MAX_SUMMARY_INCLUSION_AGE = SCHEDULE_PERIOD * 3;
+const RELAYER_ADDRESS = config.relayer.address;
 
 let api, vault;
 let relayers = {};
@@ -247,7 +248,7 @@ async function retrieveEthTxHashIfExists(summaryRange) {
   return ethTxHash;
 }
 
-async function processLifts() {
+async function getUnprocessedLifts() {
   let unprocessedLifts = [];
   let avnContract = JSON.parse(await getChainInfo()).avnContract;
   let liftEvents = await ethereum.getLiftEvents(avnContract);
@@ -262,6 +263,16 @@ async function processLifts() {
   }
 
   return unprocessedLifts;
+}
+
+async function processLifts(unconfirmedLifts) {
+  const liftEventType = 1;
+  const calls = unconfirmedLifts.map(txHash => api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash));
+  const txn = api.tx.utility.batch(calls);
+  let relayerAccount = await getRelayerAccount(RELAYER_ADDRESS);
+  let nonce = await getNonce(relayerAccount.address);
+  let signedTx = await txn.signAsync(relayerAccount, { nonce });
+  await signedTx.send();
 }
 
 async function signAndSend(requestId, relayerAddress, txn) {
@@ -376,5 +387,6 @@ module.exports = {
   getCurrentBlock,
   getSummaryData,
   getSummaryInclusionData,
+  getUnprocessedLifts,
   processLifts
 };

@@ -46,8 +46,14 @@ module "lambda_functions" {
       memory_size = 256
     }
     lift-processing-handler = {
+      env_vars = {
+        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
+        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
+        MQ_AVN_TX_QUEUE         = "avnTx"
+        SECRET_MANAGER_REGION   = var.region
+      }
       timeout     = 6
-      memory_size = 128
+      memory_size = 256
     }
     tx-status-update-handler = {
       env_vars = {

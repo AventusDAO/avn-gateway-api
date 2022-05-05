@@ -150,10 +150,10 @@ app.post('/avnSummaryInclusionData', async (req, res, next) => {
   }
 });
 
-app.get('/processLifts', async (req, res, next) => {
+app.get('/unprocessedLifts', async (req, res, next) => {
   try {
-    log.trace('processLifts invoked');
-    const result = await avn.processLifts();
+    log.trace('unprocessedLifts invoked');
+    const result = await avn.getUnprocessedLifts();
     res.send(result);
   } catch (err) {
     next(err);

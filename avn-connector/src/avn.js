@@ -265,9 +265,9 @@ async function getUnprocessedLifts() {
   return unprocessedLifts;
 }
 
-async function processLifts(unconfirmedLifts) {
+async function processLifts(unprocessedLifts) {
   const liftEventType = 1;
-  const calls = unconfirmedLifts.map(txHash => api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash));
+  const calls = unprocessedLifts.map(txHash => api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash));
   const txn = api.tx.utility.batch(calls);
   let relayerAccount = await getRelayerAccount(RELAYER_ADDRESS);
   let nonce = await getNonce(relayerAccount.address);

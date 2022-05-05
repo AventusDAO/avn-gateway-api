@@ -180,8 +180,8 @@ async function sendAvnTx(request) {
       break;
     case 'avnProcessLifts':
       logger.trace({ processingLifts: request });
-      const { unconfirmedLifts } = request;
-      result = await avn.processLifts(unconfirmedLifts);
+      const { unprocessedLifts } = request;
+      result = await avn.processLifts(unprocessedLifts);
       logger.info({ result: result });
       break;
     default:

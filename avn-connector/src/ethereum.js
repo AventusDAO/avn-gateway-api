@@ -16,13 +16,14 @@ async function transactionExists(ethTxHash) {
 async function getLiftEvents(avnContract, fromBlock) {
   fromBlock = (!fromBlock) ? await getBlocknumber(MAX_LIFT_AGE, 0) : fromBlock;
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
+  return {liftEvents: [], toBlock: toBlock + 1,  url:`${ETHERSCAN_URL}module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}&apikey=${ETHERSCAN_KEY}` }
 
-  let response = await axios.get(
-    `${ETHERSCAN_URL}module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}&apikey=${ETHERSCAN_KEY}`
-  );
-
-  const txList = response.data.result;
-  return { liftEvents: txList.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]), toBlock: toBlock + 1 };
+  // let response = await axios.get(
+  //   `${ETHERSCAN_URL}module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}&apikey=${ETHERSCAN_KEY}`
+  // );
+  //
+  // const txList = response.data.result;
+  // return { liftEvents: txList.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]), toBlock: toBlock + 1 };
 }
 
 async function getBlocknumber(timeOffset, blockOffset) {

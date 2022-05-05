@@ -245,7 +245,7 @@ async function processLifts() {
   let unprocessedLifts = [];
   let avnContract = JSON.parse(await getChainInfo()).avnContract;
   let fromBlock = await redis.getLiftsFromBlock();
-  let { liftEvents, toBlock } = await ethereum.getLifts(avnContract, fromBlock);
+  let { liftEvents, toBlock } = await ethereum.getLiftEvents(avnContract, fromBlock);
   return { liftEvents, toBlock }
   // let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
   // for (let [i, isProcessed] of liftStatuses.entries()) {

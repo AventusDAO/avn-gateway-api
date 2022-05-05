@@ -138,7 +138,7 @@ async function getChainInfo() {
     chainInfo = {};
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
-    chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress().toString();
+    chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
 
     await redis.setChainInfo(JSON.stringify(chainInfo));
   }
@@ -245,9 +245,9 @@ async function processLifts() {
   let unprocessedLifts = [];
   let avnContract = JSON.parse(await getChainInfo()).avnContract;
   let fromBlock = await redis.getLiftsFromBlock();
-  let { liftEvents, toBlock, url } = await ethereum.getLiftEvents(avnContract, fromBlock);
-  console.log('XXXXXXXXXXXXXXXXXXXXXX', url);
-  return liftEvents
+  console.log("AAAAAA", avnContract, avnContract.toString(), fromBlock)
+  let { liftEvents, toBlock } = await ethereum.getLiftEvents(avnContract, fromBlock);
+  return []
   // let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
   // for (let [i, isProcessed] of liftStatuses.entries()) {
   //   if (isProcessed === false) {

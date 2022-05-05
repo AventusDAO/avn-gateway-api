@@ -25,7 +25,7 @@ const SUMMARY_RANGE_NAMESPACE = 's.';
 const VALIDATORS_KEY = 'validators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
-const LIFTS_FROM_BLOCK_KEY = 'liftsFromBlock';
+const LAST_CHECKED_ETH_BLOCK_KEY = 'lastCheckedEthBlock';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -219,12 +219,12 @@ async function getSummaryEthTxHash(summaryRange) {
   return await redisClient.get(SUMMARY_RANGE_NAMESPACE + summaryRange.join('_'));
 }
 
-async function setLiftsFromBlock(blockNumber) {
-  await redisClient.set(LIFTS_FROM_BLOCK_KEY, blockNumber);
+async function setLastCheckedEthBlock(blockNumber) {
+  await redisClient.set(LAST_CHECKED_ETH_BLOCK_KEY, blockNumber);
 }
 
-async function getLiftsFromBlock() {
-  return await redisClient.get(LIFTS_FROM_BLOCK_KEY);
+async function getLastCheckedEthBlock() {
+  return await redisClient.get(LAST_CHECKED_ETH_BLOCK_KEY);
 }
 
 module.exports = {
@@ -247,6 +247,6 @@ module.exports = {
   setChainInfo,
   getSummaryEthTxHash,
   setSummaryEthTxHash,
-  getLiftsFromBlock,
-  setLiftsFromBlock
+  getLastCheckedEthBlock,
+  setLastCheckedEthBlock
 };

@@ -138,9 +138,9 @@ async function getChainInfo() {
     chainInfo = {};
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
-    chainInfo.avnContract = (await api.query.ethereumEvents.liftingContractAddress()).toString();
-
-    await redis.setChainInfo(JSON.stringify(chainInfo));
+    chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
+    chainInfo = JSON.stringify(chainInfo);
+    await redis.setChainInfo(chainInfo);
   }
 
   return chainInfo;

@@ -38,7 +38,7 @@ async function getBlocknumber(timeOffset, blockOffset) {
 
 function check(response) {
   if (response.data.status === '0') {
-    throw new Error('Etherscan error:', response);
+    throw new Error(`ETHERSCAN ERROR: ${response}`);
   }
 }
 

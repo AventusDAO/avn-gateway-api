@@ -244,8 +244,7 @@ async function retrieveEthTxHashIfExists(summaryRange) {
 async function processLifts() {
   let unprocessedLifts = [];
   let avnContract = JSON.parse(await getChainInfo()).avnContract;
-  let lastBlockChecked = await redis.getLastCheckedEthBlock();
-  let { liftEvents, lastBlockChecked } = await ethereum.getLiftEvents(avnContract, lastBlockChecked);
+  let { liftEvents, lastBlockChecked } = await ethereum.getLiftEvents(avnContract, await redis.getLastCheckedEthBlock());
   await redis.setLastCheckedEthBlock(lastBlockChecked);
 
   if (liftEvents.length !== 0) {

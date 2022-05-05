@@ -250,7 +250,7 @@ async function processLifts() {
   if (liftEvents.length !== 0) {
     let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
     for (let [i, isProcessed] of liftStatuses.entries()) {
-      if (isProcessed.isTrue) {
+      if (isProcessed.isFalse) {
         unprocessedLifts.push(liftEvents[i][1]);
       }
     }

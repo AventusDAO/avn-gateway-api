@@ -177,7 +177,6 @@ async function sendAvnTx(request) {
       result = await avn.proxy(requestId, palletName, method, params);
       logger.info({ proxyRequestId: requestId, result: result });
       break;
-    case ''
     default:
       throw Error('Transaction type not supported');
   }

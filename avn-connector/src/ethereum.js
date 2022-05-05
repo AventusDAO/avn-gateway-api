@@ -18,9 +18,8 @@ async function getLiftEvents(avnContract) {
   let lastBlockChecked = await redis.getLastCheckedEthBlock();
   let fromBlock = (!lastBlockChecked) ? await getBlocknumber(MAX_LIFT_AGE, 0) : lastBlockChecked;
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
-  console.log("BLOCK_CHECK", fromBlock, toBlock)
-  if (fromBlock >= toBlock) return [];
-  
+  if (fromBlock > toBlock) return [];
+
   let response = await axios.get(
     `${ETHERSCAN_URL}module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}&apikey=${ETHERSCAN_KEY}`
   );

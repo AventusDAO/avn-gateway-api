@@ -250,8 +250,9 @@ async function processLifts() {
   console.log("XXXXXXXXXXXXXXX LIFT EVENTS:", liftEvents.join(' '), toBlock)
   if (liftEvents.length !== 0) {
     let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
-    console.log("ZZZZZZZZZ LIFT STATUSES:", liftStatuses)
+    console.log("YYYYYYYYYY LIFT STATUSES:", liftStatuses)
     for (let [i, isProcessed] of liftStatuses.entries()) {
+      console.log("ZZZZZZZZZZ", i, isProcessed, isProcessed == false, !isProcessed, liftEvents[i][1])
       if (isProcessed === false) {
         unprocessedLifts.push(liftEvents[i][1]);
       }

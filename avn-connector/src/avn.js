@@ -247,13 +247,10 @@ async function processLifts() {
   let fromBlock = await redis.getLiftsFromBlock();
   let { liftEvents, toBlock } = await ethereum.getLiftEvents(avnContract, fromBlock);
   await redis.setLiftsFromBlock(toBlock);
-  console.log("XXXXXXXXXXXXXXX LIFT EVENTS:", liftEvents.join(' '), toBlock)
   if (liftEvents.length !== 0) {
     let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
-    console.log("YYYYYYYYYY LIFT STATUSES:", liftStatuses)
     for (let [i, isProcessed] of liftStatuses.entries()) {
-      console.log("ZZZZZZZZZZ", i, isProcessed, isProcessed == false, !isProcessed, liftEvents[i][1])
-      if (isProcessed === false) {
+      if (isProcessed.isTrue) {
         unprocessedLifts.push(liftEvents[i][1]);
       }
     }

@@ -132,21 +132,17 @@ async function getStakingStats() {
 }
 
 async function getChainInfo() {
-  console.log("GETTING CHAIN INFO")
   let chainInfo = await redis.getChainInfo();
-  console.log("CHAIN INFO IS", chainInfo)
 
   if (!chainInfo) {
-    console.log("INSIDE CHAIN INFO")
     chainInfo = {};
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
-    chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
-    console.log("INSIDE CHAIN INFO NOW IS", chainInfo)
+    chainInfo.avnContract = (await api.query.ethereumEvents.liftingContractAddress()).toString();
 
     await redis.setChainInfo(JSON.stringify(chainInfo));
   }
-  console.log("RETURNING CHAIN INFO", chainInfo)
+
   return chainInfo;
 }
 
@@ -247,13 +243,11 @@ async function retrieveEthTxHashIfExists(summaryRange) {
 
 async function processLifts() {
   let unprocessedLifts = [];
-  console.log("CALLING GETCHAIN INFO")
-  let chainInfo = await getChainInfo()
-  console.log("GOT THE CHAININFO", chainInfo)
-  let avnContract = JSON.parse(await getChainInfo()).avnContract;
+  let avnContract = (await getChainInfo()).avnContract;
   let fromBlock = await redis.getLiftsFromBlock();
   let { liftEvents, toBlock } = await ethereum.getLiftEvents(avnContract, fromBlock);
   await redis.setLiftsFromBlock(toBlock);
+
   if (liftEvents.length !== 0) {
     let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
     for (let [i, isProcessed] of liftStatuses.entries()) {

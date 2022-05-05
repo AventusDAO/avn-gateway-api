@@ -37,7 +37,7 @@ async function getBlocknumber(timeOffset, blockOffset) {
 }
 
 function check(response) {
-  if (response.data.status === '0') {
+  if (!response.data.status || response.data.status === '0') {
     throw new Error(`ETHERSCAN ERROR: ${response}`);
   }
 }

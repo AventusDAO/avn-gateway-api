@@ -1,4 +1,5 @@
 const axios = require('axios');
+const redis = require('./redis');
 const config = require('multiconfig').load();
 const ETHERSCAN_URL = config.etherscan.etherscan_url;
 const ETHERSCAN_KEY = config.etherscan.etherscan_api_key;
@@ -13,15 +14,13 @@ async function transactionExists(ethTxHash) {
   return response.data.result.status === '1';
 }
 
-async function getLiftEvents(avnContract, lastBlockChecked) {
+async function getLiftEvents(avnContract) {
+  let lastBlockChecked = await redis.getLastCheckedEthBlock();
   let fromBlock = (!lastBlockChecked) ? await getBlocknumber(MAX_LIFT_AGE, 0) : lastBlockChecked;
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
-
-  if (fromBlock >= toBlock) {
-    return { liftEvents: [], lastBlockChecked: fromBlock };
-  }
   console.log("BLOCK_CHECK", fromBlock, toBlock)
-
+  if (fromBlock >= toBlock) return [];
+  
   let response = await axios.get(
     `${ETHERSCAN_URL}module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}&apikey=${ETHERSCAN_KEY}`
   );
@@ -30,8 +29,8 @@ async function getLiftEvents(avnContract, lastBlockChecked) {
     throw new Error(`ETHERSCAN ERROR GETTING LIFTS: ${response}`);
   }
 
-  const txList = response.data.result;
-  return { liftEvents: txList.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]), lastBlockChecked: toBlock + 1 };
+  await redis.setLastCheckedEthBlock(toBlock + 1);
+  return response.data.result.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]);
 }
 
 async function getBlocknumber(timeOffset, blockOffset) {

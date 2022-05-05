@@ -125,6 +125,18 @@ functions:
     layers:
       - { Ref: CommonLambdaLayer }
 
+    lift-processing-handler:
+      name: lift-processing-handler
+      handler: lift-processing-handler.handler
+      description: aws:states:opt-out
+      package:
+        patterns:
+          - '!**/**'
+          - lift-processing-handler.js
+      memorySize: 128
+      layers:
+        - { Ref: CommonLambdaLayer }
+
 resources:
   Resources:
     LambdaSecurityGroup:

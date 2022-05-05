@@ -240,6 +240,20 @@ async function retrieveEthTxHashIfExists(summaryRange) {
   return ethTxHash;
 }
 
+async function processLifts() {
+  let unprocessedLifts = [];
+  let fromBlock = await redis.getLiftsFromBlock();
+  let { liftEvents, toBlock } = await ethereum.getLifts(avnContract, fromBlock);
+  let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
+  for (let [i, isProcessed] of liftStatuses.entries()) {
+    if (isProcessed === false) {
+      unprocessedLifts.push(liftEvents[i][1]);
+    }
+  }
+  await redis.setLiftsFromBlock(toBlock);
+  return unprocessedLifts;
+}
+
 async function signAndSend(requestId, relayerAddress, txn) {
   let result, nonce, relayerAccount;
 
@@ -351,5 +365,6 @@ module.exports = {
   getChainInfo,
   getCurrentBlock,
   getSummaryData,
-  getSummaryInclusionData
+  getSummaryInclusionData,
+  processLifts
 };

@@ -139,7 +139,7 @@ functions:
       patterns:
         - '!**/**'
         - lift-processing-handler.js
-    memorySize: 256
+    memorySize: 128
     layers:
       - { Ref: CommonLambdaLayer }
       - { Ref: QueueLambdaLayer }

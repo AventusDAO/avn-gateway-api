@@ -53,7 +53,7 @@ module "lambda_functions" {
         SECRET_MANAGER_REGION   = var.region
       }
       timeout     = 6
-      memory_size = 256
+      memory_size = 128
     }
     tx-status-update-handler = {
       env_vars = {

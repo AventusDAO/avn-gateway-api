@@ -10,7 +10,7 @@ async function transactionExists(ethTxHash) {
   let response = await axios.get(
     `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&apikey=${ETHERSCAN_KEY}`
   );
-  check(response);
+  checkEtherscanResponse(response);
   return response.data.result.status === '1';
 }
 
@@ -21,7 +21,7 @@ async function getLiftEvents(avnContract, fromBlock) {
   let response = await axios.get(
     `${ETHERSCAN_URL}module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}&apikey=${ETHERSCAN_KEY}`
   );
-  check(response);
+  checkEtherscanResponse(response);
   const txList = response.data.result;
   return { liftEvents: txList.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]), toBlock: toBlock + 1 };
 }
@@ -32,11 +32,11 @@ async function getBlocknumber(timeOffset, blockOffset) {
   let response = await axios.get(
     `${ETHERSCAN_URL}module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${ETHERSCAN_KEY}`
   );
-  check(response);
+  checkEtherscanResponse(response);
   return parseInt(response.data.result) - blockOffset;
 }
 
-function check(response) {
+function checkEtherscanResponse(response) {
   if (!response.data.status || response.data.status === '0') {
     throw new Error(`ETHERSCAN ERROR: ${response}`);
   }

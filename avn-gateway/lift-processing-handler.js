@@ -6,7 +6,7 @@ exports.handler = async _event => {
   try {
     await processLifts();
   } catch (err) {
-    await utils.errorResponse('internal', 'failed to connect to queue', err, '', null);
+    await utils.errorResponse('internal', 'failed to process lifts', err, '', null);
   }
 };
 

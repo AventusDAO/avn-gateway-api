@@ -191,7 +191,7 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
   const leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
 
   return {
-    status: 'Published'
+    status: 'Published',
     inclusionProof: {
       leaf,
       leafHash: keccakAsHex(leaf),

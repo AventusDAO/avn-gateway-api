@@ -1,5 +1,6 @@
 const BN = require('bn.js');
 const BN_ZERO = new BN(0);
+const lambda = require('./lambdas');
 
 function calculateBondedAmount(stakingInfo) {
   let bonded = new BN(0);
@@ -64,8 +65,48 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
   };
 }
 
+async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, lastPayoutEra, currentEra) {
+  const lastPayoutEraBN = new BN(lastPayoutEra);
+  const currentPayoutEraBN = new BN(currentEra).sub(1);
+
+  if (lastPayoutEraBN.lt(currentPayoutEraBN)) {
+    const payload = getPayoutPayload(registry, relayerAccount, era, proxyNonce);
+    await lambda.payoutAllStakers(payload);
+  } else {
+    logger.warn(`Era ${currentPayoutEraBN.toString()} has already been processed, skipping.`);
+  }
+}
+
+function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
+  const payloadParams = {
+    relayer: relayerAccount.address,
+    user: relayerAccount.address,
+    payer: relayerAccount.address,
+    era,
+    proxySignature: generateProxySignature(registry, u8aToHex(relayerAccount.publicKey), era, proxyNonce)
+  };
+
+  return {
+    params: payloadParams
+  }
+}
+
+function generateProxySignature(registry, relayerPublicKey, era, proxyNonce) {
+  const orderedData = [
+    registry.createType('Text', 'authorization for signed payout stakers operation').toU8a(false),
+    registry.createType('AccountId', relayerPublicKey).toU8a(true),
+    registry.createType('EraIndex', era).toU8a(true),
+    registry.createType('u64', proxyNonce).toU8a(true),
+  ];
+
+  const encodedDataToSign = u8aConcat(...orderedData);
+  const signature = u8aToHex(relayerAccount.sign(encodedDataToSign));
+  return signature;
+}
+
 module.exports = {
   calculateBondedAmount,
   calculateUnbondingAmount,
-  calculateStakingStats
+  calculateStakingStats,
+  payoutAllStakers
 };

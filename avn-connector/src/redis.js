@@ -25,6 +25,7 @@ const SUMMARY_RANGE_NAMESPACE = 's.';
 const VALIDATORS_KEY = 'validators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
+const ERA_KEY = 'era';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -216,6 +217,14 @@ async function getSummaryEthTxHash(summaryRange) {
   return await redisClient.get(SUMMARY_RANGE_NAMESPACE + summaryRange.join('_'));
 }
 
+async function setLastPayoutEra(era) {
+  await redisClient.set(ERA_KEY, era);
+}
+
+async function getLastPayoutEra() {
+  return await redisClient.get(ERA_KEY);
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
@@ -235,5 +244,7 @@ module.exports = {
   getChainInfo,
   setChainInfo,
   getSummaryEthTxHash,
-  setSummaryEthTxHash
+  setSummaryEthTxHash,
+  getLastPayoutEra,
+  setLastPayoutEra
 };

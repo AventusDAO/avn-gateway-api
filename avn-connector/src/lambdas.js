@@ -9,9 +9,23 @@ async function resolvePendingTransactionsState() {
   const command = new InvokeCommand({
     FunctionName: 'tx-status-update-handler'
   });
+
   client.send(command);
 }
 
+async function payoutAllStakers(payload) {
+  log.trace(`Invoking send-handler to payout stakers`);
+
+  const client = new LambdaClient({ region: 'eu-west-1' });
+  const command = new InvokeCommand({
+    FunctionName: 'stakers-payout-handler',
+    Payload: JSON.stringify(payload)
+  });
+
+  await client.send(command);
+}
+
 module.exports = {
+  payoutAllStakers,
   resolvePendingTransactionsState
 };

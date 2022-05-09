@@ -14,6 +14,7 @@ exports.handler = async payload => {
 
     return response;
   } catch (err) {
+    payload.proxySignature = '****';
     return {
       statusCode: 500,
       error: { message: err.message, payload }

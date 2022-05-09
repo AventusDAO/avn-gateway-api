@@ -14,7 +14,8 @@ async function resolvePendingTransactionsState() {
 }
 
 async function payoutAllStakers(payload) {
-  log.trace(`Invoking send-handler to payout stakers`);
+  // TODO: Do we want to log out the full content of payload? Eventhough it contains a proxySignature?
+  log.trace(`Invoking payout-all-stakers lambda. Era: ${payload.era}, sender: ${payload.relayer}`);
 
   const client = new LambdaClient({ region: 'eu-west-1' });
   const command = new InvokeCommand({

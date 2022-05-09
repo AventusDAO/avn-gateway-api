@@ -12,6 +12,8 @@ const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
 
 const AVN_URL = config.avnUrl;
+const SCHEDULE_PERIOD = 28800;
+const MAX_SUMMARY_INCLUSION_AGE = SCHEDULE_PERIOD * 3;
 
 let api, vault;
 let relayers = {};
@@ -166,11 +168,16 @@ async function getSummaryData(blockNumber) {
 }
 
 async function getSummaryInclusionData(blockNumber, transactionIndex) {
+  // TODO: Remove when we can handle serving historic merkle data
+  if (parseInt(blockNumber) + MAX_SUMMARY_INCLUSION_AGE < parseInt(await getCurrentBlock())) {
+    return { status: 'For historic data please contact Aventus' };
+  }
+
   let summaryData = await getSummaryData(blockNumber);
   let { summaryRange, ethTxHash } = summaryData;
 
   if (ethTxHash === null) {
-    return { info: 'summary not published yet' };
+    return { status: 'Not yet published' };
   }
 
   log.trace({ message: 'Getting summary inclusion data', summaryRange, blockNumber, transactionIndex, ethTxHash });
@@ -184,13 +191,14 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
   rpcData = Buffer.from(rpcData, 'hex').toString();
 
   if (rpcData === '') {
-    return { info: 'transaction not found' };
+    return { status: 'Transaction not found' };
   }
 
   const data = JSON.parse(rpcData);
   const leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
 
   return {
+    status: 'Published',
     inclusionProof: {
       leaf,
       leafHash: keccakAsHex(leaf),
@@ -208,7 +216,6 @@ function decodeExtrinsic(call) {
 
 // TODO: Does not account for changes of schedule period, replace with a function that retrieves summary ranges from a database
 function calculateSummaryRange(blockNumber) {
-  const SCHEDULE_PERIOD = 28800;
   blockNumber = parseInt(blockNumber);
   let summaryFromBlock = 1 + Math.floor(blockNumber / SCHEDULE_PERIOD) * SCHEDULE_PERIOD;
   const summaryToBlock = summaryFromBlock + SCHEDULE_PERIOD - 1;

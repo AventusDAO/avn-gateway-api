@@ -9,6 +9,7 @@ const BN = helper.BN;
 
 const BN_ZERO = new BN(0);
 const MIN_TOTAL_AVT_SUPPLY = new BN('100000000000000000000');
+const SCHEDULE_PERIOD = 28800;
 
 describe('Query api calls:', async () => {
   let api;
@@ -93,7 +94,6 @@ describe('Query api calls:', async () => {
 
   describe('getSummaryData', async () => {
     // TODO: Update these tests when we allow the schedule period to be flexible
-    const SCHEDULE_PERIOD = 28800;
 
     it('returns the correct data for a block falling within a published summary', async () => {
       // Only runs if a summary should have been published by now
@@ -138,21 +138,30 @@ describe('Query api calls:', async () => {
   });
 
   describe('getSummaryInclusionData', async () => {
-    it('gets correct data for a known lower', async () => {
+    // TODO: Replace with testing mechanism to generate more recent lowers
+    xit('gets correct data for a known lower', async () => {
       const blockNumber = '6042';
       const transactionIndex = '1';
       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
+      assert.equal(inclusionData.status, 'Published');
       assert.equal(inclusionData.inclusionProof.leafHash.length, 66);
       assert.equal(inclusionData.inclusionProof.leaf.length, 946);
       assert.equal(inclusionData.inclusionProof.merklePath.length, 1073);
       assert.equal(inclusionData.transactionDetails.args[0].method, 'signedLower');
     });
 
-    it('returns info for a transaction that does not exist', async () => {
-      const blockNumber = '1000';
-      const transactionIndex = '10';
+    it('returns info for a transaction that is too historic to process', async () => {
+      const blockNumber = '6042';
+      const transactionIndex = '1';
       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
-      assert.equal(inclusionData.info, 'transaction not found');
+      assert.equal(inclusionData.status, 'For historic data please contact Aventus');
+    });
+
+    it('returns info for a transaction that does not exist', async () => {
+      const blockNumber = parseInt(await api.query.getCurrentBlock()) - SCHEDULE_PERIOD * 2;
+      const transactionIndex = '1000';
+      let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
+      assert.equal(inclusionData.status, 'Transaction not found');
     });
 
     it('returns info for an as yet unpublished transaction', async () => {
@@ -160,7 +169,7 @@ describe('Query api calls:', async () => {
       const requestId = await api.send.transferAvt(relayer.address, recipient.address, amount);
       let response = await helper.confirmStatus(api, requestId, 'Processed');
       let inclusionData = await api.query.getSummaryInclusionData(response.blockNumber, response.transactionIndex);
-      assert.equal(inclusionData.info, 'summary not published yet');
+      assert.equal(inclusionData.status, 'Not yet published');
     });
   });
 

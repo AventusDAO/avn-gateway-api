@@ -68,14 +68,16 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
 async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, lastPayoutEra, currentEra) {
   const lastPayoutEraBN = new BN(lastPayoutEra);
   const maxPayoutEraBN = new BN(currentEra).sub(1);
+  let proxyNonceBN = new BN(proxyNonce);
 
   if (lastPayoutEraBN.lt(new BN(currentEra))) {
     let currentPayoutEraBN = new BN(lastPayoutEraBN).add(1);
 
     while (currentPayoutEraBN.lte(maxPayoutEraBN)) {
-      const payload = getPayoutPayload(registry, relayerAccount, currentPayoutEraBN.toString(), proxyNonce);
+      const payload = getPayoutPayload(registry, relayerAccount, currentPayoutEraBN.toString(), proxyNonceBN.toString());
       await lambda.payoutAllStakers(payload);
       currentPayoutEraBN = currentPayoutEraBN.add(1);
+      proxyNonceBN = proxyNonceBN.add(1);
     }
   } else {
     logger.warn(`Era ${currentEra.toString()} has already been processed, skipping.`);

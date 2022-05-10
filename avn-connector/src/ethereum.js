@@ -15,8 +15,7 @@ async function transactionExists(ethTxHash) {
 }
 
 async function getLiftEvents(avnContract) {
-  let fromBlock = await redis.getCheckLiftsFromBlock();
-  fromBlock = (!fromBlock) ? await getBlocknumber(MAX_LIFT_AGE, 0) : fromBlock;
+  let fromBlock = await redis.getCheckLiftsFromBlock() || await getBlocknumber(MAX_LIFT_AGE, 0);
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
   if (fromBlock > toBlock) return [];
 

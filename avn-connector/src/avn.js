@@ -215,10 +215,15 @@ async function getTotalToken(token) {
   let total = await redis.getTotalToken(token);
 
   if (!total) {
-    let chainInfo = JSON.parse(await getChainInfo())
-    let avt = chainInfo.avtContract;
-    let avnContract = chainInfo.avnContract;
-    total = (token === avt) ? await ethereum.getTotalToken(avnContract, token) : await api.query.balances.totalIssuance();
+    console.log('REDIS CHECK', token)
+    let chainInfo = JSON.parse(await getChainInfo());
+
+    if (token === chainInfo.avtContract) {
+      total = await api.query.balances.totalIssuance().toString();
+    } else {
+      total = await ethereum.getLockedBalance(chainInfo.avnContract, token);
+    }
+
     await redis.setTotalToken(token, total);
   }
 

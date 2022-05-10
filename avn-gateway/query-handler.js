@@ -333,7 +333,7 @@ async function query(call, request, method, params, responseFormatter) {
   }
 }
 
-const formatTotal = data => data.total.toString();
+const formatTotal = data => data.total;
 
 const formatAsString = data => data.toString();
 

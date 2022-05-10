@@ -15,12 +15,12 @@ async function transactionExists(ethTxHash) {
   return response.data.result.status === '1';
 }
 
-async function getTotalToken(avnContract, token) {
+async function getLockedBalance(address, token) {
   token = token.toLowerCase();
   let request =
     token === ETH_AS_TOKEN
-      ? `${ETHERSCAN_URL}module=account&action=balance&address=${avnContract}&tag=latest&apikey=${ETHERSCAN_KEY}`
-      : `${ETHERSCAN_URL}module=account&action=tokenbalance&contractaddress=${token}&address=${avnContract}&tag=latest&apikey=${ETHERSCAN_KEY}`;
+      ? `${ETHERSCAN_URL}module=account&action=balance&address=${address}&tag=latest&apikey=${ETHERSCAN_KEY}`
+      : `${ETHERSCAN_URL}module=account&action=tokenbalance&contractaddress=${token}&address=${address}&tag=latest&apikey=${ETHERSCAN_KEY}`;
   let response = await axios.get(request);
   return response.data.result;
 }
@@ -53,6 +53,6 @@ async function getBlocknumber(timeOffset, blockOffset) {
 
 module.exports = {
   getLiftEvents,
-  getTotalToken,
+  getLockedBalance,
   transactionExists
 };

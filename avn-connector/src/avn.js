@@ -251,9 +251,9 @@ async function retrieveEthTxHashIfExists(summaryRange) {
 async function getUnprocessedLifts() {
   let unprocessedLifts = [];
   let avnContract = JSON.parse(await getChainInfo()).avnContract;
-  let liftEvents = await ethereum.getLiftEvents(avnContract);
+  let { fromBlock, toBlock, liftEvents } = await ethereum.getLiftEvents(avnContract);
 
-  if (liftEvents.length !== 0) {
+  if (liftEvents.length > 0) {
     let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
     for (let [i, isProcessed] of liftStatuses.entries()) {
       if (isProcessed.isFalse) {
@@ -262,17 +262,25 @@ async function getUnprocessedLifts() {
     }
   }
 
-  return unprocessedLifts;
+  if (unprocessedLifts.length === 0) {
+    await redis.setCheckLiftsFromBlock(toBlock + 1);
+  }
+
+  return { fromBlock, toBlock, unprocessedLifts };
 }
 
-async function processLifts(unprocessedLifts) {
+async function processLifts(requestId, toBlock, unprocessedLifts) {
   const liftEventType = 1;
   const calls = unprocessedLifts.map(txHash => api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash));
   const txn = api.tx.utility.batch(calls);
-  let relayerAccount = await getRelayerAccount(RELAYER_ADDRESS);
-  let nonce = await getNonce(relayerAccount.address);
-  let signedTx = await txn.signAsync(relayerAccount, { nonce });
-  await signedTx.send();
+  let result;
+  try {
+    result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
+    await redis.setCheckLiftsFromBlock(toBlock + 1);
+  } catch(err) {
+    result = err;
+  }
+  return result;
 }
 
 async function signAndSend(requestId, relayerAddress, txn) {

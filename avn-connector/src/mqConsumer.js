@@ -180,9 +180,9 @@ async function sendAvnTx(request) {
       break;
     case 'avnProcessLifts':
       logger.trace({ processingLifts: request });
-      const { unprocessedLifts } = request;
-      result = await avn.processLifts(unprocessedLifts);
-      logger.info({ result: result });
+      const { requestId, toBlock, unprocessedLifts } = request;
+      result = await avn.processLifts(requestId, toBlock, unprocessedLifts);
+      logger.info({ requestId, result });
       break;
     default:
       throw Error('Transaction type not supported');

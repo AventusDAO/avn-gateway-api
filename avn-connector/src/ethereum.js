@@ -15,8 +15,8 @@ async function transactionExists(ethTxHash) {
 }
 
 async function getLiftEvents(avnContract) {
-  let lastBlockChecked = await redis.getLastCheckedEthBlock();
-  let fromBlock = (!lastBlockChecked) ? await getBlocknumber(MAX_LIFT_AGE, 0) : lastBlockChecked;
+  let fromBlock = await redis.getCheckLiftsFromBlock();
+  fromBlock = (!fromBlock) ? await getBlocknumber(MAX_LIFT_AGE, 0) : fromBlock;
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
   if (fromBlock > toBlock) return [];
 
@@ -28,8 +28,8 @@ async function getLiftEvents(avnContract) {
     throw new Error(`ETHERSCAN ERROR GETTING LIFTS: ${response}`);
   }
 
-  await redis.setLastCheckedEthBlock(toBlock + 1);
-  return response.data.result.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]);
+  const liftEvents = response.data.result.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]);
+  return { fromBlock, toBlock, liftEvents };
 }
 
 async function getBlocknumber(timeOffset, blockOffset) {

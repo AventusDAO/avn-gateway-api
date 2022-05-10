@@ -5,18 +5,17 @@ const QUEUE = process.env.MQ_AVN_TX_QUEUE;
 
 let mqSender;
 
-exports.handler = async _event => {
+exports.handler = async (_event, context) => {
   try {
     await connectToMQ();
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    return console.error(`CONNECTING TO QUEUE: ${error}`);
   }
 
-  console.info('Checking for lifts to process');
   try {
-    await processLifts();
-  } catch (err) {
-    console.error(err);
+    await processLifts(context.awsRequestId);
+  } catch (error) {
+    return console.error(`CHECKING FOR LIFTS TO PROCESS: ${error}`);
   }
 };
 
@@ -27,14 +26,13 @@ const connectToMQ = async () => {
   }
 };
 
-async function processLifts() {
-  let unprocessedLifts = (await utils.axios.get(AVN_CONNECTOR_ENDPOINT + 'unprocessedLifts')).data;
+async function processLifts(requestId) {
+  let { fromBlock, toBlock, unprocessedLifts } = (await utils.axios.get(AVN_CONNECTOR_ENDPOINT + 'unprocessedLifts')).data;
 
   if (!unprocessedLifts || unprocessedLifts.length === 0) {
-    console.info('No lifts to process');
-    return;
+    return console.info(`Checked blocks: ${fromBlock} to ${toBlock} - no lifts to process`);
   }
 
-  console.info('Processing lifts:', unprocessedLifts.join(', '));
-  await mqSender.sendMessageToMQ(QUEUE, { txType: 'avnProcessLifts', unprocessedLifts });
+  console.info(`Checked blocks: ${fromBlock} to ${toBlock} - processing lifts: ${unprocessedLifts.join(', ')}`);
+  await mqSender.sendMessageToMQ(QUEUE, { txType: 'avnProcessLifts', requestId, toBlock, unprocessedLifts });
 }

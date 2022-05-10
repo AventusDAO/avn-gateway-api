@@ -277,7 +277,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   try {
     result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
     await redis.setCheckLiftsFromBlock(toBlock + 1);
-  } catch(err) {
+  } catch (err) {
     result = err;
   }
   return result;

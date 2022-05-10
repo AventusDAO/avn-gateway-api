@@ -169,18 +169,18 @@ async function trySendAvnTx(message) {
 
 async function sendAvnTx(request) {
   let result = null;
-  let { txType } = request;
+  let { requestId, txType } = request;
 
   switch (txType) {
     case 'avnProxy':
       logger.trace({ sendAvnTxRequest: request });
-      const { requestId, palletName, method, params } = request;
+      const { palletName, method, params } = request;
       result = await avn.proxy(requestId, palletName, method, params);
       logger.info({ proxyRequestId: requestId, result: result });
       break;
     case 'avnProcessLifts':
       logger.trace({ processingLifts: request });
-      const { requestId, toBlock, unprocessedLifts } = request;
+      const { toBlock, unprocessedLifts } = request;
       result = await avn.processLifts(requestId, toBlock, unprocessedLifts);
       logger.info({ requestId, result });
       break;

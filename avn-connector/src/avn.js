@@ -207,7 +207,17 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
       merklePath: '[' + data.merkle_path.join(',').replace(/'/g, '') + ']'
     },
     transactionDetails: decodeExtrinsic(data.encoded_leaf)
+  };
+}
+
+async function getTotalToken(token) {
+  let total = redis.getTotalToken(token);
+  if (!total) {
+    let avnContract = JSON.parse(await getChainInfo()).avnContract;
+    total = await ethereum.getTotalToken(avnContract, token);
+    redis.setTotalToken(token, total);
   }
+  return total;
 }
 
 function decodeExtrinsic(call) {
@@ -395,6 +405,7 @@ module.exports = {
   getCurrentBlock,
   getSummaryData,
   getSummaryInclusionData,
+  getTotalToken,
   getUnprocessedLifts,
   processLifts
 };

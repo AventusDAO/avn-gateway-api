@@ -9,6 +9,7 @@ function Query(api) {
   this.getNftContractAddress = generateFunction(getNftContractAddress, api);
   this.getTotalAvt = generateFunction(getTotalAvt, api);
   this.getAvtBalance = generateFunction(getAvtBalance, api);
+  this.getTotalToken = generateFunction(getTotalToken, api);
   this.getTokenBalance = generateFunction(getTokenBalance, api);
   this.getNonce = generateFunction(getNonce, api);
   this.getNftNonce = generateFunction(getNftNonce, api);
@@ -73,6 +74,13 @@ function getAvtBalance(api) {
     common.validateAccount(accountId);
 
     return await this.postRequest(api, 'getAvtBalance', { accountId });
+  };
+}
+
+function getTotalToken(api) {
+  return async function (token) {
+    common.validateEthereumAddress(token);
+    return await this.postRequest(api, 'getTotalToken', { token });
   };
 }
 

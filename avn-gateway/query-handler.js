@@ -52,6 +52,8 @@ async function callSwitch(call, request) {
       return await getTokenBalance(call, request);
     case 'getTotalAvt':
       return await getTotalAvt(call, request);
+    case 'getTotalToken':
+      return await getTotalToken(call, request);
     case `getAccountInfo`:
       return await getAccountInfo(call, request);
     case 'getStakingStatus':
@@ -199,6 +201,18 @@ async function getTokenBalance(call, request) {
 
 async function getTotalAvt(call, request) {
   return await queryChain(call, request, 'balances', 'totalIssuance', [], formatNumAsString);
+}
+
+async function getTotalToken(call, request) {
+  const { token } = call.params;
+
+  if (utils.isValidEthereumAddress(token) === false) {
+    return utils.errorResponse('params', 'invalid token', token, request, call.id);
+  } else {
+    const method = 'avnTotalToken';
+    const params = { callId: call.id, token };
+    return await query(call, request, method, params);
+  }
 }
 
 async function getAccountInfo(call, request) {

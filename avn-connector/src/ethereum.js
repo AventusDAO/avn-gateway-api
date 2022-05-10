@@ -4,6 +4,7 @@ const config = require('multiconfig').load();
 const ETHERSCAN_URL = config.etherscan.etherscan_url;
 const ETHERSCAN_KEY = config.etherscan.etherscan_api_key;
 const LIFT_EVENT_SIGNATURE = '0x8964776336bc2fa8ecaaf70b6f8e8450807efb1ff78f8b87980707aa821f0ec0';
+const ETHEREUM_AS_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 const MAX_LIFT_AGE = 60 * 60 * 24 * 5; // 5 days
 const REQUIRED_CONFIRMATIONS = 20;
 
@@ -12,6 +13,16 @@ async function transactionExists(ethTxHash) {
     `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&apikey=${ETHERSCAN_KEY}`
   );
   return response.data.result.status === '1';
+}
+
+async function getTotalToken(avnContract, token) {
+  token = token.toLowerCase();
+  let request =
+    token === ETHEREUM_AS_TOKEN
+      ? `${ETHERSCAN_URL}module=account&action=balance&address=${avnContract}&tag=latest&apikey=${ETHERSCAN_KEY}`
+      : `${ETHERSCAN_URL}module=account&action=tokenbalance&contractaddress=${token}&address=${avnContract}&tag=latest&apikey=${ETHERSCAN_KEY}`;
+  let response = await axios.get(request);
+  return response.data.result;
 }
 
 async function getLiftEvents(avnContract) {
@@ -42,5 +53,6 @@ async function getBlocknumber(timeOffset, blockOffset) {
 
 module.exports = {
   getLiftEvents,
+  getTotalToken,
   transactionExists
 };

@@ -15,6 +15,7 @@ env:
   TX_STATUS: tx-status-update-handler
   COMMON: common
   QUEUE: queue
+  STAKER_PAY: stakers-payout-handler
 
 defaults:
   run:
@@ -29,10 +30,10 @@ jobs:
       version: ${{ steps.suffix.outputs.version }}
     steps:
       - uses: actions/checkout@v2
-        
+
       - name: Create github sha short version
         run: echo "VERSION_SUFFIX=${GITHUB_SHA::7}" >> $GITHUB_ENV
-      
+
       - name: output version suffix
         id: suffix
         run: echo ::set-output name=version::"${{ env.VERSION_SUFFIX }}"
@@ -47,7 +48,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -58,7 +59,7 @@ jobs:
       - name: Package Function
         run: |
           SLS_ENV=sandbox make package version=${{ needs.version-suffix.outputs.version }}
-      
+
       - name: create latest version
         run: |
           mv build/${{ env.POLL }}.zip build/${{ env.POLL }}/${{ env.POLL }}-latest.zip
@@ -68,8 +69,9 @@ jobs:
           mv build/${{ env.TX_STATUS }}.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip
           mv build/${{ env.COMMON }}.zip build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip
           mv build/${{ env.QUEUE }}.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip
+          mv build/${{ env.STAKER_PAY }}.zip build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-latest.zip
           ls -l build/
-      
+
       - name: create Short sha version
         run: |
           cp build/${{ env.POLL }}/${{ env.POLL }}-latest.zip build/${{ env.POLL }}/${{ env.POLL }}-${{ needs.version-suffix.outputs.version }}.zip
@@ -79,6 +81,7 @@ jobs:
           cp build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip build/${{ env.COMMON }}/${{ env.COMMON }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-latest.zip build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-${{ needs.version-suffix.outputs.version }}.zip
 
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@v0.5.1

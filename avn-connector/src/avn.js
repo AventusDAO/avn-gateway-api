@@ -336,10 +336,9 @@ async function connectToAvN() {
         log.info(`Triggering payout stakers. Current era: ${era}`);
         let lastPayoutEra = (await redis.getLastPayoutEra()) || 0;
 
-        // TODO: Replace me with a config value in the next PR
-        const tempRewardPayerAddress = "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh";
-        const proxyNonce = api.query.validatorsManager.proxyNonces(tempRewardPayerAddress);
-        const relayerAccount = avn.getRelayerAccount(tempRewardPayerAddress);
+        const rewardPayerAddress = config.stakingPayoutPayer;
+        const proxyNonce = api.query.validatorsManager.proxyNonces(rewardPayerAddress);
+        const relayerAccount = avn.getRelayerAccount(rewardPayerAddress);
 
         await stakingHelper.payoutAllStakers(api.registry, log, relayerAccount, proxyNonce, lastPayoutEra, era);
         await redis.setLastPayoutEra(era.toString());

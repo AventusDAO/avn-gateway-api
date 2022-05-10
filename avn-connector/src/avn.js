@@ -141,6 +141,7 @@ async function getChainInfo() {
     chainInfo = {};
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
+    chainInfo.avtContract = await api.query.tokenManager.aVTTokenContract();
     chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
     chainInfo = JSON.stringify(chainInfo);
     await redis.setChainInfo(chainInfo);
@@ -214,8 +215,10 @@ async function getTotalToken(token) {
   let total = await redis.getTotalToken(token);
 
   if (!total) {
-    let avnContract = JSON.parse(await getChainInfo()).avnContract;
-    total = await ethereum.getTotalToken(avnContract, token);
+    let chainInfo = JSON.parse(await getChainInfo())
+    let avt = chainInfo.avtContract;
+    let avnContract = chainInfo.avnContract;
+    total = (token === avt) ? await ethereum.getTotalToken(avnContract, token) : await api.query.balances.totalIssuance();
     await redis.setTotalToken(token, total);
   }
 

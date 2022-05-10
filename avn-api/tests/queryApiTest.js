@@ -55,6 +55,7 @@ describe('Query api calls:', async () => {
     relayer = accounts.relayer;
     user = accounts.user;
     recipient = accounts.otherUser;
+    token = helper.token;
   });
 
   describe('get contract addresses', async () => {
@@ -71,9 +72,23 @@ describe('Query api calls:', async () => {
     });
   });
 
-  describe('getTotalAvt', async () => {
-    it('returns total AVT supply', async () => {
-      assert(new BN(await api.query.getTotalAvt()).gt(MIN_TOTAL_AVT_SUPPLY));
+  describe('get totals', async () => {
+    it('returns total AVT', async () => {
+      let avt = await api.query.getAvtContractAddress();
+      helper.bnEquals(await api.query.getTotalAvt(), await api.query.getTotalToken(avt));
+    });
+
+    it('returns total ETH', async () => {
+      assert(new BN(await api.query.getTotalToken('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')).gt(BN_ZERO));
+    });
+
+    it('returns total other token', async () => {
+      assert(new BN(await api.query.getTotalToken(token)).gt(BN_ZERO));
+    });
+
+    it('returns zero for a non-existent token', async () => {
+      const nonExistentToken = '0xd09a7B5F603E66B04e8DaFCD8653114f3C49C038';
+      helper.bnEquals(await api.query.getTotalToken(nonExistentToken), 0);
     });
   });
 

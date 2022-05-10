@@ -37,7 +37,7 @@ const PENDING_TX_KEY = {
 const MAX_PENDING_TX_TO_CHECK = 100;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
 const NONCE_EXPIRY_IN_SECONDS = 5;
-const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 600; //10 minutes
+const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
 const VALIDATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
@@ -55,8 +55,6 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
-
-await redisClient.flushall()
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,

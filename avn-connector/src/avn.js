@@ -215,7 +215,6 @@ async function getTotalToken(token) {
   let total = await redis.getTotalToken(token);
 
   if (!total) {
-    console.log('REDIS CHECK', token)
     let chainInfo = JSON.parse(await getChainInfo());
 
     if (token === chainInfo.avtContract) {

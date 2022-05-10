@@ -150,6 +150,16 @@ app.post('/avnSummaryInclusionData', async (req, res, next) => {
   }
 });
 
+app.get('/unprocessedLifts', async (req, res, next) => {
+  try {
+    log.trace('unprocessedLifts invoked');
+    const result = await avn.getUnprocessedLifts();
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use(function (err, req, res, _next) {
   log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });

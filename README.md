@@ -1092,6 +1092,7 @@ curl https://AVN-API-URL/send \
 
 ### proxyConfirmTokenLift
 Trigger the AvN confirmation of a lift operation that has previously occurred on Ethereum
+**Note:** _The gateway now operates a service to confirm lifts automatically so this shouldn't need to be called._
 
 **REQUEST**\
 `POST https://AVN-API-URL/send`

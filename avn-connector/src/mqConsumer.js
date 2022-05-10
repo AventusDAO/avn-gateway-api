@@ -168,14 +168,21 @@ async function trySendAvnTx(message) {
 }
 
 async function sendAvnTx(request) {
-  logger.trace({ sendAvnTxRequest: request });
-  const { requestId, txType, palletName, method, params } = request;
   let result = null;
+  let { requestId, txType } = request;
 
   switch (txType) {
     case 'avnProxy':
+      logger.trace({ sendAvnTxRequest: request });
+      const { palletName, method, params } = request;
       result = await avn.proxy(requestId, palletName, method, params);
       logger.info({ proxyRequestId: requestId, result: result });
+      break;
+    case 'avnProcessLifts':
+      logger.trace({ processingLifts: request });
+      const { toBlock, unprocessedLifts } = request;
+      result = await avn.processLifts(requestId, toBlock, unprocessedLifts);
+      logger.info({ requestId, result });
       break;
     default:
       throw Error('Transaction type not supported');

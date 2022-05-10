@@ -25,6 +25,7 @@ const SUMMARY_RANGE_NAMESPACE = 's.';
 const VALIDATORS_KEY = 'validators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
+const CHECK_LIFTS_FROM_BLOCK_KEY = 'checkLiftsFromBlock';
 const ERA_KEY = 'era';
 
 const PENDING_TX_KEY = {
@@ -217,6 +218,14 @@ async function getSummaryEthTxHash(summaryRange) {
   return await redisClient.get(SUMMARY_RANGE_NAMESPACE + summaryRange.join('_'));
 }
 
+async function setCheckLiftsFromBlock(blockNumber) {
+  await redisClient.set(CHECK_LIFTS_FROM_BLOCK_KEY, blockNumber);
+}
+
+async function getCheckLiftsFromBlock() {
+  return await redisClient.get(CHECK_LIFTS_FROM_BLOCK_KEY);
+}
+
 async function setLastPayoutEra(era) {
   await redisClient.set(ERA_KEY, era);
 }
@@ -245,6 +254,8 @@ module.exports = {
   setChainInfo,
   getSummaryEthTxHash,
   setSummaryEthTxHash,
+  getCheckLiftsFromBlock,
+  setCheckLiftsFromBlock,
   getLastPayoutEra,
   setLastPayoutEra
 };

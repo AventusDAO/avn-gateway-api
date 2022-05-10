@@ -14,6 +14,7 @@ const stakingHelper = require('./stakingHelper');
 const AVN_URL = config.avnUrl;
 const SCHEDULE_PERIOD = 28800;
 const MAX_SUMMARY_INCLUSION_AGE = SCHEDULE_PERIOD * 3;
+const RELAYER_ADDRESS = config.relayer.address;
 
 let api, vault;
 let relayers = {};
@@ -140,8 +141,9 @@ async function getChainInfo() {
     chainInfo = {};
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
-
-    await redis.setChainInfo(JSON.stringify(chainInfo));
+    chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
+    chainInfo = JSON.stringify(chainInfo);
+    await redis.setChainInfo(chainInfo);
   }
 
   return chainInfo;
@@ -244,6 +246,41 @@ async function retrieveEthTxHashIfExists(summaryRange) {
   }
 
   return ethTxHash;
+}
+
+async function getUnprocessedLifts() {
+  let unprocessedLifts = [];
+  let avnContract = JSON.parse(await getChainInfo()).avnContract;
+  let { fromBlock, toBlock, liftEvents } = await ethereum.getLiftEvents(avnContract);
+
+  if (liftEvents.length > 0) {
+    let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
+    for (let [i, isProcessed] of liftStatuses.entries()) {
+      if (isProcessed.isFalse) {
+        unprocessedLifts.push(liftEvents[i][1]);
+      }
+    }
+  }
+
+  if (unprocessedLifts.length === 0) {
+    await redis.setCheckLiftsFromBlock(toBlock + 1);
+  }
+
+  return { fromBlock, toBlock, unprocessedLifts };
+}
+
+async function processLifts(requestId, toBlock, unprocessedLifts) {
+  const liftEventType = 1;
+  const calls = unprocessedLifts.map(txHash => api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash));
+  const txn = api.tx.utility.batch(calls);
+  let result;
+  try {
+    result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
+    await redis.setCheckLiftsFromBlock(toBlock + 1);
+  } catch (err) {
+    result = err;
+  }
+  return result;
 }
 
 async function signAndSend(requestId, relayerAddress, txn) {
@@ -378,5 +415,7 @@ module.exports = {
   getChainInfo,
   getCurrentBlock,
   getSummaryData,
-  getSummaryInclusionData
+  getSummaryInclusionData,
+  getUnprocessedLifts,
+  processLifts
 };

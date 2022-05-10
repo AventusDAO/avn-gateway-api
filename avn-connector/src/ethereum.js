@@ -22,7 +22,7 @@ async function getTotalToken(avnContract, token) {
       ? `${ETHERSCAN_URL}module=account&action=balance&address=${avnContract}&tag=latest&apikey=${ETHERSCAN_KEY}`
       : `${ETHERSCAN_URL}module=account&action=tokenbalance&contractaddress=${token}&address=${avnContract}&tag=latest&apikey=${ETHERSCAN_KEY}`;
   let response = await axios.get(request);
-  return response.data.result;
+  return response.data.result.toString();
 }
 
 async function getLiftEvents(avnContract) {

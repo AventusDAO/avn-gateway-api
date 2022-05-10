@@ -219,7 +219,7 @@ async function getTotalToken(token) {
     let chainInfo = JSON.parse(await getChainInfo());
 
     if (token === chainInfo.avtContract) {
-      total = await api.query.balances.totalIssuance().toString();
+      total = (await api.query.balances.totalIssuance()).toString();
     } else {
       total = await ethereum.getLockedBalance(chainInfo.avnContract, token);
     }

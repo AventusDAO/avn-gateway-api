@@ -212,13 +212,13 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
 
 async function getTotalToken(token) {
   let total = await redis.getTotalToken(token);
-  if (total) console.log("XXXXXXX REDIS", total, total.toString())
+
   if (!total) {
     let avnContract = JSON.parse(await getChainInfo()).avnContract;
     total = await ethereum.getTotalToken(avnContract, token);
-    console.log("XXXXXXX ETHER", total, total.toString())
     await redis.setTotalToken(token, total);
   }
+
   return total;
 }
 

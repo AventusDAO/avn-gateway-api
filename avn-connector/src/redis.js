@@ -230,7 +230,7 @@ async function getCheckLiftsFromBlock() {
 }
 
 async function setTotalToken(token, total) {
-  await redisClient.setex(TOTAL_TOKEN_NAMESPACE + token, TOTAL_TOKEN_EXPIRY_IN_SECONDS, total.toString());
+  await redisClient.setex(TOTAL_TOKEN_NAMESPACE + token, TOTAL_TOKEN_EXPIRY_IN_SECONDS, total);
 }
 
 async function getTotalToken(token) {

@@ -30,9 +30,9 @@ async function processLifts(requestId) {
   let { fromBlock, toBlock, unprocessedLifts } = (await utils.axios.get(AVN_CONNECTOR_ENDPOINT + 'unprocessedLifts')).data;
 
   if (!unprocessedLifts || unprocessedLifts.length === 0) {
-    return console.info(`Checked blocks: ${fromBlock} to ${toBlock} - no lifts to process`);
+    return console.info(`Checked blocks ${fromBlock} to ${toBlock} - no lifts to process`);
   }
 
-  console.info(`Checked blocks: ${fromBlock} to ${toBlock} - processing lifts: ${unprocessedLifts.join(', ')}`);
+  console.info(`Checked blocks ${fromBlock} to ${toBlock} - found lifts to process: ${unprocessedLifts.join(', ')}`);
   await mqSender.sendMessageToMQ(QUEUE, { txType: 'avnProcessLifts', requestId, toBlock, unprocessedLifts });
 }

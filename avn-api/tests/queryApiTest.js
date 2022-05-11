@@ -315,7 +315,7 @@ describe('Query api calls:', async () => {
 
   describe('getStakingStats', async () => {
     const defaultMaxNominatorsRewardedPerValidatorBN = new BN(256);
-    const defaultMinUserBondBN = new BN("5000000000000000000000");
+    const defaultMinUserBondBN = new BN("1000000000000000000");
 
     it('returns the correct data', async () => {
       const returnedData = await api.query.getStakingStats();

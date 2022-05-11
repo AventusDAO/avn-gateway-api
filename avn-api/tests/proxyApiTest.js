@@ -81,7 +81,7 @@ describe('Proxy api calls:', async () => {
     it('can stake', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
-      const amount = new BN('100').mul(ONE_AVT);
+      const amount = new BN('1').mul(ONE_AVT);
 
       const requestId = await api.send.stake(relayer, amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');

@@ -368,6 +368,8 @@ async function connectToAvN() {
   const _unsub = await api.query.staking.currentEra((era) => {
     // Wait for 10s before paying out to allow for block finalisation.
     // TODO: Find a better way to detect block finalisation
+    log.info(`Current era changed: ${era}`);
+
     setTimeout(() => {
       try {
         log.info(`Triggering payout stakers. Current era: ${era}`);

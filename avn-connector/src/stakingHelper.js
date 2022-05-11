@@ -66,7 +66,7 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
 }
 
 async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, lastPayoutEra, currentEra) {
-  const currentEraBN = new BN(currentEra);
+  const currentEraBN = new BN(currentEra.toString());
   const maxPayoutEraBN = currentEraBN.sub(1);
 
   let lastPayoutEraBN = new BN(lastPayoutEra);

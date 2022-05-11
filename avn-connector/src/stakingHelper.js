@@ -109,6 +109,7 @@ function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
 }
 
 function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
+  console.log("generateProxySignature: ", u8aToHex(relayerAccount.publicKey), era, proxyNonce)
   const orderedData = [
     registry.createType('Text', 'authorization for signed payout stakers operation').toU8a(false),
     registry.createType('AccountId', u8aToHex(relayerAccount.publicKey)).toU8a(true),
@@ -117,7 +118,9 @@ function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
   ];
 
   const encodedDataToSign = u8aConcat(...orderedData);
+  console.log("encodedDataToSign: ", u8aToHex(encodedDataToSign));
   const signature = u8aToHex(relayerAccount.sign(encodedDataToSign));
+  console.log("Signature: ", signature);
   return signature;
 }
 

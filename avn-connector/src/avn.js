@@ -346,8 +346,8 @@ async function getRelayerAccount(relayerAddress) {
 }
 
 async function init() {
-  await connectToAvN();
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
+  await connectToAvN();
 }
 
 async function connectToAvN() {

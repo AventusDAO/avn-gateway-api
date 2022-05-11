@@ -74,7 +74,7 @@ async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, la
   // If we have never paid, start paying from the previous era
   lastPayoutEraBN = lastPayoutEraBN.gt(BN_ZERO) ? lastPayoutEraBN : maxPayoutEraBN;
 
-  let proxyNonceBN = new BN(proxyNonce);
+  let proxyNonceBN = new BN(proxyNonce.toString());
 
   if (lastPayoutEraBN.lt(currentEraBN)) {
     let currentPayoutEraBN = new BN(lastPayoutEraBN).add(BN_ONE);

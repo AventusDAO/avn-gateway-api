@@ -385,25 +385,20 @@ async function connectToAvN() {
   });
 
   const _unsub = await api.query.staking.currentEra((era) => {
-    // Wait for 10s before paying out to allow for block finalisation.
-    // TODO: Find a better way to detect block finalisation
-    log.info(`Current era changed: ${era}`);
+    // TODO: Find a way to detect block finalisation
+    try {
+      log.info(`Triggering payout stakers. Current era: ${era}`);
+      let lastPayoutEra = (await redis.getLastPayoutEra()) || 0;
 
-    setTimeout(() => {
-      try {
-        log.info(`Triggering payout stakers. Current era: ${era}`);
-        let lastPayoutEra = (await redis.getLastPayoutEra()) || 0;
+      const rewardPayerAddress = config.stakingPayoutPayer;
+      const proxyNonce = api.query.validatorsManager.proxyNonces(rewardPayerAddress);
+      const relayerAccount = avn.getRelayerAccount(rewardPayerAddress);
 
-        const rewardPayerAddress = config.stakingPayoutPayer;
-        const proxyNonce = api.query.validatorsManager.proxyNonces(rewardPayerAddress);
-        const relayerAccount = avn.getRelayerAccount(rewardPayerAddress);
-
-        await stakingHelper.payoutAllStakers(api.registry, log, relayerAccount, proxyNonce, lastPayoutEra, era);
-        await redis.setLastPayoutEra(era.toString());
-      } catch (err) {
-        log.error(`Error paying stakers for era ${era}: ${err}`);
-      }
-    }, 10000);
+      await stakingHelper.payoutAllStakers(api.registry, log, relayerAccount, proxyNonce, lastPayoutEra, era);
+      await redis.setLastPayoutEra(era.toString());
+    } catch (err) {
+      log.error(`Error paying stakers for era ${era}: ${err}`);
+    }
   });
 
   const [chain, nodeName, nodeVersion] = await Promise.all([

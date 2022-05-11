@@ -395,8 +395,8 @@ async function connectToAvN() {
       const proxyNonce = api.query.validatorsManager.proxyNonces(rewardPayerAddress);
       const relayerAccount = await getRelayerAccount(rewardPayerAddress);
 
-      await stakingHelper.payoutAllStakers(api.registry, log, relayerAccount, proxyNonce, lastPayoutEra, era);
-      await redis.setLastPayoutEra(era.toString());
+      const lastEraPaid = await stakingHelper.payoutAllStakers(api.registry, log, relayerAccount, proxyNonce, lastPayoutEra, era);
+      await redis.setLastPayoutEra(lastEraPaid.toString());
     } catch (err) {
       log.error(`Error paying stakers for era ${era}`, err);
     }

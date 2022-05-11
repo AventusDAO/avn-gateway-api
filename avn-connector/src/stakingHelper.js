@@ -65,6 +65,7 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
   };
 }
 
+// Pays out all stakers and returns the last era it paid
 async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, lastPayoutEra, currentEra) {
   const BN_ONE = new BN(1);
   const currentEraBN = new BN(currentEra.toString());
@@ -89,8 +90,10 @@ async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, la
       proxyNonceBN = proxyNonceBN.add(BN_ONE);
     }
   } else {
-    logger.warn(`Era ${currentEra.toString()} has already been processed, skipping.`);
+    logger.warn(`Era ${maxPayoutEraBN.toString()} has already been processed, skipping.`);
   }
+
+  return maxPayoutEraBN.toString();
 }
 
 function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {

@@ -141,6 +141,7 @@ async function getChainInfo() {
     chainInfo = {};
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
+    chainInfo.avtContract = await api.query.tokenManager.aVTTokenContract();
     chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
     chainInfo = JSON.stringify(chainInfo);
     await redis.setChainInfo(chainInfo);
@@ -207,7 +208,25 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
       merklePath: '[' + data.merkle_path.join(',').replace(/'/g, '') + ']'
     },
     transactionDetails: decodeExtrinsic(data.encoded_leaf)
+  };
+}
+
+async function getTotalToken(token) {
+  let total = await redis.getTotalToken(token);
+
+  if (!total) {
+    let chainInfo = JSON.parse(await getChainInfo());
+
+    if (token === chainInfo.avtContract) {
+      total = (await api.query.balances.totalIssuance()).toString();
+    } else {
+      total = await ethereum.getLockedBalance(chainInfo.avnContract, token);
+    }
+
+    await redis.setTotalToken(token, total);
   }
+
+  return total;
 }
 
 function decodeExtrinsic(call) {
@@ -395,6 +414,7 @@ module.exports = {
   getCurrentBlock,
   getSummaryData,
   getSummaryInclusionData,
+  getTotalToken,
   getUnprocessedLifts,
   processLifts
 };

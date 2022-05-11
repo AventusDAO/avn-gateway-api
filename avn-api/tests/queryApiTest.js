@@ -55,6 +55,7 @@ describe('Query api calls:', async () => {
     relayer = accounts.relayer;
     user = accounts.user;
     recipient = accounts.otherUser;
+    token = helper.token;
   });
 
   describe('get contract addresses', async () => {
@@ -71,9 +72,23 @@ describe('Query api calls:', async () => {
     });
   });
 
-  describe('getTotalAvt', async () => {
-    it('returns total AVT supply', async () => {
-      assert(new BN(await api.query.getTotalAvt()).gt(MIN_TOTAL_AVT_SUPPLY));
+  describe('get totals', async () => {
+    it('returns total AVT', async () => {
+      let avt = await api.query.getAvtContractAddress();
+      helper.bnEquals(await api.query.getTotalAvt(), await api.query.getTotalToken(avt));
+    });
+
+    it('returns total ETH', async () => {
+      assert(new BN(await api.query.getTotalToken('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')).gt(BN_ZERO));
+    });
+
+    it('returns total other token', async () => {
+      assert(new BN(await api.query.getTotalToken(token)).gt(BN_ZERO));
+    });
+
+    it('returns zero for a non-existent token', async () => {
+      const nonExistentToken = '0xd09a7B5F603E66B04e8DaFCD8653114f3C49C038';
+      helper.bnEquals(await api.query.getTotalToken(nonExistentToken), 0);
     });
   });
 
@@ -112,7 +127,8 @@ describe('Query api calls:', async () => {
       let summaryData = await api.query.getSummaryData(block);
       assert.equal(summaryData.blockNumber, block);
       const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
-      assert.equal(summaryData.summaryRange[0],  multiplier * SCHEDULE_PERIOD + 1);
+      const startBlock = block < SCHEDULE_PERIOD ? 0 : multiplier * SCHEDULE_PERIOD + 1
+      assert.equal(summaryData.summaryRange[0],  startBlock);
       assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
       assert.equal(summaryData.ethTxHash, null);
     });
@@ -122,7 +138,8 @@ describe('Query api calls:', async () => {
       let summaryData = await api.query.getSummaryData();
       assert(parseInt(summaryData.blockNumber) >= parseInt(block));
       const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
-      assert.equal(summaryData.summaryRange[0],  multiplier * SCHEDULE_PERIOD + 1);
+      const startBlock = block < SCHEDULE_PERIOD ? 0 : multiplier * SCHEDULE_PERIOD + 1
+      assert.equal(summaryData.summaryRange[0],  startBlock);
       assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
       assert.equal(summaryData.ethTxHash, null);
     });
@@ -151,17 +168,21 @@ describe('Query api calls:', async () => {
     });
 
     it('returns info for a transaction that is too historic to process', async () => {
-      const blockNumber = '6042';
-      const transactionIndex = '1';
-      let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
-      assert.equal(inclusionData.status, 'For historic data please contact Aventus');
+      if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD * 3 + 1000) {
+        const blockNumber = '1';
+        const transactionIndex = '0';
+        let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
+        assert.equal(inclusionData.status, 'For historic data please contact Aventus');
+      }
     });
 
     it('returns info for a transaction that does not exist', async () => {
-      const blockNumber = parseInt(await api.query.getCurrentBlock()) - SCHEDULE_PERIOD * 2;
-      const transactionIndex = '1000';
-      let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
-      assert.equal(inclusionData.status, 'Transaction not found');
+      if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD + 1000) {
+        const blockNumber = parseInt(await api.query.getCurrentBlock()) - 100;
+        const transactionIndex = '10000';
+        let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
+        assert.equal(inclusionData.status, 'Transaction not found');
+      }
     });
 
     it('returns info for an as yet unpublished transaction', async () => {
@@ -294,7 +315,7 @@ describe('Query api calls:', async () => {
 
   describe('getStakingStats', async () => {
     const defaultMaxNominatorsRewardedPerValidatorBN = new BN(256);
-    const defaultMinUserBondBN = new BN("100000000000000000000");
+    const defaultMinUserBondBN = new BN("1000000000000000000");
 
     it('returns the correct data', async () => {
       const returnedData = await api.query.getStakingStats();

@@ -52,6 +52,8 @@ async function callSwitch(call, request) {
       return await getTokenBalance(call, request);
     case 'getTotalAvt':
       return await getTotalAvt(call, request);
+    case 'getTotalToken':
+      return await getTotalToken(call, request);
     case `getAccountInfo`:
       return await getAccountInfo(call, request);
     case 'getStakingStatus':
@@ -201,6 +203,18 @@ async function getTotalAvt(call, request) {
   return await queryChain(call, request, 'balances', 'totalIssuance', [], formatNumAsString);
 }
 
+async function getTotalToken(call, request) {
+  const { token } = call.params;
+
+  if (utils.isValidEthereumAddress(token) === false) {
+    return utils.errorResponse('params', 'invalid token', token, request, call.id);
+  } else {
+    const method = 'avnTotalToken';
+    const params = { callId: call.id, token };
+    return await query(call, request, method, params, formatTotal);
+  }
+}
+
 async function getAccountInfo(call, request) {
   const { accountId } = call.params;
 
@@ -319,6 +333,8 @@ async function query(call, request, method, params, responseFormatter) {
   }
 }
 
+const formatTotal = data => data.total;
+
 const formatAsString = data => data.toString();
 
 const formatNumAsString = data => utils.toBnString(data);
@@ -331,7 +347,7 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
 const formatEraAsString = data => (data ? data.index : 0);
 
-const formatEraElectionStatus = data => (Object.keys(x)[0] === 'Open' ? 'isOpen' : 'isClosed');
+const formatEraElectionStatus = data => (Object.keys(data)[0] === 'Open' ? 'isOpen' : 'isClosed');
 
 const filterNftOwner = data => (data ? data.owner : null);
 

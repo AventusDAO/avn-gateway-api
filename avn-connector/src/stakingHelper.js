@@ -68,7 +68,7 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
 async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, lastPayoutEra, currentEra) {
   let lastPayoutEraBN = new BN(lastPayoutEra);
   // If we have never paid, start paying from the previous era
-  lastPayoutEraBN = lastPayoutEraBN.gt(new BN(0)) ? lastPayoutEraBN : lastPayoutEraBN.sub(1);
+  lastPayoutEraBN = lastPayoutEraBN.gt(new BN(0)) ? lastPayoutEraBN : currentEra.sub(1);
 
   const maxPayoutEraBN = new BN(currentEra).sub(1);
   let proxyNonceBN = new BN(proxyNonce);

@@ -75,17 +75,14 @@ async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, la
   let lastPayoutEraBN = new BN(lastPayoutEra);
   // If we have never paid, start paying from the previous era
   lastPayoutEraBN = lastPayoutEraBN.gt(BN_ZERO) ? lastPayoutEraBN : maxPayoutEraBN;
-
   let proxyNonceBN = new BN(proxyNonce.toString());
 
-  logger.info(`lastPayoutEraBN: ${lastPayoutEraBN}, currentEraBN: ${currentEraBN}`);
   if (lastPayoutEraBN.lt(currentEraBN)) {
     let currentPayoutEraBN = new BN(lastPayoutEraBN).add(BN_ONE);
 
-    logger.info(`currentPayoutEraBN: ${currentPayoutEraBN}, maxPayoutEraBN: ${maxPayoutEraBN}`);
     while (currentPayoutEraBN.lte(maxPayoutEraBN)) {
       const payload = getPayoutPayload(registry, relayerAccount, currentPayoutEraBN.toString(), proxyNonceBN.toString());
-      logger.info(`calling lambda`);
+      logger.trace(`calling payout-all-stakers lambda`);
       await lambda.payoutAllStakers(payload);
       currentPayoutEraBN = currentPayoutEraBN.add(BN_ONE);
       proxyNonceBN = proxyNonceBN.add(BN_ONE);

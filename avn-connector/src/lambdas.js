@@ -23,7 +23,11 @@ async function payoutAllStakers(payload) {
     Payload: JSON.stringify(payload)
   });
 
-  await client.send(command);
+  const result = await client.send(command);
+
+  if (!result || result.StatusCode !== 200) {
+    throw new Error(`payout-all-stakers lambda returned an error: `, result);
+  }
 }
 
 module.exports = {

@@ -4,7 +4,7 @@ const avn = require('./avn');
 const redis = require('./redis');
 const gatewayDb = require('./gatewayDb');
 const mqConsumer = require('./mqConsumer');
-const txStatusPoller = require('./txStatusPoller');
+const lambda = require('./lambdas');
 const express = require('express');
 const log4js = require('log4js');
 const jsonLayout = require('log4js-json-layout');
@@ -41,7 +41,7 @@ app.post('/avnPoll', async (req, res, next) => {
   try {
     log.trace({ avnPollRequest: req.body });
     // the await is removed on purpose here
-    txStatusPoller.resolvePendingTransactionsState();
+    lambda.resolvePendingTransactionsState();
 
     const result = await avn.poll(req.body.requestId);
     res.send(result);

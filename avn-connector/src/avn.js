@@ -365,6 +365,27 @@ async function connectToAvN() {
     }
   });
 
+  const _unsub = await api.query.staking.currentEra((era) => {
+    // Wait for 10s before paying out to allow for block finalisation.
+    // TODO: Find a better way to detect block finalisation
+    setTimeout(() => {
+      try {
+        log.info(`Triggering payout stakers. Current era: ${era}`);
+        let lastPayoutEra = (await redis.getLastPayoutEra()) || 0;
+
+        // TODO: Replace me with a config value in the next PR
+        const tempRewardPayerAddress = "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh";
+        const proxyNonce = api.query.validatorsManager.proxyNonces(tempRewardPayerAddress);
+        const relayerAccount = avn.getRelayerAccount(tempRewardPayerAddress);
+
+        await stakingHelper.payoutAllStakers(api.registry, log, relayerAccount, proxyNonce, lastPayoutEra, era);
+        await redis.setLastPayoutEra(era.toString());
+      } catch (err) {
+        log.error(`Error paying stakers for era ${era}: ${err}`);
+      }
+    }, 10000);
+  });
+
   const [chain, nodeName, nodeVersion] = await Promise.all([
     api.rpc.system.chain(),
     api.rpc.system.name(),

@@ -1,5 +1,6 @@
 const BN = require('bn.js');
 const BN_ZERO = new BN(0);
+const lambda = require('./lambdas');
 
 function calculateBondedAmount(stakingInfo) {
   let bonded = new BN(0);
@@ -64,8 +65,58 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
   };
 }
 
+async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, lastPayoutEra, currentEra) {
+  let lastPayoutEraBN = new BN(lastPayoutEra);
+  // If we have never paid, start paying from the previous era
+  lastPayoutEraBN = lastPayoutEraBN.gt(new BN(0)) ? lastPayoutEraBN : lastPayoutEraBN.sub(1);
+
+  const maxPayoutEraBN = new BN(currentEra).sub(1);
+  let proxyNonceBN = new BN(proxyNonce);
+
+  if (lastPayoutEraBN.lt(new BN(currentEra))) {
+    let currentPayoutEraBN = new BN(lastPayoutEraBN).add(1);
+
+    while (currentPayoutEraBN.lte(maxPayoutEraBN)) {
+      const payload = getPayoutPayload(registry, relayerAccount, currentPayoutEraBN.toString(), proxyNonceBN.toString());
+      await lambda.payoutAllStakers(payload);
+      currentPayoutEraBN = currentPayoutEraBN.add(1);
+      proxyNonceBN = proxyNonceBN.add(1);
+    }
+  } else {
+    logger.warn(`Era ${currentEra.toString()} has already been processed, skipping.`);
+  }
+}
+
+function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
+  const payloadParams = {
+    relayer: relayerAccount.address,
+    user: relayerAccount.address,
+    payer: relayerAccount.address,
+    era,
+    proxySignature: generateProxySignature(registry, u8aToHex(relayerAccount.publicKey), era, proxyNonce)
+  };
+
+  return {
+    params: payloadParams
+  }
+}
+
+function generateProxySignature(registry, relayerPublicKey, era, proxyNonce) {
+  const orderedData = [
+    registry.createType('Text', 'authorization for signed payout stakers operation').toU8a(false),
+    registry.createType('AccountId', relayerPublicKey).toU8a(true),
+    registry.createType('EraIndex', era).toU8a(true),
+    registry.createType('u64', proxyNonce).toU8a(true),
+  ];
+
+  const encodedDataToSign = u8aConcat(...orderedData);
+  const signature = u8aToHex(relayerAccount.sign(encodedDataToSign));
+  return signature;
+}
+
 module.exports = {
   calculateBondedAmount,
   calculateUnbondingAmount,
-  calculateStakingStats
+  calculateStakingStats,
+  payoutAllStakers
 };

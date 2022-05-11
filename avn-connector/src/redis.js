@@ -26,6 +26,7 @@ const VALIDATORS_KEY = 'validators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
 const CHECK_LIFTS_FROM_BLOCK_KEY = 'checkLiftsFromBlock';
+const ERA_KEY = 'era';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -225,6 +226,14 @@ async function getCheckLiftsFromBlock() {
   return await redisClient.get(CHECK_LIFTS_FROM_BLOCK_KEY);
 }
 
+async function setLastPayoutEra(era) {
+  await redisClient.set(ERA_KEY, era);
+}
+
+async function getLastPayoutEra() {
+  return await redisClient.get(ERA_KEY);
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
@@ -246,5 +255,7 @@ module.exports = {
   getSummaryEthTxHash,
   setSummaryEthTxHash,
   getCheckLiftsFromBlock,
-  setCheckLiftsFromBlock
+  setCheckLiftsFromBlock,
+  getLastPayoutEra,
+  setLastPayoutEra
 };

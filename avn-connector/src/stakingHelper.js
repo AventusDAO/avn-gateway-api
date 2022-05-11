@@ -1,6 +1,7 @@
 const BN = require('bn.js');
 const BN_ZERO = new BN(0);
 const lambda = require('./lambdas');
+const { u8aToHex } = require('@polkadot/util');
 
 function calculateBondedAmount(stakingInfo) {
   let bonded = new BN(0);

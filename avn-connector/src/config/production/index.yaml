@@ -1,2 +1,3 @@
 avnUrl: $ENV:AVN_NODE_URL
 serverPort: $ENV:SERVER_PORT
+stakingPayoutRelayer: $ENV:STAKING_PAYOUT_RELAYER

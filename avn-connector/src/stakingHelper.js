@@ -103,7 +103,7 @@ function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
     user: relayerAccount.address,
     payer: relayerAccount.address,
     era,
-    proxySignature: generateProxySignature(registry, u8aToHex(relayerAccount.publicKey), era, proxyNonce)
+    proxySignature: generateProxySignature(registry, relayerAccount, era, proxyNonce)
   };
 
   return {
@@ -111,10 +111,10 @@ function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
   }
 }
 
-function generateProxySignature(registry, relayerPublicKey, era, proxyNonce) {
+function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
   const orderedData = [
     registry.createType('Text', 'authorization for signed payout stakers operation').toU8a(false),
-    registry.createType('AccountId', relayerPublicKey).toU8a(true),
+    registry.createType('AccountId', u8aToHex(relayerAccount.publicKey)).toU8a(true),
     registry.createType('EraIndex', era).toU8a(true),
     registry.createType('u64', proxyNonce).toU8a(true),
   ];

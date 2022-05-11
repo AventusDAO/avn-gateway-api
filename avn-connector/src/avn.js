@@ -384,7 +384,7 @@ async function connectToAvN() {
     }
   });
 
-  const _unsub = await api.query.staking.currentEra((era) => {
+  const _unsub = await api.query.staking.currentEra(async (era) => {
     // TODO: Find a way to detect block finalisation
     try {
       log.info(`Triggering payout stakers. Current era: ${era}`);

@@ -390,7 +390,7 @@ async function connectToAvN() {
       log.info(`Triggering payout stakers. Current era: ${era}`);
       let lastPayoutEra = (await redis.getLastPayoutEra()) || 0;
 
-      const rewardPayerAddress = config.stakingPayoutPayer;
+      const rewardPayerAddress = config.stakingPayoutRelayer;
       log.info(`Reward payer address: ${rewardPayerAddress}`);
       const proxyNonce = api.query.validatorsManager.proxyNonces(rewardPayerAddress);
       const relayerAccount = avn.getRelayerAccount(rewardPayerAddress);

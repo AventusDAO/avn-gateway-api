@@ -95,6 +95,7 @@ async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, la
 }
 
 function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
+  console.log("getPayoutPayload: ", relayerAccount, era, proxyNonce);
   const payloadParams = {
     relayer: relayerAccount.address,
     user: relayerAccount.address,

@@ -127,7 +127,8 @@ describe('Query api calls:', async () => {
       let summaryData = await api.query.getSummaryData(block);
       assert.equal(summaryData.blockNumber, block);
       const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
-      assert.equal(summaryData.summaryRange[0],  multiplier * SCHEDULE_PERIOD + 1);
+      const startBlock = block < SCHEDULE_PERIOD ? 0 : multiplier * SCHEDULE_PERIOD + 1
+      assert.equal(summaryData.summaryRange[0],  startBlock);
       assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
       assert.equal(summaryData.ethTxHash, null);
     });
@@ -137,7 +138,8 @@ describe('Query api calls:', async () => {
       let summaryData = await api.query.getSummaryData();
       assert(parseInt(summaryData.blockNumber) >= parseInt(block));
       const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
-      assert.equal(summaryData.summaryRange[0],  multiplier * SCHEDULE_PERIOD + 1);
+      const startBlock = block < SCHEDULE_PERIOD ? 0 : multiplier * SCHEDULE_PERIOD + 1
+      assert.equal(summaryData.summaryRange[0],  startBlock);
       assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
       assert.equal(summaryData.ethTxHash, null);
     });
@@ -166,17 +168,21 @@ describe('Query api calls:', async () => {
     });
 
     it('returns info for a transaction that is too historic to process', async () => {
-      const blockNumber = '6042';
-      const transactionIndex = '1';
-      let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
-      assert.equal(inclusionData.status, 'For historic data please contact Aventus');
+      if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD * 3 + 1000) {
+        const blockNumber = '1';
+        const transactionIndex = '0';
+        let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
+        assert.equal(inclusionData.status, 'For historic data please contact Aventus');
+      }
     });
 
     it('returns info for a transaction that does not exist', async () => {
-      const blockNumber = parseInt(await api.query.getCurrentBlock()) - SCHEDULE_PERIOD * 2;
-      const transactionIndex = '1000';
-      let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
-      assert.equal(inclusionData.status, 'Transaction not found');
+      if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD + 1000) {
+        const blockNumber = parseInt(await api.query.getCurrentBlock()) - 100;
+        const transactionIndex = '10000';
+        let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
+        assert.equal(inclusionData.status, 'Transaction not found');
+      }
     });
 
     it('returns info for an as yet unpublished transaction', async () => {
@@ -309,7 +315,7 @@ describe('Query api calls:', async () => {
 
   describe('getStakingStats', async () => {
     const defaultMaxNominatorsRewardedPerValidatorBN = new BN(256);
-    const defaultMinUserBondBN = new BN("100000000000000000000");
+    const defaultMinUserBondBN = new BN("5000000000000000000000");
 
     it('returns the correct data', async () => {
       const returnedData = await api.query.getStakingStats();

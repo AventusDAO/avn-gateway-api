@@ -164,7 +164,7 @@ app.post('/avnTotalToken', async (req, res, next) => {
   try {
     log.trace({ avnTotalTokenRequest: req.body });
     const result = await avn.getTotalToken(req.body.token);
-    res.send(result.toString());
+    res.send({ total: result });
   } catch (err) {
     next(err);
   }

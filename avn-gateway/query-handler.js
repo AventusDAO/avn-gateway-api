@@ -211,7 +211,7 @@ async function getTotalToken(call, request) {
   } else {
     const method = 'avnTotalToken';
     const params = { callId: call.id, token };
-    return await query(call, request, method, params);
+    return await query(call, request, method, params, formatTotal);
   }
 }
 
@@ -332,6 +332,8 @@ async function query(call, request, method, params, responseFormatter) {
     return utils.errorResponse('internal', `failed to invoke ${method} when querying the chain`, err, request, call.id);
   }
 }
+
+const formatTotal = data => data.total;
 
 const formatAsString = data => data.toString();
 

@@ -180,8 +180,8 @@ app.listen(port, () => {
 });
 
 async function instantiateConnector() {
-  await avn.init();
   await redis.connect();
+  await avn.init();
   await mqConsumer.connectToMQ();
   await gatewayDb.init();
 }

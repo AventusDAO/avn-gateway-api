@@ -82,7 +82,6 @@ async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, la
 
     while (currentPayoutEraBN.lte(maxPayoutEraBN)) {
       const payload = getPayoutPayload(registry, relayerAccount, currentPayoutEraBN.toString(), proxyNonceBN.toString());
-      logger.trace(`calling payout-all-stakers lambda`);
       await lambda.payoutAllStakers(payload);
       currentPayoutEraBN = currentPayoutEraBN.add(BN_ONE);
       proxyNonceBN = proxyNonceBN.add(BN_ONE);
@@ -95,7 +94,6 @@ async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, la
 }
 
 function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
-  console.log("getPayoutPayload: ", relayerAccount, era, proxyNonce);
   const payloadParams = {
     relayer: relayerAccount.address,
     user: relayerAccount.address,
@@ -110,7 +108,6 @@ function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
 }
 
 function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
-  console.log("generateProxySignature: ", u8aToHex(relayerAccount.publicKey), era, proxyNonce)
   const orderedData = [
     registry.createType('Text', 'authorization for signed payout stakers operation').toU8a(false),
     registry.createType('AccountId', u8aToHex(relayerAccount.publicKey)).toU8a(true),
@@ -119,9 +116,7 @@ function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
   ];
 
   const encodedDataToSign = u8aConcat(...orderedData);
-  console.log("encodedDataToSign: ", u8aToHex(encodedDataToSign));
   const signature = u8aToHex(relayerAccount.sign(encodedDataToSign));
-  console.log("Signature: ", signature);
   return signature;
 }
 

@@ -4,6 +4,7 @@ const MQSender = require('/opt/mqSender.js');
 let mqSender;
 
 exports.handler = async payload => {
+  console.log("Payout staker lambda invoked with payload: ", payload);
   try {
     await connectToMQ();
 
@@ -14,7 +15,7 @@ exports.handler = async payload => {
 
     return response;
   } catch (err) {
-    payload.proxySignature = '****';
+    console.log("Error paying out staking rewards: ", err);
     return {
       statusCode: 500,
       error: { message: err.message, payload }
@@ -30,8 +31,7 @@ const connectToMQ = async () => {
 };
 
 // We expect that election status has been checked before calling this internal lambda
-async function processRequest(payload) {
-  let call = JSON.parse(payload);
+async function processRequest(call) {
   call.id = 1;
   call.requestId = 'automatedStakersPayout';
 
@@ -69,6 +69,7 @@ async function processRequest(payload) {
 
 async function sendTx(call, palletName, method, params) {
   try {
+    console.log("Sending payout transaction to the queue");
     const queue = process.env.MQ_AVN_TX_QUEUE;
     const txType = 'avnProxy';
     const result = await mqSender.sendMessageToMQ(queue, { call: call.requestId, txType, palletName, method, params });
@@ -77,4 +78,3 @@ async function sendTx(call, palletName, method, params) {
     return utils.errorResponse('internal', 'failed to send proxy transaction', err, call, call.id);
   }
 }
-

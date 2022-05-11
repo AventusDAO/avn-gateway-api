@@ -22,6 +22,7 @@ const transactionStatus = {
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
 const SUMMARY_RANGE_NAMESPACE = 's.';
+const TOTAL_TOKEN_NAMESPACE = 't.';
 const VALIDATORS_KEY = 'validators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
@@ -37,6 +38,7 @@ const PENDING_TX_KEY = {
 const MAX_PENDING_TX_TO_CHECK = 100;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
 const NONCE_EXPIRY_IN_SECONDS = 5;
+const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
 const VALIDATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
@@ -234,6 +236,14 @@ async function getLastPayoutEra() {
   return await redisClient.get(ERA_KEY);
 }
 
+async function setTotalToken(token, total) {
+  await redisClient.setex(TOTAL_TOKEN_NAMESPACE + token, TOTAL_TOKEN_EXPIRY_IN_SECONDS, total);
+}
+
+async function getTotalToken(token) {
+  return await redisClient.get(TOTAL_TOKEN_NAMESPACE + token);
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
@@ -257,5 +267,7 @@ module.exports = {
   getCheckLiftsFromBlock,
   setCheckLiftsFromBlock,
   getLastPayoutEra,
-  setLastPayoutEra
+  setLastPayoutEra,
+  getTotalToken,
+  setTotalToken
 };

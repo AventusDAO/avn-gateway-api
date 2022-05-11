@@ -278,6 +278,41 @@ curl https://AVN-API-URL/query \
 }
 ```
 
+#### getTotalToken
+Returns the total amount of a token currently on the AvN.\
+The result is inclusive of both:
+- lifts which have occurred on Ethereum but are waiting to be processed by the AVN
+- lowers which have occurred on the AvN but are waiting to be claimed on Ethereum
+
+**REQUEST** \
+`POST https://AVN-API-URL/query`
+
+**HEADERS** \
+`Content-Type: application/json`
+`Authorization: bearer <awtToken>`
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/query \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"getTotalToken", "params":{"token":"0x2adce7ada36d86253aa63bcf4aad9f84ccb9480e"}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`TOTAL` - string integer value of the current total amount of a token in its smallest denomination
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "1000000000000"
+}
+```
+
 #### getTokenBalance
 Returns the balance of a given token for a given AvN account
 

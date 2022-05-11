@@ -56,8 +56,6 @@ async function connect() {
     redisClient = new Redis();
   }
 
-  redisClient.flushall();
-
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
     lua: `local subset = redis.call('ZRANGE', KEYS[1], 0, ARGV[1]-1)

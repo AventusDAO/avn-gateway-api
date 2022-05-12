@@ -16,6 +16,7 @@ env:
   LIFT_PROC: lift-processing-handler
   COMMON: common
   QUEUE: queue
+  STAKER_PAY: stakers-payout-handler
 
 defaults:
   run:
@@ -70,6 +71,7 @@ jobs:
           mv build/${{ env.LIFT_PROC }}.zip build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-latest.zip
           mv build/${{ env.COMMON }}.zip build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip
           mv build/${{ env.QUEUE }}.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip
+          mv build/${{ env.STAKER_PAY }}.zip build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-latest.zip
           ls -l build/
 
       - name: create Short sha version
@@ -82,6 +84,7 @@ jobs:
           cp build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-latest.zip build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip build/${{ env.COMMON }}/${{ env.COMMON }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-latest.zip build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-${{ needs.version-suffix.outputs.version }}.zip
 
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@v0.5.1

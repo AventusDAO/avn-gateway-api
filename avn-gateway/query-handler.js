@@ -29,6 +29,8 @@ async function processRequest(request) {
 
 // Keep alphabetical
 async function callSwitch(call, request) {
+  console.info(`Processing call: ${JSON.stringify(call)}`);
+
   switch (call.method) {
     case 'getNonce':
       return await getNonce(call, request);

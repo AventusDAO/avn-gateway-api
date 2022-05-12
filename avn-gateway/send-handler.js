@@ -49,6 +49,8 @@ async function processRequest(request, requestId) {
 }
 
 async function callSwitch(call, request, requestId) {
+  console.info(`Processing call: ${call.method}`);
+
   switch (call.method) {
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':

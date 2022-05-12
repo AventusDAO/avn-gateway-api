@@ -385,13 +385,13 @@ async function connectToAvN() {
   });
 
   // We have multiple pods running the same code so we have to use redis to make sure only 1 pod is acting on this event.
-  const _unsub = await api.query.staking.currentEra(async (era) => {
+  const _unsub = await api.query.staking.activeEra(async (eraInfo) => {
     // TODO: Find a way to detect block finalisation: https://github.com/polkadot-js/api/issues/4818
-
+    const era = eraInfo.index;
     const payoutInProgress = await redis.getStakerPayoutFlag();
     // We cannot store booleans in redis.
     if (payoutInProgress === 'true') {
-      log.info(`Staking payout already in progress for era: ${era}`);
+      log.trace(`staking payout already in progress for era: ${era}, skipping`);
       return;
     }
 

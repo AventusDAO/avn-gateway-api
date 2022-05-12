@@ -4,7 +4,7 @@ const MQSender = require('/opt/mqSender.js');
 let mqSender;
 
 exports.handler = async payload => {
-  console.log("Payout staker lambda invoked with payload: ", payload);
+  console.log('Payout staker lambda invoked with payload: ', payload);
   try {
     await connectToMQ();
 
@@ -15,7 +15,7 @@ exports.handler = async payload => {
 
     return response;
   } catch (err) {
-    console.log("Error paying out staking rewards: ", err);
+    console.log('Error paying out staking rewards: ', err);
     return {
       statusCode: 500,
       error: { message: err.message, payload }
@@ -38,7 +38,7 @@ async function processRequest(call) {
   const pallet = 'validatorsManager';
   const method = 'signedPayoutStakers';
 
-  const {era, relayer, user, payer, proxySignature } = call.params;
+  const { era, relayer, user, payer, proxySignature } = call.params;
 
   try {
     if (utils.isValidNumber(era) === false) throw 'era';
@@ -69,7 +69,7 @@ async function processRequest(call) {
 
 async function sendTx(call, palletName, method, params) {
   try {
-    console.log("Sending payout transaction to the queue");
+    console.log('Sending payout transaction to the queue');
     const queue = process.env.MQ_AVN_TX_QUEUE;
     const txType = 'avnProxy';
     const result = await mqSender.sendMessageToMQ(queue, { call: call.requestId, txType, palletName, method, params });

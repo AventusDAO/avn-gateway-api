@@ -262,7 +262,7 @@ function getProxyProof(user, relayer, proxySignature) {
 
 async function processProxyStakeAvt(call, request, requestId) {
   // check if era election is open before proceeding
-  if (await isEraElectionStatusOpen(call.id) === true) {
+  if ((await isEraElectionStatusOpen(call.id)) === true) {
     return utils.errorResponse('request', 'election window is open', {}, request, call.id);
   }
 
@@ -295,7 +295,7 @@ async function processProxyStakeAvt(call, request, requestId) {
 
 async function processProxyIncreaseStake(call, request, requestId) {
   // check if era election is open before proceeding
-  if (await isEraElectionStatusOpen(call.id) === true) {
+  if ((await isEraElectionStatusOpen(call.id)) === true) {
     return utils.errorResponse('request', 'election window is open', {}, request, call.id);
   }
 
@@ -315,7 +315,7 @@ async function processProxyIncreaseStake(call, request, requestId) {
 
 async function processProxyUnstake(call, request, requestId) {
   // check if era election is open before proceeding
-  if (await isEraElectionStatusOpen(call.id) === true) {
+  if ((await isEraElectionStatusOpen(call.id)) === true) {
     return utils.errorResponse('request', 'election window is open', {}, request, call.id);
   }
 
@@ -335,7 +335,7 @@ async function processProxyUnstake(call, request, requestId) {
 
 async function processProxyWithdrawUnlocked(call, request, requestId) {
   // check if era election is open before proceeding
-  if (await isEraElectionStatusOpen(call.id) === true) {
+  if ((await isEraElectionStatusOpen(call.id)) === true) {
     return utils.errorResponse('request', 'election window is open', {}, request, call.id);
   }
 
@@ -349,7 +349,7 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
 
 async function processProxyPayoutStakers(call, request, requestId) {
   // check if era election is open before proceeding
-  if (await isEraElectionStatusOpen(call.id) === true) {
+  if ((await isEraElectionStatusOpen(call.id)) === true) {
     return utils.errorResponse('request', 'election window is open', {}, request, call.id);
   }
 

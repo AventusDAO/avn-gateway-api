@@ -33,7 +33,7 @@ function calculateUnbondingAmount(stakingInfo) {
 }
 
 function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator) {
-  let totalStaked = new BN("0");
+  let totalStaked = new BN('0');
   let numActiveStakes = 0;
   let totalStakers = 0;
   const nominators = {};
@@ -41,16 +41,16 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
   stakersData.info.forEach(({ exposure }) => {
     const bondTotal = exposure.total.unwrap();
     if (!bondTotal.isZero()) {
-        totalStaked = totalStaked.add(bondTotal);
-        numActiveStakes++;
+      totalStaked = totalStaked.add(bondTotal);
+      numActiveStakes++;
     }
 
-    (exposure.others || []).forEach((otherStaker) => {
+    (exposure.others || []).forEach(otherStaker => {
       const nominator = otherStaker.who.toString();
       nominators[nominator] = (nominators[nominator] || BN_ZERO).add(otherStaker.value?.toBn() || BN_ZERO);
     });
   });
-  const averageStaked = (totalStaked.divn(numActiveStakes)).toString();
+  const averageStaked = totalStaked.divn(numActiveStakes).toString();
   const minimumStaked = Object.values(nominators).reduce((minStake, value) => {
     totalStakers++;
     return minStake.isZero() || value.lt(minStake) ? value : minStake;
@@ -104,7 +104,7 @@ function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
 
   return {
     params: payloadParams
-  }
+  };
 }
 
 function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
@@ -112,7 +112,7 @@ function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
     registry.createType('Text', 'authorization for signed payout stakers operation').toU8a(false),
     registry.createType('AccountId', u8aToHex(relayerAccount.publicKey)).toU8a(true),
     registry.createType('EraIndex', era).toU8a(true),
-    registry.createType('u64', proxyNonce).toU8a(true),
+    registry.createType('u64', proxyNonce).toU8a(true)
   ];
 
   const encodedDataToSign = u8aConcat(...orderedData);

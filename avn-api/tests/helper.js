@@ -52,7 +52,7 @@ async function confirmStatus(api, requestId, expectedStatus) {
       return response;
     }
   }
-  
+
   assert.equal(status, expectedStatus);
 }
 

@@ -120,7 +120,7 @@ async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
 
   if (!stakingStats) {
-    const stakersData = await api.derive.staking.electedInfo({withExposure: true});
+    const stakersData = await api.derive.staking.electedInfo({ withExposure: true });
 
     const [minUserBond, maxNominatorsRewardedPerValidator] = await Promise.all([
       api.query.validatorsManager.minUserBond(),
@@ -385,7 +385,7 @@ async function connectToAvN() {
   });
 
   // We have multiple pods running the same code so we have to use redis to make sure only 1 pod is acting on this event.
-  const _unsub = await api.query.staking.activeEra(async (eraInfo) => {
+  const _unsub = await api.query.staking.activeEra(async eraInfo => {
     // TODO: Find a way to detect block finalisation: https://github.com/polkadot-js/api/issues/4818
     const era = eraInfo.toJSON().index;
     const payoutInProgress = await redis.getStakerPayoutFlag();
@@ -406,7 +406,14 @@ async function connectToAvN() {
       const proxyNonce = await api.query.validatorsManager.proxyNonces(rewardPayerAddress);
       const relayerAccount = await getRelayerAccount(rewardPayerAddress);
 
-      const lastEraPaid = await stakingHelper.payoutAllStakers(api.registry, log, relayerAccount, proxyNonce.toString(), lastPayoutEra, era);
+      const lastEraPaid = await stakingHelper.payoutAllStakers(
+        api.registry,
+        log,
+        relayerAccount,
+        proxyNonce.toString(),
+        lastPayoutEra,
+        era
+      );
       await redis.setLastPayoutEra(lastEraPaid.toString());
     } catch (err) {
       log.error(`Error paying stakers for era ${era}`, err);

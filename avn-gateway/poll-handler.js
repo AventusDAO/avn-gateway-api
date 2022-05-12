@@ -28,6 +28,8 @@ async function processRequest(request) {
 }
 
 async function makeCall(call, request) {
+  console.info(`Processing call: ${JSON.stringify(call)}`);
+
   if (call.method !== 'requestState') {
     return utils.errorResponse('method', "method must be 'requestState'", call.method, request, call.id);
   }

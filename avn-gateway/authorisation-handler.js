@@ -17,6 +17,13 @@ async function validateAwtToken(event) {
   console.info('Validating AWT token and user balance');
   const awtToken = getAwtTokenIfAny(event);
 
+  if (!awtToken) {
+    console.info('Invalid AWT token - token not found');
+    return InvalidRequestResponse;
+  }
+
+  console.info(`Public key: ${awtToken.pk}`);
+
   if (!tokenAgeIsValid(awtToken)) {
     console.info('Invalid AWT token - outside window');
     return InvalidRequestResponse;

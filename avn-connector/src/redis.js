@@ -28,6 +28,7 @@ const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
 const CHECK_LIFTS_FROM_BLOCK_KEY = 'checkLiftsFromBlock';
 const ERA_KEY = 'era';
+const STAKER_PAYOUT_FLAG_KEY = 'payoutFlag';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -244,6 +245,14 @@ async function getTotalToken(token) {
   return await redisClient.get(TOTAL_TOKEN_NAMESPACE + token);
 }
 
+async function getStakerPayoutFlag() {
+  return await redisClient.get(STAKER_PAYOUT_FLAG_KEY);
+}
+
+async function setStakerPayoutFlag(flag) {
+  await redisClient.set(STAKER_PAYOUT_FLAG_KEY, flag);
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
@@ -269,5 +278,7 @@ module.exports = {
   getLastPayoutEra,
   setLastPayoutEra,
   getTotalToken,
-  setTotalToken
+  setTotalToken,
+  getStakerPayoutFlag,
+  setStakerPayoutFlag
 };

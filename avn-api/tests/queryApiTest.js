@@ -315,7 +315,6 @@ describe('Query api calls:', async () => {
 
   describe('getStakingStats', async () => {
     const defaultMaxNominatorsRewardedPerValidatorBN = new BN(256);
-    const defaultMinUserBondBN = new BN('1000000000000000000');
 
     it('returns the correct data', async () => {
       const returnedData = await api.query.getStakingStats();
@@ -332,7 +331,7 @@ describe('Query api calls:', async () => {
       assert(averageStakedBN.lte(totalStakedBN), 'Average stake must be less than total stake');
       assert(totalStakersBN.gte(BN_ZERO), 'Total number of stakers is zero');
       assert(minimumStakedBN.lte(averageStakedBN), 'Minimum stake must be less than or equal to average stake');
-      assert(minUserBondBN.eq(defaultMinUserBondBN), 'Minimum user bond does not match default value');
+      assert(minUserBondBN.gt(BN_ZERO), 'Minimum user bond does not match default value');
       assert(
         maxNominatorsRewardedPerValidatorBN.eq(defaultMaxNominatorsRewardedPerValidatorBN),
         "Maximum number of nominators doesn't match default value"

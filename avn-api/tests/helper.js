@@ -43,7 +43,7 @@ async function confirmStatus(api, requestId, expectedStatus) {
   if (!requestId) throw new Error('RequestId cannot be null');
   let response, status;
 
-  for (i = 0; i < 10; i++) {
+  for (i = 0; i < 20; i++) {
     await sleep(3000);
     response = await api.poll.requestState(requestId);
     status = response.status;

@@ -212,12 +212,13 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
 }
 
 async function getTotalToken(token) {
+  token = token.toLowerCase();
   let total = await redis.getTotalToken(token);
 
   if (!total) {
     let chainInfo = JSON.parse(await getChainInfo());
 
-    if (token === chainInfo.avtContract) {
+    if (token === chainInfo.avtContract.toLowerCase()) {
       total = (await api.query.balances.totalIssuance()).toString();
     } else {
       total = await ethereum.getLockedBalance(chainInfo.avnContract, token);

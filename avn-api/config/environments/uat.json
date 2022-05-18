@@ -1,16 +1,4 @@
 {
   "gateway": "https://uat.gateway.aventus.io",
-  "token": "0x1d676b12bc570d1be2783b896a9894bdb9ed429d",
-  "nfts": {
-    "user": {
-      "owner_address": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf",
-      "listedNft": "0x9ae6d0c8b897d79c4db0ab3af8d211dc7560fc278d770cb0454f8c74c9b2571b",
-      "unlistedNft": "0xa7ee96643932e9f518d5fb30e3dfe4beef7a4938c764fa53fe7a31bedf8435b8"
-    },
-    "otherUser": {
-      "owner_address": "5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3",
-      "listedNft": "0xcbba157ed57c3250a1e06b145949642c3a229386e291d1b10e83b5a4a0def853",
-      "unlistedNft": "0x1f4c127f69f56418de905a440ed15e1d92999a9584fd65027d4d8cf63c11c46a"
-    }
-  }
+  "token": "0x1d676b12bc570d1be2783b896a9894bdb9ed429d"
 }

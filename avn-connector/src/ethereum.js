@@ -1,6 +1,9 @@
 const axios = require('axios');
 const redis = require('./redis');
 const config = require('multiconfig').load();
+const log4js = require('log4js');
+const log = log4js.getLogger();
+
 const ETHERSCAN_URL = config.etherscan.etherscan_url;
 const ETHERSCAN_KEY = config.etherscan.etherscan_api_key;
 const LIFT_EVENT_SIGNATURE = '0x8964776336bc2fa8ecaaf70b6f8e8450807efb1ff78f8b87980707aa821f0ec0';
@@ -45,9 +48,9 @@ async function getBlocknumber(timeOffset, blockOffset) {
 }
 
 async function callEtherscan(request) {
-  console.log(`ETHERSCAN REQUEST - ${ETHERSCAN_URL}module=${request}`);
+  log.trace(`ETHERSCAN REQUEST - ${ETHERSCAN_URL}module=${request}`);
   let response = await axios.get(`${ETHERSCAN_URL}module=${request}&apikey=${ETHERSCAN_KEY}`);
-  console.log(`ETHERSCAN RESPONSE - ${response.data}`);
+  log.trace('ETHERSCAN RESPONSE -', response.data);
   return response.data.result;
 }
 

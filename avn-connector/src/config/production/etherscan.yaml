@@ -1,2 +1,2 @@
-etherscan_url: https://api.etherscan.io/api?
+etherscan_url: $ENV:ETHERSCAN_URL
 etherscan_api_key: $ENV:ETHERSCAN_API_KEY

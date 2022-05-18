@@ -1,0 +1,11 @@
+require('./accountFunding.js');
+require('./accessTests.js');
+require('./awtTest.js');
+require('./utilsTest.js');
+require('./pollApiTest.js');
+require('./proxyApiTest.js');
+require('./queryApiTest.js');
+require('./sendApiTest.js');
+require('./failPollApiTest.js');
+require('./failQueryApiTests.js');
+require('./failSendApiTest.js');

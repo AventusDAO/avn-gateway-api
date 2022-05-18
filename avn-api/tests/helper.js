@@ -1,7 +1,6 @@
 const AvnApi = require('../index.js');
 const assert = require('chai').assert;
 const BN = require('bn.js');
-const { accounts } = require('../config/accounts.json');
 const yargs = require('yargs');
 const { randomAsHex } = require('@polkadot/util-crypto');
 
@@ -20,9 +19,11 @@ let argv = yargs
 // This problem does not exist with other aliases, like 'c' or 'k'
 
 let gatewayFile = argv.gateway;
-const configPath = gatewayFile ? `../config/${gatewayFile}.json` : '../config/sandbox.json';
-const { gateway, token, nfts } = require(configPath);
+const configPath = gatewayFile ? `../config/environments/${gatewayFile}.json` : '../config/environments/sandbox.json';
+const accountsPath = gatewayFile ? `../config/accounts/${gatewayFile}.json` : '../config/accounts/sandbox.json';
 
+const { gateway, token, nfts } = require(configPath);
+const { accounts } = require(accountsPath);
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
 async function sleep(ms) {

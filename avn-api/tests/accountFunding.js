@@ -1,0 +1,89 @@
+const chai = require('chai');
+const assert = chai.assert;
+chai.use(require('chai-as-promised'));
+const helper = require('./helper.js');
+const accounts = helper.ACCOUNTS;
+const BN = helper.BN;
+
+const userMinBalance = new BN('200000000000000000000');
+const relayerMinBalance = new BN('10000000000000000000');
+const receiverMinBalance = new BN('1000000000000000000');
+
+const userMinTokenBalance = new BN('5000000000000000000');
+
+describe('Account funding', async () => {
+  let api, user, receiver, relayer, sudo, userAvtBalance, receiverAvtBalance, relayerAvtBalance, userTokenBalance, sudoTokenBalance, amountInWei;
+
+  before(async () => {
+    process.env.AVN_SURI = accounts.bank.seed;
+
+    api = await helper.avnApi();
+
+    relayer = accounts.relayer;
+    user = accounts.user;
+    receiver = accounts.otherUser;
+    sudo = accounts.avnValidator;
+
+    token = helper.token;
+
+    userAvtBalance = new BN(await api.query.getAvtBalance(user.address));
+    receiverAvtBalance = new BN(await api.query.getAvtBalance(receiver.address));
+    relayerAvtBalance = new BN(await api.query.getAvtBalance(relayer.address));
+    sudoAvtBalance = new BN(await api.query.getAvtBalance(sudo.address));
+
+    userTokenBalance = new BN(await api.query.getTokenBalance(user.address, token));
+    sudoTokenBalance = new BN(await api.query.getTokenBalance(sudo.address, token));
+  });
+
+  after(async () => {
+    process.env.AVN_SURI = accounts.user.seed; 
+  })
+
+  it('User Account Funded with AVT', async () => {
+    if(userAvtBalance.lt(userMinBalance)) {
+        amountInWei = userMinBalance.sub(userAvtBalance);
+
+        const requestId = await api.send.transferAvt(relayer.address, user.address, amountInWei);
+        await helper.confirmStatus(api, requestId, 'Processed');
+
+        userAvtBalance = new BN(await api.query.getAvtBalance(user.address));
+    }
+    assert(userAvtBalance.gte(userMinBalance));
+  });
+
+  it('Receiver Account Funded with AVT', async () => {
+    if(receiverAvtBalance.lt(receiverMinBalance)) {
+        amountInWei = receiverMinBalance.sub(receiverAvtBalance);
+        
+        const requestId = await api.send.transferAvt(relayer.address, receiver.address, amountInWei);
+        await helper.confirmStatus(api, requestId, 'Processed');
+
+        receiverAvtBalance = new BN(await api.query.getAvtBalance(receiver.address));
+    }
+    assert(userAvtBalance.gte(receiverMinBalance));
+  });
+
+  it('Relayer Account Funded with AVT', async () => {
+    if(relayerAvtBalance.lt(relayerMinBalance)) {
+        amountInWei = relayerMinBalance.sub(relayerAvtBalance);
+        
+        const requestId = await api.send.transferAvt(relayer.address, relayer.address, amountInWei);
+        await helper.confirmStatus(api, requestId, 'Processed');
+
+        relayerAvtBalance = new BN(await api.query.getAvtBalance(relayer.address));
+    }
+    assert(relayerAvtBalance.gte(relayerMinBalance));
+  });
+
+  it('User Account Funded with env Token', async () => {
+    if(userTokenBalance.lt(userMinTokenBalance)) {
+        amountInWei = userMinTokenBalance.sub(userTokenBalance);
+
+        const requestId = await api.send.transferToken(relayer.address, user.address, token, amountInWei);
+        await helper.confirmStatus(api, requestId, 'Processed');
+
+        userTokenBalance = new BN(await api.query.getTokenBalance(user.address, token));
+    }
+    assert(userTokenBalance.gte(userMinTokenBalance));
+  });
+});

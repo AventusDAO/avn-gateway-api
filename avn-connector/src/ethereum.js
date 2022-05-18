@@ -47,7 +47,7 @@ async function getBlocknumber(timeOffset, blockOffset) {
 async function callEtherscan(request) {
   console.log('ETHERSCAN REQUEST', ETHERSCAN_URL, request);
   let response = await axios.get(`${ETHERSCAN_URL}module=${request}&apikey=${ETHERSCAN_KEY}`);
-  console.log('ETHERSCAN RESPONSE', response);
+  console.log('ETHERSCAN RESPONSE', response.data);
   return response.data.result;
 }
 

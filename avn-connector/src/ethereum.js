@@ -9,46 +9,46 @@ const MAX_LIFT_AGE = 60 * 60 * 24 * 5; // 5 days
 const REQUIRED_CONFIRMATIONS = 20;
 
 async function transactionExists(ethTxHash) {
-  let response = await axios.get(
-    `${ETHERSCAN_URL}module=transaction&action=gettxreceiptstatus&txhash=${ethTxHash}&apikey=${ETHERSCAN_KEY}`
-  );
-  return response.data.result.status === '1';
+  const request = `transaction&action=gettxreceiptstatus&txhash=${ethTxHash}`;
+  let result = await callEtherscan(request);
+  return result.status === '1';
 }
 
 async function getLockedBalance(address, token) {
-  token = token.toLowerCase();
-  let request =
-    token === ETH_AS_TOKEN
-      ? `${ETHERSCAN_URL}module=account&action=balance&address=${address}&tag=latest&apikey=${ETHERSCAN_KEY}`
-      : `${ETHERSCAN_URL}module=account&action=tokenbalance&contractaddress=${token}&address=${address}&tag=latest&apikey=${ETHERSCAN_KEY}`;
-
-  let response = await axios.get(request);
-  return response.data.result;
+  const request =
+    token.toLowerCase() === ETH_AS_TOKEN
+      ? `account&action=balance&address=${address}&tag=latest`
+      : `account&action=tokenbalance&contractaddress=${token}&address=${address}&tag=latest`;
+  return await callEtherscan(request);
 }
 
 async function getLiftEvents(avnContract) {
   let fromBlock = (await redis.getCheckLiftsFromBlock()) || (await getBlocknumber(MAX_LIFT_AGE, 0));
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
+  const request = `logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}`;
+  let result = await callEtherscan(request);
 
-  let response = await axios.get(
-    `${ETHERSCAN_URL}module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}&apikey=${ETHERSCAN_KEY}`
-  );
-
-  if (Array.isArray(response.data.result) === false) {
-    throw new Error(`ETHERSCAN ERROR GETTING LIFTS: ${response}`);
+  if (Array.isArray(result) === false) {
+    throw new Error(`ETHERSCAN ERROR GETTING LIFTS: ${result}`);
   }
 
-  const liftEvents = response.data.result.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]);
+  const liftEvents = result.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]);
   return { fromBlock, toBlock, liftEvents };
 }
 
 async function getBlocknumber(timeOffset, blockOffset) {
   const timeNow = Math.floor(Date.now() / 1000);
   const timestamp = timeNow - timeOffset;
-  let response = await axios.get(
-    `${ETHERSCAN_URL}module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${ETHERSCAN_KEY}`
-  );
-  return parseInt(response.data.result) - blockOffset;
+  const request = `block&action=getblocknobytime&timestamp=${timestamp}&closest=before`;
+  let result = await callEtherscan(request);
+  return parseInt(result) - blockOffset;
+}
+
+async function callEtherscan(request) {
+  console.log('ETHERSCAN REQUEST', ETHERSCAN_URL, request);
+  let response = await axios.get(`${ETHERSCAN_URL}module=${request}&apikey=${ETHERSCAN_KEY}`);
+  console.log('ETHERSCAN RESPONSE', response);
+  return response.data.result;
 }
 
 module.exports = {

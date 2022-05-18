@@ -28,7 +28,17 @@ describe('Polling api calls:', async () => {
     });
 
     it('returns a pending status and transaction hash for a valid request ID', async () => {
+      let index = 0;
       let result = await api.poll.requestState(requestId);
+
+      //If there is a delay in sending the tx,
+      while(result === "Transaction not found" || index < 100) {
+        result = await api.poll.requestState(requestId);
+        index++;
+      }
+
+      assert(result !== "Transaction not found" && index < 100, 'Error getting transaction status');
+
       assert.equal(result.txHash.length, 66);
       assert.equal(result.status, 'Pending');
     });

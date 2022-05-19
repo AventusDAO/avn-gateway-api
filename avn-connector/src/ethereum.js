@@ -28,6 +28,8 @@ async function getLockedBalance(address, token) {
 async function getLiftEvents(avnContract) {
   let fromBlock = (await redis.getCheckLiftsFromBlock()) || (await getBlocknumber(MAX_LIFT_AGE, 0));
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
+  toBlock = (fromBlock > toBlock) ? fromBlock : toBlock;
+
   const request = `logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}`;
   let result = await callEtherscan(request);
 

@@ -246,30 +246,31 @@ function calculateSummaryRange(blockNumber) {
 }
 
 async function retrieveEthTxHashIfExists(summaryRange) {
+  console.log("RETRIEVE A", summaryRange)
   let ethTxHash = await redis.getSummaryEthTxHash(summaryRange);
-  console.log("RETRIEVE", ethTxHash)
+  console.log("RETRIEVE B", ethTxHash)
   if (!ethTxHash) {
     let blockHash = await api.rpc.chain.getBlockHash(summaryRange[1]);
-    console.log("RETRIEVE A", blockHash)
+    console.log("RETRIEVE C", blockHash)
     let ingressCounter = parseInt(await api.query.summary.totalIngresses.at(blockHash)) + 1;
-    console.log("RETRIEVE B", ingressCounter)
+    console.log("RETRIEVE D", ingressCounter)
     let transactionId = (await api.query.summary.roots(summaryRange, ingressCounter)).tx_id.toString();
-    console.log("RETRIEVE C", transactionId)
+    console.log("RETRIEVE E", transactionId)
     if (!transactionId) {
       return null;
     }
 
     let ethTransactionCandidate = await api.query.ethereumTransactions.repository(transactionId);
-    console.log("RETRIEVE D", ethTransactionCandidate)
+    console.log("RETRIEVE F", ethTransactionCandidate)
     ethTxHash = ethTransactionCandidate.eth_tx_hash.toString();
-    console.log("RETRIEVE E", ethTxHash)
+    console.log("RETRIEVE G", ethTxHash)
     if ((await ethereum.transactionExists(ethTxHash)) === false) {
       return null;
     }
 
     await redis.setSummaryEthTxHash(summaryRange, ethTxHash);
   }
-  console.log("RETRIEVE F", ethTxHash)
+  console.log("RETRIEVE H", ethTxHash)
   return ethTxHash;
 }
 

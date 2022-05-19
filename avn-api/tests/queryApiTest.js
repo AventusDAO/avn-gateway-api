@@ -111,9 +111,10 @@ describe('Query api calls:', async () => {
     // TODO: Update these tests when we allow the schedule period to be flexible
 
     it('returns the correct data for a block falling within a published summary', async () => {
+      let currentBlock = parseInt(await api.query.getCurrentBlock());
       // Only runs if a summary should have been published by now
-      if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD + 1000) {
-        const block = 1;
+      if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
+        const block = currentBlock - SCHEDULE_PERIOD;
         let summaryData = await api.query.getSummaryData(block);
         assert.equal(summaryData.blockNumber, block.toString());
         assert.equal(summaryData.summaryRange[0], '0');
@@ -177,8 +178,9 @@ describe('Query api calls:', async () => {
     });
 
     it('returns info for a transaction that does not exist', async () => {
-      if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD + 1000) {
-        const blockNumber = parseInt(await api.query.getCurrentBlock()) - 100;
+      let currentBlock = parseInt(await api.query.getCurrentBlock());
+      if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
+        const blockNumber = currentBlock - SCHEDULE_PERIOD;
         const transactionIndex = '10000';
         let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
         assert.equal(inclusionData.status, 'Transaction not found');

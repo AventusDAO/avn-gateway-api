@@ -26,7 +26,7 @@ const TOTAL_TOKEN_NAMESPACE = 't.';
 const VALIDATORS_KEY = 'validators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
-const CHECK_LIFTS_FROM_BLOCK_KEY = 'checkLiftsFromBlock';
+const LIFTS_FROM_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const STAKER_PAYOUT_FLAG_KEY = 'payoutFlag';
 
@@ -222,11 +222,11 @@ async function getSummaryEthTxHash(summaryRange) {
 }
 
 async function setCheckLiftsFromBlock(blockNumber) {
-  await redisClient.set(CHECK_LIFTS_FROM_BLOCK_KEY, blockNumber);
+  await redisClient.set(LIFTS_FROM_BLOCK_KEY, blockNumber);
 }
 
 async function getCheckLiftsFromBlock() {
-  return await redisClient.get(CHECK_LIFTS_FROM_BLOCK_KEY);
+  return await redisClient.get(LIFTS_FROM_BLOCK_KEY);
 }
 
 async function setLastPayoutEra(era) {

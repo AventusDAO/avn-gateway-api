@@ -5,14 +5,14 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 
-const userMinBalance = new BN('200000000000000000000');
-const relayerMinBalance = new BN('10000000000000000000');
-const receiverMinBalance = new BN('1000000000000000000');
+const userMinBalance = new BN(helper.TWO_HUNDRED_ETH);
+const relayerMinBalance = new BN(helper.TEN_ETH);
+const receiverMinBalance = new BN(helper.ONE_ETH);
 
-const userMinTokenBalance = new BN('5000000000000000000');
+const userMinTokenBalance = new BN(helper.ONE_ETH);
 
 describe('Account funding', async () => {
-  let api, user, receiver, relayer, sudo, userAvtBalance, receiverAvtBalance, relayerAvtBalance, userTokenBalance, sudoTokenBalance, amountInWei;
+  let api, user, receiver, relayer, userAvtBalance, receiverAvtBalance, relayerAvtBalance, userTokenBalance, amountInWei;
 
   before(async () => {
     process.env.AVN_SURI = accounts.bank.seed;
@@ -22,17 +22,14 @@ describe('Account funding', async () => {
     relayer = accounts.relayer;
     user = accounts.user;
     receiver = accounts.otherUser;
-    sudo = accounts.avnValidator;
 
     token = helper.token;
 
     userAvtBalance = new BN(await api.query.getAvtBalance(user.address));
     receiverAvtBalance = new BN(await api.query.getAvtBalance(receiver.address));
     relayerAvtBalance = new BN(await api.query.getAvtBalance(relayer.address));
-    sudoAvtBalance = new BN(await api.query.getAvtBalance(sudo.address));
 
     userTokenBalance = new BN(await api.query.getTokenBalance(user.address, token));
-    sudoTokenBalance = new BN(await api.query.getTokenBalance(sudo.address, token));
   });
 
   after(async () => {

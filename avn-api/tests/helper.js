@@ -26,6 +26,10 @@ const { gateway, token, nfts } = require(configPath);
 const { accounts } = require(accountsPath);
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
+const ONE_ETH= '1000000000000000000';
+const TEN_ETH = '10000000000000000000';
+const TWO_HUNDRED_ETH = '200000000000000000000';
+
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -65,6 +69,9 @@ function randomEthTxHash() {
 module.exports = {
   ACCOUNTS: accounts,
   NFTS: nfts,
+  ONE_ETH,
+  TEN_ETH,
+  TWO_HUNDRED_ETH,
   confirmStatus,
   avnApi,
   BN,

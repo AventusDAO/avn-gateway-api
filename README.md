@@ -930,7 +930,7 @@ curl https://AVN-API-URL/query \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getSummaryRange", "params":{"blockNumber":"1234"}, "id":1}'
+    -d '{"jsonrpc":"2.0", "method":"getSummaryData", "params":{"blockNumber":"1234"}, "id":1}'
 ```
 
 **RESULT FIELDS** \

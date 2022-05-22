@@ -105,7 +105,7 @@ describe('Proxy api calls:', async () => {
     });
 
     // TODO: Re-enable when we can free up the staker's unlocked chunks quota
-    xit('@NO_BASELINE can request to withdraw stake', async () => {
+    it('@NO_BASELINE can request to withdraw stake', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
       const amount = new BN('1').mul(ONE_AVT);

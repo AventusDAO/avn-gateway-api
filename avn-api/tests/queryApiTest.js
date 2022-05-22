@@ -156,7 +156,7 @@ describe('Query api calls:', async () => {
 
   describe('getSummaryInclusionData', async () => {
     // TODO: Replace with testing mechanism to generate more recent lowers
-    xit('@NO_BASELINE gets correct data for a known lower', async () => {
+    it('@NO_BASELINE gets correct data for a known lower', async () => {
       const blockNumber = '6042';
       const transactionIndex = '1';
       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
@@ -210,7 +210,7 @@ describe('Query api calls:', async () => {
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'staking'));
     });
 
-    xit('@NO_BASELINE returns the same confirmation nonce by address as by public key', async () => {
+    it('@NO_BASELINE returns the same confirmation nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'confirmation');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'confirmation'));
     });

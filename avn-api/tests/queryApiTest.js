@@ -250,30 +250,48 @@ describe('Query api calls:', async () => {
 
   describe('getAvtBalance', async () => {
     //getAvtBalance(account)
-    it('@NO_BASELINE returns correct avt balance for specific user by address');
-    it('@NO_BASELINE returns correct avt balance for specific user by publicKey');
+    it('@NO_BASELINE returns correct avt balance for specific user by address', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
+    it('@NO_BASELINE returns correct avt balance for specific user by publicKey', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getTokenBalance', async () => {
     //getTokenBalance(account, token_address)
-    it('@NO_BASELINE returns correct token balance for specific user by address');
-    it('@NO_BASELINE returns correct token balance for specific user by publicKey');
+    it('@NO_BASELINE returns correct token balance for specific user by address', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
+    it('@NO_BASELINE returns correct token balance for specific user by publicKey', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getNonce', async () => {
     //getAccountNonce(account)
-    it('@NO_BASELINE returns correct account nonce for specific user by address');
-    it('@NO_BASELINE returns correct account nonce for specific user by publicKey');
+    it('@NO_BASELINE returns correct account nonce for specific user by address', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
+    it('@NO_BASELINE returns correct account nonce for specific user by publicKey', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getNftNonce', async () => {
     //getNftNonce(nftId)
-    it('@NO_BASELINE returns correct nft nonce for specific nft id');
+    it('@NO_BASELINE returns correct nft nonce for specific nft id', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getNftId', async () => {
     //getNftId(external_reference);
-    it('@NO_BASELINE returns correct nft id for specific reference');
+    it('@NO_BASELINE returns correct nft id for specific reference', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getNftOwner', async () => {
     //getNftOwner(nftId)
-    it('@NO_BASELINE returns correct nft owner for specific nft id');
+    it('@NO_BASELINE returns correct nft owner for specific nft id', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
 
   describe('AccountInfo', async () => {

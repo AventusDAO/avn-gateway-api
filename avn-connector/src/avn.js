@@ -214,7 +214,6 @@ async function getSummaryInclusionData(blockNumber, transactionIndex) {
 async function getTotalToken(token) {
   token = token.toLowerCase();
   let total = await redis.getTotalToken(token);
-  console.log('GET TOTAL TOKEN 1 -', token, total)
 
   if (!total) {
     let chainInfo = JSON.parse(await getChainInfo());
@@ -225,12 +224,8 @@ async function getTotalToken(token) {
       total = await ethereum.getLockedBalance(chainInfo.avnContract, token);
     }
 
-    console.log('GET TOTAL TOKEN 2 -', token, total)
-
     await redis.setTotalToken(token, total);
   }
-
-  console.log('GET TOTAL TOKEN 3 -', token, total)
 
   return total;
 }
@@ -288,7 +283,7 @@ async function getUnprocessedLifts() {
   }
 
   if (unprocessedLifts.length === 0) {
-    await redis.setCheckLiftsFromBlock(toBlock + 1);
+    await redis.setCheckLiftsFromBlock(parseInt(toBlock) + 1);
   }
 
   return { fromBlock, toBlock, unprocessedLifts };
@@ -301,7 +296,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   let result;
   try {
     result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
-    await redis.setCheckLiftsFromBlock(toBlock + 1);
+    await redis.setCheckLiftsFromBlock(parseInt(toBlock) + 1);
   } catch (err) {
     result = err;
   }

@@ -110,7 +110,7 @@ const nfts = helper.NFTS;
         //TODO: investigate unexpected error when passing 2 arguments and we are validating the second argument
         //TypeError: Cannot read property 'postRequest' of undefined should be 'Expected non-null, non-empty base58 input'
         //This occurs on undefined and empty string tests only
-        xdescribe('With invalid account: User', async () => {
+        describe('With invalid account: User', async () => {
           testConfig.validCallData = {
             relayer: validRelayer.address,
             user: validUser.address

@@ -33,7 +33,7 @@ describe('Proxy api calls:', async () => {
       userNonceBefore = new BN(await api.query.getNonce(user, 'token'));
     });
 
-    it('can transfer tokens', async () => {
+    it('@NO_BASELINE can transfer tokens', async () => {
       const amount = new BN(2);
       const requestId = await api.send.transferToken(relayer, recipientPubKey, token, amount);
 
@@ -47,7 +47,7 @@ describe('Proxy api calls:', async () => {
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
 
-    it('can make multiple token transfers using a recipient address', async function () {
+    it('@NO_BASELINE can make multiple token transfers using a recipient address', async function () {
       this.timeout(400000); //increase the timeout of this test (https://mochajs.org/#test-level)
 
       const amount = new BN(1);
@@ -78,7 +78,7 @@ describe('Proxy api calls:', async () => {
       stakerAvtBalance = new BN(await api.query.getAvtBalance(user));
     });
 
-    it('can stake', async () => {
+    it('@NO_BASELINE can stake', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
       const amount = new BN('1').mul(ONE_AVT);
@@ -91,7 +91,7 @@ describe('Proxy api calls:', async () => {
       bnEquals(new BN(stakerStakingStatusBefore.stakedBalance).add(amount), new BN(stakerStakingStatusAfter.stakedBalance));
     });
 
-    it('can stake more funds', async () => {
+    it('@NO_BASELINE can stake more funds', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
       const amount = new BN('1').mul(ONE_AVT);
@@ -105,7 +105,7 @@ describe('Proxy api calls:', async () => {
     });
 
     // TODO: Re-enable when we can free up the staker's unlocked chunks quota
-    xit('can request to withdraw stake', async () => {
+    it('@NO_BASELINE can request to withdraw stake', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
       const amount = new BN('1').mul(ONE_AVT);
@@ -141,7 +141,7 @@ describe('Proxy api calls:', async () => {
       }
     });
 
-    it('can payout stakers', async () => {
+    it('@NO_BASELINE can payout stakers', async () => {
       let validator = accounts.avnValidator.address;
       let validatorStakingStatusBefore = await api.query.getAccountInfo(validator);
 

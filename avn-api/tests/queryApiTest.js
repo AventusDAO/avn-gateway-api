@@ -59,48 +59,48 @@ describe('Query api calls:', async () => {
   });
 
   describe('get contract addresses', async () => {
-    it('getAvtContractAddress', async () => {
+    it('@NO_BASELINE getAvtContractAddress', async () => {
       assert((await api.query.getAvtContractAddress()).length == 42);
     });
 
-    it('getAvnContractAddress', async () => {
+    it('@NO_BASELINE getAvnContractAddress', async () => {
       assert((await api.query.getAvnContractAddress()).length == 42);
     });
 
-    it('getNftContractAddress', async () => {
+    it('@NO_BASELINE getNftContractAddress', async () => {
       assert((await api.query.getNftContractAddress()).length == 42);
     });
   });
 
   describe('get totals', async () => {
-    it('returns total AVT', async () => {
+    it('@NO_BASELINE returns total AVT', async () => {
       let avt = await api.query.getAvtContractAddress();
       helper.bnEquals(await api.query.getTotalAvt(), await api.query.getTotalToken(avt));
     });
 
-    it('returns total ETH', async () => {
+    it('@NO_BASELINE returns total ETH', async () => {
       assert(new BN(await api.query.getTotalToken('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')).gt(BN_ZERO));
     });
 
-    it('returns total other token', async () => {
+    it('@NO_BASELINE returns total other token', async () => {
       assert(new BN(await api.query.getTotalToken(token)).gt(BN_ZERO));
     });
 
-    it('returns zero for a non-existent token', async () => {
+    it('@NO_BASELINE returns zero for a non-existent token', async () => {
       const nonExistentToken = '0xd09a7B5F603E66B04e8DaFCD8653114f3C49C038';
       helper.bnEquals(await api.query.getTotalToken(nonExistentToken), 0);
     });
   });
 
   describe('getCurrentBlock', async () => {
-    it('returns the current block', async () => {
+    it('@NO_BASELINE returns the current block', async () => {
       let currentBlock = await api.query.getCurrentBlock();
       assert(parseInt(currentBlock) > 0);
     });
   });
 
   describe('getChainInfo', async () => {
-    it('can get the current chain information', async () => {
+    it('@NO_BASELINE can get the current chain information', async () => {
       let chainInfo = await api.query.getChainInfo();
       assert.equal(chainInfo.name, 'AvN TestNet');
       assert.equal(chainInfo.version, '270');
@@ -110,7 +110,8 @@ describe('Query api calls:', async () => {
   describe('getSummaryData', async () => {
     // TODO: Update these tests when we allow the schedule period to be flexible
 
-    it('returns the correct data for a block falling within a published summary', async () => {
+
+    it('@NO_BASELINE returns the correct data for a block falling within a published summary', async () => {
       let currentBlock = parseInt(await api.query.getCurrentBlock());
       // Only runs if a summary should have been published by now
       if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
@@ -123,7 +124,7 @@ describe('Query api calls:', async () => {
       }
     });
 
-    it('returns the correct data for the current block', async () => {
+    it('@NO_BASELINE returns the correct data for the current block', async () => {
       let block = await api.query.getCurrentBlock();
       let summaryData = await api.query.getSummaryData(block);
       assert.equal(summaryData.blockNumber, block);
@@ -134,7 +135,7 @@ describe('Query api calls:', async () => {
       assert.equal(summaryData.ethTxHash, null);
     });
 
-    it('returns the current block data when no block is passed', async () => {
+    it('@NO_BASELINE returns the current block data when no block is passed', async () => {
       let block = await api.query.getCurrentBlock();
       let summaryData = await api.query.getSummaryData();
       assert(parseInt(summaryData.blockNumber) >= parseInt(block));
@@ -145,7 +146,7 @@ describe('Query api calls:', async () => {
       assert.equal(summaryData.ethTxHash, null);
     });
 
-    it('returns limited data when a future block is passed', async () => {
+    it('@NO_BASELINE returns limited data when a future block is passed', async () => {
       let block = await api.query.getCurrentBlock();
       block = parseInt(block) + 100000;
       let summaryData = await api.query.getSummaryData(block);
@@ -157,7 +158,7 @@ describe('Query api calls:', async () => {
 
   describe('getSummaryInclusionData', async () => {
     // TODO: Replace with testing mechanism to generate more recent lowers
-    xit('gets correct data for a known lower', async () => {
+    it('@NO_BASELINE gets correct data for a known lower', async () => {
       const blockNumber = '6042';
       const transactionIndex = '1';
       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
@@ -168,7 +169,7 @@ describe('Query api calls:', async () => {
       assert.equal(inclusionData.transactionDetails.args[0].method, 'signedLower');
     });
 
-    it('returns info for a transaction that is too historic to process', async () => {
+    it('@NO_BASELINE returns info for a transaction that is too historic to process', async () => {
       if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD * 3 + 1000) {
         const blockNumber = '1';
         const transactionIndex = '0';
@@ -177,7 +178,8 @@ describe('Query api calls:', async () => {
       }
     });
 
-    it('returns info for a transaction that does not exist', async () => {
+
+    it('@NO_BASELINE returns info for a transaction that does not exist', async () => {
       let currentBlock = parseInt(await api.query.getCurrentBlock());
       if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
         const blockNumber = currentBlock - SCHEDULE_PERIOD;
@@ -187,7 +189,7 @@ describe('Query api calls:', async () => {
       }
     });
 
-    it('returns info for an as yet unpublished transaction', async () => {
+    it('@NO_BASELINE returns info for an as yet unpublished transaction', async () => {
       const amount = new BN(1);
       const requestId = await api.send.transferAvt(relayer.address, recipient.address, amount);
       let response = await helper.confirmStatus(api, requestId, 'Processed');
@@ -197,85 +199,103 @@ describe('Query api calls:', async () => {
   });
 
   describe('getNonce', async () => {
-    it('returns the same token nonce by address as by public key', async () => {
+    it('@NO_BASELINE returns the same token nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'token');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'token'));
     });
 
-    it('returns the same payment nonce by address as by public key', async () => {
+    it('@NO_BASELINE returns the same payment nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'payment');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'payment'));
     });
 
-    it('returns the same staking nonce by address as by public key', async () => {
+    it('@NO_BASELINE returns the same staking nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'staking');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'staking'));
     });
 
-    xit('returns the same confirmation nonce by address as by public key', async () => {
+    it('@NO_BASELINE returns the same confirmation nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'confirmation');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'confirmation'));
     });
   });
 
   describe('getRelayerFees', async () => {
-    it('returns default fees for a relayer by address', async () => {
+    it('@NO_BASELINE returns default fees for a relayer by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.address);
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
     });
 
-    it('returns default fees for a relayer by publicKey', async () => {
+    it('@NO_BASELINE returns default fees for a relayer by publicKey', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.publicKey);
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
     });
 
-    it('returns fees for a specific user by address', async () => {
+    it('@NO_BASELINE returns fees for a specific user by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.address, user.address);
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
     });
 
-    it('returns fees for a specific user by publicKey', async () => {
+    it('@NO_BASELINE returns fees for a specific user by publicKey', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey);
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
     });
 
-    it('returns the fee for a specific user and transaction type', async () => {
+    it('@NO_BASELINE returns the fee for a specific user and transaction type', async () => {
       const transactionType = 'proxyTokenTransfer';
       const returnedFees = await api.query.getRelayerFees(relayer.address, user.publicKey, transactionType);
       assert.equal(returnedFees, expectedUserFees[transactionType]);
     });
 
-    it('errors if relayer is not registered', async () => {
+    it('@NO_BASELINE errors if relayer is not registered', async () => {
       await expect(api.query.getRelayerFees(user)).to.be.rejectedWith(Error);
     });
   });
 
   describe('getAvtBalance', async () => {
     //getAvtBalance(account)
-    it('returns correct avt balance for specific user by address');
-    it('returns correct avt balance for specific user by publicKey');
+    it('@NO_BASELINE returns correct avt balance for specific user by address', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
+    it('@NO_BASELINE returns correct avt balance for specific user by publicKey', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getTokenBalance', async () => {
     //getTokenBalance(account, token_address)
-    it('returns correct token balance for specific user by address');
-    it('returns correct token balance for specific user by publicKey');
+    it('@NO_BASELINE returns correct token balance for specific user by address', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
+    it('@NO_BASELINE returns correct token balance for specific user by publicKey', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getNonce', async () => {
     //getAccountNonce(account)
-    it('returns correct account nonce for specific user by address');
-    it('returns correct account nonce for specific user by publicKey');
+    it('@NO_BASELINE returns correct account nonce for specific user by address', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
+    it('@NO_BASELINE returns correct account nonce for specific user by publicKey', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getNftNonce', async () => {
     //getNftNonce(nftId)
-    it('returns correct nft nonce for specific nft id');
+    it('@NO_BASELINE returns correct nft nonce for specific nft id', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getNftId', async () => {
     //getNftId(external_reference);
-    it('returns correct nft id for specific reference');
+    it('@NO_BASELINE returns correct nft id for specific reference', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
   describe('getNftOwner', async () => {
     //getNftOwner(nftId)
-    it('returns correct nft owner for specific nft id');
+    it('@NO_BASELINE returns correct nft owner for specific nft id', async () => {
+      assert.fail("actual", "expected", "Error message");
+    });
   });
 
   describe('AccountInfo', async () => {
@@ -304,7 +324,7 @@ describe('Query api calls:', async () => {
       return await api.query.getNftId(externalRef);
     }
 
-    it('returns the correct list of owned nft ids', async () => {
+    it('@NO_BASELINE returns the correct list of owned nft ids', async () => {
       let firstNftId = await mint();
       let secondNftId = await mint();
       const returnedData = await api.query.getOwnedNfts(user.address);
@@ -318,7 +338,7 @@ describe('Query api calls:', async () => {
   describe('getStakingStats', async () => {
     const defaultMaxNominatorsRewardedPerValidatorBN = new BN(256);
 
-    it('returns the correct data', async () => {
+    it('@NO_BASELINE returns the correct data', async () => {
       const returnedData = await api.query.getStakingStats();
       // We can't be sure how about the values but we can check the structure
       const totalStakedBN = new BN(returnedData.totalStaked);
@@ -342,7 +362,7 @@ describe('Query api calls:', async () => {
   });
 
   describe('getEraElectionStatus', async () => {
-    it('returns the correct data', async () => {
+    it('@NO_BASELINE returns the correct data', async () => {
       const returnedData = await api.query.getEraElectionStatus();
       // We can't be sure about the values but we can check the structure
       assert(['isOpen', 'isClosed'].includes(returnedData), 'Election status is not a valid result');

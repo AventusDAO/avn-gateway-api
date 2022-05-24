@@ -1,3 +1,4 @@
+require('./setSuri.js');
 require('./accountFunding.js');
 require('./accessTests.js');
 require('./awtTest.js');

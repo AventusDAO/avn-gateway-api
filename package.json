@@ -11,16 +11,9 @@
     "generateState": "./avn-api/tools/baseStateGenerator.js --gateway"
   },
   "devDependencies": {
-    "chai": "^4.3.4",
-    "chai-as-promised": "7.1.1",
-    "colors": "^1.4.0",
-    "mocha": "^9.0.2",
-    "prompt-sync": "^4.1.6",
-    "serverless": "^3.1.1",
-    "yargs": "^17.3.1"
+    "mocha": "^9.0.2"
   },
   "dependencies": {
-    "child-process-async": "^1.0.1",
     "prettier": "^2.5.1"
   }
 }

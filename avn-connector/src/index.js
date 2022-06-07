@@ -170,6 +170,16 @@ app.post('/avnTotalToken', async (req, res, next) => {
   }
 });
 
+app.post('/avnNftContractAddresses', async (req, res, next) => {
+  try {
+    log.trace({ avnNftContractAddresses: req.body });
+    const result = await avn.getNftContractAddresses();
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use(function (err, req, res, _next) {
   log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });

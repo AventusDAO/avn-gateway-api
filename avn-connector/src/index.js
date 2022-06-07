@@ -1,4 +1,5 @@
 'use strict';
+
 const config = require('multiconfig').load();
 const avn = require('./avn');
 const redis = require('./redis');

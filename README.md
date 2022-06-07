@@ -180,7 +180,7 @@ curl https://AVN-API-URL/query \
 ```
 
 #### getNftContractAddress
-Returns the 20 byte Ethereum address of the NFT Listings contract
+Returns a list of 20 byte Ethereum addresses of the NFT Listings contract registered in the AvN
 
 **REQUEST** \
 `POST https://AVN-API-URL/query`
@@ -200,14 +200,14 @@ curl https://AVN-API-URL/query \
 ```
 
 **RESULT FIELDS** \
-`VALUE` - string value of NFT contract ethereum address
+`VALUE` - array of hex strings representing the value of NFT ethereum contract addresses
 
 **BODY**
 ```
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "result": "0xb8608e90ae5bfbdf6156558a5231e0b291a74330"
+  "result": ["0xb8608e90ae5bfbdf6156558a5231e0b291a74330", "0xb7608e90ae5bfbdf6156558a5231e0b291a74331"]
 }
 ```
 

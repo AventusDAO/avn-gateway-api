@@ -124,8 +124,8 @@ async function getAvnContractAddress(call, request) {
 }
 
 async function getNftContractAddress(call, request) {
-  const marketPlaceId = 1;
-  return await queryChain(call, request, 'ethereumEvents', 'nftContractAddresses', [marketPlaceId], formatAsString);
+  const method = 'avnNftContractAddresses';
+  return await query(call, request, method, {});
 }
 
 async function getNftId(call, request) {

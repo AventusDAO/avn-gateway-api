@@ -94,3 +94,10 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
           AWS_REGION: 'eu-west-1'
           SOURCE_DIR: "avn-gateway/build"
+
+  stats:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    steps:
+      - name: Run pull request stats
+        uses: flowwer-dev/pull-request-stats@master

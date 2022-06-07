@@ -154,3 +154,10 @@ jobs:
           context: avn-connector/
           build_extra_args: --compress=true
           dockerfile: Dockerfile.inserttestfees
+
+  stats:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    steps:
+      - name: Run pull request stats
+        uses: flowwer-dev/pull-request-stats@master

@@ -124,8 +124,7 @@ async function getAvnContractAddress(call, request) {
 }
 
 async function getNftContractAddress(call, request) {
-  const marketPlaceId = 1;
-  return await queryChain(call, request, 'ethereumEvents', 'nftContractAddresses', [marketPlaceId], formatAsString);
+  return await queryChain(call, request, 'ethereumEvents', 'nftT1Contracts', ['entries'], formatNftT1Contracts);
 }
 
 async function getNftId(call, request) {
@@ -352,6 +351,10 @@ const formatEraAsString = data => (data ? data.index : 0);
 const formatEraElectionStatus = data => (Object.keys(data)[0] === 'Open' ? 'isOpen' : 'isClosed');
 
 const filterNftOwner = data => (data ? data.owner : null);
+
+const formatNftT1Contracts = data => JSON.stringify(
+  data.map(([key, _]) => key.args.map((k) => k.toHuman())).flat()
+);
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (uniqueExternalRef, data) => {

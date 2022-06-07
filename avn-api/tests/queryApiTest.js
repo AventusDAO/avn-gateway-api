@@ -68,7 +68,9 @@ describe('Query api calls:', async () => {
     });
 
     it('@NO_BASELINE getNftContractAddress', async () => {
-      assert((await api.query.getNftContractAddress()).length == 42);
+      const result = await api.query.getNftContractAddress();
+      assert(result.length > 0);
+      assert(result[0].length == 42);
     });
   });
 

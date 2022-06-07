@@ -346,6 +346,13 @@ async function getRelayerAccount(relayerAddress) {
   return relayers[relayerAddress];
 }
 
+async function getNftContractAddresses() {
+  const data = await api.query.ethereumEvents.nftT1Contracts.entries();
+  return JSON.stringify(
+    data.map(([key, _]) => key.args.map((k) => k.toHuman())).flat()
+  );
+}
+
 async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
   await connectToAvN();
@@ -455,5 +462,6 @@ module.exports = {
   getSummaryInclusionData,
   getTotalToken,
   getUnprocessedLifts,
+  getNftContractAddresses,
   processLifts
 };

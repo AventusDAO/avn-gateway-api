@@ -3,6 +3,7 @@ const AvnApi = require('../avn-api/index.js');
 const { accounts } = require('../avn-api/config/accounts.json');
 const yargs = require('yargs');
 const BN = require('bn.js');
+require('../avn-api/tests/setSuri.js');
 
 let argv = yargs
   .usage('Run smoke tests using a given Gateway environment')

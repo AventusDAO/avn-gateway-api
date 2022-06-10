@@ -33,7 +33,7 @@ describe('Proxy api calls:', async () => {
       userNonceBefore = new BN(await api.query.getNonce(user, 'token'));
     });
 
-    it('@NO_BASELINE can transfer tokens', async () => {
+    it('can transfer tokens', async () => {
       const amount = new BN(2);
       const requestId = await api.send.transferToken(relayer, recipientPubKey, token, amount);
 
@@ -91,7 +91,7 @@ describe('Proxy api calls:', async () => {
       bnEquals(new BN(stakerStakingStatusBefore.stakedBalance).add(amount), new BN(stakerStakingStatusAfter.stakedBalance));
     });
 
-    it('@NO_BASELINE can stake more funds', async () => {
+    it('can stake more funds', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
       const amount = new BN('1').mul(ONE_AVT);
@@ -105,7 +105,7 @@ describe('Proxy api calls:', async () => {
     });
 
     // TODO: Re-enable when we can free up the staker's unlocked chunks quota
-    it('@NO_BASELINE can request to withdraw stake', async () => {
+    it('can request to withdraw stake', async () => {
       assert(stakerAvtBalance.gt(new BN(0)), 'Staker must have some AVT to stake');
 
       const amount = new BN('1').mul(ONE_AVT);

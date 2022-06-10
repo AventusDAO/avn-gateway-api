@@ -75,27 +75,27 @@ describe('Query api calls:', async () => {
   });
 
   describe('get totals', async () => {
-    it('@NO_BASELINE returns total AVT', async () => {
+    it('returns total AVT', async () => {
       let avt = await api.query.getAvtContractAddress();
       helper.bnEquals(await api.query.getTotalAvt(), await api.query.getTotalToken(avt));
     });
 
-    it('@NO_BASELINE returns total ETH', async () => {
+    it('returns total ETH', async () => {
       assert(new BN(await api.query.getTotalToken('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')).gt(BN_ZERO));
     });
 
-    it('@NO_BASELINE returns total other token', async () => {
+    it('returns total other token', async () => {
       assert(new BN(await api.query.getTotalToken(token)).gt(BN_ZERO));
     });
 
-    it('@NO_BASELINE returns zero for a non-existent token', async () => {
+    it('returns zero for a non-existent token', async () => {
       const nonExistentToken = '0xd09a7B5F603E66B04e8DaFCD8653114f3C49C038';
       helper.bnEquals(await api.query.getTotalToken(nonExistentToken), 0);
     });
   });
 
   describe('getCurrentBlock', async () => {
-    it('@NO_BASELINE returns the current block', async () => {
+    it('returns the current block', async () => {
       let currentBlock = await api.query.getCurrentBlock();
       assert(parseInt(currentBlock) > 0);
     });
@@ -201,22 +201,22 @@ describe('Query api calls:', async () => {
   });
 
   describe('getNonce', async () => {
-    it('@NO_BASELINE returns the same token nonce by address as by public key', async () => {
+    it('returns the same token nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'token');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'token'));
     });
 
-    it('@NO_BASELINE returns the same payment nonce by address as by public key', async () => {
+    it('returns the same payment nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'payment');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'payment'));
     });
 
-    it('@NO_BASELINE returns the same staking nonce by address as by public key', async () => {
+    it('returns the same staking nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'staking');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'staking'));
     });
 
-    it('@NO_BASELINE returns the same confirmation nonce by address as by public key', async () => {
+    it('returns the same confirmation nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'confirmation');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'confirmation'));
     });
@@ -326,7 +326,7 @@ describe('Query api calls:', async () => {
       return await api.query.getNftId(externalRef);
     }
 
-    it('@NO_BASELINE returns the correct list of owned nft ids', async () => {
+    it('returns the correct list of owned nft ids', async () => {
       let firstNftId = await mint();
       let secondNftId = await mint();
       const returnedData = await api.query.getOwnedNfts(user.address);
@@ -340,7 +340,7 @@ describe('Query api calls:', async () => {
   describe('getStakingStats', async () => {
     const defaultMaxNominatorsRewardedPerValidatorBN = new BN(256);
 
-    it('@NO_BASELINE returns the correct data', async () => {
+    it('returns the correct data', async () => {
       const returnedData = await api.query.getStakingStats();
       // We can't be sure how about the values but we can check the structure
       const totalStakedBN = new BN(returnedData.totalStaked);
@@ -364,7 +364,7 @@ describe('Query api calls:', async () => {
   });
 
   describe('getEraElectionStatus', async () => {
-    it('@NO_BASELINE returns the correct data', async () => {
+    it('returns the correct data', async () => {
       const returnedData = await api.query.getEraElectionStatus();
       // We can't be sure about the values but we can check the structure
       assert(['isOpen', 'isClosed'].includes(returnedData), 'Election status is not a valid result');

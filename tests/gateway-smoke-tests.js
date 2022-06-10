@@ -3,6 +3,10 @@ const AvnApi = require('../avn-api/index.js');
 const { accounts } = require('../avn-api/config/accounts.json');
 const yargs = require('yargs');
 const BN = require('bn.js');
+
+// This will execute the contents of `setSuri` immediately
+// since we are not storing the result of the
+// call to the `require` function in a const or variable
 require('../avn-api/tests/setSuri.js');
 
 let argv = yargs

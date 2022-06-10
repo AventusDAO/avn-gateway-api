@@ -16,9 +16,7 @@ const accountsPath = gatewayFile ? `../config/accounts/${gatewayFile}.json` : '.
 const { accounts } = require(accountsPath);
 process.env.AVN_SURI = accounts.user.seed;
 
-
 describe('Setting SURI as user seed', async () => {
-
   it('SURI is correctly set', async () => {
     assert.equal(process.env.AVN_SURI, accounts.user.seed);
   });

@@ -27,7 +27,7 @@ describe('Polling api calls:', async () => {
       invalidRequestId = await api.send.transferAvt(relayer, recipient, invalidAmount);
     });
 
-    it('@NO_BASELINE returns a pending status and transaction hash for a valid request ID', async () => {
+    it('returns a pending status and transaction hash for a valid request ID', async () => {
       let index = 0;
       let result = await api.poll.requestState(requestId);
 
@@ -50,7 +50,7 @@ describe('Polling api calls:', async () => {
       assert(result.transactionIndex != '0');
     });
 
-    it('@NO_BASELINE returns a processed status for a valid request ID', async () => {
+    it('returns a processed status for a valid request ID', async () => {
       await helper.confirmStatus(api, requestId, 'Processed');
       let result = await api.poll.requestState(requestId);
       assert(result.blockNumber != '0');

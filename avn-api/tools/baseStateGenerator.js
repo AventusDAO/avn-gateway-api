@@ -11,12 +11,17 @@ let argv = yargs
   .demandOption('c')
   .describe('c', 'Configuration file with gateway parameters')
   .string('c')
-  .alias('c', 'gateway').argv;
+  .alias('c', 'gateway')
+  .argv;
 
+// TODO: pass this in a command line argument (if we find how to do it in package.json)
+// or read it from the env config file
+const WAIT_TIME_IN_MINUTES = 2;
 const accounts = helper.ACCOUNTS;
 const validRelayer = accounts.relayer;
 const validUser = accounts.user;
 const validOtherUser = accounts.otherUser;
+process.env.AVN_SURI = accounts.user.seed;
 
 const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 const royalties = [
@@ -37,32 +42,40 @@ const royalties = [
   //Mint nft owned by user
   let externalRef = 'avn-gateway-test-user-unlisted-' + new Date().toISOString();
   let requestId = await api.send.mintSingleNft(validRelayer.address, externalRef, royalties, dummyT1Authority);
-  await helper.confirmStatus(api, requestId, 'Processed');
+  console.log('Waiting for mintSingleNFT', externalRef);
+  await helper.confirmStatus(api, requestId, 'Processed', WAIT_TIME_IN_MINUTES);
   const unlistedUserNftId = await api.query.getNftId(externalRef);
 
   //Mint and list nft owned by user
   externalRef = 'avn-gateway-test-user-listed-' + new Date().toISOString();
   requestId = await api.send.mintSingleNft(validRelayer.address, externalRef, royalties, dummyT1Authority);
-  await helper.confirmStatus(api, requestId, 'Processed');
+  console.log('Waiting for mintSingleNFT', externalRef);
+  await helper.confirmStatus(api, requestId, 'Processed', WAIT_TIME_IN_MINUTES);
   const listedUserNftId = await api.query.getNftId(externalRef);
   requestId = await api.send.listFiatNftForSale(validRelayer.address, listedUserNftId);
-  await helper.confirmStatus(api, requestId, 'Processed');
+  console.log('Waiting for listing for sale', listedUserNftId);
+  await helper.confirmStatus(api, requestId, 'Processed', WAIT_TIME_IN_MINUTES);
 
   process.env.AVN_SURI = validOtherUser.seed;
 
   //Mint nft owned by user
   externalRef = 'avn-gateway-test-user-unlisted-' + new Date().toISOString();
   requestId = await api.send.mintSingleNft(validRelayer.address, externalRef, royalties, dummyT1Authority);
-  await helper.confirmStatus(api, requestId, 'Processed');
+  console.log('Waiting for mintSingleNFT', externalRef);
+  await helper.confirmStatus(api, requestId, 'Processed', WAIT_TIME_IN_MINUTES);
   const unlistedOtherUserNftId = await api.query.getNftId(externalRef);
 
   //Mint and list nft owned by user
   externalRef = 'avn-gateway-test-user-listed-' + new Date().toISOString();
   requestId = await api.send.mintSingleNft(validRelayer.address, externalRef, royalties, dummyT1Authority);
-  await helper.confirmStatus(api, requestId, 'Processed');
+  console.log('Waiting for mintSingleNFT', externalRef);
+  await helper.confirmStatus(api, requestId, 'Processed', WAIT_TIME_IN_MINUTES);
   const listedOtherUserNftId = await api.query.getNftId(externalRef);
   requestId = await api.send.listFiatNftForSale(validRelayer.address, listedOtherUserNftId);
-  await helper.confirmStatus(api, requestId, 'Processed');
+  console.log('Waiting for listing for sale', listedOtherUserNftId);
+  await helper.confirmStatus(api, requestId, 'Processed', WAIT_TIME_IN_MINUTES);
+
+  console.log('Waiting done');
 
   const mintedNfts = {
     user: {

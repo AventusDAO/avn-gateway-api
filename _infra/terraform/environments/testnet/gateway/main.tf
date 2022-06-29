@@ -13,7 +13,7 @@ locals {
 module "lambda_functions" {
   source                 = "../../../modules/lambda"
   artifact_bucket        = "avn-lambda-artifacts-sandbox"
-  log_retention_period   = 1
+  log_retention_period   = 7
   service_version        = var.service_version
   rabbit_secret_arn      = module.rabbitmq.secret_arn
   avn_connector_endpoint = local.avn_connector_endpoint

@@ -1,0 +1,132 @@
+pipeline {
+    agent {
+        docker { image 'node:16.13.1-alpine' }
+    }
+    environment {
+        NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
+        UAT_USER_SEED = credentials('uat_gateway_tests_user_seed')
+        STARGATE_USER_SEED = credentials('sandbox_gateway_tests_user_seed')
+        PUBLIC_TESTNET_USER_SEED = credentials('public_testnet_gateway_tests_user_seed')
+        SECRET_UAT_ACCOUNTS_FILE = credentials('uat_avn_gateway_tests_accounts')
+        SECRET_UAT_ENVIRONMENT_FILE = credentials('uat_avn_gateway_tests_environment')
+        SECRET_STARGATE_ACCOUNTS_FILE = credentials('sandbox_avn_gateway_tests_accounts')
+        SECRET_STARGATE_ENVIRONMENT_FILE = credentials('sandbox_avn_gateway_tests_environment')
+        SECRET_PUBLIC_TESTNET_ACCOUNTS_FILE = credentials('public_testnet_avn_gateway_tests_accounts')
+        SECRET_PUBLIC_TESTNET_ENVIRONMENT_FILE = credentials('public_testnet_avn_gateway_tests_environment')
+    }
+    triggers {
+        cron('0 0 * * *')
+    }
+    parameters {
+        choice(name: 'Chain', choices: ['uat', 'stargate', 'public_testnet'], description: 'Chose which chain to test')
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'rm -rf node_modules'
+                sh 'rm -f package-lock.json'
+                sh 'npm cache clean --force'
+                sh 'npm install'
+                sh 'npm install avn-api'
+                script {
+                    if (params.Chain == 'uat') {
+                        env.ACCOUNTS = env.SECRET_UAT_ACCOUNTS_FILE
+                        env.ENVIRONMENT = env.SECRET_UAT_ENVIRONMENT_FILE
+                        env.AVN_SURI = env.UAT_USER_SEED
+                    } else if (params.Chain == 'stargate') {
+                        env.ACCOUNTS = env.SECRET_STARGATE_ACCOUNTS_FILE
+                        env.ENVIRONMENT = env.SECRET_STARGATE_ENVIRONMENT_FILE
+                        env.AVN_SURI = env.STARGATE_USER_SEED
+                    } else {
+                        env.ACCOUNTS = env.SECRET_PUBLIC_TESTNET_ACCOUNTS_FILE
+                        env.ENVIRONMENT = env.SECRET_PUBLIC_TESTNET_ENVIRONMENT_FILE
+                        env.AVN_SURI = env.PUBLIC_TESTNET_USER_SEED
+                    }
+                }
+            }
+        }
+        stage('Account Funding') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh "npm run fund ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+
+                }
+            }
+        }
+        stage('Tests') {
+            parallel {
+                stage('Awt Test') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run awtTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Utils tests') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run utilsTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Poll api Test') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run pollApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Query api Test') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run queryApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Fail Poll api Test') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run failPollApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Fail Query api Test') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run failQueryApiTests:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Fail Send api Test') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run failSendApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Access Tests') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh "npm run accessTests:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                }
+            }
+        }
+        stage('Send api Test') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh "npm run sendApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                }
+            }
+        }
+        stage('Proxy api Test') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh "npm run proxyApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                }
+            }
+        }
+    }
+}
+

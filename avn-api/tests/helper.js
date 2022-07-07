@@ -2,6 +2,7 @@ const AvnApi = require('../index.js');
 const assert = require('chai').assert;
 const BN = require('bn.js');
 const yargs = require('yargs');
+const fs = require('fs');
 const { randomAsHex } = require('@polkadot/util-crypto');
 
 let argv = yargs
@@ -19,8 +20,8 @@ let argv = yargs
 // This problem does not exist with other aliases, like 'c' or 'k'
 
 let gatewayFile = argv.gateway;
-const configPath = gatewayFile ? `../config/environments/${gatewayFile}.json` : '../config/environments/sandbox.json';
-const accountsPath = gatewayFile ? `../config/accounts/${gatewayFile}.json` : '../config/accounts/sandbox.json';
+const configPath = argv.environment ? argv.environment : `../config/environments/${gatewayFile}.json`;
+const accountsPath = argv.accounts ? argv.accounts : `../config/accounts/${gatewayFile}.json`;
 
 const { gateway, token, nfts } = require(configPath);
 const { accounts } = require(accountsPath);

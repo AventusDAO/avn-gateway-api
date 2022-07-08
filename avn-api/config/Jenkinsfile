@@ -18,7 +18,7 @@ pipeline {
         cron('0 0 * * *')
     }
     parameters {
-        choice(name: 'Chain', choices: ['uat', 'stargate', 'public_testnet'], description: 'Chose which chain to test')
+        choice(name: 'Chain', choices: ['uat', 'stargate', 'public_testnet'], description: 'Choose which chain to test')
     }
     stages {
         stage('Build') {

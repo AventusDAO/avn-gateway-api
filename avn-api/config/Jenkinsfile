@@ -53,6 +53,59 @@ pipeline {
                 }
             }
         }
+        stage('Gateway Tests') {
+            parallel {
+                stage('Gateway Api: Awt Test') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run awtTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Gateway Api: Utils') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run utilsTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Gateway Api: Poll') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run pollApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Gateway Api: Query') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run queryApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Gateway Api: Poll Failure cases') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run failPollApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Gateway Api: Query Failure cases') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run failQueryApiTests:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+                stage('Gateway Api: Send Failure cases') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run failSendApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                        }
+                    }
+                }
+            }
+        }
         stage('Gateway Api: Access') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -71,59 +124,6 @@ pipeline {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh "npm run proxyApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
-                }
-            }
-        }
-    }
-    stages {
-        parallel {
-            stage('Gateway Api: Awt Test') {
-                steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "npm run awtTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
-                    }
-                }
-            }
-            stage('Gateway Api: Utils') {
-                steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "npm run utilsTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
-                    }
-                }
-            }
-            stage('Gateway Api: Poll') {
-                steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "npm run pollApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
-                    }
-                }
-            }
-            stage('Gateway Api: Query') {
-                steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "npm run queryApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
-                    }
-                }
-            }
-            stage('Gateway Api: Poll Failure cases') {
-                steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "npm run failPollApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
-                    }
-                }
-            }
-            stage('Gateway Api: Query Failure cases') {
-                steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "npm run failQueryApiTests:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
-                    }
-                }
-            }
-            stage('Gateway Api: Send Failure cases') {
-                steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh "npm run failSendApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
-                    }
                 }
             }
         }

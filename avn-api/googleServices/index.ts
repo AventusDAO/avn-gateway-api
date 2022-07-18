@@ -10,10 +10,10 @@ dotenv.config();
 console.log('ENVS AFTER')
 console.log(process.env)
 
-const driveClientId = process.env.GOOGLE_DRIVE_CLIENT_ID || '';
-const driveClientSecret = process.env.GOOGLE_DRIVE_CLIENT_SECRET || '';
-const driveRedirectUri = process.env.GOOGLE_DRIVE_REDIRECT_URI || '';
-const driveRefreshToken = process.env.GOOGLE_DRIVE_REFRESH_TOKEN || '';
+// const driveClientId = process.env.GOOGLE_DRIVE_CLIENT_ID || '';
+// const driveClientSecret = process.env.GOOGLE_DRIVE_CLIENT_SECRET || '';
+// const driveRedirectUri = process.env.GOOGLE_DRIVE_REDIRECT_URI || '';
+// const driveRefreshToken = process.env.GOOGLE_DRIVE_REFRESH_TOKEN || '';
 
 (async () => {
   console.log('ENVS')

@@ -29,6 +29,7 @@ pipeline {
                 sh 'npm install'
                 sh 'npm install avn-api'
                 sh 'npm install --save-dev mochawesome'
+                sh 'npm install mochawesome-merge --save-dev'
                 script {
                     if (params.Chain == 'uat') {
                         env.ACCOUNTS = env.SECRET_UAT_ACCOUNTS_FILE
@@ -106,12 +107,11 @@ pipeline {
                 // }
             }
         }
-        stage('CHECK REPORT') {
+        stage('MERGE REPORT REPORT') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh "pwd"
-                    sh "cat reportDir/pollApiReport.json"
-                    sh "cat reportDir/failPollApiReport.json"
+                    sh "npx mochawesome-merge ./reportDir/*.json -o finalReport.json"
+                    sh "cat finalReport.json"
                 }
             }
         }

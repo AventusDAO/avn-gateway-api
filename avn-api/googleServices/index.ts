@@ -8,6 +8,7 @@ console.log('ENVS B4')
 dotenv.config();
 
 console.log('ENVS AFTER')
+console.log(process.env)
 
 const driveClientId = process.env.GOOGLE_DRIVE_CLIENT_ID || '';
 const driveClientSecret = process.env.GOOGLE_DRIVE_CLIENT_SECRET || '';

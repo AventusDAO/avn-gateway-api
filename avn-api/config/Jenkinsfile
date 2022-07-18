@@ -111,7 +111,8 @@ pipeline {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh "npx mochawesome-merge ./reportDir/*.json -o finalReport.json"
-                    sh "cat finalReport.json"
+                    sh "npx mochawesome-report-generator finalReport.json --inline"
+                    sh "cat finalReport.html"
                 }
             }
         }

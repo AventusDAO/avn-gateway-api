@@ -1,7 +1,5 @@
 {
   "scripts": {
-    "type": "module",
-    "start": "ts-node ./avn-api/googleServices/index.ts",
     "upload": "node ./avn-api/googleServices/nodeIndex.js",
     "smokeTests": "mocha --timeout 100000 ./tests/gateway-smoke-tests.js ${baselineCmd} --gateway",
     "smokeTests:baseline": "baselineCmd=\"--invert --grep @NO_BASELINE\" npm run smokeTests",

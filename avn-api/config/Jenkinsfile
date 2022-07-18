@@ -13,6 +13,7 @@ pipeline {
         SECRET_STARGATE_ENVIRONMENT_FILE = credentials('sandbox_avn_gateway_tests_environment')
         SECRET_PUBLIC_TESTNET_ACCOUNTS_FILE = credentials('public_testnet_avn_gateway_tests_accounts')
         SECRET_PUBLIC_TESTNET_ENVIRONMENT_FILE = credentials('public_testnet_avn_gateway_tests_environment')
+        GOOGLE_DRIVE_ENVS = credentials('google_drive_credentials_test_reports');
     }
     triggers {
         cron('0 0 * * *')
@@ -23,6 +24,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                sh 'echo $GOOGLE_DRIVE_ENVS > .env'
                 sh 'rm -rf node_modules'
                 sh 'rm -f package-lock.json'
                 sh 'npm cache clean --force'
@@ -30,6 +32,8 @@ pipeline {
                 sh 'npm install avn-api'
                 sh 'npm install --save-dev mochawesome'
                 sh 'npm install mochawesome-merge --save-dev'
+                sh 'npm add dotenv googleapis'
+                sh 'npm add -D @types/node'
                 script {
                     if (params.Chain == 'uat') {
                         env.ACCOUNTS = env.SECRET_UAT_ACCOUNTS_FILE
@@ -113,6 +117,7 @@ pipeline {
                     sh "npx mochawesome-merge ./reportDir/*.json -o finalReport.json"
                     sh "npx mochawesome-report-generator finalReport.json --reportDir ./ --inline"
                     sh "cat finalReport.html"
+                    sh "npm start"
                 }
             }
         }

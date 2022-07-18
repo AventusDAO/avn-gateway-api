@@ -3,8 +3,11 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import { GoogleDriveService } from './googleDriveService';
+console.log('ENVS B4')
 
 dotenv.config();
+
+console.log('ENVS AFTER')
 
 const driveClientId = process.env.GOOGLE_DRIVE_CLIENT_ID || '';
 const driveClientSecret = process.env.GOOGLE_DRIVE_CLIENT_SECRET || '';
@@ -12,10 +15,12 @@ const driveRedirectUri = process.env.GOOGLE_DRIVE_REDIRECT_URI || '';
 const driveRefreshToken = process.env.GOOGLE_DRIVE_REFRESH_TOKEN || '';
 
 (async () => {
+  console.log('ENVS')
   console.log(driveClientId)
   console.log(driveClientSecret)
   console.log(driveRedirectUri)
   console.log(driveRefreshToken)
+  console.log('ENVS END')
   const googleDriveService = new GoogleDriveService(driveClientId, driveClientSecret, driveRedirectUri, driveRefreshToken);
 
   const finalPath = path.resolve(__dirname, '../../finalReport.html');

@@ -31,7 +31,11 @@ const driveRefreshToken = process.env.GOOGLE_DRIVE_REFRESH_TOKEN || '';
     folder = await googleDriveService.createFolder(folderName);
   }
 
-  await googleDriveService.saveFile('finalReport', finalPath, 'text/html', folder.id).catch((error) => {
+  // Example file name
+  // Nightly_test_report_2022-07-19T08:02:43.621Z
+  const date_now = new Date();
+  let fileName = date_now.getHours() >= 6 ? 'Normal_test_report_' : 'Nightly_test_report_';
+  await googleDriveService.saveFile(fileName + date_now.toISOString(), finalPath, 'text/html', folder.id).catch((error) => {
     console.error(error);
   });
 

@@ -13,6 +13,10 @@ pipeline {
         SECRET_STARGATE_ENVIRONMENT_FILE = credentials('sandbox_avn_gateway_tests_environment')
         SECRET_PUBLIC_TESTNET_ACCOUNTS_FILE = credentials('public_testnet_avn_gateway_tests_accounts')
         SECRET_PUBLIC_TESTNET_ENVIRONMENT_FILE = credentials('public_testnet_avn_gateway_tests_environment')
+        GOOGLE_DRIVE_CLIENT_ID = credentials('google_drive_client_id');
+        GOOGLE_DRIVE_CLIENT_SECRET = credentials('google_drive_client_secret');
+        GOOGLE_DRIVE_REDIRECT_URI = credentials('google_drive_redirect_uri');
+        GOOGLE_DRIVE_REFRESH_TOKEN = credentials('google_drive_refresh_token');
     }
     triggers {
         cron('0 0 * * *')
@@ -28,6 +32,8 @@ pipeline {
                 sh 'npm cache clean --force'
                 sh 'npm install'
                 sh 'npm install avn-api'
+                sh 'npm install --save-dev mochawesome'
+                sh 'npm install mochawesome-merge --save-dev'
                 script {
                     if (params.Chain == 'uat') {
                         env.ACCOUNTS = env.SECRET_UAT_ACCOUNTS_FILE
@@ -48,7 +54,7 @@ pipeline {
         stage('Account Funding') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh "npm run fund ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                    sh "npm run fund ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accountFundingReport;"
                 }
             }
         }
@@ -57,49 +63,49 @@ pipeline {
                 stage('Gateway Api: Awt Test') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                            sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
                         }
                     }
                 }
                 stage('Gateway Api: Utils') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run utilsTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                            sh "npm run utilsTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsReport;"
                         }
                     }
                 }
                 stage('Gateway Api: Poll') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run pollApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                            sh "npm run pollApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=pollApiReport;"
                         }
                     }
                 }
                 stage('Gateway Api: Query') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run queryApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                            sh "npm run queryApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
                         }
                     }
                 }
                 stage('Gateway Api: Poll Failure cases') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run failPollApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                            sh "npm run failPollApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=failPollApiReport;"
                         }
                     }
                 }
                 stage('Gateway Api: Query Failure cases') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run failQueryApiTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                            sh "npm run failQueryApiTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=failQueryApiReport;"
                         }
                     }
                 }
                 stage('Gateway Api: Send Failure cases') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run failSendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                            sh "npm run failSendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=failSendApiReport;"
                         }
                     }
                 }
@@ -108,21 +114,30 @@ pipeline {
         stage('Gateway Api: Access') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh "npm run accessTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                    sh "npm run accessTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
                 }
             }
         }
         stage('Gateway Api: Send') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh "npm run sendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                    sh "npm run sendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiReport;"
                 }
             }
         }
         stage('Gateway Api: Proxy') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh "npm run proxyApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT};"
+                    sh "npm run proxyApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=proxyApiReport;"
+                }
+            }
+        }
+        stage('Generate report') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh "npx mochawesome-merge ./reportDir/*.json -o finalReport.json"
+                    sh "npx mochawesome-report-generator finalReport.json --reportDir ./ --inline"
+                    sh "npm run upload"
                 }
             }
         }

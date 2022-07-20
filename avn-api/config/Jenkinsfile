@@ -138,6 +138,7 @@ pipeline {
                     sh "npx mochawesome-merge ./reportDir/*.json -o finalReport.json"
                     sh "npx mochawesome-report-generator finalReport.json --reportDir ./ --inline"
                     sh "npm run upload"
+                    sh "npm run slack ${params.Chain}"
                 }
             }
         }

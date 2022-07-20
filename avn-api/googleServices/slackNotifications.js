@@ -97,12 +97,6 @@ slack.alert({
                     short: true
                 }
             ],
-            title_link: "https://api.slack.com/"
-        },
-        {
-            color: alertColor,
-            title: "Test results",
-            title_link: "https://api.slack.com/"
         }
     ]
   });

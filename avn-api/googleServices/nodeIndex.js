@@ -3,7 +3,7 @@
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
-const NodeGoogleService = require('./NodeGoogleService.js');
+const NodeGoogleService = require('gds-avt');
 
 dotenv.config();
 

@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "slack": "node ./avn-api/googleServices/slackNotifications.js --gateway",
+    "slack": "node ./avn-api/slackServices/slackNotifications.js --gateway",
     "upload": "node ./avn-api/googleServices/nodeIndex.js --gateway",
     "smokeTests": "mocha --timeout 100000 ./tests/gateway-smoke-tests.js ${baselineCmd} --gateway",
     "smokeTests:baseline": "baselineCmd=\"--invert --grep @NO_BASELINE\" npm run smokeTests",
@@ -46,10 +46,10 @@
   },
   "dependencies": {
     "dotenv": "^16.0.1",
+    "gds-avt": "^1.0.1",
     "googleapis": "^105.0.0",
     "prettier": "^2.5.1",
     "slack-notify": "^2.0.2",
-    "gds-avt": "^1.0.1",
-    "googleapis": "^105.0.0",
+    "strn-avt": "^1.0.3"
   }
 }

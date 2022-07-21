@@ -23,7 +23,7 @@ pipeline {
     }
     parameters {
         choice(name: 'Chain', choices: ['uat', 'stargate', 'public_testnet'], description: 'Choose which chain to test');
-        text(name: 'Descriptive_name', defaultValue: '', description: 'Give a descriptive name to your test run');
+        string(name: 'Descriptive_name', defaultValue: '', description: 'Give a descriptive name to your test run');
     }
     stages {
         stage('Build') {

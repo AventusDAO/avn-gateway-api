@@ -7,7 +7,7 @@ const NodeGoogleService = require('gds-avt');
 const yargs = require('yargs');
 
 let argv = yargs
-  .usage('Run baseStateGenerator using a given Gateway environment')
+  .usage('Run upload using a given Gateway environment')
   .help('h')
   .alias('h', 'help')
   .demandOption('c')

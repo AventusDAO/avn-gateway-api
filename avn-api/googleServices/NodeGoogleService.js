@@ -27,7 +27,7 @@ NodeGoogleService.prototype.createFolder = async function(folderName) {
       },
       fields: 'id, name',
     });
-  return res.data ? res.data : undefined;
+  return res.data || undefined;
 }
 
 NodeGoogleService.prototype.searchFolder = async function(folderName) {

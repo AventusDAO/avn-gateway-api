@@ -22,7 +22,9 @@ const driveRefreshToken = process.env.GOOGLE_DRIVE_REFRESH_TOKEN || '';
     throw new Error('File not found!');
   }
 
-  let folder = await googleDriveService.searchFolder(folderName).catch((error) => {
+  let folder = await googleDriveService
+      .searchFolder(folderName)
+      .catch((error) => {
     console.error(error);
     return null;
   });

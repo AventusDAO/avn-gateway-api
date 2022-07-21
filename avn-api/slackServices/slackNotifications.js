@@ -1,5 +1,6 @@
 const yargs = require('yargs');
 const SlackNotification = require('strn-avt');
+const dotenv = require('dotenv');
 
 let argv = yargs
   .usage('Run baseStateGenerator using a given Gateway environment')

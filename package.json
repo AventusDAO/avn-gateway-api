@@ -45,11 +45,11 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
+    "avn-gdus": "github:Aventus-Network-Services/avn-lib-googleDriveUploadService",
+    "avn-strn": "github:Aventus-Network-Services/avn-lib-slackTestNotifications",
     "dotenv": "^16.0.1",
-    "gds-avt": "^1.0.1",
     "googleapis": "^105.0.0",
     "prettier": "^2.5.1",
-    "slack-notify": "^2.0.2",
-    "strn-avt": "^1.0.10"
+    "slack-notify": "^2.0.2"
   }
 }

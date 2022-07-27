@@ -17,6 +17,7 @@ pipeline {
         GOOGLE_DRIVE_CLIENT_SECRET = credentials('google_drive_client_secret');
         GOOGLE_DRIVE_REDIRECT_URI = credentials('google_drive_redirect_uri');
         GOOGLE_DRIVE_REFRESH_TOKEN = credentials('google_drive_refresh_token');
+        SLACK_WEBHOOK_URL = credentials('slack_webhook_url');
     }
     triggers {
         cron('0 0 * * *')
@@ -139,6 +140,7 @@ pipeline {
                     sh "npx mochawesome-merge ./reportDir/*.json -o finalReport.json"
                     sh "npx mochawesome-report-generator finalReport.json --reportDir ./ --inline"
                     sh "npm run upload ${params.Chain} -- --test_descriptive=${params.Descriptive_name}"
+                    sh "npm run slack ${params.Chain}"
                 }
             }
         }

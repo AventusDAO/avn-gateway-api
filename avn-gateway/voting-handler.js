@@ -13,13 +13,13 @@ exports.handler = async event => {
 
 async function processRequest(request) {
   const intention = JSON.parse(request);
-  const params = { Bucket: 'voting-test', Key: intention.proposal + '.json' };
-  const votingData = await getVotingData(params);
+  const s3Params = { Bucket: 'voting-test', Key: intention.proposal + '.json' };
+  const votingData = await getVotingData(s3Params);
   const hasNotVoted = intention.address in votingData.votes === false;
 
   if (voteIsOpen(votingData) && hasNotVoted && isValidVote(intention)) {
     votingData.votes[intention.address] = await weightVote(intention, votingData);
-    await setVotingData(params, votingData);
+    await setVotingData(s3Params, votingData);
   }
 
   return generateCurrentState(votingData);
@@ -57,8 +57,9 @@ function isValidVote(intention) {
 
 async function weightVote(intention, votingData) {
   try {
-    const avnQueryParams = { 'system', 'account', ['at', votingData.blockHash, intention.address] };
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', avnQueryParams);
+    const params = ['at', votingData.blockHash, intention.address];
+    const query = { palletName: 'system', storageName: 'account', params: params };
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
     const voterBalanceAtBlockHash = utils.toWholeAVT(avnResponse.data.data.free);
     return intention.vote ? voterBalanceAtBlockHash * 2 : voterBalanceAtBlockHash * -2;
   } catch (err) {
@@ -66,15 +67,15 @@ async function weightVote(intention, votingData) {
   }
 }
 
-async function getVotingData(params) {
-  const data = await s3.getObject(params).promise();
+async function getVotingData(s3Params) {
+  const data = await s3.getObject(s3Params).promise();
   return JSON.parse(data.Body.toString());
 }
 
-async function setVotingData(params, votingData) {
-  params.Body = JSON.stringify(votingData);
+async function setVotingData(s3Params, votingData) {
+  s3Params.Body = JSON.stringify(votingData);
   try {
-    const data = await s3.putObject(params).promise();
+    const data = await s3.putObject(s3Params).promise();
   } catch (err) {
     console.log(err);
   };

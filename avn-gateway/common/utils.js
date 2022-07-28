@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();
-const { hexToU8a, isHex, u8aToHex, u8aConcat, isNumber } = require('@polkadot/util');
+const { hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat, isNumber } = require('@polkadot/util');
 const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = require('@polkadot/util-crypto');
 const BN = require('bn.js');
 const { validate: uuidValidate } = require('uuid');
@@ -136,6 +136,10 @@ function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString();
 }
 
+function toWholeAVT(attoAVT) {
+  return parseInt(new BN(attoAVT).div(new BN(10).pow(new BN(18)).toString());
+}
+
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
   const encodedContext = registry.createType('Text', SIGNING_CONTEXT);
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
@@ -160,6 +164,11 @@ function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePa
   );
 
   return signatureVerify(u8aToHex(encodedData), feePaymentSignature, payer).isValid;
+}
+
+function verifyVotingSignature(votingIntention) {
+  const message = stringToHex(votingIntention.proposal + votingIntention.vote);
+  return signatureVerify(message, votingIntention.signature, votingIntention.voter).isValid;
 }
 
 function encodeProxyProof(params) {
@@ -192,7 +201,9 @@ module.exports = {
   isValidString,
   isValidTransactionType,
   toBnString,
+  toWholeAVT,
   validResponse,
   verifyAwtTokenSignature,
-  verifyFeePaymentSignature
+  verifyFeePaymentSignature,
+  verifyVotingSignature
 };

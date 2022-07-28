@@ -15,9 +15,9 @@ async function processRequest(request) {
   const voterIntention = JSON.parse(request);
   const s3Params = { Bucket: 'voting-test', Key: voterIntention.proposal + '.json' };
   const votingData = await getVotingData(s3Params);
-  const hasNotVoted = voterIntention.address in votingData.votes === false;
+  const hasNotYetVoted = voterIntention.address in votingData.votes === false;
 
-  if (voteIsOpen(votingData) && hasNotVoted && isValidVote(voterIntention)) {
+  if (voteIsOpen(votingData) && hasNotYetVoted && isValidVote(voterIntention)) {
     votingData.votes[voterIntention.address] = await weightVote(voterIntention, votingData);
     await setVotingData(s3Params, votingData);
   }
@@ -47,8 +47,12 @@ async function weightVote(voterIntention, votingData) {
 }
 
 async function getVotingData(s3Params) {
-  const data = await s3.getObject(s3Params).promise();
-  return JSON.parse(data.Body.toString());
+  try {
+    const data = await s3.getObject(s3Params).promise();
+    return JSON.parse(data.Body.toString());
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 async function setVotingData(s3Params, votingData) {

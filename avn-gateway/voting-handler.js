@@ -12,17 +12,52 @@ exports.handler = async event => {
 };
 
 async function processRequest(request) {
-  const intention = JSON.parse(request);
-  const s3Params = { Bucket: 'voting-test', Key: intention.proposal + '.json' };
+  const voterIntention = JSON.parse(request);
+  const s3Params = { Bucket: 'voting-test', Key: voterIntention.proposal + '.json' };
   const votingData = await getVotingData(s3Params);
-  const hasNotVoted = intention.address in votingData.votes === false;
+  const hasNotVoted = voterIntention.address in votingData.votes === false;
 
-  if (voteIsOpen(votingData) && hasNotVoted && isValidVote(intention)) {
-    votingData.votes[intention.address] = await weightVote(intention, votingData);
+  if (voteIsOpen(votingData) && hasNotVoted && isValidVote(voterIntention)) {
+    votingData.votes[voterIntention.address] = await weightVote(voterIntention, votingData);
     await setVotingData(s3Params, votingData);
   }
 
   return generateCurrentState(votingData);
+}
+
+function voteIsOpen(votingData) {
+  const now = Math.floor(new Date().getTime() / 1000);
+  return now > votingData.start && now < votingData.end;
+}
+
+function isValidVote(voterIntention) {
+  return utils.verifyVotingSignature(voterIntention);
+}
+
+async function weightVote(voterIntention, votingData) {
+  try {
+    const params = ['at', votingData.blockHash, voterIntention.address];
+    const query = { palletName: 'system', storageName: 'account', params: params };
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
+    const voterBalanceAtBlockHash = utils.toWholeAVT(avnResponse.data.data.free);
+    return voterIntention.vote ? voterBalanceAtBlockHash * 2 : voterBalanceAtBlockHash * -2;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function getVotingData(s3Params) {
+  const data = await s3.getObject(s3Params).promise();
+  return JSON.parse(data.Body.toString());
+}
+
+async function setVotingData(s3Params, votingData) {
+  try {
+    s3Params.Body = JSON.stringify(votingData);
+    await s3.putObject(s3Params).promise();
+  } catch (err) {
+    console.log(err);
+  };
 }
 
 function generateCurrentState(votingData) {
@@ -39,44 +74,4 @@ function generateCurrentState(votingData) {
   }
 
   return result >= 0 ? { votes, result: 'Approve' } : { votes, result: 'Dispprove' };
-}
-
-function voteIsOpen(votingData) {
-  const now = Math.floor(new Date().getTime() / 1000);
-  return now > votingData.start && now < votingData.end;
-}
-
-function hasNotVoted(intention) {
-  return (intention.address in votes) === false;
-}
-
-function isValidVote(intention) {
-  return utils.verifyVotingSignature(intention);
-  return true;
-}
-
-async function weightVote(intention, votingData) {
-  try {
-    const params = ['at', votingData.blockHash, intention.address];
-    const query = { palletName: 'system', storageName: 'account', params: params };
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
-    const voterBalanceAtBlockHash = utils.toWholeAVT(avnResponse.data.data.free);
-    return intention.vote ? voterBalanceAtBlockHash * 2 : voterBalanceAtBlockHash * -2;
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-async function getVotingData(s3Params) {
-  const data = await s3.getObject(s3Params).promise();
-  return JSON.parse(data.Body.toString());
-}
-
-async function setVotingData(s3Params, votingData) {
-  s3Params.Body = JSON.stringify(votingData);
-  try {
-    const data = await s3.putObject(s3Params).promise();
-  } catch (err) {
-    console.log(err);
-  };
 }

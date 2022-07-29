@@ -7,22 +7,26 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 exports.handler = async event => {
   return {
     statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+    },
     body: JSON.stringify(await processRequest(event.body))
   };
 };
 
 async function processRequest(request) {
   const voterIntention = JSON.parse(request);
-  const s3Params = { Bucket: 'voting-test', Key: voterIntention.proposal + '.json' };
+  const s3Params = { Bucket: 'avn-votes', Key: voterIntention.proposal + '.json' };
   const votingData = await getVotingData(s3Params);
-  const hasNotYetVoted = voterIntention.address in votingData.votes === false;
+  const hasNotVotedBefore = voterIntention.address in votingData.votes === false;
 
-  if (voteIsOpen(votingData) && hasNotYetVoted && isValidVote(voterIntention)) {
+  if (voteIsOpen(votingData) && hasNotVotedBefore && isValidVote(voterIntention)) {
     votingData.votes[voterIntention.address] = await weightVote(voterIntention, votingData);
     await setVotingData(s3Params, votingData);
   }
 
-  return generateCurrentState(votingData);
+  return currentState(votingData);
 }
 
 function voteIsOpen(votingData) {
@@ -31,7 +35,8 @@ function voteIsOpen(votingData) {
 }
 
 function isValidVote(voterIntention) {
-  return utils.verifyVotingSignature(voterIntention);
+  return true; // TODO: fix signing in Dapp
+  // return utils.verifyVotingSignature(voterIntention);
 }
 
 async function weightVote(voterIntention, votingData) {
@@ -64,18 +69,21 @@ async function setVotingData(s3Params, votingData) {
   };
 }
 
-function generateCurrentState(votingData) {
+function currentState(votingData) {
   let votes = [];
-  let result = 0;
+  let tally = 0;
 
-  for (const [address, weight] of Object.entries(votingData.votes)) {
-    if (weight > 0) {
-      votes.push({ voter: address, weight: weight, vote: 'Approve' });
-    } else {
-      votes.push({ voter: address, weight: weight * -1, vote: 'Disapprove' });
-    }
-    result += weight;
+  for (const [voter, weight] of Object.entries(votingData.votes)) {
+    tally += weight;
+    const vote = recoverVote(weight);
+    const weighting = weight > 0 ? weight : weight * -1;
+    votes.push({ voter, vote, weighting });
   }
 
-  return result >= 0 ? { votes, result: 'Approve' } : { votes, result: 'Dispprove' };
+  const result = recoverVote(tally);
+  return { votes, result };
+}
+
+function recoverVote(weight) {
+  return weight > 0 ? 'Approve' : weight < 0 ? 'Disapprove' : 'Undecided';
 }

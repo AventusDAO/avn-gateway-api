@@ -137,7 +137,7 @@ function toBnString(val) {
 }
 
 function toWholeAVT(attoAVT) {
-  return parseInt(new BN(attoAVT).div(new BN(10).pow(new BN(18)).toString());
+  return parseInt(new BN(attoAVT).div(new BN(10).pow(new BN(18))).toString());
 }
 
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
@@ -168,7 +168,9 @@ function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePa
 
 function verifyVotingSignature(votingIntention) {
   const message = stringToHex(votingIntention.proposal + votingIntention.vote);
-  return signatureVerify(message, votingIntention.signature, votingIntention.voter).isValid;
+  const publicKey = decodeAddress(votingIntention.address);
+  const hexPublicKey = u8aToHex(publicKey);
+  return signatureVerify(message, votingIntention.signature, hexPublicKey).isValid;
 }
 
 function encodeProxyProof(params) {

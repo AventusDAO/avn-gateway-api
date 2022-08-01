@@ -139,8 +139,11 @@ async function weightVote(voterIntention, proposalData) {
     const params = ['at', proposalData.blockNumber, voterIntention.address];
     const query = { palletName: 'system', storageName: 'account', params: params };
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
-    const voterBalanceAtBlockNumber = utils.toWholeAVT(avnResponse.data.data.free);
-    return voterIntention.vote ? voterBalanceAtBlockNumber * 2 : voterBalanceAtBlockNumber * -2;
+    const voterBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.free);
+    const voterStakedBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.feeFrozen);
+    const voterUnstakedBalanceAtBlock = voterBalanceAtBlock - voterStakedBalanceAtBlock;
+    const voterWeightedBalanceAtBlock = voterStakedBalanceAtBlock * 2 + voterUnstakedBalanceAtBlock;
+    return voterIntention.vote ? voterWeightedBalanceAtBlock : voterWeightedBalanceAtBlock * -1;
   } catch (err) {
     console.error(err);
     return null;

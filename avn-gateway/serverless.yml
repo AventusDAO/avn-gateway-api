@@ -175,7 +175,7 @@ functions:
     events:
       - httpApi:
           path: /vote
-          method: POST
+          method: ANY
     layers:
       - { Ref: CommonLambdaLayer }
 

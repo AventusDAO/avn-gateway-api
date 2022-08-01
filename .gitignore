@@ -18,3 +18,7 @@ tests/demo/demo-accounts.json
 tests/demo/demo-accounts-testnet.json
 
 avn-api/config/accounts_withcba.json
+
+#OS/IDE files
+.idea
+.DS_STORE

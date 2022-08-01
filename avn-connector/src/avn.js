@@ -25,7 +25,7 @@ async function query(palletName, storageName, params) {
   if (params[0] === 'entries') {
     result = await api.query[palletName][storageName].entries();
   } else if (params[0] === 'at') {
-    result = await api.query[palletName][storageName].at(...params.slice(2));
+    result = await api.query[palletName][storageName].at(...params.slice(1));
     result = result.toJSON();
   } else {
     result = await api.query[palletName][storageName](...params);

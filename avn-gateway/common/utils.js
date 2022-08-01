@@ -136,8 +136,11 @@ function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString();
 }
 
-function toWholeAVT(attoAVT) {
-  return parseInt(new BN(attoAVT).div(new BN(10).pow(new BN(18))).toString());
+function toWholeAVT(val) {
+  const attoAmount = new BN(val.replace('0x', ''), 16);
+  const decimals = new BN(10).pow(new BN(18));
+  const wholeAmount = attoAmount.div(decimals);
+  return parseInt(wholeAmount.toString());
 }
 
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {

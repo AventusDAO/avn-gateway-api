@@ -5,6 +5,7 @@ const utils = require('/opt/utils.js');
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async event => {
+  await utils.init();
   return {
     statusCode: 200,
     headers: {
@@ -35,8 +36,7 @@ function voteIsOpen(votingData) {
 }
 
 function isValidVote(voterIntention) {
-  return true; // TODO: fix signing in Dapp
-  // return utils.verifyVotingSignature(voterIntention);
+  return utils.verifyVotingSignature(voterIntention);
 }
 
 async function weightVote(voterIntention, votingData) {

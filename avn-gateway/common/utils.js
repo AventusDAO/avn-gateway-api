@@ -167,7 +167,7 @@ function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePa
 }
 
 function verifyVotingSignature(votingIntention) {
-  const message = stringToHex(votingIntention.proposal + votingIntention.vote);
+  const message = stringToHex('<Bytes>' + votingIntention.proposal + votingIntention.vote + '</Bytes>');
   const publicKey = decodeAddress(votingIntention.address);
   const hexPublicKey = u8aToHex(publicKey);
   return signatureVerify(message, votingIntention.signature, hexPublicKey).isValid;

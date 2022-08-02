@@ -137,6 +137,7 @@ function toBnString(val) {
 }
 
 function toWholeAVT(val) {
+  if (val === 0) return val;
   const attoAmount = new BN(val.replace('0x', ''), 16);
   const decimals = new BN(10).pow(new BN(18));
   const wholeAmount = attoAmount.div(decimals);

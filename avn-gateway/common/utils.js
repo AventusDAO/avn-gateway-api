@@ -6,8 +6,8 @@ const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = requi
 const BN = require('bn.js');
 const { validate: uuidValidate } = require('uuid');
 
+const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
-
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const TX_TYPES = [
@@ -143,8 +143,7 @@ function toBnString(val) {
 function toWholeAVT(val) {
   if (val === 0) return val;
   const attoAmount = new BN(val.replace('0x', ''), 16);
-  const decimals = new BN(10).pow(new BN(18));
-  const wholeAmount = attoAmount.div(decimals);
+  const wholeAmount = attoAmount.div(AVT_DECIMALS);
   return parseInt(wholeAmount.toString());
 }
 

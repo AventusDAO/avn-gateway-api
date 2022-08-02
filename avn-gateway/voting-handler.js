@@ -156,7 +156,7 @@ function formatProposalData(proposal, proposalData) {
     description: proposalData.description,
     startDate: formatAsDate(proposalData.start),
     endDate: formatAsDate(proposalData.end),
-    proposal: proposal,
+    proposal: parseInt(proposal),
     status: voteIsOpen(proposalData) ? 'Active' : 'Closed',
     blockNumber: proposalData.blockNumber
   }

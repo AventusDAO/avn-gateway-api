@@ -33,6 +33,7 @@ async function getFormattedProposal(proposal) {
   try {
     const proposalData = await getProposalData(proposal);
     result = formatProposalData(proposal, proposalData);
+    result.votes = formatVotes(proposalData.votes);
   } catch (err) {
     console.log(err);
   }
@@ -153,14 +154,11 @@ function formatProposalData(proposal, proposalData) {
   return {
     title: proposalData.title,
     description: proposalData.description,
-    author: proposalData.author,
     startDate: formatAsDate(proposalData.start),
     endDate: formatAsDate(proposalData.end),
-    referenceID: proposal,
+    proposal: proposal,
     status: voteIsOpen(proposalData) ? 'Active' : 'Closed',
-    hash: proposalData.blockNumber,
-    voters: formatVotes(proposalData.votes),
-    id: proposal
+    blockNumber: proposalData.blockNumber
   }
 }
 
@@ -171,15 +169,12 @@ function formatAsDate(timestamp) {
 
 function formatVotes(votes) {
   let result = [];
-  let voterId = 0;
 
   for (const [publicKey, weight] of Object.entries(votes)) {
     const formattedVote = {
       address: utils.convertToAddress(publicKey),
       voteSway: weight > 0 ? 'approve' : 'disapprove',
-      staker: true,
-      avt_weight: weight > 0 ? weight : weight * -1,
-      id: voterId++
+      avt_weight: weight > 0 ? weight : weight * -1
     };
     result.push(formattedVote);
   }

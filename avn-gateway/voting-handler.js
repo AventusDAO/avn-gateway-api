@@ -31,7 +31,6 @@ async function getFormattedProposal(proposal) {
   let result = {};
 
   try {
-    proposal = proposal + '.json';
     const proposalData = await getProposalData(proposal);
     result = formatProposalData(proposal, proposalData);
   } catch (err) {
@@ -58,12 +57,12 @@ async function getFormattedProposalList() {
 }
 
 async function checkVoteAndUpdateProposal(requestData) {
-  let voterIntention, proposal, proposalData;
+  let voterIntention, proposalData;
 
   try {
     voterIntention = JSON.parse(requestData);
-    proposal = voterIntention.proposal + '.json';
-    proposalData = await getProposalData(proposal);
+    voterIntention.publicKey = utils.convertToPublicKey(voterIntention.address);
+    proposalData = await getProposalData(voterIntention.proposal);
   } catch (err) {
     console.log(err);
     return { result: 'bad request' };
@@ -71,24 +70,24 @@ async function checkVoteAndUpdateProposal(requestData) {
 
   if (voteIsOpen(proposalData) === false) {
     return { result: 'vote not open' };
-  } else if (voterIntention.address in proposalData.votes) {
+  } else if (voterIntention.publicKey in proposalData.votes) {
     return { result: 'has already voted' };
   } else if (utils.verifyVotingSignature(voterIntention) === false) {
     return { result: 'invalid signature' };
   } else {
-    return { result: await weightVoteAndUpdateProposal(proposal, voterIntention, proposalData) };
+    return { result: await weightVoteAndUpdateProposal(voterIntention, proposalData) };
   }
 }
 
-async function weightVoteAndUpdateProposal(proposal, voterIntention, proposalData) {
+async function weightVoteAndUpdateProposal(voterIntention, proposalData) {
   const weightedVote = await weightVote(voterIntention, proposalData);
   if (weightedVote === null) {
     return 'failed to vote';
   } else if (weightedVote === 0) {
     return 'zero balance at voting block';
   } else {
-    proposalData.votes[voterIntention.address] = weightedVote;
-    await updateProposalData(proposal, proposalData);
+    proposalData.votes[voterIntention.publicKey] = weightedVote;
+    await updateProposalData(voterIntention.proposal, proposalData);
     return 'success';
   }
 }
@@ -97,7 +96,7 @@ async function getProposalData(proposal) {
   let proposalData = {};
 
   try {
-    const s3Params = { Bucket: AVN_VOTES_BUCKET, Key: proposal };
+    const s3Params = { Bucket: AVN_VOTES_BUCKET, Key: proposal + '.json' };
     const data = await s3.getObject(s3Params).promise();
     proposalData = JSON.parse(data.Body.toString());
   } catch (err) {
@@ -112,7 +111,7 @@ async function listProposals() {
 
   try {
     const s3Params = { Bucket: AVN_VOTES_BUCKET };
-    proposalList = (await s3.listObjectsV2(s3Params).promise()).Contents.map(c => c.Key);
+    proposalList = (await s3.listObjectsV2(s3Params).promise()).Contents.map(c => c.Key.split('.')[0]);
   } catch (err) {
     console.log(err);
   }
@@ -122,7 +121,7 @@ async function listProposals() {
 
 async function updateProposalData(proposal, proposalData) {
   try {
-    const s3Params = { Bucket: AVN_VOTES_BUCKET, Key: proposal, Body: JSON.stringify(proposalData) };
+    const s3Params = { Bucket: AVN_VOTES_BUCKET, Key: proposal + '.json', Body: JSON.stringify(proposalData) };
     await s3.putObject(s3Params).promise();
   } catch (err) {
     console.log(err);
@@ -136,7 +135,7 @@ function voteIsOpen(proposalData) {
 
 async function weightVote(voterIntention, proposalData) {
   try {
-    const params = ['at', proposalData.blockNumber, voterIntention.address];
+    const params = ['at', proposalData.blockNumber, voterIntention.publicKey];
     const query = { palletName: 'system', storageName: 'account', params: params };
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
     const voterBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.free);
@@ -151,33 +150,32 @@ async function weightVote(voterIntention, proposalData) {
 }
 
 function formatProposalData(proposal, proposalData) {
-  const proposalId = proposal.split('.')[0];
   return {
     title: proposalData.title,
     description: proposalData.description,
     author: proposalData.author,
     startDate: formatAsDate(proposalData.start),
     endDate: formatAsDate(proposalData.end),
-    referenceID: proposalId,
+    referenceID: proposal,
     status: voteIsOpen(proposalData) ? 'Active' : 'Closed',
     hash: proposalData.blockNumber,
     voters: formatVotes(proposalData.votes),
-    id: proposalId
+    id: proposal
   }
 }
 
 function formatAsDate(timestamp) {
   const date = new Date(timestamp * 1000);
-  return [date.getDate(), (date.getMonth()+1), date.getFullYear()].join('-');
+  return [date.getDate(), date.getMonth()+1, date.getFullYear()].join('-');
 }
 
 function formatVotes(votes) {
   let result = [];
   let voterId = 0;
 
-  for (const [address, weight] of Object.entries(votes)) {
+  for (const [publicKey, weight] of Object.entries(votes)) {
     const formattedVote = {
-      address: address,
+      address: utils.convertToAddress(publicKey),
       voteSway: weight > 0 ? 'approve' : 'disapprove',
       staker: true,
       avt_weight: weight > 0 ? weight : weight * -1,

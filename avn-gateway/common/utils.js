@@ -132,6 +132,10 @@ function convertToAddress(accountId) {
   return isHex(accountId) ? encodeAddress(accountId) : accountId;
 }
 
+function convertToPublicKey(accountId) {
+  return isHex(accountId) ? accountId : decodeAddress(accountId);
+}
+
 function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString();
 }
@@ -172,8 +176,7 @@ function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePa
 
 function verifyVotingSignature(votingIntention) {
   const message = stringToHex('<Bytes>' + votingIntention.proposal + votingIntention.vote + '</Bytes>');
-  const publicKey = decodeAddress(votingIntention.address);
-  const hexPublicKey = u8aToHex(publicKey);
+  const hexPublicKey = u8aToHex(votingIntention.publicKey);
   return signatureVerify(message, votingIntention.signature, hexPublicKey).isValid;
 }
 
@@ -190,6 +193,7 @@ module.exports = {
   BN,
   STASH_REWARD_DESTINATION,
   convertToAddress,
+  convertToPublicKey,
   errorResponse,
   init,
   isValidAccountId,

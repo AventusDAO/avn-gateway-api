@@ -133,7 +133,7 @@ function convertToAddress(accountId) {
 }
 
 function convertToPublicKey(accountId) {
-  return isHex(accountId) ? accountId : decodeAddress(accountId);
+  return isHex(accountId) ? accountId : u8aToHex(decodeAddress(accountId));
 }
 
 function toBnString(val) {
@@ -176,8 +176,7 @@ function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePa
 
 function verifyVotingSignature(votingIntention) {
   const message = stringToHex('<Bytes>' + votingIntention.proposal + votingIntention.vote + '</Bytes>');
-  const hexPublicKey = u8aToHex(votingIntention.publicKey);
-  return signatureVerify(message, votingIntention.signature, hexPublicKey).isValid;
+  return signatureVerify(message, votingIntention.signature, votingIntention.publicKey).isValid;
 }
 
 function encodeProxyProof(params) {

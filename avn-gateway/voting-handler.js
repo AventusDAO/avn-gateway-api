@@ -174,7 +174,7 @@ function formatVotes(votes) {
     const formattedVote = {
       address: utils.convertToAddress(publicKey),
       voteSway: weight > 0 ? 'approve' : 'disapprove',
-      avt_weight: weight > 0 ? weight : weight * -1
+      avtWeight: weight > 0 ? weight : weight * -1
     };
     result.push(formattedVote);
   }

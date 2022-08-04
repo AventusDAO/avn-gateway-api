@@ -47,7 +47,7 @@ const BN = helper.BN;
 
   let testConfig;
 
-  describe('Fail Send api calls:', async () => {
+  describe('@NO_BASELINE Fail Send api calls:', async () => {
     describe('transferAvt', async () => {
       describe('fails when called', async () => {
         testConfig = {

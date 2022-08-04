@@ -7,7 +7,7 @@ const helper = require('./helper.js');
 // This makes run() method available to be called with --delay flag
 (async function () {
   const api = await helper.avnApi();
-  describe('Fail Poll api calls:', async () => {
+  describe('@NO_BASELINE Fail Poll api calls:', async () => {
     describe('requestState', async () => {
       describe('fails when called', async () => {
         let testConfig = {

@@ -177,14 +177,14 @@ functions:
       - { Ref: CommonLambdaLayer }
       - { Ref: QueueLambdaLayer }
 
-  voting-handler:
-    name: voting-handler
-    handler: voting-handler.handler
+  vote-handler:
+    name: vote-handler
+    handler: vote-handler.handler
     description: aws:states:opt-out
     package:
       patterns:
         - '!**/**'
-        - voting-handler.js
+        - vote-handler.js
     memorySize: 256
     events:
       - httpApi:

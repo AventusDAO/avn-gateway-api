@@ -70,6 +70,9 @@ module "lambda_functions" {
       timeout     = 6
       memory_size = 128
     }
+    vote-handler = {
+      memory_size = 256
+    }
   }
 
   depends_on = [
@@ -84,6 +87,7 @@ module "api_gateway" {
   poll_invoke_arn       = module.lambda_functions.invoke_arns["poll-handler"]
   send_invoke_arn       = module.lambda_functions.invoke_arns["send-handler"]
   query_invoke_arn      = module.lambda_functions.invoke_arns["query-handler"]
+  vote_invoke_arn       = module.lambda_functions.invoke_arns["vote-handler"]
   auth_cache_duration   = 60
 }
 

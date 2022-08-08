@@ -173,11 +173,6 @@ function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePa
   return signatureVerify(u8aToHex(encodedData), feePaymentSignature, payer).isValid;
 }
 
-function verifyVotingSignature(votingIntention) {
-  const message = stringToHex('<Bytes>' + votingIntention.proposal + votingIntention.vote + '</Bytes>');
-  return signatureVerify(message, votingIntention.signature, votingIntention.publicKey).isValid;
-}
-
 function encodeProxyProof(params) {
   const user = registry.createType('AccountId', params.signer);
   const relayer = registry.createType('AccountId', params.relayer);
@@ -208,10 +203,10 @@ module.exports = {
   isValidSignatureFormat,
   isValidString,
   isValidTransactionType,
+  signatureVerify,
   toBnString,
   toWholeAVT,
   validResponse,
   verifyAwtTokenSignature,
-  verifyFeePaymentSignature,
-  verifyVotingSignature
+  verifyFeePaymentSignature
 };

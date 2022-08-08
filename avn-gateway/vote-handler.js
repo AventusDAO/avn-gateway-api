@@ -73,11 +73,16 @@ async function checkVoteAndUpdateProposal(requestData) {
     return { result: 'vote not open' };
   } else if (voterIntention.publicKey in proposalData.votes) {
     return { result: 'has already voted' };
-  } else if (utils.verifyVotingSignature(voterIntention) === false) {
+  } else if (verifyVotingSignature(voterIntention) === false) {
     return { result: 'invalid signature' };
   } else {
     return { result: await weightVoteAndUpdateProposal(voterIntention, proposalData) };
   }
+}
+
+function verifyVotingSignature(votingIntention) {
+  const message = stringToHex('<Bytes>' + votingIntention.proposal + votingIntention.vote + '</Bytes>');
+  return utils.signatureVerify(message, votingIntention.signature, votingIntention.publicKey).isValid;
 }
 
 async function weightVoteAndUpdateProposal(voterIntention, proposalData) {
@@ -139,6 +144,7 @@ async function weightVote(voterIntention, proposalData) {
     const params = ['at', proposalData.blockNumber, voterIntention.publicKey];
     const query = { palletName: 'system', storageName: 'account', params: params };
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
+    // TODO - use metadata calls to calculate the actual staked amount over relying on it simply not being free AVT
     const voterBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.free);
     const voterStakedBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.feeFrozen);
     const voterUnstakedBalanceAtBlock = voterBalanceAtBlock - voterStakedBalanceAtBlock;

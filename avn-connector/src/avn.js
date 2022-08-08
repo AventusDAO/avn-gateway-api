@@ -25,8 +25,8 @@ async function query(palletName, storageName, params) {
   if (params[0] === 'entries') {
     result = await api.query[palletName][storageName].entries();
   } else if (params[0] === 'at') {
-    params[1] = await api.rpc.chain.getBlockHash(params[1]);
-    result = await api.query[palletName][storageName].at(...params.slice(1));
+    const blockHash = await api.rpc.chain.getBlockHash(params[1]);
+    result = await api.query[palletName][storageName].at(blockHash, ...params.slice(2));
     result = result.toJSON();
   } else {
     result = await api.query[palletName][storageName](...params);

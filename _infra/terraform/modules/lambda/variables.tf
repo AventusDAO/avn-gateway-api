@@ -28,7 +28,8 @@ variable "lambda_functions" {
     "authorisation-handler": {},
     "poll-handler": {},
     "send-handler": {},
-    "query-handler": {}
+    "query-handler": {},
+    "vote-handler": {}
   }
 }
 

@@ -204,6 +204,7 @@ module.exports = {
   isValidString,
   isValidTransactionType,
   signatureVerify,
+  stringToHex,
   toBnString,
   toWholeAVT,
   validResponse,

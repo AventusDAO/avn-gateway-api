@@ -19,10 +19,7 @@ exports.handler = async event => {
 
   return {
     statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true,
-    },
+    headers: { 'Access-Control-Allow-Origin': '*' },
     body: JSON.stringify(response)
   };
 };
@@ -81,7 +78,7 @@ async function checkVoteAndUpdateProposal(requestData) {
 }
 
 function verifyVotingSignature(votingIntention) {
-  const message = stringToHex('<Bytes>' + votingIntention.proposal + votingIntention.vote + '</Bytes>');
+  const message = utils.stringToHex('<Bytes>' + votingIntention.proposal + votingIntention.vote + '</Bytes>');
   return utils.signatureVerify(message, votingIntention.signature, votingIntention.publicKey).isValid;
 }
 

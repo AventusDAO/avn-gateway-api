@@ -5,6 +5,7 @@ locals {
   eks_node_size          = 20
   account_id             = "602004642405"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
+  avn_votes_bucket       = "avn-votes-${local.environment}"
   block_explorer_url     = "https://avn.uat.aventus.io:3000"
   vault_recovery_window  = 0
 }

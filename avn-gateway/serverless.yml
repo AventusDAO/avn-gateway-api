@@ -13,13 +13,13 @@ provider:
           Action:
             - 's3:ListBucket'
           Resource:
-            - 'arn:aws:s3:::avn-votes'
+            - 'arn:aws:s3:::${file(./${env:SLS_ENV}.yml):avnVotesBucket}'
         - Effect: Allow
           Action:
             - 's3:GetObject'
             - 's3:PutObject'
           Resource:
-            - 'arn:aws:s3:::avn-votes/*'
+            - 'arn:aws:s3:::${file(./${env:SLS_ENV}.yml):avnVotesBucket}/*'
   runtime: nodejs14.x
   versionFunctions: false
   logRetentionInDays: ${file(./${env:SLS_ENV}.yml):logRetentionDays}

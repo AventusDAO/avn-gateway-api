@@ -3,7 +3,7 @@ locals {
       env_vars    = [lookup(v, "env_vars", {})]
       timeout     = lookup(v, "timeout", 3)
       memory_size = lookup(v, "memory_size", 128)
-    } 
+    }
   }
 }
 
@@ -16,7 +16,7 @@ resource "aws_lambda_function" "lambda" {
   function_name = each.key
   role          = aws_iam_role.lambda_role[each.key].arn
   handler       = "${each.key}.handler"
-  description   = "${each.key} - ${var.service_version} - Deployed by Terraform" 
+  description   = "${each.key} - ${var.service_version} - Deployed by Terraform"
   runtime       = var.lambda_runtime
   layers        = [aws_lambda_layer_version.common_layer.arn, aws_lambda_layer_version.queue.arn]
   timeout       = local.lambdas[each.key]["timeout"]
@@ -25,7 +25,7 @@ resource "aws_lambda_function" "lambda" {
   dynamic "environment" {
     for_each = each.value["env_vars"]
     content {
-      variables = merge(environment.value, {AVN_CONNECTOR_ENDPOINT = var.avn_connector_endpoint})
+      variables = merge(environment.value, {AVN_CONNECTOR_ENDPOINT = var.avn_connector_endpoint}, {AVN_VOTES_BUCKET = var.avn_votes_bucket})
     }
   }
 

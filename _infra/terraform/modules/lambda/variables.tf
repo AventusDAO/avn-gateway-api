@@ -49,6 +49,11 @@ variable "avn_connector_endpoint" {
   description = "Endpoint of the avn-connector service. Must have a trailing slash."
 }
 
+variable "avn_votes_bucket" {
+  type        = string
+  description = "S3 bucket for vote proposal objects"
+}
+
 variable "vpc_id" {
   type = string
 }

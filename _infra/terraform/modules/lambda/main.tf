@@ -179,8 +179,8 @@ resource "aws_iam_role_policy_attachment" "network" {
 }
 
 resource "aws_iam_role_policy_attachment" "extra_permissions" {
-  for_each   = { for key, value in local.lambdas: key => value if local.lambdas[key]["extra_policies_arn"] != "" }
-  role       = aws_iam_role.lambda_role[key].name
+  for_each   = { for key, value in local.lambdas: key => value if local.lambdas[key].extra_policy_arn != "" }
+  role       = aws_iam_role.lambda_role[each.key].name
   policy_arn = each.value.extra_policy_arn
 }
 

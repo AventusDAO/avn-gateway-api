@@ -3,7 +3,6 @@ locals {
       env_vars           = [lookup(v, "env_vars", {})]
       timeout            = lookup(v, "timeout", 3)
       memory_size        = lookup(v, "memory_size", 128)
-      extra_policy_arn   = lookup(v, "extra_policies_arn", "")
     }
   }
 }
@@ -176,12 +175,6 @@ resource "aws_iam_role_policy_attachment" "network" {
 
   role       = each.value.name
   policy_arn = aws_iam_policy.lambda_network.arn
-}
-
-resource "aws_iam_role_policy_attachment" "extra_permissions" {
-  for_each   = { for key, value in local.lambdas: key => value if local.lambdas[key].extra_policy_arn != "" }
-  role       = aws_iam_role.lambda_role[each.key].name
-  policy_arn = each.value.extra_policy_arn
 }
 
 resource "aws_lambda_permission" "allow_api" {

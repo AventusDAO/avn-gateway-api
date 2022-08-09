@@ -38,6 +38,19 @@ resource "aws_iam_policy" "full_access_vote_buckets" {
   })
 }
 
+data "aws_lambda_function" "vote_handler" {
+  function_name = "vote-handler"
+
+  depends_on = [
+    module.lambda_functions
+  ]
+}
+
+resource "aws_iam_role_policy_attachment" "extra_permissions" {
+  role       = data.aws_lambda_function.vote_handler.role
+  policy_arn = aws_iam_policy.full_access_vote_buckets.arn
+}
+
 module "lambda_functions" {
   source                 = "../../../modules/lambda"
   artifact_bucket        = "avn-lambda-artifacts-sandbox"

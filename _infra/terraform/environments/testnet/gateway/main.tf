@@ -6,6 +6,7 @@ locals {
   eks_node_size          = 50
   account_id             = "189013141504"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
+  avn_votes_bucket       = "avn-votes-testnet"
   block_explorer_url     = "https://testnet.index.aventus.io:3000"
   vault_recovery_window  = 0
 }
@@ -71,6 +72,9 @@ module "lambda_functions" {
       memory_size = 128
     }
     vote-handler = {
+      env_vars = {
+        AVN_VOTES_BUCKET = local.avn_votes_bucket
+      }
       memory_size = 256
     }
   }

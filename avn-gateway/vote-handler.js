@@ -3,7 +3,7 @@ const s3 = new AWS.S3();
 const utils = require('/opt/utils.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
-const AVN_VOTES_BUCKET = 'avn-votes';
+const AVN_VOTES_BUCKET = process.env.AVN_VOTES_BUCKET;
 
 exports.handler = async event => {
   await utils.init();

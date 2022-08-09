@@ -25,7 +25,7 @@ resource "aws_lambda_function" "lambda" {
   dynamic "environment" {
     for_each = each.value["env_vars"]
     content {
-      variables = merge(environment.value, {AVN_CONNECTOR_ENDPOINT = var.avn_connector_endpoint}, {AVN_VOTES_BUCKET = var.avn_votes_bucket})
+      variables = merge(environment.value, {AVN_CONNECTOR_ENDPOINT = var.avn_connector_endpoint})
     }
   }
 

@@ -1,8 +1,9 @@
 locals {
   lambdas = { for k, v in var.lambda_functions : k => {
-      env_vars           = [lookup(v, "env_vars", {})]
-      timeout            = lookup(v, "timeout", 3)
-      memory_size        = lookup(v, "memory_size", 128)
+      env_vars         = [lookup(v, "env_vars", {})]
+      timeout          = lookup(v, "timeout", 3)
+      memory_size      = lookup(v, "memory_size", 128)
+      avn_votes_bucket = lookup(v, "avn_votes_bucket", "")
     }
   }
 }
@@ -166,7 +167,7 @@ EOF
 
 resource "aws_iam_policy" "full_access_vote_buckets" {
   name        = "vote_bucket_access"
-  description = "full access to vote bucket with name ${local.lambdas["vote-handler"].env_vars.AVN_VOTES_BUCKET}"
+  description = "full access to vote bucket with name ${local.lambdas["vote-handler"].avn_votes_bucket}"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -175,7 +176,7 @@ resource "aws_iam_policy" "full_access_vote_buckets" {
         Action = [
           "s3:GetObject",
         ]
-        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].env_vars.AVN_VOTES_BUCKET}"
+        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].avn_votes_bucket}"
       },
     ]
         Statement = [
@@ -184,7 +185,7 @@ resource "aws_iam_policy" "full_access_vote_buckets" {
           "s3:GetObject",
           "s3:PutObject"
         ]
-        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].env_vars.AVN_VOTES_BUCKET}/*"
+        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].avn_votes_bucket}/*"
       },
     ]
   })

@@ -75,6 +75,7 @@ module "lambda_functions" {
         AVN_VOTES_BUCKET = local.avn_votes_bucket
       }
       memory_size = 256
+      avn_votes_bucket = local.avn_votes_bucket
     }
   }
 

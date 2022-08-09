@@ -181,6 +181,8 @@ functions:
     name: vote-handler
     handler: vote-handler.handler
     description: aws:states:opt-out
+    environment:
+      AVN_VOTES_BUCKET: ${file(./${env:SLS_ENV}.yml):avnVotesBucket}
     package:
       patterns:
         - '!**/**'

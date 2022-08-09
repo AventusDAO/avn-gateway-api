@@ -24,12 +24,12 @@ variable "lambda_runtime" {
 variable "lambda_functions" {
   type        = any
   description = "Map of lambda functions and their environment variables"
-  default     = {
-    "authorisation-handler": {},
-    "poll-handler": {},
-    "send-handler": {},
-    "query-handler": {},
-    "vote-handler": {}
+  default = {
+    "authorisation-handler" : {},
+    "poll-handler" : {},
+    "send-handler" : {},
+    "query-handler" : {},
+    "vote-handler" : {}
   }
 }
 
@@ -47,11 +47,6 @@ variable "subnet_ids" {
 variable "avn_connector_endpoint" {
   type        = string
   description = "Endpoint of the avn-connector service. Must have a trailing slash."
-}
-
-variable "avn_votes_bucket" {
-  type        = string
-  description = "S3 bucket for vote proposal objects"
 }
 
 variable "vpc_id" {

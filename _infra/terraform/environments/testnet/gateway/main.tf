@@ -1,4 +1,3 @@
-
 locals {
   name                   = "avn-gateway"
   environment            = "testnet"
@@ -9,6 +8,32 @@ locals {
   avn_votes_bucket       = "avn-votes-testnet"
   block_explorer_url     = "https://testnet.index.aventus.io:3000"
   vault_recovery_window  = 0
+}
+
+resource "aws_iam_policy" "full_access_vote_buckets" {
+  name        = "vote_bucket_access"
+  description = "full access to vote bucket with name ${local.avn_votes_bucket}"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "s3:GetObject",
+        ]
+        Resource = "arn:aws:s3:::${local.avn_votes_bucket}"
+      },
+    ]
+        Statement = [
+      {
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Resource = "arn:aws:s3:::${local.avn_votes_bucket}/*"
+      },
+    ]
+  })
 }
 
 module "lambda_functions" {
@@ -76,6 +101,7 @@ module "lambda_functions" {
         AVN_VOTES_BUCKET = local.avn_votes_bucket
       }
       memory_size = 256
+      extra_policy_arn = aws_iam_policy.full_access_vote_buckets.arn
     }
   }
 

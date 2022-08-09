@@ -164,6 +164,36 @@ resource "aws_iam_policy" "lambda_network" {
 EOF
 }
 
+resource "aws_iam_policy" "full_access_vote_buckets" {
+  name        = "vote_bucket_access"
+  description = "full access to vote bucket with name ${}"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "s3:GetObject",
+        ]
+        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].AVN_VOTES_BUCKET}"
+      },
+    ]
+        Statement = [
+      {
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].AVN_VOTES_BUCKET}/*"
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "extra_permissions" {
+  role       = aws_iam_role.lambda_role["vote-handler"].name
+  policy_arn = aws_iam_policy.full_access_vote_buckets.arn
+}
 
 resource "aws_iam_role_policy_attachment" "rabbit_secret_access" {
   role       = aws_iam_role.lambda_role["send-handler"].name

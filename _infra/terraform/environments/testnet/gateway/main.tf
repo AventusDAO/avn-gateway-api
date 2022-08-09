@@ -18,7 +18,6 @@ module "lambda_functions" {
   service_version        = var.service_version
   rabbit_secret_arn      = module.rabbitmq.secret_arn
   avn_connector_endpoint = local.avn_connector_endpoint
-  avn_votes_bucket       = local.avn_votes_bucket
   subnet_ids             = data.terraform_remote_state.vpc.outputs.private_subnets
   vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
 

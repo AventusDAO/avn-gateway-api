@@ -1,9 +1,9 @@
 locals {
   lambdas = { for k, v in var.lambda_functions : k => {
-      env_vars           = [lookup(v, "env_vars", {})]
-      timeout            = lookup(v, "timeout", 3)
-      memory_size        = lookup(v, "memory_size", 128)
-      extra_policy_arn   = lookup(v, "extra_policies_arn", "")
+      env_vars         = [lookup(v, "env_vars", {})]
+      timeout          = lookup(v, "timeout", 3)
+      memory_size      = lookup(v, "memory_size", 128)
+      avn_votes_bucket = lookup(v, "avn_votes_bucket", "")
     }
   }
 }
@@ -165,6 +165,36 @@ resource "aws_iam_policy" "lambda_network" {
 EOF
 }
 
+resource "aws_iam_policy" "full_access_vote_buckets" {
+  name        = "vote_bucket_access"
+  description = "full access to vote bucket with name ${local.lambdas["vote-handler"].avn_votes_bucket}"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "s3:GetObject",
+        ]
+        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].avn_votes_bucket}"
+      },
+    ]
+        Statement = [
+      {
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].avn_votes_bucket}/*"
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "extra_permissions" {
+  role       = aws_iam_role.lambda_role["vote-handler"].name
+  policy_arn = aws_iam_policy.full_access_vote_buckets.arn
+}
 
 resource "aws_iam_role_policy_attachment" "rabbit_secret_access" {
   role       = aws_iam_role.lambda_role["send-handler"].name
@@ -176,12 +206,6 @@ resource "aws_iam_role_policy_attachment" "network" {
 
   role       = each.value.name
   policy_arn = aws_iam_policy.lambda_network.arn
-}
-
-resource "aws_iam_role_policy_attachment" "extra_permissions" {
-  for_each   = { for key, value in local.lambdas: key => value if local.lambdas[key].extra_policy_arn != "" }
-  role       = aws_iam_role.lambda_role[each.key].name
-  policy_arn = each.value.extra_policy_arn
 }
 
 resource "aws_lambda_permission" "allow_api" {

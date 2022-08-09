@@ -157,17 +157,12 @@ function formatProposalData(proposal, proposalData) {
   return {
     title: proposalData.title,
     description: proposalData.description,
-    startDate: formatAsDate(proposalData.start),
-    endDate: formatAsDate(proposalData.end),
+    start: proposalData.start * 1000,
+    end: proposalData.end * 1000,
     proposal: parseInt(proposal),
     status: voteIsOpen(proposalData) ? 'Active' : 'Closed',
     blockNumber: proposalData.blockNumber
   }
-}
-
-function formatAsDate(timestamp) {
-  const date = new Date(timestamp * 1000);
-  return [date.getDate(), date.getMonth()+1, date.getFullYear()].join('-');
 }
 
 function formatVotes(votes) {

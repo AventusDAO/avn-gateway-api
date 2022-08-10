@@ -6,6 +6,7 @@ locals {
       avn_votes_bucket = lookup(v, "avn_votes_bucket", "")
     }
   }
+  vote_handler_avn_bucket = local.lambdas["vote-handler"].avn_votes_bucket
 }
 
 data "aws_region" "current" {}
@@ -167,28 +168,28 @@ EOF
 
 resource "aws_iam_policy" "full_access_vote_buckets" {
   name        = "vote_bucket_access"
-  description = "full access to vote bucket with name ${local.lambdas["vote-handler"].avn_votes_bucket}"
+  description = "full access to vote bucket with name ${local.vote_handler_avn_bucket}"
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "s3:GetObject",
-        ]
-        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].avn_votes_bucket}"
-      },
-    ]
-        Statement = [
-      {
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject"
-        ]
-        Resource = "arn:aws:s3:::${local.lambdas["vote-handler"].avn_votes_bucket}/*"
-      },
-    ]
-  })
+  policy = <<EOF
+{
+  "Version" : "2012-10-17",
+  "Statement" : [
+    {
+      "Effect": "Allow",
+      "Action" : "s3:ListBucket",
+      "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action" : [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}/*"]
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_iam_role_policy_attachment" "extra_permissions" {

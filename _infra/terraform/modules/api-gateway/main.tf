@@ -103,7 +103,7 @@ resource "aws_apigatewayv2_integration" "vote" {
 
   connection_type        = "INTERNET"
   description            = "vote handler integration"
-  integration_method     = "ANY"
+  integration_method     = "POST"
   integration_uri        = var.vote_invoke_arn
   passthrough_behavior   = "WHEN_NO_MATCH"
   payload_format_version = "2.0"

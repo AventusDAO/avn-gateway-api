@@ -171,24 +171,24 @@ resource "aws_iam_policy" "full_access_vote_buckets" {
   description = "full access to vote bucket with name ${local.vote_handler_avn_bucket}"
 
   policy = <<EOF
-  {
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect": "Allow",
-        "Action" : "s3:ListBucket",
-        "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}"]
-      },
-      {
-        "Effect": "Allow",
-        "Action" : [
-          "s3:GetObject",
-          "s3:PutObject"
-        ],
-        "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}/*"]
-      }
-    ]
-  }
+{
+  "Version" : "2012-10-17",
+  "Statement" : [
+    {
+      "Effect": "Allow",
+      "Action" : "s3:ListBucket",
+      "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action" : [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}/*"]
+    }
+  ]
+}
 EOF
 }
 

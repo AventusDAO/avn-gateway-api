@@ -30,7 +30,7 @@ async function getFormattedProposal(proposal) {
   try {
     const proposalData = await getProposalData(proposal);
     result = formatProposalData(proposal, proposalData);
-    result.votes = formatVotes(proposalData.votes);
+    result.votes = proposalData.votes ? formatVotes(proposalData.votes) : [];
   } catch (err) {
     console.log(err);
   }
@@ -61,6 +61,10 @@ async function checkVoteAndUpdateProposal(requestData) {
     voterIntention = JSON.parse(requestData);
     voterIntention.publicKey = utils.convertToPublicKey(voterIntention.address);
     proposalData = await getProposalData(voterIntention.proposal);
+    if (proposalData.votes === undefined) {
+      proposalData.votes = {};
+      proposalData.scores = [0,0];
+    }
   } catch (err) {
     console.log(err);
     return { result: 'bad request' };
@@ -90,6 +94,15 @@ async function weightVoteAndUpdateProposal(voterIntention, proposalData) {
     return 'zero balance at voting block';
   } else {
     proposalData.votes[voterIntention.publicKey] = weightedVote;
+
+    if (voterIntention.vote) {
+      proposalData.scores[0] += weightedVote;
+      proposalData.votes[voterIntention.publicKey] = weightedVote;
+    } else {
+      proposalData.scores[1] += weightedVote;
+      proposalData.votes[voterIntention.publicKey] = weightedVote * -1;
+    }
+
     await updateProposalData(voterIntention.proposal, proposalData);
     return 'success';
   }
@@ -145,8 +158,7 @@ async function weightVote(voterIntention, proposalData) {
     const voterBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.free);
     const voterStakedBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.feeFrozen);
     const voterUnstakedBalanceAtBlock = voterBalanceAtBlock - voterStakedBalanceAtBlock;
-    const voterWeightedBalanceAtBlock = voterStakedBalanceAtBlock * 2 + voterUnstakedBalanceAtBlock;
-    return voterIntention.vote ? voterWeightedBalanceAtBlock : voterWeightedBalanceAtBlock * -1;
+    return voterStakedBalanceAtBlock * 2 + voterUnstakedBalanceAtBlock;
   } catch (err) {
     console.error(err);
     return null;
@@ -159,23 +171,24 @@ function formatProposalData(proposal, proposalData) {
     description: proposalData.description,
     start: proposalData.start * 1000,
     end: proposalData.end * 1000,
-    proposal: parseInt(proposal),
+    proposal: proposal,
     status: voteIsOpen(proposalData) ? 'Active' : 'Closed',
-    blockNumber: proposalData.blockNumber
-  }
+    blockNumber: proposalData.blockNumber,
+    numVotes: proposalData.votes ? Object.keys(proposalData.votes).length : 0,
+    scores: proposalData.scores || [0,0]
+  };
 }
 
 function formatVotes(votes) {
-  let result = [];
+  let formattedVotes = [];
 
   for (const [publicKey, weight] of Object.entries(votes)) {
-    const formattedVote = {
+    formattedVotes.push({
       address: utils.convertToAddress(publicKey),
       voteSway: weight > 0 ? 'approve' : 'disapprove',
       avtWeight: weight > 0 ? weight : weight * -1
-    };
-    result.push(formattedVote);
+    });
   }
 
-  return result;
+  return formattedVotes;
 }

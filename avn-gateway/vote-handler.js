@@ -70,8 +70,8 @@ async function checkVoteAndUpdateProposal(requestData) {
     return { result: 'bad request' };
   }
 
-  if (voteIsOpen(proposalData) === false) {
-    return { result: 'vote not open' };
+  if (voteStatus(proposalData) !== 'Active') {
+    return { result: 'vote not active' };
   } else if (voterIntention.publicKey in proposalData.votes) {
     return { result: 'has already voted' };
   } else if (verifyVotingSignature(voterIntention) === false) {
@@ -144,9 +144,16 @@ async function updateProposalData(proposal, proposalData) {
   }
 }
 
-function voteIsOpen(proposalData) {
+function voteStatus(proposalData) {
   const now = Math.floor(new Date().getTime() / 1000);
-  return now > proposalData.start && now < proposalData.end;
+  
+  if (now > proposalData.start && now < proposalData.end) {
+    return 'Active'
+  } else if (now < proposalData.start) {
+    return 'Pending'
+  } else {
+    return 'Closed'
+  }
 }
 
 async function weightVote(voterIntention, proposalData) {
@@ -172,7 +179,7 @@ function formatProposalData(proposal, proposalData) {
     start: proposalData.start * 1000,
     end: proposalData.end * 1000,
     proposal: proposal,
-    status: voteIsOpen(proposalData) ? 'Active' : 'Closed',
+    status: voteStatus(proposalData),
     blockNumber: proposalData.blockNumber,
     numVotes: proposalData.votes ? Object.keys(proposalData.votes).length : 0,
     scores: proposalData.scores || [0,0]

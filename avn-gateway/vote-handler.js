@@ -71,11 +71,11 @@ async function checkVoteAndUpdateProposal(requestData) {
   }
 
   if (voteStatus(proposalData) !== 'Active') {
-    return { result: 'vote not active' };
+    return { result: 'vote is inactive' };
   } else if (voterIntention.publicKey in proposalData.votes) {
-    return { result: 'has already voted' };
+    return { result: 'account has already voted' };
   } else if (verifyVotingSignature(voterIntention) === false) {
-    return { result: 'invalid signature' };
+    return { result: 'invalid signature provided' };
   } else {
     return { result: await weightVoteAndUpdateProposal(voterIntention, proposalData) };
   }
@@ -91,7 +91,7 @@ async function weightVoteAndUpdateProposal(voterIntention, proposalData) {
   if (weightedVote === null) {
     return 'failed to vote';
   } else if (weightedVote === 0) {
-    return 'zero balance at voting block';
+    return 'account has zero AVT balance at voting block';
   } else {
     proposalData.votes[voterIntention.publicKey] = weightedVote;
 
@@ -146,7 +146,7 @@ async function updateProposalData(proposal, proposalData) {
 
 function voteStatus(proposalData) {
   const now = Math.floor(new Date().getTime() / 1000);
-  
+
   if (now > proposalData.start && now < proposalData.end) {
     return 'Active'
   } else if (now < proposalData.start) {

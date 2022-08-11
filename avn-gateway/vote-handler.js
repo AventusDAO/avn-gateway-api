@@ -86,7 +86,7 @@ async function changeVoteAndUpdateProposal(voterIntention, proposalData) {
   const existingVote = weightedVote > 0;
   const newVote = voterIntention.vote;
 
-  if (newVote != existingVote) {
+  if (newVote !== existingVote) {
     proposalData.scores[0] -= weightedVote;
     proposalData.scores[1] += weightedVote;
     proposalData.votes[voterIntention.publicKey] = weightedVote * -1;
@@ -106,7 +106,7 @@ async function weightVoteAndUpdateProposal(voterIntention, proposalData) {
   if (weightedVote === null) {
     return 'failed to vote';
   } else if (weightedVote === 0) {
-    return 'account has zero AVT balance at voting block';
+    return 'account has zero AVT at voting block';
   } else {
     proposalData.votes[voterIntention.publicKey] = weightedVote;
 

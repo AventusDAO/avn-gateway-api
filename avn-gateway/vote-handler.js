@@ -73,12 +73,27 @@ async function checkVoteAndUpdateProposal(requestData) {
   if (voteStatus(proposalData) !== 'Active') {
     return { result: 'vote is inactive' };
   } else if (voterIntention.publicKey in proposalData.votes) {
-    return { result: 'account has already voted' };
+    return { result: await changeVoteAndUpdateProposal(voterIntention, proposalData) };
   } else if (verifyVotingSignature(voterIntention) === false) {
     return { result: 'invalid signature provided' };
   } else {
     return { result: await weightVoteAndUpdateProposal(voterIntention, proposalData) };
   }
+}
+
+async function changeVoteAndUpdateProposal(voterIntention, proposalData) {
+  const weightedVote = proposalData.votes[voterIntention.publicKey];
+  const existingVote = weightedVote > 0;
+  const newVote = voterIntention.vote;
+
+  if (newVote !== existingVote) {
+    proposalData.scores[0] -= weightedVote;
+    proposalData.scores[1] += weightedVote;
+    proposalData.votes[voterIntention.publicKey] = weightedVote * -1;
+    await updateProposalData(voterIntention.proposal, proposalData);
+  }
+
+  return 'success';
 }
 
 function verifyVotingSignature(votingIntention) {
@@ -91,7 +106,7 @@ async function weightVoteAndUpdateProposal(voterIntention, proposalData) {
   if (weightedVote === null) {
     return 'failed to vote';
   } else if (weightedVote === 0) {
-    return 'account has zero AVT balance at voting block';
+    return 'account has zero AVT at voting block';
   } else {
     proposalData.votes[voterIntention.publicKey] = weightedVote;
 
@@ -193,7 +208,7 @@ function formatVotes(votes) {
     formattedVotes.push({
       address: utils.convertToAddress(publicKey),
       voteSway: weight > 0 ? 'approve' : 'disapprove',
-      avtWeight: weight > 0 ? weight : weight * -1
+      avtWeight: Math.abs(weight)
     });
   }
 

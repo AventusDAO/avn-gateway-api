@@ -170,7 +170,7 @@ function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePa
     encodedPaymentNonce.toU8a(true)
   );
 
-  return signatureVerify(encodedData, feePaymentSignature, payer);
+  return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
 }
 
 function verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey) {

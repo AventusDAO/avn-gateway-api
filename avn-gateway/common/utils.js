@@ -152,7 +152,7 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
   const encodedIssuedAt = registry.createType('Text', issuedAt);
   const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false));
-  return signatureVerify(u8aToHex(encodedData), signature, publicKey).isValid;
+  return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
 }
 
 function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
@@ -170,7 +170,13 @@ function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePa
     encodedPaymentNonce.toU8a(true)
   );
 
-  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, payer).isValid;
+  return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
+}
+
+function verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey) {
+  const message = u8aToHex(encodedData);
+  const wrappedMessage = stringToHex('<Bytes>') + message.substr(2) + stringToHex('</Bytes>').substr(2);
+  return signatureVerify(message, signature, publicKey).isValid || signatureVerify(wrappedMessage, signature, publicKey).isValid;
 }
 
 function encodeProxyProof(params) {

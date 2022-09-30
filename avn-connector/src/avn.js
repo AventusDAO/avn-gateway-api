@@ -364,7 +364,7 @@ async function connectToAvN() {
   let provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({
     provider,
-    typesBundle: avnTypes,
+    // typesBundle: avnTypes,
     rpc: {
       lower: {
         data: {

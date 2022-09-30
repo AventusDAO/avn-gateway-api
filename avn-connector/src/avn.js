@@ -24,10 +24,6 @@ async function query(palletName, storageName, params) {
 
   if (params[0] === 'entries') {
     result = await api.query[palletName][storageName].entries();
-  } else if (params[0] === 'at') {
-    const blockHash = await api.rpc.chain.getBlockHash(params[1]);
-    result = await api.query[palletName][storageName].at(blockHash, ...params.slice(2));
-    result = result.toJSON();
   } else {
     result = await api.query[palletName][storageName](...params);
     result = result.toJSON();
@@ -368,32 +364,32 @@ async function connectToAvN() {
   let provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({
     provider,
-    // typesBundle: avnTypes,
-    rpc: {
-      lower: {
-        data: {
-          params: [
-            {
-              name: 'fromBlock',
-              type: 'u32'
-            },
-            {
-              name: 'toBlock',
-              type: 'u32'
-            },
-            {
-              name: 'blockNumber',
-              type: 'u32'
-            },
-            {
-              name: 'extrinsicIndex',
-              type: 'u32'
-            }
-          ],
-          type: 'Text'
-        }
-      }
-    }
+    typesBundle: avnTypes
+    // rpc: {
+    //   lower: {
+    //     data: {
+    //       params: [
+    //         {
+    //           name: 'from_block',
+    //           type: 'u32'
+    //         },
+    //         {
+    //           name: 'to_block',
+    //           type: 'u32'
+    //         },
+    //         {
+    //           name: 'block_number',
+    //           type: 'u32'
+    //         },
+    //         {
+    //           name: 'extrinsic_index',
+    //           type: 'u32'
+    //         }
+    //       ],
+    //       type: 'Text'
+    //     }
+    //   }
+    // }
   });
 
   // We have multiple pods running the same code so we have to use redis to make sure only 1 pod is acting on this event.

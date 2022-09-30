@@ -370,19 +370,19 @@ async function connectToAvN() {
         data: {
           params: [
             {
-              name: 'from_block',
+              name: 'fromBlock',
               type: 'u32'
             },
             {
-              name: 'to_block',
+              name: 'toBlock',
               type: 'u32'
             },
             {
-              name: 'block_number',
+              name: 'blockNumber',
               type: 'u32'
             },
             {
-              name: 'extrinsic_index',
+              name: 'extrinsicIndex',
               type: 'u32'
             }
           ],

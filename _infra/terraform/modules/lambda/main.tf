@@ -1,10 +1,12 @@
 locals {
   lambdas = { for k, v in var.lambda_functions : k => {
-      env_vars    = [lookup(v, "env_vars", {})]
-      timeout     = lookup(v, "timeout", 3)
-      memory_size = lookup(v, "memory_size", 128)
-    } 
+      env_vars         = [lookup(v, "env_vars", {})]
+      timeout          = lookup(v, "timeout", 3)
+      memory_size      = lookup(v, "memory_size", 128)
+      avn_votes_bucket = lookup(v, "avn_votes_bucket", "")
+    }
   }
+  vote_handler_avn_bucket = local.lambdas["vote-handler"].avn_votes_bucket
 }
 
 data "aws_region" "current" {}
@@ -16,7 +18,7 @@ resource "aws_lambda_function" "lambda" {
   function_name = each.key
   role          = aws_iam_role.lambda_role[each.key].arn
   handler       = "${each.key}.handler"
-  description   = "${each.key} - ${var.service_version} - Deployed by Terraform" 
+  description   = "${each.key} - ${var.service_version} - Deployed by Terraform"
   runtime       = var.lambda_runtime
   layers        = [aws_lambda_layer_version.common_layer.arn, aws_lambda_layer_version.queue.arn]
   timeout       = local.lambdas[each.key]["timeout"]
@@ -164,6 +166,36 @@ resource "aws_iam_policy" "lambda_network" {
 EOF
 }
 
+resource "aws_iam_policy" "full_access_vote_buckets" {
+  name        = "vote_bucket_access"
+  description = "full access to vote bucket with name ${local.vote_handler_avn_bucket}"
+
+  policy = <<EOF
+{
+  "Version" : "2012-10-17",
+  "Statement" : [
+    {
+      "Effect": "Allow",
+      "Action" : "s3:ListBucket",
+      "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action" : [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}/*"]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "extra_permissions" {
+  role       = aws_iam_role.lambda_role["vote-handler"].name
+  policy_arn = aws_iam_policy.full_access_vote_buckets.arn
+}
 
 resource "aws_iam_role_policy_attachment" "rabbit_secret_access" {
   role       = aws_iam_role.lambda_role["send-handler"].name

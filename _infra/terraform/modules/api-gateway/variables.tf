@@ -22,6 +22,12 @@ variable "send_invoke_arn" {
   default     = ""
 }
 
+variable "vote_invoke_arn" {
+  type        = string
+  description = "The invoke ARN of the vote handler Lambda function"
+  default     = ""
+}
+
 variable "authoriser_arn" {
   type        = string
   description = "The lambda arn of the authoriser"

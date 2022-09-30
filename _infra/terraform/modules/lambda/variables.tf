@@ -24,11 +24,12 @@ variable "lambda_runtime" {
 variable "lambda_functions" {
   type        = any
   description = "Map of lambda functions and their environment variables"
-  default     = {
-    "authorisation-handler": {},
-    "poll-handler": {},
-    "send-handler": {},
-    "query-handler": {}
+  default = {
+    "authorisation-handler" : {},
+    "poll-handler" : {},
+    "send-handler" : {},
+    "query-handler" : {},
+    "vote-handler" : {}
   }
 }
 

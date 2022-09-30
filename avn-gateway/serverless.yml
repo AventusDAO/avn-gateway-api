@@ -6,6 +6,20 @@ frameworkVersion: '3'
 provider:
   region: ${file(./${env:SLS_ENV}.yml):region}
   name: aws
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - 's3:ListBucket'
+          Resource:
+            - 'arn:aws:s3:::${file(./${env:SLS_ENV}.yml):avnVotesBucket}'
+        - Effect: Allow
+          Action:
+            - 's3:GetObject'
+            - 's3:PutObject'
+          Resource:
+            - 'arn:aws:s3:::${file(./${env:SLS_ENV}.yml):avnVotesBucket}/*'
   runtime: nodejs14.x
   versionFunctions: false
   logRetentionInDays: ${file(./${env:SLS_ENV}.yml):logRetentionDays}
@@ -162,6 +176,24 @@ functions:
     layers:
       - { Ref: CommonLambdaLayer }
       - { Ref: QueueLambdaLayer }
+
+  vote-handler:
+    name: vote-handler
+    handler: vote-handler.handler
+    description: aws:states:opt-out
+    environment:
+      AVN_VOTES_BUCKET: ${file(./${env:SLS_ENV}.yml):avnVotesBucket}
+    package:
+      patterns:
+        - '!**/**'
+        - vote-handler.js
+    memorySize: 256
+    events:
+      - httpApi:
+          path: /vote
+          method: ANY
+    layers:
+      - { Ref: CommonLambdaLayer }
 
 resources:
   Resources:

@@ -1,13 +1,13 @@
 const axios = require('axios');
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();
-const { hexToU8a, isHex, u8aToHex, u8aConcat, isNumber } = require('@polkadot/util');
+const { hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat, isNumber } = require('@polkadot/util');
 const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = require('@polkadot/util-crypto');
 const BN = require('bn.js');
 const { validate: uuidValidate } = require('uuid');
 
+const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
-
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const TX_TYPES = [
@@ -132,8 +132,19 @@ function convertToAddress(accountId) {
   return isHex(accountId) ? encodeAddress(accountId) : accountId;
 }
 
+function convertToPublicKey(accountId) {
+  return isHex(accountId) ? accountId : u8aToHex(decodeAddress(accountId));
+}
+
 function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString();
+}
+
+function toWholeAVT(val) {
+  if (val === 0) return val;
+  const attoAmount = new BN(val.replace('0x', ''), 16);
+  const wholeAmount = attoAmount.div(AVT_DECIMALS);
+  return parseInt(wholeAmount.toString());
 }
 
 function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
@@ -141,7 +152,7 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
   const encodedIssuedAt = registry.createType('Text', issuedAt);
   const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false));
-  return signatureVerify(u8aToHex(encodedData), signature, publicKey).isValid;
+  return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
 }
 
 function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
@@ -159,7 +170,13 @@ function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePa
     encodedPaymentNonce.toU8a(true)
   );
 
-  return signatureVerify(u8aToHex(encodedData), feePaymentSignature, payer).isValid;
+  return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
+}
+
+function verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey) {
+  const message = u8aToHex(encodedData);
+  const wrappedMessage = stringToHex('<Bytes>') + message.substr(2) + stringToHex('</Bytes>').substr(2);
+  return signatureVerify(message, signature, publicKey).isValid || signatureVerify(wrappedMessage, signature, publicKey).isValid;
 }
 
 function encodeProxyProof(params) {
@@ -175,6 +192,7 @@ module.exports = {
   BN,
   STASH_REWARD_DESTINATION,
   convertToAddress,
+  convertToPublicKey,
   errorResponse,
   init,
   isValidAccountId,
@@ -191,7 +209,10 @@ module.exports = {
   isValidSignatureFormat,
   isValidString,
   isValidTransactionType,
+  signatureVerify,
+  stringToHex,
   toBnString,
+  toWholeAVT,
   validResponse,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature

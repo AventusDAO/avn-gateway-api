@@ -1,6 +1,15 @@
 resource "aws_apigatewayv2_api" "avn_gateway_api" {
   name          = "avn-gateway-api"
   protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_credentials = false
+    allow_headers     = ["*"]
+    allow_methods     = ["*"]
+    allow_origins     = ["*"]
+    expose_headers    = ["*"]
+    max_age           = 100
+  }
 }
 
 resource "aws_apigatewayv2_integration" "poll" {
@@ -86,6 +95,29 @@ resource "aws_apigatewayv2_route" "query" {
   ]
 }
 
+resource "aws_apigatewayv2_integration" "vote" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
+  api_id           = aws_apigatewayv2_api.avn_gateway_api.id
+  integration_type = "AWS_PROXY"
+
+  connection_type        = "INTERNET"
+  description            = "vote handler integration"
+  integration_method     = "POST"
+  integration_uri        = var.vote_invoke_arn
+  passthrough_behavior   = "WHEN_NO_MATCH"
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "vote" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
+  api_id    = aws_apigatewayv2_api.avn_gateway_api.id
+  route_key = "ANY /vote"
+
+  target = "integrations/${aws_apigatewayv2_integration.vote["full"].id}"
+}
+
 resource "aws_apigatewayv2_authorizer" "authoriser" {
   for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
 
@@ -95,7 +127,7 @@ resource "aws_apigatewayv2_authorizer" "authoriser" {
   authorizer_uri          = var.authoriser_invoke_arn
   enable_simple_responses = true
   identity_sources        = ["$request.header.Authorization"]
-  
+
   authorizer_result_ttl_in_seconds  = var.auth_cache_duration
   authorizer_payload_format_version = "2.0"
 }
@@ -111,7 +143,8 @@ resource "aws_apigatewayv2_deployment" "default" {
   depends_on = [
     aws_apigatewayv2_route.poll,
     aws_apigatewayv2_route.query,
-    aws_apigatewayv2_route.send
+    aws_apigatewayv2_route.send,
+    aws_apigatewayv2_route.vote
   ]
 }
 
@@ -128,7 +161,7 @@ resource "aws_apigatewayv2_stage" "default" {
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.gateway.arn
-    format          = jsonencode({
+    format = jsonencode({
       httpMethod     = "$context.httpMethod"
       ip             = "$context.identity.sourceIp"
       protocol       = "$context.protocol"

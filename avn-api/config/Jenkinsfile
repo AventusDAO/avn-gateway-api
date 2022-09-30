@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        docker { image 'node:16.13.1-alpine' }
+        docker { image 'node:16' }
     }
     environment {
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
@@ -18,6 +18,7 @@ pipeline {
         GOOGLE_DRIVE_REDIRECT_URI = credentials('google_drive_redirect_uri');
         GOOGLE_DRIVE_REFRESH_TOKEN = credentials('google_drive_refresh_token');
         SLACK_WEBHOOK_URL = credentials('slack_webhook_url');
+        SCHEDULED_TESTS_GITHUB_CREDS = credentials('scheduled_tests_github_creds');
     }
     triggers {
         cron('0 0 * * *')
@@ -32,6 +33,8 @@ pipeline {
                 sh 'rm -rf node_modules'
                 sh 'rm -f package-lock.json'
                 sh 'npm cache clean --force'
+                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-slackTestNotifications.git"
+                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-googleDriveUploadService.git"
                 sh 'npm install'
                 sh 'npm install avn-api'
                 sh 'npm install --save-dev mochawesome'
@@ -45,10 +48,12 @@ pipeline {
                         env.ACCOUNTS = env.SECRET_STARGATE_ACCOUNTS_FILE
                         env.ENVIRONMENT = env.SECRET_STARGATE_ENVIRONMENT_FILE
                         env.AVN_SURI = env.STARGATE_USER_SEED
-                    } else {
+                    } else if (params.Chain == 'public_testnet') {
                         env.ACCOUNTS = env.SECRET_PUBLIC_TESTNET_ACCOUNTS_FILE
                         env.ENVIRONMENT = env.SECRET_PUBLIC_TESTNET_ENVIRONMENT_FILE
                         env.AVN_SURI = env.PUBLIC_TESTNET_USER_SEED
+                    } else {
+                        sh 'echo "No chain selected"'
                     }
                 }
             }

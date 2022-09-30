@@ -1,4 +1,3 @@
-
 locals {
   name                   = "avn-gateway"
   environment            = "mainnet"
@@ -6,6 +5,7 @@ locals {
   eks_node_size          = 50
   account_id             = "503742778456"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
+  avn_votes_bucket       = "avn-votes-mainnet"
   block_explorer_url     = "https://mainnet.index.aventus.io:3000"
   vault_recovery_window  = 30
 }
@@ -70,6 +70,13 @@ module "lambda_functions" {
       timeout     = 6
       memory_size = 128
     }
+    vote-handler = {
+      env_vars = {
+        AVN_VOTES_BUCKET = local.avn_votes_bucket
+      }
+      memory_size = 256
+      avn_votes_bucket = local.avn_votes_bucket
+    }
   }
 
   depends_on = [
@@ -84,6 +91,7 @@ module "api_gateway" {
   poll_invoke_arn       = module.lambda_functions.invoke_arns["poll-handler"]
   send_invoke_arn       = module.lambda_functions.invoke_arns["send-handler"]
   query_invoke_arn      = module.lambda_functions.invoke_arns["query-handler"]
+  vote_invoke_arn       = module.lambda_functions.invoke_arns["vote-handler"]
   auth_cache_duration   = 60
 }
 

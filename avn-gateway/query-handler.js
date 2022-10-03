@@ -116,7 +116,7 @@ async function getAvtBalance(call, request) {
 }
 
 async function getAvtContractAddress(call, request) {
-  return await queryChain(call, request, 'tokenManager', 'aVTTokenContract', [], formatAsString);
+  return await queryChain(call, request, 'tokenManager', 'avtTokenContract', [], formatAsString);
 }
 
 async function getAvnContractAddress(call, request) {

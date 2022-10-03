@@ -12,7 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.39.0",
     "@aws-sdk/client-secrets-manager": "^3.39.0",
-    "@polkadot/api": "^7.8.1",
+    "@polkadot/api": "^9.4.3",
     "@polkadot/types": "^9.4.3",
     "amqplib": "^0.8.0",
     "avn-types": "^1.2.2",

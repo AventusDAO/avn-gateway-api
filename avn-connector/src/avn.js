@@ -364,33 +364,35 @@ async function connectToAvN() {
   let provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({
     provider,
-    typesBundle: avnTypes
-    // rpc: {
-    //   lower: {
-    //     data: {
-    //       params: [
-    //         {
-    //           name: 'from_block',
-    //           type: 'u32'
-    //         },
-    //         {
-    //           name: 'to_block',
-    //           type: 'u32'
-    //         },
-    //         {
-    //           name: 'block_number',
-    //           type: 'u32'
-    //         },
-    //         {
-    //           name: 'extrinsic_index',
-    //           type: 'u32'
-    //         }
-    //       ],
-    //       type: 'Text'
-    //     }
-    //   }
-    // }
+    typesBundle: avnTypes,
+    rpc: {
+      lower: {
+        data: {
+          params: [
+            {
+              name: 'from_block',
+              type: 'u32'
+            },
+            {
+              name: 'to_block',
+              type: 'u32'
+            },
+            {
+              name: 'block_number',
+              type: 'u32'
+            },
+            {
+              name: 'extrinsic_index',
+              type: 'u32'
+            }
+          ],
+          type: 'Text'
+        }
+      }
+    }
   });
+
+  log.info(`Finished connection to the AVN on: ${AVN_URL}`);
 
   // We have multiple pods running the same code so we have to use redis to make sure only 1 pod is acting on this event.
   const _unsub = await api.query.staking.activeEra(async eraInfo => {

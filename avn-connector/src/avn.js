@@ -396,6 +396,7 @@ async function connectToAvN() {
     }
   });
 
+  // Staking part commented for now
   // We have multiple pods running the same code so we have to use redis to make sure only 1 pod is acting on this event.
   // const _unsub = await api.query.staking.activeEra(async eraInfo => {
   //   // TODO: Find a way to detect block finalisation: https://github.com/polkadot-js/api/issues/4818

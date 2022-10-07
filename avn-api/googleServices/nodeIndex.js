@@ -41,7 +41,8 @@ const test_descriptive = argv.test_descriptive || '';
   });
 
   if (!folder) {
-    folder = await googleDriveService.createFolder(folderName);
+    console.log("Please provide a valid shared drive Id")
+    return;
   }
 
   // Example file name

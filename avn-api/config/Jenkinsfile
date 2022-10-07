@@ -32,7 +32,7 @@ pipeline {
                 sh 'rm -f package-lock.json'
                 sh 'npm cache clean --force'
                 sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-slackTestNotifications.git"
-                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-googleDriveUploadService.git#fix_google_drive"
+                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-googleDriveUploadService.git"
                 sh 'npm install'
                 sh 'npm install avn-api'
                 sh 'npm install --save-dev mochawesome'

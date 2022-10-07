@@ -13,10 +13,8 @@ pipeline {
         SECRET_STARGATE_ENVIRONMENT_FILE = credentials('sandbox_avn_gateway_tests_environment')
         SECRET_PUBLIC_TESTNET_ACCOUNTS_FILE = credentials('public_testnet_avn_gateway_tests_accounts')
         SECRET_PUBLIC_TESTNET_ENVIRONMENT_FILE = credentials('public_testnet_avn_gateway_tests_environment')
-        GOOGLE_DRIVE_CLIENT_ID = credentials('google_drive_client_id');
-        GOOGLE_DRIVE_CLIENT_SECRET = credentials('google_drive_client_secret');
-        GOOGLE_DRIVE_REDIRECT_URI = credentials('google_drive_redirect_uri');
-        GOOGLE_DRIVE_REFRESH_TOKEN = credentials('google_drive_refresh_token');
+        GOOGLE_DRIVE_SERVICE_ACCOUNT_KEY = credentials('google_drive_service_account_key');
+        GOOGLE_DRIVE_SHARED_DRIVE_ID = credentials('google_drive_shared_drive_id');
         SLACK_WEBHOOK_URL = credentials('slack_webhook_url');
         SCHEDULED_TESTS_GITHUB_CREDS = credentials('scheduled_tests_github_creds');
     }

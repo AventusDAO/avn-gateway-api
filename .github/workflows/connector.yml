@@ -6,12 +6,11 @@ on:
     branches:
       - main
       - feature/*
-    paths:
-      - 'avn-connector/**'
+    # paths:
+    #   - 'avn-connector/**'
   push:
     branches:
       - main
-      - feature/*
     paths:
       - 'avn-connector/**'
 

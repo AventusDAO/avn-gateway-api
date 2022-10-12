@@ -1,4 +1,4 @@
-FROM node:15.7.0-alpine3.10
+FROM node:16.17.1-alpine3.15
 
 # Need to be root to write logs to volume.
 # TODO: use log driver to send stdout to CloudWatch?

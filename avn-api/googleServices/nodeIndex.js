@@ -18,15 +18,13 @@ let argv = yargs
 
 dotenv.config();
 
-const driveClientId = process.env.GOOGLE_DRIVE_CLIENT_ID || '';
-const driveClientSecret = process.env.GOOGLE_DRIVE_CLIENT_SECRET || '';
-const driveRedirectUri = process.env.GOOGLE_DRIVE_REDIRECT_URI || '';
-const driveRefreshToken = process.env.GOOGLE_DRIVE_REFRESH_TOKEN || '';
+const serviceAccountKey = process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_KEY;
+const sharedDriveId = process.env.GOOGLE_DRIVE_SHARED_DRIVE_ID;
 
 const test_descriptive = argv.test_descriptive || '';
 
 (async () => {
-  const googleDriveService = new NodeGoogleService(driveClientId, driveClientSecret, driveRedirectUri, driveRefreshToken);
+  const googleDriveService = new NodeGoogleService(serviceAccountKey);
 
   const finalPath = path.resolve(__dirname, '../../finalReport.html');
   const folderName = 'GatewayTestResults';
@@ -36,14 +34,15 @@ const test_descriptive = argv.test_descriptive || '';
   }
 
   let folder = await googleDriveService
-      .searchFolder(folderName)
+      .searchSharedFolder(sharedDriveId, folderName)
       .catch((error) => {
     console.error(error);
     return null;
   });
 
   if (!folder) {
-    folder = await googleDriveService.createFolder(folderName);
+    console.log("Please provide a valid shared drive Id")
+    return;
   }
 
   // Example file name

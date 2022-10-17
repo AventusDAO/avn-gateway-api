@@ -145,7 +145,7 @@ async function getChainInfo() {
     chainInfo = {};
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
-    chainInfo.avtContract = await api.query.tokenManager.aVTTokenContract();
+    chainInfo.avtContract = await api.query.tokenManager.avtTokenContract();
     chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
     chainInfo = JSON.stringify(chainInfo);
     await redis.setChainInfo(chainInfo);
@@ -396,43 +396,44 @@ async function connectToAvN() {
     }
   });
 
+  // Staking part commented for now
   // We have multiple pods running the same code so we have to use redis to make sure only 1 pod is acting on this event.
-  const _unsub = await api.query.staking.activeEra(async eraInfo => {
-    // TODO: Find a way to detect block finalisation: https://github.com/polkadot-js/api/issues/4818
-    const era = eraInfo.toJSON().index;
-    const payoutInProgress = await redis.getStakerPayoutFlag();
-    // We cannot store booleans in redis.
-    if (payoutInProgress === 'true') {
-      log.trace(`staking payout already in progress for era: ${era}, skipping`);
-      return;
-    }
+  // const _unsub = await api.query.staking.activeEra(async eraInfo => {
+  //   // TODO: Find a way to detect block finalisation: https://github.com/polkadot-js/api/issues/4818
+  //   const era = eraInfo.toJSON().index;
+  //   const payoutInProgress = await redis.getStakerPayoutFlag();
+  //   // We cannot store booleans in redis.
+  //   if (payoutInProgress === 'true') {
+  //     log.trace(`staking payout already in progress for era: ${era}, skipping`);
+  //     return;
+  //   }
 
-    try {
-      // If payout is not in progress, set the flag and continue to pay
-      await redis.setStakerPayoutFlag('true');
+  //   try {
+  //     // If payout is not in progress, set the flag and continue to pay
+  //     await redis.setStakerPayoutFlag('true');
 
-      log.info(`Triggering payout stakers. Current era: ${era}`);
-      let lastPayoutEra = (await redis.getLastPayoutEra()) || 0;
+  //     log.info(`Triggering payout stakers. Current era: ${era}`);
+  //     let lastPayoutEra = (await redis.getLastPayoutEra()) || 0;
 
-      const rewardPayerAddress = config.stakingPayoutRelayer;
-      const proxyNonce = await api.query.validatorsManager.proxyNonces(rewardPayerAddress);
-      const relayerAccount = await getRelayerAccount(rewardPayerAddress);
+  //     const rewardPayerAddress = config.stakingPayoutRelayer;
+  //     const proxyNonce = await api.query.validatorsManager.proxyNonces(rewardPayerAddress);
+  //     const relayerAccount = await getRelayerAccount(rewardPayerAddress);
 
-      const lastEraPaid = await stakingHelper.payoutAllStakers(
-        api.registry,
-        log,
-        relayerAccount,
-        proxyNonce.toString(),
-        lastPayoutEra,
-        era
-      );
-      await redis.setLastPayoutEra(lastEraPaid.toString());
-    } catch (err) {
-      log.error(`Error paying stakers for era ${era}`, err);
-    } finally {
-      await redis.setStakerPayoutFlag('false');
-    }
-  });
+  //     const lastEraPaid = await stakingHelper.payoutAllStakers(
+  //       api.registry,
+  //       log,
+  //       relayerAccount,
+  //       proxyNonce.toString(),
+  //       lastPayoutEra,
+  //       era
+  //     );
+  //     await redis.setLastPayoutEra(lastEraPaid.toString());
+  //   } catch (err) {
+  //     log.error(`Error paying stakers for era ${era}`, err);
+  //   } finally {
+  //     await redis.setStakerPayoutFlag('false');
+  //   }
+  // });
 
   const [chain, nodeName, nodeVersion] = await Promise.all([
     api.rpc.system.chain(),

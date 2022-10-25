@@ -35,7 +35,7 @@ describe('Query api calls:', async () => {
 
   const expectedUserFees = {
     proxyAvtTransfer: '7000000000000000',
-    proxyTokenTransfer: '30000000000000000',
+    proxyTokenTransfer: '7000000000000000',
     proxyConfirmTokenLift: '7000000000000000',
     proxyTokenLower: '7000000000000000',
     proxyMintSingleNft: '7000000000000000',
@@ -104,8 +104,8 @@ describe('Query api calls:', async () => {
   describe('getChainInfo', async () => {
     it('@NO_BASELINE can get the current chain information', async () => {
       let chainInfo = await api.query.getChainInfo();
-      assert.equal(chainInfo.name, 'AvN TestNet');
-      assert.equal(chainInfo.version, '270');
+      assert.equal(chainInfo.name, 'AvN UAT Testnet');
+      assert.equal(chainInfo.version, '10');
     });
   });
 
@@ -211,7 +211,7 @@ describe('Query api calls:', async () => {
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'payment'));
     });
 
-    it('returns the same staking nonce by address as by public key', async () => {
+    xit('returns the same staking nonce by address as by public key', async () => {
       const nonce = await api.query.getNonce(user.address, 'staking');
       assert.equal(nonce, await api.query.getNonce(user.publicKey, 'staking'));
     });
@@ -254,8 +254,7 @@ describe('Query api calls:', async () => {
     });
   });
 
-  describe('getAvtBalance', async () => {
-    //getAvtBalance(account)
+  xdescribe('getAvtBalance', async () => {
     it('@NO_BASELINE returns correct avt balance for specific user by address', async () => {
       assert.fail("actual", "expected", "Error message");
     });
@@ -263,7 +262,7 @@ describe('Query api calls:', async () => {
       assert.fail("actual", "expected", "Error message");
     });
   });
-  describe('getTokenBalance', async () => {
+  xdescribe('getTokenBalance', async () => {
     //getTokenBalance(account, token_address)
     it('@NO_BASELINE returns correct token balance for specific user by address', async () => {
       assert.fail("actual", "expected", "Error message");
@@ -272,7 +271,7 @@ describe('Query api calls:', async () => {
       assert.fail("actual", "expected", "Error message");
     });
   });
-  describe('getNonce', async () => {
+  xdescribe('getNonce', async () => {
     //getAccountNonce(account)
     it('@NO_BASELINE returns correct account nonce for specific user by address', async () => {
       assert.fail("actual", "expected", "Error message");
@@ -281,26 +280,26 @@ describe('Query api calls:', async () => {
       assert.fail("actual", "expected", "Error message");
     });
   });
-  describe('getNftNonce', async () => {
+  xdescribe('getNftNonce', async () => {
     //getNftNonce(nftId)
     it('@NO_BASELINE returns correct nft nonce for specific nft id', async () => {
       assert.fail("actual", "expected", "Error message");
     });
   });
-  describe('getNftId', async () => {
+  xdescribe('getNftId', async () => {
     //getNftId(external_reference);
     it('@NO_BASELINE returns correct nft id for specific reference', async () => {
       assert.fail("actual", "expected", "Error message");
     });
   });
-  describe('getNftOwner', async () => {
+  xdescribe('getNftOwner', async () => {
     //getNftOwner(nftId)
     it('@NO_BASELINE returns correct nft owner for specific nft id', async () => {
       assert.fail("actual", "expected", "Error message");
     });
   });
 
-  describe('AccountInfo', async () => {
+  xdescribe('AccountInfo', async () => {
     it('returns correct data for user by address', async () => {
       const returnedData = await api.query.getAccountInfo(user.address);
 
@@ -340,7 +339,7 @@ describe('Query api calls:', async () => {
   describe('getStakingStats', async () => {
     const defaultMaxNominatorsRewardedPerValidatorBN = new BN(256);
 
-    it('returns the correct data', async () => {
+    xit('returns the correct data', async () => {
       const returnedData = await api.query.getStakingStats();
       // We can't be sure how about the values but we can check the structure
       const totalStakedBN = new BN(returnedData.totalStaked);
@@ -364,7 +363,7 @@ describe('Query api calls:', async () => {
   });
 
   describe('getEraElectionStatus', async () => {
-    it('returns the correct data', async () => {
+    xit('returns the correct data', async () => {
       const returnedData = await api.query.getEraElectionStatus();
       // We can't be sure about the values but we can check the structure
       assert(['isOpen', 'isClosed'].includes(returnedData), 'Election status is not a valid result');

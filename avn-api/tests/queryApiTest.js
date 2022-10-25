@@ -102,7 +102,7 @@ describe('Query api calls:', async () => {
   });
 
   describe('getChainInfo', async () => {
-    it('@NO_BASELINE can get the current chain information', async () => {
+    it('can get the current chain information', async () => {
       let chainInfo = await api.query.getChainInfo();
       assert.equal(chainInfo.name, 'AvN UAT Testnet');
       assert.equal(chainInfo.version, '10');
@@ -113,7 +113,7 @@ describe('Query api calls:', async () => {
     // TODO: Update these tests when we allow the schedule period to be flexible
 
 
-    it('@NO_BASELINE returns the correct data for a block falling within a published summary', async () => {
+    it('returns the correct data for a block falling within a published summary', async () => {
       let currentBlock = parseInt(await api.query.getCurrentBlock());
       // Only runs if a summary should have been published by now
       if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
@@ -126,7 +126,7 @@ describe('Query api calls:', async () => {
       }
     });
 
-    it('@NO_BASELINE returns the correct data for the current block', async () => {
+    it('returns the correct data for the current block', async () => {
       let block = await api.query.getCurrentBlock();
       let summaryData = await api.query.getSummaryData(block);
       assert.equal(summaryData.blockNumber, block);
@@ -137,7 +137,7 @@ describe('Query api calls:', async () => {
       assert.equal(summaryData.ethTxHash, null);
     });
 
-    it('@NO_BASELINE returns the current block data when no block is passed', async () => {
+    it('returns the current block data when no block is passed', async () => {
       let block = await api.query.getCurrentBlock();
       let summaryData = await api.query.getSummaryData();
       assert(parseInt(summaryData.blockNumber) >= parseInt(block));
@@ -148,7 +148,7 @@ describe('Query api calls:', async () => {
       assert.equal(summaryData.ethTxHash, null);
     });
 
-    it('@NO_BASELINE returns limited data when a future block is passed', async () => {
+    it('returns limited data when a future block is passed', async () => {
       let block = await api.query.getCurrentBlock();
       block = parseInt(block) + 100000;
       let summaryData = await api.query.getSummaryData(block);
@@ -160,7 +160,7 @@ describe('Query api calls:', async () => {
 
   describe('getSummaryInclusionData', async () => {
     // TODO: Replace with testing mechanism to generate more recent lowers
-    it('@NO_BASELINE gets correct data for a known lower', async () => {
+    it('gets correct data for a known lower', async () => {
       const blockNumber = '6042';
       const transactionIndex = '1';
       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
@@ -171,7 +171,7 @@ describe('Query api calls:', async () => {
       assert.equal(inclusionData.transactionDetails.args[0].method, 'signedLower');
     });
 
-    it('@NO_BASELINE returns info for a transaction that is too historic to process', async () => {
+    it('returns info for a transaction that is too historic to process', async () => {
       if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD * 3 + 1000) {
         const blockNumber = '1';
         const transactionIndex = '0';
@@ -181,7 +181,7 @@ describe('Query api calls:', async () => {
     });
 
 
-    it('@NO_BASELINE returns info for a transaction that does not exist', async () => {
+    it('returns info for a transaction that does not exist', async () => {
       let currentBlock = parseInt(await api.query.getCurrentBlock());
       if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
         const blockNumber = currentBlock - SCHEDULE_PERIOD;
@@ -191,7 +191,7 @@ describe('Query api calls:', async () => {
       }
     });
 
-    it('@NO_BASELINE returns info for an as yet unpublished transaction', async () => {
+    it('returns info for an as yet unpublished transaction', async () => {
       const amount = new BN(1);
       const requestId = await api.send.transferAvt(relayer.address, recipient.address, amount);
       let response = await helper.confirmStatus(api, requestId, 'Processed');
@@ -223,33 +223,33 @@ describe('Query api calls:', async () => {
   });
 
   describe('getRelayerFees', async () => {
-    it('@NO_BASELINE returns default fees for a relayer by address', async () => {
+    it('returns default fees for a relayer by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.address);
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
     });
 
-    it('@NO_BASELINE returns default fees for a relayer by publicKey', async () => {
+    it('returns default fees for a relayer by publicKey', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.publicKey);
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
     });
 
-    it('@NO_BASELINE returns fees for a specific user by address', async () => {
+    it('returns fees for a specific user by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.address, user.address);
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
     });
 
-    it('@NO_BASELINE returns fees for a specific user by publicKey', async () => {
+    it('returns fees for a specific user by publicKey', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey);
       assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
     });
 
-    it('@NO_BASELINE returns the fee for a specific user and transaction type', async () => {
+    it('returns the fee for a specific user and transaction type', async () => {
       const transactionType = 'proxyTokenTransfer';
       const returnedFees = await api.query.getRelayerFees(relayer.address, user.publicKey, transactionType);
       assert.equal(returnedFees, expectedUserFees[transactionType]);
     });
 
-    it('@NO_BASELINE errors if relayer is not registered', async () => {
+    it('errors if relayer is not registered', async () => {
       await expect(api.query.getRelayerFees(user)).to.be.rejectedWith(Error);
     });
   });

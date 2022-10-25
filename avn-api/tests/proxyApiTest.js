@@ -70,7 +70,7 @@ describe('Proxy api calls:', async () => {
     });
   });
 
-  describe('staking', async () => {
+  xdescribe('staking', async () => {
     let stakerStakingStatusBefore, stakerAvtBalance;
 
     beforeEach(async () => {

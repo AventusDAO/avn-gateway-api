@@ -23,7 +23,7 @@ const nfts = helper.NFTS;
   const validNonceType = 'token';
   let testConfig;
 
-  describe('@NO_BASELINE Fail Query api calls:', async done => {
+  describe('Fail Query api calls:', async done => {
     describe('getAvtBalance', async () => {
       describe('fails when called', async () => {
         testConfig = {

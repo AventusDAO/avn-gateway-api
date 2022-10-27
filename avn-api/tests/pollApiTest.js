@@ -43,7 +43,7 @@ describe('Polling api calls:', async () => {
       assert.equal(result.status, 'Pending');
     });
 
-    it('@NO_BASELINE returns a rejected status when a transaction fails to be executed', async () => {
+    it('returns a rejected status when a transaction fails to be executed', async () => {
       await helper.confirmStatus(api, invalidRequestId, 'Rejected');
       let result = await api.poll.requestState(invalidRequestId);
       assert(result.blockNumber != '0');

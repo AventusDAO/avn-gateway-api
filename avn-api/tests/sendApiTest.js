@@ -166,7 +166,7 @@ describe('SendTx api calls:', async () => {
       nftId = await api.query.getNftId(externalRef);
     });
 
-    it('@NO_BASELINE can list an NFT as open for sale', async () => {
+    it('can list an NFT as open for sale', async () => {
       const requestId = await api.send.listFiatNftForSale(relayer, nftId);
       await helper.confirmStatus(api, requestId, 'Processed');
     });
@@ -185,7 +185,7 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(api, requestId, 'Processed');
     });
 
-    it('@NO_BASELINE can transfer an NFT after an offline fiat sale', async () => {
+    it('can transfer an NFT after an offline fiat sale', async () => {
       assert.equal(user, await api.query.getNftOwner(nftId));
       const requestId = await api.send.transferFiatNft(relayer, recipient, nftId);
       await helper.confirmStatus(api, requestId, 'Processed');
@@ -206,7 +206,7 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(api, requestId, 'Processed');
     });
 
-    it('@NO_BASELINE can cancel a fiat listing', async () => {
+    it('can cancel a fiat listing', async () => {
       const requestId = await api.send.cancelFiatNftListing(relayer, nftId);
       await helper.confirmStatus(api, requestId, 'Processed');
     });

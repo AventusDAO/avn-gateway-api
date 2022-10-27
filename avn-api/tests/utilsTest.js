@@ -27,7 +27,7 @@ describe('Utilities', async () => {
   describe('myPublicKey', async () => {
     it('@NO_BASELINE can get my public key', async () => {
       assert.equal(accounts.user.publicKey, api.utils.myPublicKey());
-      process.env.AVN_SURI = accounts.otherUser.mnemonic;
+      process.env.AVN_SURI = accounts.otherUser.seed;
       assert.equal(accounts.otherUser.publicKey, api.utils.myPublicKey());
       process.env.AVN_SURI = accounts.user.seed;
     });

@@ -26,10 +26,11 @@ const test_descriptive = argv.test_descriptive || '';
 (async () => {
   const googleDriveService = new NodeGoogleService(serviceAccountKey);
 
-  const finalPath = path.resolve(__dirname, '../../finalReport.html');
+  const finalHtmlReportPath = path.resolve(__dirname, '../../finalReport.html');
+  const finalJsonReportPath = path.resolve(__dirname, '../../finalReport.json');
   const folderName = 'GatewayTestResults';
 
-  if (!fs.existsSync(finalPath)) {
+  if (!fs.existsSync(finalHtmlReportPath)) {
     throw new Error('File not found!');
   }
 
@@ -46,17 +47,22 @@ const test_descriptive = argv.test_descriptive || '';
   }
 
   // Example file name
-  // uat_gateway_api_nightly_test_report_2022-07-19T08:02:43.621Z
-  const date_now = new Date();
+  // uat_gateway_api_nightly_test_report_2022-07-19T08_02_43
   let fileName = test_descriptive ? `_${test_descriptive}_` : '_gateway_api_nightly_test_report_';
+  const date_now = new Date();
+  let dateStringFormat = date_now.toISOString().split(".")[0].replaceAll(":", "_");
   await googleDriveService
-      .saveFile(argv.gateway + fileName + date_now.toISOString(), finalPath, 'text/html', folder.id)
+      .saveFile(argv.gateway + fileName + dateStringFormat, finalHtmlReportPath, 'text/html', folder.id)
       .catch((error) => {
     console.error(error);
   });
 
+  let reportJson = JSON.parse(fs.readFileSync(finalJsonReportPath, 'utf8'));
+  reportJson = { ...reportJson, fileId: fileAdded.data.id };
+  fs.writeFileSync(finalJsonReportPath, JSON.stringify(reportJson, null, 2));
+
   console.info('File uploaded successfully!');
 
   // Delete the file on the server
-  fs.unlinkSync(finalPath);
+  fs.unlinkSync(finalHtmlReportPath);
 })();

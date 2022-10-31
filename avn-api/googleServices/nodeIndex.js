@@ -51,10 +51,11 @@ const test_descriptive = argv.test_descriptive || '';
   let fileName = test_descriptive ? `_${test_descriptive}_` : '_gateway_api_nightly_test_report_';
   const date_now = new Date();
   let dateStringFormat = date_now.toISOString().split(".")[0].replaceAll(":", "_");
-  await googleDriveService
-      .saveFile(argv.gateway + fileName + dateStringFormat, finalHtmlReportPath, 'text/html', folder.id)
+  let fileAdded = await googleDriveService
+      .saveFile(argv.gateway + fileName + dateStringFormat + '.html', finalHtmlReportPath, 'text/html', folder.id)
       .catch((error) => {
     console.error(error);
+    return;
   });
 
   let reportJson = JSON.parse(fs.readFileSync(finalJsonReportPath, 'utf8'));

@@ -228,7 +228,7 @@ async function getAccountInfo(call, request) {
 }
 
 async function queryActiveEra(call, request) {
-  return await queryChain(call, request, 'staking', 'activeEra', [], formatEraAsString);
+  return await queryChain(call, request, 'parachainStaking', 'era', [], formatEraAsString);
 }
 
 async function queryEraElectionStatus(call, request) {
@@ -248,7 +248,7 @@ async function getStakingStatus(call, request) {
   if (utils.isValidAccountId(accountId) === false) {
     return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
   } else {
-    return await queryChain(call, request, 'staking', 'nominators', [accountId], formatAsNominatingEnum);
+    return await queryChain(call, request, 'parachainStaking', 'nominatorState', [accountId], formatAsNominatingEnum);
   }
 }
 
@@ -347,7 +347,7 @@ const formatNftNonceAsString = data => utils.toBnString(data.nonce);
 
 const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
-const formatEraAsString = data => (data ? data.index : 0);
+const formatEraAsString = data => (data ? data.current : 0);
 
 const formatEraElectionStatus = data => (Object.keys(data)[0] === 'Open' ? 'isOpen' : 'isClosed');
 

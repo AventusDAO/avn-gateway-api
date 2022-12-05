@@ -47,7 +47,7 @@ describe('Proxy api calls:', async () => {
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
 
-    it('@NO_BASELINE can make multiple token transfers using a recipient address', async function () {
+    it('can make multiple token transfers using a recipient address', async function () {
       this.timeout(400000); //increase the timeout of this test (https://mochajs.org/#test-level)
 
       const amount = new BN(1);
@@ -70,7 +70,7 @@ describe('Proxy api calls:', async () => {
     });
   });
 
-  describe('staking', async () => {
+  xdescribe('staking', async () => {
     let stakerStakingStatusBefore, stakerAvtBalance;
 
     beforeEach(async () => {

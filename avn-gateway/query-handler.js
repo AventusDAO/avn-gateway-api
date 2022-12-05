@@ -116,7 +116,7 @@ async function getAvtBalance(call, request) {
 }
 
 async function getAvtContractAddress(call, request) {
-  return await queryChain(call, request, 'tokenManager', 'aVTTokenContract', [], formatAsString);
+  return await queryChain(call, request, 'tokenManager', 'avtTokenContract', [], formatAsString);
 }
 
 async function getAvnContractAddress(call, request) {
@@ -356,7 +356,7 @@ const filterNftOwner = data => (data ? data.owner : null);
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
 const filterNftId = (uniqueExternalRef, data) => {
   const uniqueExternalRefAsHex = '0x' + Buffer.from(uniqueExternalRef, 'utf8').toString('hex');
-  const index = data.findIndex(nft => nft[1].unique_external_ref === uniqueExternalRefAsHex);
-  const nftId = index > -1 ? data[index][1].nft_id : undefined;
+  const index = data.findIndex(nft => nft[1].uniqueExternalRef === uniqueExternalRefAsHex);
+  const nftId = index > -1 ? data[index][1].nftId : undefined;
   return nftId;
 };

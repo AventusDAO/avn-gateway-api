@@ -47,7 +47,7 @@ const BN = helper.BN;
 
   let testConfig;
 
-  describe('@NO_BASELINE Fail Send api calls:', async () => {
+  describe('Fail Send api calls:', async () => {
     describe('transferAvt', async () => {
       describe('fails when called', async () => {
         testConfig = {
@@ -78,7 +78,7 @@ const BN = helper.BN;
           testConfig.selectionField = 'amount';
           await testPatterns.invalidAmount(testConfig);
         });
-        it('@NO_BASELINE With amount greater than users balance', async () => {
+        it('With amount greater than users balance', async () => {
           const userAvtBalance = await api.query.getAvtBalance(accounts.user.address);
           const greaterAmount = new BN(userAvtBalance).add(new BN('1'));
           testConfig.validCallData.amount = greaterAmount;
@@ -130,7 +130,7 @@ const BN = helper.BN;
           testConfig.selectionField = 'amount';
           await testPatterns.invalidAmount(testConfig);
         });
-        it('@NO_BASELINE With token amount greater than users balance', async () => {
+        it('With token amount greater than users balance', async () => {
           const userAvtBalance = await api.query.getTokenBalance(accounts.user.address, testConfig.validCallData.token);
           const greaterAmount = new BN(userAvtBalance).add(new BN('1'));
           testConfig.validCallData.amount = greaterAmount;
@@ -321,12 +321,12 @@ const BN = helper.BN;
             /Relayer.*is not registered with AvN Gateway/
           );
         });
-        it('@NO_BASELINE With user that doesnt own this nft', async () => {
+        it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           const requestId = await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        it('@NO_BASELINE With an NFT that is already listed', async () => {
+        it('With an NFT that is already listed', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           const requestId = await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
@@ -370,12 +370,12 @@ const BN = helper.BN;
             /Relayer.*is not registered with AvN Gateway/
           );
         });
-        it('@NO_BASELINE With user that doesnt own this nft', async () => {
+        it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        it('@NO_BASELINE With an NFT that is not listed', async () => {
+        it('With an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
@@ -413,12 +413,12 @@ const BN = helper.BN;
             /Relayer.*is not registered with AvN Gateway/
           );
         });
-        it('@NO_BASELINE With user that doesnt own this nft', async () => {
+        it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           const requestId = await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        it('@NO_BASELINE with an NFT that is not listed', async () => {
+        it('with an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           const requestId = await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');

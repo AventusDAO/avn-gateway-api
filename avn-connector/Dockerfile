@@ -1,19 +1,13 @@
-FROM node:15.7.0-alpine3.10
+FROM node:16-alpine
 
 # Need to be root to write logs to volume.
 # TODO: use log driver to send stdout to CloudWatch?
-ENV USER www
-ENV GROUP www
 
-WORKDIR /home/$USER
+RUN apk update && \
+    apk add g++ make py3-pip
+
 COPY src .
 
-# the fewer commands in Dockerfile, the fewer layers will be created
-RUN addgroup -S $GROUP \
-    && adduser -D -G $GROUP -S $USER \
-    && chmod 0700 /home/$USER \
-    && npm install
+RUN npm ci --production
 
-USER $USER:$GROUP
-
-ENTRYPOINT exec npm start
+ENTRYPOINT npm start

@@ -15,6 +15,7 @@ Install serverless: `npm install -g serverless`
 
 Set up AWS credentials if required: https://www.serverless.com/framework/docs/providers/aws/guide/credentials
 
+**NOTE**: make sure you install the packages from `common` and `queue` on your local machine before deploying using serverless. Please run `npm ci --production` inside each folder.
 
 ## Development
 1) Ensure the node modules in any layer folders (eg: `common/` or `queue/`) are up-to-date by running `npm i` in them.

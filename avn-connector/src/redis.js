@@ -74,9 +74,6 @@ async function connect() {
             return {}
           end`
   });
-
-  // This is temporary to kill off the zombie transactions
-  redisClient.flushall();
 }
 
 function getKey(key) {

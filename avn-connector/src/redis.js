@@ -29,6 +29,12 @@ const CHAIN_INFO_KEY = 'chainInfo';
 const LIFTS_FROM_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const STAKER_PAYOUT_FLAG_KEY = 'payoutFlag';
+const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
+const LOWERS_FROM_BLOCK_KEY = 'lowersFromBlock';
+const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
+const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
+const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
+const PUBLISHED_SUMMARIES_KEY = 'summaries';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -253,6 +259,86 @@ async function setStakerPayoutFlag(flag) {
   await redisClient.set(STAKER_PAYOUT_FLAG_KEY, flag);
 }
 
+async function setRetrieveLowersFromBlock(blockNumber) {
+  await redisClient.set(LOWERS_FROM_BLOCK_KEY, blockNumber);
+}
+
+async function getRetrieveLowersFromBlock() {
+  return await redisClient.get(LOWERS_FROM_BLOCK_KEY);
+}
+
+async function setBlockIndex(txHash, blockIndexString) {
+  return await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, blockIndexString);
+}
+
+async function deleteBlockIndex(txHash) {
+  return await redisClient.del(LOWER_BLOCK_INDEX_KEY + txHash);
+}
+
+async function getBlockIndex(txHash) {
+  return await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
+}
+
+async function addUnpublishedLower(txHash) {
+  return await redisClient.sadd(UNPUBLISHED_LOWERS_KEY, txHash);
+}
+
+async function removeUnpublishedLower(txHash) {
+  return await redisClient.srem(UNPUBLISHED_LOWERS_KEY, txHash);
+}
+
+async function getUnpublishedLowers() {
+  return await redisClient.smembers(UNPUBLISHED_LOWERS_KEY);
+}
+
+async function addAwaitingClaimDataLower(txHash) {
+  return await redisClient.sadd(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+}
+
+async function removeAwaitingClaimDataLower(txHash) {
+  return await redisClient.srem(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+}
+
+async function getAwaitingClaimDataLowers() {
+  return await redisClient.smembers(AWAITING_CLAIM_DATA_LOWERS_KEY);
+}
+
+async function addUnclaimedLower(txHash) {
+  return await redisClient.sadd(UNCLAIMED_LOWERS_KEY, txHash);
+}
+
+async function removeUnclaimedLower(txHash) {
+  return await redisClient.srem(UNCLAIMED_LOWERS_KEY, txHash);
+}
+
+async function getUnclaimedLowers() {
+  return await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
+}
+
+async function appendPublishedSummaries(summaries) {
+  return await redisClient.rpush(PUBLISHED_SUMMARIES_KEY, summaries)
+}
+
+async function getLatestPublishedSummary() {
+  return await redisClient.lindex(PUBLISHED_SUMMARIES_KEY, -1);
+}
+
+async function getPublishedSummaries() {
+  return await redisClient.lrange(PUBLISHED_SUMMARIES_KEY, 0, -1);
+}
+
+async function setLowerData(txHash, lowerDataString) {
+  return await redisClient.set(LOWER_DATA_KEY + txHash, lowerDataString);
+}
+
+async function deleteLowerData(txHash) {
+  return await redisClient.del(LOWER_DATA_KEY + txHash);
+}
+
+async function getLowerData(txHash) {
+  return await redisClient.get(LOWER_DATA_KEY + txHash);
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
@@ -280,5 +366,25 @@ module.exports = {
   getTotalToken,
   setTotalToken,
   getStakerPayoutFlag,
-  setStakerPayoutFlag
+  setStakerPayoutFlag,
+  setRetrieveLowersFromBlock,
+  getRetrieveLowersFromBlock,
+  setBlockIndex,
+  deleteBlockIndex,
+  getBlockIndex,
+  addUnpublishedLower,
+  removeUnpublishedLower,
+  getUnpublishedLowers,
+  addAwaitingClaimDataLower,
+  removeAwaitingClaimDataLower,
+  getAwaitingClaimDataLowers,
+  addUnclaimedLower,
+  removeUnclaimedLower,
+  getUnclaimedLowers,
+  appendPublishedSummaries,
+  getLatestPublishedSummary,
+  getPublishedSummaries,
+  setLowerData,
+  deleteLowerData,
+  getLowerData,
 };

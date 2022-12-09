@@ -1,4 +1,5 @@
 const { keccakAsHex } = require('@polkadot/util-crypto');
+const avn = require('./avn');
 const redis = require('./redis');
 const ethereum = require('./ethereum');
 const config = require('multiconfig').load();
@@ -7,7 +8,7 @@ const log = log4js.getLogger();
 
 async function getLowers(account) {
   const latestPublishedBlock = await getLatestPublishedBlock();
-  await updateSummaries(latestPublishedBlock);
+  await updatePublishedSummaries(latestPublishedBlock);
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
   await updateAwaitingClaimDataLowers();
@@ -20,14 +21,11 @@ async function getLatestPublishedBlock() {
   return parseInt(latestSummary.toBlock);
 }
 
-async function updateSummaries(latestPublishedBlock) {
-  const entries = await api.query.summary.roots.entries();
-  const roots = entries.map(([{ args: [{ from_block, to_block }] }, { root_hash, is_validated }]) => (
-    { fromBlock: parseInt(from_block), toBlock: parseInt(to_block), rootHash: root_hash, isValid: is_validated }
-  ));
-
+async function updatePublishedSummaries(latestPublishedBlock) {
+  const summaries = await avn.getSummaryData();
   const newSummaries = [];
-  for (let i = 0; i < roots.length; i++) {
+
+  for (let i = 0; i < summaries.length; i++) {
     const { fromBlock, toBlock, rootHash, isValid } = roots[i];
     if (isValid && fromBlock > latestPublishedBlock && await ethereum.rootIsPublished(rootHash)) {
       newSummaries.push({ fromBlock, toBlock });

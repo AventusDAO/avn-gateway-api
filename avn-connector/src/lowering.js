@@ -36,12 +36,6 @@ async function updatePublishedSummaries(latestPublishedBlock) {
   await redis.appendPublishedSummaries(newSummaries.map(s => JSON.stringify(s)));
 }
 
-// [
-//    { txHash: "abc", token: "0xabc", from: "5abc", to: "0xabc", amount: "1000", blockNumber:"123", index: "1" },
-//    { txHash: "def", token: "0xabc", from: "5def", to: "0xdef", amount: "2000", blockNumber:"456", index: "1" },
-//    ...
-// ]
-
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let retrieveFromBlock = parseInt(await redis.getRetrieveLowersFromBlock());
   const lowerTransactions = await avnExplorer.getLowerTransactions(retrieveFromBlock);

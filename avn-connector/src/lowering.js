@@ -22,7 +22,7 @@ async function getLatestPublishedBlock() {
 }
 
 async function updatePublishedSummaries(latestPublishedBlock) {
-  const summaries = await avn.getSummaryData();
+  const summaries = await avn.getSummaries();
   const newSummaries = [];
 
   for (let i = 0; i < summaries.length; i++) {

@@ -444,7 +444,7 @@ async function connectToAvN() {
   log.info(`You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`);
 }
 
-async function getSummaryData() {
+async function getSummaries() {
   const entries = await api.query.summary.roots.entries();
   return entries.map(([{ args: [{ from_block, to_block }] }, { root_hash, is_validated }]) => (
     { fromBlock: parseInt(from_block), toBlock: parseInt(to_block), rootHash: root_hash, isValid: is_validated }
@@ -470,7 +470,7 @@ module.exports = {
   getStakingStats,
   getChainInfo,
   getCurrentBlock,
-  getSummaryData,
+  getSummaries,
   getSummaryData,
   getSummaryInclusionData,
   getTotalToken,

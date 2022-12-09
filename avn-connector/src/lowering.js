@@ -38,7 +38,7 @@ async function updatePublishedSummaries(latestPublishedBlock) {
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let retrieveFromBlock = parseInt(await redis.getRetrieveLowersFromBlock());
-  const lowerTransactions = await avnExplorer.getLowerTransactions(retrieveFromBlock);
+  const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
   for (let i = 0; i < lowerTransactions.length; i++) {
     const lowerTx = lowerTransactions[i];
@@ -114,6 +114,17 @@ async function updateUnclaimedLowers() {
     }
   }
 }
+
+async function getLowerTransactions(fromBlock) {
+  // TODO: Awaiting new endpoint on avn explorer
+  // Expected data:
+  // [
+  //    { txHash: "abc", token: "0xabc", from: "5abc", to: "0xabc", amount: "1000", blockNumber:"123", index: "1" },
+  //    { txHash: "def", token: "0xabc", from: "5def", to: "0xdef", amount: "2000", blockNumber:"456", index: "1" },
+  //    ...
+  // ]
+}
+
 
 async function getLowersForAccount(account) {
   const unpublished = await redis.getUnpublishedLowers();

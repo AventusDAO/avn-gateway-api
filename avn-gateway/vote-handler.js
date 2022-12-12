@@ -197,7 +197,8 @@ function formatProposalData(proposal, proposalData) {
     status: voteStatus(proposalData),
     blockNumber: proposalData.blockNumber,
     numVotes: proposalData.votes ? Object.keys(proposalData.votes).length : 0,
-    scores: proposalData.scores || [0,0]
+    scores: proposalData.scores || [0,0],
+    votingChoice: proposalData.votingChoice || [0,0]
   };
 }
 

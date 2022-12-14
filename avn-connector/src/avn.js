@@ -19,6 +19,27 @@ const RELAYER_ADDRESS = config.relayer.address;
 let api, vault;
 let relayers = {};
 
+// Todo: Remove all "_old" items - temporary parallel path for voting
+let api_old;
+const AVN_URL_old = config.avnUrl_old;
+async function query_old(palletName, storageName, params) {
+  let result;
+
+  if (params[0] === 'entries') {
+    result = await api_old.query[palletName][storageName].entries();
+  } else if (params[0] === 'at') {
+    const blockHash = await api_old.rpc.chain.getBlockHash(params[1]);
+    result = await api_old.query[palletName][storageName].at(blockHash, ...params.slice(2));
+    result = result.toJSON();
+  } else {
+    result = await api_old.query[palletName][storageName](...params);
+    result = result.toJSON();
+  }
+
+  log.trace(`Encoded query response: ${result}`);
+  return JSON.stringify(result);
+}
+
 async function query(palletName, storageName, params) {
   let result;
 
@@ -365,6 +386,38 @@ async function init() {
 async function connectToAvN() {
   log.info(`Creating a connection to the AVN on: ${AVN_URL}`);
 
+  // Todo: Remove all "_old" items - temporary parallel path for voting
+  let provider_old = new WsProvider(AVN_URL_old);
+  api_old = await ApiPromise.create({
+    provider_old,
+    typesBundle: avnTypes,
+    rpc: {
+      lower: {
+        data: {
+          params: [
+            {
+              name: 'from_block',
+              type: 'u32'
+            },
+            {
+              name: 'to_block',
+              type: 'u32'
+            },
+            {
+              name: 'block_number',
+              type: 'u32'
+            },
+            {
+              name: 'extrinsic_index',
+              type: 'u32'
+            }
+          ],
+          type: 'Text'
+        }
+      }
+    }
+  });
+
   let provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({
     provider,
@@ -458,6 +511,7 @@ module.exports = {
   getValidatorsToNominate,
   init,
   query,
+  query_old, // TODO: Remove "query_old" - temporary parallel path for voting
   proxy,
   poll,
   getStakingStats,

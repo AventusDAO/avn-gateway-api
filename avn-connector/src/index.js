@@ -27,6 +27,17 @@ app.get('/health', async (req, res, next) => {
   }
 });
 
+// Todo: Remove "avnQuery_old" - temporary parallel path for voting
+app.post('/avnQuery_old', async (req, res, next) => {
+  try {
+    log.trace({ avnQueryRequest: req.body });
+    const result = await avn.query_old(req.body.palletName, req.body.storageName, req.body.params);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/avnQuery', async (req, res, next) => {
   try {
     log.trace({ avnQueryRequest: req.body });

@@ -21,7 +21,6 @@ let relayers = {};
 
 // Todo: Remove all "_old" items - temporary parallel path for voting
 let api_old;
-const AVN_URL_old = config.avnUrl_old;
 async function query_old(palletName, storageName, params) {
   let result;
 
@@ -387,6 +386,7 @@ async function connectToAvN() {
   log.info(`Creating a connection to the AVN on: ${AVN_URL}`);
 
   // Todo: Remove all "_old" items - temporary parallel path for voting
+  const AVN_URL_old = config.avnUrl_old;
   let provider_old = new WsProvider(AVN_URL_old);
   api_old = await ApiPromise.create({
     provider_old,

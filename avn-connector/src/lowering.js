@@ -1,10 +1,13 @@
 const { keccakAsHex } = require('@polkadot/util-crypto');
+const axios = require('axios');
 const avn = require('./avn');
 const redis = require('./redis');
 const ethereum = require('./ethereum');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
+
+const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
   const latestPublishedBlock = await getLatestPublishedBlock();
@@ -115,14 +118,9 @@ async function updateUnclaimedLowers() {
   }
 }
 
-async function getLowerTransactions(fromBlock) {
-  // TODO: Awaiting new endpoint on avn explorer
-  // Expected data:
-  // [
-  //    { txHash: "abc", token: "0xabc", from: "5abc", to: "0xabc", amount: "1000", blockNumber:"123", index: "1" },
-  //    { txHash: "def", token: "0xabc", from: "5def", to: "0xdef", amount: "2000", blockNumber:"456", index: "1" },
-  //    ...
-  // ]
+async function getLowerTransactions(blockNumber) {
+  const response = await utils.axios.post(`${AVN_EXPLORER_URL}/lowers`, { blockNumber });
+  return response.data;
 }
 
 

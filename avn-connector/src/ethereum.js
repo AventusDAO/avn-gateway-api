@@ -1,5 +1,6 @@
 const axios = require('axios');
 const redis = require('./redis');
+const avn = require('/avn');
 const config = require('multiconfig').load();
 const Web3 = require('web3');
 const provider = new Web3.providers.HttpProvider(config.ethereum.infura_url);
@@ -9,7 +10,6 @@ const log = log4js.getLogger();
 
 const ETHERSCAN_URL = config.ethereum.etherscan_url;
 const ETHERSCAN_KEY = config.ethereum.etherscan_api_key;
-const AVN_ADDRESS = config.ethereum.avn_address;
 const LIFT_EVENT_SIGNATURE = '0x8964776336bc2fa8ecaaf70b6f8e8450807efb1ff78f8b87980707aa821f0ec0';
 const ETH_AS_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 const MAX_LIFT_AGE = 60 * 60 * 24 * 5; // 5 days
@@ -61,6 +61,7 @@ async function callEtherscan(request) {
 }
 
 async function lowerIsClaimed(leafHash) {
+  const { avnContract } = await avn.getChainInfo();
   const data = await web3.eth.abi.encodeFunctionCall({
     name: 'hasLowered',
     type: 'function',
@@ -71,10 +72,11 @@ async function lowerIsClaimed(leafHash) {
       }
     ]
   }, [leafHash]);
-  return await web3.eth.call({ to: AVN_ADDRESS, data });
+  return await web3.eth.call({ to: avnContract, data });
 }
 
 async function rootIsPublished(rootHash) {
+  const { avnContract } = await avn.getChainInfo();
   const data = await web3.eth.abi.encodeFunctionCall({
     name: 'isPublishedRootHash',
     type: 'function',
@@ -85,7 +87,7 @@ async function rootIsPublished(rootHash) {
       }
     ]
   }, [rootHash]);
-  return await web3.eth.call({ to: AVN_ADDRESS, data });
+  return await web3.eth.call({ to: avnContract, data });
 }
 
 module.exports = {

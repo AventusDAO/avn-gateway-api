@@ -1,3 +1,4 @@
 avnUrl: wss://avn-parachain.dev.aventus.io/
+avnExplorerUrl: https://explorer.dev.aventus.io
 serverPort: 5000
 stakingPayoutRelayer: 5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh

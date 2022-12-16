@@ -1,0 +1,23 @@
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+
+exports.handler = async event => {
+  return {
+    statusCode: 200,
+    headers: { 'Access-Control-Allow-Origin': '*' },
+    body: JSON.stringify(await getLowers(event.queryStringParameters))
+  };
+};
+
+async function getLowers(account) {
+  const result = { lowerData: [], status: 'success' };
+
+  try {
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'lowers', { account });
+    result.lowerData = response.data;
+  } catch (err) {
+    console.log(err);
+    result.status = 'error';
+  }
+
+  return result;
+}

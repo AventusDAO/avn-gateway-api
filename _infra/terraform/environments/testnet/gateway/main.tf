@@ -77,6 +77,10 @@ module "lambda_functions" {
       memory_size = 256
       avn_votes_bucket = local.avn_votes_bucket
     }
+    lower-handler = {
+      timeout     = 6
+      memory_size = 128
+    }
   }
 
   depends_on = [

@@ -144,8 +144,8 @@ function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
 }
 
 module.exports = {
-  calculateNominatorStakingBalances,
   calculateCollatorStakingBalances,
+  calculateNominatorStakingBalances,
   calculateStakingStats,
   payoutAllStakers
 };

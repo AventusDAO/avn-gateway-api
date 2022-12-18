@@ -5,6 +5,11 @@ const { u8aConcat, u8aToHex, hexToBn } = require('@polkadot/util');
 
 function calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex) {
   let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
+
+  if (nominatorState.isEmpty === false) {
+    stakedBalance = hexToBn(nominatorState.toJSON().total).toString();
+  }
+
   nominatorRequests.forEach(req => {
     if (new BN(req.whenExecutable).gt(new BN(currentEraIndex))) {
         unstakedBalance = unstakedBalance.add(getRequestedAmount(req.action));
@@ -12,8 +17,6 @@ function calculateNominatorStakingBalances(nominatorState, nominatorRequests, cu
         unlockedBalance = unlockedBalance.add(getRequestedAmount(req.action));
     }
   })
-
-  stakedBalance = hexToBn(nominatorState.toJSON().total).toString();
 
   return {
     stakedBalance,
@@ -24,7 +27,7 @@ function calculateNominatorStakingBalances(nominatorState, nominatorRequests, cu
 
 function calculateCollatorStakingBalances(candidateInfo, currentEra) {
   let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
-  if (candidateInfo) {
+  if (candidateInfo.isEmpty === false) {
     candidateInfo = candidateInfo.toJSON();
     stakedBalance = hexToBn(candidateInfo.totalCounted);
 

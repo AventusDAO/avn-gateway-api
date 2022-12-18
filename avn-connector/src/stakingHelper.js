@@ -6,39 +6,41 @@ const { u8aConcat, u8aToHex, hexToBn } = require('@polkadot/util');
 function calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex) {
   let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
   nominatorRequests.forEach(req => {
-      if (new BN(req.whenExecutable).gt(new BN(currentEraIndex))) {
-          unstakedBalance = unstakedBalance.add(getRequestedAmount(req.action));
-      } else {
-          unlockedBalance = unlockedBalance.add(getRequestedAmount(req.action));
-      }
+    if (new BN(req.whenExecutable).gt(new BN(currentEraIndex))) {
+        unstakedBalance = unstakedBalance.add(getRequestedAmount(req.action));
+    } else {
+        unlockedBalance = unlockedBalance.add(getRequestedAmount(req.action));
+    }
   })
 
   stakedBalance = hexToBn(nominatorState.toJSON().total).toString();
 
   return {
-      stakedBalance,
-      unlockedBalance,
-      unstakedBalance
+    stakedBalance,
+    unlockedBalance,
+    unstakedBalance
   }
 }
 
 function calculateCollatorStakingBalances(candidateInfo, currentEra) {
   let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
   if (candidateInfo) {
-      candidateInfo = candidateInfo.toJSON();
-      stakedBalance = hexToBn(candidateInfo.totalCounted);
+    candidateInfo = candidateInfo.toJSON();
+    stakedBalance = hexToBn(candidateInfo.totalCounted);
 
-      if (candidateInfo.request && candidateInfo.request.whenExecutable > currentEra) {
-          unstakedBalance = hexToBn(candidateInfo.request.amount);
-      } else if (candidateInfo.request && candidateInfo.request.whenExecutable <= currentEra) {
-          unlockedBalance = hexToBn(candidateInfo.request.amount);
+    if (candidateInfo.request) {
+      if (new BN(candidateInfo.request.whenExecutable).gt(new BN(currentEra))) {
+        unstakedBalance = hexToBn(candidateInfo.request.amount);
+      } else {
+        unlockedBalance = hexToBn(candidateInfo.request.amount);
       }
+    }
   }
 
   return {
-      stakedBalance,
-      unlockedBalance,
-      unstakedBalance
+    stakedBalance,
+    unlockedBalance,
+    unstakedBalance
   }
 }
 

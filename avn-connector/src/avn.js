@@ -86,7 +86,7 @@ async function getAccountInfo(accountId) {
   let currentEraIndex = (await api.query.parachainStaking.era()).current;
   let collators = JSON.parse(await getValidatorsToNominate(api));
 
-  let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
+  let stakedBalance, unlockedBalance, unstakedBalance;
 
   if (collators.some(c => c.toLowerCase() === accountId.toLowerCase())) {
     const candidateInfo = await api.query.parachainStaking.candidateInfo(accountId);

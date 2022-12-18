@@ -29,7 +29,7 @@ function calculateCollatorStakingBalances(candidateInfo, currentEra) {
   let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
   if (candidateInfo.isEmpty === false) {
     candidateInfo = candidateInfo.toJSON();
-    stakedBalance = hexToBn(candidateInfo.totalCounted);
+    stakedBalance = hexToBn(candidateInfo.bond);
 
     if (candidateInfo.request) {
       if (new BN(candidateInfo.request.whenExecutable).gt(new BN(currentEra))) {

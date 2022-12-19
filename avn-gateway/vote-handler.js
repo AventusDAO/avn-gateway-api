@@ -30,7 +30,7 @@ async function getFormattedProposal(proposal) {
   try {
     const proposalData = await getProposalData(proposal);
     result = formatProposalData(proposal, proposalData);
-    result.votes = proposalData.votes ? formatVotes(proposalData.votes) : [];
+    result.votes = proposalData.votes ? formatVotes(proposalData.votes, proposalData.votingChoice) : [];
   } catch (err) {
     console.log(err);
   }
@@ -202,13 +202,13 @@ function formatProposalData(proposal, proposalData) {
   };
 }
 
-function formatVotes(votes) {
+function formatVotes(votes, votingChoice) {
   let formattedVotes = [];
 
   for (const [publicKey, weight] of Object.entries(votes)) {
     formattedVotes.push({
       address: utils.convertToAddress(publicKey),
-      voteSway: weight > 0 ? 'approve' : 'disapprove',
+      voteSway: weight > 0 ? votingChoice[0] : votingChoice[1],
       avtWeight: Math.abs(weight)
     });
   }

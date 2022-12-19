@@ -1,35 +1,61 @@
 const BN = require('bn.js');
 const BN_ZERO = new BN(0);
 const lambda = require('./lambdas');
-const { u8aConcat, u8aToHex } = require('@polkadot/util');
+const { u8aConcat, u8aToHex, hexToBn } = require('@polkadot/util');
 
-function calculateBondedAmount(stakingInfo) {
-  let bonded = new BN(0);
+function calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex) {
+  let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
 
-  if (
-    stakingInfo &&
-    stakingInfo.stakingLedger &&
-    stakingInfo.stakingLedger.active &&
-    stakingInfo.accountId.eq(stakingInfo.stashId)
-  ) {
-    bonded = stakingInfo.stakingLedger.active.unwrap();
+  if (nominatorState.isEmpty === false) {
+    stakedBalance = hexToBn(nominatorState.toJSON().total).toString();
   }
 
-  return bonded;
+  nominatorRequests.forEach(req => {
+    if (new BN(req.whenExecutable).gt(new BN(currentEraIndex))) {
+        unstakedBalance = unstakedBalance.add(getRequestedAmount(req.action));
+    } else {
+        unlockedBalance = unlockedBalance.add(getRequestedAmount(req.action));
+    }
+  })
+
+  return {
+    stakedBalance,
+    unlockedBalance,
+    unstakedBalance
+  }
 }
 
-function calculateUnbondingAmount(stakingInfo) {
-  if (!stakingInfo.unlocking) {
-    return BN_ZERO;
+function calculateCollatorStakingBalances(candidateInfo, currentEra) {
+  let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
+  if (candidateInfo.isEmpty === false) {
+    candidateInfo = candidateInfo.toJSON();
+    stakedBalance = hexToBn(candidateInfo.bond);
+
+    if (candidateInfo.request) {
+      if (new BN(candidateInfo.request.whenExecutable).gt(new BN(currentEra))) {
+        unstakedBalance = hexToBn(candidateInfo.request.amount);
+      } else {
+        unlockedBalance = hexToBn(candidateInfo.request.amount);
+      }
+    }
   }
 
-  const filtered = stakingInfo.unlocking
-    .filter(({ remainingEras, value }) => value.gt(BN_ZERO) && remainingEras.gt(BN_ZERO))
-    .map(unlock => unlock.value);
+  return {
+    stakedBalance,
+    unlockedBalance,
+    unstakedBalance
+  }
+}
 
-  const amount = filtered.reduce((total, value) => total.iadd(value), new BN(0));
+function getRequestedAmount(requestAction) {
+  if (requestAction.isDecrease === true) {
+      return hexToBn(requestAction.toJSON().decrease);
+  } else if(requestAction.isRevoke === true) {
+      return hexToBn(requestAction.toJSON().revoke);
+  }
 
-  return amount;
+  console.log(`Warning: Scheduled request action (${requestAction}) is not recognised. Unable to return amount`);
+  return BN_ZERO;
 }
 
 function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator) {
@@ -121,8 +147,8 @@ function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
 }
 
 module.exports = {
-  calculateBondedAmount,
-  calculateUnbondingAmount,
+  calculateCollatorStakingBalances,
+  calculateNominatorStakingBalances,
   calculateStakingStats,
   payoutAllStakers
 };

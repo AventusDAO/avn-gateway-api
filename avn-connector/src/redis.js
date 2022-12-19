@@ -23,7 +23,7 @@ const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
 const SUMMARY_RANGE_NAMESPACE = 's.';
 const TOTAL_TOKEN_NAMESPACE = 't.';
-const VALIDATORS_KEY = 'validators';
+const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
 const LIFTS_FROM_BLOCK_KEY = 'liftsFromBlock';
@@ -40,7 +40,7 @@ const MAX_PENDING_TX_TO_CHECK = 100;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
 const NONCE_EXPIRY_IN_SECONDS = 5;
 const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
-const VALIDATORS_EXPIRY_IN_SECONDS = 86400; //1 day
+const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
@@ -189,12 +189,12 @@ function refreshNonce(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
-async function setValidatorsToNominate(validatorsJsonString) {
-  await redisClient.setex(VALIDATORS_KEY, VALIDATORS_EXPIRY_IN_SECONDS, validatorsJsonString);
+async function setCollatorsToNominate(validatorsJsonString) {
+  await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, validatorsJsonString);
 }
 
-async function getValidatorsToNominate() {
-  return await redisClient.get(VALIDATORS_KEY);
+async function getCollatorsToNominate() {
+  return await redisClient.get(COLLATORS_KEY);
 }
 
 async function setStakingStats(stakingStatJsonString) {
@@ -265,8 +265,8 @@ module.exports = {
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,
   getTransactionHashByRequestId,
-  getValidatorsToNominate,
-  setValidatorsToNominate,
+  getCollatorsToNominate,
+  setCollatorsToNominate,
   getStakingStats,
   setStakingStats,
   getChainInfo,

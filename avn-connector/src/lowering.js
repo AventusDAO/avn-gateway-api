@@ -29,7 +29,7 @@ async function updatePublishedSummaries(latestPublishedBlock) {
   const newSummaries = [];
 
   for (let i = 0; i < summaries.length; i++) {
-    const { fromBlock, toBlock, rootHash, isValid } = roots[i];
+    const { fromBlock, toBlock, rootHash, isValid } = summaries[i];
     if (isValid && fromBlock > latestPublishedBlock && await ethereum.rootIsPublished(rootHash)) {
       newSummaries.push({ fromBlock, toBlock });
     }

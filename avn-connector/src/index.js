@@ -1,6 +1,7 @@
 'use strict';
 const config = require('multiconfig').load();
 const avn = require('./avn');
+const lowering = require('./lowering');
 const redis = require('./redis');
 const gatewayDb = require('./gatewayDb');
 const mqConsumer = require('./mqConsumer');
@@ -174,6 +175,16 @@ app.post('/avnNftContractAddresses', async (req, res, next) => {
   try {
     log.trace({ avnNftContractAddresses: req.body });
     const result = await avn.getNftContractAddresses();
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get('/lowers', async (req, res, next) => {
+  try {
+    log.trace({ lowerDataRequest: req.body });
+    const result = await lowering.getLowers(req.body.account);
     res.send(result);
   } catch (err) {
     next(err);

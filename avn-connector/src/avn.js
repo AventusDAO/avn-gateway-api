@@ -459,6 +459,13 @@ async function connectToAvN() {
   log.info(`You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`);
 }
 
+async function getSummaries() {
+  const entries = await api.query.summary.roots.entries();
+  return entries.map(([{ args: [{ fromBlock, toBlock }] }, { rootHash, isValidated }]) => (
+    { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash, isValid: isValidated }
+  ));
+}
+
 function createAccount(suri) {
   const keyring = new Keyring({ type: 'sr25519' });
   return keyring.addFromUri(suri);
@@ -478,6 +485,7 @@ module.exports = {
   getStakingStats,
   getChainInfo,
   getCurrentBlock,
+  getSummaries,
   getSummaryData,
   getSummaryInclusionData,
   getTotalToken,

@@ -82,15 +82,34 @@ async function poll(requestId) {
 }
 
 async function getAccountInfo(accountId) {
-  let stakingInfo = await api.derive.staking.account(accountId);
   let balancesAll = await api.derive.balances.all(accountId);
+  let currentEraIndex = (await api.query.parachainStaking.era()).current;
+  let collators = JSON.parse(await getValidatorsToNominate(api));
+
+  let stakedBalance, unlockedBalance, unstakedBalance;
+
+  if (collators.some(c => c.toLowerCase() === accountId.toLowerCase())) {
+    const candidateInfo = await api.query.parachainStaking.candidateInfo(accountId);
+    ({stakedBalance, unlockedBalance, unstakedBalance} =
+        stakingHelper.calculateCollatorStakingBalances(candidateInfo, currentEraIndex));
+  } else {
+    const nominatorState = await api.query.parachainStaking.nominatorState(accountId);
+    let allRequests = (await api.query.parachainStaking.nominationScheduledRequests.multi(collators))
+
+    let nominatorRequests = allRequests
+        .filter(reqArray => reqArray.some(req => req.nominator.eq(accountId)))
+        .flat();
+
+    ({stakedBalance, unlockedBalance, unstakedBalance} =
+        stakingHelper.calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex));
+  }
 
   return {
     totalBalance: balancesAll.freeBalance.add(balancesAll.reservedBalance).toString(),
     freeBalance: balancesAll.availableBalance.toString(),
-    stakedBalance: stakingHelper.calculateBondedAmount(stakingInfo).toString(),
-    unlockedBalance: stakingInfo.redeemable.toString(),
-    unstakedBalance: stakingHelper.calculateUnbondingAmount(stakingInfo).toString()
+    stakedBalance: stakedBalance.toString(),
+    unlockedBalance: unlockedBalance.toString(),
+    unstakedBalance: unstakedBalance.toString(),
   };
 }
 
@@ -106,18 +125,14 @@ async function getNonce(senderAddress) {
 }
 
 async function getValidatorsToNominate() {
-  let validators = await redis.getValidatorsToNominate();
+  let collators = await redis.getCollatorsToNominate();
 
-  if (!validators) {
-    let validatorsInfo = await api.derive.staking.electedInfo({ withPrefs: true });
-    validators = validatorsInfo.info
-      .filter(i => i.validatorPrefs.blocked && i.validatorPrefs.blocked.isFalse === true)
-      .map(i => i.accountId);
-
-    await redis.setValidatorsToNominate(JSON.stringify(validators));
+  if (!collators) {
+    let collators = JSON.stringify(await api.query.parachainStaking.selectedCandidates());
+    await redis.setCollatorsToNominate(collators);
   }
 
-  return validators;
+  return collators;
 }
 
 async function getStakingStats() {

@@ -84,6 +84,8 @@ async function rootIsPublished(avnContract, rootHash) {
       }
     ]
   }, [rootHash]);
+
+  console.log(`\n[Encoded function call] avnContract: ${avnContract}, rootHash: ${rootHash}, data: ${JSON.stringify(data, null, 2)}`);
   return await web3.eth.call({ to: avnContract, data });
 }
 

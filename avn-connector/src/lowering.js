@@ -146,8 +146,8 @@ async function getLowerTransactions(blockNumber) {
   const response = await axios.get(`${AVN_EXPLORER_URL}/transactions/lowers/?blockNumber=84087`);
   //const response = await axios.post(`${AVN_EXPLORER_URL}/transactions/lowers`, {blockNumberFrom: blockNumber});
 
-  console.log(`\n   - Lowers found: ${JSON.stringify(response.data)}`);
-  return response.data || [];
+  // handle nulls
+  return response.data ? (response.data.data || []) : [];
 }
 
 

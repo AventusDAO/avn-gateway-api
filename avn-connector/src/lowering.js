@@ -68,7 +68,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
       await redis.addUnpublishedLower(txHash);
     } else {
       console.log(`Lower awaiting data found: ${txHash}`)
-      await redis.addLowerAwaitingData(txHash);
+      await redis.addAwaitingClaimDataLower(txHash);
     }
 
     console.log(`blockNumber: ${blockNumber}, retrieveFromBlock: ${retrieveFromBlock}, blockNumber > retrieveFromBlock = ${blockNumber > retrieveFromBlock}`)
@@ -118,7 +118,7 @@ async function updateAwaitingClaimDataLowers() {
       lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
       lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
       await redis.setLowerData(txHash, JSON.stringify(lowerData));
-      await redis.removeLowerAwaitingData(txHash);
+      await redis.removeAwaitingClaimDataLower(txHash);
       await redis.deleteBlockIndex(txHash);
       await redis.addUnclaimedLower(txHash);
     }

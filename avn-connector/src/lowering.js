@@ -52,7 +52,7 @@ async function updatePublishedSummaries(avnContract, latestPublishedBlock) {
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
-  let retrieveFromBlock = parseInt(await redis.getRetrieveLowersFromBlock());
+  let retrieveFromBlock = parseInt((await redis.getRetrieveLowersFromBlock()) || 0);
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
   for (let i = 0; i < lowerTransactions.length; i++) {

@@ -118,7 +118,7 @@ async function updateAwaitingClaimDataLowers() {
       lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
       lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
       await redis.setLowerData(txHash, JSON.stringify(lowerData));
-      //await redis.removeAwaitingClaimDataLower(txHash); ENABLE ME AGAIN
+      await redis.removeAwaitingClaimDataLower(txHash);
       await redis.deleteBlockIndex(txHash);
       await redis.addUnclaimedLower(txHash);
     }

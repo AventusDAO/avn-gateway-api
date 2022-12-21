@@ -425,7 +425,7 @@ async function getSummaries() {
   const entries = await api.query.summary.roots.entries();
   console.log(`\n[getSummaries] - entries: ${entries.length}}`);
   return entries.map(([{ args: [{ fromBlock, toBlock }] }, { rootHash, isValidated }]) => (
-    { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash, isValid: isValidated }
+    { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash: rootHash.toString(), isValid: isValidated }
   ));
 }
 

@@ -1,6 +1,5 @@
 const axios = require('axios');
 const redis = require('./redis');
-const avn = require('./avn');
 const config = require('multiconfig').load();
 const Web3 = require('web3');
 const provider = new Web3.providers.HttpProvider(config.ethereum.infura_url);

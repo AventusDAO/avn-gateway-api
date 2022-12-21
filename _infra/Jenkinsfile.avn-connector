@@ -1,6 +1,7 @@
 pipeline {
   environment {
     avn_connector_path = "avn-connector"
+    INFURA_URL_CBA = credentials('avn_connector_infura_url_dev')
   }
 
   parameters {
@@ -10,9 +11,7 @@ pipeline {
   }
 
   agent any
-  environment { 
-    INFURA_URL_CBA = credentials('avn_connector_infura_url_dev')
-  }
+
   stages {
     stage("Deploy avn-connector") {
       steps {

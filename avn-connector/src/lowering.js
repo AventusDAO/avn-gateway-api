@@ -21,7 +21,12 @@ async function getLowers(account) {
 
 async function getLatestPublishedBlock() {
   const latestSummary = JSON.parse(await redis.getLatestPublishedSummary());
-  return parseInt(latestSummary.toBlock);
+
+  if (latestSummary) {
+    return parseInt(latestSummary.toBlock);
+  }
+
+  return 0;
 }
 
 async function updatePublishedSummaries(latestPublishedBlock) {

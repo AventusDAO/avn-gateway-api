@@ -422,7 +422,6 @@ async function connectToAvN() {
 
 async function getSummaries() {
   const entries = await api.query.summary.roots.entries();
-  console.trace(`\nProcessing ${entries.length} summaries`);
   return entries.map(([{ args: [{ fromBlock, toBlock }] }, { rootHash, isValidated }]) => (
     { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash: rootHash.toString(), isValid: isValidated }
   ));

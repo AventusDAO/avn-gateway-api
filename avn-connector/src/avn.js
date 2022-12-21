@@ -428,6 +428,10 @@ async function getSummaries() {
   ));
 }
 
+async function getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index) {
+  return await api.rpc.lower.data(fromBlock, toBlock, blockNumber, index);
+}
+
 function createAccount(suri) {
   const keyring = new Keyring({ type: 'sr25519' });
   return keyring.addFromUri(suri);
@@ -444,6 +448,7 @@ module.exports = {
   query,
   proxy,
   poll,
+  getLowerDataFromRpc,
   getStakingStats,
   getChainInfo,
   getCurrentBlock,

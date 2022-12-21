@@ -110,7 +110,7 @@ async function updateAwaitingClaimDataLowers() {
     const txHash = awaiting[i];
     const { blockNumber, index } = JSON.parse(await redis.getBlockIndex(txHash));
     const { fromBlock, toBlock } = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
-    const rpcData = await api.rpc.lower.data(fromBlock, toBlock, blockNumber, index);
+    const rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
 
     if (rpcData !== '') {
       rpcData = JSON.parse(Buffer.from(rpcData, 'hex').toString());

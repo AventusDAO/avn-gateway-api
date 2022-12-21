@@ -43,8 +43,12 @@ async function updatePublishedSummaries(avnContract, latestPublishedBlock) {
     }
   }
 
-  newSummaries.sort((a,b) => (a.fromBlock < b.fromBlock) ? -1 : ((b.fromBlock > a.fromBlock) ? 1 : 0));
-  await redis.appendPublishedSummaries(newSummaries.map(s => JSON.stringify(s)));
+  if (newSummaries.length > 0) {
+    newSummaries.sort((a,b) => (a.fromBlock < b.fromBlock) ? -1 : ((b.fromBlock > a.fromBlock) ? 1 : 0));
+
+    console.trace(`\nStoring ${newSummaries.length} processed summaries in Redis`);
+    await redis.appendPublishedSummaries(newSummaries.map(s => JSON.stringify(s)));
+  }
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {

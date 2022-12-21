@@ -84,7 +84,10 @@ async function rootIsPublished(avnContract, rootHash) {
       }
     ]
   }, [rootHash]);
-  return await web3.eth.call({ to: avnContract, data });
+  const result = await web3.eth.call({ to: avnContract, data });
+
+  console.log(`\nrootIsPublished for hash ${rootHash} = `, result);
+  return result;
 }
 
 module.exports = {

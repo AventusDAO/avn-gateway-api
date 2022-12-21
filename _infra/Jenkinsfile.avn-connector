@@ -17,7 +17,7 @@ pipeline {
       steps {
         script {
           if (params.environment == 'cba') {
-            env.INFURA_URL = evn.INFURA_URL_CBA
+            env.INFURA_URL = env.INFURA_URL_CBA
           }
         }
         withAWS(roleAccount:accountId(), role:'jenkins-access') {

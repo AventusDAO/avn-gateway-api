@@ -10,12 +10,13 @@ const log = log4js.getLogger();
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
+  const { avnContract } = await avn.getChainInfo();
   const latestPublishedBlock = await getLatestPublishedBlock();
-  await updatePublishedSummaries(latestPublishedBlock);
+  await updatePublishedSummaries(avnContract, latestPublishedBlock);
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
   await updateAwaitingClaimDataLowers();
-  await updateUnclaimedLowers();
+  await updateUnclaimedLowers(avnContract);
   return await getLowersForAccount(account);
 }
 
@@ -29,13 +30,13 @@ async function getLatestPublishedBlock() {
   return 0;
 }
 
-async function updatePublishedSummaries(latestPublishedBlock) {
+async function updatePublishedSummaries(avnContract, latestPublishedBlock) {
   const summaries = await avn.getSummaries();
   const newSummaries = [];
 
   for (let i = 0; i < summaries.length; i++) {
     const { fromBlock, toBlock, rootHash, isValid } = summaries[i];
-    if (isValid && fromBlock > latestPublishedBlock && await ethereum.rootIsPublished(rootHash)) {
+    if (isValid && fromBlock > latestPublishedBlock && await ethereum.rootIsPublished(avnContract, rootHash)) {
       newSummaries.push({ fromBlock, toBlock });
     }
   }
@@ -108,7 +109,7 @@ async function updateAwaitingClaimDataLowers() {
   }
 }
 
-async function updateUnclaimedLowers() {
+async function updateUnclaimedLowers(avnContract) {
   const unclaimed = await redis.getUnclaimedLowers();
 
   for (let i = 0; i < unclaimed.length; i++) {
@@ -116,7 +117,7 @@ async function updateUnclaimedLowers() {
     const lowerData = JSON.parse(await redis.getLowerData(txHash));
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
-    if (await ethereum.lowerIsClaimed(leafHash)) {
+    if (await ethereum.lowerIsClaimed(avnContract, leafHash)) {
       await redis.removeUnclaimedLower(txHash);
       await redis.deleteLowerData(txHash);
     }

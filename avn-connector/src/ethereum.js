@@ -60,8 +60,7 @@ async function callEtherscan(request) {
   return response.data.result;
 }
 
-async function lowerIsClaimed(leafHash) {
-  const { avnContract } = await avn.getChainInfo();
+async function lowerIsClaimed(avnContract, leafHash) {
   const data = await web3.eth.abi.encodeFunctionCall({
     name: 'hasLowered',
     type: 'function',
@@ -75,8 +74,7 @@ async function lowerIsClaimed(leafHash) {
   return await web3.eth.call({ to: avnContract, data });
 }
 
-async function rootIsPublished(rootHash) {
-  const { avnContract } = await avn.getChainInfo();
+async function rootIsPublished(avnContract, rootHash) {
   const data = await web3.eth.abi.encodeFunctionCall({
     name: 'isPublishedRootHash',
     type: 'function',

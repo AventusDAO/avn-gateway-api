@@ -118,7 +118,7 @@ async function updateAwaitingClaimDataLowers() {
       lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
       lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
       await redis.setLowerData(txHash, JSON.stringify(lowerData));
-      await redis.removeAwaitingClaimDataLower(txHash);
+      //await redis.removeAwaitingClaimDataLower(txHash); ENABLE ME AGAIN
       await redis.deleteBlockIndex(txHash);
       await redis.addUnclaimedLower(txHash);
     }
@@ -157,9 +157,12 @@ async function getLowersForAccount(account) {
   const outstanding = unpublished.concat(awaiting).concat(unclaimed);
   let lowers = [];
 
+  console.log(`Total lowers found: ${JSON.stringify(outstanding, null, 2)}`);
+
   for (let i = 0; i < outstanding.length; i++) {
     const lowerData = JSON.parse(await redis.getLowerData(outstanding[i]));
 
+    console.log(`lowerData.from: ${lowerData.from}m lowerData.to: ${lowerData.to}, account: ${account}`);
     if (lowerData.from === account || lowerData.to === account) {
       lowers.push(lowerData);
     }

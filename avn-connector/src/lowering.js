@@ -143,13 +143,12 @@ async function updateUnclaimedLowers(avnContract) {
 async function getLowerTransactions(blockNumber) {
   console.log(`Getting lower transactions for block ${blockNumber}`);
   console.log(`   url: ${AVN_EXPLORER_URL}`);
-  const response = await axios.get(`${AVN_EXPLORER_URL}/transactions/lowers/?blockNumber=84087`);
+  const response = await axios.get(`${AVN_EXPLORER_URL}/transactions/lowers/?blockNumber=7267`);
   //const response = await axios.post(`${AVN_EXPLORER_URL}/transactions/lowers`, {blockNumberFrom: blockNumber});
 
   // handle nulls
   return response.data ? (response.data.data || []) : [];
 }
-
 
 async function getLowersForAccount(account) {
   const unpublished = await redis.getUnpublishedLowers();

@@ -127,8 +127,8 @@ async function updateUnclaimedLowers(avnContract) {
 }
 
 async function getLowerTransactions(blockNumber) {
-  const response = await utils.axios.post(`${AVN_EXPLORER_URL}/lowers`, { blockNumber });
-  return response.data;
+  const response = await axios.post(`${AVN_EXPLORER_URL}/lowers`, { blockNumber });
+  return response.data || [];
 }
 
 

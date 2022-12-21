@@ -10,7 +10,20 @@ const log = log4js.getLogger();
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
-  const { avnContract } = await avn.getChainInfo();
+  const chainInfo = await avn.getChainInfo();
+  console.log("\nchainInfo", chainInfo);
+
+  const avnContract = chainInfo.avnContract;
+  console.log("\nchainInfo", chainInfo);
+  console.log("\navnContract", avnContract);
+
+  try {
+    console.log("\nchainInfo JSON: ", JSON.parse(chainInfo).avnContract);
+    avnContract = JSON.parse(chainInfo).avnContract;
+  } catch (e) {
+    console.log("\nERROR: chainInfo", e);
+  }
+
   const latestPublishedBlock = await getLatestPublishedBlock();
   await updatePublishedSummaries(avnContract, latestPublishedBlock);
   await retrieveLatestLowerTransactions(latestPublishedBlock);

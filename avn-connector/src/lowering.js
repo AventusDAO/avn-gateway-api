@@ -61,8 +61,10 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     const blockNumber = parseInt(lowerTx.blockNumber);
 
     if (blockNumber > latestPublishedBlock) {
+      console.log(`Unpublished lower found: ${txHash}`)
       await redis.addUnpublishedLower(txHash);
     } else {
+      console.log(`Lower awaiting data found: ${txHash}`)
       await redis.addLowerAwaitingData(txHash);
     }
 
@@ -79,12 +81,14 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {
-  const unpublished = await redis.getUnpublishedLowers();
+  const unpublished = (await redis.getUnpublishedLowers()) || [];
 
+  console.log(`Unpublished lowers`)
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
     const { blockNumber } = JSON.parse(await redis.getBlockIndex(txHash));
 
+    console.log(` - blockNumber: ${blockNumber}, latestPublishedBlock: ${latestPublishedBlock}`);
     if (blockNumber <= latestPublishedBlock) {
       await redis.removeUnpublishedLower(txHash);
       await redis.addAwaitingClaimDataLower(txHash);
@@ -93,9 +97,10 @@ async function updateUnpublishedLowers(latestPublishedBlock) {
 }
 
 async function updateAwaitingClaimDataLowers() {
-  const awaiting = await redis.getAwaitingClaimDataLowers();
+  const awaiting = (await redis.getAwaitingClaimDataLowers()) || [];
   const summaries = (await redis.getPublishedSummaries()).map(s => JSON.parse(s));
 
+  console.log(`\n Awaiting claimed lowers: ${awaiting.length}`)
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = JSON.parse(await redis.getBlockIndex(txHash));
@@ -116,7 +121,7 @@ async function updateAwaitingClaimDataLowers() {
 }
 
 async function updateUnclaimedLowers(avnContract) {
-  const unclaimed = await redis.getUnclaimedLowers();
+  const unclaimed = (await redis.getUnclaimedLowers()) || [];
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];
@@ -133,7 +138,7 @@ async function updateUnclaimedLowers(avnContract) {
 async function getLowerTransactions(blockNumber) {
   console.log(`Getting lower transactions for block ${blockNumber}`);
   console.log(`   url: ${AVN_EXPLORER_URL}`);
-  const response = await axios.get(`${AVN_EXPLORER_URL}/transactions/lowers/?blockNumber=48412`);
+  const response = await axios.get(`${AVN_EXPLORER_URL}/transactions/lowers/?blockNumber=84087`);
   //const response = await axios.post(`${AVN_EXPLORER_URL}/transactions/lowers`, {blockNumberFrom: blockNumber});
   return response.data || [];
 }

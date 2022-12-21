@@ -22,7 +22,7 @@ pipeline {
         }
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           generateContext("avn-gateway", "dev")
-          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set deployment.image.tag=${env.image_tag} --set nodeEnv=${env.nodeEnv} --set infura_url=${env.INFURA_URL} | kubectl apply -f -"
+          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set deployment.image.tag=${env.image_tag} --set nodeEnv=${env.nodeEnv} --set infura_url=${env.INFURA_URL_CBA} | kubectl apply -f -"
         }
       }
     }

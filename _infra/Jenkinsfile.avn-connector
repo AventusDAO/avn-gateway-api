@@ -1,7 +1,6 @@
 pipeline {
   environment {
     avn_connector_path = "avn-connector"
-    INFURA_URL_CBA = credentials('avn_connector_infura_url_dev')
   }
 
   parameters {
@@ -15,14 +14,9 @@ pipeline {
   stages {
     stage("Deploy avn-connector") {
       steps {
-        script {
-          if (params.environment == 'cba') {
-            env.INFURA_URL = env.INFURA_URL_CBA
-          }
-        }
         withAWS(roleAccount:accountId(), role:'jenkins-access') {
           generateContext("avn-gateway", "dev")
-          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set deployment.image.tag=${env.image_tag} --set nodeEnv=${env.nodeEnv} --set infura_url=${env.INFURA_URL_CBA} | kubectl apply -f -"
+          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set deployment.image.tag=${env.image_tag} --set nodeEnv=${env.nodeEnv} | kubectl apply -f -"
         }
       }
     }

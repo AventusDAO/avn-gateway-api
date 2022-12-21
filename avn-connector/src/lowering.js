@@ -37,7 +37,7 @@ async function updatePublishedSummaries(avnContract, latestPublishedBlock) {
 
   for (let i = 0; i < summaries.length; i++) {
     const { fromBlock, toBlock, rootHash, isValid } = summaries[i];
-    console.log(`\n[updatePublishedSummaries] fromBlock: ${fromBlock}, toBlock: ${toBlock}, rootHash: ${rootHash}, isValid: ${isValid}, latestPublishedBlock: ${latestPublishedBlock}`);
+    //console.log(`\n[updatePublishedSummaries] fromBlock: ${fromBlock}, toBlock: ${toBlock}, rootHash: ${rootHash}, isValid: ${isValid}, latestPublishedBlock: ${latestPublishedBlock}`);
     if (isValid && fromBlock > latestPublishedBlock && await ethereum.rootIsPublished(avnContract, rootHash)) {
       newSummaries.push({ fromBlock, toBlock });
     }
@@ -162,8 +162,12 @@ async function getLowersForAccount(account) {
   for (let i = 0; i < outstanding.length; i++) {
     const lowerData = JSON.parse(await redis.getLowerData(outstanding[i]));
 
-    console.log(`lowerData.from: ${lowerData.from}m lowerData.to: ${lowerData.to}, account: ${account}`);
-    if (lowerData.from === account || lowerData.to === account) {
+    if (lowerData) {
+      console.log(`lowerData.from: ${lowerData.from} lowerData.to: ${lowerData.to}, account: ${account}`);
+    }
+
+
+    if (lowerData && lowerData.from === account || lowerData.to === account) {
       lowers.push(lowerData);
     }
   }

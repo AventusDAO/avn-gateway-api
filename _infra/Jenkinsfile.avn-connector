@@ -16,7 +16,7 @@ pipeline {
     stage("Deploy avn-connector") {
       steps {
         script {
-          if (params.CHAIN == 'cba') {
+          if (params.environment == 'cba') {
             env.INFURA_URL = evn.INFURA_URL_CBA
           }
         }

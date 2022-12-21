@@ -55,11 +55,14 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let retrieveFromBlock = parseInt((await redis.getRetrieveLowersFromBlock()) || 0);
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
+  console.log(`\n   - lowerTransactions.length = ${lowerTransactions.length}, details: ${JSON.stringify(lowerTransactions)}`);
+
   for (let i = 0; i < lowerTransactions.length; i++) {
     const lowerTx = lowerTransactions[i];
     const txHash = lowerTx.txHash;
     const blockNumber = parseInt(lowerTx.blockNumber);
 
+    console.log(`blockNumber: ${blockNumber}, latestPublishedBlock: ${latestPublishedBlock}, blockNumber > latestPublishedBlock = ${blockNumber > latestPublishedBlock}`)
     if (blockNumber > latestPublishedBlock) {
       console.log(`Unpublished lower found: ${txHash}`)
       await redis.addUnpublishedLower(txHash);
@@ -68,6 +71,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
       await redis.addLowerAwaitingData(txHash);
     }
 
+    console.log(`blockNumber: ${blockNumber}, retrieveFromBlock: ${retrieveFromBlock}, blockNumber > retrieveFromBlock = ${blockNumber > retrieveFromBlock}`)
     if (blockNumber > retrieveFromBlock) {
       retrieveFromBlock = blockNumber + 1;
     }
@@ -77,6 +81,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     await redis.setBlockIndex(txHash, JSON.stringify({ blockNumber, index: lowerTx.index }));
   }
 
+  console.log(`retrieveFromBlock: ${retrieveFromBlock}`)
   await redis.setRetrieveLowersFromBlock(retrieveFromBlock.toString());
 }
 

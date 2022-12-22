@@ -119,7 +119,7 @@ async function updateAwaitingClaimDataLowers() {
         await redis.deleteBlockIndex(txHash);
         await redis.addUnclaimedLower(txHash);
       } catch (e) {
-        console.error(`Error processing awaiting claimed data lowers: `, e);
+        console.error(`Error processing lowers awaiting claimed data: `, e);
         error = true;
       }
     }

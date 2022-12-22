@@ -106,6 +106,8 @@ async function updateAwaitingClaimDataLowers() {
   const awaiting = (await redis.getAwaitingClaimDataLowers()) || [];
   const summaries = (await redis.getPublishedSummaries()).map(s => JSON.parse(s));
 
+  let error = false;
+
   console.log(`\n Awaiting claimed lowers: ${awaiting.length}`)
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
@@ -113,16 +115,34 @@ async function updateAwaitingClaimDataLowers() {
     const { fromBlock, toBlock } = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
     let rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
 
+    console.log(`\n  rpcLower data: `, rpcData);
+
     if (rpcData !== '') {
-      rpcData = JSON.parse(Buffer.from(rpcData, 'hex').toString());
-      const lowerData = JSON.parse(await redis.getLowerData(txHash));
-      lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
-      lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
-      await redis.setLowerData(txHash, JSON.stringify(lowerData));
-      await redis.removeAwaitingClaimDataLower(txHash);
-      await redis.deleteBlockIndex(txHash);
-      await redis.addUnclaimedLower(txHash);
+
+      try {
+        console.log("\n     - rpc data as string:", Buffer.from(rpcData, 'hex').toString())
+        rpcData = JSON.parse(Buffer.from(rpcData, 'hex').toString());
+
+        console.log(`\n  stored lower data: `, await redis.getLowerData(txHash));
+        const lowerData = JSON.parse(await redis.getLowerData(txHash));
+
+        lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
+        lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
+
+        await redis.setLowerData(txHash, JSON.stringify(lowerData));
+        await redis.removeAwaitingClaimDataLower(txHash);
+        await redis.deleteBlockIndex(txHash);
+        await redis.addUnclaimedLower(txHash);
+      } catch (e) {
+        console.error(`Error processing awaiting claimed data lowers: `, e);
+        error = true;
+      }
+
     }
+  }
+
+  if (error === true) {
+    throw new Error("Error processing AwaitingClaimDataLowers");
   }
 }
 

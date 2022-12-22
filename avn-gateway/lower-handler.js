@@ -9,11 +9,12 @@ exports.handler = async event => {
   };
 };
 
-async function getLowers(account) {
+async function getLowers(qsParam) {
   const result = { lowerData: [], status: 'success' };
+  console.log("Processing lowers from account: ", qsParam.account);
 
   try {
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'lowers', { account });
+    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'lowers', { account: qsParam.account });
     result.lowerData = response.data;
   } catch (err) {
     console.log(err);

@@ -146,9 +146,9 @@ async function updateUnclaimedLowers(avnContract) {
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
     if (await ethereum.lowerIsClaimed(avnContract, leafHash)) {
-      console.log(`\n Removing claimed lower:    ${txHash}`)
-      await redis.removeUnclaimedLower(txHash);
-      await redis.deleteLowerData(txHash);
+      console.log(`- Removing claimed lower:    ${txHash}`)
+      // await redis.removeUnclaimedLower(txHash);
+      // await redis.deleteLowerData(txHash);
     }
   }
 }

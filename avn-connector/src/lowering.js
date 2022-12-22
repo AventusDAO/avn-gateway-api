@@ -62,10 +62,8 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     const blockNumber = parseInt(lowerTx.blockNumber);
 
     if (blockNumber > latestPublishedBlock) {
-      console.log(`Unpublished lower found: ${txHash}`)
       await redis.addUnpublishedLower(txHash);
     } else {
-      console.log(`Lower awaiting data found: ${txHash}`)
       await redis.addAwaitingClaimDataLower(txHash);
     }
 
@@ -85,17 +83,18 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 async function updateUnpublishedLowers(latestPublishedBlock) {
   const unpublished = (await redis.getUnpublishedLowers()) || [];
 
-  console.log(`Unpublished lowers`)
+  console.log(`\nFound ${unpublished.length} Unpublished lowers`)
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
     const { blockNumber } = JSON.parse(await redis.getBlockIndex(txHash));
 
-    console.log(` - blockNumber: ${blockNumber}, latestPublishedBlock: ${latestPublishedBlock}`);
     if (blockNumber <= latestPublishedBlock) {
       await redis.removeUnpublishedLower(txHash);
       await redis.addAwaitingClaimDataLower(txHash);
     }
   }
+
+  console.log(`   ${(await redis.getUnpublishedLowers()) || []} left \n`);
 }
 
 async function updateAwaitingClaimDataLowers() {
@@ -111,7 +110,7 @@ async function updateAwaitingClaimDataLowers() {
     const { fromBlock, toBlock } = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
     let rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
 
-    console.log(`\n  rpcLower data: txHash: ${txHash}, params: range[${fromBlock, toBlock}] ${blockNumber, index}, isDataEmpty: ${rpcData.isEmpty}`);
+    console.log(`\n  rpcLower data: txHash: ${txHash}, params: range[${fromBlock} - ${toBlock}] (${blockNumber}, ${index}), isDataEmpty: ${rpcData.isEmpty}`);
 
     if (!rpcData.isEmpty) {
       try {
@@ -147,6 +146,7 @@ async function updateUnclaimedLowers(avnContract) {
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
     if (await ethereum.lowerIsClaimed(avnContract, leafHash)) {
+      console.log(`\n Removing claimed lower:    ${txHash}`)
       await redis.removeUnclaimedLower(txHash);
       await redis.deleteLowerData(txHash);
     }

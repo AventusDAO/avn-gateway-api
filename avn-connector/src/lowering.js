@@ -117,8 +117,7 @@ async function updateAwaitingClaimDataLowers() {
 
     console.log(`\n  rpcLower data: `, rpcData);
 
-    if (rpcData !== '') {
-
+    if (!rpcData.isEmpty) {
       try {
         console.log("\n     - rpc data as string:", Buffer.from(rpcData, 'hex').toString())
         rpcData = JSON.parse(Buffer.from(rpcData, 'hex').toString());
@@ -137,7 +136,6 @@ async function updateAwaitingClaimDataLowers() {
         console.error(`Error processing awaiting claimed data lowers: `, e);
         error = true;
       }
-
     }
   }
 

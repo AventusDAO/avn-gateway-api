@@ -15,7 +15,7 @@ async function getLowers(account) {
   const { avnContract } = JSON.parse(await avn.getChainInfo());
 
   const latestPublishedBlock = await updatePublishedSummaries(avnContract);
-  console.log(`\tLast published block: ${latestPublishedBlock}`);
+  console.log(`\t   Last published block: ${latestPublishedBlock}`);
 
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
@@ -52,7 +52,7 @@ async function updatePublishedSummaries(avnContract) {
   }
 
   if (newSummaries.length > 0) {
-    console.log(`\tThere are ${newSummaries.length} new summaries`);
+    console.log(`\tThere are ${newSummaries.length} new summaries published on Ethereum`);
     newSummaries.sort((a,b) => (a.fromBlock < b.fromBlock) ? -1 : ((b.fromBlock > a.fromBlock) ? 1 : 0));
     await redis.appendPublishedSummaries(newSummaries.map(s => JSON.stringify(s)));
     return  parseInt(newSummaries[newSummaries.length - 1].toBlock);
@@ -110,7 +110,7 @@ async function updateAwaitingClaimDataLowers() {
 
   let error = false;
 
-  console.log(`\tThere are ${awaiting.length} lowers waiting to be claimed`)
+  console.log(`\tThere are ${awaiting.length} lowers waiting to get lower data from RPC`)
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = JSON.parse(await redis.getBlockIndex(txHash));
@@ -136,7 +136,7 @@ async function updateAwaitingClaimDataLowers() {
           error = true;
         }
       } else {
-        console.warn(`\t  ❗Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
+        console.warn(`\t   ❗Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
       }
     }
   }
@@ -148,7 +148,7 @@ async function updateAwaitingClaimDataLowers() {
 
 async function updateUnclaimedLowers(avnContract) {
   const unclaimed = (await redis.getUnclaimedLowers()) || [];
-  console.log(`\tThere are ${unclaimed.length} lowers, checking if any are claimed on T1`)
+  console.log(`\tThere are ${unclaimed.length} unclaimed lowers, checking if any are claimed on T1`)
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];

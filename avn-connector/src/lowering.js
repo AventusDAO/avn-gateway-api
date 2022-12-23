@@ -110,26 +110,34 @@ async function updateAwaitingClaimDataLowers() {
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = JSON.parse(await redis.getBlockIndex(txHash));
-    const { fromBlock, toBlock } = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
-    let rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
 
-    console.log(`\t  rpcLower data: txHash: ${txHash}, params: range[${fromBlock} - ${toBlock}] (${blockNumber}, ${index}), isDataEmpty: ${rpcData.isEmpty}`);
+    const summaryData = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
 
-    if (!rpcData.isEmpty) {
-      try {
-        rpcData = JSON.parse(Buffer.from(rpcData, 'hex').toString());
-        const lowerData = JSON.parse(await redis.getLowerData(txHash));
-        lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
-        lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
-        await redis.setLowerData(txHash, JSON.stringify(lowerData));
-        await redis.removeAwaitingClaimDataLower(txHash);
-        await redis.deleteBlockIndex(txHash);
-        await redis.addUnclaimedLower(txHash);
-      } catch (e) {
-        console.error(`Error processing lowers awaiting claimed data: `, e);
-        error = true;
+    if (summaryData) {
+      const { fromBlock, toBlock } = summaryData;
+      let rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
+
+      console.log(`\t  rpcLower data: txHash: ${txHash}, params: range[${fromBlock} - ${toBlock}] (${blockNumber}, ${index}), isDataEmpty: ${rpcData.isEmpty}`);
+
+      if (!rpcData.isEmpty) {
+        try {
+          rpcData = JSON.parse(Buffer.from(rpcData, 'hex').toString());
+          const lowerData = JSON.parse(await redis.getLowerData(txHash));
+          lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
+          lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
+          await redis.setLowerData(txHash, JSON.stringify(lowerData));
+          await redis.removeAwaitingClaimDataLower(txHash);
+          await redis.deleteBlockIndex(txHash);
+          await redis.addUnclaimedLower(txHash);
+        } catch (e) {
+          console.error(`Error processing lowers awaiting claimed data: `, e);
+          error = true;
+        }
       }
+    } else {
+      console.warn(`\t  No summary data for block: ${blockNumber}, index: ${index}`);
     }
+
   }
 
   if (error === true) {

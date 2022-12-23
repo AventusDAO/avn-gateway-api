@@ -13,10 +13,10 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
   const { avnContract } = JSON.parse(await avn.getChainInfo());
-  const latestPublishedBlock = await getLatestPublishedBlock();
+
+  const latestPublishedBlock = await updatePublishedSummaries(avnContract);
   console.log(`\tLast published block: ${latestPublishedBlock}`);
 
-  await updatePublishedSummaries(avnContract, latestPublishedBlock);
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
   await updateAwaitingClaimDataLowers();
@@ -34,7 +34,8 @@ async function getLatestPublishedBlock() {
   return 0;
 }
 
-async function updatePublishedSummaries(avnContract, latestPublishedBlock) {
+async function updatePublishedSummaries(avnContract) {
+  const latestPublishedBlock = await getLatestPublishedBlock();
   const summaries = await avn.getSummaries();
   const newSummaries = [];
 
@@ -47,17 +48,20 @@ async function updatePublishedSummaries(avnContract, latestPublishedBlock) {
   }
 
   if (newSummaries.length > 0) {
-    console.log(`\nThere are ${newSummaries.length} new summaries`);
+    console.log(`\tThere are ${newSummaries.length} new summaries`);
     newSummaries.sort((a,b) => (a.fromBlock < b.fromBlock) ? -1 : ((b.fromBlock > a.fromBlock) ? 1 : 0));
     await redis.appendPublishedSummaries(newSummaries.map(s => JSON.stringify(s)));
+    return  parseInt(newSummaries[newSummaries.length - 1].toBlock);
   }
+
+  return latestPublishedBlock;
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let retrieveFromBlock = parseInt((await redis.getRetrieveLowersFromBlock()) || 0);
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
-  console.log(`\nThere are ${lowerTransactions.length} new lower transactions after block ${retrieveFromBlock}`);
+  console.log(`\tThere are ${lowerTransactions.length} new lower transactions after block ${retrieveFromBlock}`);
   for (let i = 0; i < lowerTransactions.length; i++) {
     const lowerTx = lowerTransactions[i];
     const txHash = lowerTx.txHash;
@@ -84,7 +88,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 async function updateUnpublishedLowers(latestPublishedBlock) {
   const unpublished = (await redis.getUnpublishedLowers()) || [];
 
-  console.log(`\nThere are ${unpublished.length} unpublished lowers`)
+  console.log(`\tThere are ${unpublished.length} unpublished lowers`)
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
     const { blockNumber } = JSON.parse(await redis.getBlockIndex(txHash));
@@ -102,14 +106,14 @@ async function updateAwaitingClaimDataLowers() {
 
   let error = false;
 
-  console.log(`\nThere are ${awaiting.length} lowers waiting to be claimed`)
+  console.log(`\tThere are ${awaiting.length} lowers waiting to be claimed`)
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = JSON.parse(await redis.getBlockIndex(txHash));
     const { fromBlock, toBlock } = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
     let rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
 
-    console.log(`\n  rpcLower data: txHash: ${txHash}, params: range[${fromBlock} - ${toBlock}] (${blockNumber}, ${index}), isDataEmpty: ${rpcData.isEmpty}`);
+    console.log(`\t  rpcLower data: txHash: ${txHash}, params: range[${fromBlock} - ${toBlock}] (${blockNumber}, ${index}), isDataEmpty: ${rpcData.isEmpty}`);
 
     if (!rpcData.isEmpty) {
       try {
@@ -162,7 +166,7 @@ async function getLowersForAccount(account) {
   const outstanding = unpublished.concat(awaiting).concat(unclaimed);
   let lowers = [];
 
-  console.log(`There are ${outstanding.length} outstanding lowers`);
+  console.log(`\tThere are ${outstanding.length} outstanding lowers`);
 
   for (let i = 0; i < outstanding.length; i++) {
     const lowerData = JSON.parse(await redis.getLowerData(outstanding[i]));

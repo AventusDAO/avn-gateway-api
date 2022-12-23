@@ -46,7 +46,7 @@ async function updatePublishedSummaries(avnContract) {
       if (await ethereum.rootIsPublished(avnContract, rootHash) === true) {
         newSummaries.push({ fromBlock, toBlock });
       } else {
-        console.warn(`\t   ❗Root (${rootHash}) for range [${fromBlock} - ${toBlock}] is not published`);
+        console.warn(`\t   ❌ Root (${rootHash}) for range [${fromBlock} - ${toBlock}] is not published`);
       }
     }
   }
@@ -92,7 +92,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 async function updateUnpublishedLowers(latestPublishedBlock) {
   const unpublished = (await redis.getUnpublishedLowers()) || [];
 
-  console.log(`\tThere are ${unpublished.length} unpublished lowers`)
+  console.log(`\tThere are ${unpublished.length} unpublished lowers ${unpublished.length > 0 ? ', checking if any can be claimed...' : ''}`)
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
     const { blockNumber } = JSON.parse(await redis.getBlockIndex(txHash));
@@ -110,7 +110,7 @@ async function updateAwaitingClaimDataLowers() {
 
   let error = false;
 
-  console.log(`\tThere are ${awaiting.length} lowers waiting to get lower data from RPC`)
+  console.log(`\tThere are ${awaiting.length} lowers waiting to get lower data from RPC ${awaiting.length > 0 ? ', trying to get data...' : ''}`)
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = JSON.parse(await redis.getBlockIndex(txHash));
@@ -136,7 +136,7 @@ async function updateAwaitingClaimDataLowers() {
           error = true;
         }
       } else {
-        console.warn(`\t   ❗Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
+        console.warn(`\t   🚨 Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
       }
     }
   }
@@ -148,7 +148,7 @@ async function updateAwaitingClaimDataLowers() {
 
 async function updateUnclaimedLowers(avnContract) {
   const unclaimed = (await redis.getUnclaimedLowers()) || [];
-  console.log(`\tThere are ${unclaimed.length} unclaimed lowers, checking if any are claimed on T1`)
+  console.log(`\tThere are ${unclaimed.length} unclaimed lowers ${unclaimed.length > 0 ? ', checking if any are claimed on T1...' : ''}`);
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];
@@ -177,8 +177,6 @@ async function getLowersForAccount(account) {
   const outstanding = unpublished.concat(awaiting).concat(unclaimed);
   let lowers = [];
 
-  console.log(`\tThere are ${outstanding.length} outstanding lowers`);
-
   for (let i = 0; i < outstanding.length; i++) {
     const lowerData = JSON.parse(await redis.getLowerData(outstanding[i]));
     if (lowerData && lowerData.from.toLowerCase() === account.toLowerCase() || lowerData.to.toLowerCase() === account.toLowerCase()) {
@@ -186,6 +184,7 @@ async function getLowersForAccount(account) {
     }
   }
 
+  console.log(`\tFound ${lowers.length} lowers from a total outstanding of: ${outstanding.length} for account ${account}`);
   return lowers;
 }
 

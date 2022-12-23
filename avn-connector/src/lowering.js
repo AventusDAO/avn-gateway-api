@@ -42,7 +42,7 @@ async function updatePublishedSummaries(avnContract) {
   for (let i = 0; i < summaries.length; i++) {
     const { fromBlock, toBlock, rootHash, isValid } = summaries[i];
 
-    if (isValid && fromBlock > latestPublishedBlock && await ethereum.rootIsPublished(avnContract, rootHash)) {
+    if (isValid && fromBlock > latestPublishedBlock && await ethereum.rootIsPublished(avnContract, rootHash) === true) {
       newSummaries.push({ fromBlock, toBlock });
     }
   }
@@ -146,7 +146,9 @@ async function updateUnclaimedLowers(avnContract) {
     const lowerData = JSON.parse(await redis.getLowerData(txHash));
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
-    if (await ethereum.lowerIsClaimed(avnContract, leafHash)) {
+    const lowerIsClaimedOnEthereum = await ethereum.lowerIsClaimed(avnContract, leafHash);
+    console.log(`LOWER IS CLAIMED: ${lowerIsClaimedOnEthereum}`)
+    if (lowerIsClaimedOnEthereum === true) {
       console.log(`\t   - txHash: ${txHash} has been claimed with leaf hash: ${leafHash}`)
       await redis.removeUnclaimedLower(txHash);
       await redis.deleteLowerData(txHash);

@@ -70,7 +70,8 @@ async function lowerIsClaimed(avnContract, leafHash) {
       }
     ]
   }, [leafHash]);
-  return await web3.eth.call({ to: avnContract, data });
+  const resultAsHex = await web3.eth.call({ to: avnContract, data });
+  return !!+resultAsHex; // cast to a number and convert to boolean
 }
 
 async function rootIsPublished(avnContract, rootHash) {
@@ -84,9 +85,8 @@ async function rootIsPublished(avnContract, rootHash) {
       }
     ]
   }, [rootHash]);
-  const r = await web3.eth.call({ to: avnContract, data });
-  console.log(`rootIsPublished ${rootHash} = ${r}`);
-  console.log(`${JSON.stringify(r)}`);
+  const resultAsHex = await web3.eth.call({ to: avnContract, data });
+  return !!+resultAsHex; // cast to a number and convert to boolean
 }
 
 module.exports = {

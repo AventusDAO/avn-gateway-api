@@ -11,9 +11,11 @@ const log = log4js.getLogger();
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
+  console.log(`\nProcessing lowers`);
   const { avnContract } = JSON.parse(await avn.getChainInfo());
-
   const latestPublishedBlock = await getLatestPublishedBlock();
+  console.log(`\tLast published block: ${latestPublishedBlock}`);
+
   await updatePublishedSummaries(avnContract, latestPublishedBlock);
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
@@ -55,6 +57,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let retrieveFromBlock = parseInt((await redis.getRetrieveLowersFromBlock()) || 0);
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
+  console.log(`\nThere are ${lowerTransactions.length} new lower transactions after block ${retrieveFromBlock}`);
   for (let i = 0; i < lowerTransactions.length; i++) {
     const lowerTx = lowerTransactions[i];
     const txHash = lowerTx.txHash;

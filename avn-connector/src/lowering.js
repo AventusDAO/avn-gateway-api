@@ -52,7 +52,7 @@ async function updatePublishedSummaries(avnContract) {
   }
 
   if (newSummaries.length > 0) {
-    console.log(`\tThere are ${newSummaries.length} new summaries published on Ethereum`);
+    console.log(`\tThere are ${newSummaries.length} new summaries published on Ethereum after block ${latestPublishedBlock}`);
     newSummaries.sort((a,b) => (a.fromBlock < b.fromBlock) ? -1 : ((b.fromBlock > a.fromBlock) ? 1 : 0));
     await redis.appendPublishedSummaries(newSummaries.map(s => JSON.stringify(s)));
     return  parseInt(newSummaries[newSummaries.length - 1].toBlock);
@@ -184,7 +184,7 @@ async function getLowersForAccount(account) {
     }
   }
 
-  console.log(`\tFound ${lowers.length} lowers from a total outstanding of: ${outstanding.length} for account ${account}`);
+  console.log(`\tFound ${lowers.length} lowers related to account ${account}. Total outstanding: ${outstanding.length} `);
   return lowers;
 }
 

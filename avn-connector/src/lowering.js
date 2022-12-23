@@ -139,6 +139,7 @@ async function updateAwaitingClaimDataLowers() {
 
 async function updateUnclaimedLowers(avnContract) {
   const unclaimed = (await redis.getUnclaimedLowers()) || [];
+  console.log(`\tThere are ${unclaimed.length} lowers, checking if any are claimed on T1`)
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];
@@ -146,6 +147,7 @@ async function updateUnclaimedLowers(avnContract) {
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
     if (await ethereum.lowerIsClaimed(avnContract, leafHash)) {
+      console.log(`\t   - txHash: ${txHash} has been claimed with leaf hash: ${leafHash}`)
       await redis.removeUnclaimedLower(txHash);
       await redis.deleteLowerData(txHash);
     }
@@ -170,6 +172,11 @@ async function getLowersForAccount(account) {
 
   for (let i = 0; i < outstanding.length; i++) {
     const lowerData = JSON.parse(await redis.getLowerData(outstanding[i]));
+
+    if (lowerData) {
+      console.log(`\t   - from: ${lowerData.from}, to: ${lowerData.to}`);
+    }
+
     if (lowerData && lowerData.from.toLowerCase() === account.toLowerCase() || lowerData.to.toLowerCase() === account.toLowerCase()) {
       lowers.push(lowerData);
     }

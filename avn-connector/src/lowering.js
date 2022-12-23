@@ -42,8 +42,12 @@ async function updatePublishedSummaries(avnContract) {
   for (let i = 0; i < summaries.length; i++) {
     const { fromBlock, toBlock, rootHash, isValid } = summaries[i];
 
-    if (isValid && fromBlock > latestPublishedBlock && await ethereum.rootIsPublished(avnContract, rootHash) === true) {
-      newSummaries.push({ fromBlock, toBlock });
+    if (isValid && fromBlock > latestPublishedBlock) {
+      if (await ethereum.rootIsPublished(avnContract, rootHash) === true) {
+        newSummaries.push({ fromBlock, toBlock });
+      } else {
+        console.warn(`\t   ❗Root (${rootHash}) for range [${fromBlock} - ${toBlock}] is not published`);
+      }
     }
   }
 
@@ -117,8 +121,6 @@ async function updateAwaitingClaimDataLowers() {
       const { fromBlock, toBlock } = summaryData;
       let rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
 
-      console.log(`\t  rpcLower data: txHash: ${txHash}, params: range[${fromBlock} - ${toBlock}] (${blockNumber}, ${index}), isDataEmpty: ${rpcData.isEmpty}`);
-
       if (!rpcData.isEmpty) {
         try {
           rpcData = JSON.parse(Buffer.from(rpcData, 'hex').toString());
@@ -130,14 +132,13 @@ async function updateAwaitingClaimDataLowers() {
           await redis.deleteBlockIndex(txHash);
           await redis.addUnclaimedLower(txHash);
         } catch (e) {
-          console.error(`Error processing lowers awaiting claimed data: `, e);
+          console.error(`💔 Error processing lowers awaiting claimed data: `, e);
           error = true;
         }
+      } else {
+        console.warn(`\t  ❗Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
       }
-    } else {
-      console.warn(`\t  No summary data for block: ${blockNumber}, index: ${index}`);
     }
-
   }
 
   if (error === true) {
@@ -155,9 +156,7 @@ async function updateUnclaimedLowers(avnContract) {
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
     const lowerIsClaimedOnEthereum = await ethereum.lowerIsClaimed(avnContract, leafHash);
-    console.log(`LOWER IS CLAIMED: ${lowerIsClaimedOnEthereum}`)
     if (lowerIsClaimedOnEthereum === true) {
-      console.log(`\t   - txHash: ${txHash} has been claimed with leaf hash: ${leafHash}`)
       await redis.removeUnclaimedLower(txHash);
       await redis.deleteLowerData(txHash);
     }
@@ -182,11 +181,6 @@ async function getLowersForAccount(account) {
 
   for (let i = 0; i < outstanding.length; i++) {
     const lowerData = JSON.parse(await redis.getLowerData(outstanding[i]));
-
-    if (lowerData) {
-      console.log(`\t   - from: ${lowerData.from}, to: ${lowerData.to}`);
-    }
-
     if (lowerData && lowerData.from.toLowerCase() === account.toLowerCase() || lowerData.to.toLowerCase() === account.toLowerCase()) {
       lowers.push(lowerData);
     }

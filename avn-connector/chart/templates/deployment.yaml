@@ -38,6 +38,11 @@ spec:
                 secretKeyRef:
                   name: etherscan-credentials
                   key: etherscan_api_key
+            - name: INFURA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: infura-credentials
+                  key: infura_url
             - name: VAULT_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:
@@ -157,6 +162,11 @@ spec:
                 secretKeyRef:
                   name: etherscan-credentials
                   key: etherscan_api_key
+            - name: INFURA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: infura-credentials
+                  key: infura_url
             - name: VAULT_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:

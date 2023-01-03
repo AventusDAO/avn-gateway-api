@@ -195,6 +195,20 @@ functions:
     layers:
       - { Ref: CommonLambdaLayer }
 
+  lower-handler:
+    name: lower-handler
+    handler: lower-handler.handler
+    description: aws:states:opt-out
+    package:
+      patterns:
+        - '!**/**'
+        - lower-handler.js
+    memorySize: 128
+    events:
+      - httpApi:
+          path: /lowers
+          method: GET
+
 resources:
   Resources:
     LambdaSecurityGroup:

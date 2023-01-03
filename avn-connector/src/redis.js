@@ -34,6 +34,7 @@ const LOWERS_FROM_BLOCK_KEY = 'lowersFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
 const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
+const LOWER_DATA_KEY = 'lowerData';
 const PUBLISHED_SUMMARIES_KEY = 'summaries';
 
 const PENDING_TX_KEY = {

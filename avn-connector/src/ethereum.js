@@ -1,6 +1,5 @@
 const axios = require('axios');
 const redis = require('./redis');
-const avn = require('./avn');
 const config = require('multiconfig').load();
 const Web3 = require('web3');
 const provider = new Web3.providers.HttpProvider(config.ethereum.infura_url);
@@ -60,8 +59,7 @@ async function callEtherscan(request) {
   return response.data.result;
 }
 
-async function lowerIsClaimed(leafHash) {
-  const { avnContract } = await avn.getChainInfo();
+async function lowerIsClaimed(avnContract, leafHash) {
   const data = await web3.eth.abi.encodeFunctionCall({
     name: 'hasLowered',
     type: 'function',
@@ -72,11 +70,11 @@ async function lowerIsClaimed(leafHash) {
       }
     ]
   }, [leafHash]);
-  return await web3.eth.call({ to: avnContract, data });
+  const resultAsHex = await web3.eth.call({ to: avnContract, data });
+  return !!+resultAsHex; // cast to a number and convert to boolean
 }
 
-async function rootIsPublished(rootHash) {
-  const { avnContract } = await avn.getChainInfo();
+async function rootIsPublished(avnContract, rootHash) {
   const data = await web3.eth.abi.encodeFunctionCall({
     name: 'isPublishedRootHash',
     type: 'function',
@@ -87,7 +85,8 @@ async function rootIsPublished(rootHash) {
       }
     ]
   }, [rootHash]);
-  return await web3.eth.call({ to: avnContract, data });
+  const resultAsHex = await web3.eth.call({ to: avnContract, data });
+  return !!+resultAsHex; // cast to a number and convert to boolean
 }
 
 module.exports = {

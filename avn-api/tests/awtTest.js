@@ -2,7 +2,7 @@ const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 
-const TOKEN_LENGTH = 332;
+const TOKEN_LENGTH = 352;
 const TOKEN_LIFETIME = 60000;
 
 describe('AWT authorisation', async () => {
@@ -43,4 +43,37 @@ describe('AWT authorisation', async () => {
       assert.equal(api.awt.tokenAgeIsValid(token), false);
     });
   });
+
+  describe('splitFeeOptions', async () => {
+
+    it('generates a valid token for self pay users', async () => {
+      let options = {
+        hasPayer: false,
+        payer: undefined
+      };
+
+      let apiWithoptions = await helper.avnApi(options);
+      assert((await apiWithoptions.query.getAvtContractAddress()).length == 42);
+    });
+
+    it('generates a valid token for split fee users', async () => {
+      let options = {
+        hasPayer: true,
+        payer: undefined
+      };
+
+      let apiWithoptions = await helper.avnApi(options);
+      assert((await apiWithoptions.query.getAvtContractAddress()).length == 42);
+    });
+
+    it('generates a valid token for legacy (pre-splitFee) users', async () => {
+      // If hasPayer is not specified, we assume it is a selfPay user
+      let options = undefined;
+
+      let apiWithoptions = await helper.avnApi(options);
+      assert((await apiWithoptions.query.getAvtContractAddress()).length == 42);
+    });
+
+  });
+
 });

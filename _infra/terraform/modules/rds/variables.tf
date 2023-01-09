@@ -7,7 +7,7 @@ variable "multi_az" {
 variable "backup_retention_period" {
   description = "The days to retain backups for"
   type        = number
-  default     = null
+  default     = 7
 }
 
 variable "allocated_storage" {

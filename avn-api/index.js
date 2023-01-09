@@ -12,7 +12,6 @@ const version = require('./package.json').version;
 function AvnApi(gateway, options) {
   this.version = version;
   this.awtToken;
-  this.options;
   if (gateway) this.gateway = gateway;
   this.options = options || {};
 }

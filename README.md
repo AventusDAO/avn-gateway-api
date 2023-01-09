@@ -31,7 +31,7 @@ const AvnApi = require('avn-api');
 const api = new AvnApi('https://sandbox.gateway.aventus.io');
 await api.init();
 ```
-When creating an instance of the api, an optional `options` paramater can also be passed in. Options can include:
+When creating an instance of the api, an optional `options` parameter can also be passed in. Options can include:
  - The AVN_SURI (optional): The mnemonic or secret seed of the user. If its emptu, the value is read from AVN_SURI environment variable.
  - hasPayer flag (optional): A user specified flag used to determine if there is a configured payer for this user. Defaults to false.
  - payerAddress (optional): The payer address for this user. Default to the first payer configured for this user.

@@ -44,3 +44,12 @@ provider "aws" {
     role_arn = "arn:aws:iam::707061609910:role/jenkins-access"
   }
 }
+
+provider "aws" {
+  region = "us-east-1"
+  alias  = "us_east_1"
+
+  assume_role {
+    role_arn = "arn:aws:iam::352429414196:role/jenkins-access"
+  }
+}

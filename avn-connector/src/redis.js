@@ -23,12 +23,19 @@ const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
 const SUMMARY_RANGE_NAMESPACE = 's.';
 const TOTAL_TOKEN_NAMESPACE = 't.';
-const VALIDATORS_KEY = 'validators';
+const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
 const LIFTS_FROM_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const STAKER_PAYOUT_FLAG_KEY = 'payoutFlag';
+const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
+const LOWERS_FROM_BLOCK_KEY = 'lowersFromBlock';
+const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
+const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
+const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
+const LOWER_DATA_KEY = 'lowerData';
+const PUBLISHED_SUMMARIES_KEY = 'summaries';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -40,7 +47,7 @@ const MAX_PENDING_TX_TO_CHECK = 100;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
 const NONCE_EXPIRY_IN_SECONDS = 5;
 const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
-const VALIDATORS_EXPIRY_IN_SECONDS = 86400; //1 day
+const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
@@ -189,12 +196,12 @@ function refreshNonce(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
-async function setValidatorsToNominate(validatorsJsonString) {
-  await redisClient.setex(VALIDATORS_KEY, VALIDATORS_EXPIRY_IN_SECONDS, validatorsJsonString);
+async function setCollatorsToNominate(validatorsJsonString) {
+  await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, validatorsJsonString);
 }
 
-async function getValidatorsToNominate() {
-  return await redisClient.get(VALIDATORS_KEY);
+async function getCollatorsToNominate() {
+  return await redisClient.get(COLLATORS_KEY);
 }
 
 async function setStakingStats(stakingStatJsonString) {
@@ -253,6 +260,86 @@ async function setStakerPayoutFlag(flag) {
   await redisClient.set(STAKER_PAYOUT_FLAG_KEY, flag);
 }
 
+async function setRetrieveLowersFromBlock(blockNumber) {
+  await redisClient.set(LOWERS_FROM_BLOCK_KEY, blockNumber);
+}
+
+async function getRetrieveLowersFromBlock() {
+  return await redisClient.get(LOWERS_FROM_BLOCK_KEY);
+}
+
+async function setBlockIndex(txHash, blockIndexString) {
+  return await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, blockIndexString);
+}
+
+async function deleteBlockIndex(txHash) {
+  return await redisClient.del(LOWER_BLOCK_INDEX_KEY + txHash);
+}
+
+async function getBlockIndex(txHash) {
+  return await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
+}
+
+async function addUnpublishedLower(txHash) {
+  return await redisClient.sadd(UNPUBLISHED_LOWERS_KEY, txHash);
+}
+
+async function removeUnpublishedLower(txHash) {
+  return await redisClient.srem(UNPUBLISHED_LOWERS_KEY, txHash);
+}
+
+async function getUnpublishedLowers() {
+  return await redisClient.smembers(UNPUBLISHED_LOWERS_KEY);
+}
+
+async function addAwaitingClaimDataLower(txHash) {
+  return await redisClient.sadd(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+}
+
+async function removeAwaitingClaimDataLower(txHash) {
+  return await redisClient.srem(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+}
+
+async function getAwaitingClaimDataLowers() {
+  return await redisClient.smembers(AWAITING_CLAIM_DATA_LOWERS_KEY);
+}
+
+async function addUnclaimedLower(txHash) {
+  return await redisClient.sadd(UNCLAIMED_LOWERS_KEY, txHash);
+}
+
+async function removeUnclaimedLower(txHash) {
+  return await redisClient.srem(UNCLAIMED_LOWERS_KEY, txHash);
+}
+
+async function getUnclaimedLowers() {
+  return await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
+}
+
+async function appendPublishedSummaries(summaries) {
+  return await redisClient.rpush(PUBLISHED_SUMMARIES_KEY, summaries)
+}
+
+async function getLatestPublishedSummary() {
+  return await redisClient.lindex(PUBLISHED_SUMMARIES_KEY, -1);
+}
+
+async function getPublishedSummaries() {
+  return await redisClient.lrange(PUBLISHED_SUMMARIES_KEY, 0, -1);
+}
+
+async function setLowerData(txHash, lowerDataString) {
+  return await redisClient.set(LOWER_DATA_KEY + txHash, lowerDataString);
+}
+
+async function deleteLowerData(txHash) {
+  return await redisClient.del(LOWER_DATA_KEY + txHash);
+}
+
+async function getLowerData(txHash) {
+  return await redisClient.get(LOWER_DATA_KEY + txHash);
+}
+
 module.exports = {
   connect,
   addPendingAvnTransaction,
@@ -265,8 +352,8 @@ module.exports = {
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,
   getTransactionHashByRequestId,
-  getValidatorsToNominate,
-  setValidatorsToNominate,
+  getCollatorsToNominate,
+  setCollatorsToNominate,
   getStakingStats,
   setStakingStats,
   getChainInfo,
@@ -280,5 +367,25 @@ module.exports = {
   getTotalToken,
   setTotalToken,
   getStakerPayoutFlag,
-  setStakerPayoutFlag
+  setStakerPayoutFlag,
+  setRetrieveLowersFromBlock,
+  getRetrieveLowersFromBlock,
+  setBlockIndex,
+  deleteBlockIndex,
+  getBlockIndex,
+  addUnpublishedLower,
+  removeUnpublishedLower,
+  getUnpublishedLowers,
+  addAwaitingClaimDataLower,
+  removeAwaitingClaimDataLower,
+  getAwaitingClaimDataLowers,
+  addUnclaimedLower,
+  removeUnclaimedLower,
+  getUnclaimedLowers,
+  appendPublishedSummaries,
+  getLatestPublishedSummary,
+  getPublishedSummaries,
+  setLowerData,
+  deleteLowerData,
+  getLowerData,
 };

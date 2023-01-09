@@ -82,15 +82,34 @@ async function poll(requestId) {
 }
 
 async function getAccountInfo(accountId) {
-  let stakingInfo = await api.derive.staking.account(accountId);
   let balancesAll = await api.derive.balances.all(accountId);
+  let currentEraIndex = (await api.query.parachainStaking.era()).current;
+  let collators = JSON.parse(await getValidatorsToNominate(api));
+
+  let stakedBalance, unlockedBalance, unstakedBalance;
+
+  if (collators.some(c => c.toLowerCase() === accountId.toLowerCase())) {
+    const candidateInfo = await api.query.parachainStaking.candidateInfo(accountId);
+    ({stakedBalance, unlockedBalance, unstakedBalance} =
+        stakingHelper.calculateCollatorStakingBalances(candidateInfo, currentEraIndex));
+  } else {
+    const nominatorState = await api.query.parachainStaking.nominatorState(accountId);
+    let allRequests = (await api.query.parachainStaking.nominationScheduledRequests.multi(collators))
+
+    let nominatorRequests = allRequests
+        .filter(reqArray => reqArray.some(req => req.nominator.eq(accountId)))
+        .flat();
+
+    ({stakedBalance, unlockedBalance, unstakedBalance} =
+        stakingHelper.calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex));
+  }
 
   return {
     totalBalance: balancesAll.freeBalance.add(balancesAll.reservedBalance).toString(),
     freeBalance: balancesAll.availableBalance.toString(),
-    stakedBalance: stakingHelper.calculateBondedAmount(stakingInfo).toString(),
-    unlockedBalance: stakingInfo.redeemable.toString(),
-    unstakedBalance: stakingHelper.calculateUnbondingAmount(stakingInfo).toString()
+    stakedBalance: stakedBalance.toString(),
+    unlockedBalance: unlockedBalance.toString(),
+    unstakedBalance: unstakedBalance.toString(),
   };
 }
 
@@ -106,18 +125,14 @@ async function getNonce(senderAddress) {
 }
 
 async function getValidatorsToNominate() {
-  let validators = await redis.getValidatorsToNominate();
+  let collators = await redis.getCollatorsToNominate();
 
-  if (!validators) {
-    let validatorsInfo = await api.derive.staking.electedInfo({ withPrefs: true });
-    validators = validatorsInfo.info
-      .filter(i => i.validatorPrefs.blocked && i.validatorPrefs.blocked.isFalse === true)
-      .map(i => i.accountId);
-
-    await redis.setValidatorsToNominate(JSON.stringify(validators));
+  if (!collators) {
+    let collators = JSON.stringify(await api.query.parachainStaking.selectedCandidates());
+    await redis.setCollatorsToNominate(collators);
   }
 
-  return validators;
+  return collators;
 }
 
 async function getStakingStats() {
@@ -396,45 +411,6 @@ async function connectToAvN() {
     }
   });
 
-  // Staking part commented for now
-  // We have multiple pods running the same code so we have to use redis to make sure only 1 pod is acting on this event.
-  // const _unsub = await api.query.staking.activeEra(async eraInfo => {
-  //   // TODO: Find a way to detect block finalisation: https://github.com/polkadot-js/api/issues/4818
-  //   const era = eraInfo.toJSON().index;
-  //   const payoutInProgress = await redis.getStakerPayoutFlag();
-  //   // We cannot store booleans in redis.
-  //   if (payoutInProgress === 'true') {
-  //     log.trace(`staking payout already in progress for era: ${era}, skipping`);
-  //     return;
-  //   }
-
-  //   try {
-  //     // If payout is not in progress, set the flag and continue to pay
-  //     await redis.setStakerPayoutFlag('true');
-
-  //     log.info(`Triggering payout stakers. Current era: ${era}`);
-  //     let lastPayoutEra = (await redis.getLastPayoutEra()) || 0;
-
-  //     const rewardPayerAddress = config.stakingPayoutRelayer;
-  //     const proxyNonce = await api.query.validatorsManager.proxyNonces(rewardPayerAddress);
-  //     const relayerAccount = await getRelayerAccount(rewardPayerAddress);
-
-  //     const lastEraPaid = await stakingHelper.payoutAllStakers(
-  //       api.registry,
-  //       log,
-  //       relayerAccount,
-  //       proxyNonce.toString(),
-  //       lastPayoutEra,
-  //       era
-  //     );
-  //     await redis.setLastPayoutEra(lastEraPaid.toString());
-  //   } catch (err) {
-  //     log.error(`Error paying stakers for era ${era}`, err);
-  //   } finally {
-  //     await redis.setStakerPayoutFlag('false');
-  //   }
-  // });
-
   const [chain, nodeName, nodeVersion] = await Promise.all([
     api.rpc.system.chain(),
     api.rpc.system.name(),
@@ -442,6 +418,17 @@ async function connectToAvN() {
   ]);
 
   log.info(`You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`);
+}
+
+async function getSummaries() {
+  const entries = await api.query.summary.roots.entries();
+  return entries.map(([{ args: [{ fromBlock, toBlock }] }, { rootHash, isValidated }]) => (
+    { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash: rootHash.toString(), isValid: isValidated }
+  ));
+}
+
+async function getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index) {
+  return await api.rpc.lower.data(fromBlock, toBlock, blockNumber, index);
 }
 
 function createAccount(suri) {
@@ -460,9 +447,11 @@ module.exports = {
   query,
   proxy,
   poll,
+  getLowerDataFromRpc,
   getStakingStats,
   getChainInfo,
   getCurrentBlock,
+  getSummaries,
   getSummaryData,
   getSummaryInclusionData,
   getTotalToken,

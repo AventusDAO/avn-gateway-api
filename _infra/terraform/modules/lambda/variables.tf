@@ -29,7 +29,8 @@ variable "lambda_functions" {
     "poll-handler" : {},
     "send-handler" : {},
     "query-handler" : {},
-    "vote-handler" : {}
+    "vote-handler" : {},
+    "lower-handler" : {}
   }
 }
 

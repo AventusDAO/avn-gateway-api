@@ -147,12 +147,28 @@ function toWholeAVT(val) {
   return parseInt(wholeAmount.toString());
 }
 
-function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
+function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payerAddress) {
   const encodedContext = registry.createType('Text', SIGNING_CONTEXT);
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
   const encodedIssuedAt = registry.createType('Text', issuedAt);
-  const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false));
-  return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+
+  if (!hasPayer && !payerAddress) {
+    // this is a legacy token
+    const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false));
+    return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+  } else {
+    const encodedHasPayer = registry.createType('bool', hasPayer);
+    const encodedPayer = registry.createType('Option<AccountId>', hexToU8a(payerAddress));
+
+    const encodedData = u8aConcat(
+      encodedContext.toU8a(false),
+      encodedPublicKey.toU8a(true),
+      encodedIssuedAt.toU8a(false),
+      encodedHasPayer.toU8a(true),
+      encodedPayer.toU8a(true)
+    );
+    return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+  }
 }
 
 function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {

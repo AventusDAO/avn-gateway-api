@@ -36,8 +36,9 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function avnApi() {
-  const api = new AvnApi(gateway);
+async function avnApi(options) {
+  const api = new AvnApi(gateway, options);
+
   await api.init();
   return api;
 }

@@ -29,7 +29,7 @@ async function validateAwtToken(event) {
     return InvalidRequestResponse;
   }
 
-  if (!utils.verifyAwtTokenSignature(awtToken.pk, awtToken.iat, awtToken.sig)) {
+  if (!utils.verifyAwtTokenSignature(awtToken.pk, awtToken.iat, awtToken.sig, awtToken.hasPayer, awtToken.payer)) {
     console.info('Invalid AWT token - bad signature');
     return InvalidRequestResponse;
   }

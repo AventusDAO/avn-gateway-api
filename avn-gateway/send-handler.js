@@ -16,10 +16,21 @@ exports.handler = async (event, context) => {
     };
   }
 
+  const result = await processRequest(event.body, context.awsRequestId);
+
+  if (utils.requestFailed(result) === true) {
+    return {
+      statusCode: 500,
+      error: { message: result.error.data },
+      body: JSON.stringify(result)
+    };
+  }
+
   return {
     statusCode: 200,
-    body: JSON.stringify(await processRequest(event.body, context.awsRequestId))
+    body: JSON.stringify(result)
   };
+
 };
 
 const connectToMQ = async () => {

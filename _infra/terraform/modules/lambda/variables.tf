@@ -53,3 +53,8 @@ variable "avn_connector_endpoint" {
 variable "vpc_id" {
   type = string
 }
+
+variable "sqs_queue_arns" {
+  type        = map(any)
+  description = "list of SQS queues"
+}

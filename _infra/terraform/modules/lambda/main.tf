@@ -192,6 +192,30 @@ resource "aws_iam_policy" "full_access_vote_buckets" {
 EOF
 }
 
+resource "aws_iam_policy" "sender_sqs_access" {
+  name        = "avn-gateway-sqs"
+  description = "allow access to to SQS"
+
+  policy = <<EOF
+{
+  "Version" : "2012-10-17",
+  "Statement" : [
+    {
+      "Effect": "Allow",
+      "Action" : [
+        "sqs:SendMessage",
+        "sqs:SendMessageBatch"
+      ],
+      "Resource" : [
+        "${var.sqs_queue_arns.gateway_default_queue}",
+        "${var.sqs_queue_arns.gateway_payer_queue}"
+      ]
+    }
+  ]
+}
+EOF
+}
+
 resource "aws_iam_role_policy_attachment" "extra_permissions" {
   role       = aws_iam_role.lambda_role["vote-handler"].name
   policy_arn = aws_iam_policy.full_access_vote_buckets.arn
@@ -200,6 +224,11 @@ resource "aws_iam_role_policy_attachment" "extra_permissions" {
 resource "aws_iam_role_policy_attachment" "rabbit_secret_access" {
   role       = aws_iam_role.lambda_role["send-handler"].name
   policy_arn = aws_iam_policy.lambda_logging.arn
+}
+
+resource "aws_iam_role_policy_attachment" "sender_sqs_access" {
+  role       = aws_iam_role.lambda_role["send-handler"].name
+  policy_arn = aws_iam_policy.sender_sqs_access.arn
 }
 
 resource "aws_iam_role_policy_attachment" "network" {

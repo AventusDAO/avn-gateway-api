@@ -14,3 +14,7 @@ mqBrokerAmpqEndpoint: 'rabbitmq.sandbox.aventus.internal:5672'
 mqProtocol: 'amqp'
 mqSecretArn: 'arn:aws:secretsmanager:eu-west-1:352429414196:secret:rabbitmq'
 logRetentionDays: 1
+sqs_gateway_default_queue_arn: '*'
+sqs_gateway_default_queue_url: ''
+sqs_gateway_payer_queue_arn: '*'
+sqs_gateway_payer_queue_url: ''

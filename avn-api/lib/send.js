@@ -135,7 +135,8 @@ function stake(api, queryApi) {
       common.validateStakingTargets(targets);
       const methodArgs = { amount, targets };
       // first time staking is made up of 2 transactions: Bond + Nominate, so we cannot use the standard proxyRequest function
-      return await this.proxyStakeAvtRequest(api, queryApi, relayer, methodArgs, 'proxyStakeAvt', NONCE_TYPE.Staking);
+      // TODO: update to the new version of staking
+      //  return await this.proxyRequest(api, queryApi, relayer, methodArgs, 'proxyStakeAvt', NONCE_TYPE.Staking);
     }
   };
 }
@@ -185,9 +186,8 @@ function generateFunction(functionName, api, queryApi) {
 
 Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs, transactionType, nonceType, retry) {
   const user = common.getSignerAddress();
-  // By default the user pays the relayer fees but this can be changed to any `payer`
-  const payer = user;
-  let proxyArgs = Object.assign({ relayer, user, payer }, methodArgs);
+
+  let proxyArgs = Object.assign({ relayer, user }, methodArgs);
   let params = { ...proxyArgs };
 
   if (nonceType !== NONCE_TYPE.None) {
@@ -199,53 +199,21 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
 
   const proxySignature = proxyApi.generateProxySignature(transactionType, proxyArgs);
   params.proxySignature = proxySignature;
-  const paymentArgs = { relayer, user, payer, proxySignature, transactionType };
-  const paymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
-  params = Object.assign(params, paymentData);
+
+  // Only populate paymentInfo if this is a self pay transaction
+  if (api.hasSplitFeeToken() === false) {
+    // By default the user pays the relayer fees but this can be changed to any `payer`
+    const payer = user;
+    const paymentArgs = { relayer, user, payer, proxySignature, transactionType };
+    const paymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
+    params = Object.assign(params, { paymentData, payer });
+  }
 
   const response = await this.postRequest(api, transactionType, params, retry);
 
   if (!response && !retry) {
     retry = true;
     await this.proxyRequest(api, queryApi, relayer, methodArgs, transactionType, nonceType, retry);
-  }
-
-  return response;
-};
-
-Send.prototype.proxyStakeAvtRequest = async function (api, queryApi, relayer, methodArgs, methodName, nonceType, retry) {
-  const user = common.getSignerAddress();
-  // By default the user pays the relayer fees but this can be changed to any `payer`
-  const payer = user;
-  let proxyArgs = Object.assign({ relayer, user, payer }, methodArgs);
-  let params = { ...proxyArgs };
-  proxyArgs.nonce = await this.smartNonce(queryApi, user, nonceType, retry);
-
-  let transactionType = TX_TYPE.ProxyBond;
-  params.bondMethodName = transactionType;
-  let proxySignature = proxyApi.generateProxySignature(transactionType, proxyArgs);
-  params.proxyBondSignature = proxySignature;
-  let paymentArgs = { relayer, user, payer, proxySignature, transactionType };
-  let paymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
-  params.bondFeePaymentSignature = paymentData.feePaymentSignature;
-  params.bondPaymentNonce = paymentData.paymentNonce;
-
-  proxyArgs.nonce = new BN(proxyArgs.nonce).add(new BN(1));
-
-  transactionType = TX_TYPE.ProxyNominate;
-  params.nominateMethodName = transactionType;
-  proxySignature = proxyApi.generateProxySignature(transactionType, proxyArgs);
-  params.proxyNominateSignature = proxySignature;
-  paymentArgs = { relayer, user, payer, proxySignature, transactionType };
-  paymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
-  params.nominateFeePaymentSignature = paymentData.feePaymentSignature;
-  params.nominatePaymentNonce = paymentData.paymentNonce;
-
-  const response = await this.postRequest(api, methodName, params, retry);
-
-  if (!response && !retry) {
-    retry = true;
-    await this.proxyStakeAvtRequest(api, queryApi, relayer, methodArgs, methodName, nonceType, retry);
   }
 
   return response;

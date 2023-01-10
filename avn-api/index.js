@@ -38,6 +38,12 @@ AvnApi.prototype.init = async function () {
   }
 };
 
+AvnApi.prototype.hasSplitFeeToken = function () {
+  if (!this.options || (!this.options.hasPayer && !this.options.payerAddress)) return false;
+
+  return this.options.hasPayer === true || (this.options.payerAddress && this.options.payerAddress.length > 0)
+};
+
 function setupAxios(awtTokenManager) {
   if (!awtTokenManager.tokenAgeIsValid(this.awtToken)) {
     console.log(' - Awt token has expired, refreshing');

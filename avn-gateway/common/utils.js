@@ -63,6 +63,10 @@ function errorResponse(rpcError, gatewayError, error, request, id) {
   return response;
 }
 
+function requestFailed(response) {
+  return response && response.error && response.error.length > 0;
+}
+
 function validResponse(id, result) {
   return { jsonrpc: '2.0', id, result };
 }
@@ -225,6 +229,7 @@ module.exports = {
   isValidSignatureFormat,
   isValidString,
   isValidTransactionType,
+  requestFailed,
   signatureVerify,
   stringToHex,
   toBnString,

@@ -70,6 +70,13 @@ function requestFailed(response) {
 function validResponse(id, result) {
   return { jsonrpc: '2.0', id, result };
 }
+function isSplitFeeToken(token) {
+  if (!token) return false;
+
+  const payerAddressIsSet = token.payer && token.payer.length > 0;
+  return token.hasPayer === true || payerAddressIsSet === true;
+}
+
 
 function isValidAccountId(accountId) {
   try {
@@ -215,6 +222,7 @@ module.exports = {
   convertToPublicKey,
   errorResponse,
   init,
+  isSplitFeeToken,
   isValidAccountId,
   isValidAmount,
   isValidArray,

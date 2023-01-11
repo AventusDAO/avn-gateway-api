@@ -47,7 +47,7 @@ async function processRequest(call) {
     if (utils.isValidAccountId(payer) === false) throw 'payer';
     if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxy signature format';
   } catch (err) {
-    return utils.errorResponse('params', err.toString(), err, call, call.id);
+    return utils.buildErrorBody('params', err.toString(), err, call, call.id);
   }
 
   const proxyProof = {
@@ -73,8 +73,8 @@ async function sendTx(call, palletName, method, params) {
     const queue = process.env.MQ_AVN_TX_QUEUE;
     const txType = 'avnProxy';
     const result = await mqSender.sendMessageToMQ(queue, { call: call.requestId, txType, palletName, method, params });
-    return utils.validResponse(call.id, result);
+    return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.errorResponse('internal', 'failed to send proxy transaction', err, call, call.id);
+    return utils.buildErrorBody('internal', 'failed to send proxy transaction', err, call, call.id);
   }
 }

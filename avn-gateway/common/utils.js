@@ -44,7 +44,7 @@ const RPC_ERROR = {
   internal: { code: -32603, message: 'Internal error' }
 };
 
-function errorResponse(rpcError, gatewayError, error, request, id) {
+function buildErrorBody(rpcError, gatewayError, error, request, id) {
   const e = new Error();
   const splitStack = e.stack.split('\n');
   const frame = splitStack[2];
@@ -213,7 +213,7 @@ module.exports = {
   STASH_REWARD_DESTINATION,
   convertToAddress,
   convertToPublicKey,
-  errorResponse,
+  buildErrorBody,
   init,
   isValidAccountId,
   isValidAmount,
@@ -234,7 +234,7 @@ module.exports = {
   stringToHex,
   toBnString,
   toWholeAVT,
-  validResponse,
+  buildValidResponseBody,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature
 };

@@ -279,10 +279,10 @@ def terraformPlan() {
       sh "terraform plan -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
       break
     case 'gateway_cognito':
-      sh "terraform plan -target module.${env.terraform_target} -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
+      sh "terraform plan -target module.gateway_cognito -target module.gateway_cognito_acm -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
       break
     default:
-      sh "terraform plan -target module.gateway_cognito -target module.gateway_cognito_acm -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
+      sh "terraform plan -target module.${env.terraform_target} -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
       break
 }
 }

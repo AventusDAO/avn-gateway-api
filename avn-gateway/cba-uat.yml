@@ -14,3 +14,7 @@ mqBrokerAmpqEndpoint: 'b-e3b90bd4-9486-47ba-854a-aef65a9192f3.mq.eu-west-1.amazo
 mqProtocol: 'amqps'
 mqSecretArn: 'arn:aws:secretsmanager:eu-west-1:602004642405:secret:rabbitmq-Nc8wYf'
 logRetentionDays: 1
+sqs_gateway_default_queue_arn: 'arn:aws:sqs:eu-west-1:602004642405:gateway_default_queue.fifo'
+sqs_gateway_default_queue_url: 'https://sqs.eu-west-1.amazonaws.com/602004642405/gateway_default_queue.fifo'
+sqs_gateway_payer_queue_arn: 'arn:aws:sqs:eu-west-1:602004642405:gateway_payer_queue.fifo'
+sqs_gateway_payer_queue_url: 'https://sqs.eu-west-1.amazonaws.com/602004642405/gateway_payer_queue.fifo'

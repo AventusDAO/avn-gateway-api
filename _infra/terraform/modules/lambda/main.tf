@@ -1,9 +1,9 @@
 locals {
   lambdas = { for k, v in var.lambda_functions : k => {
-      env_vars         = [lookup(v, "env_vars", {})]
-      timeout          = lookup(v, "timeout", 3)
-      memory_size      = lookup(v, "memory_size", 128)
-      avn_votes_bucket = lookup(v, "avn_votes_bucket", "")
+    env_vars         = [lookup(v, "env_vars", {})]
+    timeout          = lookup(v, "timeout", 3)
+    memory_size      = lookup(v, "memory_size", 128)
+    avn_votes_bucket = lookup(v, "avn_votes_bucket", "")
     }
   }
   vote_handler_avn_bucket = local.lambdas["vote-handler"].avn_votes_bucket
@@ -27,7 +27,7 @@ resource "aws_lambda_function" "lambda" {
   dynamic "environment" {
     for_each = each.value["env_vars"]
     content {
-      variables = merge(environment.value, {AVN_CONNECTOR_ENDPOINT = var.avn_connector_endpoint})
+      variables = merge(environment.value, { AVN_CONNECTOR_ENDPOINT = var.avn_connector_endpoint })
     }
   }
 
@@ -73,7 +73,7 @@ resource "aws_cloudwatch_log_group" "lambda" {
 
 resource "aws_iam_role" "lambda_role" {
   for_each = local.lambdas
-  name = "${each.key}-lambda-role"
+  name     = "${each.key}-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -114,7 +114,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  for_each   = {for idx, val in aws_iam_role.lambda_role: idx => val}
+  for_each   = { for idx, val in aws_iam_role.lambda_role : idx => val }
   role       = each.value.name
   policy_arn = aws_iam_policy.lambda_logging.arn
 }
@@ -192,6 +192,30 @@ resource "aws_iam_policy" "full_access_vote_buckets" {
 EOF
 }
 
+resource "aws_iam_policy" "sender_sqs_access" {
+  name        = "avn-gateway-sqs"
+  description = "allow access to to SQS"
+
+  policy = <<EOF
+{
+  "Version" : "2012-10-17",
+  "Statement" : [
+    {
+      "Effect": "Allow",
+      "Action" : [
+        "sqs:SendMessage",
+        "sqs:SendMessageBatch"
+      ],
+      "Resource" : [
+        "${var.sqs_queue_arns.gateway_default_queue}",
+        "${var.sqs_queue_arns.gateway_payer_queue}"
+      ]
+    }
+  ]
+}
+EOF
+}
+
 resource "aws_iam_role_policy_attachment" "extra_permissions" {
   role       = aws_iam_role.lambda_role["vote-handler"].name
   policy_arn = aws_iam_policy.full_access_vote_buckets.arn
@@ -202,8 +226,13 @@ resource "aws_iam_role_policy_attachment" "rabbit_secret_access" {
   policy_arn = aws_iam_policy.lambda_logging.arn
 }
 
+resource "aws_iam_role_policy_attachment" "sender_sqs_access" {
+  role       = aws_iam_role.lambda_role["send-handler"].name
+  policy_arn = aws_iam_policy.sender_sqs_access.arn
+}
+
 resource "aws_iam_role_policy_attachment" "network" {
-  for_each   = {for idx, val in aws_iam_role.lambda_role: idx => val}
+  for_each = { for idx, val in aws_iam_role.lambda_role : idx => val }
 
   role       = each.value.name
   policy_arn = aws_iam_policy.lambda_network.arn
@@ -218,14 +247,14 @@ resource "aws_lambda_permission" "allow_api" {
 }
 
 resource "aws_security_group" "lambdas" {
-  name = "lambda-functions"
+  name        = "lambda-functions"
   description = "Lambda egress Security Group"
-  vpc_id = var.vpc_id
+  vpc_id      = var.vpc_id
 
   egress {
-    from_port = "0"
-    to_port = "0"
-    protocol = "-1"
+    from_port   = "0"
+    to_port     = "0"
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 

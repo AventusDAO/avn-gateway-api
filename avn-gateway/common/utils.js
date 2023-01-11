@@ -68,7 +68,7 @@ function requestFailed(response) {
   return response && response.error && response.error.length > 0;
 }
 
-function validResponse(id, result) {
+function buildValidResponseBody(id, result) {
   return { jsonrpc: '2.0', id, result };
 }
 

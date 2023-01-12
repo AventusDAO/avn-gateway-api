@@ -88,13 +88,13 @@ pipeline {
                         }
                     }
                 }
-                // stage('Gateway Api: Query') {
-                //     steps {
-                //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                //             sh "npm run queryApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
-                //         }
-                //     }
-                // }
+                stage('Gateway Api: Query') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run queryApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                        }
+                    }
+                }
                 stage('Gateway Api: Poll Failure cases') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -118,20 +118,20 @@ pipeline {
                 }
             }
         }
-        // stage('Gateway Api: Access') {
-        //     steps {
-        //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-        //             sh "npm run accessTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
-        //         }
-        //     }
-        // }
-        // stage('Gateway Api: Send') {
-        //     steps {
-        //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-        //             sh "npm run sendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiReport;"
-        //         }
-        //     }
-        // }
+        stage('Gateway Api: Access') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh "npm run accessTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
+                }
+            }
+        }
+        stage('Gateway Api: Send') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh "npm run sendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiReport;"
+                }
+            }
+        }
         stage('Gateway Api: Proxy') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {

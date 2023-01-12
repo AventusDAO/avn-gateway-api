@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();
@@ -70,6 +71,7 @@ function requestFailed(response) {
 function buildValidResponseBody(id, result) {
   return { jsonrpc: '2.0', id, result };
 }
+
 function isSplitFeeToken(token) {
   if (!token) return false;
 
@@ -158,6 +160,21 @@ function toWholeAVT(val) {
   return parseInt(wholeAmount.toString());
 }
 
+function buildErrorResponse(statusCode, errorMessage, body) {
+  return {
+    statusCode,
+    error: { message: errorMessage },
+    body
+  };
+}
+
+function buildSuccessResponse(body) {
+  return {
+    statusCode: 200,
+    body
+  };
+}
+
 function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payerAddress) {
   const encodedContext = registry.createType('Text', SIGNING_CONTEXT);
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
@@ -213,10 +230,17 @@ function encodeProxyProof(params) {
   return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
 }
 
+function hashString(string) {
+  return crypto.createHash('sha256').update(string).digest('hex');
+}
+
 // Keep alphabetical
 module.exports = {
   axios,
   BN,
+  buildSuccessResponse,
+  buildErrorResponse,
+  hashString,
   STASH_REWARD_DESTINATION,
   convertToAddress,
   convertToPublicKey,

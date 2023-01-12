@@ -22,6 +22,7 @@ module "lambda_functions" {
   sqs_queue_arns         = module.gateway_sqs.queue_arn
 
   lambda_functions = {
+
     authorisation-handler = {
       env_vars = {
         MAX_TOKEN_AGE_MSEC     = 60000
@@ -29,6 +30,7 @@ module "lambda_functions" {
       }
       memory_size = 512
     }
+
     send-handler = {
       env_vars = {
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
@@ -41,13 +43,16 @@ module "lambda_functions" {
       timeout     = 4
       memory_size = 512
     }
+
     poll-handler = {
       timeout     = 4
       memory_size = 256
     }
+
     query-handler = {
       memory_size = 256
     }
+
     lift-processing-handler = {
       env_vars = {
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
@@ -58,11 +63,13 @@ module "lambda_functions" {
       timeout     = 6
       memory_size = 128
     }
+
     tx-status-update-handler = {
       env_vars = {
         BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
       }
     }
+
     stakers-payout-handler = {
       env_vars = {
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
@@ -73,6 +80,7 @@ module "lambda_functions" {
       timeout     = 6
       memory_size = 128
     }
+
     vote-handler = {
       env_vars = {
         AVN_VOTES_BUCKET = local.avn_votes_bucket
@@ -80,9 +88,30 @@ module "lambda_functions" {
       memory_size = 256
       avn_votes_bucket = local.avn_votes_bucket
     }
+
     lower-handler = {
       timeout     = 6
       memory_size = 128
+    }
+
+    split-fee-handler = {
+      env_vars = {
+        SQS_PAYER_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_payer_queue"]
+      }
+      timeout     = 4
+      memory_size = 512
+    }
+
+    tx-dispatch-handler = {
+      env_vars = {
+        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
+        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
+        MQ_AVN_TX_QUEUE         = "avnTx"
+        SECRET_MANAGER_REGION   = var.region
+        SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
+      }
+      timeout     = 4
+      memory_size = 512
     }
   }
 

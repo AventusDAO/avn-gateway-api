@@ -12,14 +12,25 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 500,
       error: { message: err.message },
-      body: JSON.stringify(utils.errorResponse('internal', 'failed to connect to queue', err, event.body, null))
+      body: JSON.stringify(utils.buildErrorBody('internal', 'failed to connect to queue', err, event.body, null))
+    };
+  }
+
+  const result = await processRequest(event.body, context.awsRequestId);
+
+  if (utils.requestFailed(result) === true) {
+    return {
+      statusCode: 500,
+      error: { message: result.error.data },
+      body: JSON.stringify(result)
     };
   }
 
   return {
     statusCode: 200,
-    body: JSON.stringify(await processRequest(event.body, context.awsRequestId))
+    body: JSON.stringify(result)
   };
+
 };
 
 const connectToMQ = async () => {
@@ -35,14 +46,14 @@ async function processRequest(request, requestId) {
   try {
     call = JSON.parse(request);
   } catch (err) {
-    return utils.errorResponse('parse', 'failed to parse JSON', err, request, null);
+    return utils.buildErrorBody('parse', 'failed to parse JSON', err, request, null);
   }
 
   if (call.id === undefined) call.id = null;
   console.info('CALLID_TO_REQUESTID:', call.id + ':' + requestId);
 
   if (typeof call.method !== 'string') {
-    return utils.errorResponse('request', 'method type must be string', call.method, request, call.id);
+    return utils.buildErrorBody('request', 'method type must be string', call.method, request, call.id);
   } else {
     return await callSwitch(call, request, requestId);
   }
@@ -78,7 +89,7 @@ async function callSwitch(call, request, requestId) {
     case 'proxyPayoutStakers':
       return await processProxyPayoutStakers(call, request, requestId);
     default:
-      return utils.errorResponse('method', 'method not found', call.method, request, call.id);
+      return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
 }
 
@@ -94,7 +105,7 @@ async function processProxyTransfer(call, request, requestId) {
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
     if (utils.isValidAmount(amount) === false) throw 'amount';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -110,7 +121,7 @@ async function processProxyAddEthereumLog(call, request, requestId) {
     if (utils.isValidEventType(eventType) === false) throw 'eventType';
     if (utils.isValidEthereumTransactionHash(ethereumTransactionHash) === false) throw 'ethereumTransactionHash';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -128,7 +139,7 @@ async function processProxyTokenLower(call, request, requestId) {
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidEthereumAddress(t1Recipient) === false) throw 't1Recipient';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -143,7 +154,7 @@ async function processProxyCancelListFiatNft(call, request, requestId) {
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -159,7 +170,7 @@ async function processProxyListNftOpenForSale(call, request, requestId) {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID';
     if (utils.isValidMarket(market) === false) throw 'market';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -176,7 +187,7 @@ async function processProxyMintSingleNft(call, request, requestId) {
     if (utils.isValidArray(royalties) === false) throw 'royalties';
     if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -192,7 +203,7 @@ async function processProxyTransferFiatNft(call, request, requestId) {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID';
     if (utils.isValidAccountId(recipient) === false) throw 'recipient';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -204,7 +215,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
   try {
     validateMethodParams(relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce);
   } catch (err) {
-    return utils.errorResponse('params', err.toString(), err, request, call.id);
+    return utils.buildErrorBody('params', err.toString(), err, request, call.id);
   }
 
   let params;
@@ -220,7 +231,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
       methodParams
     );
   } catch (err) {
-    return utils.errorResponse('internal', err.toString(), err, request, call.id);
+    return utils.buildErrorBody('internal', err.toString(), err, request, call.id);
   }
 
   return await sendTx(call, request, requestId, pallet, method, params);
@@ -265,7 +276,7 @@ function getProxyProof(user, relayer, proxySignature) {
 async function processProxyStakeAvt(call, request, requestId) {
   // check if era election is open before proceeding
   if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.errorResponse('request', 'election window is open', {}, request, call.id);
+    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
   }
 
   const pallet = 'utility';
@@ -277,7 +288,7 @@ async function processProxyStakeAvt(call, request, requestId) {
     bondParams = await getBondParams(call);
     nominateParams = await getNominateParams(call);
   } catch (err) {
-    return utils.errorResponse('params', err.toString(), err, request, call.id);
+    return utils.buildErrorBody('params', err.toString(), err, request, call.id);
   }
 
   const bond = {
@@ -298,7 +309,7 @@ async function processProxyStakeAvt(call, request, requestId) {
 async function processProxyIncreaseStake(call, request, requestId) {
   // check if era election is open before proceeding
   if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.errorResponse('request', 'election window is open', {}, request, call.id);
+    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
   }
 
   const pallet = 'validatorsManager';
@@ -309,7 +320,7 @@ async function processProxyIncreaseStake(call, request, requestId) {
   try {
     if (utils.isValidAmount(amount) === false) throw 'amount';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -318,7 +329,7 @@ async function processProxyIncreaseStake(call, request, requestId) {
 async function processProxyUnstake(call, request, requestId) {
   // check if era election is open before proceeding
   if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.errorResponse('request', 'election window is open', {}, request, call.id);
+    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
   }
 
   const pallet = 'validatorsManager';
@@ -329,7 +340,7 @@ async function processProxyUnstake(call, request, requestId) {
   try {
     if (utils.isValidAmount(amount) === false) throw 'amount';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -338,7 +349,7 @@ async function processProxyUnstake(call, request, requestId) {
 async function processProxyWithdrawUnlocked(call, request, requestId) {
   // check if era election is open before proceeding
   if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.errorResponse('request', 'election window is open', {}, request, call.id);
+    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
   }
 
   const pallet = 'validatorsManager';
@@ -352,7 +363,7 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
 async function processProxyPayoutStakers(call, request, requestId) {
   // check if era election is open before proceeding
   if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.errorResponse('request', 'election window is open', {}, request, call.id);
+    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
   }
 
   const pallet = 'validatorsManager';
@@ -363,7 +374,7 @@ async function processProxyPayoutStakers(call, request, requestId) {
   try {
     if (utils.isValidNumber(era) === false) throw 'era';
   } catch (param) {
-    return utils.errorResponse('params', 'invalid ' + param, param, request, call.id);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -484,8 +495,8 @@ async function sendTx(call, request, requestId, palletName, method, params) {
     const queue = process.env.MQ_AVN_TX_QUEUE;
     const txType = 'avnProxy';
     const result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params });
-    return utils.validResponse(call.id, result);
+    return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.errorResponse('internal', 'failed to send proxy transaction', err, request, call.id);
+    return utils.buildErrorBody('internal', 'failed to send proxy transaction', err, request, call.id);
   }
 }

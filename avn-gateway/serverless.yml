@@ -225,6 +225,8 @@ functions:
     name: split-fee-handler
     handler: split-fee-handler.handler
     description: aws:states:opt-out
+    environment:
+      SQS_DEFAULT_QUEUE_URL: ${file(./${env:SLS_ENV}.yml):sqs_gateway_payer_queue_url}
     package:
       patterns:
         - '!**/**'
@@ -232,6 +234,25 @@ functions:
     memorySize: 128
     events:
       - sqs: ${file(./${env:SLS_ENV}.yml):sqs_gateway_payer_queue_arn}
+
+  tx-dispatch-handler:
+    name: tx-dispatch-handler
+    handler: tx-dispatch-handler.handler
+    description: aws:states:opt-out
+    environment:
+      MQ_AVN_TX_QUEUE: avnTx
+      MQ_BROKER_AMQP_ENDPOINT: ${file(./${env:SLS_ENV}.yml):mqBrokerAmpqEndpoint}
+      MQ_PROTOCOL: ${file(./${env:SLS_ENV}.yml):mqProtocol}
+      MQ_SECRET_ARN: ${file(./${env:SLS_ENV}.yml):mqSecretArn}
+      SECRET_MANAGER_REGION: ${aws:region}
+      SQS_DEFAULT_QUEUE_URL: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_url}
+    package:
+      patterns:
+        - '!**/**'
+        - tx-dispatch-handler.js
+    memorySize: 128
+    events:
+      - sqs: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_arn}
 
 resources:
   Resources:

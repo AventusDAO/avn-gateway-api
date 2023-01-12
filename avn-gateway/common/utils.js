@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();
@@ -44,7 +45,7 @@ const RPC_ERROR = {
   internal: { code: -32603, message: 'Internal error' }
 };
 
-function errorResponse(rpcError, gatewayError, error, request, id) {
+function buildErrorBody(rpcError, gatewayError, error, request, id) {
   const e = new Error();
   const splitStack = e.stack.split('\n');
   const frame = splitStack[2];
@@ -63,9 +64,21 @@ function errorResponse(rpcError, gatewayError, error, request, id) {
   return response;
 }
 
-function validResponse(id, result) {
+function requestFailed(response) {
+  return response && response.error && response.error.length > 0;
+}
+
+function buildValidResponseBody(id, result) {
   return { jsonrpc: '2.0', id, result };
 }
+
+function isSplitFeeToken(token) {
+  if (!token) return false;
+
+  const payerAddressIsSet = token.payer && token.payer.length > 0;
+  return token.hasPayer === true || payerAddressIsSet === true;
+}
+
 
 function isValidAccountId(accountId) {
   try {
@@ -147,12 +160,43 @@ function toWholeAVT(val) {
   return parseInt(wholeAmount.toString());
 }
 
-function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
+function buildErrorResponse(statusCode, errorMessage, body) {
+  return {
+    statusCode,
+    error: { message: errorMessage },
+    body
+  };
+}
+
+function buildSuccessResponse(body) {
+  return {
+    statusCode: 200,
+    body
+  };
+}
+
+function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payerAddress) {
   const encodedContext = registry.createType('Text', SIGNING_CONTEXT);
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
   const encodedIssuedAt = registry.createType('Text', issuedAt);
-  const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false));
-  return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+
+  if (!hasPayer && !payerAddress) {
+    // this is a legacy token
+    const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false));
+    return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+  } else {
+    const encodedHasPayer = registry.createType('bool', hasPayer);
+    const encodedPayer = registry.createType('Option<AccountId>', hexToU8a(payerAddress));
+
+    const encodedData = u8aConcat(
+      encodedContext.toU8a(false),
+      encodedPublicKey.toU8a(true),
+      encodedIssuedAt.toU8a(false),
+      encodedHasPayer.toU8a(true),
+      encodedPayer.toU8a(true)
+    );
+    return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+  }
 }
 
 function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
@@ -186,15 +230,23 @@ function encodeProxyProof(params) {
   return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
 }
 
+function hashString(string) {
+  return crypto.createHash('sha256').update(string).digest('hex');
+}
+
 // Keep alphabetical
 module.exports = {
   axios,
   BN,
+  buildSuccessResponse,
+  buildErrorResponse,
+  hashString,
   STASH_REWARD_DESTINATION,
   convertToAddress,
   convertToPublicKey,
-  errorResponse,
+  buildErrorBody,
   init,
+  isSplitFeeToken,
   isValidAccountId,
   isValidAmount,
   isValidArray,
@@ -209,11 +261,12 @@ module.exports = {
   isValidSignatureFormat,
   isValidString,
   isValidTransactionType,
+  requestFailed,
   signatureVerify,
   stringToHex,
   toBnString,
   toWholeAVT,
-  validResponse,
+  buildValidResponseBody,
   verifyAwtTokenSignature,
   verifyFeePaymentSignature
 };

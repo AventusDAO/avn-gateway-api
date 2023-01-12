@@ -13,9 +13,7 @@ function AvnApi(gateway, options) {
   this.version = version;
   this.awtToken;
   if (gateway) this.gateway = gateway;
-  if (options) {
-    if (options.suri) process.env.AVN_SURI = options.suri;
-  }
+  this.options = options || {};
 }
 
 AvnApi.prototype.init = async function () {
@@ -26,7 +24,7 @@ AvnApi.prototype.init = async function () {
   this.utils = Utils;
 
   if (this.gateway) {
-    awtToken = Awt.generateAwtToken(process.env.AVN_SURI);
+    awtToken = Awt.generateAwtToken(this.options.suri, this.options);
 
     const avnApi = {
       gateway: this.gateway,

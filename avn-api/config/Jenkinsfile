@@ -132,13 +132,13 @@ pipeline {
         //         }
         //     }
         // }
-        // stage('Gateway Api: Proxy') {
-        //     steps {
-        //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-        //             sh "npm run proxyApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=proxyApiReport;"
-        //         }
-        //     }
-        // }
+        stage('Gateway Api: Proxy') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh "npm run proxyApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=proxyApiReport;"
+                }
+            }
+        }
         // stage('Generate report') {
         //     steps {
         //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {

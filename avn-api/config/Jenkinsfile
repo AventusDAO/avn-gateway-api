@@ -95,27 +95,27 @@ pipeline {
                 //         }
                 //     }
                 // }
-                // stage('Gateway Api: Poll Failure cases') {
-                //     steps {
-                //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                //             sh "npm run failPollApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=failPollApiReport;"
-                //         }
-                //     }
-                // }
-                // stage('Gateway Api: Query Failure cases') {
-                //     steps {
-                //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                //             sh "npm run failQueryApiTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=failQueryApiReport;"
-                //         }
-                //     }
-                // }
-                // stage('Gateway Api: Send Failure cases') {
-                //     steps {
-                //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                //             sh "npm run failSendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=failSendApiReport;"
-                //         }
-                //     }
-                // }
+                stage('Gateway Api: Poll Failure cases') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run failPollApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=failPollApiReport;"
+                        }
+                    }
+                }
+                stage('Gateway Api: Query Failure cases') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run failQueryApiTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=failQueryApiReport;"
+                        }
+                    }
+                }
+                stage('Gateway Api: Send Failure cases') {
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh "npm run failSendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=failSendApiReport;"
+                        }
+                    }
+                }
             }
         }
         // stage('Gateway Api: Access') {

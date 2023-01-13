@@ -87,6 +87,14 @@ function isSplitFeeToken(token) {
 }
 
 
+function isSplitFeeToken(token) {
+  if (!token) return false;
+
+  const payerAddressIsSet = token.payer && token.payer.length > 0;
+  return token.hasPayer === true || payerAddressIsSet === true;
+}
+
+
 function isValidAccountId(accountId) {
   try {
     encodeAddress(isHex(accountId) ? hexToU8a(accountId) : decodeAddress(accountId));

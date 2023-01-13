@@ -1,7 +1,7 @@
 const utils = require('/opt/utils.js');
+const sqs = require('/opt/sqsUtils.js');
 
-const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
-const sqsClient = new SQSClient({ region: process.env.AWS_REGION });
+const sqsClient = new sqs.SQSClient({ region: process.env.SECRET_MANAGER_REGION });
 
 const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const PAYER_SQS_URL = process.env.SQS_PAYER_QUEUE_URL;
@@ -53,7 +53,7 @@ async function sendMessageToDefaultQueue(tx, awsRequestId) {
   };
 
   tx.awsRequestId = awsRequestId;
-  return await sqsClient.send(new SendMessageCommand(params));
+  return await sqsClient.send(new sqs.SendMessageCommand(params));
 }
 
 async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext) {
@@ -69,7 +69,7 @@ async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserCont
 
   tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress;
   tx.awsRequestId = awsRequestId;
-  return await sqsClient.send(new SendMessageCommand(params));
+  return await sqsClient.send(new sqs.SendMessageCommand(params));
 }
 
 function isSplitFeeTransaction(authoriserContext) {

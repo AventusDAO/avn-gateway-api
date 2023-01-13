@@ -30,10 +30,10 @@ async function processRequest(request, authoriserContext, awsRequestId) {
 
     if (isSplitFeeTransaction(authoriserContext) === true)
     {
-      const data = sendMessageToPayerQueue(tx);
+      const data = sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext);
       console.info(`Sent split fee transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`);
     } else {
-      const data = sendMessageToDefaultQueue(tx);
+      const data = sendMessageToDefaultQueue(tx, awsRequestId);
       console.info(`Sent self pay transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`);
     }
 
@@ -56,7 +56,7 @@ async function sendMessageToDefaultQueue(tx, awsRequestId) {
   return await sqsClient.send(new SendMessageCommand(params));
 }
 
-async function sendMessageToPayerQueue(tx, awsRequestId) {
+async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext) {
   const messageBody = JSON.stringify(tx);
   const params = {
     QueueUrl: PAYER_SQS_URL,
@@ -67,7 +67,7 @@ async function sendMessageToPayerQueue(tx, awsRequestId) {
 
   if (tx.paymentInfo) return utils.buildErrorBody('internal', 'split fee tx already contains payment info', tx.paymentInfo, request, tx.id);
 
-  tx.splitFeePayerAddress = splitFeePayerAddress;
+  tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress;
   tx.awsRequestId = awsRequestId;
   return await sqsClient.send(new SendMessageCommand(params));
 }

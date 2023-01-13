@@ -91,7 +91,7 @@ pipeline {
                 stage('Gateway Api: Query') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run queryApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                            sh "npm run queryApiTest:baseline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
                         }
                     }
                 }

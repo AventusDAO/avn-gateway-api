@@ -96,6 +96,7 @@ module "lambda_functions" {
 
     split-fee-handler = {
       env_vars = {
+        AWS_REGION              = var.region
         SQS_PAYER_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_payer_queue"]
       }
       timeout     = 4
@@ -107,7 +108,7 @@ module "lambda_functions" {
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
         MQ_SECRET_ARN           = module.rabbitmq.secret_arn
         MQ_AVN_TX_QUEUE         = "avnTx"
-        SECRET_MANAGER_REGION   = var.region
+        AWS_REGION              = var.region
         SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
       }
       timeout     = 4

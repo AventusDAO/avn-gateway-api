@@ -19,35 +19,35 @@ describe('Query api calls:', async () => {
   const expectedRelayerFees = {
     proxyAvtTransfer: '7000000000000000',
     proxyTokenTransfer: '7000000000000000',
-    proxyConfirmTokenLift: '7000000000000000',
-    proxyTokenLower: '7000000000000000',
+    proxyConfirmTokenLift: '1000000000000000',
+    proxyTokenLower: '1000000000000000',
     proxyMintSingleNft: '7000000000000000',
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',
     proxyCancelListFiatNft: '7000000000000000',
-    proxyBond: '7000000000000000',
-    proxyNominate: '7000000000000000',
-    proxyIncreaseStake: '7000000000000000',
-    proxyUnstake: '7000000000000000',
-    proxyWithdrawUnlocked: '7000000000000000',
-    proxyPayoutStakers: '7000000000000000'
+    proxyBond: '1000000000000000',
+    proxyNominate: '1000000000000000',
+    proxyIncreaseStake: '1000000000000000',
+    proxyUnstake: '1000000000000000',
+    proxyWithdrawUnlocked: '1000000000000000',
+    proxyPayoutStakers: '1000000000000000'
   };
 
   const expectedUserFees = {
     proxyAvtTransfer: '7000000000000000',
     proxyTokenTransfer: '7000000000000000',
-    proxyConfirmTokenLift: '7000000000000000',
-    proxyTokenLower: '7000000000000000',
+    proxyConfirmTokenLift: '1000000000000000',
+    proxyTokenLower: '1000000000000000',
     proxyMintSingleNft: '7000000000000000',
     proxyListNftOpenForSale: '7000000000000000',
     proxyTransferFiatNft: '7000000000000000',
     proxyCancelListFiatNft: '7000000000000000',
-    proxyBond: '7000000000000000',
-    proxyNominate: '7000000000000000',
-    proxyIncreaseStake: '7000000000000000',
-    proxyUnstake: '7000000000000000',
-    proxyWithdrawUnlocked: '7000000000000000',
-    proxyPayoutStakers: '7000000000000000'
+    proxyBond: '1000000000000000',
+    proxyNominate: '1000000000000000',
+    proxyIncreaseStake: '1000000000000000',
+    proxyUnstake: '1000000000000000',
+    proxyWithdrawUnlocked: '1000000000000000',
+    proxyPayoutStakers: '1000000000000000'
   };
 
   before(async () => {
@@ -104,7 +104,7 @@ describe('Query api calls:', async () => {
   describe('getChainInfo', async () => {
     it('can get the current chain information', async () => {
       let chainInfo = await api.query.getChainInfo();
-      assert.equal(chainInfo.name, 'AvN UAT Testnet');
+      assert.equal(chainInfo.name, 'AvN Staging Dev Parachain');
       assert.equal(chainInfo.version, '10');
     });
   });
@@ -113,7 +113,7 @@ describe('Query api calls:', async () => {
     // TODO: Update these tests when we allow the schedule period to be flexible
 
 
-    it('returns the correct data for a block falling within a published summary', async () => {
+    it('@NO_BASELINE returns the correct data for a block falling within a published summary', async () => {
       let currentBlock = parseInt(await api.query.getCurrentBlock());
       // Only runs if a summary should have been published by now
       if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
@@ -160,9 +160,9 @@ describe('Query api calls:', async () => {
 
   describe('getSummaryInclusionData', async () => {
     // TODO: Replace with testing mechanism to generate more recent lowers
-    it('gets correct data for a known lower', async () => {
-      const blockNumber = '6042';
-      const transactionIndex = '1';
+    it('@NO_BASELINE gets correct data for a known lower', async () => {
+      const blockNumber = '7221';
+      const transactionIndex = '3';
       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
       assert.equal(inclusionData.status, 'Published');
       assert.equal(inclusionData.inclusionProof.leafHash.length, 66);

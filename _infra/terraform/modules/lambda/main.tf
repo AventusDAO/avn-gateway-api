@@ -234,6 +234,16 @@ resource "aws_iam_policy" "split_fee_sqs_access" {
       "Resource" : [
         "${var.sqs_queue_arns.gateway_payer_queue}"
       ]
+    },
+    {
+      "Effect": "Allow",
+      "Action" : [
+        "sqs:SendMessage",
+        "sqs:SendMessageBatch"
+      ],
+      "Resource" : [
+        "${var.sqs_queue_arns.gateway_default_queue}"
+      ]
     }
   ]
 }

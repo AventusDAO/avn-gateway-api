@@ -51,8 +51,9 @@ async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMi
   if (!requestId) throw new Error('RequestId cannot be null');
   let response, status;
 
-  for (i = 0; i < (optionalTimeoutInMinutes || 20) * 60 / WAIT_TIME_IN_SEC; i++) {
+  for (i = 0; i < (optionalTimeoutInMinutes || 2) * 60 / WAIT_TIME_IN_SEC; i++) {
     await sleep(WAIT_TIME_IN_SEC * 1000);
+    console.log(".");
     response = await api.poll.requestState(requestId);
     status = response.status;
     if (status !== 'Pending' && status !== 'Transaction not found') {

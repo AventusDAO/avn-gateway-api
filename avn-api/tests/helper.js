@@ -47,11 +47,11 @@ function bnEquals(a, b) {
 }
 
 async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMinutes) {
-  console.log(`waiting for [${optionalTimeoutInMinutes || 4}] minutes`);
+  console.log(`waiting for [${optionalTimeoutInMinutes || 5}] minutes`);
   if (!requestId) throw new Error('RequestId cannot be null');
   let response, status;
 
-  for (i = 0; i < (optionalTimeoutInMinutes || 3) * 60 / WAIT_TIME_IN_SEC; i++) {
+  for (i = 0; i < (optionalTimeoutInMinutes || 5) * 60 / WAIT_TIME_IN_SEC; i++) {
     await sleep(WAIT_TIME_IN_SEC * 1000);
     response = await api.poll.requestState(requestId);
     status = response.status;

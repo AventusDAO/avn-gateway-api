@@ -184,8 +184,9 @@ app.post('/avnNftContractAddresses', async (req, res, next) => {
 app.post('/lowers', async (req, res, next) => {
   try {
     log.trace({ lowerDataRequest: req.body });
-    const result = await lowering.getLowers(req.body.account);
-    res.send(result);
+    log.trace("LOWER IS DISABLED ON DEV");
+    //const result = await lowering.getLowers(req.body.account);
+    res.send([]);
   } catch (err) {
     next(err);
   }

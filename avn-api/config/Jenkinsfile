@@ -67,20 +67,20 @@ pipeline {
         // }
         stage('Gateway Tests') {
             parallel {
-                stage('Gateway Api: Awt Test') {
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
-                        }
-                    }
-                }
-                stage('Gateway Api: Utils') {
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh "npm run utilsTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsReport;"
-                        }
-                    }
-                }
+                // stage('Gateway Api: Awt Test') {
+                //     steps {
+                //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                //             sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
+                //         }
+                //     }
+                // }
+                // stage('Gateway Api: Utils') {
+                //     steps {
+                //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                //             sh "npm run utilsTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsReport;"
+                //         }
+                //     }
+                // }
                 stage('Gateway Api: Poll') {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {

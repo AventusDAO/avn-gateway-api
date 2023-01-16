@@ -81,7 +81,7 @@ function tokenAgeIsValid(token) {
   }
 }
 
-async function isValidSelfPayUser(token) {
+async function isValidSelfPayUser(awtToken) {
   const userInfo = await tryGetUserInfo(awtToken);
   if (!userInfo) return false;
 

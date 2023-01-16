@@ -189,7 +189,6 @@ async function getLowersForAccount(account) {
 
   console.log(`\tTotal outstanding lowers: ${outstanding.length}`);
   console.log(`\tFound ${lowers.length} lowers relating to account ${account}`);
-  console.log(JSON.stringify(lowers))
   return lowers;
 }
 

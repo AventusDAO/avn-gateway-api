@@ -65,7 +65,8 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let retrieveFromBlock = parseInt((await redis.getRetrieveLowersFromBlock()) || 0);
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
-  console.log(`\tNew lower transactions after block ${retrieveFromBlock}: ${lowerTransactions.length}`);
+  console.log(`\tChecking for lowers from block: ${retrieveFromBlock}`);
+  console.log(`\tNew lower transactions found: ${lowerTransactions.length}`);
   for (let i = 0; i < lowerTransactions.length; i++) {
     const lowerTx = lowerTransactions[i];
     const txHash = lowerTx.txHash;
@@ -92,7 +93,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 async function updateUnpublishedLowers(latestPublishedBlock) {
   const unpublished = (await redis.getUnpublishedLowers()) || [];
 
-  console.log(`\tUnpublished lowers: ${unpublished.length}`)
+  console.log(`\tLowers not yet published to Ethereum: ${unpublished.length}`)
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
     const { blockNumber } = JSON.parse(await redis.getBlockIndex(txHash));
@@ -136,7 +137,7 @@ async function updateAwaitingClaimDataLowers() {
           error = true;
         }
       } else {
-        console.warn(`\t   🚨 Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
+        console.warn(`\t  🚨 Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
       }
     }
   }
@@ -150,7 +151,7 @@ async function updateUnclaimedLowers(avnContract, account) {
   const updateAll = Math.random() < 0.1; // 10% of the time we check the status of all unclaimed lowers
 
   const unclaimed = (await redis.getUnclaimedLowers()) || [];
-  console.log(`\tUnclaimed lowers: ${unclaimed.length} `);
+  console.log(`\tPublished but unclaimed lowers: ${unclaimed.length} `);
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];
@@ -187,7 +188,7 @@ async function getLowersForAccount(account) {
   }
 
   console.log(`\tOutstanding lowers: ${outstanding.length}`);
-  console.log(`\tFound ${lowers.length} published but unclaimed lowers relating to account ${account}`);
+  console.log(`\tFound ${lowers.length} lowers relating to account ${account}`);
   return lowers;
 }
 

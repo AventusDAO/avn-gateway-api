@@ -211,6 +211,7 @@ functions:
     name: lower-handler
     handler: lower-handler.handler
     description: aws:states:opt-out
+    timeout: 30
     package:
       patterns:
         - '!**/**'

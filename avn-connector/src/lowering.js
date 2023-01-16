@@ -155,7 +155,7 @@ async function updateUnclaimedLowers(avnContract, account) {
     const lowerData = JSON.parse(await redis.getLowerData(txHash));
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
-    if (lowerDataContainsAccount(lowerData, account))) {
+    if (lowerDataContainsAccount(lowerData, account)) {
       await updateLowerClaims(avnContract, leafHash, txHash);
     } else {
       updateLowerClaims(avnContract, leafHash, txHash);

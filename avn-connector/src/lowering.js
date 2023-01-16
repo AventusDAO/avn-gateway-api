@@ -20,7 +20,7 @@ async function getLowers(account) {
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
   await updateAwaitingClaimDataLowers();
-  await updateUnclaimedLowers(avnContract);
+  await updateUnclaimedLowers(avnContract, account);
   return await getLowersForAccount(account);
 }
 
@@ -146,7 +146,7 @@ async function updateAwaitingClaimDataLowers() {
   }
 }
 
-async function updateUnclaimedLowers(avnContract) {
+async function updateUnclaimedLowers(avnContract, account) {
   const unclaimed = (await redis.getUnclaimedLowers()) || [];
   console.log(`\tThere are ${unclaimed.length} unclaimed lowers ${unclaimed.length > 0 ? ', checking if any are claimed on T1...' : ''}`);
 
@@ -155,10 +155,10 @@ async function updateUnclaimedLowers(avnContract) {
     const lowerData = JSON.parse(await redis.getLowerData(txHash));
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
-    const lowerIsClaimedOnEthereum = await ethereum.lowerIsClaimed(avnContract, leafHash);
-    if (lowerIsClaimedOnEthereum === true) {
-      await redis.removeUnclaimedLower(txHash);
-      await redis.deleteLowerData(txHash);
+    if (lowerDataContainsAccount(lowerData, account))) {
+      await updateLowerClaims(avnContract, leafHash, txHash);
+    } else {
+      updateLowerClaims(avnContract, leafHash, txHash);
     }
   }
 }
@@ -170,6 +170,15 @@ async function getLowerTransactions(blockNumber) {
   return response.data ? (response.data.data || []) : [];
 }
 
+async function updateLowerClaims(avnContract, leafHash, txHash) {
+  const lowerIsClaimedOnEthereum = await ethereum.lowerIsClaimed(avnContract, leafHash);
+
+  if (lowerIsClaimedOnEthereum === true) {
+    await redis.removeUnclaimedLower(txHash);
+    await redis.deleteLowerData(txHash);
+  }
+}
+
 async function getLowersForAccount(account) {
   const unpublished = await redis.getUnpublishedLowers();
   const awaiting = await redis.getAwaitingClaimDataLowers();
@@ -179,13 +188,17 @@ async function getLowersForAccount(account) {
 
   for (let i = 0; i < outstanding.length; i++) {
     const lowerData = JSON.parse(await redis.getLowerData(outstanding[i]));
-    if (lowerData && lowerData.from.toLowerCase() === account.toLowerCase() || lowerData.to.toLowerCase() === account.toLowerCase()) {
+    if (lowerData && lowerDataContainsAccount(lowerData, account)) {
       lowers.push(lowerData);
     }
   }
 
   console.log(`\tFound ${lowers.length} lowers related to account ${account}. Total outstanding: ${outstanding.length} `);
   return lowers;
+}
+
+function lowerDataContainsAccount(lowerData, account) {
+  return lowerData.from.toLowerCase() === account.toLowerCase() || lowerData.to.toLowerCase() === account.toLowerCase();
 }
 
 module.exports = {

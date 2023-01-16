@@ -122,11 +122,11 @@ resource "aws_apigatewayv2_integration" "lower" {
   for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
 
   api_id           = aws_apigatewayv2_api.avn_gateway_api.id
-  #integration_type = "AWS_PROXY"
+  integration_type = "AWS_PROXY"
 
   connection_type        = "INTERNET"
   description            = "Lower handler integration"
-  integration_method     = "GET"
+  integration_method     = "ANY"
   integration_uri        = var.lower_invoke_arn
   passthrough_behavior   = "WHEN_NO_MATCH"
   payload_format_version = "2.0"

@@ -18,6 +18,7 @@ env:
   QUEUE: queue
   STAKER_PAY: stakers-payout-handler
   VOTE: vote-handler
+  LOWER: lower-handler
 
 defaults:
   run:
@@ -74,6 +75,7 @@ jobs:
           mv build/${{ env.QUEUE }}.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip
           mv build/${{ env.STAKER_PAY }}.zip build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-latest.zip
           mv build/${{ env.VOTE }}.zip build/${{ env.VOTE }}/${{ env.VOTE }}-latest.zip
+          mv build/${{ env.LOWER }}.zip build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip
           ls -l build/
 
       - name: create Short sha version
@@ -88,6 +90,7 @@ jobs:
           cp build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-latest.zip build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.VOTE }}/${{ env.VOTE }}-latest.zip build/${{ env.VOTE }}/${{ env.VOTE }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip build/${{ env.LOWER }}/${{ env.LOWER }}-${{ needs.version-suffix.outputs.version }}.zip
 
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@v0.5.1

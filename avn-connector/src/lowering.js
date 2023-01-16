@@ -143,7 +143,7 @@ async function updateAwaitingClaimDataLowers() {
   }
 
   if (error === true) {
-    throw new Error("Error processing AwaitingClaimDataLowers");
+    throw new Error('Error processing AwaitingClaimDataLowers');
   }
 }
 

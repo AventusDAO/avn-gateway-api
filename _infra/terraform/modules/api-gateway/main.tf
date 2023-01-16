@@ -138,7 +138,7 @@ resource "aws_apigatewayv2_route" "lower" {
   api_id    = aws_apigatewayv2_api.avn_gateway_api.id
   route_key = "GET /lowers"
 
-  target = "integrations/${aws_apigatewayv2_integration.vote["lower"].id}"
+  target = "integrations/${aws_apigatewayv2_integration.lower["full"].id}"
 }
 
 resource "aws_apigatewayv2_authorizer" "authoriser" {

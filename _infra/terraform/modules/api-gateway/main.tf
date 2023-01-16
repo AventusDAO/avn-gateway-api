@@ -118,6 +118,29 @@ resource "aws_apigatewayv2_route" "vote" {
   target = "integrations/${aws_apigatewayv2_integration.vote["full"].id}"
 }
 
+resource "aws_apigatewayv2_integration" "lower" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
+  api_id           = aws_apigatewayv2_api.avn_gateway_api.id
+  integration_type = "AWS_PROXY"
+
+  connection_type        = "INTERNET"
+  description            = "Lower handler integration"
+  integration_method     = "GET"
+  integration_uri        = var.vote_invoke_arn
+  passthrough_behavior   = "WHEN_NO_MATCH"
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "lower" {
+  for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
+
+  api_id    = aws_apigatewayv2_api.avn_gateway_api.id
+  route_key = "GET /lowers"
+
+  target = "integrations/${aws_apigatewayv2_integration.vote["lower"].id}"
+}
+
 resource "aws_apigatewayv2_authorizer" "authoriser" {
   for_each = var.skeleton_gateway ? toset([]) : toset(["full"])
 

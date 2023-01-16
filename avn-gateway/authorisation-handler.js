@@ -14,7 +14,7 @@ exports.handler = async event => {
 
 async function validateAwtToken(event) {
   // This must be here because we don't want to leake state as a global variable.
-  const ValidRequestResponse = { isAuthorized: true };
+  const ValidRequestResponse = { isAuthorized: true, context: {} };
 
   console.info('Validating AWT token and user balance');
   const awtToken = getAwtTokenIfAny(event);

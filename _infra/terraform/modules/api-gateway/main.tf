@@ -126,7 +126,7 @@ resource "aws_apigatewayv2_integration" "lower" {
 
   connection_type        = "INTERNET"
   description            = "Lower handler integration"
-  integration_method     = "ANY"
+  integration_method     = "POST"
   integration_uri        = var.lower_invoke_arn
   passthrough_behavior   = "WHEN_NO_MATCH"
   payload_format_version = "2.0"
@@ -167,7 +167,8 @@ resource "aws_apigatewayv2_deployment" "default" {
     aws_apigatewayv2_route.poll,
     aws_apigatewayv2_route.query,
     aws_apigatewayv2_route.send,
-    aws_apigatewayv2_route.vote
+    aws_apigatewayv2_route.vote,
+    aws_apigatewayv2_route.lower,
   ]
 }
 

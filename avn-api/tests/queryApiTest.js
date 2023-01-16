@@ -102,10 +102,10 @@ describe('Query api calls:', async () => {
   });
 
   describe('getChainInfo', async () => {
-    it('can get the current chain information', async () => {
+    it('@NO_BASELINE can get the current chain information', async () => {
       let chainInfo = await api.query.getChainInfo();
       assert.equal(chainInfo.name, 'AvN Staging Dev Parachain');
-      assert.equal(chainInfo.version, '10');
+      assert.equal(chainInfo.version, '19');
     });
   });
 
@@ -181,7 +181,7 @@ describe('Query api calls:', async () => {
     });
 
 
-    it('returns info for a transaction that does not exist', async () => {
+    it('@NO_BASELINE returns info for a transaction that does not exist', async () => {
       let currentBlock = parseInt(await api.query.getCurrentBlock());
       if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
         const blockNumber = currentBlock - SCHEDULE_PERIOD;
@@ -191,7 +191,7 @@ describe('Query api calls:', async () => {
       }
     });
 
-    it('returns info for an as yet unpublished transaction', async () => {
+    it('@NO_BASELINE returns info for an as yet unpublished transaction', async () => {
       const amount = new BN(1);
       const requestId = await api.send.transferAvt(relayer.address, recipient.address, amount);
       let response = await helper.confirmStatus(api, requestId, 'Processed');

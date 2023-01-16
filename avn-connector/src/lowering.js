@@ -111,7 +111,7 @@ async function updateAwaitingClaimDataLowers() {
 
   let error = false;
 
-  console.log(`\tLowers awaiting RPC lower data: ${awaiting.length}`)
+  console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`)
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = JSON.parse(await redis.getBlockIndex(txHash));
@@ -151,7 +151,7 @@ async function updateUnclaimedLowers(avnContract, account) {
   const updateAll = Math.random() < 0.1; // 10% of the time we check the status of all unclaimed lowers
 
   const unclaimed = (await redis.getUnclaimedLowers()) || [];
-  console.log(`\tPublished but unclaimed lowers: ${unclaimed.length} `);
+  console.log(`\tPublished lowers waiting to be claimed: ${unclaimed.length} `);
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];
@@ -187,8 +187,9 @@ async function getLowersForAccount(account) {
     }
   }
 
-  console.log(`\tOutstanding lowers: ${outstanding.length}`);
+  console.log(`\tTotal outstanding lowers: ${outstanding.length}`);
   console.log(`\tFound ${lowers.length} lowers relating to account ${account}`);
+  console.log(JSON.stringify(lowers))
   return lowers;
 }
 

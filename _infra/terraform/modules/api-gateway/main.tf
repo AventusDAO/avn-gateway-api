@@ -127,7 +127,7 @@ resource "aws_apigatewayv2_integration" "lower" {
   connection_type        = "INTERNET"
   description            = "Lower handler integration"
   integration_method     = "GET"
-  integration_uri        = var.vote_invoke_arn
+  integration_uri        = var.lower_invoke_arn
   passthrough_behavior   = "WHEN_NO_MATCH"
   payload_format_version = "2.0"
 }

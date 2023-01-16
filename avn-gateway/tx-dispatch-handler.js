@@ -18,7 +18,7 @@ exports.handler = async (event, context) => {
     };
   }
 
-  const result = await processRequest(event.body, context.awsRequestId);
+  const result = await processRequest(event.Records[0].body);
 
   if (utils.requestFailed(result) === true) {
     return {
@@ -42,11 +42,13 @@ const connectToMQ = async () => {
   }
 };
 
-async function processRequest(request, requestId) {
+async function processRequest(request) {
   let call;
+  let requestId;
 
   try {
     call = JSON.parse(request);
+    requestId = call.awsRequestId;
   } catch (err) {
     return utils.buildErrorBody('parse', 'failed to parse JSON', err, request, null);
   }

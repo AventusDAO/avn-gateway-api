@@ -30,10 +30,10 @@ async function processRequest(request, authoriserContext, awsRequestId) {
 
     if (isSplitFeeTransaction(authoriserContext) === true)
     {
-      const data = sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext);
+      const data = await sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext);
       console.info(`Sent split fee transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`);
     } else {
-      const data = sendMessageToDefaultQueue(tx, awsRequestId);
+      const data = await sendMessageToDefaultQueue(tx, awsRequestId);
       console.info(`Sent self pay transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`);
     }
 
@@ -44,7 +44,9 @@ async function processRequest(request, authoriserContext, awsRequestId) {
 }
 
 async function sendMessageToDefaultQueue(tx, awsRequestId) {
+  tx.awsRequestId = awsRequestId;
   const messageBody = JSON.stringify(tx);
+
   const params = {
     QueueUrl: DEFAULT_SQS_URL,
     MessageGroupId: 'DEFAULT',
@@ -52,12 +54,14 @@ async function sendMessageToDefaultQueue(tx, awsRequestId) {
     MessageBody: messageBody,
   };
 
-  tx.awsRequestId = awsRequestId;
   return await sqsClient.send(new sqs.SendMessageCommand(params));
 }
 
 async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext) {
+  tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress;
+  tx.awsRequestId = awsRequestId;
   const messageBody = JSON.stringify(tx);
+
   const params = {
     QueueUrl: PAYER_SQS_URL,
     MessageGroupId: 'PAYER',
@@ -67,8 +71,6 @@ async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserCont
 
   if (tx.paymentInfo) return utils.buildErrorBody('internal', 'split fee tx already contains payment info', tx.paymentInfo, request, tx.id);
 
-  tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress;
-  tx.awsRequestId = awsRequestId;
   return await sqsClient.send(new sqs.SendMessageCommand(params));
 }
 

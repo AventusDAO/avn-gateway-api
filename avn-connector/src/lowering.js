@@ -147,6 +147,8 @@ async function updateAwaitingClaimDataLowers() {
 }
 
 async function updateUnclaimedLowers(avnContract, account) {
+  const updateAll = Math.random() < 0.1; // 10% of the time we check the status of all unclaimed lowers
+
   const unclaimed = (await redis.getUnclaimedLowers()) || [];
   console.log(`\tThere are ${unclaimed.length} unclaimed lowers in total`);
 
@@ -156,12 +158,9 @@ async function updateUnclaimedLowers(avnContract, account) {
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
     if (lowerDataContainsAccount(lowerData, account)) {
-      const lowerIsClaimedOnEthereum = await ethereum.lowerIsClaimed(avnContract, leafHash);
-
-      if (lowerIsClaimedOnEthereum === true) {
-        await redis.removeUnclaimedLower(txHash);
-        await redis.deleteLowerData(txHash);
-      }
+      await updateLowerClaim(avnContract, leafHash, txHash);
+    } else if (updateAll) {
+      updateLowerClaim(avnContract, leafHash, txHash); // async check
     }
   }
 }
@@ -194,6 +193,15 @@ async function getLowersForAccount(account) {
 
 function lowerDataContainsAccount(lowerData, account) {
   return lowerData.from.toLowerCase() === account.toLowerCase() || lowerData.to.toLowerCase() === account.toLowerCase();
+}
+
+async function updateLowerClaim(avnContract, leafHash, txHash) {
+  const lowerIsClaimedOnEthereum = await ethereum.lowerIsClaimed(avnContract, leafHash);
+
+  if (lowerIsClaimedOnEthereum === true) {
+    await redis.removeUnclaimedLower(txHash);
+    await redis.deleteLowerData(txHash);
+  }
 }
 
 module.exports = {

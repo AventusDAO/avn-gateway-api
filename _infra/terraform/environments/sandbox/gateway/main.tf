@@ -33,6 +33,12 @@ module "rabbit_credentials" {
   secret_name = "rabbitmq"
 }
 
+module "rabbitmq" {
+  source          = "../../../modules/rabbitmq"
+  vpc_id          = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnet_ids      = setunion(data.terraform_remote_state.vpc.outputs.private_subnets, data.terraform_remote_state.vpc.outputs.public_subnets)
+}
+
 data "aws_eks_cluster" "eks" {
   name = module.eks.cluster_id
 }
@@ -103,7 +109,7 @@ module "k8s_service_account_permissions" {
   source = "../../../modules/k8s-service-account-permissions"
 
   oidc_provider     = module.eks.oidc_provider_arn
-  rabbit_secret_arn = module.rabbit_credentials.secret_arn
+  rabbit_secret_arn = module.rabbitmq.secret_arn
 
   depends_on = [
     module.eks,

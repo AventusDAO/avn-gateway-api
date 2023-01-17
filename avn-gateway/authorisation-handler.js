@@ -93,7 +93,7 @@ async function isValidSelfPayUser(awtToken) {
 
 async function tryGetPayerAddressForUser(token) {
   //TODO: Validate by checking if there is a payer in RDS. If there is, return it
-  return "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh"; // undefined
+  return "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf"; // undefined
 }
 
 async function tryGetUserInfo(awtToken) {

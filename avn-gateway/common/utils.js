@@ -55,7 +55,7 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
   const ref = file + ' line ' + lineNum + ' (' + func + ')';
   const errorData = error.response ? error.response.data : 'N/A';
   console.error(
-    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${JSON.stringify(error)}`
+    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${gatewayError}\n${JSON.stringify(error)}`
   );
   let response = { jsonrpc: '2.0', id };
   response.error = RPC_ERROR[rpcError];

@@ -6,7 +6,6 @@ locals {
   account_id             = "352429414196"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   avn_votes_bucket       = "avn-votes-sandbox"
-  block_explorer_url     = "https://avn.stargate.aventus.io:3000"
   vault_recovery_window  = 0
 }
 

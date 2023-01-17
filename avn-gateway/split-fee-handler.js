@@ -69,8 +69,8 @@ async function processRequest(request) {
   // TODO: validate call
   console.info('CALLID_TO_REQUESTID:', call.id + ' : ' + requestId);
 
-  const paymentParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, call);
-  const encodedPaymentParams = fees.encodePaymentParams(paymentParams);
+  const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, call);
+  const encodedPaymentParams = fees.encodePaymentParams(feeParams.relayer, feeParams.relayerFee, feeParams.paymentNonce, feeParams.proxyProof);
 
   const paymentSignature = await signPaymentInfo(call.splitFeePayerAddress, encodedPaymentParams);
 
@@ -82,7 +82,7 @@ async function processRequest(request) {
   )
 
   call.params.feePaymentSignature = paymentSignature;
-  call.params.paymentNonce = paymentParams.paymentNonce;
+  call.params.paymentNonce = feeParams.paymentNonce;
 
   console.log("Updated call to store in default queue: ", JSON.stringify(call))
 

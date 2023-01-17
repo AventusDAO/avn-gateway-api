@@ -22,7 +22,7 @@ async function getSplitFeePaymentParams(connectorUrl, call) {
   const { relayer, user, proxySignature } = call.params;
   const proxyProof = utils.getProxyProof(user, relayer, proxySignature);
   const relayerFee = await utils.getRelayerFee(connectorUrl, relayer, call.splitFeePayerAddress, call.method);
-  const paymentNonce = await getPaymentNonce(connectorUrl, `${call.id}:${call.requestId}`, call.splitFeePayerAddress);
+  const paymentNonce = await getPaymentNonce(connectorUrl, `${call.id}:${call.awsRequestId}`, call.splitFeePayerAddress);
   return {
     relayer,
     relayerFee,
@@ -32,7 +32,6 @@ async function getSplitFeePaymentParams(connectorUrl, call) {
 }
 
 async function getPaymentNonce(connectorUrl, requestId, payer) {
-  let nonce;
   try {
     const requestParams = {
       callId: requestId,
@@ -42,11 +41,10 @@ async function getPaymentNonce(connectorUrl, requestId, payer) {
     };
 
     const avnResponse = await utils.axios.post(connectorUrl + 'avnQuery', requestParams);
+    if (!avnResponse) throw new Error(`Null response when querying payment nonce for user: ${payer}, id: ${requestId}`);
+    if (avnResponse.error) throw new Error(avnResponse.error);
 
-    if (!response.data) throw new Error(`Null response when querying payment nonce for user: ${payer}, id: ${requestId}`);
-
-    nonce = avnResponse.data.error || utils.toBnString(avnResponse.data);
-    return nonce;
+    return utils.toBnString(avnResponse.data);
 
   } catch (error) {
     throw new Error(`Error getting payment nonce for user ${payer}: ${error.toString()}`);

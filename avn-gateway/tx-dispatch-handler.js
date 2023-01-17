@@ -244,7 +244,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
   try {
     validateMethodParams(relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce);
   } catch (err) {
-    return utils.buildErrorBody('params', err.toString(), err, request, call.id);
+    return utils.buildErrorBody('params', 'Invalid proxy method parameters', err.toString(), request, call.id);
   }
 
   let params;
@@ -260,7 +260,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
       methodParams
     );
   } catch (err) {
-    return utils.buildErrorBody('internal', err.toString(), err, request, call.id);
+    return utils.buildErrorBody('internal', 'Failed processing proxy method', err.toString(), request, call.id);
   }
 
   return await sendTx(call, request, requestId, pallet, method, params);
@@ -308,7 +308,7 @@ async function processProxyStakeAvt(call, request, requestId) {
     bondParams = await getBondParams(call);
     nominateParams = await getNominateParams(call);
   } catch (err) {
-    return utils.buildErrorBody('params', err.toString(), err, request, call.id);
+    return utils.buildErrorBody('params', 'Invalid staking params', err.toString(), request, call.id);
   }
 
   const bond = {
@@ -517,6 +517,6 @@ async function sendTx(call, request, requestId, palletName, method, params) {
     const result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params });
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.buildErrorBody('internal', 'failed to send proxy transaction', err, request, call.id);
+    return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
   }
 }

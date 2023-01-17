@@ -22,7 +22,7 @@ async function processRequest(request, authoriserContext, awsRequestId) {
   try {
     tx = JSON.parse(request);
   } catch (err) {
-    return utils.buildErrorBody('parse', 'failed to parse JSON', err, request, null);
+    return utils.buildErrorBody('parse', 'failed to parse JSON', err.toString(), request, null);
   }
 
   try {
@@ -39,7 +39,7 @@ async function processRequest(request, authoriserContext, awsRequestId) {
 
     return utils.buildValidResponseBody(tx.id, awsRequestId);
   } catch (err) {
-    return utils.buildErrorBody('internal', 'failed to handle send transaction', err, request, tx.id);
+    return utils.buildErrorBody('internal', 'failed to handle send transaction', err.toString(), request, tx.id);
   }
 }
 

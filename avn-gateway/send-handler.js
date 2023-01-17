@@ -69,7 +69,7 @@ async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserCont
     MessageBody: messageBody,
   };
 
-  if (tx.feePaymentSignature) return utils.buildErrorBody('internal', 'split fee tx already contains payment info', {}, request, tx.id);
+  if (tx.params.feePaymentSignature) throw new Error('split fee tx already contains payment info');
 
   return await sqsClient.send(new sqs.SendMessageCommand(params));
 }

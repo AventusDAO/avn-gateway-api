@@ -8,6 +8,9 @@ const utils = require('/opt/utils.js');
 const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
 
+const sqsClient = new sqs.SQSClient({ region: process.env.SECRET_MANAGER_REGION });
+
+const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event) => {
@@ -55,41 +58,56 @@ exports.handler = async (event) => {
 };
 
 async function processRequest(request) {
-  let call;
+  let tx;
   let requestId;
 
   try {
-    call = JSON.parse(request);
-    requestId = call.awsRequestId;
+    tx = JSON.parse(request);
+    requestId = tx.awsRequestId;
   } catch (err) {
     console.error(`Failed to parse message as JSON: `, err);
     throw err;
   }
 
-  // TODO: validate call
-  console.info('CALLID_TO_REQUESTID:', call.id + ' : ' + requestId);
+  // TODO: validate tx
+  console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
 
-  const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, call);
+  const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
   const encodedPaymentParams = fees.encodePaymentParams(feeParams.relayer, feeParams.relayerFee, feeParams.paymentNonce, feeParams.proxyProof);
 
-  const paymentSignature = await signPaymentInfo(call.splitFeePayerAddress, encodedPaymentParams);
+  const paymentSignature = await signPaymentInfo(tx.splitFeePayerAddress, encodedPaymentParams);
 
   const paymentInfo = fees.getPaymentInfo(
-    call.splitFeePayerAddress,
-    call.params.relayer,
-    call.params.relayerFee,
+    tx.splitFeePayerAddress,
+    tx.params.relayer,
+    tx.params.relayerFee,
     paymentSignature
   )
 
-  call.params.feePaymentSignature = paymentSignature;
-  call.params.paymentNonce = feeParams.paymentNonce;
+  tx.params.feePaymentSignature = paymentSignature;
+  tx.params.paymentNonce = feeParams.paymentNonce;
 
-  console.log("Updated call to store in default queue: ", JSON.stringify(call))
+  console.log("Updated tx to store in default queue: ", JSON.stringify(tx))
 
-  return utils.buildValidResponseBody(call.id, requestId);
+  const data = await sendMessageToDefaultQueue(tx);
+  console.info(`Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`);
+  return utils.buildValidResponseBody(tx.id, requestId);
 }
 
 async function signPaymentInfo(payer, encodedParams) {
   // TODO: Sign using `payers's private keys
   return ''
+}
+
+async function sendMessageToDefaultQueue(message) {
+  const messageBody = JSON.stringify(message);
+
+  const params = {
+    QueueUrl: DEFAULT_SQS_URL,
+    MessageGroupId: 'DEFAULT',
+    MessageDeduplicationId: utils.hashString(messageBody),
+    MessageBody: messageBody,
+  };
+
+  return await sqsClient.send(new sqs.SendMessageCommand(params));
 }

@@ -71,7 +71,7 @@ async function poll(requestId) {
 
     if (!tx) {
       log.error(`No transaction found for requestId: ${requestId}`);
-      return { error: 'Transaction not found' };
+      return { error: `No transaction found for requestId: ${requestId}`, status: 'Transaction not found' };
     }
 
     return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex };

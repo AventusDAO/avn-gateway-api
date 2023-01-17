@@ -65,7 +65,11 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
 }
 
 function requestFailed(response) {
-  return response && response.error && response.error.length > 0;
+  if (response && response.error && response.error.length > 0) {
+  	return true;
+  }
+
+  return false;
 }
 
 function buildValidResponseBody(id, result) {
@@ -74,7 +78,7 @@ function buildValidResponseBody(id, result) {
 function isSplitFeeToken(token) {
   if (!token) return false;
 
-  const payerAddressIsSet = token.payer && token.payer.length > 0;
+  const payerAddressIsSet = (token.payer || []).length > 0;
   return token.hasPayer === true || payerAddressIsSet === true;
 }
 

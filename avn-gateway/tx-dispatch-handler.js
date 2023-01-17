@@ -12,6 +12,16 @@ exports.handler = async (event) => {
   let processedMessagesCount = 0;
 
   try {
+
+    if (!event.Records) {
+      console.log(`No messages to process.`);
+      return {
+        statusCode: 200,
+        body: `No messages to process`
+      };
+    }
+
+    console.log(`Processing ${event.Records.length} message(s) from queue`);
     await connectToMQ();
 
     for (let record of event.Records) {
@@ -23,6 +33,7 @@ exports.handler = async (event) => {
     }
 
     if (processedMessagesCount < event.Records.length) {
+      console.warn(`Processed ${processedMessagesCount} out of ${event.Records.length} message(s) successfully.`);
       return {
         batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
       };
@@ -30,7 +41,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      body: `${event.Records.length} messages processed successfully.`
+      body: `${event.Records.length} message(s) processed successfully.`
     };
 
   } catch (err) {

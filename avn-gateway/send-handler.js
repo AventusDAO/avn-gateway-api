@@ -75,6 +75,10 @@ async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserCont
 }
 
 function isSplitFeeTransaction(authoriserContext) {
-  const hasValidPayer = authoriserContext.splitFeePayerAddress && utils.isValidAccountId(authoriserContext.splitFeePayerAddress);
+  if (!authoriserContext.splitFeePayerAddress) {
+    return false;
+  }
+
+  const hasValidPayer = utils.isValidAccountId(authoriserContext.splitFeePayerAddress);
   return authoriserContext.isSplitFeeUser === true && hasValidPayer
 }

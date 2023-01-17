@@ -247,10 +247,9 @@ function getProxyProof(user, relayerAddress, proxySignature) {
 }
 
 async function getRelayerFee(connectorUrl, relayer, payer, transactionType) {
-  let relayerFee;
   try {
     const avnResponse = await axios.post(connectorUrl + 'relayerFees', { relayer, payer, transactionType });
-    relayerFee = avnResponse.data.toString();
+    return avnResponse.data.toString();
   } catch (error) {
     throw new Error(`could not get relayer fee: ${error.toString()}`);
   }

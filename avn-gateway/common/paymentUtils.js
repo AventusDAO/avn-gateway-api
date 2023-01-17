@@ -16,6 +16,16 @@ function getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSign
   };
 }
 
+async function tryGetPaymentInfo(connectorUrl, payerAddress, relayerAddress, feePaymentSignature, transactionType, paymentNonce, proxyProof)
+{
+  const relayerFee = await utils.getRelayerFee(connectorUrl, relayerAddress, payerAddress, transactionType);
+  const isVerified = verifyFeePaymentSignature(payerAddress, relayerAddress, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
+  if (isVerified === false) {
+    throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
+  }
+  return getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSignature);
+}
+
 async function getSplitFeePaymentParams(connectorUrl, call) {
   if (!call) return undefined;
 
@@ -51,6 +61,11 @@ async function getPaymentNonce(connectorUrl, requestId, payer) {
   }
 }
 
+function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+  const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof);
+  return utils.verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
+}
+
 function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
   const encodedProxyProof = utils.encodeProxyProof(proxyProof);
@@ -72,5 +87,7 @@ module.exports = {
   encodePaymentParams,
   getPaymentInfo,
   getPaymentNonce,
-  getSplitFeePaymentParams
+  getSplitFeePaymentParams,
+  tryGetPaymentInfo,
+  verifyFeePaymentSignature
 };

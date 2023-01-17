@@ -201,24 +201,6 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payer
   }
 }
 
-function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
-  const encodedProxyProof = encodeProxyProof(proxyProof);
-  const encodedRelayer = registry.createType('AccountId', relayer);
-  const encodedRelayerFee = registry.createType('Balance', relayerFee);
-  const encodedPaymentNonce = registry.createType('u64', paymentNonce);
-
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedProxyProof,
-    encodedRelayer.toU8a(true),
-    encodedRelayerFee.toU8a(true),
-    encodedPaymentNonce.toU8a(true)
-  );
-
-  return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
-}
-
 function verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey) {
   const message = u8aToHex(encodedData);
   const wrappedMessage = stringToHex('<Bytes>') + message.substr(2) + stringToHex('</Bytes>').substr(2);
@@ -292,5 +274,5 @@ module.exports = {
   toWholeAVT,
   buildValidResponseBody,
   verifyAwtTokenSignature,
-  verifyFeePaymentSignature
+  verifySignatureWithOrWithoutWrapping
 };

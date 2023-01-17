@@ -1,6 +1,7 @@
 const utils = require('/opt/utils.js');
-const MQSender = require('/opt/mqSender.js');
 const sqs = require('/opt/sqsUtils.js');
+const fees = require('/opt/paymentUtils.js');
+const MQSender = require('/opt/mqSender.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
@@ -247,51 +248,18 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
     return utils.buildErrorBody('params', 'Invalid proxy method parameters', err.toString(), request, call.id);
   }
 
-  let params;
-  try {
-    params = await getProxyParams(
-      call.method,
-      relayer,
-      user,
-      payer,
-      proxySignature,
-      feePaymentSignature,
-      paymentNonce,
-      methodParams
-    );
-  } catch (err) {
-    return utils.buildErrorBody('internal', 'Failed processing proxy method', err.toString(), request, call.id);
-  }
+  const proxyProof = utils.getProxyProof(user, relayer, proxySignature);
+  const paymentInfo = await fees.tryGetPaymentInfo(AVN_CONNECTOR_ENDPOINT, payer, relayer, feePaymentSignature, call.method, paymentNonce, proxyProof);
+
+  const params = {
+    proxyParams: [proxyProof].concat(methodParams),
+    relayerAddress: relayer,
+    paymentInfo
+  };
 
   return await sendTx(call, request, requestId, pallet, method, params);
 }
 
-function getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const verified = utils.verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
-
-  if (verified === false) {
-    return undefined;
-  }
-
-  return {
-    payer,
-    recipient: relayer,
-    amount: relayerFee,
-    signature: {
-      Sr25519: feePaymentSignature
-    }
-  };
-}
-
-function getProxyProof(user, relayer, proxySignature) {
-  return {
-    signer: user,
-    relayer,
-    signature: {
-      Sr25519: proxySignature
-    }
-  };
-}
 
 async function processProxyStakeAvt(call, request, requestId) {
   // check if era election is open before proceeding
@@ -299,31 +267,18 @@ async function processProxyStakeAvt(call, request, requestId) {
     return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
   }
 
-  const pallet = 'utility';
-  const method = 'batchAll';
-
-  let bondParams, nominateParams;
+  const pallet = 'validatorsManager';
+  const method = 'signedNominate';
+  const numSlashSpan = 0;
+  const methodParams = [numSlashSpan];
 
   try {
-    bondParams = await getBondParams(call);
-    nominateParams = await getNominateParams(call);
-  } catch (err) {
-    return utils.buildErrorBody('params', 'Invalid staking params', err.toString(), request, call.id);
+    if (utils.isValidArray(call.params.targets) === false || call.params.targets.length === 0) throw 'targets';
+  } catch (errParam) {
+    throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
   }
 
-  const bond = {
-    palletName: 'validatorsManager',
-    method: 'signedBond',
-    params: bondParams
-  };
-
-  const nominate = {
-    palletName: 'validatorsManager',
-    method: 'signedNominate',
-    params: nominateParams
-  };
-
-  return await sendTx(call, request, requestId, pallet, method, [bond, nominate]);
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
 async function processProxyIncreaseStake(call, request, requestId) {
@@ -413,86 +368,6 @@ function validateMethodParams(relayer, user, payer, proxySignature, feePaymentSi
   }
 }
 
-async function getProxyParams(
-  callMethod,
-  relayer,
-  user,
-  payer,
-  proxySignature,
-  feePaymentSignature,
-  paymentNonce,
-  methodParams
-) {
-  const proxyProof = getProxyProof(user, relayer, proxySignature);
-
-  let relayerFee;
-  try {
-    relayerFee = await utils.getRelayerFee(AVN_CONNECTOR_ENDPOINT, relayer, payer, callMethod);
-  } catch (error) {
-    throw new Error(`could not get relayer fee: ${error.toString()}`);
-  }
-
-  const paymentInfo = getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
-  if (!paymentInfo) {
-    throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
-  }
-
-  return {
-    proxyParams: [proxyProof].concat(methodParams),
-    relayerAddress: relayer,
-    paymentInfo
-  };
-}
-
-async function getBondParams(call) {
-  const { relayer, user, payer, amount, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce } = call.params;
-
-  const bondMethodParams = [user, amount, utils.STASH_REWARD_DESTINATION];
-  try {
-    if (utils.isValidAccountId(user) === false) throw 'user';
-    if (utils.isValidAmount(amount) === false) throw 'amount';
-  } catch (errParam) {
-    throw new Error(`invalid parameter (${errParam}) passed to getBondParams`);
-  }
-
-  validateMethodParams(relayer, user, payer, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
-
-  return await getProxyParams(
-    call.params.bondMethodName,
-    relayer,
-    user,
-    payer,
-    proxyBondSignature,
-    bondFeePaymentSignature,
-    bondPaymentNonce,
-    bondMethodParams
-  );
-}
-
-async function getNominateParams(call) {
-  const { relayer, user, payer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } =
-    call.params;
-  const nominateMethodParams = [targets];
-
-  try {
-    if (utils.isValidArray(targets) === false || targets.length === 0) throw 'targets';
-  } catch (errParam) {
-    throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
-  }
-
-  validateMethodParams(relayer, user, payer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
-
-  return await getProxyParams(
-    call.params.nominateMethodName,
-    relayer,
-    user,
-    payer,
-    proxyNominateSignature,
-    nominateFeePaymentSignature,
-    nominatePaymentNonce,
-    nominateMethodParams
-  );
-}
 
 async function isEraElectionStatusOpen(callId) {
   let result = false;

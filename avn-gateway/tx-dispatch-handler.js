@@ -1,5 +1,6 @@
 const utils = require('/opt/utils.js');
 const MQSender = require('/opt/mqSender.js');
+const sqs = require('/opt/sqsUtils.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
@@ -7,38 +8,49 @@ let mqSender;
 
 //TODO: update me to read message from SQS and remove it when processing is done.
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
+  let processedMessagesCount = 0;
+
   try {
     await connectToMQ();
+
+    for (let record of event.Records) {
+      const result = await processRequest(record.body);
+
+      if (utils.requestFailed(result) === false) {
+        processedMessagesCount += 1;
+      }
+    }
+
+    if (processedMessagesCount < event.Records.length) {
+      return {
+        batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
+      };
+    }
+
+    return {
+      statusCode: 200,
+      body: `${event.Records.length} messages processed successfully.`
+    };
+
   } catch (err) {
+    console.error(`Failed to process messages from default queue: `, err);
+
     return {
-      statusCode: 500,
-      error: { message: err.message },
-      body: JSON.stringify(utils.buildErrorBody('internal', 'failed to connect to queue', err, event.body, null))
+      batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
     };
   }
-
-  const result = await processRequest(event.Records[0].body);
-
-  if (utils.requestFailed(result) === true) {
-    return {
-      statusCode: 500,
-      error: { message: result.error.data },
-      body: JSON.stringify(result)
-    };
-  }
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify(result)
-  };
-
 };
 
 const connectToMQ = async () => {
-  if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
-    mqSender = new MQSender(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN, process.env.MQ_BROKER_AMQP_ENDPOINT);
-    await mqSender.connectToMessageBroker();
+  try {
+    if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
+      mqSender = new MQSender(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN, process.env.MQ_BROKER_AMQP_ENDPOINT);
+      await mqSender.connectToMessageBroker();
+    }
+  } catch (err) {
+    console.error(`Failed to connect to Rabbit MQ: `, err);
+    throw err;
   }
 };
 

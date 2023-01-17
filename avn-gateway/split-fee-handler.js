@@ -8,6 +8,8 @@ const utils = require('/opt/utils.js');
 const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
 
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+
 exports.handler = async (event) => {
   let processedMessagesCount = 0;
 

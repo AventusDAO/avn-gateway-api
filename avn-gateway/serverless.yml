@@ -257,7 +257,9 @@ functions:
         - tx-dispatch-handler.js
     memorySize: 128
     events:
-      - sqs: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_arn}
+      - sqs: 
+          arn: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_arn}
+          functionResponseType: ReportBatchItemFailures
     layers:
       - { Ref: CommonLambdaLayer }
       - { Ref: QueueLambdaLayer }

@@ -236,12 +236,35 @@ function hashString(string) {
   return crypto.createHash('sha256').update(string).digest('hex');
 }
 
+function getProxyProof(user, relayerAddress, proxySignature) {
+  return {
+    signer: user,
+    relayer: relayerAddress,
+    signature: {
+      Sr25519: proxySignature
+    }
+  };
+}
+
+async function getRelayerFee(connectorUrl, relayer, payer, transactionType) {
+  let relayerFee;
+  try {
+    const avnResponse = await axios.post(connectorUrl + 'relayerFees', { relayer, payer, transactionType });
+    relayerFee = avnResponse.data.toString();
+  } catch (error) {
+    throw new Error(`could not get relayer fee: ${error.toString()}`);
+  }
+}
+
 // Keep alphabetical
 module.exports = {
   axios,
   BN,
+  encodeProxyProof,
   buildSuccessResponse,
   buildErrorResponse,
+  getProxyProof,
+  getRelayerFee,
   hashString,
   STASH_REWARD_DESTINATION,
   convertToAddress,

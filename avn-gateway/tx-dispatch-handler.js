@@ -73,11 +73,13 @@ async function processRequest(request) {
     call = JSON.parse(request);
     requestId = call.awsRequestId;
   } catch (err) {
-    return utils.buildErrorBody('parse', 'failed to parse JSON', err, request, null);
+    console.error(`Failed to parse message as JSON: `, err);
+    throw err;
+    //return utils.buildErrorBody('parse', 'failed to parse JSON', err, request, null);
   }
 
   if (call.id === undefined) call.id = null;
-  console.info('CALLID_TO_REQUESTID:', call.id + ':' + requestId);
+  console.info('CALLID_TO_REQUESTID:', call.id + ' : ' + requestId);
 
   if (typeof call.method !== 'string') {
     return utils.buildErrorBody('request', 'method type must be string', call.method, request, call.id);
@@ -264,15 +266,6 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
   return await sendTx(call, request, requestId, pallet, method, params);
 }
 
-async function getRelayerFee(relayer, user, transactionType) {
-  try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
-    return avnResponse.data.toString();
-  } catch (error) {
-    throw error;
-  }
-}
-
 function getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const verified = utils.verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
 
@@ -434,7 +427,7 @@ async function getProxyParams(
 
   let relayerFee;
   try {
-    relayerFee = await getRelayerFee(relayer, payer, callMethod);
+    relayerFee = await utils.getRelayerFee(AVN_CONNECTOR_ENDPOINT, relayer, payer, callMethod);
   } catch (error) {
     throw new Error(`could not get relayer fee: ${error.toString()}`);
   }

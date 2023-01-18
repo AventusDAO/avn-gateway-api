@@ -484,7 +484,7 @@ async function sendTx(call, request, requestId, palletName, method, params) {
     const queue = process.env.MQ_AVN_TX_QUEUE;
     const txType = 'avnProxy';
     const result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params });
-    return utils.validResponse(call.id, result);
+    return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
     return utils.buildErrorBody('internal', 'failed to send proxy transaction', err, request, call.id);
   }

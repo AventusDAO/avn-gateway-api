@@ -1,6 +1,10 @@
 const utils = require('/opt/utils.js');
 const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
+
+const sqsClient = new sqs.SQSClient({ region: process.env.SECRET_MANAGER_REGION });
+
+const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event) => {
@@ -70,9 +74,12 @@ async function processRequest(request) {
   tx.params.payer = tx.splitFeePayerAddress;
   tx.params.feePaymentSignature = paymentSignature;
   tx.params.paymentNonce = feeParams.paymentNonce;
-  // TODO: send message to default queue
+  
+  const data = await sendMessageToDefaultQueue(tx);
+  console.info(`Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`);
   return utils.buildValidResponseBody(tx.id, requestId);
 }
+
 function validateTransaction(tx) {
   try {
     if (utils.isValidAccountId(tx.params.relayer) === false) throw 'relayer';
@@ -86,4 +93,17 @@ function validateTransaction(tx) {
 async function signPaymentInfo(payer, encodedParams) {
   // TODO: Sign using `payers's private keys
   return ''
+}
+
+async function sendMessageToDefaultQueue(message) {
+  const messageBody = JSON.stringify(message);
+
+  const params = {
+    QueueUrl: DEFAULT_SQS_URL,
+    MessageGroupId: 'DEFAULT',
+    MessageDeduplicationId: utils.hashString(messageBody),
+    MessageBody: messageBody,
+  };
+
+  return await sqsClient.send(new sqs.SendMessageCommand(params));
 }

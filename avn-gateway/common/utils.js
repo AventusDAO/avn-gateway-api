@@ -198,10 +198,32 @@ function encodeProxyProof(params) {
   return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
 }
 
+function getProxyProof(user, relayerAddress, proxySignature) {
+  return {
+    signer: user,
+    relayer: relayerAddress,
+    signature: {
+      Sr25519: proxySignature
+    }
+  };
+}
+
+async function getRelayerFee(connectorUrl, relayer, payer, transactionType) {
+  try {
+    const avnResponse = await axios.post(connectorUrl + 'relayerFees', { relayer, payer, transactionType });
+    return avnResponse.data.toString();
+  } catch (error) {
+    throw new Error(`could not get relayer fee: ${error.toString()}`);
+  }
+}
+
 // Keep alphabetical
 module.exports = {
   axios,
   BN,
+  encodeProxyProof,
+  getProxyProof,
+  getRelayerFee,
   STASH_REWARD_DESTINATION,
   convertToAddress,
   convertToPublicKey,

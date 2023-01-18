@@ -63,6 +63,14 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
   return response;
 }
 
+function requestFailed(response) {
+  if (response && response.error && response.error.length > 0) {
+  	return true;
+  }
+
+  return false;
+}
+
 function buildValidResponseBody(id, result) {
   return { jsonrpc: '2.0', id, result };
 }
@@ -214,6 +222,7 @@ module.exports = {
   isValidSignatureFormat,
   isValidString,
   isValidTransactionType,
+  requestFailed,
   signatureVerify,
   stringToHex,
   toBnString,

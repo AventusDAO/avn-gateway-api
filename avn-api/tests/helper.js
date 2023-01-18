@@ -30,7 +30,7 @@ console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${t
 const ONE_ETH= '1000000000000000000';
 const TEN_ETH = '10000000000000000000';
 const TWO_HUNDRED_ETH = '200000000000000000000';
-const WAIT_TIME_IN_SEC = 3;
+const WAIT_TIME_IN_SEC = 12;
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -48,15 +48,15 @@ function bnEquals(a, b) {
 }
 
 async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMinutes) {
-  console.log(`waiting for [${optionalTimeoutInMinutes}] minutes`);
+  console.log(`waiting for [${optionalTimeoutInMinutes || 2}] minutes to confirm status for ${requestId}`);
   if (!requestId) throw new Error('RequestId cannot be null');
   let response, status;
 
-  for (i = 0; i < (optionalTimeoutInMinutes || 1) * 60 / WAIT_TIME_IN_SEC; i++) {
+  for (i = 0; i < (optionalTimeoutInMinutes || 2) * 60 / WAIT_TIME_IN_SEC; i++) {
     await sleep(WAIT_TIME_IN_SEC * 1000);
     console.log('.');
     response = await api.poll.requestState(requestId);
-    status = response.status;
+    status = response.status ? response.status : response;
     if (status !== 'Pending' && status !== 'Transaction not found') {
       assert.equal(status, expectedStatus);
       console.log('Wait time in seconds', i * WAIT_TIME_IN_SEC);

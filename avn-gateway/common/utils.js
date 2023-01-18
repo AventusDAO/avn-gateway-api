@@ -55,7 +55,7 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
   const ref = file + ' line ' + lineNum + ' (' + func + ')';
   const errorData = error.response ? error.response.data : 'N/A';
   console.error(
-    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${JSON.stringify(error)}`
+    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${typeof error === 'object' ? JSON.stringify(error) : error}`
   );
   let response = { jsonrpc: '2.0', id };
   response.error = RPC_ERROR[rpcError];
@@ -65,7 +65,11 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
 }
 
 function requestFailed(response) {
-  return response && response.error && response.error.length > 0;
+  if (response && response.error && response.error.length > 0) {
+  	return true;
+  }
+
+  return false;
 }
 
 function buildValidResponseBody(id, result) {
@@ -74,7 +78,7 @@ function buildValidResponseBody(id, result) {
 function isSplitFeeToken(token) {
   if (!token) return false;
 
-  const payerAddressIsSet = token.payer && token.payer.length > 0;
+  const payerAddressIsSet = (token.payer || []).length > 0;
   return token.hasPayer === true || payerAddressIsSet === true;
 }
 

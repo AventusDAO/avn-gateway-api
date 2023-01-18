@@ -15,7 +15,7 @@ async function processRequest(request) {
   try {
     call = JSON.parse(request);
   } catch (err) {
-    return utils.buildErrorBody('parse', 'failed to parse JSON', err, request, null);
+    return utils.buildErrorBody('parse', 'failed to parse JSON', err.toString(), request, null);
   }
 
   if (call.id === undefined) call.id = null;
@@ -50,6 +50,6 @@ async function poll(call, request, requestId) {
     const result = avnResponse.data.error || avnResponse.data;
     return utils.buildValidResponseBody(callId, result);
   } catch (err) {
-    return utils.buildErrorBody('internal', 'failed to poll chain', err, request, call.id);
+    return utils.buildErrorBody('internal', 'failed to poll chain', err.toString(), request, call.id);
   }
 }

@@ -101,14 +101,19 @@ resource "aws_iam_role_policy_attachment" "extra_permissions" {
   policy_arn = aws_iam_policy.full_access_vote_buckets.arn
 }
 
-resource "aws_iam_role_policy_attachment" "rabbit_secret_access" {
-  role       = aws_iam_role.lambda_role["send-handler"].name
-  policy_arn = aws_iam_policy.lambda_logging.arn
-}
-
 resource "aws_iam_role_policy_attachment" "sender_sqs_access" {
   role       = aws_iam_role.lambda_role["send-handler"].name
   policy_arn = aws_iam_policy.sender_sqs_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "split_fee_sqs_access" {
+  role       = aws_iam_role.lambda_role["split-fee-handler"].name
+  policy_arn = aws_iam_policy.split_fee_sqs_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "tx_dispatch_sqs_access" {
+  role       = aws_iam_role.lambda_role["tx-dispatch-handler"].name
+  policy_arn = aws_iam_policy.tx_dispatch_sqs_access.arn
 }
 
 resource "aws_iam_role_policy_attachment" "network" {
@@ -141,4 +146,19 @@ resource "aws_security_group" "lambdas" {
   tags = {
     Name = "Lambda egress Security Group"
   }
+}
+
+#
+# SQS Trigger Lambda
+#
+
+resource "aws_lambda_event_source_mapping" "split_fee_handler" {
+  event_source_arn = var.sqs_queue_arns.gateway_payer_queue
+  function_name    = aws_lambda_function.lambda["split-fee-handler"].arn
+}
+
+resource "aws_lambda_event_source_mapping" "tx_dispatch_handler" {
+  event_source_arn        = var.sqs_queue_arns.gateway_default_queue
+  function_name           = aws_lambda_function.lambda["tx-dispatch-handler"].arn
+  function_response_types = "ReportBatchItemFailures"
 }

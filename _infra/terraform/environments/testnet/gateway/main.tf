@@ -20,20 +20,21 @@ module "lambda_functions" {
   subnet_ids             = data.terraform_remote_state.vpc.outputs.private_subnets
   vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
   sqs_queue_arns         = module.gateway_sqs.queue_arn
+  rds_secret_arn         = module.gateway_rds.gateway_secretsmanager_arn
 
   lambda_functions = {
+
     authorisation-handler = {
       env_vars = {
         MAX_TOKEN_AGE_MSEC     = 60000
         MIN_AVT_BALANCE        = "1000000000000000000"
+        SECRET_MANAGER_RDS_NAME = module.gateway_rds.gateway_secretsmanager_name
       }
       memory_size = 512
     }
+
     send-handler = {
       env_vars = {
-        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
-        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
-        MQ_AVN_TX_QUEUE         = "avnTx"
         SECRET_MANAGER_REGION   = var.region
         SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
         SQS_PAYER_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_payer_queue"]
@@ -41,13 +42,16 @@ module "lambda_functions" {
       timeout     = 4
       memory_size = 512
     }
+
     poll-handler = {
       timeout     = 4
       memory_size = 256
     }
+
     query-handler = {
       memory_size = 256
     }
+
     lift-processing-handler = {
       env_vars = {
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
@@ -58,11 +62,13 @@ module "lambda_functions" {
       timeout     = 6
       memory_size = 128
     }
+
     tx-status-update-handler = {
       env_vars = {
         BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
       }
     }
+
     stakers-payout-handler = {
       env_vars = {
         MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
@@ -73,6 +79,7 @@ module "lambda_functions" {
       timeout     = 6
       memory_size = 128
     }
+
     vote-handler = {
       env_vars = {
         AVN_VOTES_BUCKET = local.avn_votes_bucket
@@ -80,10 +87,34 @@ module "lambda_functions" {
       memory_size = 256
       avn_votes_bucket = local.avn_votes_bucket
     }
+
     lower-handler = {
       timeout     = 30
       memory_size = 128
     }
+
+    split-fee-handler = {
+      env_vars = {
+        SECRET_MANAGER_REGION   = var.region
+        SQS_PAYER_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_payer_queue"]
+        SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
+      }
+      timeout     = 4
+      memory_size = 512
+    }
+
+    tx-dispatch-handler = {
+      env_vars = {
+        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
+        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
+        MQ_AVN_TX_QUEUE         = "avnTx"
+        SECRET_MANAGER_REGION   = var.region
+        SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
+      }
+      timeout     = 4
+      memory_size = 512
+    }
+
   }
 
   depends_on = [

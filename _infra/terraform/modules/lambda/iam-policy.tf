@@ -23,28 +23,6 @@ resource "aws_iam_policy" "lambda_logging" {
 }
 
 #
-# RabbitMQ access
-#
-data "aws_iam_policy_document" "rabbit_secret_access" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "secretsmanager:GetSecretValue"
-    ]
-    resources = [
-      "${var.rabbit_secret_arn}",
-    ]
-  }
-}
-
-resource "aws_iam_policy" "rabbit_secret_access" {
-  name        = "send-handler-rabbit-secret"
-  path        = "/"
-  description = "IAM policy for accessing the rabbitmq user/password"
-  policy      = data.aws_iam_policy_document.rabbit_secret_access.json
-}
-
-#
 # lambda Network Access
 #
 data "aws_iam_policy_document" "lambda_network" {
@@ -164,7 +142,7 @@ resource "aws_iam_policy" "split_fee_sqs_access" {
 #
 # tx-dispatch-handler SQS access
 #
-data "aws_iam_policy_document" "tx_dispatch_sqs_access" {
+data "aws_iam_policy_document" "tx_dispatch_access" {
   statement {
     effect = "Allow"
     actions = [
@@ -189,8 +167,8 @@ data "aws_iam_policy_document" "tx_dispatch_sqs_access" {
   }
 }
 
-resource "aws_iam_policy" "tx_dispatch_sqs_access" {
-  name        = "avn-gateway-tx-dispatch-hendler-sqs"
-  description = "allow access to SQS"
-  policy      = data.aws_iam_policy_document.tx_dispatch_sqs_access.json
+resource "aws_iam_policy" "tx_dispatch_access" {
+  name        = "avn-gateway-tx-dispatch-hendler-access"
+  description = "allow access to SQS and SM"
+  policy      = data.aws_iam_policy_document.tx_dispatch_access.json
 }

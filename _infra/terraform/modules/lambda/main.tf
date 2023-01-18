@@ -111,9 +111,9 @@ resource "aws_iam_role_policy_attachment" "split_fee_sqs_access" {
   policy_arn = aws_iam_policy.split_fee_sqs_access.arn
 }
 
-resource "aws_iam_role_policy_attachment" "tx_dispatch_sqs_access" {
+resource "aws_iam_role_policy_attachment" "tx_dispatch_access" {
   role       = aws_iam_role.lambda_role["tx-dispatch-handler"].name
-  policy_arn = aws_iam_policy.tx_dispatch_sqs_access.arn
+  policy_arn = aws_iam_policy.tx_dispatch_access.arn
 }
 
 resource "aws_iam_role_policy_attachment" "network" {

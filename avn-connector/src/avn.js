@@ -71,7 +71,7 @@ async function poll(requestId) {
 
     if (!tx) {
       log.error(`No transaction found for requestId: ${requestId}`);
-      return { error: 'Transaction not found' };
+      return { error: `No transaction found for requestId: ${requestId}`, status: 'Transaction not found' };
     }
 
     return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex };
@@ -372,6 +372,20 @@ async function getNftContractAddresses() {
   );
 }
 
+async function getGatewayUserInfo(account) {
+  const result = await api.queryMulti([
+    [api.query.avnProxy.paymentNonces, account],
+    [api.query.system.account, account]
+  ]);
+
+  let [paymentNonce, { data: balance }] = result;
+
+  return {
+    paymentNonce: paymentNonce.toString(),
+    freeBalance: balance.free.toString()
+  }
+}
+
 async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
   await connectToAvN();
@@ -451,6 +465,7 @@ module.exports = {
   getStakingStats,
   getChainInfo,
   getCurrentBlock,
+  getGatewayUserInfo,
   getSummaries,
   getSummaryData,
   getSummaryInclusionData,

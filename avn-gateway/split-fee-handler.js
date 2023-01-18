@@ -71,27 +71,33 @@ async function processRequest(request) {
 
   // TODO: validate tx
   console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
+  validateTransaction(tx);
 
   const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
   const encodedPaymentParams = fees.encodePaymentParams(feeParams.relayer, feeParams.relayerFee, feeParams.paymentNonce, feeParams.proxyProof);
 
   const paymentSignature = await signPaymentInfo(tx.splitFeePayerAddress, encodedPaymentParams);
 
-  const paymentInfo = fees.getPaymentInfo(
-    tx.splitFeePayerAddress,
-    tx.params.relayer,
-    tx.params.relayerFee,
-    paymentSignature
-  )
-
+  tx.params.payer = tx.splitFeePayerAddress;
   tx.params.feePaymentSignature = paymentSignature;
   tx.params.paymentNonce = feeParams.paymentNonce;
 
-  console.log("Updated tx to store in default queue: ", JSON.stringify(tx))
+  //console.log("Updated tx to store in default queue: ", JSON.stringify(tx))
 
   const data = await sendMessageToDefaultQueue(tx);
   console.info(`Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`);
   return utils.buildValidResponseBody(tx.id, requestId);
+}
+
+function validateTransaction(tx) {
+  try {
+    if (utils.isValidAccountId(tx.params.relayer) === false) throw 'relayer';
+    if (utils.isValidAccountId(tx.params.user) === false) throw 'user';
+    if (utils.isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
+    if (utils.isValidSignatureFormat(tx.params.proxySignature) === false) throw 'proxy signature format';
+  } catch (errParam) {
+    throw new Error(`Invalid transaction data: ${errParam}`);
+  }
 }
 
 async function signPaymentInfo(payer, encodedParams) {

@@ -82,3 +82,7 @@ resource "aws_security_group" "this" {
 
   tags = local.all_resources_tags
 }
+
+resource "aws_secretsmanager_secret" "this" {
+  name = "gateway_rds_logins"
+}

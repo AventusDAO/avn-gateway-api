@@ -19,6 +19,7 @@ module "lambda_functions" {
   avn_connector_endpoint = local.avn_connector_endpoint
   subnet_ids             = data.terraform_remote_state.vpc.outputs.private_subnets
   vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
+  sqs_queue_arns         = module.gateway_sqs.queue_arn
 
   lambda_functions = {
     authorisation-handler = {
@@ -34,6 +35,8 @@ module "lambda_functions" {
         MQ_SECRET_ARN           = module.rabbitmq.secret_arn
         MQ_AVN_TX_QUEUE         = "avnTx"
         SECRET_MANAGER_REGION   = var.region
+        SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
+        SQS_PAYER_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_payer_queue"]
       }
       timeout     = 4
       memory_size = 512
@@ -78,7 +81,7 @@ module "lambda_functions" {
       avn_votes_bucket = local.avn_votes_bucket
     }
     lower-handler = {
-      timeout     = 6
+      timeout     = 30
       memory_size = 128
     }
   }
@@ -96,6 +99,7 @@ module "api_gateway" {
   send_invoke_arn       = module.lambda_functions.invoke_arns["send-handler"]
   query_invoke_arn      = module.lambda_functions.invoke_arns["query-handler"]
   vote_invoke_arn       = module.lambda_functions.invoke_arns["vote-handler"]
+  lower_invoke_arn      = module.lambda_functions.invoke_arns["lower-handler"]
   auth_cache_duration   = 60
 }
 

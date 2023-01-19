@@ -54,7 +54,7 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
   const ref = file + ' line ' + lineNum + ' (' + func + ')';
   const errorData = error.response ? error.response.data : 'N/A';
   console.error(
-    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${JSON.stringify(error)}`
+    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${typeof error === 'object' ? JSON.stringify(error) : error}`
   );
   let response = { jsonrpc: '2.0', id };
   response.error = RPC_ERROR[rpcError];
@@ -65,6 +65,12 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
 
 function buildValidResponseBody(id, result) {
   return { jsonrpc: '2.0', id, result };
+}
+function isSplitFeeToken(token) {
+  if (!token) return false;
+
+  const payerAddressIsSet = (token.payer || []).length > 0;
+  return token.hasPayer === true || payerAddressIsSet === true;
 }
 
 function isValidAccountId(accountId) {
@@ -147,30 +153,28 @@ function toWholeAVT(val) {
   return parseInt(wholeAmount.toString());
 }
 
-function verifyAwtTokenSignature(publicKey, issuedAt, signature) {
+function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payerAddress) {
   const encodedContext = registry.createType('Text', SIGNING_CONTEXT);
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
   const encodedIssuedAt = registry.createType('Text', issuedAt);
-  const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false));
-  return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
-}
 
-function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
-  const encodedProxyProof = encodeProxyProof(proxyProof);
-  const encodedRelayer = registry.createType('AccountId', relayer);
-  const encodedRelayerFee = registry.createType('Balance', relayerFee);
-  const encodedPaymentNonce = registry.createType('u64', paymentNonce);
+  if (!hasPayer && !payerAddress) {
+    // this is a legacy token
+    const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false));
+    return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+  } else {
+    const encodedHasPayer = registry.createType('bool', hasPayer);
+    const encodedPayer = registry.createType('Option<AccountId>', hexToU8a(payerAddress));
 
-  const encodedData = u8aConcat(
-    encodedContext.toU8a(false),
-    encodedProxyProof,
-    encodedRelayer.toU8a(true),
-    encodedRelayerFee.toU8a(true),
-    encodedPaymentNonce.toU8a(true)
-  );
-
-  return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
+    const encodedData = u8aConcat(
+      encodedContext.toU8a(false),
+      encodedPublicKey.toU8a(true),
+      encodedIssuedAt.toU8a(false),
+      encodedHasPayer.toU8a(true),
+      encodedPayer.toU8a(true)
+    );
+    return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+  }
 }
 
 function verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey) {
@@ -195,6 +199,7 @@ module.exports = {
   convertToPublicKey,
   buildErrorBody,
   init,
+  isSplitFeeToken,
   isValidAccountId,
   isValidAmount,
   isValidArray,

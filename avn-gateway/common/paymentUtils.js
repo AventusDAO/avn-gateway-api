@@ -5,6 +5,27 @@ const utils = require('/opt/utils.js');
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 
+function getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSignature) {
+  return {
+    payer: payerAddress,
+    recipient: relayerAddress,
+    amount: relayerFee,
+    signature: {
+      Sr25519: feePaymentSignature
+    }
+  };
+}
+
+async function tryGetPaymentInfo(connectorUrl, payerAddress, relayerAddress, feePaymentSignature, transactionType, paymentNonce, proxyProof)
+{
+  const relayerFee = await utils.getRelayerFee(connectorUrl, relayerAddress, payerAddress, transactionType);
+  const isVerified = verifyFeePaymentSignature(payerAddress, relayerAddress, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
+  if (isVerified === false) {
+    throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
+  }
+  return getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSignature);
+}
+
 async function getSplitFeePaymentParams(connectorUrl, call) {
   if (!call) return undefined;
 
@@ -40,6 +61,11 @@ async function getPaymentNonce(connectorUrl, requestId, payer) {
   }
 }
 
+function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+  const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof);
+  return utils.verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
+}
+
 function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
   const encodedProxyProof = utils.encodeProxyProof(proxyProof);
@@ -59,6 +85,9 @@ function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
 // Keep alphabetical
 module.exports = {
   encodePaymentParams,
+  getPaymentInfo,
   getPaymentNonce,
-  getSplitFeePaymentParams
+  getSplitFeePaymentParams,
+  tryGetPaymentInfo,
+  verifyFeePaymentSignature
 };

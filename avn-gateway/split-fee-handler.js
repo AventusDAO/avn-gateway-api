@@ -25,9 +25,12 @@ exports.handler = async (event) => {
     for (let record of event.Records) {
       const result = await processRequest(record.body);
 
-      if (utils.requestFailed(result) === false) {
-        processedMessagesCount += 1;
+      if (utils.requestFailed(result) === true) {
+        // Stop on the first failure because this is a FIFO queue
+        break;
       }
+
+      processedMessagesCount += 1;
     }
 
     if (processedMessagesCount < event.Records.length) {
@@ -74,7 +77,7 @@ async function processRequest(request) {
   tx.params.payer = tx.splitFeePayerAddress;
   tx.params.feePaymentSignature = paymentSignature;
   tx.params.paymentNonce = feeParams.paymentNonce;
-  
+
   const data = await sendMessageToDefaultQueue(tx);
   console.info(`Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`);
   return utils.buildValidResponseBody(tx.id, requestId);

@@ -119,8 +119,6 @@ async function updateAwaitingClaimDataLowers() {
 }
 
 async function updateUnclaimedLowers(avnContract, account) {
-  const updateAll = Math.random() < 0.1; // 10% of the time we check the status of all unclaimed lowers
-
   const unclaimed = (await redis.getUnclaimedLowers()) || [];
   console.log(`\tPublished lowers waiting to be claimed: ${unclaimed.length} `);
 
@@ -131,7 +129,7 @@ async function updateUnclaimedLowers(avnContract, account) {
 
     if (lowerDataContainsAccount(lowerData, account)) {
       await updateLowerClaim(avnContract, leafHash, txHash);
-    } else if (updateAll) {
+    } else {
       updateLowerClaim(avnContract, leafHash, txHash); // async check
     }
   }

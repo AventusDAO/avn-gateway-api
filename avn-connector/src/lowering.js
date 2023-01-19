@@ -89,7 +89,6 @@ async function updateUnpublishedLowers(latestPublishedBlock) {
 async function updateAwaitingClaimDataLowers() {
   const awaiting = (await redis.getAwaitingClaimDataLowers()) || [];
   const summaries = (await redis.getSummaries()).map(s => JSON.parse(s));
-  let unpublishedSummaries = [];
   let error = false;
 
   console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`)
@@ -102,8 +101,8 @@ async function updateAwaitingClaimDataLowers() {
 
     if (summaryData) {
       const { fromBlock, toBlock } = summaryData;
-      if (summaryData.published === false && !unpublishedSummaries.includes(summaryData)) {
-        unpublishedSummaries.push(summaryData);
+      if (summaryData.published === false) {
+        console.warn(`\t  🚨 Unpublished summary for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
       } else {
         let rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
         if (!rpcData.isEmpty) {
@@ -121,13 +120,11 @@ async function updateAwaitingClaimDataLowers() {
             error = true;
           }
         } else {
-          console.warn(`\t  🚨 Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
+          console.warn(`\t  🚨 Unable to get RPC lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
         }
       }
     }
   }
-
-  unpublishedSummaries.forEach(s => console.warn(`\t  🚨 Unpublished summary: ${JSON.stringify(s)}`));
 
   if (error === true) {
     throw new Error('Error processing AwaitingClaimDataLowers');

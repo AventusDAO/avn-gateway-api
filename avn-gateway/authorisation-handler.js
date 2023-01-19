@@ -48,7 +48,7 @@ async function validateAwtToken(event) {
       return InvalidRequestResponse;
     }
   } else {
-    if (isValidSelfPayUser(awtToken) === false) {
+    if ((await isValidSelfPayUser(awtToken)) === false) {
       console.info('User does not have enough AVT to access the gateway');
       return InvalidRequestResponse;
     }

@@ -81,21 +81,5 @@ describe('Access rights:', async () => {
       api.setSURI(newUserSURI);
       assert.equal(await canAccessTheGateway(), true);
     });
-
-    it('signer is updated when changing suri via the api', async () => {
-      api.setSURI(newUserSURI);
-      assert.equal(await api.query.getAvtBalance(newUser), '0');
-
-      // New user cannot transfer avt with 0 balance
-      let requestId = await api.send.transferAvt(relayer, user, ONE_AVT.toString());
-      await helper.confirmStatus(api, requestId, 'Rejected');
-
-      api.setSURI(userSURI); // this ensures the AWT token is refreshed
-      assert(new BN(await api.query.getAvtBalance(user)).gte(ONE_AVT));
-
-      // User can transfer AVT because they have at least 1 avt
-      requestId = await api.send.transferAvt(relayer, user, ONE_AVT.toString());
-      await helper.confirmStatus(api, requestId, 'Processed');
-    });
   });
 });

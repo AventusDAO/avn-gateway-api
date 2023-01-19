@@ -15,7 +15,7 @@ async function processRequest(request) {
   try {
     call = JSON.parse(request);
   } catch (err) {
-    return utils.buildErrorBody('parse', 'failed to parse JSON', err, request, null);
+    return utils.buildErrorBody('parse', 'failed to parse JSON', err.toString(), request, null);
   }
 
   if (call.id === undefined) call.id = null;
@@ -183,7 +183,7 @@ async function getRelayerFees(call, request) {
     result = typeof result === 'number' ? result.toString() : result;
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.buildErrorBody('internal', err.response.data.error, err, request, call.id);
+    return utils.buildErrorBody('internal', err.response.data.error, err.toString(), request, call.id);
   }
 }
 
@@ -331,7 +331,7 @@ async function query(call, request, method, params, responseFormatter) {
       (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.buildErrorBody('internal', `failed to invoke ${method} when querying the chain`, err, request, call.id);
+    return utils.buildErrorBody('internal', `failed to invoke ${method} when querying the chain`, err.toString(), request, call.id);
   }
 }
 

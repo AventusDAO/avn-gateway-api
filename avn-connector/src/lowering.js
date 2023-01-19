@@ -127,7 +127,7 @@ async function updateAwaitingClaimDataLowers() {
     }
   }
 
-  unpublishedSummaries.forEach(s => console.warn(`\t  🚨 Unpublished summary: ${s}`););
+  unpublishedSummaries.forEach(s => console.warn(`\t  🚨 Unpublished summary: ${s}`));
 
   if (error === true) {
     throw new Error('Error processing AwaitingClaimDataLowers');

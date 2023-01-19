@@ -97,7 +97,6 @@ async function updateAwaitingClaimDataLowers() {
 
     if (summaryData) {
       const { fromBlock, toBlock } = summaryData;
-      console.log(`TEMP LOG fromBlock: ${fromBlock} toBlock: ${toBlock} blockNumber: ${blockNumber} index: ${index} txHash: ${txHash}`)
       let rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
 
       if (!rpcData.isEmpty) {

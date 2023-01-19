@@ -1,45 +1,83 @@
 const utils = require('/opt/utils.js');
+const sqs = require('/opt/sqsUtils.js');
+const fees = require('/opt/paymentUtils.js');
 const MQSender = require('/opt/mqSender.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 let mqSender;
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
+  let processedMessagesCount = 0;
+
   try {
+
+    if (!event.Records) {
+      console.log(`No messages to process.`);
+      return {
+        statusCode: 200,
+        body: `No messages to process`
+      };
+    }
+
+    console.log(`Processing ${event.Records.length} message(s) from queue`);
     await connectToMQ();
-  } catch (err) {
+
+    for (let record of event.Records) {
+      const result = await processRequest(record.body);
+
+      if (utils.requestFailed(result) === false) {
+        processedMessagesCount += 1;
+      }
+    }
+
+    if (processedMessagesCount < event.Records.length) {
+      console.warn(`Processed ${processedMessagesCount} out of ${event.Records.length} message(s) successfully.`);
+      return {
+        batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
+      };
+    }
+
     return {
-      statusCode: 500,
-      error: { message: err.message },
-      body: JSON.stringify(utils.buildErrorBody('internal', 'failed to connect to queue', err, event.body, null))
+      statusCode: 200,
+      body: `${event.Records.length} message(s) processed successfully.`
+    };
+
+  } catch (err) {
+    console.error(`Failed to process messages from default queue: `, err);
+
+    return {
+      batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
     };
   }
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify(await processRequest(event.body, context.awsRequestId))
-  };
 };
 
 const connectToMQ = async () => {
-  if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
-    mqSender = new MQSender(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN, process.env.MQ_BROKER_AMQP_ENDPOINT);
-    await mqSender.connectToMessageBroker();
+  try {
+    if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
+      mqSender = new MQSender(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN, process.env.MQ_BROKER_AMQP_ENDPOINT);
+      await mqSender.connectToMessageBroker();
+    }
+  } catch (err) {
+    console.error(`Failed to connect to Rabbit MQ: `, err);
+    throw err;
   }
 };
 
-async function processRequest(request, requestId) {
+async function processRequest(request) {
   let call;
+  let requestId;
 
   try {
     call = JSON.parse(request);
+    requestId = call.awsRequestId;
   } catch (err) {
-    return utils.buildErrorBody('parse', 'failed to parse JSON', err, request, null);
+    console.error(`Failed to parse message as JSON: `, err);
+    throw err;
   }
 
   if (call.id === undefined) call.id = null;
-  console.info('CALLID_TO_REQUESTID:', call.id + ':' + requestId);
+  console.info('CALLID_TO_REQUESTID:', call.id + ' : ' + requestId);
 
   if (typeof call.method !== 'string') {
     return utils.buildErrorBody('request', 'method type must be string', call.method, request, call.id);
@@ -204,63 +242,22 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
   try {
     validateMethodParams(relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce);
   } catch (err) {
-    return utils.buildErrorBody('params', err.toString(), err, request, call.id);
+    return utils.buildErrorBody('params', 'Invalid proxy method parameters', err.toString(), request, call.id);
   }
 
-  let params;
-  try {
-    params = await getProxyParams(
-      call.method,
-      relayer,
-      user,
-      payer,
-      proxySignature,
-      feePaymentSignature,
-      paymentNonce,
-      methodParams
-    );
-  } catch (err) {
-    return utils.buildErrorBody('internal', err.toString(), err, request, call.id);
-  }
+
+  const proxyProof = utils.getProxyProof(user, relayer, proxySignature);
+  const paymentInfo = await fees.tryGetPaymentInfo(AVN_CONNECTOR_ENDPOINT, payer, relayer, feePaymentSignature, call.method, paymentNonce, proxyProof);
+
+  const params = {
+    proxyParams: [proxyProof].concat(methodParams),
+    relayerAddress: relayer,
+    paymentInfo
+  };
 
   return await sendTx(call, request, requestId, pallet, method, params);
 }
 
-async function getRelayerFee(relayer, user, transactionType) {
-  try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
-    return avnResponse.data.toString();
-  } catch (error) {
-    throw error;
-  }
-}
-
-function getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const verified = utils.verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
-
-  if (verified === false) {
-    return undefined;
-  }
-
-  return {
-    payer,
-    recipient: relayer,
-    amount: relayerFee,
-    signature: {
-      Sr25519: feePaymentSignature
-    }
-  };
-}
-
-function getProxyProof(user, relayer, proxySignature) {
-  return {
-    signer: user,
-    relayer,
-    signature: {
-      Sr25519: proxySignature
-    }
-  };
-}
 
 async function processProxyStakeAvt(call, request, requestId) {
   // check if era election is open before proceeding
@@ -268,31 +265,18 @@ async function processProxyStakeAvt(call, request, requestId) {
     return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
   }
 
-  const pallet = 'utility';
-  const method = 'batchAll';
-
-  let bondParams, nominateParams;
+  const pallet = 'validatorsManager';
+  const method = 'signedNominate';
+  const numSlashSpan = 0;
+  const methodParams = [numSlashSpan];
 
   try {
-    bondParams = await getBondParams(call);
-    nominateParams = await getNominateParams(call);
-  } catch (err) {
-    return utils.buildErrorBody('params', err.toString(), err, request, call.id);
+    if (utils.isValidArray(call.params.targets) === false || call.params.targets.length === 0) throw 'targets';
+  } catch (errParam) {
+    throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
   }
 
-  const bond = {
-    palletName: 'validatorsManager',
-    method: 'signedBond',
-    params: bondParams
-  };
-
-  const nominate = {
-    palletName: 'validatorsManager',
-    method: 'signedNominate',
-    params: nominateParams
-  };
-
-  return await sendTx(call, request, requestId, pallet, method, [bond, nominate]);
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
 async function processProxyIncreaseStake(call, request, requestId) {
@@ -382,86 +366,6 @@ function validateMethodParams(relayer, user, payer, proxySignature, feePaymentSi
   }
 }
 
-async function getProxyParams(
-  callMethod,
-  relayer,
-  user,
-  payer,
-  proxySignature,
-  feePaymentSignature,
-  paymentNonce,
-  methodParams
-) {
-  const proxyProof = getProxyProof(user, relayer, proxySignature);
-
-  let relayerFee;
-  try {
-    relayerFee = await getRelayerFee(relayer, payer, callMethod);
-  } catch (error) {
-    throw new Error(`could not get relayer fee: ${error.toString()}`);
-  }
-
-  const paymentInfo = getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
-  if (!paymentInfo) {
-    throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
-  }
-
-  return {
-    proxyParams: [proxyProof].concat(methodParams),
-    relayerAddress: relayer,
-    paymentInfo
-  };
-}
-
-async function getBondParams(call) {
-  const { relayer, user, payer, amount, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce } = call.params;
-
-  const bondMethodParams = [user, amount, utils.STASH_REWARD_DESTINATION];
-  try {
-    if (utils.isValidAccountId(user) === false) throw 'user';
-    if (utils.isValidAmount(amount) === false) throw 'amount';
-  } catch (errParam) {
-    throw new Error(`invalid parameter (${errParam}) passed to getBondParams`);
-  }
-
-  validateMethodParams(relayer, user, payer, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
-
-  return await getProxyParams(
-    call.params.bondMethodName,
-    relayer,
-    user,
-    payer,
-    proxyBondSignature,
-    bondFeePaymentSignature,
-    bondPaymentNonce,
-    bondMethodParams
-  );
-}
-
-async function getNominateParams(call) {
-  const { relayer, user, payer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } =
-    call.params;
-  const nominateMethodParams = [targets];
-
-  try {
-    if (utils.isValidArray(targets) === false || targets.length === 0) throw 'targets';
-  } catch (errParam) {
-    throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
-  }
-
-  validateMethodParams(relayer, user, payer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
-
-  return await getProxyParams(
-    call.params.nominateMethodName,
-    relayer,
-    user,
-    payer,
-    proxyNominateSignature,
-    nominateFeePaymentSignature,
-    nominatePaymentNonce,
-    nominateMethodParams
-  );
-}
 
 async function isEraElectionStatusOpen(callId) {
   let result = false;
@@ -486,6 +390,6 @@ async function sendTx(call, request, requestId, palletName, method, params) {
     const result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params });
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.buildErrorBody('internal', 'failed to send proxy transaction', err, request, call.id);
+    return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
   }
 }

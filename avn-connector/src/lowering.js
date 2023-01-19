@@ -24,41 +24,12 @@ async function getLowers(account) {
   return await getLowersForAccount(account);
 }
 
-async function getLatestPublishedBlock() {
-  const latestSummary = JSON.parse(await redis.getLatestPublishedSummary());
-
-  if (latestSummary) {
-    return parseInt(latestSummary.toBlock);
-  }
-
-  return 0;
-}
-
 async function updatePublishedSummaries(avnContract) {
-  const latestPublishedBlock = await getLatestPublishedBlock();
   const summaries = await avn.getSummaries();
-  const newSummaries = [];
-
-  for (let i = 0; i < summaries.length; i++) {
-    const { fromBlock, toBlock, rootHash, isValid } = summaries[i];
-
-    if (isValid && fromBlock > latestPublishedBlock) {
-      if (await ethereum.rootIsPublished(avnContract, rootHash) === true) {
-        newSummaries.push({ fromBlock, toBlock });
-      } else {
-        console.warn(`\t   ❌ Root (${rootHash}) for range [${fromBlock} - ${toBlock}] is not published`);
-      }
-    }
-  }
-
-  if (newSummaries.length > 0) {
-    console.log(`\tNew summaries published on Ethereum after block ${latestPublishedBlock}: ${newSummaries.length}`);
-    newSummaries.sort((a,b) => (a.fromBlock < b.fromBlock) ? -1 : ((b.fromBlock > a.fromBlock) ? 1 : 0));
-    await redis.appendPublishedSummaries(newSummaries.map(s => JSON.stringify(s)));
-    return  parseInt(newSummaries[newSummaries.length - 1].toBlock);
-  }
-
-  return latestPublishedBlock;
+  const publishedRoots = await ethereum.getPublishedRoots(avnContract);
+  const publishedSummaries = summaries.filter(s => publishedRoots.includes(s.rootHash));
+  await redis.setPublishedSummaries(publishedSummaries.map(s => JSON.stringify(s)));
+  return  parseInt(publishedSummaries[newSummaries.length - 1].toBlock);
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {

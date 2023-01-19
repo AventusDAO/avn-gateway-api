@@ -316,12 +316,9 @@ async function getUnclaimedLowers() {
   return await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
 }
 
-async function appendPublishedSummaries(summaries) {
+async function setPublishedSummaries(summaries) {
+  await redisClient.del(PUBLISHED_SUMMARIES_KEY);
   return await redisClient.rpush(PUBLISHED_SUMMARIES_KEY, summaries)
-}
-
-async function getLatestPublishedSummary() {
-  return await redisClient.lindex(PUBLISHED_SUMMARIES_KEY, -1);
 }
 
 async function getPublishedSummaries() {
@@ -382,8 +379,7 @@ module.exports = {
   addUnclaimedLower,
   removeUnclaimedLower,
   getUnclaimedLowers,
-  appendPublishedSummaries,
-  getLatestPublishedSummary,
+  setPublishedSummaries,
   getPublishedSummaries,
   setLowerData,
   deleteLowerData,

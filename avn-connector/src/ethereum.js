@@ -74,25 +74,17 @@ async function lowerIsClaimed(avnContract, leafHash) {
   return !!+resultAsHex; // cast to a number and convert to boolean
 }
 
-async function rootIsPublished(avnContract, rootHash) {
-  const data = await web3.eth.abi.encodeFunctionCall({
-    name: 'isPublishedRootHash',
-    type: 'function',
-    inputs: [
-      {
-        type: 'bytes32',
-        name: 'rootHash'
-      }
-    ]
-  }, [rootHash]);
-  const resultAsHex = await web3.eth.call({ to: avnContract, data });
-  return !!+resultAsHex; // cast to a number and convert to boolean
+async function getPublishedRoots(avnContract) {
+  const apiStub = [{name:'LogRootPublished',type:'event',inputs:[{indexed:true,name:'rootHash',type:'bytes32'},{indexed:true,name:'t2TransactionId',type:'uint256'}]}];
+  const contract = new web3.eth.Contract(apiStub, avnContract);
+  const events = await contract.getPastEvents('LogRootPublished', { fromBlock: 0 });
+  return events.map(log => log.returnValues.rootHash);
 }
 
 module.exports = {
   getLiftEvents,
   getLockedBalance,
+  getPublishedRoots,
   lowerIsClaimed,
   transactionExists,
-  rootIsPublished,
 };

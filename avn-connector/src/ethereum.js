@@ -75,8 +75,8 @@ async function lowerIsClaimed(avnContract, leafHash) {
 }
 
 async function getPublishedRoots(avnContract) {
-  const apiStub = [{name:'LogRootPublished',type:'event',inputs:[{indexed:true,name:'rootHash',type:'bytes32'},{indexed:true,name:'t2TransactionId',type:'uint256'}]}];
-  const contract = new web3.eth.Contract(apiStub, avnContract);
+  const abi = [{name:'LogRootPublished',type:'event',inputs:[{indexed:true,name:'rootHash',type:'bytes32'},{indexed:true,name:'t2TransactionId',type:'uint256'}]}];
+  const contract = new web3.eth.Contract(abi, avnContract);
   const events = await contract.getPastEvents('LogRootPublished', { fromBlock: 0 });
   return events.map(log => log.returnValues.rootHash);
 }

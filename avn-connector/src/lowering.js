@@ -29,7 +29,7 @@ async function updatePublishedSummaries(avnContract) {
   const publishedRoots = await ethereum.getPublishedRoots(avnContract);
   const publishedSummaries = summaries.filter(s => publishedRoots.includes(s.rootHash));
   await redis.setPublishedSummaries(publishedSummaries.map(s => JSON.stringify(s)));
-  return parseInt(publishedSummaries[newSummaries.length - 1].toBlock);
+  return parseInt(publishedSummaries[publishedSummaries.length - 1].toBlock);
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {

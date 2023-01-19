@@ -70,8 +70,8 @@ async function poll(requestId) {
     let tx = await redis.getAvnTransaction(txHash);
 
     if (!tx) {
-      log.error(`No transaction found for requestId: ${requestId}`);
-      return { error: `No transaction found for requestId: ${requestId}`, status: 'Transaction not found' };
+      log.warn(`No transaction found for requestId: ${requestId}`);
+      return { status: `Transaction not found` };
     }
 
     return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex };

@@ -18,18 +18,27 @@ function AvnApi(gateway, options) {
 
 AvnApi.prototype.init = async function () {
   await cryptoWaitReady();
-  this.setSURI = suri => setSURI(suri, Awt);
+  this.setSURI = suri => setSURI(suri, this.options, Awt);
   this.awt = Awt;
   this.proxy = Proxy;
   this.utils = Utils;
 
+  // TODO: do we want to allow changing SURI on the fly?
+  const suri = () => this.options.suri ? this.options.suri : process.env.AVN_SURI;
+  if (!suri()) throw new Error('Suri is not defined');
+
+  this.signer = () => Utils.getSigner(suri());
+  this.myAddress = () => this.signer().address;
+  this.myPublicKey = () => Utils.convertToPublicKeyIfNeeded(this.myAddress());
+
   if (this.gateway) {
-    awtToken = Awt.generateAwtToken(this.options.suri, this.options);
+    awtToken = Awt.generateAwtToken(suri(), this.options);
 
     const avnApi = {
       gateway: this.gateway,
+      signer: () => this.signer(),
       uuid: () => uuidv4(),
-      axios: () => setupAxios(Awt)
+      axios: () => setupAxios(Awt, suri())
     };
 
     this.query = new Query(avnApi);
@@ -38,10 +47,10 @@ AvnApi.prototype.init = async function () {
   }
 };
 
-function setupAxios(awtTokenManager) {
+function setupAxios(awtTokenManager, suri) {
   if (!awtTokenManager.tokenAgeIsValid(this.awtToken)) {
     console.log(' - Awt token has expired, refreshing');
-    this.awtToken = awtTokenManager.generateAwtToken(process.env.AVN_SURI);
+    this.awtToken = awtTokenManager.generateAwtToken(suri);
   }
 
   // Add any middlewares here to configure global axios behaviours
@@ -49,9 +58,11 @@ function setupAxios(awtTokenManager) {
   return Axios;
 }
 
-function setSURI(suri, awtTokenManager) {
-  process.env.AVN_SURI = suri;
-  this.awtToken = awtTokenManager.generateAwtToken(process.env.AVN_SURI);
+function setSURI(suri, options, awtTokenManager) {
+  options.suri = suri;
+
+  this.awtToken = awtTokenManager.generateAwtToken(suri);
+  console.info(" - Suri updated");
 }
 
 module.exports = AvnApi;

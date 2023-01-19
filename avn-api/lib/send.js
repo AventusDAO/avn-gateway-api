@@ -124,7 +124,7 @@ function stake(api, queryApi) {
     common.validateAccount(relayer);
     amount = common.validateAndConvertAmountToString(amount);
 
-    const user = common.getSignerAddress();
+    const user = api.signer().address;
     const stakingStatus = await queryApi.getStakingStatus(user);
 
     if (stakingStatus === common.STAKING_STATUS.isStaking) {
@@ -184,7 +184,8 @@ function generateFunction(functionName, api, queryApi) {
 }
 
 Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs, transactionType, nonceType, retry) {
-  const user = common.getSignerAddress();
+  const apiSigner = api.signer();
+  const user = apiSigner.address;
   // By default the user pays the relayer fees but this can be changed to any `payer`
   const payer = user;
   let proxyArgs = Object.assign({ relayer, user, payer }, methodArgs);
@@ -197,9 +198,9 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
         : await this.smartNonce(queryApi, user, nonceType, retry);
   }
 
-  const proxySignature = proxyApi.generateProxySignature(transactionType, proxyArgs);
+  const proxySignature = proxyApi.generateProxySignature(apiSigner, transactionType, proxyArgs);
   params.proxySignature = proxySignature;
-  const paymentArgs = { relayer, user, payer, proxySignature, transactionType };
+  const paymentArgs = { relayer, user, payer, proxySignature, transactionType, signer: apiSigner };
   const paymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
   params = Object.assign(params, paymentData);
 
@@ -214,7 +215,8 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
 };
 
 Send.prototype.proxyStakeAvtRequest = async function (api, queryApi, relayer, methodArgs, methodName, nonceType, retry) {
-  const user = common.getSignerAddress();
+  const apiSigner = api.signer();
+  const user = apiSigner.address;
   // By default the user pays the relayer fees but this can be changed to any `payer`
   const payer = user;
   let proxyArgs = Object.assign({ relayer, user, payer }, methodArgs);
@@ -223,7 +225,7 @@ Send.prototype.proxyStakeAvtRequest = async function (api, queryApi, relayer, me
 
   let transactionType = TX_TYPE.ProxyBond;
   params.bondMethodName = transactionType;
-  let proxySignature = proxyApi.generateProxySignature(transactionType, proxyArgs);
+  let proxySignature = proxyApi.generateProxySignature(apiSigner, transactionType, proxyArgs);
   params.proxyBondSignature = proxySignature;
   let paymentArgs = { relayer, user, payer, proxySignature, transactionType };
   let paymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
@@ -234,7 +236,7 @@ Send.prototype.proxyStakeAvtRequest = async function (api, queryApi, relayer, me
 
   transactionType = TX_TYPE.ProxyNominate;
   params.nominateMethodName = transactionType;
-  proxySignature = proxyApi.generateProxySignature(transactionType, proxyArgs);
+  proxySignature = proxyApi.generateProxySignature(apiSigner, transactionType, proxyArgs);
   params.proxyNominateSignature = proxySignature;
   paymentArgs = { relayer, user, payer, proxySignature, transactionType };
   paymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
@@ -296,10 +298,10 @@ Send.prototype.getRelayerFee = async function (queryApi, relayer, account, trans
 };
 
 Send.prototype.getPaymentNonceAndSignature = async function (queryApi, paymentArgs, retry) {
-  const { relayer, user, payer, proxySignature, transactionType } = paymentArgs;
+  const { relayer, user, payer, proxySignature, transactionType, signer } = paymentArgs;
   const paymentNonce = await this.smartNonce(queryApi, payer, NONCE_TYPE.Payment, retry);
   const relayerFee = await this.getRelayerFee(queryApi, relayer, payer, transactionType);
-  const feePaymentArgs = { relayer, user, proxySignature, relayerFee, paymentNonce };
+  const feePaymentArgs = { relayer, user, proxySignature, relayerFee, paymentNonce, signer };
   const feePaymentSignature = proxyApi.generateFeePaymentSignature(feePaymentArgs);
   return { paymentNonce, feePaymentSignature };
 };

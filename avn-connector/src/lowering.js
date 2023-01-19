@@ -87,7 +87,7 @@ async function updateAwaitingClaimDataLowers() {
     const txHash = awaiting[i];
     const blockIndex = JSON.parse(await redis.getBlockIndex(txHash));
 
-    if (blockIndex.blockNumber == null) {
+    if (blockIndex == null) {
       console.error(`💔 Error retrieving block index for txHash ${txHash}`);
       break;
     }

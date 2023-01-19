@@ -15,13 +15,13 @@ async function processRequest(request) {
   try {
     call = JSON.parse(request);
   } catch (err) {
-    return utils.errorResponse('parse', 'failed to parse JSON', err, request, null);
+    return utils.buildErrorBody('parse', 'failed to parse JSON', err, request, null);
   }
 
   if (call.id === undefined) call.id = null;
 
   if (typeof call.method !== 'string') {
-    return utils.errorResponse('request', 'method type must be string', call.method, request, call.id);
+    return utils.buildErrorBody('request', 'method type must be string', call.method, request, call.id);
   } else {
     return await makeCall(call, request);
   }
@@ -31,13 +31,13 @@ async function makeCall(call, request) {
   console.info(`Processing call: ${JSON.stringify(call)}`);
 
   if (call.method !== 'requestState') {
-    return utils.errorResponse('method', "method must be 'requestState'", call.method, request, call.id);
+    return utils.buildErrorBody('method', "method must be 'requestState'", call.method, request, call.id);
   }
 
   const { requestId } = call.params;
 
   if (utils.isValidRequestId(requestId) === false) {
-    return utils.errorResponse('params', 'invalid request ID', requestId, request, call.id);
+    return utils.buildErrorBody('params', 'invalid request ID', requestId, request, call.id);
   }
 
   return await poll(call, request, requestId);
@@ -50,6 +50,6 @@ async function poll(call, request, requestId) {
     const result = avnResponse.data.error || avnResponse.data;
     return utils.validResponse(callId, result);
   } catch (err) {
-    return utils.errorResponse('internal', 'failed to poll chain', err, request, call.id);
+    return utils.buildErrorBody('internal', 'failed to poll chain', err, request, call.id);
   }
 }

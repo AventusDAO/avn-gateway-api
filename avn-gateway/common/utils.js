@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();

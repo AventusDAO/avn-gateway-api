@@ -430,7 +430,7 @@ async function getSummaries() {
     if (entries.length > 0) {
       startKey = entries[entries.length - 1][0];
       summaries = summaries.concat(entries.map(([{ args: [{ fromBlock, toBlock }] }, { rootHash, isValidated }]) => (
-        { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash: rootHash.toString(), isValid: isValidated }
+        { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash: rootHash.toString().toLowerCase(), isValid: isValidated }
       )).filter(s => s.isValid == true).map(({ fromBlock, toBlock, rootHash }) => ({ fromBlock, toBlock, rootHash })));
     }
   } while (entries.length > 0);

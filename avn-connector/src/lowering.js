@@ -85,15 +85,14 @@ async function updateAwaitingClaimDataLowers() {
   console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`)
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
-    let blockNumber, index;
+    const blockIndex = JSON.parse(await redis.getBlockIndex(txHash));
 
-    try {
-      { blockNumber, index } = JSON.parse(await redis.getBlockIndex(txHash));
-    } catch (e) {
+    if (blockIndex.blockNumber == null) {
       console.error(`💔 Error retrieving block index for txHash ${txHash}`);
       break;
     }
 
+    const { blockNumber, index } = blockIndex;
     const summaryData = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
 
     if (summaryData) {

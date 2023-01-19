@@ -181,7 +181,7 @@ async function getRelayerFees(call, request) {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
     let result = avnResponse.data;
     result = typeof result === 'number' ? result.toString() : result;
-    return utils.validResponse(call.id, result);
+    return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
     return utils.buildErrorBody('internal', err.response.data.error, err, request, call.id);
   }
@@ -329,7 +329,7 @@ async function query(call, request, method, params, responseFormatter) {
     const result =
       (avnResponse.data && avnResponse.data.error) ||
       (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
-    return utils.validResponse(call.id, result);
+    return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
     return utils.buildErrorBody('internal', `failed to invoke ${method} when querying the chain`, err, request, call.id);
   }

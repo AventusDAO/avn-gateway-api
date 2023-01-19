@@ -116,6 +116,8 @@ async function updateAwaitingClaimDataLowers() {
       } else {
         console.warn(`\t  🚨 Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
       }
+    } else {
+      console.warn(`No summary data for block ${blockNumber} index ${index}`);
     }
   }
 

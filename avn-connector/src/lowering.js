@@ -86,12 +86,7 @@ async function updateAwaitingClaimDataLowers() {
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const blockIndex = JSON.parse(await redis.getBlockIndex(txHash));
-
-    if (blockIndex == null) {
-      console.error(`💔 Error retrieving block index for txHash ${txHash}`);
-      break;
-    }
-
+    if (blockIndex == null) break;
     const { blockNumber, index } = blockIndex;
     const summaryData = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
 
@@ -117,7 +112,7 @@ async function updateAwaitingClaimDataLowers() {
         console.warn(`\t  🚨 Unable to get lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
       }
     } else {
-      console.warn(`No summary data for block ${blockNumber} index ${index}`);
+      console.warn(`\t  🚨 Unable to get summary data for block: ${blockNumber}`);
     }
   }
 

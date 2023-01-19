@@ -24,21 +24,21 @@ AvnApi.prototype.init = async function () {
   this.utils = Utils;
 
   // TODO: do we want to allow changing SURI on the fly?
-  const suri = () => this.options.suri ? this.options.suri : process.env.AVN_SURI;
-  if (!suri()) throw new Error('Suri is not defined');
+  const getSuri = () => this.options.suri ? this.options.suri : process.env.AVN_SURI;
+  if (!getSuri()) throw new Error('Suri is not defined');
 
-  this.signer = () => Utils.getSigner(suri());
+  this.signer = () => Utils.getSigner(getSuri());
   this.myAddress = () => this.signer().address;
   this.myPublicKey = () => Utils.convertToPublicKeyIfNeeded(this.myAddress());
 
   if (this.gateway) {
-    awtToken = Awt.generateAwtToken(suri(), this.options);
+    awtToken = Awt.generateAwtToken(getSuri(), this.options);
 
     const avnApi = {
       gateway: this.gateway,
       signer: () => this.signer(),
       uuid: () => uuidv4(),
-      axios: () => setupAxios(Awt, suri())
+      axios: () => setupAxios(Awt, getSuri())
     };
 
     this.query = new Query(avnApi);

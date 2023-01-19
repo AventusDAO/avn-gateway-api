@@ -35,7 +35,7 @@ const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
 const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
 const LOWER_DATA_KEY = 'lowerData';
-const PUBLISHED_SUMMARIES_KEY = 'summaries';
+const SUMMARIES_KEY = 'summaries';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -318,13 +318,13 @@ async function getUnclaimedLowers() {
   return await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
 }
 
-async function setPublishedSummaries(summaries) {
-  await redisClient.del(PUBLISHED_SUMMARIES_KEY);
-  return await redisClient.rpush(PUBLISHED_SUMMARIES_KEY, summaries)
+async function setSummaries(summaries) {
+  await redisClient.del(SUMMARIES_KEY);
+  return await redisClient.rpush(SUMMARIES_KEY, summaries)
 }
 
-async function getPublishedSummaries() {
-  return await redisClient.lrange(PUBLISHED_SUMMARIES_KEY, 0, -1);
+async function getSummaries() {
+  return await redisClient.lrange(SUMMARIES_KEY, 0, -1);
 }
 
 async function setLowerData(txHash, lowerDataString) {
@@ -381,8 +381,8 @@ module.exports = {
   addUnclaimedLower,
   removeUnclaimedLower,
   getUnclaimedLowers,
-  setPublishedSummaries,
-  getPublishedSummaries,
+  setSummaries,
+  getSummaries,
   setLowerData,
   deleteLowerData,
   getLowerData,

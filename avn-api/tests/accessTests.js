@@ -28,29 +28,32 @@ describe('Access rights:', async () => {
     newUserAccount = api.utils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserSURI = newUserAccount.seed;
-    process.env.AVN_SURI = userSURI;
   });
 
   afterEach(async () => {
-    process.env.AVN_SURI = userSURI;
+    api.setSURI(userSURI);
   });
 
   describe('setSURI', async () => {
-    it('can set AVN_SURI via the api', async () => {
-      assert.equal(process.env.AVN_SURI, userSURI);
+    it('can set SURI via the api', async () => {
+      assert.equal(api.myAddress(), user);
+      assert.equal(api.signer().address, user);
       api.setSURI(newUserSURI);
-      assert.equal(process.env.AVN_SURI, newUserSURI);
+      assert.equal(api.myAddress(), newUser);
+      assert.equal(api.signer().address, newUser);
     });
 
-    it('can set AVN_SURI via the options', async () => {
+    it('can set SURI via the options', async () => {
       const options = { suri: newUserSURI };
       const apiWithOptions = new AvnApi(null, options);
       await apiWithOptions.init();
-      assert.equal(process.env.AVN_SURI, newUserSURI);
+      assert.equal(apiWithOptions.myAddress(), newUser);
+      assert.equal(apiWithOptions.signer().address, newUser);
     });
   });
 
   describe('accessing the gateway', async () => {
+    // Note: these tests depend on each other
     it('a new user cannot access the gateway without AVT', async () => {
       api.setSURI(newUserSURI);
       assert.equal(await canAccessTheGateway(), false);
@@ -77,6 +80,22 @@ describe('Access rights:', async () => {
 
       api.setSURI(newUserSURI);
       assert.equal(await canAccessTheGateway(), true);
+    });
+
+    it('signer is updated when changing suri via the api', async () => {
+      api.setSURI(newUserSURI);
+      assert.equal(await api.query.getAvtBalance(newUser), '0');
+
+      // New user cannot transfer avt with 0 balance
+      let requestId = await api.send.transferAvt(relayer, user, ONE_AVT.toString());
+      await helper.confirmStatus(api, requestId, 'Rejected');
+
+      api.setSURI(userSURI); // this ensures the AWT token is refreshed
+      assert(new BN(await api.query.getAvtBalance(user)).gte(ONE_AVT));
+
+      // User can transfer AVT because they have at least 1 avt
+      requestId = await api.send.transferAvt(relayer, user, ONE_AVT.toString());
+      await helper.confirmStatus(api, requestId, 'Processed');
     });
   });
 });

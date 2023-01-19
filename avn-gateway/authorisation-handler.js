@@ -6,7 +6,6 @@ const CLOCK_JITTER_MSEC = -15000;
 const MIN_AVT_BALANCE = new utils.BN(process.env.MIN_AVT_BALANCE);
 const AUTH_PREFIX = 'Bearer ';
 const InvalidRequestResponse = { isAuthorized: false };
-const ValidRequestResponse = { isAuthorized: true };
 
 exports.handler = async event => {
   await utils.init();
@@ -14,6 +13,9 @@ exports.handler = async event => {
 };
 
 async function validateAwtToken(event) {
+  // This must be here because we don't want to leake state as a global variable.
+  const ValidRequestResponse = { isAuthorized: true, context: {} };
+
   console.info('Validating AWT token and user balance');
   const awtToken = getAwtTokenIfAny(event);
 
@@ -29,14 +31,27 @@ async function validateAwtToken(event) {
     return InvalidRequestResponse;
   }
 
-  if (!utils.verifyAwtTokenSignature(awtToken.pk, awtToken.iat, awtToken.sig)) {
+  if (!utils.verifyAwtTokenSignature(awtToken.pk, awtToken.iat, awtToken.sig, awtToken.hasPayer, awtToken.payer)) {
     console.info('Invalid AWT token - bad signature');
     return InvalidRequestResponse;
   }
 
-  if ((await isNewUser(awtToken)) && !(await userHasAvtBalance(awtToken))) {
-    console.info('User does not have enough AVT to access the gateway');
-    return InvalidRequestResponse;
+  if (utils.isSplitFeeToken(awtToken) === true) {
+    const payerAddress = await tryGetPayerAddressForUser(awtToken);
+
+    if (payerAddress) {
+      // Pass the authenticated payer address to the target lambda
+      ValidRequestResponse.context.isSplitFeeUser = true;
+      ValidRequestResponse.context.splitFeePayerAddress = payerAddress;
+    } else {
+      console.info(`No payer found for user ${awtToken.pk}`);
+      return InvalidRequestResponse;
+    }
+  } else {
+    if ((await isValidSelfPayUser(awtToken)) === false) {
+      console.info('User does not have enough AVT to access the gateway');
+      return InvalidRequestResponse;
+    }
   }
 
   return ValidRequestResponse;
@@ -66,32 +81,30 @@ function tokenAgeIsValid(token) {
   }
 }
 
-async function isNewUser(awtToken) {
-  try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
-      palletName: 'avnProxy',
-      storageName: 'paymentNonces',
-      params: [awtToken.pk]
-    });
-    const paymentNonce = avnResponse.data.toString();
-    return paymentNonce === '0';
-  } catch (err) {
-    console.error('failed to check if existing user', err);
-    return true;
-  }
+async function isValidSelfPayUser(awtToken) {
+  const userInfo = await tryGetUserInfo(awtToken);
+  if (!userInfo) return false;
+
+  const avtBalance = new utils.BN(userInfo.freeBalance.toString().replace('0x', ''), 16);
+  const existingUser = new utils.BN(userInfo.paymentNonce).gt(new utils.BN(0));
+
+  return existingUser === true || avtBalance.gte(MIN_AVT_BALANCE);
 }
 
-async function userHasAvtBalance(awtToken) {
+async function tryGetPayerAddressForUser(token) {
+  //TODO: Validate by checking if there is a payer in RDS. If there is, return it
+  return undefined;
+}
+
+async function tryGetUserInfo(awtToken) {
   try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', {
-      palletName: 'system',
-      storageName: 'account',
-      params: [awtToken.pk]
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'gatewayUserInfo', {
+      account: awtToken.pk
     });
-    const avtBalance = new utils.BN(avnResponse.data.data.free.toString().replace('0x', ''), 16);
-    return avtBalance.gte(MIN_AVT_BALANCE);
+
+    return avnResponse.data;
   } catch (err) {
-    console.error('failed to check user AVT balance', err);
-    return false;
+    console.error('Failed to get user info from chain', err);
+    return undefined;
   }
 }

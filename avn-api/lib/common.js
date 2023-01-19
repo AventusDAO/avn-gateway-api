@@ -184,18 +184,6 @@ function validateNonceType(nonceType) {
   }
 }
 
-function getSigner() {
-  const suri = process.env.AVN_SURI;
-  if (!suri) throw new Error('Please set AVN_SURI environment variable');
-  const user = keyring.addFromUri(suri);
-  return user;
-}
-
-function getSignerAddress() {
-  const signer = getSigner();
-  return signer.address;
-}
-
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -204,8 +192,6 @@ module.exports = {
   createTypeUnsafe,
   convertToPublicKeyIfNeeded,
   ETHEREUM_LOG_EVENT_TYPE,
-  getSigner,
-  getSignerAddress,
   keyring,
   MARKET,
   NONCE_TYPE,

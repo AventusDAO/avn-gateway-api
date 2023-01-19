@@ -1,5 +1,7 @@
 const utils = require('/opt/utils.js');
+const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event) => {
   let processedMessagesCount = 0;
@@ -61,8 +63,30 @@ async function processRequest(request) {
   }
 
   console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
+  validateTransaction(tx);
 
-  // TODO: implement me
+  const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
+  const encodedPaymentParams = fees.encodePaymentParams(feeParams.relayer, feeParams.relayerFee, feeParams.paymentNonce, feeParams.proxyProof);
 
+  const paymentSignature = await signPaymentInfo(tx.splitFeePayerAddress, encodedPaymentParams);
+
+  tx.params.payer = tx.splitFeePayerAddress;
+  tx.params.feePaymentSignature = paymentSignature;
+  tx.params.paymentNonce = feeParams.paymentNonce;
+  // TODO: send message to default queue
   return utils.buildValidResponseBody(tx.id, requestId);
+}
+function validateTransaction(tx) {
+  try {
+    if (utils.isValidAccountId(tx.params.relayer) === false) throw 'relayer';
+    if (utils.isValidAccountId(tx.params.user) === false) throw 'user';
+    if (utils.isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
+    if (utils.isValidSignatureFormat(tx.params.proxySignature) === false) throw 'proxy signature format';
+  } catch (errParam) {
+    throw new Error(`Invalid transaction data: ${errParam}`);
+  }
+}
+async function signPaymentInfo(payer, encodedParams) {
+  // TODO: Sign using `payers's private keys
+  return ''
 }

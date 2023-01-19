@@ -29,7 +29,7 @@ async function updateSummaries(avnContract) {
   const publishedRoots = await ethereum.getPublishedRoots(avnContract);
   let latestPublishedBlock = 0;
 
-  for (i=0; i < summaries.length; i++) {
+  for (let i = 0; i < summaries.length; i++) {
     if (publishedRoots.includes(summaries[i].rootHash)) {
       summaries[i].published = true;
       latestPublishedBlock = parseInt(summaries[i].toBlock);
@@ -127,7 +127,7 @@ async function updateAwaitingClaimDataLowers() {
     }
   }
 
-  unpublishedSummaries.forEach(s => console.warn(`\t  🚨 Unpublished summary: ${s}`));
+  unpublishedSummaries.forEach(s => console.warn(`\t  🚨 Unpublished summary: ${JSON.stringify(s)}`));
 
   if (error === true) {
     throw new Error('Error processing AwaitingClaimDataLowers');

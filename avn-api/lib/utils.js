@@ -23,7 +23,7 @@ function addressToPublicKey(address) {
 
 
 function getSigner(suri) {
-  if (!suri) throw new Error('Suri is not defined');
+  if (!suri) throw new Error('Unable to get signer because Suri is not defined');
   const user = common.keyring.addFromUri(suri);
   return user;
 }

@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();
@@ -198,6 +199,10 @@ function encodeProxyProof(params) {
   return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
 }
 
+function hashString(string) {
+  return crypto.createHash('sha256').update(string).digest('hex');
+}
+
 function getProxyProof(user, relayerAddress, proxySignature) {
   return {
     signer: user,
@@ -224,6 +229,7 @@ module.exports = {
   encodeProxyProof,
   getProxyProof,
   getRelayerFee,
+  hashString,
   STASH_REWARD_DESTINATION,
   convertToAddress,
   convertToPublicKey,

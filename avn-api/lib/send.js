@@ -22,7 +22,6 @@ function Send(api, queryApi) {
   this.stake = generateFunction(stake, api, queryApi);
   this.unstake = generateFunction(unstake, api, queryApi);
   this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
-  this.payoutStakers = generateFunction(payoutStakers, api, queryApi);
   this.nonceMap = {};
   this.feesMap = {};
 }

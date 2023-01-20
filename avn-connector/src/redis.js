@@ -28,7 +28,6 @@ const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
 const LIFTS_FROM_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
-const STAKER_PAYOUT_FLAG_KEY = 'payoutFlag';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_BLOCK_KEY = 'lowersFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
@@ -252,14 +251,6 @@ async function getTotalToken(token) {
   return await redisClient.get(TOTAL_TOKEN_NAMESPACE + token);
 }
 
-async function getStakerPayoutFlag() {
-  return await redisClient.get(STAKER_PAYOUT_FLAG_KEY);
-}
-
-async function setStakerPayoutFlag(flag) {
-  await redisClient.set(STAKER_PAYOUT_FLAG_KEY, flag);
-}
-
 async function setRetrieveLowersFromBlock(blockNumber) {
   await redisClient.set(LOWERS_FROM_BLOCK_KEY, blockNumber);
 }
@@ -366,8 +357,6 @@ module.exports = {
   setLastPayoutEra,
   getTotalToken,
   setTotalToken,
-  getStakerPayoutFlag,
-  setStakerPayoutFlag,
   setRetrieveLowersFromBlock,
   getRetrieveLowersFromBlock,
   setBlockIndex,

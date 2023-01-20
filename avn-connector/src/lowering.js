@@ -147,7 +147,7 @@ async function updateUnclaimedLowers(avnContract, account) {
     }
   }
 
-  await redis.setCheckClaimedLowersFromBlock(fromBlock);
+  await redis.setCheckClaimedLowersFromBlock(nextFromBlock);
 }
 
 async function getLowerTransactions(blockNumber) {

@@ -235,14 +235,6 @@ async function getCheckLiftsFromBlock() {
   return await redisClient.get(LIFTS_FROM_BLOCK_KEY);
 }
 
-async function setLastPayoutEra(era) {
-  await redisClient.set(ERA_KEY, era);
-}
-
-async function getLastPayoutEra() {
-  return await redisClient.get(ERA_KEY);
-}
-
 async function setTotalToken(token, total) {
   await redisClient.setex(TOTAL_TOKEN_NAMESPACE + token, TOTAL_TOKEN_EXPIRY_IN_SECONDS, total);
 }
@@ -353,8 +345,6 @@ module.exports = {
   setSummaryEthTxHash,
   getCheckLiftsFromBlock,
   setCheckLiftsFromBlock,
-  getLastPayoutEra,
-  setLastPayoutEra,
   getTotalToken,
   setTotalToken,
   setRetrieveLowersFromBlock,

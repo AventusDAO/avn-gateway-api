@@ -1,4 +1,5 @@
 const assert = require('chai').assert;
+const { convertChangesToDMP } = require('prettier');
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 
@@ -39,6 +40,38 @@ describe('Utilities', async () => {
     it('can convert an address to a public key', async () => {
       const publicKey = api.utils.addressToPublicKey(accounts.otherUser.address);
       assert.equal(publicKey, accounts.otherUser.publicKey);
+    });
+  });
+
+  describe('setSuri updates awt token', async () => {
+    it('for self pay tokens', async () => {
+      const previousAWT = api.awtToken;
+      api.setSURI(accounts.otherUser.seed);
+      assert(previousAWT !== api.awtToken)
+      api.setSURI(accounts.user.seed);
+    });
+
+    it('for split fee tokens', async () => {
+      let options = {
+        hasPayer: true,
+        payer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'
+      };
+
+      let apiWithoptions = await helper.avnApi(options);
+
+      const previousAWT = apiWithoptions.awtToken;
+      apiWithoptions.setSURI(accounts.otherUser.seed);
+      assert(previousAWT !== apiWithoptions.awtToken);
+      api.setSURI(accounts.user.seed);
+    });
+
+    it('even if suri does not change', async () => {
+      api.setSURI(accounts.user.seed);
+      const previousUserAddress = api.myAddress();
+      const previousAWT = api.awtToken;
+      api.setSURI(accounts.user.seed);
+      assert.equal(previousUserAddress, api.myAddress());
+      assert(previousAWT !== api.awtToken)
     });
   });
 });

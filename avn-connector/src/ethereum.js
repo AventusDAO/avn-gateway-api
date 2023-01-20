@@ -59,19 +59,28 @@ async function callEtherscan(request) {
   return response.data.result;
 }
 
-async function lowerIsClaimed(avnContract, leafHash) {
-  const data = await web3.eth.abi.encodeFunctionCall({
-    name: 'hasLowered',
-    type: 'function',
-    inputs: [
-      {
-        type: 'bytes32',
-        name: 'leafHash'
-      }
-    ]
-  }, [leafHash]);
-  const resultAsHex = await web3.eth.call({ to: avnContract, data });
-  return !!+resultAsHex; // cast to a number and convert to boolean
+async function getLatestClaimedLowers(avnContract) {
+  let fromBlock = (await redis.getCheckClaimedLowersFromBlock()) || 0);
+  const claimedLowers = [];
+
+  try {
+    const abi = [{name:'LogLowered',type:'event',inputs:[{indexed:true,type:'address'},{indexed:true,type:'address'},{indexed:true,type:'bytes32'},{indexed:false,type:'uint256'}]}];
+    const contract = new web3.eth.Contract(abi, avnContract);
+    const events = await contract.getPastEvents('LogLowered', { fromBlock });
+    if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
+    const transactions = events.map(e => e.transactionHash);
+
+    for (let i = 0; i < transactions.length; i++) {
+      const txData = await web3.eth.getTransaction(transactions[i]);
+      const params = web3.eth.abi.decodeParameters([{type:'bytes',name:'leafHash'},{type:'bytes32[]',name:'merklePath'}], '0x'+txData.input.slice(10));
+      claimedLowers.push(web3.utils.sha3(params.leafHash));
+    }
+
+  } catch (e) {
+    console.error(`💔 Error getting claimed lowers from Ethereum: `, e);
+  }
+
+  return { claimedLowers, fromBlock };
 }
 
 async function getPublishedRoots(avnContract) {
@@ -82,9 +91,9 @@ async function getPublishedRoots(avnContract) {
 }
 
 module.exports = {
+  getLatestClaimedLowers,
   getLiftEvents,
   getLockedBalance,
   getPublishedRoots,
-  lowerIsClaimed,
   transactionExists,
 };

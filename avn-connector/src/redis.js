@@ -31,6 +31,7 @@ const ERA_KEY = 'era';
 const STAKER_PAYOUT_FLAG_KEY = 'payoutFlag';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_BLOCK_KEY = 'lowersFromBlock';
+const CLAIMED_LOWERS_FROM_BLOCK_KEY = 'claimedLowersFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
 const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
@@ -270,6 +271,14 @@ async function getRetrieveLowersFromBlock() {
   return await redisClient.get(LOWERS_FROM_BLOCK_KEY);
 }
 
+async function setCheckClaimedLowersFromBlock(blockNumber) {
+  await redisClient.set(CLAIMED_LOWERS_FROM_BLOCK_KEY, blockNumber);
+}
+
+async function getCheckClaimedLowersFromBlock() {
+  return await redisClient.get(CLAIMED_LOWERS_FROM_BLOCK_KEY);
+}
+
 async function setBlockIndex(txHash, blockIndexString) {
   return await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, blockIndexString);
 }
@@ -369,6 +378,8 @@ module.exports = {
   setStakerPayoutFlag,
   setRetrieveLowersFromBlock,
   getRetrieveLowersFromBlock,
+  setCheckClaimedLowersFromBlock,
+  getCheckClaimedLowersFromBlock,
   setBlockIndex,
   deleteBlockIndex,
   getBlockIndex,

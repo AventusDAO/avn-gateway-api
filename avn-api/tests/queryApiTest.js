@@ -362,14 +362,6 @@ describe('Query api calls:', async () => {
     });
   });
 
-  describe('getEraElectionStatus', async () => {
-    xit('returns the correct data', async () => {
-      const returnedData = await api.query.getEraElectionStatus();
-      // We can't be sure about the values but we can check the structure
-      assert(['isOpen', 'isClosed'].includes(returnedData), 'Election status is not a valid result');
-    });
-  });
-
   describe('getActiveEra', async () => {
     it('returns the correct data', async () => {
       const returnedData = await api.query.getActiveEra();

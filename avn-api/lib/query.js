@@ -21,7 +21,6 @@ function Query(api) {
   this.getValidatorsToNominate = generateFunction(getValidatorsToNominate, api);
   this.getActiveEra = generateFunction(getActiveEra, api);
   this.getStakingStats = generateFunction(getStakingStats, api);
-  this.getEraElectionStatus = generateFunction(getEraElectionStatus, api);
   this.getRelayerFees = generateFunction(getRelayerFees, api);
   this.getCurrentBlock = generateFunction(getCurrentBlock, api);
   this.getSummaryData = generateFunction(getSummaryData, api);
@@ -169,12 +168,6 @@ function getActiveEra(api) {
 function getStakingStats(api) {
   return async function () {
     return await this.postRequest(api, 'getStakingStats');
-  };
-}
-
-function getEraElectionStatus(api) {
-  return async function () {
-    return await this.postRequest(api, 'getEraElectionStatus');
   };
 }
 

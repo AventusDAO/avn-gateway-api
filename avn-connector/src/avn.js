@@ -386,6 +386,10 @@ async function getGatewayUserInfo(account) {
   }
 }
 
+async function signPaymentInfo(message, payerAddress) {
+  return vault.payerSign(message, payerAddress);
+}
+
 async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
   await connectToAvN();
@@ -472,5 +476,6 @@ module.exports = {
   getTotalToken,
   getUnprocessedLifts,
   getNftContractAddresses,
-  processLifts
+  processLifts,
+  signPaymentInfo
 };

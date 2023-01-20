@@ -82,6 +82,19 @@ function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
   );
 }
 
+async function signPaymentInfo(connectorUrl, encodedPaymentInfo, payerAddress) {
+  const requestParams = {
+    message: encodedPaymentInfo,
+    payerAddress: payerAddress
+  };
+
+  const avnResponse = await utils.axios.post(connectorUrl + 'signPaymentInfo', requestParams);
+  if (!avnResponse) throw new Error(`Null response when signing payment info for payer: ${payerAddress}, data: ${encodedPaymentInfo}`);
+  if (avnResponse.error) throw new Error(avnResponse.error);
+
+  return avnResponse.data;
+}
+
 // Keep alphabetical
 module.exports = {
   encodePaymentParams,
@@ -89,5 +102,6 @@ module.exports = {
   getPaymentNonce,
   getSplitFeePaymentParams,
   tryGetPaymentInfo,
+  signPaymentInfo,
   verifyFeePaymentSignature
 };

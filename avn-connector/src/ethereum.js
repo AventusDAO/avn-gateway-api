@@ -60,7 +60,7 @@ async function callEtherscan(request) {
 }
 
 async function getLatestClaimedLowers(avnContract) {
-  let fromBlock = (await redis.getCheckClaimedLowersFromBlock()) || 0);
+  let fromBlock = (await redis.getCheckClaimedLowersFromBlock()) || 0;
   const claimedLowers = [];
 
   try {

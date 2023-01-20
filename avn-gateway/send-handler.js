@@ -1,11 +1,13 @@
 const utils = require('/opt/utils.js');
-const MQSender = require('/opt/mqSender.js');
+const sqs = require('/opt/sqsUtils.js');
 
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const sqsClient = new sqs.SQSClient({ region: process.env.SECRET_MANAGER_REGION });
 
-let mqSender;
+const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
+const PAYER_SQS_URL = process.env.SQS_PAYER_QUEUE_URL;
 
 exports.handler = async (event, context) => {
+<<<<<<< HEAD
   try {
     await connectToMQ();
   } catch (err) {
@@ -110,211 +112,49 @@ async function processProxyAddEthereumLog(call, request, requestId) {
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
+=======
+  const result = await processRequest(event.body, event.requestContext.authorizer.lambda, context.awsRequestId);
+>>>>>>> Remove_era_election_status
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
-}
-
-async function processProxyTokenLower(call, request, requestId) {
-  const pallet = 'tokenManager';
-  const method = 'signedLower';
-  const { user, token, amount, t1Recipient } = call.params;
-  const methodParams = [user, token, amount, t1Recipient];
-
-  try {
-    if (utils.isValidAccountId(user) === false) throw 'user';
-    if (utils.isValidEthereumAddress(token) === false) throw 'token';
-    if (utils.isValidAmount(amount) === false) throw 'amount';
-    if (utils.isValidEthereumAddress(t1Recipient) === false) throw 't1Recipient';
-  } catch (param) {
-    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  if (utils.requestFailed(result) === true) {
+    return utils.buildErrorResponse(500, result.error.data, JSON.stringify(result));
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
-}
+  return utils.buildSuccessResponse(JSON.stringify(result))
+};
 
-async function processProxyCancelListFiatNft(call, request, requestId) {
-  const pallet = 'nftManager';
-  const method = 'signedCancelListFiatNft';
-  const { nftId } = call.params;
-  const methodParams = [nftId];
+async function processRequest(request, authoriserContext, awsRequestId) {
+  let tx;
 
   try {
-    if (utils.isValidNftId(nftId) === false) throw 'nft ID';
-  } catch (param) {
-    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
-  }
-
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
-}
-
-async function processProxyListNftOpenForSale(call, request, requestId) {
-  const pallet = 'nftManager';
-  const method = 'signedListNftOpenForSale';
-  const { nftId, market } = call.params;
-  const methodParams = [nftId, market];
-
-  try {
-    if (utils.isValidNftId(nftId) === false) throw 'nft ID';
-    if (utils.isValidMarket(market) === false) throw 'market';
-  } catch (param) {
-    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
-  }
-
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
-}
-
-async function processProxyMintSingleNft(call, request, requestId) {
-  const pallet = 'nftManager';
-  const method = 'signedMintSingleNft';
-  const { externalRef, royalties, t1Authority } = call.params;
-  const methodParams = [externalRef, royalties, t1Authority];
-
-  try {
-    if (utils.isValidString(externalRef) === false) throw 'externalRef';
-    if (utils.isValidArray(royalties) === false) throw 'royalties';
-    if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
-  } catch (param) {
-    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
-  }
-
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
-}
-
-async function processProxyTransferFiatNft(call, request, requestId) {
-  const pallet = 'nftManager';
-  const method = 'signedTransferFiatNft';
-  const { nftId, recipient } = call.params;
-  const methodParams = [nftId, recipient];
-
-  try {
-    if (utils.isValidNftId(nftId) === false) throw 'nft ID';
-    if (utils.isValidAccountId(recipient) === false) throw 'recipient';
-  } catch (param) {
-    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
-  }
-
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
-}
-
-async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {
-  const { relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce } = call.params;
-
-  try {
-    validateMethodParams(relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce);
+    tx = JSON.parse(request);
   } catch (err) {
-    return utils.buildErrorBody('params', err.toString(), err, request, call.id);
+    return utils.buildErrorBody('parse', 'failed to parse JSON', err.toString(), request, null);
   }
 
-  let params;
   try {
-    params = await getProxyParams(
-      call.method,
-      relayer,
-      user,
-      payer,
-      proxySignature,
-      feePaymentSignature,
-      paymentNonce,
-      methodParams
-    );
-  } catch (err) {
-    return utils.buildErrorBody('internal', err.toString(), err, request, call.id);
-  }
+    console.info('TX_ID <-> AWS_REQUESTID:', tx.id + ' : ' + awsRequestId);
 
-  return await sendTx(call, request, requestId, pallet, method, params);
-}
-
-async function getRelayerFee(relayer, user, transactionType) {
-  try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
-    return avnResponse.data.toString();
-  } catch (error) {
-    throw error;
-  }
-}
-
-function getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const verified = utils.verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
-
-  if (verified === false) {
-    return undefined;
-  }
-
-  return {
-    payer,
-    recipient: relayer,
-    amount: relayerFee,
-    signature: {
-      Sr25519: feePaymentSignature
+    if (isSplitFeeTransaction(authoriserContext) === true)
+    {
+      const data = await sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext);
+      console.info(`Sent split fee transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`);
+    } else {
+      const data = await sendMessageToDefaultQueue(tx, awsRequestId);
+      console.info(`Sent self pay transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`);
     }
-  };
-}
 
-function getProxyProof(user, relayer, proxySignature) {
-  return {
-    signer: user,
-    relayer,
-    signature: {
-      Sr25519: proxySignature
-    }
-  };
-}
-
-async function processProxyStakeAvt(call, request, requestId) {
-  const pallet = 'utility';
-  const method = 'batchAll';
-
-  let bondParams, nominateParams;
-
-  try {
-    bondParams = await getBondParams(call);
-    nominateParams = await getNominateParams(call);
+    return utils.buildValidResponseBody(tx.id, awsRequestId);
   } catch (err) {
-    return utils.buildErrorBody('params', err.toString(), err, request, call.id);
+    return utils.buildErrorBody('internal', 'failed to handle send transaction', err.toString(), request, tx.id);
   }
-
-  const bond = {
-    palletName: 'validatorsManager',
-    method: 'signedBond',
-    params: bondParams
-  };
-
-  const nominate = {
-    palletName: 'validatorsManager',
-    method: 'signedNominate',
-    params: nominateParams
-  };
-
-  return await sendTx(call, request, requestId, pallet, method, [bond, nominate]);
 }
 
-async function processProxyIncreaseStake(call, request, requestId) {
-  const pallet = 'validatorsManager';
-  const method = 'signedBondExtra';
-  const { amount } = call.params;
-  const methodParams = [amount];
+async function sendMessageToDefaultQueue(tx, awsRequestId) {
+  tx.awsRequestId = awsRequestId;
+  const messageBody = JSON.stringify(tx);
 
-  try {
-    if (utils.isValidAmount(amount) === false) throw 'amount';
-  } catch (param) {
-    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
-  }
-
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
-}
-
-async function processProxyUnstake(call, request, requestId) {
-  const pallet = 'validatorsManager';
-  const method = 'signedUnbond';
-  const { amount } = call.params;
-  const methodParams = [amount];
-
-  try {
-    if (utils.isValidAmount(amount) === false) throw 'amount';
-  } catch (param) {
-    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
-  }
-
+<<<<<<< HEAD
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
@@ -338,96 +178,40 @@ function validateMethodParams(relayer, user, payer, proxySignature, feePaymentSi
   } catch (errParam) {
     throw new Error(`invalid parameter (${errParam}) passed to validateMethodParams`);
   }
-}
-
-async function getProxyParams(
-  callMethod,
-  relayer,
-  user,
-  payer,
-  proxySignature,
-  feePaymentSignature,
-  paymentNonce,
-  methodParams
-) {
-  const proxyProof = getProxyProof(user, relayer, proxySignature);
-
-  let relayerFee;
-  try {
-    relayerFee = await getRelayerFee(relayer, payer, callMethod);
-  } catch (error) {
-    throw new Error(`could not get relayer fee: ${error.toString()}`);
-  }
-
-  const paymentInfo = getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
-  if (!paymentInfo) {
-    throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
-  }
-
-  return {
-    proxyParams: [proxyProof].concat(methodParams),
-    relayerAddress: relayer,
-    paymentInfo
+=======
+  const params = {
+    QueueUrl: DEFAULT_SQS_URL,
+    MessageGroupId: 'DEFAULT',
+    MessageDeduplicationId: utils.hashString(messageBody),
+    MessageBody: messageBody,
   };
+
+  return await sqsClient.send(new sqs.SendMessageCommand(params));
+>>>>>>> Remove_era_election_status
 }
 
-async function getBondParams(call) {
-  const { relayer, user, payer, amount, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce } = call.params;
+async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext) {
+  tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress;
+  tx.awsRequestId = awsRequestId;
+  const messageBody = JSON.stringify(tx);
 
-  const bondMethodParams = [user, amount, utils.STASH_REWARD_DESTINATION];
-  try {
-    if (utils.isValidAccountId(user) === false) throw 'user';
-    if (utils.isValidAmount(amount) === false) throw 'amount';
-  } catch (errParam) {
-    throw new Error(`invalid parameter (${errParam}) passed to getBondParams`);
-  }
+  const params = {
+    QueueUrl: PAYER_SQS_URL,
+    MessageGroupId: 'PAYER',
+    MessageDeduplicationId: utils.hashString(messageBody),
+    MessageBody: messageBody,
+  };
 
-  validateMethodParams(relayer, user, payer, proxyBondSignature, bondFeePaymentSignature, bondPaymentNonce);
+  if (tx.params.feePaymentSignature) throw new Error('split fee tx already contains payment info');
 
-  return await getProxyParams(
-    call.params.bondMethodName,
-    relayer,
-    user,
-    payer,
-    proxyBondSignature,
-    bondFeePaymentSignature,
-    bondPaymentNonce,
-    bondMethodParams
-  );
+  return await sqsClient.send(new sqs.SendMessageCommand(params));
 }
 
-async function getNominateParams(call) {
-  const { relayer, user, payer, targets, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce } =
-    call.params;
-  const nominateMethodParams = [targets];
-
-  try {
-    if (utils.isValidArray(targets) === false || targets.length === 0) throw 'targets';
-  } catch (errParam) {
-    throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
+function isSplitFeeTransaction(authoriserContext) {
+  if (!authoriserContext.splitFeePayerAddress) {
+    return false;
   }
 
-  validateMethodParams(relayer, user, payer, proxyNominateSignature, nominateFeePaymentSignature, nominatePaymentNonce);
-
-  return await getProxyParams(
-    call.params.nominateMethodName,
-    relayer,
-    user,
-    payer,
-    proxyNominateSignature,
-    nominateFeePaymentSignature,
-    nominatePaymentNonce,
-    nominateMethodParams
-  );
-}
-
-async function sendTx(call, request, requestId, palletName, method, params) {
-  try {
-    const queue = process.env.MQ_AVN_TX_QUEUE;
-    const txType = 'avnProxy';
-    const result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params });
-    return utils.buildValidResponseBody(call.id, result);
-  } catch (err) {
-    return utils.buildErrorBody('internal', 'failed to send proxy transaction', err, request, call.id);
-  }
+  const hasValidPayer = utils.isValidAccountId(authoriserContext.splitFeePayerAddress);
+  return authoriserContext.isSplitFeeUser === true && hasValidPayer === true
 }

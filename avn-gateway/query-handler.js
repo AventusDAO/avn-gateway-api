@@ -343,8 +343,6 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
 const formatEraAsString = data => (data ? data.current : 0);
 
-const formatEraElectionStatus = data => (Object.keys(data)[0] === 'Open' ? 'isOpen' : 'isClosed');
-
 const filterNftOwner = data => (data ? data.owner : null);
 
 // TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids

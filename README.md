@@ -649,41 +649,6 @@ curl https://AVN-API-URL/query \
 }
 ```
 
-#### getEraElectionStatus
-Returns the status of the era election. While an election is open, all staking activities are suspended.
-
-**REQUEST** \
-`POST https://AVN-API-URL/query`
-
-**HEADERS** \
-`Content-Type: application/json`
-`Authorization: bearer <awtToken>`
-
-**EXAMPLE**
-```
-## JSON-RPC over HTTPS POST
-curl https://AVN-API-URL/query \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getEraElectionStatus", "params":{}, "id":1}'
-```
-
-**RESULT FIELDS** \
-`VALUE` - string detailing the era election status:
-```
-  'isOpen'
-  'isClosed'
-```
-**BODY**
-```
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": "isClosed"
-}
-```
-
 #### getRelayerFees
 Returns fees for a particular relayer, optionally by user and/or transaction type
 

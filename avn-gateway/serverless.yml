@@ -35,6 +35,7 @@ provider:
             - 'secretsmanager:GetSecretValue'
           Resource:
             - ${file(./${env:SLS_ENV}.yml):secret_manager_rds_arn}
+            - ${file(./${env:SLS_ENV}.yml):secret_manager_vault_arn}
   runtime: nodejs14.x
   versionFunctions: false
   logRetentionInDays: ${file(./${env:SLS_ENV}.yml):logRetentionDays}
@@ -235,6 +236,7 @@ functions:
       SQS_PAYER_QUEUE_URL: ${file(./${env:SLS_ENV}.yml):sqs_gateway_payer_queue_url}
       SQS_DEFAULT_QUEUE_URL: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_url}
       SECRET_MANAGER_REGION: ${aws:region}
+      SECRET_MANAGER_VAULT_NAME: ${file(./${env:SLS_ENV}.yml):secret_manager_vault_name}
     package:
       patterns:
         - '!**/**'

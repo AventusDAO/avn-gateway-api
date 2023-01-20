@@ -25,7 +25,6 @@ const TX_TYPES = [
   'proxyIncreaseStake',
   'proxyUnstake',
   'proxyWithdrawUnlocked',
-  'proxyPayoutStakers'
 ];
 
 let initialised;

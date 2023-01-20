@@ -23,7 +23,6 @@ const TX_TYPE = {
   ProxyIncreaseStake: 'proxyIncreaseStake',
   ProxyUnstake: 'proxyUnstake',
   ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
-  ProxyPayoutStakers: 'proxyPayoutStakers'
 };
 
 const NONCE_TYPE = {

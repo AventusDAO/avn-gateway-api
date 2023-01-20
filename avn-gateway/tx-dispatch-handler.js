@@ -116,8 +116,6 @@ async function callSwitch(call, request, requestId) {
       return await processProxyUnstake(call, request, requestId);
     case 'proxyWithdrawUnlocked':
       return await processProxyWithdrawUnlocked(call, request, requestId);
-    case 'proxyPayoutStakers':
-      return await processProxyPayoutStakers(call, request, requestId);
     default:
       return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -312,21 +310,6 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
   const method = 'signedWithdrawUnbonded';
   const numSlashSpan = 0;
   const methodParams = [numSlashSpan];
-
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
-}
-
-async function processProxyPayoutStakers(call, request, requestId) {
-  const pallet = 'validatorsManager';
-  const method = 'signedPayoutStakers';
-  const { era } = call.params;
-  const methodParams = [era];
-
-  try {
-    if (utils.isValidNumber(era) === false) throw 'era';
-  } catch (param) {
-    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
-  }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }

@@ -65,3 +65,8 @@ variable "rds_secret_arn" {
   type        = string
   description = "ARN of the rds user/pass secret"
 }
+
+variable "vault_secret_arn" {
+  type        = string
+  description = "ARN of the secret manager arn used for vault"
+}

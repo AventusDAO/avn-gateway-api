@@ -108,7 +108,7 @@ resource "aws_iam_policy" "sender_sqs_access" {
 #
 # split-fee-handler SQS access
 #
-data "aws_iam_policy_document" "split_fee_sqs_access" {
+data "aws_iam_policy_document" "split_fee_access" {
   statement {
     effect = "Allow"
     actions = [
@@ -131,12 +131,22 @@ data "aws_iam_policy_document" "split_fee_sqs_access" {
       "${var.sqs_queue_arns.gateway_default_queue}",
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "${var.vault_secret_arn}",
+    ]
+  }
 }
 
-resource "aws_iam_policy" "split_fee_sqs_access" {
-  name        = "avn-gateway-split-fee-hendler-sqs"
-  description = "allow access to SQS"
-  policy      = data.aws_iam_policy_document.split_fee_sqs_access.json
+resource "aws_iam_policy" "split_fee_access" {
+  name        = "avn-gateway-split-fee-hendler-access"
+  description = "spit fee access to SQS and SM"
+  policy      = data.aws_iam_policy_document.split_fee_access.json
 }
 
 #

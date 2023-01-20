@@ -21,13 +21,14 @@ module "lambda_functions" {
   vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
   sqs_queue_arns         = module.gateway_sqs.queue_arn
   rds_secret_arn         = module.gateway_rds.gateway_secretsmanager_arn
+  vault_secret_arn       = aws_secretsmanager_secret.vault.arn
 
   lambda_functions = {
 
     authorisation-handler = {
       env_vars = {
-        MAX_TOKEN_AGE_MSEC     = 60000
-        MIN_AVT_BALANCE        = "1000000000000000000"
+        MAX_TOKEN_AGE_MSEC      = 60000
+        MIN_AVT_BALANCE         = "1000000000000000000"
         SECRET_MANAGER_RDS_NAME = module.gateway_rds.gateway_secretsmanager_name
       }
       memory_size = 512
@@ -35,9 +36,9 @@ module "lambda_functions" {
 
     send-handler = {
       env_vars = {
-        SECRET_MANAGER_REGION   = var.region
-        SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
-        SQS_PAYER_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_payer_queue"]
+        SECRET_MANAGER_REGION = var.region
+        SQS_DEFAULT_QUEUE_URL = module.gateway_sqs.queue_url["gateway_default_queue"]
+        SQS_PAYER_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_payer_queue"]
       }
       timeout     = 4
       memory_size = 512
@@ -84,7 +85,7 @@ module "lambda_functions" {
       env_vars = {
         AVN_VOTES_BUCKET = local.avn_votes_bucket
       }
-      memory_size = 256
+      memory_size      = 256
       avn_votes_bucket = local.avn_votes_bucket
     }
 
@@ -95,9 +96,10 @@ module "lambda_functions" {
 
     split-fee-handler = {
       env_vars = {
-        SECRET_MANAGER_REGION   = var.region
-        SQS_PAYER_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_payer_queue"]
-        SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
+        SECRET_MANAGER_REGION     = var.region
+        SQS_PAYER_QUEUE_URL       = module.gateway_sqs.queue_url["gateway_payer_queue"]
+        SQS_DEFAULT_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_default_queue"]
+        SECRET_MANAGER_VAULT_NAME = aws_secretsmanager_secret.vault.name
       }
       timeout     = 4
       memory_size = 512
@@ -135,11 +137,11 @@ module "api_gateway" {
 }
 
 module "dns" {
-  source          = "../../../modules/dns"
-  vpc_id          = data.terraform_remote_state.vpc.outputs.vpc_id
-  environment     = local.environment
-  api_gateway_url = module.api_gateway.url
-  api_gateway_id  = module.api_gateway.api_id
+  source            = "../../../modules/dns"
+  vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
+  environment       = local.environment
+  api_gateway_url   = module.api_gateway.url
+  api_gateway_id    = module.api_gateway.api_id
   api_gateway_stage = module.api_gateway.stage_id
 
   providers = {
@@ -170,7 +172,7 @@ provider "kubernetes" {
 }
 
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
   version = "17.24.0"
 
   cluster_version   = local.cluster_version
@@ -187,8 +189,8 @@ module "eks" {
     avn-gateway = {
       create_launch_template = true
 
-      disk_size       = local.eks_node_size
-      disk_type       = "gp3"
+      disk_size = local.eks_node_size
+      disk_type = "gp3"
 
       desired_capacity = 5
       max_capacity     = 50

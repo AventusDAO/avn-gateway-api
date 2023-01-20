@@ -141,7 +141,7 @@ async function updateUnclaimedLowers(avnContract, account) {
     const lowerData = JSON.parse(await redis.getLowerData(txHash));
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
-    if (claimedLowers).includes(leafHash)) {
+    if (claimedLowers.includes(leafHash)) {
       await redis.removeUnclaimedLower(txHash);
       await redis.deleteLowerData(txHash);
     }

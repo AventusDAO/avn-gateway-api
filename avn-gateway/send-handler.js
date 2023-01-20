@@ -263,11 +263,6 @@ function getProxyProof(user, relayer, proxySignature) {
 }
 
 async function processProxyStakeAvt(call, request, requestId) {
-  // check if era election is open before proceeding
-  if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
-  }
-
   const pallet = 'utility';
   const method = 'batchAll';
 
@@ -296,11 +291,6 @@ async function processProxyStakeAvt(call, request, requestId) {
 }
 
 async function processProxyIncreaseStake(call, request, requestId) {
-  // check if era election is open before proceeding
-  if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
-  }
-
   const pallet = 'validatorsManager';
   const method = 'signedBondExtra';
   const { amount } = call.params;
@@ -316,11 +306,6 @@ async function processProxyIncreaseStake(call, request, requestId) {
 }
 
 async function processProxyUnstake(call, request, requestId) {
-  // check if era election is open before proceeding
-  if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
-  }
-
   const pallet = 'validatorsManager';
   const method = 'signedUnbond';
   const { amount } = call.params;
@@ -336,11 +321,6 @@ async function processProxyUnstake(call, request, requestId) {
 }
 
 async function processProxyWithdrawUnlocked(call, request, requestId) {
-  // check if era election is open before proceeding
-  if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
-  }
-
   const pallet = 'validatorsManager';
   const method = 'signedWithdrawUnbonded';
   const numSlashSpan = 0;
@@ -350,11 +330,6 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
 }
 
 async function processProxyPayoutStakers(call, request, requestId) {
-  // check if era election is open before proceeding
-  if ((await isEraElectionStatusOpen(call.id)) === true) {
-    return utils.buildErrorBody('request', 'election window is open', {}, request, call.id);
-  }
-
   const pallet = 'validatorsManager';
   const method = 'signedPayoutStakers';
   const { era } = call.params;
@@ -461,22 +436,6 @@ async function getNominateParams(call) {
     nominatePaymentNonce,
     nominateMethodParams
   );
-}
-
-async function isEraElectionStatusOpen(callId) {
-  let result = false;
-  try {
-    const params = { callId: callId, palletName: 'staking', storageName: 'eraElectionStatus', params: [] };
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', params);
-
-    if (avnResponse && avnResponse.data && !avnResponse.data.error) {
-      result = Object.keys(avnResponse.data)[0] === 'Open';
-    }
-  } catch (error) {
-    console.warn(`Error getting era election status, assuming election is closed. Error: ${error}`);
-  }
-
-  return result;
 }
 
 async function sendTx(call, request, requestId, palletName, method, params) {

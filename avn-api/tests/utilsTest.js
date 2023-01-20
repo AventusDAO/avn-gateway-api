@@ -1,5 +1,4 @@
 const assert = require('chai').assert;
-const { convertChangesToDMP } = require('prettier');
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 

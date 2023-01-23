@@ -20,5 +20,3 @@ sqs_gateway_payer_queue_arn: 'arn:aws:sqs:eu-west-1:602004642405:gateway_payer_q
 sqs_gateway_payer_queue_url: 'https://sqs.eu-west-1.amazonaws.com/602004642405/gateway_payer_queue.fifo'
 secret_manager_rds_name: 'gateway_rds_logins'
 secret_manager_rds_arn: 'arn:aws:secretsmanager:eu-west-1:602004642405:secret:gateway_rds_logins-4nX65g'
-secret_manager_vault_name: 'vault'
-secret_manager_vault_arn: 'arn:aws:secretsmanager:eu-west-1:602004642405:secret:vault-6d9wJz'

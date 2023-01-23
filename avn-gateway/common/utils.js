@@ -162,6 +162,21 @@ function toWholeAVT(val) {
   return parseInt(wholeAmount.toString());
 }
 
+function buildErrorResponse(statusCode, errorMessage, body) {
+  return {
+    statusCode,
+    error: { message: errorMessage },
+    body
+  };
+}
+
+function buildSuccessResponse(body) {
+  return {
+    statusCode: 200,
+    body
+  };
+}
+
 function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payerAddress) {
   const encodedContext = registry.createType('Text', SIGNING_CONTEXT);
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
@@ -227,6 +242,8 @@ module.exports = {
   axios,
   BN,
   encodeProxyProof,
+  buildSuccessResponse,
+  buildErrorResponse,
   getProxyProof,
   getRelayerFee,
   hashString,
@@ -257,5 +274,5 @@ module.exports = {
   toWholeAVT,
   buildValidResponseBody,
   verifyAwtTokenSignature,
-  verifyFeePaymentSignature
+  verifySignatureWithOrWithoutWrapping
 };

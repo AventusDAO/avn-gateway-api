@@ -21,7 +21,6 @@ module "lambda_functions" {
   vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
   sqs_queue_arns         = module.gateway_sqs.queue_arn
   rds_secret_arn         = module.gateway_rds.gateway_secretsmanager_arn
-  vault_secret_arn       = aws_secretsmanager_secret.vault.arn
 
   lambda_functions = {
 
@@ -99,7 +98,6 @@ module "lambda_functions" {
         SECRET_MANAGER_REGION     = var.region
         SQS_PAYER_QUEUE_URL       = module.gateway_sqs.queue_url["gateway_payer_queue"]
         SQS_DEFAULT_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_default_queue"]
-        SECRET_MANAGER_VAULT_NAME = aws_secretsmanager_secret.vault.name
       }
       timeout     = 4
       memory_size = 512

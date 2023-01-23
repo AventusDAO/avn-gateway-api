@@ -131,16 +131,6 @@ data "aws_iam_policy_document" "split_fee_access" {
       "${var.sqs_queue_arns.gateway_default_queue}",
     ]
   }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "secretsmanager:GetSecretValue"
-    ]
-    resources = [
-      "${var.vault_secret_arn}",
-    ]
-  }
 }
 
 resource "aws_iam_policy" "split_fee_access" {

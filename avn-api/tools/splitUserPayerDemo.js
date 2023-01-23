@@ -66,7 +66,7 @@ function userGeneratedProxyTokenTransferSignature(nonce) {
     nonce: nonce
   };
 
-  return api.proxy.generateProxySignature('proxyTokenTransfer', tokenTransferParams);
+  return api.proxy.generateProxySignature(api.signer(), 'proxyTokenTransfer', tokenTransferParams);
 }
 
 function payerGeneratedFeePaymentSignature(proxySignature, relayerFee, paymentNonce) {

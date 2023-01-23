@@ -15,13 +15,13 @@ async function processRequest(request) {
   try {
     call = JSON.parse(request);
   } catch (err) {
-    return utils.errorResponse('parse', 'failed to parse JSON', err, request, null);
+    return utils.buildErrorBody('parse', 'failed to parse JSON', err.toString(), request, null);
   }
 
   if (call.id === undefined) call.id = null;
 
   if (typeof call.method !== 'string') {
-    return utils.errorResponse('request', 'method type must be string', call.method, request, call.id);
+    return utils.buildErrorBody('request', 'method type must be string', call.method, request, call.id);
   } else {
     return await callSwitch(call, request);
   }
@@ -80,7 +80,7 @@ async function callSwitch(call, request) {
       return await getSummaryInclusionData(call, request);
 
     default:
-      return utils.errorResponse('method', 'method not found', call.method, request, call.id);
+      return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
 }
 
@@ -88,7 +88,7 @@ async function getNonce(call, request) {
   const { accountId, nonceType } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+    return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   }
 
   switch (nonceType) {
@@ -101,7 +101,7 @@ async function getNonce(call, request) {
     case 'confirmation':
       return await queryChain(call, request, 'ethereumEvents', 'proxyNonces', [accountId], formatNumAsString);
     default:
-      return utils.errorResponse('params', 'invalid nonce type', nonceType, request, call.id);
+      return utils.buildErrorBody('params', 'invalid nonce type', nonceType, request, call.id);
   }
 }
 
@@ -109,7 +109,7 @@ async function getAvtBalance(call, request) {
   const { accountId } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+    return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
     return await queryChain(call, request, 'system', 'account', [accountId], formatBalanceAsString);
   }
@@ -132,7 +132,7 @@ async function getNftId(call, request) {
   const { externalRef } = call.params;
 
   if (utils.isValidString(externalRef) === false) {
-    return utils.errorResponse('params', 'invalid external ref', externalRef, request, call.id);
+    return utils.buildErrorBody('params', 'invalid external ref', externalRef, request, call.id);
   } else {
     function getNftIdFunction(externalRef) {
       return function (nftData) {
@@ -147,7 +147,7 @@ async function getNftNonce(call, request) {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
-    return utils.errorResponse('params', 'invalid nft id', nftId, request, call.id);
+    return utils.buildErrorBody('params', 'invalid nft id', nftId, request, call.id);
   } else {
     return await queryChain(call, request, 'nftManager', 'nfts', [nftId], formatNftNonceAsString);
   }
@@ -157,7 +157,7 @@ async function getNftOwner(call, request) {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
-    return utils.errorResponse('params', 'invalid nft id', nftId, request, call.id);
+    return utils.buildErrorBody('params', 'invalid nft id', nftId, request, call.id);
   } else {
     return await queryChain(call, request, 'nftManager', 'nfts', [nftId], filterNftOwner);
   }
@@ -172,7 +172,7 @@ async function getRelayerFees(call, request) {
     if (transactionType && utils.isValidTransactionType(transactionType) === false) throw 'transaction type';
   } catch (param) {
     const gatewayError = 'invalid ' + param;
-    return utils.errorResponse('params', gatewayError, call.params, request, call.id);
+    return utils.buildErrorBody('params', gatewayError, call.params, request, call.id);
   }
 
   try {
@@ -181,9 +181,9 @@ async function getRelayerFees(call, request) {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
     let result = avnResponse.data;
     result = typeof result === 'number' ? result.toString() : result;
-    return utils.validResponse(call.id, result);
+    return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.errorResponse('internal', err.response.data.error, err, request, call.id);
+    return utils.buildErrorBody('internal', err.response.data.error, err.toString(), request, call.id);
   }
 }
 
@@ -195,7 +195,7 @@ async function getTokenBalance(call, request) {
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
   } catch (param) {
     const gatewayError = 'invalid ' + param;
-    return utils.errorResponse('params', gatewayError, call.params, request, call.id);
+    return utils.buildErrorBody('params', gatewayError, call.params, request, call.id);
   }
 
   return await queryChain(call, request, 'tokenManager', 'balances', [[token, accountId]], formatNumAsString);
@@ -209,7 +209,7 @@ async function getTotalToken(call, request) {
   const { token } = call.params;
 
   if (utils.isValidEthereumAddress(token) === false) {
-    return utils.errorResponse('params', 'invalid token', token, request, call.id);
+    return utils.buildErrorBody('params', 'invalid token', token, request, call.id);
   } else {
     const method = 'avnTotalToken';
     const params = { callId: call.id, token };
@@ -221,7 +221,7 @@ async function getAccountInfo(call, request) {
   const { accountId } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+    return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
     return await queryAccountInfoFromChain(call, request, accountId);
   }
@@ -246,7 +246,7 @@ async function getStakingStatus(call, request) {
   const { accountId } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+    return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
     return await queryChain(call, request, 'parachainStaking', 'nominatorState', [accountId], formatAsNominatingEnum);
   }
@@ -270,7 +270,7 @@ async function getOwnedNfts(call, request) {
   const { accountId } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
-    return utils.errorResponse('params', 'invalid account ID', accountId, request, call.id);
+    return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
     return await queryChain(call, request, 'nftManager', 'ownedNfts', [accountId]);
   }
@@ -300,7 +300,7 @@ async function getChainInfo(call, request) {
 async function getSummaryData(call, request) {
   const { blockNumber } = call.params;
   if (blockNumber && utils.isValidNumber(blockNumber) === false) {
-    return utils.errorResponse('params', 'invalid block number', blockNumber, request, call.id);
+    return utils.buildErrorBody('params', 'invalid block number', blockNumber, request, call.id);
   }
   const method = 'avnSummaryData';
   const params = { callId: call.id, blockNumber };
@@ -315,7 +315,7 @@ async function getSummaryInclusionData(call, request) {
     if (utils.isValidNumber(transactionIndex) === false) throw 'transaction index';
   } catch (param) {
     const gatewayError = 'invalid ' + param;
-    return utils.errorResponse('params', gatewayError, call.params, request, call.id);
+    return utils.buildErrorBody('params', gatewayError, call.params, request, call.id);
   }
 
   const method = 'avnSummaryInclusionData';
@@ -329,9 +329,9 @@ async function query(call, request, method, params, responseFormatter) {
     const result =
       (avnResponse.data && avnResponse.data.error) ||
       (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
-    return utils.validResponse(call.id, result);
+    return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.errorResponse('internal', `failed to invoke ${method} when querying the chain`, err, request, call.id);
+    return utils.buildErrorBody('internal', `failed to invoke ${method} when querying the chain`, err.toString(), request, call.id);
   }
 }
 

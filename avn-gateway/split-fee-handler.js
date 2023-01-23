@@ -94,7 +94,7 @@ function validateTransaction(tx) {
   }
 }
 async function signPaymentInfo(payer, encodedParams) {
-  return await fees.signPaymentInfo(encodedParams, payer);
+  return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payer);
 }
 
 async function sendMessageToDefaultQueue(message) {

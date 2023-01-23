@@ -1,6 +1,6 @@
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();
-const { u8aConcat } = require('@polkadot/util');
+const { u8aConcat, u8aToHex, isHex } = require('@polkadot/util');
 const utils = require('/opt/utils.js');
 
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
@@ -83,16 +83,18 @@ function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
 }
 
 async function signPaymentInfo(connectorUrl, encodedPaymentInfo, payerAddress) {
+  if (!isHex(encodePaymentParams)) encodedPaymentInfo = u8aToHex(encodedPaymentInfo);
+
   const requestParams = {
     message: encodedPaymentInfo,
     payerAddress: payerAddress
   };
 
   const avnResponse = await utils.axios.post(connectorUrl + 'signPaymentInfo', requestParams);
-  if (!avnResponse) throw new Error(`Null response when signing payment info for payer: ${payerAddress}, data: ${encodedPaymentInfo}`);
+  if (!avnResponse || !avnResponse.data) throw new Error(`Null response when signing payment info for payer: ${payerAddress}, data: ${encodedPaymentInfo}`);
   if (avnResponse.error) throw new Error(avnResponse.error);
 
-  return avnResponse.data;
+  return avnResponse.data.signature;
 }
 
 // Keep alphabetical

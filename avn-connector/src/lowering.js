@@ -95,7 +95,7 @@ async function updateAwaitingClaimDataLowers() {
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const blockIndex = JSON.parse(await redis.getBlockIndex(txHash));
-    if (blockIndex == null) break;
+    if (blockIndex === null) break;
     const { blockNumber, index } = blockIndex;
     const summaryData = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
 

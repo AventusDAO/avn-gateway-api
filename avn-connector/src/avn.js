@@ -465,10 +465,6 @@ function isTransactionHash(requestId) {
 module.exports = {
   getAccountInfo,
   getValidatorsToNominate,
-  init,
-  query,
-  proxy,
-  poll,
   getLowerDataFromRpc,
   getStakingStats,
   getChainInfo,
@@ -480,6 +476,10 @@ module.exports = {
   getTotalToken,
   getUnprocessedLifts,
   getNftContractAddresses,
+  init,
+  proxy,
+  poll,
   processLifts,
+  query,
   signPaymentInfo
 };

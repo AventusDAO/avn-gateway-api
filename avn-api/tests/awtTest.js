@@ -16,12 +16,12 @@ describe('AWT authorisation', async () => {
 
   describe('generateAwtToken', async () => {
     it('from a mnemonic', async () => {
-      let token = api.awt.generateAwtToken(user.mnemonic);
+      let token = api.awt.generateAwtToken({suri: user.mnemonic});
       assert.equal(token.split('').length, TOKEN_LENGTH);
     });
 
     it('from a seed', async () => {
-      let token = api.awt.generateAwtToken(user.seed);
+      let token = api.awt.generateAwtToken({suri: user.seed});
       assert.equal(token.split('').length, TOKEN_LENGTH);
     });
   });
@@ -30,7 +30,7 @@ describe('AWT authorisation', async () => {
     let token;
 
     before(async () => {
-      token = api.awt.generateAwtToken(user.mnemonic);
+      token = api.awt.generateAwtToken({suri: user.mnemonic});
     });
 
     it('is valid within its lifetime', async () => {

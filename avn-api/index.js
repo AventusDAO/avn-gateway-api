@@ -50,7 +50,16 @@ AvnApi.prototype.init = async function () {
       gateway: this.gateway,
       signer: () => this.signer(),
       uuid: () => uuidv4(),
-      axios: () => setupAxios(Awt, this.options, this.awtToken)
+      axios: () => {
+        if (!Awt.tokenAgeIsValid(this.awtToken)) {
+          console.log(' - Awt token has expired, refreshing');
+          this.awtToken = Awt.generateAwtToken(this.options);
+        }
+
+        // Add any middlewares here to configure global axios behaviours
+        Axios.defaults.headers.common = { Authorization: `bearer ${this.awtToken}` };
+        return Axios;
+      }
     };
 
     this.query = new Query(avnApi);
@@ -58,17 +67,5 @@ AvnApi.prototype.init = async function () {
     this.poll = new Poll(avnApi);
   }
 };
-
-function setupAxios(awtTokenManager, options, awtToken) {
-  if (!awtTokenManager.tokenAgeIsValid(awtToken)) {
-    console.log(' - Awt token has expired, refreshing');
-    awtToken = awtTokenManager.generateAwtToken(options);
-  }
-
-  // Add any middlewares here to configure global axios behaviours
-  Axios.defaults.headers.common = { Authorization: `bearer ${awtToken}` };
-  return Axios;
-}
-
 
 module.exports = AvnApi;

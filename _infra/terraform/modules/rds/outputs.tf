@@ -1,7 +1,7 @@
 output "gateway_secretsmanager_name" {
-    value = module.aws_secretsmanager_secret.this.name
+    value = aws_secretsmanager_secret.this.name
 }
 
 output "gateway_secretsmanager_arn" {
-    value = module.aws_secretsmanager_secret.this.arn
+    value = aws_secretsmanager_secret.this.arn
 }

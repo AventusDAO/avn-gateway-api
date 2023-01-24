@@ -203,7 +203,6 @@ app.post('/gatewayUserInfo', async (req, res, next) => {
 
 app.post('/signPaymentInfo', async (req, res, next) => {
   try {
-    // TODO: validate that we are only signing a payment info and not some arbitrary string
     log.trace({ signPaymentInfo: JSON.stringify(req.body) });
     const result = await avn.signPaymentInfo(req.body.message, req.body.payerAddress);
     res.send(result);

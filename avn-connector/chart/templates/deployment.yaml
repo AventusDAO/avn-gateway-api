@@ -167,6 +167,31 @@ spec:
                 secretKeyRef:
                   name: infura-credentials
                   key: infura_url
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: gateway_rds_host
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: gateway_app_user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: gateway_app_user_password
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: gateway_app_database
+            - name: DB_SYNC_SCHEMA
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: gateway_app_database
             - name: VAULT_APP_ROLE_ID
               valueFrom:
                 secretKeyRef:

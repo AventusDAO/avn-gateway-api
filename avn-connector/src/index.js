@@ -1,6 +1,7 @@
 'use strict';
 const config = require('multiconfig').load();
 const avn = require('./avn');
+const rds = require('./db/index');
 const lowering = require('./lowering');
 const redis = require('./redis');
 const gatewayDb = require('./gatewayDb');
@@ -224,7 +225,9 @@ async function instantiateConnector() {
   await redis.connect();
   await avn.init();
   await mqConsumer.connectToMQ();
+  // TODO: remove me once all the functionality is migrated to rds
   await gatewayDb.init();
+  await rds.init();
   lowering.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 

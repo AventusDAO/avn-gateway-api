@@ -1,0 +1,6 @@
+host: $ENV:HOST
+port: $ENV:PORT
+username: $ENV:USERNAME
+password: $ENV:PASSWORD
+database: $ENV:DATABASE
+synchronize: $ENV:SYNC_SCHEMA

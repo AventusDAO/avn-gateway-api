@@ -30,10 +30,7 @@ AvnApi.prototype.init = async function () {
 
   // TODO: do we want to allow changing SURI on the fly?
   const getSuri = () => {
-    if (!this.options.suri && process.env.AVN_SURI) {
-        this.options.suri = process.env.AVN_SURI;
-    }
-
+    this.options.suri = this.options.suri ?? process.env.AVN_SURI;
     return this.options.suri;
   };
 

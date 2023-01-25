@@ -32,7 +32,7 @@ function generateAwtPayload(suri, issuedAt, options) {
 
 function generateAwtToken(options) {
   options = options || {};
-  if (!options.suri) options.suri = process.env.AVN_SURI;
+  options.suri = options.suri ?? process.env.AVN_SURI;
   if (!options.suri) throw new Error('Please pass a SURI or set AVN_SURI environment variable');
 
   let payload = generateAwtPayload(options.suri, new Date().toISOString(), options);

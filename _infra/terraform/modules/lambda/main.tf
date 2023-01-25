@@ -90,130 +90,10 @@ resource "aws_iam_role" "lambda_role" {
   })
 }
 
-resource "aws_iam_policy" "lambda_logging" {
-  name        = "lambda_gateway_logging"
-  path        = "/"
-  description = "IAM policy for logging from a lambda"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "arn:aws:logs:${data.aws_region.current.name}:*:*",
-      "Effect": "Allow"
-    }
-  ]
-}
-EOF
-}
-
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
   for_each   = { for idx, val in aws_iam_role.lambda_role : idx => val }
   role       = each.value.name
   policy_arn = aws_iam_policy.lambda_logging.arn
-}
-
-resource "aws_iam_policy" "rabbit_secret_access" {
-  name        = "send-handler-rabbit-secret"
-  path        = "/"
-  description = "IAM policy for accessing the rabbitmq user/password"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "secretsmanager:GetSecretValue"
-      ],
-      "Resource": "${var.rabbit_secret_arn}",
-      "Effect": "Allow"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_policy" "lambda_network" {
-  name        = "lambda-network-interfaces"
-  path        = "/"
-  description = "IAM policy for creating/deleting network interfaces for lambdas"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Resource": "*",
-      "Action": [
-          "ec2:DescribeInstances",
-          "ec2:CreateNetworkInterface",
-          "ec2:AttachNetworkInterface",
-          "ec2:DescribeNetworkInterfaces",
-          "ec2:DeleteNetworkInterface",
-          "autoscaling:CompleteLifecycleAction"
-      ]
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_policy" "full_access_vote_buckets" {
-  name        = "vote_bucket_access"
-  description = "full access to vote bucket with name ${local.vote_handler_avn_bucket}"
-
-  policy = <<EOF
-{
-  "Version" : "2012-10-17",
-  "Statement" : [
-    {
-      "Effect": "Allow",
-      "Action" : "s3:ListBucket",
-      "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}"]
-    },
-    {
-      "Effect": "Allow",
-      "Action" : [
-        "s3:GetObject",
-        "s3:PutObject"
-      ],
-      "Resource" : ["arn:aws:s3:::${local.vote_handler_avn_bucket}/*"]
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_policy" "sender_sqs_access" {
-  name        = "avn-gateway-sqs"
-  description = "allow access to to SQS"
-
-  policy = <<EOF
-{
-  "Version" : "2012-10-17",
-  "Statement" : [
-    {
-      "Effect": "Allow",
-      "Action" : [
-        "sqs:SendMessage",
-        "sqs:SendMessageBatch"
-      ],
-      "Resource" : [
-        "${var.sqs_queue_arns.gateway_default_queue}",
-        "${var.sqs_queue_arns.gateway_payer_queue}"
-      ]
-    }
-  ]
-}
-EOF
 }
 
 resource "aws_iam_role_policy_attachment" "extra_permissions" {
@@ -221,14 +101,19 @@ resource "aws_iam_role_policy_attachment" "extra_permissions" {
   policy_arn = aws_iam_policy.full_access_vote_buckets.arn
 }
 
-resource "aws_iam_role_policy_attachment" "rabbit_secret_access" {
-  role       = aws_iam_role.lambda_role["send-handler"].name
-  policy_arn = aws_iam_policy.lambda_logging.arn
-}
-
 resource "aws_iam_role_policy_attachment" "sender_sqs_access" {
   role       = aws_iam_role.lambda_role["send-handler"].name
   policy_arn = aws_iam_policy.sender_sqs_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "split_fee_access" {
+  role       = aws_iam_role.lambda_role["split-fee-handler"].name
+  policy_arn = aws_iam_policy.split_fee_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "tx_dispatch_access" {
+  role       = aws_iam_role.lambda_role["tx-dispatch-handler"].name
+  policy_arn = aws_iam_policy.tx_dispatch_access.arn
 }
 
 resource "aws_iam_role_policy_attachment" "network" {
@@ -261,4 +146,20 @@ resource "aws_security_group" "lambdas" {
   tags = {
     Name = "Lambda egress Security Group"
   }
+}
+
+#
+# SQS Trigger Lambda
+#
+
+resource "aws_lambda_event_source_mapping" "split_fee_handler" {
+  event_source_arn        = var.sqs_queue_arns.gateway_payer_queue
+  function_name           = aws_lambda_function.lambda["split-fee-handler"].arn
+  function_response_types = "ReportBatchItemFailures"
+}
+
+resource "aws_lambda_event_source_mapping" "tx_dispatch_handler" {
+  event_source_arn        = var.sqs_queue_arns.gateway_default_queue
+  function_name           = aws_lambda_function.lambda["tx-dispatch-handler"].arn
+  function_response_types = "ReportBatchItemFailures"
 }

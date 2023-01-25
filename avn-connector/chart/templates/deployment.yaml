@@ -172,6 +172,8 @@ spec:
                 secretKeyRef:
                   name: rds-credentials
                   key: gateway_rds_host
+            - name: DB_PORT
+              value: "5432"
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:

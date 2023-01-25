@@ -30,7 +30,6 @@ describe('Query api calls:', async () => {
     proxyIncreaseStake: '7000000000000000',
     proxyUnstake: '7000000000000000',
     proxyWithdrawUnlocked: '7000000000000000',
-    proxyPayoutStakers: '7000000000000000'
   };
 
   const expectedUserFees = {
@@ -47,7 +46,6 @@ describe('Query api calls:', async () => {
     proxyIncreaseStake: '7000000000000000',
     proxyUnstake: '7000000000000000',
     proxyWithdrawUnlocked: '7000000000000000',
-    proxyPayoutStakers: '7000000000000000'
   };
 
   before(async () => {

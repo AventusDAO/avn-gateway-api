@@ -22,7 +22,6 @@ function Send(api, queryApi) {
   this.stake = generateFunction(stake, api, queryApi);
   this.unstake = generateFunction(unstake, api, queryApi);
   this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
-  this.payoutStakers = generateFunction(payoutStakers, api, queryApi);
   this.nonceMap = {};
   this.feesMap = {};
 }
@@ -156,26 +155,6 @@ function withdrawUnlocked(api, queryApi) {
     const methodArgs = {};
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking);
-  };
-}
-
-function payoutStakers(api, queryApi) {
-  return async function (relayer, era) {
-    common.validateAccount(relayer);
-
-    if (!era) {
-      era = await queryApi.getActiveEra();
-
-      if (era === 0) {
-        throw new Error('You must wait for at least 1 era to pass before calling this method. Current era index: ', era);
-      }
-
-      era = era - 1; // the default is to payout the previous era because the current one won't be ready yet.
-    }
-    common.validateNumber(era);
-    const methodArgs = { era };
-
-    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyPayoutStakers, NONCE_TYPE.Staking);
   };
 }
 

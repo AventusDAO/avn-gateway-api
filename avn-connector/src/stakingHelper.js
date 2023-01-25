@@ -92,14 +92,8 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
   };
 }
 
-// TODO: remove me when its safe
-async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, lastPayoutEra, currentEra) {
-
-}
-
 module.exports = {
   calculateCollatorStakingBalances,
   calculateNominatorStakingBalances,
-  calculateStakingStats,
-  payoutAllStakers
+  calculateStakingStats
 };

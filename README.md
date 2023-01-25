@@ -615,7 +615,7 @@ curl https://AVN-API-URL/query \
 ```
 
 #### getActiveEra
-Returns the current active era to call payoutStakers with
+Returns the current active era
 
 **REQUEST** \
 `POST https://AVN-API-URL/query`

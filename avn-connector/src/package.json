@@ -24,7 +24,10 @@
     "mongodb": "^3.6.4",
     "multiconfig": "^1.1.6",
     "web3": "^1.8.1",
-    "yargs": "^16.2.0"
+    "yargs": "^16.2.0",
+    "pg": "^8.8.0",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "0.3.11"
   },
   "devDependencies": {
     "concurrently": "^6.2.0"

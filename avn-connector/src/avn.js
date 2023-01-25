@@ -1,6 +1,6 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { isHex } = require('@polkadot/util');
+const { isHex, stringToHex } = require('@polkadot/util');
 const { keccakAsHex } = require('@polkadot/util-crypto');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -386,6 +386,15 @@ async function getGatewayUserInfo(account) {
   }
 }
 
+async function signPaymentInfo(message, payerAddress) {
+  const paymentInfoContext = stringToHex('authorization for proxy payment');
+  const messageWithoutPrefix = '0x' + message.slice(4);
+
+  // Important: we only want to sign correctly formatted payment data.
+  if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error ('Invalid data to sign.');
+  return vault.payerSign(message, payerAddress);
+}
+
 async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
   await connectToAvN();
@@ -468,10 +477,6 @@ function isTransactionHash(requestId) {
 module.exports = {
   getAccountInfo,
   getValidatorsToNominate,
-  init,
-  query,
-  proxy,
-  poll,
   getLowerDataFromRpc,
   getStakingStats,
   getChainInfo,
@@ -483,5 +488,10 @@ module.exports = {
   getTotalToken,
   getUnprocessedLifts,
   getNftContractAddresses,
-  processLifts
+  init,
+  proxy,
+  poll,
+  processLifts,
+  query,
+  signPaymentInfo
 };

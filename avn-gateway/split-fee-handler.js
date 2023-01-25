@@ -94,8 +94,7 @@ function validateTransaction(tx) {
   }
 }
 async function signPaymentInfo(payer, encodedParams) {
-  // TODO: Sign using `payers's private keys
-  return ''
+  return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payer);
 }
 
 async function sendMessageToDefaultQueue(message) {

@@ -8,6 +8,7 @@ const PAYER_SQS_URL = process.env.SQS_PAYER_QUEUE_URL;
 
 exports.handler = async (event, context) => {
   const result = await processRequest(event.body, event.requestContext.authorizer.lambda, context.awsRequestId);
+
   if (utils.requestFailed(result) === true) {
     return utils.buildErrorResponse(500, result.error.data, JSON.stringify(result));
   }

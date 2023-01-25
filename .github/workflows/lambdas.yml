@@ -19,6 +19,8 @@ env:
   STAKER_PAY: stakers-payout-handler
   VOTE: vote-handler
   LOWER: lower-handler
+  SPLIT_FEE: split-fee-handler
+  TX_DISPATCH: tx-dispatch-handler
 
 defaults:
   run:
@@ -76,6 +78,8 @@ jobs:
           mv build/${{ env.STAKER_PAY }}.zip build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-latest.zip
           mv build/${{ env.VOTE }}.zip build/${{ env.VOTE }}/${{ env.VOTE }}-latest.zip
           mv build/${{ env.LOWER }}.zip build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip
+          mv build/${{ env.SPLIT_FEE }}.zip build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-latest.zip
+          mv build/${{ env.TX_DISPATCH }}.zip build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-latest.zip
           ls -l build/
 
       - name: create Short sha version
@@ -91,6 +95,8 @@ jobs:
           cp build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-latest.zip build/${{ env.STAKER_PAY }}/${{ env.STAKER_PAY }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.VOTE }}/${{ env.VOTE }}-latest.zip build/${{ env.VOTE }}/${{ env.VOTE }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip build/${{ env.LOWER }}/${{ env.LOWER }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-latest.zip build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-latest.zip build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-${{ needs.version-suffix.outputs.version }}.zip
 
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@v0.5.1

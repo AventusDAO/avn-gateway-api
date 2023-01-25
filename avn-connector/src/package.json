@@ -18,7 +18,7 @@
     "avn-types": "^1.2.2",
     "axios": "^0.21.4",
     "express": "^4.17.1",
-    "ioredis": "^4.28.0",
+    "ioredis": "^5.0.4",
     "log4js": "^6.3.0",
     "log4js-json-layout": "^2.2.3",
     "mongodb": "^3.6.4",

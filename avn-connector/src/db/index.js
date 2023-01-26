@@ -1,7 +1,7 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
 const { isHex, u8aToHex } = require('@polkadot/util');
-const { decodeAddress } = require('@polkadot/util-crypto');
+const { encodeAddress, decodeAddress } = require('@polkadot/util-crypto');
 
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 
@@ -40,11 +40,11 @@ async function getPayer(user, payer) {
   if (!splitFeeUser) return undefined;
 
   if (payerPublicKey) {
-    return splitFeeUser.payer.publicKey === payerPublicKey ? payerPublicKey : undefined;
+    return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
   }
 
   console.log("Result: ", JSON.stringify(splitFeeUser, null, 2));
-  return splitFeeUser.payer.publicKey;
+  return encodeAddress(splitFeeUser.payer.publicKey, 42);
 }
 
 function getPublicKey(account) {

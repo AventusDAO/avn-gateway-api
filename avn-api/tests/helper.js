@@ -54,10 +54,12 @@ async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMi
 
   for (i = 0; i < (optionalTimeoutInMinutes || 5) * 60 / WAIT_TIME_IN_SEC; i++) {
     await sleep(WAIT_TIME_IN_SEC * 1000);
+    console.log('.');
     response = await api.poll.requestState(requestId);
     status = response.status;
     if (status !== 'Pending' && status !== 'Transaction not found') {
       assert.equal(status, expectedStatus);
+      console.log('Wait time in seconds', i * WAIT_TIME_IN_SEC);
       return response;
     }
   }

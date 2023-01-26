@@ -28,6 +28,7 @@ const { accounts } = require(accountsPath);
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
 const ONE_ETH = '1000000000000000000';
+const TEN_THOUSAND_WEI = '10000';
 const TEN_ETH = '10000000000000000000';
 const TWO_HUNDRED_ETH = '200000000000000000000';
 const WAIT_TIME_IN_SEC = 3;
@@ -74,6 +75,7 @@ module.exports = {
   NFTS: nfts,
   ONE_ETH,
   TEN_ETH,
+  TEN_THOUSAND_WEI,
   TWO_HUNDRED_ETH,
   confirmStatus,
   avnApi,

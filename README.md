@@ -31,9 +31,12 @@ const AvnApi = require('avn-api');
 const api = new AvnApi('https://sandbox.gateway.aventus.io');
 await api.init();
 ```
-The AVN_SURI environment variable may also be passed as an option:
+When creating an instance of the api, an optional `options` paramater can also be passed in. Options can include:
+ - The AVN_SURI (optional): The mnemonic or secret seed of the user. If it's empty, the value is read from the AVN_SURI environment variable.
+ - hasPayer flag (optional): A user specified flag used to determine if there is a configured payer for this user. Defaults to false.
+ - payerAddress (optional): The payer address for this user. Defaults to the first payer configured for this user.
 ```
-const options = { suri: '0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0'}
+const options = { suri: '0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0', hasPayer: false}
 const api = new AvnApi('https://sandbox.gateway.aventus.io', options);
 ```
 

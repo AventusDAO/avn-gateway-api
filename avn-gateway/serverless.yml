@@ -20,6 +20,21 @@ provider:
             - 's3:PutObject'
           Resource:
             - 'arn:aws:s3:::${file(./${env:SLS_ENV}.yml):avnVotesBucket}/*'
+        - Effect: Allow
+          Action:
+            - 'sqs:SendMessage'
+            - 'sqs:SendMessageBatch'
+            - 'sqs:ReceiveMessage'
+            - 'sqs:DeleteMessage'
+            - 'sqs:DeleteMessageBatch'
+          Resource:
+            - ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_arn}
+            - ${file(./${env:SLS_ENV}.yml):sqs_gateway_payer_queue_arn}
+        - Effect: Allow
+          Action:
+            - 'secretsmanager:GetSecretValue'
+          Resource:
+            - ${file(./${env:SLS_ENV}.yml):secret_manager_rds_arn}
   runtime: nodejs14.x
   versionFunctions: false
   logRetentionInDays: ${file(./${env:SLS_ENV}.yml):logRetentionDays}
@@ -50,6 +65,7 @@ functions:
     environment:
       MAX_TOKEN_AGE_MSEC: ${file(./${env:SLS_ENV}.yml):maxTokenAgeMsec}
       MIN_AVT_BALANCE: ${file(./${env:SLS_ENV}.yml):minAvtBalance}
+      SECRET_MANAGER_RDS_NAME: ${file(./${env:SLS_ENV}.yml):secret_manager_rds_name}
     package:
       patterns:
         - '!**/**'
@@ -108,6 +124,8 @@ functions:
       MQ_PROTOCOL: ${file(./${env:SLS_ENV}.yml):mqProtocol}
       MQ_SECRET_ARN: ${file(./${env:SLS_ENV}.yml):mqSecretArn}
       SECRET_MANAGER_REGION: ${aws:region}
+      SQS_DEFAULT_QUEUE_URL: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_url}
+      SQS_PAYER_QUEUE_URL: ${file(./${env:SLS_ENV}.yml):sqs_gateway_payer_queue_url}
     package:
       patterns:
         - '!**/**'
@@ -158,25 +176,6 @@ functions:
       - { Ref: CommonLambdaLayer }
       - { Ref: QueueLambdaLayer }
 
-  stakers-payout-handler:
-    name: stakers-payout-handler
-    handler: stakers-payout-handler.handler
-    description: aws:states:opt-out
-    environment:
-      MQ_AVN_TX_QUEUE: avnTx
-      MQ_BROKER_AMQP_ENDPOINT: ${file(./${env:SLS_ENV}.yml):mqBrokerAmpqEndpoint}
-      MQ_PROTOCOL: ${file(./${env:SLS_ENV}.yml):mqProtocol}
-      MQ_SECRET_ARN: ${file(./${env:SLS_ENV}.yml):mqSecretArn}
-      SECRET_MANAGER_REGION: ${aws:region}
-    package:
-      patterns:
-        - '!**/**'
-        - stakers-payout-handler.js
-    memorySize: 128
-    layers:
-      - { Ref: CommonLambdaLayer }
-      - { Ref: QueueLambdaLayer }
-
   vote-handler:
     name: vote-handler
     handler: vote-handler.handler
@@ -199,6 +198,7 @@ functions:
     name: lower-handler
     handler: lower-handler.handler
     description: aws:states:opt-out
+    timeout: 30
     package:
       patterns:
         - '!**/**'
@@ -208,6 +208,51 @@ functions:
       - httpApi:
           path: /lowers
           method: GET
+
+  split-fee-handler:
+    name: split-fee-handler
+    handler: split-fee-handler.handler
+    description: aws:states:opt-out
+    environment:
+      SQS_PAYER_QUEUE_URL: ${file(./${env:SLS_ENV}.yml):sqs_gateway_payer_queue_url}
+      SQS_DEFAULT_QUEUE_URL: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_url}
+      SECRET_MANAGER_REGION: ${aws:region}
+    package:
+      patterns:
+        - '!**/**'
+        - split-fee-handler.js
+    memorySize: 128
+    events:
+      - sqs:
+          arn: ${file(./${env:SLS_ENV}.yml):sqs_gateway_payer_queue_arn}
+          functionResponseType: ReportBatchItemFailures
+    layers:
+      - { Ref: CommonLambdaLayer }
+      - { Ref: QueueLambdaLayer }
+
+  tx-dispatch-handler:
+    name: tx-dispatch-handler
+    handler: tx-dispatch-handler.handler
+    description: aws:states:opt-out
+    environment:
+      MQ_AVN_TX_QUEUE: avnTx
+      MQ_BROKER_AMQP_ENDPOINT: ${file(./${env:SLS_ENV}.yml):mqBrokerAmpqEndpoint}
+      MQ_PROTOCOL: ${file(./${env:SLS_ENV}.yml):mqProtocol}
+      MQ_SECRET_ARN: ${file(./${env:SLS_ENV}.yml):mqSecretArn}
+      SECRET_MANAGER_REGION: ${aws:region}
+      SQS_DEFAULT_QUEUE_URL: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_url}
+    package:
+      patterns:
+        - '!**/**'
+        - tx-dispatch-handler.js
+    memorySize: 128
+    events:
+      - sqs:
+          arn: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_arn}
+          functionResponseType: ReportBatchItemFailures
+    layers:
+      - { Ref: CommonLambdaLayer }
+      - { Ref: QueueLambdaLayer }
 
 resources:
   Resources:

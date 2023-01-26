@@ -201,6 +201,16 @@ app.post('/gatewayUserInfo', async (req, res, next) => {
   }
 });
 
+app.post('/signPaymentInfo', async (req, res, next) => {
+  try {
+    log.trace({ signPaymentInfo: JSON.stringify(req.body) });
+    const result = await avn.signPaymentInfo(req.body.message, req.body.payerAddress);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use(function (err, req, res, _next) {
   log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });
@@ -215,6 +225,7 @@ async function instantiateConnector() {
   await avn.init();
   await mqConsumer.connectToMQ();
   await gatewayDb.init();
+  lowering.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 
 (async () => {

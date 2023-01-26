@@ -22,7 +22,6 @@ function Send(api, queryApi) {
   this.stake = generateFunction(stake, api, queryApi);
   this.unstake = generateFunction(unstake, api, queryApi);
   this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
-  this.payoutStakers = generateFunction(payoutStakers, api, queryApi);
   this.nonceMap = {};
   this.feesMap = {};
 }
@@ -124,7 +123,7 @@ function stake(api, queryApi) {
     common.validateAccount(relayer);
     amount = common.validateAndConvertAmountToString(amount);
 
-    const user = common.getSignerAddress();
+    const user = api.signer().address;
     const stakingStatus = await queryApi.getStakingStatus(user);
 
     if (stakingStatus === common.STAKING_STATUS.isStaking) {
@@ -160,34 +159,16 @@ function withdrawUnlocked(api, queryApi) {
   };
 }
 
-function payoutStakers(api, queryApi) {
-  return async function (relayer, era) {
-    common.validateAccount(relayer);
-
-    if (!era) {
-      era = await queryApi.getActiveEra();
-
-      if (era === 0) {
-        throw new Error('You must wait for at least 1 era to pass before calling this method. Current era index: ', era);
-      }
-
-      era = era - 1; // the default is to payout the previous era because the current one won't be ready yet.
-    }
-    common.validateNumber(era);
-    const methodArgs = { era };
-
-    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyPayoutStakers, NONCE_TYPE.Staking);
-  };
-}
-
 function generateFunction(functionName, api, queryApi) {
   return functionName(api, queryApi);
 }
 
 Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs, transactionType, nonceType, retry) {
-  const user = common.getSignerAddress();
-
-  let proxyArgs = Object.assign({ relayer, user }, methodArgs);
+  const apiSigner = api.signer();
+  const user = apiSigner.address;
+  // By default the user pays the relayer fees but this can be changed to any `payer`
+  const payer = user;
+  let proxyArgs = Object.assign({ relayer, user, payer }, methodArgs);
   let params = { ...proxyArgs };
 
   if (nonceType !== NONCE_TYPE.None) {
@@ -197,14 +178,14 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
         : await this.smartNonce(queryApi, user, nonceType, retry);
   }
 
-  const proxySignature = proxyApi.generateProxySignature(transactionType, proxyArgs);
+  const proxySignature = proxyApi.generateProxySignature(apiSigner, transactionType, proxyArgs);
   params.proxySignature = proxySignature;
 
   // Only populate paymentInfo if this is a self pay transaction
   if (api.hasSplitFeeToken() === false) {
     // By default the user pays the relayer fees but this can be changed to any `payer`
     const payer = user;
-    const paymentArgs = { relayer, user, payer, proxySignature, transactionType };
+    const paymentArgs = { relayer, user, payer, proxySignature, transactionType, signer: apiSigner };
     const paymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
     params = Object.assign(params, { paymentData, payer });
   }
@@ -264,10 +245,10 @@ Send.prototype.getRelayerFee = async function (queryApi, relayer, account, trans
 };
 
 Send.prototype.getPaymentNonceAndSignature = async function (queryApi, paymentArgs, retry) {
-  const { relayer, user, payer, proxySignature, transactionType } = paymentArgs;
+  const { relayer, user, payer, proxySignature, transactionType, signer } = paymentArgs;
   const paymentNonce = await this.smartNonce(queryApi, payer, NONCE_TYPE.Payment, retry);
   const relayerFee = await this.getRelayerFee(queryApi, relayer, payer, transactionType);
-  const feePaymentArgs = { relayer, user, proxySignature, relayerFee, paymentNonce };
+  const feePaymentArgs = { relayer, user, proxySignature, relayerFee, paymentNonce, signer };
   const feePaymentSignature = proxyApi.generateFeePaymentSignature(feePaymentArgs);
   return { paymentNonce, feePaymentSignature };
 };

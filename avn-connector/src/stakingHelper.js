@@ -92,63 +92,8 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
   };
 }
 
-// Pays out all stakers and returns the last era it paid
-async function payoutAllStakers(registry, logger, relayerAccount, proxyNonce, lastPayoutEra, currentEra) {
-  const BN_ONE = new BN(1);
-  const currentEraBN = new BN(currentEra.toString());
-  const maxPayoutEraBN = currentEraBN.gt(BN_ZERO) ? currentEraBN.sub(BN_ONE) : currentEraBN;
-
-  let lastPayoutEraBN = new BN(lastPayoutEra);
-  // If we have never paid, start paying from the previous era
-  lastPayoutEraBN = lastPayoutEraBN.gt(BN_ZERO) ? lastPayoutEraBN : maxPayoutEraBN;
-  let proxyNonceBN = new BN(proxyNonce.toString());
-
-  if (lastPayoutEraBN.lt(currentEraBN)) {
-    let currentPayoutEraBN = new BN(lastPayoutEraBN).add(BN_ONE);
-
-    while (currentPayoutEraBN.lte(maxPayoutEraBN)) {
-      const payload = getPayoutPayload(registry, relayerAccount, currentPayoutEraBN.toString(), proxyNonceBN.toString());
-      await lambda.payoutAllStakers(payload);
-      currentPayoutEraBN = currentPayoutEraBN.add(BN_ONE);
-      proxyNonceBN = proxyNonceBN.add(BN_ONE);
-    }
-  } else {
-    logger.warn(`Era ${maxPayoutEraBN.toString()} has already been processed, skipping.`);
-  }
-
-  return maxPayoutEraBN.toString();
-}
-
-function getPayoutPayload(registry, relayerAccount, era, proxyNonce) {
-  const payloadParams = {
-    relayer: relayerAccount.address,
-    user: relayerAccount.address,
-    payer: relayerAccount.address,
-    era,
-    proxySignature: generateProxySignature(registry, relayerAccount, era, proxyNonce)
-  };
-
-  return {
-    params: payloadParams
-  };
-}
-
-function generateProxySignature(registry, relayerAccount, era, proxyNonce) {
-  const orderedData = [
-    registry.createType('Text', 'authorization for signed payout stakers operation').toU8a(false),
-    registry.createType('AccountId', u8aToHex(relayerAccount.publicKey)).toU8a(true),
-    registry.createType('EraIndex', era).toU8a(true),
-    registry.createType('u64', proxyNonce).toU8a(true)
-  ];
-
-  const encodedDataToSign = u8aConcat(...orderedData);
-  const signature = u8aToHex(relayerAccount.sign(encodedDataToSign));
-  return signature;
-}
-
 module.exports = {
   calculateCollatorStakingBalances,
   calculateNominatorStakingBalances,
-  calculateStakingStats,
-  payoutAllStakers
+  calculateStakingStats
 };

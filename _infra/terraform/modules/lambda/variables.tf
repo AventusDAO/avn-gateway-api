@@ -30,7 +30,9 @@ variable "lambda_functions" {
     "send-handler" : {},
     "query-handler" : {},
     "vote-handler" : {},
-    "lower-handler" : {}
+    "lower-handler" : {},
+    "split-fee-handler" : {},
+    "tx-dispatch-handler" : {}
   }
 }
 
@@ -52,4 +54,14 @@ variable "avn_connector_endpoint" {
 
 variable "vpc_id" {
   type = string
+}
+
+variable "sqs_queue_arns" {
+  type        = map(any)
+  description = "list of SQS queues"
+}
+
+variable "rds_secret_arn" {
+  type        = string
+  description = "ARN of the rds user/pass secret"
 }

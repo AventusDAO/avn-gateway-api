@@ -30,7 +30,6 @@ describe('Query api calls:', async () => {
     proxyIncreaseStake: '7000000000000000',
     proxyUnstake: '7000000000000000',
     proxyWithdrawUnlocked: '7000000000000000',
-    proxyPayoutStakers: '7000000000000000'
   };
 
   const expectedUserFees = {
@@ -47,7 +46,6 @@ describe('Query api calls:', async () => {
     proxyIncreaseStake: '7000000000000000',
     proxyUnstake: '7000000000000000',
     proxyWithdrawUnlocked: '7000000000000000',
-    proxyPayoutStakers: '7000000000000000'
   };
 
   before(async () => {
@@ -359,14 +357,6 @@ describe('Query api calls:', async () => {
         maxNominatorsRewardedPerValidatorBN.eq(defaultMaxNominatorsRewardedPerValidatorBN),
         "Maximum number of nominators doesn't match default value"
       );
-    });
-  });
-
-  describe('getEraElectionStatus', async () => {
-    xit('returns the correct data', async () => {
-      const returnedData = await api.query.getEraElectionStatus();
-      // We can't be sure about the values but we can check the structure
-      assert(['isOpen', 'isClosed'].includes(returnedData), 'Election status is not a valid result');
     });
   });
 

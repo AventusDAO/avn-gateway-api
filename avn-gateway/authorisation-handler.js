@@ -6,7 +6,6 @@ const CLOCK_JITTER_MSEC = -15000;
 const MIN_AVT_BALANCE = new utils.BN(process.env.MIN_AVT_BALANCE);
 const AUTH_PREFIX = 'Bearer ';
 const InvalidRequestResponse = { isAuthorized: false };
-const ValidRequestResponse = { isAuthorized: true };
 
 exports.handler = async event => {
   await utils.init();
@@ -14,6 +13,9 @@ exports.handler = async event => {
 };
 
 async function validateAwtToken(event) {
+  // This must be here because we don't want to leake state as a global variable.
+  const ValidRequestResponse = { isAuthorized: true, context: {} };
+
   console.info('Validating AWT token and user balance');
   const awtToken = getAwtTokenIfAny(event);
 
@@ -34,9 +36,22 @@ async function validateAwtToken(event) {
     return InvalidRequestResponse;
   }
 
-  if (isValidSelfPayUser(awtToken) === false) {
-    console.info('User does not have enough AVT to access the gateway');
-    return InvalidRequestResponse;
+  if (utils.isSplitFeeToken(awtToken) === true) {
+    const payerAddress = await tryGetPayerAddressForUser(awtToken);
+
+    if (payerAddress) {
+      // Pass the authenticated payer address to the target lambda
+      ValidRequestResponse.context.isSplitFeeUser = true;
+      ValidRequestResponse.context.splitFeePayerAddress = payerAddress;
+    } else {
+      console.info(`No payer found for user ${awtToken.pk}`);
+      return InvalidRequestResponse;
+    }
+  } else {
+    if ((await isValidSelfPayUser(awtToken)) === false) {
+      console.info('User does not have enough AVT to access the gateway');
+      return InvalidRequestResponse;
+    }
   }
 
   return ValidRequestResponse;
@@ -66,7 +81,7 @@ function tokenAgeIsValid(token) {
   }
 }
 
-async function isValidSelfPayUser(token) {
+async function isValidSelfPayUser(awtToken) {
   const userInfo = await tryGetUserInfo(awtToken);
   if (!userInfo) return false;
 
@@ -74,6 +89,11 @@ async function isValidSelfPayUser(token) {
   const existingUser = new utils.BN(userInfo.paymentNonce).gt(new utils.BN(0));
 
   return existingUser === true || avtBalance.gte(MIN_AVT_BALANCE);
+}
+
+async function tryGetPayerAddressForUser(token) {
+  //TODO: Validate by checking if there is a payer in RDS. If there is, return it
+  return undefined;
 }
 
 async function tryGetUserInfo(awtToken) {

@@ -28,14 +28,14 @@ const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
 const LIFTS_FROM_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
-const STAKER_PAYOUT_FLAG_KEY = 'payoutFlag';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_BLOCK_KEY = 'lowersFromBlock';
+const CLAIMED_LOWERS_FROM_BLOCK_KEY = 'claimedLowersFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
 const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
 const LOWER_DATA_KEY = 'lowerData';
-const PUBLISHED_SUMMARIES_KEY = 'summaries';
+const SUMMARIES_KEY = 'summaries';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -236,14 +236,6 @@ async function getCheckLiftsFromBlock() {
   return await redisClient.get(LIFTS_FROM_BLOCK_KEY);
 }
 
-async function setLastPayoutEra(era) {
-  await redisClient.set(ERA_KEY, era);
-}
-
-async function getLastPayoutEra() {
-  return await redisClient.get(ERA_KEY);
-}
-
 async function setTotalToken(token, total) {
   await redisClient.setex(TOTAL_TOKEN_NAMESPACE + token, TOTAL_TOKEN_EXPIRY_IN_SECONDS, total);
 }
@@ -252,20 +244,20 @@ async function getTotalToken(token) {
   return await redisClient.get(TOTAL_TOKEN_NAMESPACE + token);
 }
 
-async function getStakerPayoutFlag() {
-  return await redisClient.get(STAKER_PAYOUT_FLAG_KEY);
-}
-
-async function setStakerPayoutFlag(flag) {
-  await redisClient.set(STAKER_PAYOUT_FLAG_KEY, flag);
-}
-
 async function setRetrieveLowersFromBlock(blockNumber) {
   await redisClient.set(LOWERS_FROM_BLOCK_KEY, blockNumber);
 }
 
 async function getRetrieveLowersFromBlock() {
   return await redisClient.get(LOWERS_FROM_BLOCK_KEY);
+}
+
+async function setCheckClaimedLowersFromBlock(blockNumber) {
+  await redisClient.set(CLAIMED_LOWERS_FROM_BLOCK_KEY, blockNumber);
+}
+
+async function getCheckClaimedLowersFromBlock() {
+  return await redisClient.get(CLAIMED_LOWERS_FROM_BLOCK_KEY);
 }
 
 async function setBlockIndex(txHash, blockIndexString) {
@@ -316,16 +308,13 @@ async function getUnclaimedLowers() {
   return await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
 }
 
-async function appendPublishedSummaries(summaries) {
-  return await redisClient.rpush(PUBLISHED_SUMMARIES_KEY, summaries)
+async function setSummaries(summaries) {
+  await redisClient.del(SUMMARIES_KEY);
+  return await redisClient.rpush(SUMMARIES_KEY, summaries)
 }
 
-async function getLatestPublishedSummary() {
-  return await redisClient.lindex(PUBLISHED_SUMMARIES_KEY, -1);
-}
-
-async function getPublishedSummaries() {
-  return await redisClient.lrange(PUBLISHED_SUMMARIES_KEY, 0, -1);
+async function getSummaries() {
+  return await redisClient.lrange(SUMMARIES_KEY, 0, -1);
 }
 
 async function setLowerData(txHash, lowerDataString) {
@@ -362,14 +351,12 @@ module.exports = {
   setSummaryEthTxHash,
   getCheckLiftsFromBlock,
   setCheckLiftsFromBlock,
-  getLastPayoutEra,
-  setLastPayoutEra,
   getTotalToken,
   setTotalToken,
-  getStakerPayoutFlag,
-  setStakerPayoutFlag,
   setRetrieveLowersFromBlock,
   getRetrieveLowersFromBlock,
+  setCheckClaimedLowersFromBlock,
+  getCheckClaimedLowersFromBlock,
   setBlockIndex,
   deleteBlockIndex,
   getBlockIndex,
@@ -382,9 +369,8 @@ module.exports = {
   addUnclaimedLower,
   removeUnclaimedLower,
   getUnclaimedLowers,
-  appendPublishedSummaries,
-  getLatestPublishedSummary,
-  getPublishedSummaries,
+  setSummaries,
+  getSummaries,
   setLowerData,
   deleteLowerData,
   getLowerData,

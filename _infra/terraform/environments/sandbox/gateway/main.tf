@@ -6,7 +6,6 @@ locals {
   account_id             = "352429414196"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   avn_votes_bucket       = "avn-votes-sandbox"
-  block_explorer_url     = "https://avn.stargate.aventus.io:3000"
   vault_recovery_window  = 0
 }
 
@@ -32,6 +31,13 @@ module "dns" {
 module "rabbit_credentials" {
   source      = "../../../modules/credential-generator"
   secret_name = "rabbitmq"
+}
+
+module "rabbitmq" {
+  source          = "../../../modules/rabbitmq"
+  vpc_id          = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnet_ids      = setunion(data.terraform_remote_state.vpc.outputs.private_subnets, data.terraform_remote_state.vpc.outputs.public_subnets)
+  instance_type   = "mq.t3.micro"
 }
 
 data "aws_eks_cluster" "eks" {
@@ -104,7 +110,7 @@ module "k8s_service_account_permissions" {
   source = "../../../modules/k8s-service-account-permissions"
 
   oidc_provider     = module.eks.oidc_provider_arn
-  rabbit_secret_arn = module.rabbit_credentials.secret_arn
+  rabbit_secret_arn = module.rabbitmq.secret_arn
 
   depends_on = [
     module.eks,

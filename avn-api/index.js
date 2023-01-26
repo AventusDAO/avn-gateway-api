@@ -66,7 +66,8 @@ AvnApi.prototype.init = async function () {
 };
 
 AvnApi.prototype.hasSplitFeeToken = function () {
-  if (!this.options || (!this.options.hasPayer && !this.options.payerAddress)) return false;
+  if (!this.options) return false;
+  if (!this.options.hasPayer && !this.options.payerAddress) return false;
 
   return this.options.hasPayer === true || !!this.options.payerAddress;
 };

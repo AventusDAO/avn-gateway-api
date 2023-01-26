@@ -216,6 +216,7 @@ app.post('/getPayer', async (req, res, next) => {
   try {
     log.trace({ getPayer: JSON.stringify(req.body) });
     const result = await rds.getPayer(req.body.user, req.body.payer);
+    console.log("Payer address: ", result);
     res.send(result);
   } catch (err) {
     next(err);

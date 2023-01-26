@@ -1,20 +1,15 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
-const { isHex, u8aToHex } = require('@polkadot/util');
-const { encodeAddress, decodeAddress } = require('@polkadot/util-crypto');
 
-const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
-
-let dataSource;
 async function init() {
-  dataSource = new typeorm.DataSource({
+  const dataSource = new typeorm.DataSource({
     type: "postgres",
-    host: config.postgress.host,
-    port: config.postgress.port,
-    username: config.postgress.username,
-    password: config.postgress.password,
-    database: config.postgress.database,
-    synchronize: config.postgress.synchronize,
+    host: config.postgres.host,
+    port: config.postgres.port,
+    username: config.postgres.username,
+    password: config.postgres.password,
+    database: config.postgres.database,
+    synchronize: config.postgres.synchronize,
     entities: [
       require("./entity/payer"),
       require("./entity/splitFeeUser"),
@@ -36,7 +31,7 @@ async function getPayer(user, payer) {
 
   const userDataSource = await dataSource.getRepository(SPLIT_FEE_USER_TABLE);
 
-  const splitFeeUser = await userDataSource.findOne({ where: { publicKey: userPublicKey }, relations: ['payer']});
+  const splitFeeUser = await userDataSource.findOne({ where: { publicKey: userPublicKey, enabled: true }, relations: ['payer']});
   if (!splitFeeUser) return undefined;
 
   if (payerPublicKey) {

@@ -43,7 +43,6 @@ async function getPayer(user, payer) {
     return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
   }
 
-  console.log("Result: ", JSON.stringify(splitFeeUser, null, 2));
   return encodeAddress(splitFeeUser.payer.publicKey, 42);
 }
 

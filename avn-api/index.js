@@ -68,9 +68,9 @@ AvnApi.prototype.init = async function () {
 
 AvnApi.prototype.hasSplitFeeToken = function () {
   if (!this.options) return false;
-  if (!this.options.hasPayer && !this.options.payerAddress) return false;
+  if (this.options.hasPayer === true) return true
 
-  return this.options.hasPayer === true || !!this.options.payerAddress;
+  return !!this.options.payerAddress;
 };
 
 module.exports = AvnApi;

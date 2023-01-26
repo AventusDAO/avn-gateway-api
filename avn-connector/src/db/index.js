@@ -40,10 +40,10 @@ async function getPayer(user, payer) {
   if (!splitFeeUser) return undefined;
 
   if (payerPublicKey) {
-    return splitFeeUser.payer.publicKey === payerPublicKey ? payerPublicKey : undefined;
+    return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
   }
 
-  return splitFeeUser.payer.publicKey;
+  return encodeAddress(splitFeeUser.payer.publicKey, 42);
 }
 
 function getPublicKey(account) {

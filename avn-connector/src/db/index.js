@@ -36,7 +36,7 @@ async function getPayer(user, payer) {
 
   const userDataSource = await dataSource.getRepository(SPLIT_FEE_USER_TABLE);
 
-  const splitFeeUser = await userDataSource.find({ where: { publicKey: userPublicKey }, relations: ['payer']});
+  const splitFeeUser = await userDataSource.findone({ where: { publicKey: userPublicKey }, relations: ['payer']});
   if (!splitFeeUser) return undefined;
 
   if (payerPublicKey) {

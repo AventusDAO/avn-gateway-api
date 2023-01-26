@@ -46,6 +46,7 @@ AvnApi.prototype.init = async function () {
     const avnApi = {
       gateway: this.gateway,
       signer: () => this.signer(),
+      hasSplitFeeToken: () => this.hasSplitFeeToken(),
       uuid: () => uuidv4(),
       axios: () => {
         if (!Awt.tokenAgeIsValid(this.awtToken)) {
@@ -63,6 +64,13 @@ AvnApi.prototype.init = async function () {
     this.send = new Send(avnApi, this.query);
     this.poll = new Poll(avnApi);
   }
+};
+
+AvnApi.prototype.hasSplitFeeToken = function () {
+  if (!this.options) return false;
+  if (this.options.hasPayer === true) return true
+
+  return !!this.options.payerAddress;
 };
 
 module.exports = AvnApi;

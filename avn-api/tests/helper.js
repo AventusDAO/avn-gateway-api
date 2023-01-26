@@ -48,7 +48,7 @@ function bnEquals(a, b) {
 }
 
 async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMinutes) {
-  console.log(`waiting for [${optionalTimeoutInMinutes || 5}] minutes`);
+  console.log(`waiting for [${optionalTimeoutInMinutes || 5}] minutes`); // tests are more consistent with a higher timeout
   if (!requestId) throw new Error('RequestId cannot be null');
   let response, status;
 

@@ -1,8 +1,13 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
+const { isHex, u8aToHex } = require('@polkadot/util');
+const { decodeAddress } = require('@polkadot/util-crypto');
 
+const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
+
+let dataSource;
 async function init() {
-  const dataSource = new typeorm.DataSource({
+  dataSource = new typeorm.DataSource({
     type: "postgres",
     host: config.postgress.host,
     port: config.postgress.port,
@@ -23,6 +28,36 @@ async function init() {
   return dataSource;
 }
 
+async function getPayer(user, payer) {
+  let userPublicKey = getPublicKey(user);
+  let payerPublicKey = getPublicKey(payer);
+
+  if (!userPublicKey && !payerPublicKey) return undefined;
+
+  const userDataSource = await dataSource.getRepository(SPLIT_FEE_USER_TABLE);
+
+  const splitFeeUser = await userDataSource.find({ where: { publicKey: userPublicKey }, relations: ['payer']});
+  if (!splitFeeUser) return undefined;
+
+  if (payerPublicKey) {
+    return splitFeeUser.payer.publicKey === payerPublicKey ? payerPublicKey : undefined;
+  }
+
+  return splitFeeUser.payer.publicKey;
+}
+
+function getPublicKey(account) {
+  if (!account) return undefined;
+  if (isHex(account) && account.length != 66) return undefined;
+
+  try {
+      return u8aToHex(decodeAddress(account));
+  } catch (err) {
+      return undefined;
+  }
+}
+
 module.exports = {
+  getPayer,
   init,
 };

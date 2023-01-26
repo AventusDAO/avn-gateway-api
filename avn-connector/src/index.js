@@ -212,6 +212,16 @@ app.post('/signPaymentInfo', async (req, res, next) => {
   }
 });
 
+app.post('/getPayer', async (req, res, next) => {
+  try {
+    log.trace({ getPayer: JSON.stringify(req.body) });
+    const result = await rds.getPayer(req.body.user, req.body.payer);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use(function (err, req, res, _next) {
   log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });

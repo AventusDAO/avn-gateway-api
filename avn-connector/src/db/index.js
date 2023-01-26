@@ -43,6 +43,7 @@ async function getPayer(user, payer) {
     return splitFeeUser.payer.publicKey === payerPublicKey ? payerPublicKey : undefined;
   }
 
+  console.log("Result: ", JSON.stringify(splitFeeUser, null, 2));
   return splitFeeUser.payer.publicKey;
 }
 

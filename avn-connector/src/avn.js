@@ -70,8 +70,8 @@ async function poll(requestId) {
     let tx = await redis.getAvnTransaction(txHash);
 
     if (!tx) {
-      log.error(`No transaction found for requestId: ${requestId}`);
-      return { error: 'Transaction not found' };
+      log.warn(`No transaction found for requestId: ${requestId}`);
+      return { status: `Transaction not found` };
     }
 
     return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex };
@@ -372,6 +372,20 @@ async function getNftContractAddresses() {
   );
 }
 
+async function getGatewayUserInfo(account) {
+  const result = await api.queryMulti([
+    [api.query.avnProxy.paymentNonces, account],
+    [api.query.system.account, account]
+  ]);
+
+  let [paymentNonce, { data: balance }] = result;
+
+  return {
+    paymentNonce: paymentNonce.toString(),
+    freeBalance: balance.free.toString()
+  }
+}
+
 async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
   await connectToAvN();
@@ -421,10 +435,21 @@ async function connectToAvN() {
 }
 
 async function getSummaries() {
-  const entries = await api.query.summary.roots.entries();
-  return entries.map(([{ args: [{ fromBlock, toBlock }] }, { rootHash, isValidated }]) => (
-    { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash: rootHash.toString(), isValid: isValidated }
-  ));
+  let entries = [], summaries = [], startKey;
+
+  do {
+    entries = await api.query.summary.roots.entriesPaged({ pageSize: 1000, args: [], startKey });
+    if (entries.length > 0) {
+      startKey = entries[entries.length - 1][0];
+      const formattedEntries = entries.map(([{ args: [{ fromBlock, toBlock }] }, { rootHash, isValidated }]) => (
+        { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash: rootHash.toString().toLowerCase(), isValid: isValidated }
+      ));
+      const validEntries = formattedEntries.filter(s => s.isValid == true).map(({ fromBlock, toBlock, rootHash }) => ({ fromBlock, toBlock, rootHash }));
+      summaries = summaries.concat(validEntries);
+    }
+  } while (entries.length > 0);
+
+  return summaries.sort((a,b) => (a.fromBlock < b.fromBlock) ? -1 : 0);
 }
 
 async function getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index) {
@@ -451,6 +476,7 @@ module.exports = {
   getStakingStats,
   getChainInfo,
   getCurrentBlock,
+  getGatewayUserInfo,
   getSummaries,
   getSummaryData,
   getSummaryInclusionData,

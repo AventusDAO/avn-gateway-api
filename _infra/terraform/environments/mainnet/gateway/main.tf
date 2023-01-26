@@ -78,7 +78,7 @@ module "lambda_functions" {
       avn_votes_bucket = local.avn_votes_bucket
     }
     lower-handler = {
-      timeout     = 6
+      timeout     = 30
       memory_size = 128
     }
   }
@@ -96,6 +96,7 @@ module "api_gateway" {
   send_invoke_arn       = module.lambda_functions.invoke_arns["send-handler"]
   query_invoke_arn      = module.lambda_functions.invoke_arns["query-handler"]
   vote_invoke_arn       = module.lambda_functions.invoke_arns["vote-handler"]
+  lower_invoke_arn      = module.lambda_functions.invoke_arns["lower-handler"]
   auth_cache_duration   = 60
 }
 

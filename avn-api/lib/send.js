@@ -188,7 +188,11 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
     const payer = user;
     const paymentArgs = { relayer, user, payer, proxySignature, transactionType, signer: apiSigner };
     const paymentData = await this.getPaymentNonceAndSignature(queryApi, paymentArgs, retry);
-    params = Object.assign(params, { paymentData, payer });
+    params = Object.assign(params, {
+      feePaymentSignature: paymentData.feePaymentSignature,
+      paymentNonce: paymentData.paymentNonce,
+      payer
+    });
   }
 
   const response = await this.postRequest(api, transactionType, params, retry);

@@ -46,6 +46,7 @@ AvnApi.prototype.init = async function () {
     const avnApi = {
       gateway: this.gateway,
       signer: () => this.signer(),
+      hasSplitFeeToken: () => this.hasSplitFeeToken(),
       uuid: () => uuidv4(),
       axios: () => {
         if (!Awt.tokenAgeIsValid(this.awtToken)) {

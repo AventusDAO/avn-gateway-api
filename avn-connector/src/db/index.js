@@ -1,6 +1,8 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
 
+const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
+
 async function init() {
   const dataSource = new typeorm.DataSource({
     type: "postgres",

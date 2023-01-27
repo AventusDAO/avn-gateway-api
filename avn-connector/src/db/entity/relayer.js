@@ -1,16 +1,21 @@
 var EntitySchema = require("typeorm").EntitySchema
 
 module.exports = new EntitySchema({
-    name: "transaction",
+    name: "relayer",
     columns: {
         id: {
             primary: true,
             type: "int",
             generated: true
         },
-        name: {
+        publicKey: {
             type: "varchar",
             unique: true,
+            length: 66
+        },
+        description: {
+            type: "varchar",
+            nullable: true,
         },
         createdAt: {
             type: "timestamptz",
@@ -26,18 +31,11 @@ module.exports = new EntitySchema({
         }
     },
     relations: {
-        payerTransactions: {
-            target: 'payerTransaction',
-            type: 'one-to-many',
-            joinTable: true,
-            inverseSide: 'transaction',
-            cascade: true,
-        },
         fees: {
             target: 'fee',
             type: 'one-to-many',
             joinTable: true,
-            inverseSide: 'transaction',
+            inverseSide: 'relayer',
             cascade: true,
         }
     }

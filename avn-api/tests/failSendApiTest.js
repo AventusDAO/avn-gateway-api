@@ -318,18 +318,20 @@ const BN = helper.BN;
         it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validOtherUser.address;
           await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Relayer.*is not registered with AvN Gateway/
+            /Error processing query/
           );
         });
         it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
-          const requestId = await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Error processing query/
+          );
         });
         it('With an NFT that is already listed', async () => {
           testConfig.validCallData.nftId = listedUserNft;
-          const requestId = await api.send.listFiatNftForSale(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Error processing query/
+          );
         });
       });
     });
@@ -367,18 +369,20 @@ const BN = helper.BN;
         it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validOtherUser.address;
           await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Relayer.*is not registered with AvN Gateway/
+            /Error processing query/
           );
         });
         it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
-          const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Error processing query/
+          );
         });
         it('With an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
-          const requestId = await api.send.transferFiatNft(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Error processing query/
+          );
         });
       });
     });
@@ -410,18 +414,20 @@ const BN = helper.BN;
         it('With relayer address that is not a relayer', async () => {
           testConfig.validCallData.relayer = validOtherUser.address;
           await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Relayer.*is not registered with AvN Gateway/
+            /Error processing query/
           );
         });
         it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
-          const requestId = await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Error processing query/
+          );
         });
         it('with an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
-          const requestId = await api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
+            /Error processing query/
+          );
         });
       });
     });

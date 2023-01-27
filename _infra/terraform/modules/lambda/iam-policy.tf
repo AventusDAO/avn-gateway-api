@@ -162,7 +162,6 @@ data "aws_iam_policy_document" "tx_dispatch_access" {
     ]
     resources = [
       "${var.rabbit_secret_arn}",
-      "${var.rds_secret_arn}",
     ]
   }
 }

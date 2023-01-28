@@ -17,7 +17,6 @@ module.exports = new EntitySchema({
         },
         userPublicKey: {
             type: "varchar",
-            unique: true,
             length: 66,
             nullable: true,
         },

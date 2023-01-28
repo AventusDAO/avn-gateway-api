@@ -1,6 +1,9 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
 
+const FEE_TABLE = 'fee';
+const RELAYER_TABLE = 'relayer';
+
 async function init() {
   const dataSource = new typeorm.DataSource({
     type: "postgres",
@@ -41,6 +44,45 @@ async function getPayer(user, payer) {
   return encodeAddress(splitFeeUser.payer.publicKey, 42);
 }
 
+async function getRelayerFee(dataSource, relayerId, txId, user) {
+  let userPk = getPublicKey(user);
+
+  const relayerDataSource = await dataSource.getRepository(RELAYER_TABLE);
+  const feeDataSource = await dataSource.getRepository(FEE_TABLE);
+
+  let relayer = await relayerDataSource.findOne({ where: { id: relayerId, enabled: true }});
+  if (!relayer) return undefined;
+
+  // check if there is a custom fee for transaction and user
+  let feeRecord = await feeDataSource.findOne(
+      { where: {
+          relayerId: relayerId,
+          transactionId: txId,
+          userPublicKey: userPk,
+          enabled: true
+        }
+      }
+  );
+
+  // check if there is a specific fee for that transaction instead
+  if (!feeRecord) {
+      feeRecord = await feeDataSource.findOne(
+          { where: { relayerId: relayerId, transactionId: txId, enabled: true}}
+      );
+  }
+
+  // check if there is a default fee for the given relayer
+  if (!feeRecord) {
+      feeRecord = await feeDataSource.findOne(
+          { where: { relayerId: relayerId, enabled: true}}
+      );
+  }
+
+  if (!feeRecord) return undefined;
+
+  return feeRecord.fee;
+}
+
 function getPublicKey(account) {
   if (!account) return undefined;
   if (isHex(account) && account.length != 66) return undefined;
@@ -54,5 +96,6 @@ function getPublicKey(account) {
 
 module.exports = {
   getPayer,
+  getRelayerFee,
   init,
 };

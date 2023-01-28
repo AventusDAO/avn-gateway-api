@@ -45,14 +45,15 @@ async function getPayer(user, payer) {
   return encodeAddress(splitFeeUser.payer.publicKey, 42);
 }
 
+// This function will return the fee as a string
 async function getRelayerFee(dataSource, relayerId, txId, user) {
   let userPk = getPublicKey(user);
 
   const relayerDataSource = await dataSource.getRepository(RELAYER_TABLE);
-  const feeDataSource = await dataSource.getRepository(FEE_TABLE);
-
   let relayer = await relayerDataSource.findOne({ where: { id: relayerId, enabled: true }});
   if (!relayer) return undefined;
+
+  const feeDataSource = await dataSource.getRepository(FEE_TABLE);
 
   // check if there is a custom fee for transaction and user
   let feeRecord = await feeDataSource.findOne(

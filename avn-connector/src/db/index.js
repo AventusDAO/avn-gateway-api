@@ -1,6 +1,7 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
 
+const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
 const RELAYER_TABLE = 'relayer';
 

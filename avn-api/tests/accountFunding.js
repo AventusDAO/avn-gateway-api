@@ -9,7 +9,7 @@ const userMinBalance = new BN(helper.TWO_HUNDRED_ETH);
 const relayerMinBalance = new BN(helper.TEN_ETH);
 const receiverMinBalance = new BN(helper.ONE_ETH);
 
-const userMinTokenBalance = new BN(helper.ONE_ETH);
+const userMinTokenBalance = new BN(helper.TEN_THOUSAND_WEI);
 
 describe('Account funding', async () => {
   let api, user, receiver, relayer, userAvtBalance, receiverAvtBalance, relayerAvtBalance, userTokenBalance, amountInWei;
@@ -33,7 +33,7 @@ describe('Account funding', async () => {
   });
 
   after(async () => {
-    process.env.AVN_SURI = accounts.user.seed; 
+    process.env.AVN_SURI = accounts.user.seed;
   })
 
   it('User Account Funded with AVT', async () => {
@@ -51,7 +51,7 @@ describe('Account funding', async () => {
   it('Receiver Account Funded with AVT', async () => {
     if(receiverAvtBalance.lt(receiverMinBalance)) {
         amountInWei = receiverMinBalance.sub(receiverAvtBalance);
-        
+
         const requestId = await api.send.transferAvt(relayer.address, receiver.address, amountInWei);
         await helper.confirmStatus(api, requestId, 'Processed');
 
@@ -63,7 +63,7 @@ describe('Account funding', async () => {
   it('Relayer Account Funded with AVT', async () => {
     if(relayerAvtBalance.lt(relayerMinBalance)) {
         amountInWei = relayerMinBalance.sub(relayerAvtBalance);
-        
+
         const requestId = await api.send.transferAvt(relayer.address, relayer.address, amountInWei);
         await helper.confirmStatus(api, requestId, 'Processed');
 

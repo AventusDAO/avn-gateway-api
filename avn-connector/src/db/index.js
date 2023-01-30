@@ -60,10 +60,13 @@ async function getFees(relayerAddress, user, transactionName) {
   const feeDataSource = await dataSource.getRepository(FEE_TABLE);
 
   let feeRecord;
+  let userPk;
 
-  if (user && transactionName) {
-    const userPk = getPublicKey(user);
+  if (user) {
+    userPk = getPublicKey(user);
+  }
 
+  if (userPk && transactionName) {
     // check if there is a custom fee for transaction and user
     feeRecord = await feeDataSource.findOne(
       { where: {
@@ -78,8 +81,15 @@ async function getFees(relayerAddress, user, transactionName) {
   }
 
   // check if there is a specific fee for that transaction instead
+  if (!feeRecord && userPk) {
+    feeRecord = await feeDataSource.find(
+        { where: { relayerId: relayer.id, userPublicKey: userPk, enabled: true} }
+    );
+  }
+
+  // check if there is a specific fee for that transaction instead
   if (!feeRecord && transactionName) {
-      feeRecord = await feeDataSource.findOne(
+      feeRecord = await feeDataSource.find(
           { where:
             { relayerId: relayer.id, enabled: true, transaction: { name: transactionName, enabled: true }},
             relations: ['transaction']
@@ -89,7 +99,7 @@ async function getFees(relayerAddress, user, transactionName) {
 
   // check if there is a default fee for the given relayer
   if (!feeRecord) {
-      feeRecord = await feeDataSource.findOne(
+      feeRecord = await feeDataSource.find(
           { where: { relayerId: relayer.id, enabled: true}}
       );
   }

@@ -26,8 +26,8 @@ async function init() {
 }
 
 async function getPayer(user, payer) {
-  let userPublicKey = getPublicKey(user);
-  let payerPublicKey = getPublicKey(payer);
+  const userPublicKey = getPublicKey(user);
+  const payerPublicKey = getPublicKey(payer);
 
   if (!userPublicKey && !payerPublicKey) return undefined;
 
@@ -36,6 +36,7 @@ async function getPayer(user, payer) {
   const splitFeeUser = await userDataSource.findOne({ where: { publicKey: userPublicKey, enabled: true }, relations: ['payer']});
   if (!splitFeeUser) return undefined;
 
+  // This check is useful when we start supporting multiple payers for the same user.
   if (payerPublicKey) {
     return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
   }

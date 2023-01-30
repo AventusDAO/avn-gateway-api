@@ -60,7 +60,6 @@ functions:
     environment:
       MAX_TOKEN_AGE_MSEC: ${file(./${env:SLS_ENV}.yml):maxTokenAgeMsec}
       MIN_AVT_BALANCE: ${file(./${env:SLS_ENV}.yml):minAvtBalance}
-      SECRET_MANAGER_RDS_NAME: ${file(./${env:SLS_ENV}.yml):secret_manager_rds_name}
     package:
       patterns:
         - '!**/**'

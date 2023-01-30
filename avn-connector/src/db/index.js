@@ -1,6 +1,8 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
 
+const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
+
 async function init() {
   const dataSource = new typeorm.DataSource({
     type: "postgres",
@@ -23,6 +25,37 @@ async function init() {
   return dataSource;
 }
 
+async function getPayer(user, payer) {
+  const userPublicKey = getPublicKey(user);
+  const payerPublicKey = getPublicKey(payer);
+
+  if (!userPublicKey && !payerPublicKey) return undefined;
+
+  const userDataSource = await dataSource.getRepository(SPLIT_FEE_USER_TABLE);
+
+  const splitFeeUser = await userDataSource.findOne({ where: { publicKey: userPublicKey, enabled: true }, relations: ['payer']});
+  if (!splitFeeUser) return undefined;
+
+  // This check is useful when we start supporting multiple payers for the same user.
+  if (payerPublicKey) {
+    return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
+  }
+
+  return encodeAddress(splitFeeUser.payer.publicKey, 42);
+}
+
+function getPublicKey(account) {
+  if (!account) return undefined;
+  if (isHex(account) && account.length != 66) return undefined;
+
+  try {
+      return u8aToHex(decodeAddress(account));
+  } catch (err) {
+      return undefined;
+  }
+}
+
 module.exports = {
+  getPayer,
   init,
 };

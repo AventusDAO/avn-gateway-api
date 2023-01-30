@@ -20,7 +20,6 @@ module "lambda_functions" {
   subnet_ids             = data.terraform_remote_state.vpc.outputs.private_subnets
   vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
   sqs_queue_arns         = module.gateway_sqs.queue_arn
-  rds_secret_arn         = module.gateway_rds.gateway_secretsmanager_arn
 
   lambda_functions = {
 

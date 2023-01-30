@@ -155,11 +155,11 @@ resource "aws_security_group" "lambdas" {
 resource "aws_lambda_event_source_mapping" "split_fee_handler" {
   event_source_arn        = var.sqs_queue_arns.gateway_payer_queue
   function_name           = aws_lambda_function.lambda["split-fee-handler"].arn
-  function_response_types = "ReportBatchItemFailures"
+  function_response_types = ["ReportBatchItemFailures"]
 }
 
 resource "aws_lambda_event_source_mapping" "tx_dispatch_handler" {
   event_source_arn        = var.sqs_queue_arns.gateway_default_queue
   function_name           = aws_lambda_function.lambda["tx-dispatch-handler"].arn
-  function_response_types = "ReportBatchItemFailures"
+  function_response_types = ["ReportBatchItemFailures"]
 }

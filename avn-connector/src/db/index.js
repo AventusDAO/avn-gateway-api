@@ -1,5 +1,6 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
+const { isHex } = require('@polkadot/util');
 
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
@@ -49,7 +50,7 @@ async function getPayer(user, payer) {
 }
 
 // This function will return the fee as a string
-async function getFees(relayerAddress, user, txId) {
+async function getFees(relayerAddress, user, transactionName) {
   const relayer =  await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
 
@@ -58,23 +59,27 @@ async function getFees(relayerAddress, user, txId) {
 
   let feeRecord;
 
-  if (userPk && txId) {
+  if (userPk && transactionName) {
     // check if there is a custom fee for transaction and user
     feeRecord = await feeDataSource.findOne(
       { where: {
           relayerId: relayer.id,
-          transactionId: txId,
           userPublicKey: userPk,
-          enabled: true
-        }
-      }
+          enabled: true,
+          transaction: { name: transactionName, enabled: true }
+        },
+        relations: ['transaction']
+      },
     );
   }
 
   // check if there is a specific fee for that transaction instead
-  if (!feeRecord && txId) {
+  if (!feeRecord && transactionName) {
       feeRecord = await feeDataSource.findOne(
-          { where: { relayerId: relayer.id, transactionId: txId, enabled: true}}
+          { where:
+            { relayerId: relayer.id, enabled: true, transaction: { name: transactionName, enabled: true }},
+            relations: ['transaction']
+          }
       );
   }
 
@@ -86,7 +91,7 @@ async function getFees(relayerAddress, user, txId) {
   }
 
   // There must be at least 1 fee entry for each relayer
-  if (!feeRecord) throw new Error(`Relayer fee cannot be found for relayer: ${relayerAddress}, user: ${user} and tx: ${txId}`);
+  if (!feeRecord) throw new Error(`Relayer fee cannot be found for relayer: ${relayerAddress}, user: ${user} and tx: ${transactionName}`);
 
   return feeRecord.fee;
 }

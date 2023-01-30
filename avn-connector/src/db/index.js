@@ -1,6 +1,7 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
-const { isHex } = require('@polkadot/util');
+const { isHex, u8aToHex } = require('@polkadot/util');
+const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
@@ -34,9 +35,8 @@ async function init() {
 
 async function getPayer(user, payer) {
   const userPublicKey = getPublicKey(user);
-  const payerPublicKey = getPublicKey(payer);
 
-  if (!userPublicKey && !payerPublicKey) return undefined;
+  if (!userPublicKey && !payer) return undefined;
 
   const userDataSource = await dataSource.getRepository(SPLIT_FEE_USER_TABLE);
 
@@ -44,7 +44,8 @@ async function getPayer(user, payer) {
   if (!splitFeeUser) return undefined;
 
   // This check is useful when we start supporting multiple payers for the same user.
-  if (payerPublicKey) {
+  if (payer) {
+    const payerPublicKey = getPublicKey(payer);
     return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
   }
 
@@ -56,12 +57,13 @@ async function getFees(relayerAddress, user, transactionName) {
   const relayer =  await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
 
-  const userPk = getPublicKey(user);
   const feeDataSource = await dataSource.getRepository(FEE_TABLE);
 
   let feeRecord;
 
-  if (userPk && transactionName) {
+  if (user && transactionName) {
+    const userPk = getPublicKey(user);
+
     // check if there is a custom fee for transaction and user
     feeRecord = await feeDataSource.findOne(
       { where: {
@@ -98,20 +100,22 @@ async function getFees(relayerAddress, user, transactionName) {
   return feeRecord.fee;
 }
 
-async function getRelayer(relayerId) {
-  const relayerPk = getPublicKey(relayerId);
+async function getRelayer(relayerAddress) {
+  if (!relayerAddress) return undefined;
+
+  const relayerPk = getPublicKey(relayerAddress);
   const relayerDataSource = await dataSource.getRepository(RELAYER_TABLE);
-  return await relayerDataSource.findOne({ where: { id: relayerPk, enabled: true }});
+  return await relayerDataSource.findOne({ where: { publicKey: relayerPk, enabled: true }});
 }
 
 function getPublicKey(account) {
-  if (!account) return undefined;
-  if (isHex(account) && account.length != 66) return undefined;
+  if (!account) throw new Error(`Address is NULL`);
+  if (isHex(account) && account.length != 66) throw new Error(`Invalid hex encoded address ${account}`);
 
   try {
       return u8aToHex(decodeAddress(account));
   } catch (err) {
-      return undefined;
+      throw new Error(`Invalid address ${account}: ${err.toString()}`)
   }
 }
 

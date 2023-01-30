@@ -21,7 +21,9 @@ async function init() {
       require("./entity/payer"),
       require("./entity/splitFeeUser"),
       require("./entity/transaction"),
-      require("./entity/payerTransaction")
+      require("./entity/payerTransaction"),
+      require("./entity/fee"),
+      require("./entity/relayer")
     ],
   });
 

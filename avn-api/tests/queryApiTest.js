@@ -362,26 +362,18 @@ describe('Query api calls:', async () => {
   //   });
   // });
 
-  // describe('getEraElectionStatus', async () => {
-  //   xit('returns the correct data', async () => {
-  //     const returnedData = await api.query.getEraElectionStatus();
-  //     // We can't be sure about the values but we can check the structure
-  //     assert(['isOpen', 'isClosed'].includes(returnedData), 'Election status is not a valid result');
-  //   });
-  // });
+  describe('getActiveEra', async () => {
+    it('returns the correct data', async () => {
+      const returnedData = await api.query.getActiveEra();
+      assert(parseInt(returnedData) > 0, 'Active era is not a valid result');
+    });
+  });
 
-  // describe('getActiveEra', async () => {
-  //   it('returns the correct data', async () => {
-  //     const returnedData = await api.query.getActiveEra();
-  //     assert(parseInt(returnedData) > 0, 'Active era is not a valid result');
-  //   });
-  // });
-
-  // describe('getStakingStatus', async () => {
-  //   it('returns the correct data', async () => {
-  //     const returnedData = await api.query.getStakingStatus('5FZ9egr9M1tGJ1aEUWG6TPkoko8j7cX2TwtchcFmaMWZzMVU');
-  //     // We can't be sure about the values but we can check the structure
-  //     assert([common.STAKING_STATUS.isStaking, common.STAKING_STATUS.isNotStaking].includes(returnedData), 'Staking status is not a valid result');
-  //   });
-  // });
+  describe('getStakingStatus', async () => {
+    it('returns the correct data', async () => {
+      const returnedData = await api.query.getStakingStatus('5FZ9egr9M1tGJ1aEUWG6TPkoko8j7cX2TwtchcFmaMWZzMVU');
+      // We can't be sure about the values but we can check the structure
+      assert([common.STAKING_STATUS.isStaking, common.STAKING_STATUS.isNotStaking].includes(returnedData), 'Staking status is not a valid result');
+    });
+  });
 });

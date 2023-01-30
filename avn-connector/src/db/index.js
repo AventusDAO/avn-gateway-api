@@ -6,6 +6,7 @@ const FEE_TABLE = 'fee';
 const RELAYER_TABLE = 'relayer';
 
 let dataSource;
+
 async function init() {
   dataSource = new typeorm.DataSource({
     type: "postgres",
@@ -39,6 +40,7 @@ async function getPayer(user, payer) {
   const splitFeeUser = await userDataSource.findOne({ where: { publicKey: userPublicKey, enabled: true }, relations: ['payer']});
   if (!splitFeeUser) return undefined;
 
+  // This check is useful when we start supporting multiple payers for the same user.
   if (payerPublicKey) {
     return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
   }

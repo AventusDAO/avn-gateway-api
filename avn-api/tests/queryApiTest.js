@@ -17,20 +17,18 @@ describe('Query api calls:', async () => {
   let relayerPublicKey, userPublicKey;
 
   const expectedRelayerFees = {
-    proxyAvtTransfer: '7000000000000000',
-    proxyTokenTransfer: '7000000000000000',
+    proxyAvtTransfer: '1000000000000000',
+    proxyTokenTransfer: '1000000000000000',
     proxyConfirmTokenLift: '1000000000000000',
     proxyTokenLower: '1000000000000000',
-    proxyMintSingleNft: '7000000000000000',
-    proxyListNftOpenForSale: '7000000000000000',
-    proxyTransferFiatNft: '7000000000000000',
-    proxyCancelListFiatNft: '7000000000000000',
-    proxyBond: '1000000000000000',
-    proxyNominate: '1000000000000000',
+    proxyMintSingleNft: '1000000000000000',
+    proxyListNftOpenForSale: '1000000000000000',
+    proxyTransferFiatNft: '1000000000000000',
+    proxyCancelListFiatNft: '1000000000000000',
+    proxyStakeAvt: '9000000000000000',
     proxyIncreaseStake: '1000000000000000',
     proxyUnstake: '1000000000000000',
     proxyWithdrawUnlocked: '1000000000000000',
-    proxyPayoutStakers: '1000000000000000'
   };
 
   const expectedUserFees = {
@@ -39,15 +37,13 @@ describe('Query api calls:', async () => {
     proxyConfirmTokenLift: '1000000000000000',
     proxyTokenLower: '1000000000000000',
     proxyMintSingleNft: '7000000000000000',
-    proxyListNftOpenForSale: '7000000000000000',
-    proxyTransferFiatNft: '7000000000000000',
-    proxyCancelListFiatNft: '7000000000000000',
-    proxyBond: '1000000000000000',
-    proxyNominate: '1000000000000000',
+    proxyListNftOpenForSale: '1000000000000000',
+    proxyTransferFiatNft: '1000000000000000',
+    proxyCancelListFiatNft: '1000000000000000',
+    proxyStakeAvt: '1000000000000000',
     proxyIncreaseStake: '1000000000000000',
     proxyUnstake: '1000000000000000',
     proxyWithdrawUnlocked: '1000000000000000',
-    proxyPayoutStakers: '1000000000000000'
   };
 
   before(async () => {
@@ -58,21 +54,21 @@ describe('Query api calls:', async () => {
     token = helper.token;
   });
 
-  // describe('get contract addresses', async () => {
-  //   it('getAvtContractAddress', async () => {
-  //     assert((await api.query.getAvtContractAddress()).length == 42);
-  //   });
+  describe('get contract addresses', async () => {
+    it('getAvtContractAddress', async () => {
+      assert((await api.query.getAvtContractAddress()).length == 42);
+    });
 
-  //   it('getAvnContractAddress', async () => {
-  //     assert((await api.query.getAvnContractAddress()).length == 42);
-  //   });
+    it('getAvnContractAddress', async () => {
+      assert((await api.query.getAvnContractAddress()).length == 42);
+    });
 
-  //   it('getNftContractAddress', async () => {
-  //     const result = await api.query.getNftContractAddress();
-  //     assert(result.length > 0);
-  //     assert(result[0].length == 42);
-  //   });
-  // });
+    it('getNftContractAddress', async () => {
+      const result = await api.query.getNftContractAddress();
+      assert(result.length > 0);
+      assert(result[0].length == 42);
+    });
+  });
 
   // describe('get totals', async () => {
   //   it('returns total AVT', async () => {
@@ -222,37 +218,46 @@ describe('Query api calls:', async () => {
   //   });
   // });
 
-  // describe('getRelayerFees', async () => {
-  //   it('returns default fees for a relayer by address', async () => {
-  //     const returnedFees = await api.query.getRelayerFees(relayer.address);
-  //     assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
-  //   });
+  describe('getRelayerFees', async () => {
+    it('returns default fees for a relayer by address', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer.address);
+      for (const [tx, fee] of Object.entries(expectedRelayerFees)) {
+        assert.equal(returnedFees[tx], fee);
+      }
+    });
 
-  //   it('returns default fees for a relayer by publicKey', async () => {
-  //     const returnedFees = await api.query.getRelayerFees(relayer.publicKey);
-  //     assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
-  //   });
+    it('returns default fees for a relayer by publicKey', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey);
+      for (const [tx, fee] of Object.entries(expectedRelayerFees)) {
+        assert.equal(returnedFees[tx], fee);
+      }
+    });
 
-  //   it('returns fees for a specific user by address', async () => {
-  //     const returnedFees = await api.query.getRelayerFees(relayer.address, user.address);
-  //     assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
-  //   });
+    it('returns fees for a specific user by address', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer.address, user.address);
+      for (const [tx, fee] of Object.entries(expectedUserFees)) {
+        assert.equal(returnedFees[tx], fee, `${tx} fee not equal to ${fee}.`);
+      }
+    });
 
-  //   it('returns fees for a specific user by publicKey', async () => {
-  //     const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey);
-  //     assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
-  //   });
+    it('returns fees for a specific user by publicKey', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey);
+      for (const [tx, fee] of Object.entries(expectedUserFees)) {
+        assert.equal(returnedFees[tx], fee);
+      }
+      //assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
+    });
 
-  //   it('returns the fee for a specific user and transaction type', async () => {
-  //     const transactionType = 'proxyTokenTransfer';
-  //     const returnedFees = await api.query.getRelayerFees(relayer.address, user.publicKey, transactionType);
-  //     assert.equal(returnedFees, expectedUserFees[transactionType]);
-  //   });
+    it('returns the fee for a specific user and transaction type', async () => {
+      const transactionType = 'proxyTokenTransfer';
+      const returnedFees = await api.query.getRelayerFees(relayer.address, user.publicKey, transactionType);
+      assert.equal(returnedFees, expectedUserFees[transactionType]);
+    });
 
-  //   it('errors if relayer is not registered', async () => {
-  //     await expect(api.query.getRelayerFees(user)).to.be.rejectedWith(Error);
-  //   });
-  // });
+    it('errors if relayer is not registered', async () => {
+      await expect(api.query.getRelayerFees(user)).to.be.rejectedWith(Error);
+    });
+  });
 
   // xdescribe('getAvtBalance', async () => {
   //   it('@NO_BASELINE returns correct avt balance for specific user by address', async () => {

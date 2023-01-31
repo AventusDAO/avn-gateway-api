@@ -2,9 +2,13 @@ const config = require('multiconfig').load();
 const typeorm = require("typeorm");
 
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
+const FEE_TABLE = 'fee';
+const RELAYER_TABLE = 'relayer';
+
+let dataSource;
 
 async function init() {
-  const dataSource = new typeorm.DataSource({
+  dataSource = new typeorm.DataSource({
     type: "postgres",
     host: config.postgres.host,
     port: config.postgres.port,
@@ -44,6 +48,55 @@ async function getPayer(user, payer) {
   return encodeAddress(splitFeeUser.payer.publicKey, 42);
 }
 
+// This function will return the fee as a string
+async function getFees(relayerAddress, user, txId) {
+  const relayer =  await getRelayer(relayerAddress);
+  if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
+
+  const userPk = getPublicKey(user);
+  const feeDataSource = await dataSource.getRepository(FEE_TABLE);
+
+  let feeRecord;
+
+  if (userPk && txId) {
+    // check if there is a custom fee for transaction and user
+    feeRecord = await feeDataSource.findOne(
+      { where: {
+          relayerId: relayer.id,
+          transactionId: txId,
+          userPublicKey: userPk,
+          enabled: true
+        }
+      }
+    );
+  }
+
+  // check if there is a specific fee for that transaction instead
+  if (!feeRecord && txId) {
+      feeRecord = await feeDataSource.findOne(
+          { where: { relayerId: relayer.id, transactionId: txId, enabled: true}}
+      );
+  }
+
+  // check if there is a default fee for the given relayer
+  if (!feeRecord) {
+      feeRecord = await feeDataSource.findOne(
+          { where: { relayerId: relayer.id, enabled: true}}
+      );
+  }
+
+  // There must be at least 1 fee entry for each relayer
+  if (!feeRecord) throw new Error(`Relayer fee cannot be found for relayer: ${relayerAddress}, user: ${user} and tx: ${txId}`);
+
+  return feeRecord.fee;
+}
+
+async function getRelayer(relayerId) {
+  const relayerPk = getPublicKey(relayerId);
+  const relayerDataSource = await dataSource.getRepository(RELAYER_TABLE);
+  return await relayerDataSource.findOne({ where: { id: relayerPk, enabled: true }});
+}
+
 function getPublicKey(account) {
   if (!account) return undefined;
   if (isHex(account) && account.length != 66) return undefined;
@@ -57,5 +110,6 @@ function getPublicKey(account) {
 
 module.exports = {
   getPayer,
+  getFees,
   init,
 };

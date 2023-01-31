@@ -91,7 +91,7 @@ async function getFees(relayerAddress, user, transactionName) {
 }
 
 async function isPayerTransaction(payer, transactionName) {
-  if (!payer || !transaction) return false;
+  if (!payer || !transactionName) return false;
   const payerPk = getPublicKey(payer);
 
   const payerTransactionDataSource = await dataSource.getRepository(PAYER_TRANSACTION_TABLE);

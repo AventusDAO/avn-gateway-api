@@ -95,11 +95,16 @@ async function getFees(relayerAddress, user, transactionName) {
   }
 
   // Note: `find` returns an empty array so a null check is not enough, check for length as well.
-  // Check if there is a default fee transaction
-  if ((!fees || fees.length === 0) && transactionName) {
-      fees = await getSingleFee(feeDataSource, relayer.id, IsNull(), transactionName);
-      if (fees) return fees.fee;
-  }
+  if (!fees || fees.length === 0) {
+    if (transactionName) {
+        // Check if there is a default fee transaction
+        fees = await getSingleFee(feeDataSource, relayer.id, IsNull(), transactionName);
+        if (fees) return fees.fee;
+    } else {
+        // get all non-user specific fees for relayer
+        fees = await getAllFees(feeDataSource, relayer.id, IsNull());
+    }
+}
 
   // TODO: replace me with a real value
   return buildFeesJson(fees, relayer.defaultFee || '0');

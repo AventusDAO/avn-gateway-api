@@ -215,8 +215,35 @@ app.post('/getPayer', async (req, res, next) => {
   try {
     log.trace({ getPayer: JSON.stringify(req.body) });
     const result = await rds.getPayer(req.body.user, req.body.payer);
-    console.log("Payer address: ", result);
     res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/isPayerTransaction', async (req, res, next) => {
+  try {
+    log.trace({ isPayerTransaction: JSON.stringify(req.body) });
+    const result = await rds.isPayerTransaction(req.body.payer, req.body.transaction);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
+  try {
+    log.trace({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });
+
+    await redis.addFailedAvnTransaction(
+      req.body.requestId,
+      req.body.requestId,
+      undefined,
+      undefined,
+      redis.transactionStatus.PayerRefused
+    );
+
+    res.status(200).send({});
   } catch (err) {
     next(err);
   }

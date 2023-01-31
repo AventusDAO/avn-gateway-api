@@ -7,6 +7,7 @@ const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
 const RELAYER_TABLE = 'relayer';
+const PAYER_TRANSACTION_TABLE = 'payerTransaction';
 
 const transactionTypes = {
   proxyAvtTransfer: 'proxyAvtTransfer',
@@ -89,6 +90,22 @@ async function getFees(relayerAddress, user, transactionName) {
   return await getAllFees(feeDataSource, relayer, userPk);
 }
 
+async function isPayerTransaction(payer, transactionName) {
+  if (!payer || !transaction) return false;
+  const payerPk = getPublicKey(payer);
+
+  const payerTransactionDataSource = await dataSource.getRepository(PAYER_TRANSACTION_TABLE);
+
+  let payerTx = await payerTransactionDataSource.findOne(
+    { where: {
+        payer: { publicKey: payerPk, enabled: true},
+        transaction: { name: transactionName, enabled: true },
+        enabled: true }
+    }
+  );
+
+  return payerTx ? true : false;
+}
 
 async function getRelayer(relayerAddress) {
   if (!relayerAddress) return undefined;
@@ -161,4 +178,5 @@ module.exports = {
   getPayer,
   getFees,
   init,
+  isPayerTransaction,
 };

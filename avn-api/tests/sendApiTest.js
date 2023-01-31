@@ -45,6 +45,7 @@ describe('SendTx api calls:', async () => {
     });
 
     it('can transfer AVT using a recipient public key', async () => {
+      console.log("\nTransfering 2 AVT using self pay tokens\n");
       const amount = new BN(2);
       const requestId = await api.send.transferAvt(relayer, recipientPubKey, amount);
       await helper.confirmStatus(api, requestId, 'Processed');
@@ -53,6 +54,24 @@ describe('SendTx api calls:', async () => {
       bnEquals(userAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+    });
+
+    it('can transfer AVT using a recipient address for a split fee user', async () => {
+      console.log("\nTransfering 3 AVT using split fee tokens\n");
+      let options = {
+        hasPayer: true,
+        payer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'
+      };
+
+      let apiWithoptions = await helper.avnApi(options);
+
+      const amount = new BN(3);
+      const requestId = await apiWithoptions.send.transferAvt(relayer, recipient, amount);
+      console.log(`   - RequestId: ${requestId}`);
+      await helper.confirmStatus(apiWithoptions, requestId, 'Processed');
+
+      bnEquals(recipientAvtBalanceBefore.add(amount), await apiWithoptions.query.getAvtBalance(recipient));
+      bnEquals(new BN(await apiWithoptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
   });
 

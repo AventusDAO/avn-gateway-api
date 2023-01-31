@@ -345,7 +345,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
     // If we failed to get a true transaction hash, use the requestId as key
     if (!result || !result.transactionHash) {
-      result.transactionHash = requestId;
+      result.transactionHash = keccakAsHex(requestId);
     }
     await redis.addFailedAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString(), redis.transactionStatus.SendingFailed);
 
@@ -355,6 +355,16 @@ async function signAndSend(requestId, relayerAddress, txn) {
   await redis.addPendingAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString());
 
   return result;
+}
+
+async function setTransactionRefusedByPayerStatus(requestId) {
+  await redis.addFailedAvnTransaction(
+    requestId,
+    keccakAsHex(requestId),
+    undefined,
+    undefined,
+    redis.transactionStatus.PayerRefused
+  );
 }
 
 async function getRelayerAccount(relayerAddress) {
@@ -493,5 +503,6 @@ module.exports = {
   poll,
   processLifts,
   query,
-  signPaymentInfo
+  signPaymentInfo,
+  setTransactionRefusedByPayerStatus
 };

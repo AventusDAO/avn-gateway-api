@@ -4,7 +4,6 @@ const avn = require('./avn');
 const rds = require('./db/index');
 const lowering = require('./lowering');
 const redis = require('./redis');
-const gatewayDb = require('./gatewayDb');
 const mqConsumer = require('./mqConsumer');
 const lambda = require('./lambdas');
 const express = require('express');
@@ -75,7 +74,7 @@ app.post('/resolvePendingTransactions', async (req, res, next) => {
 app.post('/relayerFees', async (req, res, next) => {
   try {
     log.trace({ relayerFeesRequest: req.body });
-    const result = await gatewayDb.getFees(req.body.relayer, req.body.user, req.body.transactionType);
+    const result = await rds.getFees(req.body.relayer, req.body.user, req.body.transactionType);
     res.send(result);
   } catch (err) {
     next(err);
@@ -236,8 +235,6 @@ async function instantiateConnector() {
   await redis.connect();
   await avn.init();
   await mqConsumer.connectToMQ();
-  // TODO: remove me once all the functionality is migrated to rds
-  await gatewayDb.init();
   await rds.init();
   lowering.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }

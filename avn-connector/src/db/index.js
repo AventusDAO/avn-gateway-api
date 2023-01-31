@@ -1,27 +1,9 @@
 const config = require('multiconfig').load();
 const typeorm = require("typeorm");
-const { IsNull } = require("typeorm");
-const { isHex, u8aToHex } = require('@polkadot/util');
-const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
 const RELAYER_TABLE = 'relayer';
-
-const transactionTypes = {
-  proxyAvtTransfer: 'proxyAvtTransfer',
-  proxyTokenTransfer: 'proxyTokenTransfer',
-  proxyConfirmTokenLift: 'proxyConfirmTokenLift',
-  proxyTokenLower: 'proxyTokenLower',
-  proxyMintSingleNft: 'proxyMintSingleNft',
-  proxyListNftOpenForSale: 'proxyListNftOpenForSale',
-  proxyTransferFiatNft: 'proxyTransferFiatNft',
-  proxyCancelListFiatNft: 'proxyCancelListFiatNft',
-  proxyStakeAvt: 'proxyStakeAvt',
-  proxyIncreaseStake: 'proxyIncreaseStake',
-  proxyUnstake: 'proxyUnstake',
-  proxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
-}
 
 let dataSource;
 
@@ -38,9 +20,7 @@ async function init() {
       require("./entity/payer"),
       require("./entity/splitFeeUser"),
       require("./entity/transaction"),
-      require("./entity/payerTransaction"),
-      require("./entity/fee"),
-      require("./entity/relayer")
+      require("./entity/payerTransaction")
     ],
   });
 
@@ -51,8 +31,9 @@ async function init() {
 
 async function getPayer(user, payer) {
   const userPublicKey = getPublicKey(user);
+  const payerPublicKey = getPublicKey(payer);
 
-  if (!userPublicKey && !payer) return undefined;
+  if (!userPublicKey && !payerPublicKey) return undefined;
 
   const userDataSource = await dataSource.getRepository(SPLIT_FEE_USER_TABLE);
 
@@ -60,8 +41,7 @@ async function getPayer(user, payer) {
   if (!splitFeeUser) return undefined;
 
   // This check is useful when we start supporting multiple payers for the same user.
-  if (payer) {
-    const payerPublicKey = getPublicKey(payer);
+  if (payerPublicKey) {
     return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
   }
 
@@ -111,22 +91,20 @@ async function getFees(relayerAddress, user, txId) {
   return feeRecord.fee;
 }
 
-async function getRelayer(relayerAddress) {
-  if (!relayerAddress) return undefined;
-
-  const relayerPk = getPublicKey(relayerAddress);
+async function getRelayer(relayerId) {
+  const relayerPk = getPublicKey(relayerId);
   const relayerDataSource = await dataSource.getRepository(RELAYER_TABLE);
-  return await relayerDataSource.findOne({ where: { publicKey: relayerPk, enabled: true }});
+  return await relayerDataSource.findOne({ where: { id: relayerPk, enabled: true }});
 }
 
 function getPublicKey(account) {
-  if (!account) throw new Error(`Address is NULL`);
-  if (isHex(account) && account.length != 66) throw new Error(`Invalid hex encoded address ${account}`);
+  if (!account) return undefined;
+  if (isHex(account) && account.length != 66) return undefined;
 
   try {
       return u8aToHex(decodeAddress(account));
   } catch (err) {
-      throw new Error(`Invalid address ${account}: ${err.toString()}`)
+      return undefined;
   }
 }
 

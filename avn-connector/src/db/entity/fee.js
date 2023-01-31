@@ -21,7 +21,7 @@ module.exports = new EntitySchema({
             nullable: true,
         },
         fee: {
-            type: "varchar",
+            type: "bigint",
         },
         createdAt: {
             type: "timestamptz",
@@ -39,14 +39,14 @@ module.exports = new EntitySchema({
     relations: {
         relayer: {
             target: 'relayer',
-            type: 'many-to-one',
+            type: 'one-to-many',
             joinTable: true,
             inverseSide: 'fee',
             eager: true,
         },
         transaction: {
           target: 'transaction',
-          type: 'many-to-one',
+          type: 'one-to-many',
           joinTable: true,
           inverseSide: 'fee',
           eager: true,

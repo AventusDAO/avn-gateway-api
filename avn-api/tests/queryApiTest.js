@@ -25,7 +25,7 @@ describe('Query api calls:', async () => {
     proxyListNftOpenForSale: '1000000000000000',
     proxyTransferFiatNft: '1000000000000000',
     proxyCancelListFiatNft: '1000000000000000',
-    proxyStakeAvt: '1000000000000000',
+    proxyStakeAvt: '9000000000000000',
     proxyIncreaseStake: '1000000000000000',
     proxyUnstake: '1000000000000000',
     proxyWithdrawUnlocked: '1000000000000000',

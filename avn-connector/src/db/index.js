@@ -69,26 +69,47 @@ async function getPayer(user, payer) {
 }
 
 // This function will return the fee as a string
-async function getFees(relayerAddress, user, transactionName) {
-  let userPk;
-
+async function getFees(relayerAddress, user, txId) {
   const relayer =  await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
-  if (!relayer.defaultFee) throw new Error(`Relayer  ${relayerAddress} does not have a default fee set`);
 
+  const userPk = getPublicKey(user);
   const feeDataSource = await dataSource.getRepository(FEE_TABLE);
 
-  if (user) {
-    userPk = getPublicKey(user);
+  let feeRecord;
+
+  if (userPk && txId) {
+    // check if there is a custom fee for transaction and user
+    feeRecord = await feeDataSource.findOne(
+      { where: {
+          relayerId: relayer.id,
+          transactionId: txId,
+          userPublicKey: userPk,
+          enabled: true
+        }
+      }
+    );
   }
 
-  if (transactionName) {
-      return await getSingleFee(feeDataSource, relayer, userPk, transactionName);
+  // check if there is a specific fee for that transaction instead
+  if (!feeRecord && txId) {
+      feeRecord = await feeDataSource.findOne(
+          { where: { relayerId: relayer.id, transactionId: txId, enabled: true}}
+      );
   }
 
-  return await getAllFees(feeDataSource, relayer, userPk);
+  // check if there is a default fee for the given relayer
+  if (!feeRecord) {
+      feeRecord = await feeDataSource.findOne(
+          { where: { relayerId: relayer.id, enabled: true}}
+      );
+  }
+
+  // There must be at least 1 fee entry for each relayer
+  if (!feeRecord) throw new Error(`Relayer fee cannot be found for relayer: ${relayerAddress}, user: ${user} and tx: ${txId}`);
+
+  return feeRecord.fee;
 }
-
 
 async function getRelayer(relayerAddress) {
   if (!relayerAddress) return undefined;
@@ -96,54 +117,6 @@ async function getRelayer(relayerAddress) {
   const relayerPk = getPublicKey(relayerAddress);
   const relayerDataSource = await dataSource.getRepository(RELAYER_TABLE);
   return await relayerDataSource.findOne({ where: { publicKey: relayerPk, enabled: true }});
-}
-
-// This function expects that each relayer has at least one default fee or a fee for each transaction type.
-function buildFeesJson(dbResult, relayerDefaultFee) {
-  let defaultFee;
-  let relayerFees = {};
-
-  (dbResult || []).forEach(r => {
-      const hasTransactionFee = !!r.transaction && !!r.transaction.name;
-      if (hasTransactionFee) {
-          // Prioritise user specific fees over default fees for transaction
-          if (!relayerFees[r.transaction.name] || r.userPublicKey) {
-            relayerFees[r.transaction.name] = r.fee;
-          }
-      } else if (r.userPublicKey) {
-          // This is the default fee for the user
-          defaultFee = r.fee;
-      }
-  });
-
-  defaultFee = defaultFee ?? relayerDefaultFee;
-  Object.values(transactionTypes).forEach(v => relayerFees[v] = relayerFees[v] ? relayerFees[v] : defaultFee);
-
-  return relayerFees;
-}
-
-async function getSingleFee(feeDataSource, relayer, userPk, transactionName) {
-  let feeRow = await feeDataSource.findOne(
-      { where: {
-          relayerId: relayer.id,
-          userPublicKey: userPk || IsNull(),
-          enabled: true,
-          transaction: { name: transactionName, enabled: true }
-      }
-  });
-
-  return feeRow ? feeRow.fee : relayer.defaultFee;
-}
-
-async function getAllFees(feeDataSource, relayer, userPk) {
-  const fees = await feeDataSource.find(
-      { where: {
-          relayerId: relayer.id,
-          userPublicKey: userPk || IsNull(),
-          enabled: true
-  }});
-
-  return buildFeesJson(fees, relayer.defaultFee);
 }
 
 function getPublicKey(account) {

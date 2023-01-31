@@ -99,7 +99,7 @@ async function signPaymentInfo(transaction, payer, encodedParams, requestId) {
     return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payer);
   } else {
     // transaction has been rejected by payer, inform user
-    await flagAsRejectedByPayer(requestId);
+    await updateTransactionStatusToRejected(requestId);
   }
 }
 
@@ -130,7 +130,7 @@ async function payerCanPayForTransaction(payerAddress, transactionName) {
   }
 }
 
-async function flagAsRejectedByPayer(requestId) {
+async function updateTransactionStatusToRejected(requestId) {
   try {
     await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionRefusedByPayerStatus', { requestId: requestId });
   } catch (err) {

@@ -115,6 +115,7 @@ data "aws_iam_policy_document" "split_fee_access" {
       "sqs:ReceiveMessage",
       "sqs:DeleteMessage",
       "sqs:DeleteMessageBatch",
+      "sqs:GetQueueAttributes",
     ]
     resources = [
       "${var.sqs_queue_arns.gateway_payer_queue}",
@@ -149,6 +150,7 @@ data "aws_iam_policy_document" "tx_dispatch_access" {
       "sqs:ReceiveMessage",
       "sqs:DeleteMessage",
       "sqs:DeleteMessageBatch",
+      "sqs:GetQueueAttributes",
     ]
     resources = [
       "${var.sqs_queue_arns.gateway_default_queue}",

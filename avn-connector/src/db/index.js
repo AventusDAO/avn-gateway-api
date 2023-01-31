@@ -107,7 +107,7 @@ async function getFees(relayerAddress, user, transactionName) {
 }
 
   // TODO: replace me with a real value
-  return buildFeesJson(fees, relayer.defaultFee || '0');
+  return buildFeesJson(fees, relayer.defaultFee || '1000000000000000');
 }
 
 async function getRelayer(relayerAddress) {

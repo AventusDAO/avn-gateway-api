@@ -70,11 +70,11 @@ async function getPayer(user, payer) {
 
 // This function will return the fee as a string
 async function getFees(relayerAddress, user, transactionName) {
-  let fees, userPk;
+  let userPk;
 
   const relayer =  await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
-  //if (!relayer.defaultFee) throw new Error(`Relayer  ${relayerAddress} does not have a default fee set`);
+  if (!relayer.defaultFee) throw new Error(`Relayer  ${relayerAddress} does not have a default fee set`);
 
   const feeDataSource = await dataSource.getRepository(FEE_TABLE);
 
@@ -82,33 +82,13 @@ async function getFees(relayerAddress, user, transactionName) {
     userPk = getPublicKey(user);
   }
 
-  // The order of the if statements matter here because we want to check for
-  // the most specific 'fee' first (user and tx), then user specific 'fee' and finally transaction specific 'fee'.
-  if (userPk && transactionName) {
-      fees = await getSingleFee(feeDataSource, relayer.id, userPk, transactionName);
-      if (fees) return fees.fee;
+  if (transactionName) {
+      return await getSingleFee(feeDataSource, relayer, userPk, transactionName);
   }
 
-  // Check if there is a default fee for user
-  if (!fees && userPk) {
-      fees = await getAllFees(feeDataSource, relayer.id, userPk);
-  }
-
-  // Note: `find` returns an empty array so a null check is not enough, check for length as well.
-  if (!fees || fees.length === 0) {
-    if (transactionName) {
-        // Check if there is a default fee transaction
-        fees = await getSingleFee(feeDataSource, relayer.id, IsNull(), transactionName);
-        if (fees) return fees.fee;
-    } else {
-        // get all non-user specific fees for relayer
-        fees = await getAllFees(feeDataSource, relayer.id, IsNull());
-    }
+  return await getAllFees(feeDataSource, relayer, userPk);
 }
 
-  // TODO: replace me with a real value
-  return buildFeesJson(fees, relayer.defaultFee || '1000000000000000');
-}
 
 async function getRelayer(relayerAddress) {
   if (!relayerAddress) return undefined;
@@ -124,9 +104,14 @@ function buildFeesJson(dbResult, relayerDefaultFee) {
   let relayerFees = {};
 
   (dbResult || []).forEach(r => {
-      if (r.transaction && r.transaction.name) {
-          relayerFees[r.transaction.name] = r.fee;
-      } else {
+      const hasTransactionFee = !!r.transaction && !!r.transaction.name;
+      if (hasTransactionFee) {
+          // Prioritise user specific fees over default fees for transaction
+          if (!relayerFees[r.transaction.name] || r.userPublicKey) {
+            relayerFees[r.transaction.name] = r.fee;
+          }
+      } else if (r.userPublicKey) {
+          // This is the default fee for the user
           defaultFee = r.fee;
       }
   });
@@ -137,23 +122,28 @@ function buildFeesJson(dbResult, relayerDefaultFee) {
   return relayerFees;
 }
 
-async function getSingleFee(feeDataSource, relayerId, userPk, transactionName) {
-  return await feeDataSource.findOne(
+async function getSingleFee(feeDataSource, relayer, userPk, transactionName) {
+  let feeRow = await feeDataSource.findOne(
       { where: {
-          relayerId: relayerId,
-          userPublicKey: userPk,
+          relayerId: relayer.id,
+          userPublicKey: userPk || IsNull(),
           enabled: true,
           transaction: { name: transactionName, enabled: true }
-      }});
+      }
+  });
+
+  return feeRow ? feeRow.fee : relayer.defaultFee;
 }
 
-async function getAllFees(feeDataSource, relayerId, userPk) {
-  return await feeDataSource.find(
+async function getAllFees(feeDataSource, relayer, userPk) {
+  const fees = await feeDataSource.find(
       { where: {
-          relayerId: relayerId,
-          userPublicKey: userPk,
+          relayerId: relayer.id,
+          userPublicKey: userPk || IsNull(),
           enabled: true
-      }});
+  }});
+
+  return buildFeesJson(fees, relayer.defaultFee);
 }
 
 function getPublicKey(account) {

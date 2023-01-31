@@ -27,7 +27,6 @@ module "lambda_functions" {
       env_vars = {
         MAX_TOKEN_AGE_MSEC      = 60000
         MIN_AVT_BALANCE         = "1000000000000000000"
-        SECRET_MANAGER_RDS_NAME = module.gateway_rds.gateway_secretsmanager_name
       }
       memory_size = 512
     }

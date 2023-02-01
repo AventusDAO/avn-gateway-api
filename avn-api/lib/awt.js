@@ -3,7 +3,7 @@
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 const common = require('./common.js');
 
-const MAX_TOKEN_AGE_MSEC = 60000;
+const MAX_TOKEN_AGE_MSEC = 600000;
 const SIGNING_CONTEXT = 'awt_gateway_api';
 
 function generateAwtPayload(suri, issuedAt, options) {

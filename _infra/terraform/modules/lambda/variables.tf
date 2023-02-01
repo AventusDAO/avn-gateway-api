@@ -30,7 +30,9 @@ variable "lambda_functions" {
     "send-handler" : {},
     "query-handler" : {},
     "vote-handler" : {},
-    "lower-handler" : {}
+    "lower-handler" : {},
+    "split-fee-handler" : {},
+    "tx-dispatch-handler" : {}
   }
 }
 

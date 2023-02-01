@@ -91,9 +91,18 @@ async function isValidSelfPayUser(awtToken) {
   return existingUser === true || avtBalance.gte(MIN_AVT_BALANCE);
 }
 
-async function tryGetPayerAddressForUser(token) {
-  //TODO: Validate by checking if there is a payer in RDS. If there is, return it
-  return undefined;
+async function tryGetPayerAddressForUser(awtToken) {
+  try {
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'getPayer', {
+      user: awtToken.pk,
+      payer: awtToken.payer
+    });
+
+    return avnResponse.data;
+  } catch (err) {
+    console.error('Failed to get payer data: ', err);
+    return undefined;
+  }
 }
 
 async function tryGetUserInfo(awtToken) {

@@ -54,6 +54,23 @@ describe('SendTx api calls:', async () => {
       // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
+
+    it('can transfer AVT using a recipient address for a split fee user', async () => {
+      let options = {
+        hasPayer: true,
+        payer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'
+      };
+
+      let apiWithoptions = await helper.avnApi(options);
+
+      const amount = new BN(3);
+      const requestId = await apiWithoptions.send.transferAvt(relayer, recipient, amount);
+      console.log(`   - RequestId: ${requestId}`);
+      await helper.confirmStatus(apiWithoptions, requestId, 'Processed');
+
+      bnEquals(recipientAvtBalanceBefore.add(amount), await apiWithoptions.query.getAvtBalance(recipient));
+      bnEquals(new BN(await apiWithoptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+    });
   });
 
   describe('confirmTokenLift', async () => {

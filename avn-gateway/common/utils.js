@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const { TypeRegistry } = require('@polkadot/types');
 const registry = new TypeRegistry();
@@ -24,7 +25,6 @@ const TX_TYPES = [
   'proxyIncreaseStake',
   'proxyUnstake',
   'proxyWithdrawUnlocked',
-  'proxyPayoutStakers'
 ];
 
 let initialised;
@@ -161,6 +161,21 @@ function toWholeAVT(val) {
   return parseInt(wholeAmount.toString());
 }
 
+function buildErrorResponse(statusCode, errorMessage, body) {
+  return {
+    statusCode,
+    error: { message: errorMessage },
+    body
+  };
+}
+
+function buildSuccessResponse(body) {
+  return {
+    statusCode: 200,
+    body
+  };
+}
+
 function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payerAddress) {
   const encodedContext = registry.createType('Text', SIGNING_CONTEXT);
   const encodedPublicKey = registry.createType('AccountId', hexToU8a(publicKey));
@@ -212,9 +227,14 @@ function getProxyProof(user, relayerAddress, proxySignature) {
   };
 }
 
-async function getRelayerFee(connectorUrl, relayer, payer, transactionType) {
+async function getRelayerFee(connectorUrl, relayer, user, transactionType) {
   try {
-    const avnResponse = await axios.post(connectorUrl + 'relayerFees', { relayer, payer, transactionType });
+    const avnResponse = await axios.post(connectorUrl + 'relayerFees', {
+      relayer,
+      user,
+      transactionType
+    });
+
     return avnResponse.data.toString();
   } catch (error) {
     throw new Error(`could not get relayer fee: ${error.toString()}`);
@@ -226,6 +246,8 @@ module.exports = {
   axios,
   BN,
   encodeProxyProof,
+  buildSuccessResponse,
+  buildErrorResponse,
   getProxyProof,
   getRelayerFee,
   hashString,
@@ -256,5 +278,5 @@ module.exports = {
   toWholeAVT,
   buildValidResponseBody,
   verifyAwtTokenSignature,
-  verifyFeePaymentSignature
+  verifySignatureWithOrWithoutWrapping
 };

@@ -25,9 +25,12 @@ exports.handler = async (event) => {
     for (let record of event.Records) {
       const result = await processRequest(record.body);
 
-      if (utils.requestFailed(result) === false) {
-        processedMessagesCount += 1;
+      if (utils.requestFailed(result) === true) {
+        // Stop on the first failure because this is a FIFO queue
+        break;
       }
+
+      processedMessagesCount += 1;
     }
 
     if (processedMessagesCount < event.Records.length) {
@@ -69,12 +72,12 @@ async function processRequest(request) {
   const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
   const encodedPaymentParams = fees.encodePaymentParams(feeParams.relayer, feeParams.relayerFee, feeParams.paymentNonce, feeParams.proxyProof);
 
-  const paymentSignature = await signPaymentInfo(tx.splitFeePayerAddress, encodedPaymentParams);
+  const paymentSignature = await signPaymentInfo(tx.method, tx.splitFeePayerAddress, encodedPaymentParams, requestId);
 
   tx.params.payer = tx.splitFeePayerAddress;
   tx.params.feePaymentSignature = paymentSignature;
   tx.params.paymentNonce = feeParams.paymentNonce;
-  
+
   const data = await sendMessageToDefaultQueue(tx);
   console.info(`Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`);
   return utils.buildValidResponseBody(tx.id, requestId);
@@ -90,9 +93,14 @@ function validateTransaction(tx) {
     throw new Error(`Invalid transaction data: ${errParam}`);
   }
 }
-async function signPaymentInfo(payer, encodedParams) {
-  // TODO: Sign using `payers's private keys
-  return ''
+async function signPaymentInfo(transaction, payer, encodedParams, requestId) {
+  // validate if the payer is willing to pay for this transaction
+  if (await payerCanPayForTransaction(payer, transaction)) {
+    return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payer);
+  } else {
+    // transaction has been rejected by payer, inform user
+    await updateTransactionStatusToRejected(requestId);
+  }
 }
 
 async function sendMessageToDefaultQueue(message) {
@@ -106,4 +114,27 @@ async function sendMessageToDefaultQueue(message) {
   };
 
   return await sqsClient.send(new sqs.SendMessageCommand(params));
+}
+
+async function payerCanPayForTransaction(payerAddress, transactionName) {
+  try {
+    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'isPayerTransaction', {
+      payer: payerAddress,
+      transaction: transactionName
+    });
+
+    return avnResponse.data === true;
+  } catch (err) {
+    console.error(`Failed to check if payer ${payerAddress} can pay for transaction ${transactionName}:`, err.toString());
+    throw err;
+  }
+}
+
+async function updateTransactionStatusToRejected(requestId) {
+  try {
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionRefusedByPayerStatus', { requestId: requestId });
+  } catch (err) {
+    console.error(`Failed to set status of requestId ${requestId} as 'Rejected by payer':`, err.toString());
+    throw err;
+  }
 }

@@ -18,27 +18,46 @@ function AvnApi(gateway, options) {
 
 AvnApi.prototype.init = async function () {
   await cryptoWaitReady();
-  this.setSURI = suri => setSURI(suri, this.options, Awt);
+  this.setSURI = suri => {
+    this.options.suri = suri;
+    this.awtToken = this.gateway ? Awt.generateAwtToken(this.options) : undefined;
+    console.info(" - Suri updated");
+  }
+
   this.awt = Awt;
   this.proxy = Proxy;
   this.utils = Utils;
 
   // TODO: do we want to allow changing SURI on the fly?
-  const suri = () => this.options.suri ? this.options.suri : process.env.AVN_SURI;
-  if (!suri()) throw new Error('Suri is not defined');
+  const getSuri = () => {
+    this.options.suri = this.options.suri ?? process.env.AVN_SURI;
+    return this.options.suri;
+  };
 
-  this.signer = () => Utils.getSigner(suri());
+  if (!getSuri()) throw new Error('Suri is not defined');
+
+  this.signer = () => Utils.getSigner(getSuri());
   this.myAddress = () => this.signer().address;
   this.myPublicKey = () => Utils.convertToPublicKeyIfNeeded(this.myAddress());
 
   if (this.gateway) {
-    awtToken = Awt.generateAwtToken(suri(), this.options);
+    this.awtToken = Awt.generateAwtToken(this.options);
 
     const avnApi = {
       gateway: this.gateway,
       signer: () => this.signer(),
+      hasSplitFeeToken: () => this.hasSplitFeeToken(),
       uuid: () => uuidv4(),
-      axios: () => setupAxios(Awt, suri())
+      axios: () => {
+        if (!Awt.tokenAgeIsValid(this.awtToken)) {
+          console.log(' - Awt token has expired, refreshing');
+          this.awtToken = Awt.generateAwtToken(this.options);
+        }
+
+        // Add any middlewares here to configure global axios behaviours
+        Axios.defaults.headers.common = { Authorization: `bearer ${this.awtToken}` };
+        return Axios;
+      }
     };
 
     this.query = new Query(avnApi);
@@ -47,22 +66,11 @@ AvnApi.prototype.init = async function () {
   }
 };
 
-function setupAxios(awtTokenManager, suri) {
-  if (!awtTokenManager.tokenAgeIsValid(this.awtToken)) {
-    console.log(' - Awt token has expired, refreshing');
-    this.awtToken = awtTokenManager.generateAwtToken(suri);
-  }
+AvnApi.prototype.hasSplitFeeToken = function () {
+  if (!this.options) return false;
+  if (this.options.hasPayer === true) return true
 
-  // Add any middlewares here to configure global axios behaviours
-  Axios.defaults.headers.common = { Authorization: `bearer ${this.awtToken}` };
-  return Axios;
-}
-
-function setSURI(suri, options, awtTokenManager) {
-  options.suri = suri;
-
-  this.awtToken = awtTokenManager.generateAwtToken(suri);
-  console.info(" - Suri updated");
-}
+  return !!this.options.payerAddress;
+};
 
 module.exports = AvnApi;

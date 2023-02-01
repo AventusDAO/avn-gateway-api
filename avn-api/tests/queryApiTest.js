@@ -245,7 +245,6 @@ describe('Query api calls:', async () => {
       for (const [tx, fee] of Object.entries(expectedUserFees)) {
         assert.equal(returnedFees[tx], fee);
       }
-      //assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
     });
 
     it('returns the fee for a specific user and transaction type', async () => {

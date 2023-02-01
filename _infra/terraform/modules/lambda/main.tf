@@ -101,9 +101,9 @@ resource "aws_iam_role_policy_attachment" "extra_permissions" {
   policy_arn = aws_iam_policy.full_access_vote_buckets.arn
 }
 
-resource "aws_iam_role_policy_attachment" "sender_sqs_access" {
+resource "aws_iam_role_policy_attachment" "send_handler_access" {
   role       = aws_iam_role.lambda_role["send-handler"].name
-  policy_arn = aws_iam_policy.sender_sqs_access.arn
+  policy_arn = aws_iam_policy.send_handler_access.arn
 }
 
 resource "aws_iam_role_policy_attachment" "split_fee_access" {

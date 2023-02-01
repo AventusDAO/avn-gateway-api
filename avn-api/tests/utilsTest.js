@@ -56,11 +56,11 @@ describe('Utilities', async () => {
         payer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'
       };
 
-      let apiWithoptions = await helper.avnApi(options);
+      let apiWithOptions = await helper.avnApi(options);
 
-      const previousAWT = apiWithoptions.awtToken;
-      apiWithoptions.setSURI(accounts.otherUser.seed);
-      assert(previousAWT !== apiWithoptions.awtToken);
+      const previousAWT = apiWithOptions.awtToken;
+      apiWithOptions.setSURI(accounts.otherUser.seed);
+      assert(previousAWT !== apiWithOptions.awtToken);
       api.setSURI(accounts.user.seed);
     });
 

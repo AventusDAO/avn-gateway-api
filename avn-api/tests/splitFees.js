@@ -5,11 +5,16 @@ const BN = helper.BN;
 const bnEquals = helper.bnEquals;
 const AvnApi = require('../index.js');
 
+
+// TODO add setup script to remove hardcoded values
+
+
 describe('Split fees calls:', async () => {
   let api;
   let token;
   let relayer, user, recipient;
   let relayerFee;
+  let amountInWei;
 
   before(async () => {
     api = await helper.avnApi();
@@ -19,7 +24,12 @@ describe('Split fees calls:', async () => {
     recipient = accounts.otherUser.address;
     payer = accounts.payer.address;
     recipientPubKey = accounts.otherUser.publicKey;
+    amountInWei = new BN(helper.TEN_THOUSAND_WEI);
+
+
     relayerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyAvtTransfer);
+
+
   });
 
   describe('Split fees', async () => {
@@ -37,8 +47,12 @@ describe('Split fees calls:', async () => {
 
     it ('Account valid payer correctly pays for gateway fees', async () => {
         let validOptions = {...options, hasPayer: true, payerAddress: payer};
-        const apiWithOptions = new AvnApi(null, validOptions);
-        await apiWithOptions.init();
+
+
+        // const apiWithOptions = new AvnApi(null, validOptions);
+        // await apiWithOptions.init();
+
+        const apiWithOptions = await helper.avnApi(validOptions);
 
         const amount = new BN(1);
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
@@ -49,12 +63,17 @@ describe('Split fees calls:', async () => {
         bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
         bnEquals(new BN(await api.query.getAvtBalance(payer)).gte(payerAvtBalanceBefore)); // add payer fee
         // do we know how much does the gateway payer is
+
+        // check payer payment nonce, should be increment
     });
 
     it ('Account default added valid payer correctly pays for gateway fees', async () => {
         let validOptions = {...options, hasPayer: true}
-        const apiWithOptions = new AvnApi(null, validOptions);
-        await apiWithOptions.init();
+        // const apiWithOptions = new AvnApi(null, validOptions);
+        // await apiWithOptions.init();
+
+        const apiWithOptions = await helper.avnApi(validOptions);
+
 
         const amount = new BN(1);
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
@@ -67,10 +86,12 @@ describe('Split fees calls:', async () => {
         // do we know how much does the gateway payer is
     });
 
-    it ('hasPayer flag false and valid payerAddress', async () => {
+    it ('hasPayer flag false and valid payerAddress', async () => { // should work
         let invalidOptions = {...options, hasPayer: false, payerAddress: payer};
-        const apiWithOptions = new AvnApi(null, invalidOptions);
-        await apiWithOptions.init();
+        // const apiWithOptions = new AvnApi(null, invalidOptions);
+        // await apiWithOptions.init();
+
+        const apiWithOptions = await helper.avnApi(invalidOptions);
 
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
@@ -87,21 +108,41 @@ describe('Split fees calls:', async () => {
     it ('incorrect account payer returns an error', async () => {
         let invalidPayer = recipient;
         let invalidOptions = {...options, hasPayer: true, payerAddress: invalidPayer};
-        const apiWithOptions = new AvnApi(null, invalidOptions);
-        await apiWithOptions.init();
+        // const apiWithOptions = new AvnApi(null, invalidOptions);
+        // await apiWithOptions.init();
+
+
+        const apiWithOptions = await helper.avnApi(invalidOptions);
+
 
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Rejected');
     });
 
-    it ('Valid payer address but invalid extrinsic', async () => {
+    it ('Valid payer address but invalid transaction', async () => { // PayerRefused message
         let invalidOptions = {...options, hasPayer: true, payerAddress: payer};
-        const apiWithOptions = new AvnApi(null, invalidOptions);
-        await apiWithOptions.init();
+        // const apiWithOptions = new AvnApi(null, invalidOptions);
+        // await apiWithOptions.init();
+
+        const apiWithOptions = await helper.avnApi(invalidOptions);
 
         // change this extrinsic or the payer when we have this fixed
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Rejected');
     });
+
+    it ('Valid payer address but invalid transaction', async () => { // PayerRefused message
+        let invalidOptions = {...options, hasPayer: true, payerAddress: payer};
+        // const apiWithOptions = new AvnApi(null, invalidOptions);
+        // await apiWithOptions.init();
+
+        const apiWithOptions = await helper.avnApi(invalidOptions);
+
+        // change this extrinsic or the payer when we have this fixed
+        const requestId = await apiWithOptions.send.transferToken(relayer, user, token, amountInWei);
+        await helper.confirmStatus(apiWithOptions, requestId, 'Rejected');
+    });
+
+    // relayer fees
   });
 });

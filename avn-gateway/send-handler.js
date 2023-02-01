@@ -1,4 +1,5 @@
 const utils = require('/opt/utils.js');
+const paymentUtils = require('/opt/paymentUtils.js');
 const MQSender = require('/opt/mqSender.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
@@ -236,7 +237,7 @@ async function getRelayerFee(relayer, user, transactionType) {
 }
 
 function getPaymentInfo(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
-  const verified = utils.verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
+  const verified = paymentUtils.verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
 
   if (verified === false) {
     return undefined;

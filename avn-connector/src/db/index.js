@@ -117,7 +117,7 @@ function buildFeesJson(dbResult, relayerDefaultFee) {
   });
 
   defaultFee = defaultFee ?? relayerDefaultFee;
-  Object.values(transactionTypes).forEach(v => relayerFees[v] = relayerFees[v] ? relayerFees[v] : defaultFee);
+  Object.values(transactionTypes).forEach(v => relayerFees[v] = relayerFees[v] ?? defaultFee);
 
   return relayerFees;
 }

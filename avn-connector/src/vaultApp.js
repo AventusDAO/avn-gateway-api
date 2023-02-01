@@ -66,4 +66,11 @@ module.exports = function (baseURL, roleId, secretId) {
     const url = this.baseURL + 'avn-vault/user/' + userName;
     return (await get(url, token)).seed;
   };
+
+  this.payerSign = async function(_message, _username) {
+    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID)
+    const url = this.baseURL + 'avn-vault/user/' + _username + '/sign'
+    const data = {name: _username, message: _message}
+    return await post(url, data, token)
+  }
 };

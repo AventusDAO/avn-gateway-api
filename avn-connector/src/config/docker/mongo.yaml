@@ -1,8 +1,0 @@
-server: $ENV:MONGO_SERVER
-
-# https://mongodb.github.io/node-mongodb-native/3.6/api/MongoClient.html#.connect
-options: $ENV:MONGO_OPTIONS
-
-database: $ENV:MONGO_DATABASE_NAME
-username: $ENV:MONGO_USERNAME
-password: $ENV:MONGO_PASSWORD

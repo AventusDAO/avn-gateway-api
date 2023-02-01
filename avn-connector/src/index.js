@@ -1,9 +1,9 @@
 'use strict';
 const config = require('multiconfig').load();
 const avn = require('./avn');
+const rds = require('./db/index');
 const lowering = require('./lowering');
 const redis = require('./redis');
-const gatewayDb = require('./gatewayDb');
 const mqConsumer = require('./mqConsumer');
 const lambda = require('./lambdas');
 const express = require('express');
@@ -74,7 +74,7 @@ app.post('/resolvePendingTransactions', async (req, res, next) => {
 app.post('/relayerFees', async (req, res, next) => {
   try {
     log.trace({ relayerFeesRequest: req.body });
-    const result = await gatewayDb.getFees(req.body.relayer, req.body.user, req.body.transactionType);
+    const result = await rds.getFees(req.body.relayer, req.body.user, req.body.transactionType);
     res.send(result);
   } catch (err) {
     next(err);
@@ -201,6 +201,27 @@ app.post('/gatewayUserInfo', async (req, res, next) => {
   }
 });
 
+app.post('/signPaymentInfo', async (req, res, next) => {
+  try {
+    log.trace({ signPaymentInfo: JSON.stringify(req.body) });
+    const result = await avn.signPaymentInfo(req.body.message, req.body.payerAddress);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/getPayer', async (req, res, next) => {
+  try {
+    log.trace({ getPayer: JSON.stringify(req.body) });
+    const result = await rds.getPayer(req.body.user, req.body.payer);
+    console.log("Payer address: ", result);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use(function (err, req, res, _next) {
   log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });
@@ -214,7 +235,7 @@ async function instantiateConnector() {
   await redis.connect();
   await avn.init();
   await mqConsumer.connectToMQ();
-  await gatewayDb.init();
+  await rds.init();
   lowering.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 

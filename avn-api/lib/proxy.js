@@ -20,8 +20,7 @@ const signing = {
   proxyNominate: proxyArgs => signProxyNominate(proxyArgs),
   proxyIncreaseStake: proxyArgs => signProxyIncreaseStake(proxyArgs),
   proxyUnstake: proxyArgs => signProxyUnstake(proxyArgs),
-  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs),
-  proxyPayoutStakers: proxyArgs => signProxyPayoutStakers(proxyArgs)
+  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs)
 };
 
 const numTypes = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
@@ -189,20 +188,6 @@ function signProxyWithdrawUnlocked({ relayer, nonce, signer }) {
     { Text: 'authorization for withdraw unbonded operation' },
     { AccountId: relayer },
     { u32: numSlashSpan },
-    { u64: nonce }
-  ];
-
-  const encodedDataToSign = encodeOrderedData(orderedData);
-  return signData(signer, encodedDataToSign);
-}
-
-function signProxyPayoutStakers({ relayer, era, nonce, signer }) {
-  relayer = common.convertToPublicKeyIfNeeded(relayer);
-
-  const orderedData = [
-    { Text: 'authorization for signed payout stakers operation' },
-    { AccountId: relayer },
-    { EraIndex: era },
     { u64: nonce }
   ];
 

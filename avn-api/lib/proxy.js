@@ -154,14 +154,13 @@ function signProxyBond({ relayer, user, amount, nonce, signer }) {
   return signData(signer, encodedDataToSign);
 }
 
-function signProxyNominate({ relayer, targets, amount, nonce }) {
+function signProxyNominate({ relayer, targets, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
     { Text: 'authorization for nominate operation' },
     { AccountId: relayer },
     { 'Vec<LookupSource>': targets },
-    { BalanceOf: amount },
     { u64: nonce }
   ];
 

@@ -218,6 +218,46 @@ describe('Query api calls:', async () => {
   //   });
   // });
 
+  describe('getRelayerFees', async () => {
+    it('returns default fees for a relayer by address', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer.address);
+      for (const [tx, fee] of Object.entries(expectedRelayerFees)) {
+        assert.equal(returnedFees[tx], fee);
+      }
+    });
+
+    it('returns default fees for a relayer by publicKey', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey);
+      for (const [tx, fee] of Object.entries(expectedRelayerFees)) {
+        assert.equal(returnedFees[tx], fee);
+      }
+    });
+
+    it('returns fees for a specific user by address', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer.address, user.address);
+      for (const [tx, fee] of Object.entries(expectedUserFees)) {
+        assert.equal(returnedFees[tx], fee, `${tx} fee not equal to ${fee}.`);
+      }
+    });
+
+    it('returns fees for a specific user by publicKey', async () => {
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey);
+      for (const [tx, fee] of Object.entries(expectedUserFees)) {
+        assert.equal(returnedFees[tx], fee);
+      }
+    });
+
+    it('returns the fee for a specific user and transaction type', async () => {
+      const transactionType = 'proxyTokenTransfer';
+      const returnedFees = await api.query.getRelayerFees(relayer.address, user.publicKey, transactionType);
+      assert.equal(returnedFees, expectedUserFees[transactionType]);
+    });
+
+    it('errors if relayer is not registered', async () => {
+      await expect(api.query.getRelayerFees(user)).to.be.rejectedWith(Error);
+    });
+  });
+
   // xdescribe('getAvtBalance', async () => {
   //   it('@NO_BASELINE returns correct avt balance for specific user by address', async () => {
   //     assert.fail("actual", "expected", "Error message");

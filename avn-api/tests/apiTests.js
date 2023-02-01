@@ -7,6 +7,7 @@ require('./pollApiTest.js');
 require('./proxyApiTest.js');
 require('./queryApiTest.js');
 require('./sendApiTest.js');
+require('./relayerFees.js');
 require('./failPollApiTest.js');
 require('./failQueryApiTests.js');
 require('./failSendApiTest.js');

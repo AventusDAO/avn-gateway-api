@@ -137,11 +137,28 @@ function signProxyCancelListFiatNft({ relayer, nftId, nonce, signer }) {
   return signData(signer, encodedDataToSign);
 }
 
-function signProxyNominate({ relayer, targets, amount, nonce, signer }) {
+function signProxyBond({ relayer, user, amount, nonce, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+  user = common.convertToPublicKeyIfNeeded(user);
+
+  const orderedData = [
+    { Text: 'authorization for bond operation' },
+    { AccountId: relayer },
+    { LookupSource: user },
+    { BalanceOf: amount },
+    { RewardDestination: 'Stash' },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyNominate({ relayer, targets, amount, nonce }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
-    { Text: 'parachain authorization for nominate operation' },
+    { Text: 'authorization for nominate operation' },
     { AccountId: relayer },
     { 'Vec<LookupSource>': targets },
     { BalanceOf: amount },
@@ -156,7 +173,7 @@ function signProxyIncreaseStake({ relayer, amount, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
-    { Text: 'parachain authorization for nominator bond extra operation' },
+    { Text: 'authorization for bond extra operation' },
     { AccountId: relayer },
     { BalanceOf: amount },
     { u64: nonce }
@@ -170,7 +187,7 @@ function signProxyUnstake({ relayer, amount, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
-    { Text: 'parachain authorization for scheduling nominator unbond operation' },
+    { Text: 'authorization for unbond operation' },
     { AccountId: relayer },
     { BalanceOf: amount },
     { u64: nonce }

@@ -85,7 +85,7 @@ resource "aws_iam_policy" "full_access_vote_buckets" {
 #
 # Send hendler SQS access
 #
-data "aws_iam_policy_document" "sender_sqs_access" {
+data "aws_iam_policy_document" "send_handler_access" {
   statement {
     effect = "Allow"
     actions = [
@@ -97,12 +97,22 @@ data "aws_iam_policy_document" "sender_sqs_access" {
       "${var.sqs_queue_arns.gateway_payer_queue}"
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "${var.rabbit_secret_arn}",
+    ]
+  }
 }
 
-resource "aws_iam_policy" "sender_sqs_access" {
-  name        = "avn-gateway-send-hendler-sqs"
-  description = "allow send hendler to send messages to SQS"
-  policy      = data.aws_iam_policy_document.sender_sqs_access.json
+resource "aws_iam_policy" "send_handler_access" {
+  name        = "avn-gateway-send-handler-access"
+  description = "allow send hendler to send messages to SQS and read SM"
+  policy      = data.aws_iam_policy_document.send_handler_access.json
 }
 
 #
@@ -115,6 +125,7 @@ data "aws_iam_policy_document" "split_fee_access" {
       "sqs:ReceiveMessage",
       "sqs:DeleteMessage",
       "sqs:DeleteMessageBatch",
+      "sqs:GetQueueAttributes",
     ]
     resources = [
       "${var.sqs_queue_arns.gateway_payer_queue}",
@@ -149,6 +160,7 @@ data "aws_iam_policy_document" "tx_dispatch_access" {
       "sqs:ReceiveMessage",
       "sqs:DeleteMessage",
       "sqs:DeleteMessageBatch",
+      "sqs:GetQueueAttributes",
     ]
     resources = [
       "${var.sqs_queue_arns.gateway_default_queue}",

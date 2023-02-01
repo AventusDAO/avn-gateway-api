@@ -61,15 +61,15 @@ describe('SendTx api calls:', async () => {
         payer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'
       };
 
-      let apiWithoptions = await helper.avnApi(options);
+      let apiWithOptions = await helper.avnApi(options);
 
       const amount = new BN(3);
-      const requestId = await apiWithoptions.send.transferAvt(relayer, recipient, amount);
+      const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
       console.log(`   - RequestId: ${requestId}`);
-      await helper.confirmStatus(apiWithoptions, requestId, 'Processed');
+      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-      bnEquals(recipientAvtBalanceBefore.add(amount), await apiWithoptions.query.getAvtBalance(recipient));
-      bnEquals(new BN(await apiWithoptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+      bnEquals(recipientAvtBalanceBefore.add(amount), await apiWithOptions.query.getAvtBalance(recipient));
+      bnEquals(new BN(await apiWithOptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
   });
 

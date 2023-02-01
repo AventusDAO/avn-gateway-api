@@ -234,15 +234,7 @@ app.post('/isPayerTransaction', async (req, res, next) => {
 app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
   try {
     log.trace({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });
-
-    await redis.addFailedAvnTransaction(
-      req.body.requestId,
-      req.body.requestId,
-      undefined,
-      undefined,
-      redis.transactionStatus.PayerRefused
-    );
-
+    avn.setTransactionRefusedByPayerStatus(req.body.requestId);
     res.status(200).send({});
   } catch (err) {
     next(err);

@@ -72,7 +72,7 @@ async function processRequest(request) {
   const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
   const encodedPaymentParams = fees.encodePaymentParams(feeParams.relayer, feeParams.relayerFee, feeParams.paymentNonce, feeParams.proxyProof);
 
-  const paymentSignature = await signPaymentInfo(tx.splitFeePayerAddress, encodedPaymentParams, requestId);
+  const paymentSignature = await signPaymentInfo(tx.method, tx.splitFeePayerAddress, encodedPaymentParams, requestId);
 
   tx.params.payer = tx.splitFeePayerAddress;
   tx.params.feePaymentSignature = paymentSignature;
@@ -93,13 +93,13 @@ function validateTransaction(tx) {
     throw new Error(`Invalid transaction data: ${errParam}`);
   }
 }
-async function signPaymentInfo(payer, encodedParams, requestId) {
+async function signPaymentInfo(transaction, payer, encodedParams, requestId) {
   // validate if the payer is willing to pay for this transaction
-  if (await payerCanPayForTransaction(payer, tx.method)) {
+  if (await payerCanPayForTransaction(payer, transaction)) {
     return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payer);
   } else {
     // transaction has been rejected by payer, inform user
-    await flagAsRejectedByPayer(requestId);
+    await updateTransactionStatusToRejected(requestId);
   }
 }
 
@@ -130,7 +130,7 @@ async function payerCanPayForTransaction(payerAddress, transactionName) {
   }
 }
 
-async function flagAsRejectedByPayer(requestId) {
+async function updateTransactionStatusToRejected(requestId) {
   try {
     await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionRefusedByPayerStatus', { requestId: requestId });
   } catch (err) {

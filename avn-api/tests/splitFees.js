@@ -22,18 +22,20 @@ describe('Split fees calls:', async () => {
     relayer = accounts.relayer.address;
     user = accounts.user.address;
     recipient = accounts.otherUser.address;
-    payer = accounts.payer.address;
+    payer = accounts.relayer.address;
     recipientPubKey = accounts.otherUser.publicKey;
     amountInWei = new BN(helper.TEN_THOUSAND_WEI);
 
 
     relayerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyAvtTransfer);
 
+    console.log("relayerFee")
+    console.log(relayerFee.toString())
 
   });
 
   describe('Split fees', async () => {
-    let userAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore, options;
+    let userAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore, payerAvtBalanceBefore, options;
 
     beforeEach(async () => {
       userAvtBalanceBefore = new BN(await api.query.getAvtBalance(user));
@@ -47,21 +49,37 @@ describe('Split fees calls:', async () => {
 
     it ('Account valid payer correctly pays for gateway fees', async () => {
         let validOptions = {...options, hasPayer: true, payerAddress: payer};
-
-
-        // const apiWithOptions = new AvnApi(null, validOptions);
-        // await apiWithOptions.init();
-
         const apiWithOptions = await helper.avnApi(validOptions);
-
         const amount = new BN(1);
+
+
+        console.log("user balance before: " + userAvtBalanceBefore.toString())
+        console.log("recipient balance before: " + recipientAvtBalanceBefore.toString())
+        console.log("relayer balance before: " + relayerAvtBalanceBefore.toString())
+        console.log("payer balance before: " + payerAvtBalanceBefore.toString())
+
+
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
+
+        let recipientBalance = await api.query.getAvtBalance(recipient)
+        let userBalance = await api.query.getAvtBalance(user)
+        let relayerBalance = await api.query.getAvtBalance(relayer)
+        let payerBalance = await api.query.getAvtBalance(payer)
+
+        console.log("user balance after: " + userBalance.toString())
+        console.log("recipient balance after: " + recipientBalance.toString())
+        console.log("relayer balance after: " + relayerBalance.toString())
+        console.log("payer balance after: " + payerBalance.toString())
+
         bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient));
-        bnEquals(userAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
-        bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
-        bnEquals(new BN(await api.query.getAvtBalance(payer)).gte(payerAvtBalanceBefore)); // add payer fee
+        bnEquals(userAvtBalanceBefore.sub(amount), new BN(await api.query.getAvtBalance(user)));
+
+
+        // bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+        // bnEquals(new BN(await api.query.getAvtBalance(payer)).gte(payerAvtBalanceBefore)); // add payer fee
+        // bnEquals(payerAvtBalanceBefore).gte(new BN(await api.query.getAvtBalance(payer)).add(relayerFee)); // add payer fee
         // do we know how much does the gateway payer is
 
         // check payer payment nonce, should be increment

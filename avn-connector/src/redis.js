@@ -15,7 +15,8 @@ const transactionStatus = {
   Pending: 'Pending',
   Processed: 'Processed',
   Rejected: 'Rejected',
-  SendingFailed: 'SendingFailed'
+  SendingFailed: 'SendingFailed',
+  PayerRefused: 'PayerRefused'
 };
 
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
@@ -87,7 +88,7 @@ function getKey(key) {
   return `${SLOT_PREFIX}${key}`;
 }
 
-async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce) {
+async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce, reason) {
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const requestIdKey = getKey(requestId);
 
@@ -97,7 +98,7 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
 
   await redisClient
     .multi()
-    .hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.SendingFailed))
+    .hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, reason))
     .set(requestIdKey, txHashOrRequestId)
     .exec();
 }
@@ -374,4 +375,5 @@ module.exports = {
   setLowerData,
   deleteLowerData,
   getLowerData,
+  transactionStatus,
 };

@@ -186,7 +186,7 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payer
     return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
   } else {
     const encodedHasPayer = registry.createType('bool', hasPayer);
-    const encodedPayer = registry.createType('Option<AccountId>', hexToU8a(payerAddress));
+    const encodedPayer = registry.createType('Option<AccountId>', payerAddress);
 
     const encodedData = u8aConcat(
       encodedContext.toU8a(false),

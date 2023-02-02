@@ -4,6 +4,7 @@ const assert = chai.assert;
 chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
+const _ = require('lodash');
 
 describe('Relayer Fees:', async () => {
   let api;
@@ -50,22 +51,22 @@ describe('Relayer Fees:', async () => {
   describe('getRelayerFees', async () => {
     it('returns default fees for a relayer by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.address);
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
+      assert(_.isEqual(returnedFees, expectedRelayerFees))
     });
 
     it('returns default fees for a relayer by publicKey', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.publicKey);
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedRelayerFees));
+      assert(_.isEqual(returnedFees, expectedRelayerFees))
     });
 
     it('returns fees for a specific user by address', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.address, user.address);
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
+      assert(_.isEqual(returnedFees, expectedUserFees))
     });
 
     it('returns fees for a specific user by publicKey', async () => {
       const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey);
-      assert.equal(JSON.stringify(returnedFees), JSON.stringify(expectedUserFees));
+      assert(_.isEqual(returnedFees, expectedUserFees))
     });
 
     it('returns the fee for a specific user and transaction type', async () => {

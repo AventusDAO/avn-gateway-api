@@ -18,8 +18,7 @@ const TX_TYPE = {
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
   ProxyTransferFiatNft: 'proxyTransferFiatNft',
   ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
-  ProxyBond: 'proxyBond',
-  ProxyNominate: 'proxyNominate',
+  proxyStakeAvt: 'proxyStakeAvt',
   ProxyIncreaseStake: 'proxyIncreaseStake',
   ProxyUnstake: 'proxyUnstake',
   ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
@@ -68,9 +67,11 @@ function isAccountPK(accountString) {
 }
 
 function validateAccount(account) {
-  const isValid = encodeAddress(isHex(account) ? hexToU8a(account) : decodeAddress(account));
-  if (isValid === false) {
-    throw new Error(`Invalid account type: ${account}`);
+  try {
+    encodeAddress(isHex(account) ? hexToU8a(account) : decodeAddress(account));
+    return true;
+  } catch (e) {
+    throw new Error(`Invalid account type: ${account}, err: ${e.toString()}`);
   }
 }
 

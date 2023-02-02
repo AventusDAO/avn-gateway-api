@@ -2,8 +2,9 @@
 
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 const common = require('./common.js');
+const utils = require('./utils.js');
 
-const MAX_TOKEN_AGE_MSEC = 60000;
+const MAX_TOKEN_AGE_MSEC = 600000;
 const SIGNING_CONTEXT = 'awt_gateway_api';
 
 function generateAwtPayload(suri, issuedAt, options) {
@@ -16,6 +17,10 @@ function generateAwtPayload(suri, issuedAt, options) {
   if (options) {
     hasPayer = options.hasPayer || false;
     payerAddress = options.payerAddress || undefined;
+  }
+
+  if (payerAddress) {
+    payerAddress = utils.addressToPublicKey(payerAddress);
   }
 
   const encodedData = encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt, hasPayer, payerAddress);
@@ -55,7 +60,7 @@ function encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt, hasPayer, payerAdd
     return u8aToHex(encodedData);
   } else {
     const encodedHasPayer = common.registry.createType('bool', hasPayer);
-    const encodedPayer = common.registry.createType('Option<AccountId>', hexToU8a(payerAddress));
+    const encodedPayer = common.registry.createType('Option<AccountId>', payerAddress);
 
     const encodedData = u8aConcat(
       encodedContext.toU8a(false),

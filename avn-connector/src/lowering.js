@@ -3,7 +3,7 @@ const axios = require('axios');
 const avn = require('./avn');
 const redis = require('./redis');
 const ethereum = require('./ethereum');
-const { hexToBn } = require('@polkadot/util');
+const { hexToBn, isHex } = require('@polkadot/util');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
@@ -63,7 +63,8 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
       retrieveFromBlock = blockNumber + 1;
     }
 
-    const lowerData = { token: lowerTx.token, from: lowerTx.from, to: lowerTx.to, amount: hexToBn(lowerTx.amount).toString(), claimData: {} };
+    if (isHex(lowerTx.amount)) lowerTx.amount = hexToBn(lowerTx.amount).toString();
+    const lowerData = { token: lowerTx.token, from: lowerTx.from, to: lowerTx.to, amount: lowerTx.amount, claimData: {} };
     await redis.setLowerData(txHash, JSON.stringify(lowerData));
     await redis.setBlockIndex(txHash, JSON.stringify({ blockNumber, index: lowerTx.index }));
   }

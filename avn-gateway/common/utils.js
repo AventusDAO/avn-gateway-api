@@ -20,11 +20,10 @@ const TX_TYPES = [
   'proxyListNftOpenForSale',
   'proxyTransferFiatNft',
   'proxyCancelListFiatNft',
-  'proxyBond',
-  'proxyNominate',
   'proxyIncreaseStake',
   'proxyUnstake',
   'proxyWithdrawUnlocked',
+  'proxyStakeAvt',
 ];
 
 let initialised;

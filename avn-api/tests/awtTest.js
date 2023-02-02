@@ -3,7 +3,7 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 
 const TOKEN_LENGTH = 352;
-const TOKEN_LIFETIME = 60000;
+const TOKEN_LIFETIME = 600000;
 
 describe('AWT authorisation', async () => {
   let api;

@@ -9,7 +9,7 @@ const amount = new BN(1);
 const relayer = accounts.relayer.address;
 const user = accounts.user.address;
 const recipient = accounts.otherUser.address;
-const payer = accounts.relayer.address;
+const payer = accounts.payer.address;
 const payerPubKey = accounts.payer.publicKey;
 
 describe('Split fees calls:', async () => {

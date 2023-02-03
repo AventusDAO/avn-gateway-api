@@ -4,7 +4,6 @@ const assert = chai.assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
-const bnEquals = helper.bnEquals;
 
 const amount = new BN(1);
 const relayer = accounts.relayer.address;

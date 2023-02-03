@@ -10,7 +10,7 @@ const relayer = accounts.relayer.address;
 const user = accounts.user.address;
 const recipient = accounts.otherUser.address;
 const payer = accounts.relayer.address;
-const payerPubKey = accounts.relayer.publicKey;
+const payerPubKey = accounts.payer.publicKey;
 
 describe('Split fees calls:', async () => {
   let api;

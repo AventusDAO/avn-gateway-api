@@ -36,7 +36,7 @@ describe('Split fees calls:', async () => {
       }
     });
 
-    let verifySplitFeeBalancesAndNonce = async () => {
+    let verifySplitFeesBalancesAndNonce = async () => {
       return recipientAvtBalanceBefore.add(amount).eq(new BN(await api.query.getAvtBalance(recipient))) &&
              userAvtBalanceBefore.sub(amount).eq(new BN(await api.query.getAvtBalance(user))) &&
              relayerAvtBalanceBefore.gt(new BN(await api.query.getAvtBalance(relayer))) &&
@@ -51,7 +51,7 @@ describe('Split fees calls:', async () => {
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        assert(await verifySplitFeeBalancesAndNonce());
+        assert(await verifySplitFeesBalancesAndNonce());
     });
 
     it('With valid payer public key', async () => {
@@ -61,7 +61,7 @@ describe('Split fees calls:', async () => {
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        assert(await verifySplitFeeBalancesAndNonce());
+        assert(await verifySplitFeesBalancesAndNonce());
     });
 
     it('With default payer account, hasPayer flag true', async () => {
@@ -71,7 +71,7 @@ describe('Split fees calls:', async () => {
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        assert(await verifySplitFeeBalancesAndNonce());
+        assert(await verifySplitFeesBalancesAndNonce());
     });
 
     it('With hasPayer flag set to false, valid payer address should override', async () => {
@@ -81,7 +81,7 @@ describe('Split fees calls:', async () => {
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        assert(await verifySplitFeeBalancesAndNonce());
+        assert(await verifySplitFeesBalancesAndNonce());
     });
 
     it('With valid payer address but unauthorized transaction, payer should refuse', async () => {

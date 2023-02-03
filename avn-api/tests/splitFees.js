@@ -5,31 +5,20 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 const bnEquals = helper.bnEquals;
-const AvnApi = require('../index.js');
 
-
-// TODO add setup script to remove hardcoded values
-
+const amount = new BN(1);
+const relayer = accounts.relayer.address;
+const user = accounts.user.address;
+const recipient = accounts.otherUser.address;
+const payer = accounts.relayer.address;
+const payerPubKey = accounts.relayer.publicKey;
 
 describe('Split fees calls:', async () => {
   let api;
-  let token;
-  let relayer, user, recipient;
   let relayerFee;
-  let amountInWei;
-  let amount;
 
   before(async () => {
     api = await helper.avnApi();
-    token = helper.token;
-    relayer = accounts.relayer.address;
-    user = accounts.user.address;
-    recipient = accounts.otherUser.address;
-    payer = accounts.relayer.address;
-    payerPubKey = accounts.relayer.publicKey;
-    recipientPubKey = accounts.otherUser.publicKey;
-    amountInWei = new BN(helper.TEN_THOUSAND_WEI);
-    amount = new BN(1);
     relayerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyAvtTransfer);
   });
 
@@ -47,63 +36,55 @@ describe('Split fees calls:', async () => {
       }
     });
 
-    xit('Account valid payer address correctly pays for gateway fees', async () => {
+    let verifySplitFeeBalancesAndNonce = async () => {
+      return recipientAvtBalanceBefore.add(amount).eq(new BN(await api.query.getAvtBalance(recipient))) &&
+             userAvtBalanceBefore.sub(amount).eq(new BN(await api.query.getAvtBalance(user))) &&
+             relayerAvtBalanceBefore.gt(new BN(await api.query.getAvtBalance(relayer))) &&
+             payerPaymentNonce.add(new BN(1)).eq(new BN(await api.query.getNonce(payer, 'payment'))) &&
+             payerAvtBalanceBefore.sub(relayerFee).eq(new BN(await api.query.getAvtBalance(payer)))
+    }
+
+    it('With valid payer address', async () => {
         let validOptions = {...options, hasPayer: true, payerAddress: payer};
         const apiWithOptions = await helper.avnApi(validOptions);
 
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        bnEquals(recipientAvtBalanceBefore.add(amount), new BN(await api.query.getAvtBalance(recipient)));
-        bnEquals(userAvtBalanceBefore.sub(amount), new BN(await api.query.getAvtBalance(user)));
-        assert(relayerAvtBalanceBefore.gte(new BN(await api.query.getAvtBalance(relayer))));
-        // bnEquals(payerAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(payer)))
-        assert.equal(payerPaymentNonce.add(new BN(1)), new BN(await api.query.getNonce(payer, 'payment')))
+        assert(await verifySplitFeeBalancesAndNonce());
     });
 
-    xit('Account valid payer public key correctly pays for gateway fees', async () => {
+    it('With valid payer public key', async () => {
         let validOptions = {...options, hasPayer: true, payerAddress: payerPubKey};
         const apiWithOptions = await helper.avnApi(validOptions);
 
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        bnEquals(recipientAvtBalanceBefore.add(amount), new BN(await api.query.getAvtBalance(recipient)));
-        bnEquals(userAvtBalanceBefore.sub(amount), new BN(await api.query.getAvtBalance(user)));
-        assert(relayerAvtBalanceBefore.gte(new BN(await api.query.getAvtBalance(relayer))));
-        // bnEquals(payerAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(payer)))
-        assert.equal(payerPaymentNonce.add(new BN(1)), new BN(await api.query.getNonce(payer, 'payment')))
+        assert(await verifySplitFeeBalancesAndNonce());
     });
 
-    xit('Account default added valid payer correctly pays for gateway fees', async () => {
+    it('With default payer account, hasPayer flag true', async () => {
         let validOptions = {...options, hasPayer: true}
         const apiWithOptions = await helper.avnApi(validOptions);
 
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient));
-        bnEquals(userAvtBalanceBefore.sub(amount), new BN(await api.query.getAvtBalance(user)));
-        assert(relayerAvtBalanceBefore.gte(await api.query.getAvtBalance(relayer)));
-        // bnEquals(payerAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(payer)))
-        assert.equal(payerPaymentNonce.add(new BN(1)), new BN(await api.query.getNonce(payer, 'payment')))
+        assert(await verifySplitFeeBalancesAndNonce());
     });
 
-    xit('hasPayer flag false and valid payerAddress', async () => {
+    it('With hasPayer flag set to false, valid payer address should override', async () => {
         let invalidOptions = {...options, hasPayer: false, payerAddress: payer};
         const apiWithOptions = await helper.avnApi(invalidOptions);
 
         const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient));
-        bnEquals(userAvtBalanceBefore.sub(amount), new BN(await api.query.getAvtBalance(user)));
-        assert(relayerAvtBalanceBefore.gte(await api.query.getAvtBalance(relayer)));
-        // bnEquals(payerAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(payer)))
-        assert.equal(payerPaymentNonce.add(new BN(1)), new BN(await api.query.getNonce(payer, 'payment')))
+        assert(await verifySplitFeeBalancesAndNonce());
     });
 
-    it('Valid payer address but unauthorized transaction', async () => { // PayerRefused message
+    it('With valid payer address but unauthorized transaction, payer should refuse', async () => {
         let externalRef = 'avn-gateway-test-' + new Date().toISOString();
         let royalties = [];
         const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
@@ -111,17 +92,11 @@ describe('Split fees calls:', async () => {
         let invalidOptions = {...options, hasPayer: true, payerAddress: payer};
         const apiWithOptions = await helper.avnApi(invalidOptions);
 
-        const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
-        console.log("UNAUTHORIZED request id: " + requestId);
-        await helper.confirmStatus(apiWithOptions, requestId, 'Processed'); // refused by payer
-
-        bnEquals(userAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(user)));
-        assert(relayerAvtBalanceBefore.gte(await api.query.getAvtBalance(relayer)));
-        // bnEquals(payerAvtBalanceBefore, new BN(await api.query.getAvtBalance(payer)));
-        // assert.equal(payerPaymentNonce, new BN(await api.query.getNonce(payer, 'payment')));
+        const requestId = await apiWithOptions.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+        await helper.confirmStatus(apiWithOptions, requestId, 'PayerRefused');
     });
 
-    xit('incorrect account payer returns an error', async () => {
+    it('With invalid payer, an error is thrown', async () => {
         let invalidPayer = recipient;
         let invalidOptions = {...options, hasPayer: true, payerAddress: invalidPayer};
 

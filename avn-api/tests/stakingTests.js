@@ -21,6 +21,7 @@ describe('staking', async () => {
             it('Unbonding balance remains the same with the amount withdrawn');
             it('Locked balance is decreased with the amount withdrawn');
             it('Active balance is increased with the amount withdrawn');
+            it('Unbonded balance is decreased with the amount withdrawn');
         });
     });
     describe('Failure cases', function() {

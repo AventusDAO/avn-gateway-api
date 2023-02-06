@@ -1,4 +1,4 @@
-describe('staking', async () => {
+describe('Staking', async () => {
     describe('Successful cases', function() {
         describe('Stake', function() {
             it('Staked balance is increased with the amount bonded');

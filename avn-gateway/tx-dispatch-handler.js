@@ -306,8 +306,8 @@ async function processProxyUnstake(call, request, requestId) {
 }
 
 async function processProxyWithdrawUnlocked(call, request, requestId) {
-  const pallet = 'validatorsManager';
-  const method = 'signedWithdrawUnbonded'; // Missing
+  const pallet = 'parachainStaking';
+  const method = 'ExecuteNominationRequest';
   const numSlashSpan = 0;
   const methodParams = [numSlashSpan];
 

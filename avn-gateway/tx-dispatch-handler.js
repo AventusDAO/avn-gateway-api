@@ -308,8 +308,8 @@ async function processProxyUnstake(call, request, requestId) {
 async function processProxyWithdrawUnlocked(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedExecuteNominationRequest';
-  const numSlashSpan = 0;
-  const methodParams = [numSlashSpan];
+  const { nominator } = call.params;
+  const methodParams = [nominator];
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }

@@ -181,12 +181,12 @@ function signProxyUnstake({ relayer, amount, nonce, signer }) {
 
 function signProxyWithdrawUnlocked({ relayer, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
-  const numSlashSpan = 0; // We dont use slashing
+  let nominator = common.convertToPublicKeyIfNeeded(signer);
 
   const orderedData = [
-    { Text: 'authorization for withdraw unbonded operation' },
+    { Text: 'parachain authorization for executing nomination requests operation' },
     { AccountId: relayer },
-    { u32: numSlashSpan },
+    { AccountId: nominator },
     { u64: nonce }
   ];
 

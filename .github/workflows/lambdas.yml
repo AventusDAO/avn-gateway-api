@@ -16,7 +16,6 @@ env:
   LIFT_PROC: lift-processing-handler
   COMMON: common
   QUEUE: queue
-  STAKER_PAY: stakers-payout-handler
   VOTE: vote-handler
   LOWER: lower-handler
   SPLIT_FEE: split-fee-handler

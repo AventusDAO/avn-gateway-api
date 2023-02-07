@@ -11,10 +11,6 @@ data "aws_lambda_function" "tx_handler" {
   function_name = "tx-status-update-handler"
 }
 
-data "aws_lambda_function" "payout_handler" {
-  function_name = "stakers-payout-handler"
-}
-
 data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
@@ -40,13 +36,6 @@ resource "aws_iam_policy" "avn_connector_rabbit_secret_access" {
         "lambda:InvokeFunction"
       ],
       "Resource": "${data.aws_lambda_function.tx_handler.arn}",
-      "Effect": "Allow"
-    },
-    {
-      "Action": [
-        "lambda:InvokeFunction"
-      ],
-      "Resource": "${data.aws_lambda_function.payout_handler.arn}",
       "Effect": "Allow"
     }
   ]

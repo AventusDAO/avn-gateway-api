@@ -72,10 +72,6 @@ async function callSwitch(call, request) {
       return await getCurrentBlock(call, request);
     case 'getChainInfo':
       return await getChainInfo(call, request);
-    case 'getSummaryData':
-      return await getSummaryData(call, request);
-    case 'getSummaryInclusionData':
-      return await getSummaryInclusionData(call, request);
 
     default:
       return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -288,32 +284,6 @@ async function getChainInfo(call, request) {
   const method = 'avnChainInfo';
   const params = { callId: call.id };
 
-  return await query(call, request, method, params);
-}
-
-async function getSummaryData(call, request) {
-  const { blockNumber } = call.params;
-  if (blockNumber && utils.isValidNumber(blockNumber) === false) {
-    return utils.buildErrorBody('params', 'invalid block number', blockNumber, request, call.id);
-  }
-  const method = 'avnSummaryData';
-  const params = { callId: call.id, blockNumber };
-  return await query(call, request, method, params);
-}
-
-async function getSummaryInclusionData(call, request) {
-  const { blockNumber, transactionIndex } = call.params;
-
-  try {
-    if (utils.isValidNumber(blockNumber) === false) throw 'block number';
-    if (utils.isValidNumber(transactionIndex) === false) throw 'transaction index';
-  } catch (param) {
-    const gatewayError = 'invalid ' + param;
-    return utils.buildErrorBody('params', gatewayError, call.params, request, call.id);
-  }
-
-  const method = 'avnSummaryInclusionData';
-  const params = { callId: call.id, blockNumber, transactionIndex };
   return await query(call, request, method, params);
 }
 

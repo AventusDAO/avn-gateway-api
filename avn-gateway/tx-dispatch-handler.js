@@ -263,8 +263,8 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 async function processProxyStakeAvt(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedNominate';
-  const numSlashSpan = 0;
-  const methodParams = [numSlashSpan];
+  const { targets, amount } = call.params;
+  const methodParams = [targets, amount];
 
   try {
     if (utils.isValidArray(call.params.targets) === false || call.params.targets.length === 0) throw 'targets';

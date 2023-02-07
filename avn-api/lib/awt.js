@@ -2,6 +2,7 @@
 
 const { hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
 const common = require('./common.js');
+const utils = require('./utils.js');
 
 const MAX_TOKEN_AGE_MSEC = 600000;
 const SIGNING_CONTEXT = 'awt_gateway_api';
@@ -18,6 +19,10 @@ function generateAwtPayload(suri, issuedAt, options) {
     payerAddress = options.payerAddress || undefined;
   }
 
+  if (payerAddress) {
+    payerAddress = utils.addressToPublicKey(payerAddress);
+  }
+
   const encodedData = encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt, hasPayer, payerAddress);
   const signature = tokenOwner.sign(encodedData);
 
@@ -30,10 +35,12 @@ function generateAwtPayload(suri, issuedAt, options) {
   };
 }
 
-function generateAwtToken(suri, options) {
-  if (!suri) suri = process.env.AVN_SURI;
-  if (!suri) throw new Error('Please pass a SURI or set AVN_SURI environment variable');
-  let payload = generateAwtPayload(suri, new Date().toISOString(), options);
+function generateAwtToken(options) {
+  options = options || {};
+  options.suri = options.suri ?? process.env.AVN_SURI;
+  if (!options.suri) throw new Error('Please pass a SURI or set AVN_SURI environment variable');
+
+  let payload = generateAwtPayload(options.suri, new Date().toISOString(), options);
   return generateAwtTokenFromPayload(payload);
 }
 
@@ -53,7 +60,7 @@ function encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt, hasPayer, payerAdd
     return u8aToHex(encodedData);
   } else {
     const encodedHasPayer = common.registry.createType('bool', hasPayer);
-    const encodedPayer = common.registry.createType('Option<AccountId>', hexToU8a(payerAddress));
+    const encodedPayer = common.registry.createType('Option<AccountId>', payerAddress);
 
     const encodedData = u8aConcat(
       encodedContext.toU8a(false),

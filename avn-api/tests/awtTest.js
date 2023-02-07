@@ -16,12 +16,12 @@ describe('AWT authorisation', async () => {
 
   describe('generateAwtToken', async () => {
     it('from a mnemonic', async () => {
-      let token = api.awt.generateAwtToken(user.mnemonic);
+      let token = api.awt.generateAwtToken({suri: user.mnemonic});
       assert.equal(token.split('').length, TOKEN_LENGTH);
     });
 
     it('from a seed', async () => {
-      let token = api.awt.generateAwtToken(user.seed);
+      let token = api.awt.generateAwtToken({suri: user.seed});
       assert.equal(token.split('').length, TOKEN_LENGTH);
     });
   });
@@ -30,7 +30,7 @@ describe('AWT authorisation', async () => {
     let token;
 
     before(async () => {
-      token = api.awt.generateAwtToken(user.mnemonic);
+      token = api.awt.generateAwtToken({suri: user.mnemonic});
     });
 
     it('is valid within its lifetime', async () => {
@@ -52,8 +52,8 @@ describe('AWT authorisation', async () => {
         payer: undefined
       };
 
-      let apiWithoptions = await helper.avnApi(options);
-      assert((await apiWithoptions.query.getAvtContractAddress()).length == 42);
+      let apiWithOptions = await helper.avnApi(options);
+      assert((await apiWithOptions.query.getAvtContractAddress()).length == 42);
     });
 
     it('generates a valid token for split fee users', async () => {
@@ -62,8 +62,8 @@ describe('AWT authorisation', async () => {
         payer: undefined
       };
 
-      let apiWithoptions = await helper.avnApi(options);
-      assert((await apiWithoptions.query.getAvtContractAddress()).length == 42);
+      let apiWithOptions = await helper.avnApi(options);
+      assert((await apiWithOptions.query.getAvtContractAddress()).length == 42);
     });
 
     it('generates a valid token for split fee users with a specific payer address', async () => {
@@ -72,8 +72,8 @@ describe('AWT authorisation', async () => {
         payer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'
       };
 
-      let apiWithoptions = await helper.avnApi(options);
-      assert((await apiWithoptions.query.getAvtContractAddress()).length == 42);
+      let apiWithOptions = await helper.avnApi(options);
+      assert((await apiWithOptions.query.getAvtContractAddress()).length == 42);
     });
 
     it('generates a valid token for split fee users with a specific payer public key', async () => {
@@ -82,16 +82,16 @@ describe('AWT authorisation', async () => {
         payer: '0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004'
       };
 
-      let apiWithoptions = await helper.avnApi(options);
-      assert((await apiWithoptions.query.getAvtContractAddress()).length == 42);
+      let apiWithOptions = await helper.avnApi(options);
+      assert((await apiWithOptions.query.getAvtContractAddress()).length == 42);
     });
 
     it('generates a valid token for legacy (pre-splitFee) users', async () => {
       // If hasPayer is not specified, we assume it is a selfPay user
       let options = undefined;
 
-      let apiWithoptions = await helper.avnApi(options);
-      assert((await apiWithoptions.query.getAvtContractAddress()).length == 42);
+      let apiWithOptions = await helper.avnApi(options);
+      assert((await apiWithOptions.query.getAvtContractAddress()).length == 42);
     });
 
   });

@@ -72,8 +72,6 @@ async function callSwitch(call, request) {
       return await getCurrentBlock(call, request);
     case 'getChainInfo':
       return await getChainInfo(call, request);
-    case 'getEraElectionStatus':
-      return await queryEraElectionStatus(call, request);
     case 'getSummaryData':
       return await getSummaryData(call, request);
     case 'getSummaryInclusionData':
@@ -231,10 +229,6 @@ async function queryActiveEra(call, request) {
   return await queryChain(call, request, 'parachainStaking', 'era', [], formatEraAsString);
 }
 
-async function queryEraElectionStatus(call, request) {
-  return await queryChain(call, request, 'staking', 'eraElectionStatus', [], formatEraElectionStatus);
-}
-
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
   const method = 'avnQuery';
   const requestParams = { callId: call.id, palletName, storageName, params };
@@ -348,8 +342,6 @@ const formatNftNonceAsString = data => utils.toBnString(data.nonce);
 const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 
 const formatEraAsString = data => (data ? data.current : 0);
-
-const formatEraElectionStatus = data => (Object.keys(data)[0] === 'Open' ? 'isOpen' : 'isClosed');
 
 const filterNftOwner = data => (data ? data.owner : null);
 

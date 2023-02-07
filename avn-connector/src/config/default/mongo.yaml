@@ -1,5 +1,0 @@
-server: 127.0.0.1:27017/?ssl=true
-options: useUnifiedTopology=true&minPoolSize=1&wtimeout=10000&useNewUrlParser=true&sslValidate=false&retryWrites=false
-database: avn-gateway
-username: AvnGatewayDev
-password: <>

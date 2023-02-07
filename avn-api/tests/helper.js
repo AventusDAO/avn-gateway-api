@@ -31,7 +31,7 @@ const ONE_ETH = '1000000000000000000';
 const TEN_THOUSAND_WEI = '10000';
 const TEN_ETH = '10000000000000000000';
 const TWO_HUNDRED_ETH = '200000000000000000000';
-const WAIT_TIME_IN_SEC = 3;
+const WAIT_TIME_IN_SEC = 12;
 const DEFAULT_WAIT_TIME = 2;
 
 async function sleep(ms) {
@@ -50,18 +50,18 @@ function bnEquals(a, b) {
 }
 
 async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMinutes) {
-  console.log(`waiting for [${optionalTimeoutInMinutes ?? DEFAULT_WAIT_TIME}] minutes`);
+  console.log(`   - max polling wait: [${optionalTimeoutInMinutes ?? DEFAULT_WAIT_TIME}] minutes`);
   if (!requestId) throw new Error('RequestId cannot be null');
   let response, status;
 
   for (i = 0; i < (optionalTimeoutInMinutes ?? DEFAULT_WAIT_TIME) * 60 / WAIT_TIME_IN_SEC; i++) {
     await sleep(WAIT_TIME_IN_SEC * 1000);
-    console.log('.');
+    console.log('       - polling...');
     response = await api.poll.requestState(requestId);
     status = response.status;
     if (status !== 'Pending' && status !== 'Transaction not found') {
       assert.equal(status, expectedStatus);
-      console.log('Wait time in seconds', i * WAIT_TIME_IN_SEC);
+      console.log('   - Finished in ', i * WAIT_TIME_IN_SEC, ' sec');
       return response;
     }
   }

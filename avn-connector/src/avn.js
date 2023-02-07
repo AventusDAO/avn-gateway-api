@@ -1,6 +1,6 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { isHex } = require('@polkadot/util');
+const { isHex, stringToHex } = require('@polkadot/util');
 const { keccakAsHex } = require('@polkadot/util-crypto');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -345,9 +345,9 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
     // If we failed to get a true transaction hash, use the requestId as key
     if (!result || !result.transactionHash) {
-      result.transactionHash = requestId;
+      result.transactionHash = keccakAsHex(requestId);
     }
-    await redis.addFailedAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString());
+    await redis.addFailedAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString(), redis.transactionStatus.SendingFailed);
 
     throw err;
   }
@@ -355,6 +355,16 @@ async function signAndSend(requestId, relayerAddress, txn) {
   await redis.addPendingAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString());
 
   return result;
+}
+
+async function setTransactionRefusedByPayerStatus(requestId) {
+  await redis.addFailedAvnTransaction(
+    requestId,
+    keccakAsHex(requestId),
+    undefined,
+    undefined,
+    redis.transactionStatus.PayerRefused
+  );
 }
 
 async function getRelayerAccount(relayerAddress) {
@@ -384,6 +394,15 @@ async function getGatewayUserInfo(account) {
     paymentNonce: paymentNonce.toString(),
     freeBalance: balance.free.toString()
   }
+}
+
+async function signPaymentInfo(message, payerAddress) {
+  const paymentInfoContext = stringToHex('authorization for proxy payment');
+  const messageWithoutPrefix = '0x' + message.slice(4);
+
+  // Important: we only want to sign correctly formatted payment data.
+  if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error ('Invalid data to sign.');
+  return vault.payerSign(message, payerAddress);
 }
 
 async function init() {
@@ -468,10 +487,6 @@ function isTransactionHash(requestId) {
 module.exports = {
   getAccountInfo,
   getValidatorsToNominate,
-  init,
-  query,
-  proxy,
-  poll,
   getLowerDataFromRpc,
   getStakingStats,
   getChainInfo,
@@ -483,5 +498,11 @@ module.exports = {
   getTotalToken,
   getUnprocessedLifts,
   getNftContractAddresses,
-  processLifts
+  init,
+  proxy,
+  poll,
+  processLifts,
+  query,
+  signPaymentInfo,
+  setTransactionRefusedByPayerStatus
 };

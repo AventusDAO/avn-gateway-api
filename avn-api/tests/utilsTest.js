@@ -41,4 +41,36 @@ describe('Utilities', async () => {
       assert.equal(publicKey, accounts.otherUser.publicKey);
     });
   });
+
+  describe('setSuri updates awt token', async () => {
+    it('for self pay tokens', async () => {
+      const previousAWT = api.awtToken;
+      api.setSURI(accounts.otherUser.seed);
+      assert(previousAWT !== api.awtToken)
+      api.setSURI(accounts.user.seed);
+    });
+
+    it('for split fee tokens', async () => {
+      let options = {
+        hasPayer: true,
+        payer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'
+      };
+
+      let apiWithOptions = await helper.avnApi(options);
+
+      const previousAWT = apiWithOptions.awtToken;
+      apiWithOptions.setSURI(accounts.otherUser.seed);
+      assert(previousAWT !== apiWithOptions.awtToken);
+      api.setSURI(accounts.user.seed);
+    });
+
+    it('even if suri does not change', async () => {
+      api.setSURI(accounts.user.seed);
+      const previousUserAddress = api.myAddress();
+      const previousAWT = api.awtToken;
+      api.setSURI(accounts.user.seed);
+      assert.equal(previousUserAddress, api.myAddress());
+      assert(previousAWT !== api.awtToken)
+    });
+  });
 });

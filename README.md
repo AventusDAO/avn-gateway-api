@@ -31,9 +31,12 @@ const AvnApi = require('avn-api');
 const api = new AvnApi('https://sandbox.gateway.aventus.io');
 await api.init();
 ```
-The AVN_SURI environment variable may also be passed as an option:
+When creating an instance of the api, an optional `options` paramater can also be passed in. Options can include:
+ - The AVN_SURI (optional): The mnemonic or secret seed of the user. If it's empty, the value is read from the AVN_SURI environment variable.
+ - hasPayer flag (optional): A user specified flag used to determine if there is a configured payer for this user. Defaults to false.
+ - payerAddress (optional): The payer address for this user. Defaults to the first payer configured for this user.
 ```
-const options = { suri: '0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0'}
+const options = { suri: '0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0', hasPayer: false}
 const api = new AvnApi('https://sandbox.gateway.aventus.io', options);
 ```
 
@@ -91,9 +94,6 @@ The api exposes the following methods:
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
   - `api.proxy.generateProxySignature('proxyWithdrawUnlocked', { relayer, nonce })`\
-  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
-
-  - `api.proxy.generateProxySignature('proxyPayoutStakers', { relayer, era, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
 #### Fee Payment Signature Generation
@@ -618,7 +618,7 @@ curl https://AVN-API-URL/query \
 ```
 
 #### getActiveEra
-Returns the current active era to call payoutStakers with
+Returns the current active era
 
 **REQUEST** \
 `POST https://AVN-API-URL/query`
@@ -646,41 +646,6 @@ curl https://AVN-API-URL/query \
   "jsonrpc": "2.0",
   "id": 1,
   "result": "1392"
-}
-```
-
-#### getEraElectionStatus
-Returns the status of the era election. While an election is open, all staking activities are suspended.
-
-**REQUEST** \
-`POST https://AVN-API-URL/query`
-
-**HEADERS** \
-`Content-Type: application/json`
-`Authorization: bearer <awtToken>`
-
-**EXAMPLE**
-```
-## JSON-RPC over HTTPS POST
-curl https://AVN-API-URL/query \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"getEraElectionStatus", "params":{}, "id":1}'
-```
-
-**RESULT FIELDS** \
-`VALUE` - string detailing the era election status:
-```
-  'isOpen'
-  'isClosed'
-```
-**BODY**
-```
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": "isClosed"
 }
 ```
 
@@ -712,7 +677,6 @@ Returns fees for a particular relayer, optionally by user and/or transaction typ
   "proxyIncreaseStake"
   "proxyUnstake"
   "proxyWithdrawUnlocked"
-  "proxyPayoutStakers"
 ```
 
 **EXAMPLE**
@@ -757,7 +721,6 @@ OR
     "proxyIncreaseStake": "7000000000000000",
     "proxyUnstake": "7000000000000000",
     "proxyWithdrawUnlocked": "7000000000000000",
-    "proxyPayoutStakers": "7000000000000000"
   }
 }
 ```
@@ -1588,60 +1551,6 @@ curl https://AVN-API-URL/send \
   "jsonrpc": "2.0",
   "id": 1,
   "result": "7fd01739-2a52-4eba-941a-00497e7e0bf0"
-}
-```
-
-**VALIDATION** \
-This endpoint can only be called while the `eraElectionWindow` is closed. If it is called during an election, the following error response will be returned:
-
-```
-{
-  "code":-32600,
-  "message":"Invalid Request",
-  "data": {
-      "gatewayError":"election window is open",
-      "request":"{...}"
-}
-```
-
-#### proxyPayoutStakers
-Triggers the payment of staking rewards to the next XXX stakers
-
-**REQUEST**\
-`POST https://AVN-API-URL/send`
-
-**HEADERS**\
-`Content-Type: application/json`\
-`Authorization: bearer <awtToken>`
-
-**REQUEST PARAMS**\
-`relayer` *[required]* - a string representing the relayer's SS58 address \
-`user` *[required]* - a string representing the user's SS58 address \
-`payer` *[required]* - a string representing the payer's SS58 address \
-`era` *[required]* - a string integer value representing the era to payout \
-`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
-`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
-`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
-
-**EXAMPLE**
-```
-## JSON-RPC over HTTPS POST
-curl https://AVN-API-URL/send \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -H "Authorization: bearer <awtToken>" \
-    -d '{"jsonrpc":"2.0", "method":"proxyPayoutstakers", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "payer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "era":"1599", "proxySignature":"0x22ad3b01db96bf5b22d998a4296ff2d58180dc6eab357300b9613583f9570016fc5c439a80f17639e47ffb7100aa8cbea8def6ab2add7837ba0074321ed9c739", "feePaymentSignature":"0x6efb3277c7ee6f965bbf07d6a3faf2acb2fff71029ccd96f9c39b8ba3e2b27084420eae53fecc2bad956c90c5150df9bc3edbbddae5ef1dc538965b25f9efe41", "paymentNonce":"332"}, "id":1}'
-```
-
-**RESULT FIELDS** \
-`VALUE` - a request ID that can be queried for the transaction's status
-
-**BODY**
-```
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": "5e5f3346-9455-489e-b8dd-ee688046e97d"
 }
 ```
 

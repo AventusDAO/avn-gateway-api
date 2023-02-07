@@ -20,12 +20,10 @@ const TX_TYPES = [
   'proxyListNftOpenForSale',
   'proxyTransferFiatNft',
   'proxyCancelListFiatNft',
-  'proxyBond',
-  'proxyNominate',
   'proxyIncreaseStake',
   'proxyUnstake',
   'proxyWithdrawUnlocked',
-  'proxyPayoutStakers'
+  'proxyStakeAvt',
 ];
 
 let initialised;
@@ -188,7 +186,7 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payer
     return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
   } else {
     const encodedHasPayer = registry.createType('bool', hasPayer);
-    const encodedPayer = registry.createType('Option<AccountId>', hexToU8a(payerAddress));
+    const encodedPayer = registry.createType('Option<AccountId>', payerAddress);
 
     const encodedData = u8aConcat(
       encodedContext.toU8a(false),
@@ -228,9 +226,14 @@ function getProxyProof(user, relayerAddress, proxySignature) {
   };
 }
 
-async function getRelayerFee(connectorUrl, relayer, payer, transactionType) {
+async function getRelayerFee(connectorUrl, relayer, user, transactionType) {
   try {
-    const avnResponse = await axios.post(connectorUrl + 'relayerFees', { relayer, payer, transactionType });
+    const avnResponse = await axios.post(connectorUrl + 'relayerFees', {
+      relayer,
+      user,
+      transactionType
+    });
+
     return avnResponse.data.toString();
   } catch (error) {
     throw new Error(`could not get relayer fee: ${error.toString()}`);

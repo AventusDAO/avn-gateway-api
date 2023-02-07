@@ -49,9 +49,10 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
       console.info(`Recieved ${response.length} responses from chain indexer`);
 
       return response.map(tx => {
+        const status = tx.transactionStatus === 'rejected'||tx.transactionStatus === 'innerCallFailed'? transactionStatus.Rejected : transactionStatus.Processed
         return {
           transactionHash: tx.transactionHash,
-          status: tx.isFailed === true ? transactionStatus.Rejected : transactionStatus.Processed,
+          status,
           blockNumber: tx.blockNumber,
           index: tx.index
         };

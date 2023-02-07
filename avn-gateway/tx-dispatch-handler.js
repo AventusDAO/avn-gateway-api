@@ -261,7 +261,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 
 
 async function processProxyStakeAvt(call, request, requestId) {
-  const pallet = 'validatorsManager';
+  const pallet = 'parachainStaking';
   const method = 'signedNominate';
   const numSlashSpan = 0;
   const methodParams = [numSlashSpan];
@@ -276,7 +276,7 @@ async function processProxyStakeAvt(call, request, requestId) {
 }
 
 async function processProxyIncreaseStake(call, request, requestId) {
-  const pallet = 'validatorsManager';
+  const pallet = 'parachainStaking';
   const method = 'signedBondExtra';
   const { amount } = call.params;
   const methodParams = [amount];
@@ -291,8 +291,8 @@ async function processProxyIncreaseStake(call, request, requestId) {
 }
 
 async function processProxyUnstake(call, request, requestId) {
-  const pallet = 'validatorsManager';
-  const method = 'signedUnbond';
+  const pallet = 'parachainStaking';
+  const method = 'signedScheduleNominatorUnbond';
   const { amount } = call.params;
   const methodParams = [amount];
 
@@ -307,7 +307,7 @@ async function processProxyUnstake(call, request, requestId) {
 
 async function processProxyWithdrawUnlocked(call, request, requestId) {
   const pallet = 'validatorsManager';
-  const method = 'signedWithdrawUnbonded';
+  const method = 'signedWithdrawUnbonded'; // to do
   const numSlashSpan = 0;
   const methodParams = [numSlashSpan];
 

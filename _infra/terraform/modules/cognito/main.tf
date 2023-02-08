@@ -78,3 +78,8 @@ resource "aws_route53_record" "this" {
     zone_id = "Z2FDTNDATAQYW2"
   }
 }
+
+resource "aws_secretsmanager_secret" "this" {
+  name                    = "cognito_gateway_details"
+  recovery_window_in_days = 0
+}

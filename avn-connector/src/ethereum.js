@@ -14,12 +14,6 @@ const ETH_AS_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 const MAX_LIFT_AGE = 60 * 60 * 24 * 5; // 5 days
 const REQUIRED_CONFIRMATIONS = 20;
 
-async function transactionExists(ethTxHash) {
-  const request = `transaction&action=gettxreceiptstatus&txhash=${ethTxHash}`;
-  let result = await callEtherscan(request);
-  return result.status === '1';
-}
-
 async function getLockedBalance(address, token) {
   const request =
     token.toLowerCase() === ETH_AS_TOKEN
@@ -95,5 +89,4 @@ module.exports = {
   getLiftEvents,
   getLockedBalance,
   getPublishedRoots,
-  transactionExists,
 };

@@ -15,7 +15,7 @@ describe('Query api calls:', async () => {
   let api;
   let relayer, user;
   let relayerPublicKey, userPublicKey;
-  
+
   before(async () => {
     api = await helper.avnApi();
     relayer = accounts.relayer;
@@ -77,97 +77,6 @@ describe('Query api calls:', async () => {
       assert.equal(chainInfo.version, '19');
     });
   });
-
-  // describe('getSummaryData', async () => {
-  //   // TODO: Update these tests when we allow the schedule period to be flexible
-
-
-  //   it('@NO_BASELINE returns the correct data for a block falling within a published summary', async () => {
-  //     let currentBlock = parseInt(await api.query.getCurrentBlock());
-  //     // Only runs if a summary should have been published by now
-  //     if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
-  //       const block = currentBlock - SCHEDULE_PERIOD;
-  //       let summaryData = await api.query.getSummaryData(block);
-  //       assert.equal(summaryData.blockNumber, block.toString());
-  //       assert.equal(summaryData.summaryRange[0], '0');
-  //       assert.equal(summaryData.summaryRange[1], SCHEDULE_PERIOD.toString());
-  //       assert.equal(summaryData.ethTxHash.length, 66);
-  //     }
-  //   });
-
-  //   it('returns the correct data for the current block', async () => {
-  //     let block = await api.query.getCurrentBlock();
-  //     let summaryData = await api.query.getSummaryData(block);
-  //     assert.equal(summaryData.blockNumber, block);
-  //     const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
-  //     const startBlock = block < SCHEDULE_PERIOD ? 0 : multiplier * SCHEDULE_PERIOD + 1;
-  //     assert.equal(summaryData.summaryRange[0], startBlock);
-  //     assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
-  //     assert.equal(summaryData.ethTxHash, null);
-  //   });
-
-  //   it('returns the current block data when no block is passed', async () => {
-  //     let block = await api.query.getCurrentBlock();
-  //     let summaryData = await api.query.getSummaryData();
-  //     assert(parseInt(summaryData.blockNumber) >= parseInt(block));
-  //     const multiplier = Math.floor(parseInt(block) / SCHEDULE_PERIOD);
-  //     const startBlock = block < SCHEDULE_PERIOD ? 0 : multiplier * SCHEDULE_PERIOD + 1;
-  //     assert.equal(summaryData.summaryRange[0], startBlock);
-  //     assert.equal(summaryData.summaryRange[1], (multiplier + 1) * SCHEDULE_PERIOD);
-  //     assert.equal(summaryData.ethTxHash, null);
-  //   });
-
-  //   it('returns limited data when a future block is passed', async () => {
-  //     let block = await api.query.getCurrentBlock();
-  //     block = parseInt(block) + 100000;
-  //     let summaryData = await api.query.getSummaryData(block);
-  //     assert.equal(summaryData.blockNumber, block.toString());
-  //     assert.equal(summaryData.summaryRange.length, 0);
-  //     assert.equal(summaryData.ethTxHash, null);
-  //   });
-  // });
-
-  // describe('getSummaryInclusionData', async () => {
-  //   // TODO: Replace with testing mechanism to generate more recent lowers
-  //   it('@NO_BASELINE gets correct data for a known lower', async () => {
-  //     const blockNumber = '7221';
-  //     const transactionIndex = '3';
-  //     let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
-  //     assert.equal(inclusionData.status, 'Published');
-  //     assert.equal(inclusionData.inclusionProof.leafHash.length, 66);
-  //     assert.equal(inclusionData.inclusionProof.leaf.length, 946);
-  //     assert.equal(inclusionData.inclusionProof.merklePath.length, 1073);
-  //     assert.equal(inclusionData.transactionDetails.args[0].method, 'signedLower');
-  //   });
-
-  //   it('returns info for a transaction that is too historic to process', async () => {
-  //     if (parseInt(await api.query.getCurrentBlock()) > SCHEDULE_PERIOD * 3 + 1000) {
-  //       const blockNumber = '1';
-  //       const transactionIndex = '0';
-  //       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
-  //       assert.equal(inclusionData.status, 'For historic data please contact Aventus');
-  //     }
-  //   });
-
-
-  //   it('@NO_BASELINE returns info for a transaction that does not exist', async () => {
-  //     let currentBlock = parseInt(await api.query.getCurrentBlock());
-  //     if (currentBlock > SCHEDULE_PERIOD * 3 + 1000) {
-  //       const blockNumber = currentBlock - SCHEDULE_PERIOD;
-  //       const transactionIndex = '10000';
-  //       let inclusionData = await api.query.getSummaryInclusionData(blockNumber, transactionIndex);
-  //       assert.equal(inclusionData.status, 'Transaction not found');
-  //     }
-  //   });
-
-  //   it('@NO_BASELINE returns info for an as yet unpublished transaction', async () => {
-  //     const amount = new BN(1);
-  //     const requestId = await api.send.transferAvt(relayer.address, recipient.address, amount);
-  //     let response = await helper.confirmStatus(api, requestId, 'Processed');
-  //     let inclusionData = await api.query.getSummaryInclusionData(response.blockNumber, response.transactionIndex);
-  //     assert.equal(inclusionData.status, 'Not yet published');
-  //   });
-  // });
 
   describe('getNonce', async () => {
     it('returns the same token nonce by address as by public key', async () => {

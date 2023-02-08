@@ -221,14 +221,6 @@ async function getChainInfo() {
   return await redisClient.get(CHAIN_INFO_KEY);
 }
 
-async function setSummaryEthTxHash(summaryRange, ethTxHash) {
-  await redisClient.set(SUMMARY_RANGE_NAMESPACE + summaryRange.join('_'), ethTxHash);
-}
-
-async function getSummaryEthTxHash(summaryRange) {
-  return await redisClient.get(SUMMARY_RANGE_NAMESPACE + summaryRange.join('_'));
-}
-
 async function setCheckLiftsFromBlock(blockNumber) {
   await redisClient.set(LIFTS_FROM_BLOCK_KEY, blockNumber);
 }
@@ -348,8 +340,6 @@ module.exports = {
   setStakingStats,
   getChainInfo,
   setChainInfo,
-  getSummaryEthTxHash,
-  setSummaryEthTxHash,
   getCheckLiftsFromBlock,
   setCheckLiftsFromBlock,
   getTotalToken,

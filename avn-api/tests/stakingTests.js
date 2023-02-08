@@ -1,27 +1,27 @@
 describe('Staking', async () => {
     describe('Successful cases', function() {
-        describe('Stake', function() {
-            it('Staked balance is increased with the amount bonded');
-            it('Locked balance is increased with the amount bonded');
-            it('Active balance is decreased with the amount bonded');
+        describe('First-time stake, with amount greater than minimum limit', function() {
+            it('Staked balance is increased by the bonded amount');
+            it('Locked balance is increased by the bonded amount');
+            it('Active balance is decreased by the bonded amount');
         });
         describe('Stake more', function() {
-            it('Staked balance is increased with the extra amount bonded');
-            it('Locked balance is increased with the extra amount bonded');
-            it('Active balance is decreased with the extra amount bonded');
+            it('Staked balance is increased by the extra bonded amount');
+            it('Locked balance is increased by the extra bonded amount');
+            it('Active balance is decreased by the extra bonded amount');
         });
         describe('Request to withdraw', function() {
-            it('Staked balance is decreased with the amount unbonded');
-            it('Unbonding balance is increased with the amount unbonded');
-            it('Locked balance remains the same with the amount unbonded');
-            it('Active balance remains the same with the amount unbonded');
+            it('Staked balance is decreased by the unbonded amount');
+            it('Unbonding balance is increased by the unbonded amount');
+            it('Locked balance remains the same by the unbonded amount');
+            it('Active balance remains the same by the unbonded amount');
         });
         describe('Withdraw funds', function() {
-            it('Staked balance remains the same with the amount withdrawn');
-            it('Unbonding balance remains the same with the amount withdrawn');
-            it('Locked balance is decreased with the amount withdrawn');
-            it('Active balance is increased with the amount withdrawn');
-            it('Unbonded balance is decreased with the amount withdrawn');
+            it('Staked balance remains the same by the withdrawn amount');
+            it('Unbonding balance remains the same by the withdrawn amount');
+            it('Locked balance is decreased by the withdrawn amount');
+            it('Active balance is increased by the withdrawn amount');
+            it('Unbonded balance is decreased by the withdrawn amount');
         });
     });
     describe('Failure cases', function() {
@@ -55,6 +55,8 @@ describe('Staking', async () => {
             it('a string as value');
             it('a negative value');
             it('more than your staked balance');
+            it('a value that reduces the stake below the limit per collator');
+            it('a value that reduces the stake below the absolute minimum limit');
         });
         describe('Withdraw', function() {
             it('with a null sender account');

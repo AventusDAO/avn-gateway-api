@@ -80,6 +80,6 @@ resource "aws_route53_record" "this" {
 }
 
 resource "aws_secretsmanager_secret" "this" {
-  name                    = "cognito_gateway_details"
+  name                    = "cognito_gateway_admin_details"
   recovery_window_in_days = 0
 }

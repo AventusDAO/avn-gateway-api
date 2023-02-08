@@ -70,17 +70,6 @@ module "lambda_functions" {
       }
     }
 
-    stakers-payout-handler = {
-      env_vars = {
-        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
-        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
-        MQ_AVN_TX_QUEUE         = "avnTx"
-        SECRET_MANAGER_REGION   = var.region
-      }
-      timeout     = 6
-      memory_size = 128
-    }
-
     vote-handler = {
       env_vars = {
         AVN_VOTES_BUCKET = local.avn_votes_bucket

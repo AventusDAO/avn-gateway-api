@@ -17,7 +17,6 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	mkdir -p build/authorisation-handler
 	mkdir -p build/tx-status-update-handler
 	mkdir -p build/lift-processing-handler
-	mkdir -p build/stakers-payout-handler
 	mkdir -p build/vote-handler
 	mkdir -p build/lower-handler
 	mkdir -p build/split-fee-handler

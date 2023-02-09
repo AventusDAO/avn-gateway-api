@@ -12,7 +12,7 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
-  const { avnContract } = JSON.parse(await avn.getChainInfo());
+  const { avnContract } = await avn.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
   console.log(`\tLast published block: ${latestPublishedBlock}`);

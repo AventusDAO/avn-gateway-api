@@ -115,7 +115,7 @@ app.post('/avnChainInfo', async (req, res, next) => {
   try {
     log.trace({ avnChainInfoRequest: req.body });
     const result = await avn.getChainInfo();
-    res.send(result);
+    res.send(JSON.stringify(result));
   } catch (err) {
     next(err);
   }

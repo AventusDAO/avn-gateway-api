@@ -212,12 +212,13 @@ async function getStakingStats() {
   return await redisClient.get(STAKING_STAT_KEY);
 }
 
-async function setChainInfo(chainInfoJsonString) {
-  await redisClient.setex(CHAIN_INFO_KEY, CHAIN_INFO_EXPIRY_IN_SECONDS, chainInfoJsonString);
+async function setChainInfo(chainInfo) {
+  await redisClient.setex(CHAIN_INFO_KEY, CHAIN_INFO_EXPIRY_IN_SECONDS, JSON.stringify(chainInfo));
 }
 
 async function getChainInfo() {
-  return await redisClient.get(CHAIN_INFO_KEY);
+  const chainInfo = await redisClient.get(CHAIN_INFO_KEY);
+  return chainInfo ? JSON.parse(chainInfo) : undefined;
 }
 
 async function setCheckLiftsFromEthBlock(blockNumber) {

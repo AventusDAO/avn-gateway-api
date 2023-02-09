@@ -154,13 +154,11 @@ async function getStakingStats() {
 async function getChainInfo() {
   let chainInfo = await redis.getChainInfo();
 
-  if (!chainInfo) {
-    chainInfo = {};
+  if (!chainInfo.latest) {
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
     chainInfo.avtContract = await api.query.tokenManager.avtTokenContract();
     chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
-    chainInfo = JSON.stringify(chainInfo);
     await redis.setChainInfo(chainInfo);
   }
 
@@ -176,7 +174,7 @@ async function getTotalToken(token) {
   let total = await redis.getTotalToken(token);
 
   if (!total) {
-    let chainInfo = JSON.parse(await getChainInfo());
+    let chainInfo = await getChainInfo();
 
     if (token === chainInfo.avtContract.toLowerCase()) {
       total = (await api.query.balances.totalIssuance()).toString();
@@ -192,7 +190,7 @@ async function getTotalToken(token) {
 
 async function getUnprocessedLifts() {
   let unprocessedLifts = [];
-  let avnContract = JSON.parse(await getChainInfo()).avnContract;
+  let { avnContract } = await getChainInfo();
   let { fromBlock, toBlock, liftEvents } = await ethereum.getLiftEvents(avnContract);
 
   if (liftEvents.length > 0) {

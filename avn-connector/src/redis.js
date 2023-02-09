@@ -26,7 +26,7 @@ const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
-const LIFTS_FROM_BLOCK_KEY = 'liftsFromBlock';
+const LIFTS_FROM_ETH_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_BLOCK_KEY = 'lowersFromBlock';
@@ -220,12 +220,12 @@ async function getChainInfo() {
   return await redisClient.get(CHAIN_INFO_KEY);
 }
 
-async function setCheckLiftsFromBlock(blockNumber) {
-  await redisClient.set(LIFTS_FROM_BLOCK_KEY, blockNumber);
+async function setCheckLiftsFromEthBlock(blockNumber) {
+  await redisClient.set(LIFTS_FROM_ETH_BLOCK_KEY, blockNumber);
 }
 
-async function getCheckLiftsFromBlock() {
-  return await redisClient.get(LIFTS_FROM_BLOCK_KEY);
+async function getCheckLiftsFromEthBlock() {
+  return await redisClient.get(LIFTS_FROM_ETH_BLOCK_KEY);
 }
 
 async function setTotalToken(token, total) {
@@ -346,8 +346,8 @@ module.exports = {
   setStakingStats,
   getChainInfo,
   setChainInfo,
-  getCheckLiftsFromBlock,
-  setCheckLiftsFromBlock,
+  getCheckLiftsFromEthBlock,
+  setCheckLiftsFromEthBlock,
   getTotalToken,
   setTotalToken,
   setRetrieveLowersFromBlock,

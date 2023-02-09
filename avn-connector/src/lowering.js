@@ -88,7 +88,7 @@ async function updateUnpublishedLowers(latestPublishedBlock) {
 }
 
 async function updateAwaitingClaimDataLowers() {
-  const awaiting = (await redis.getAwaitingClaimDataLowers()) || [];
+  const awaiting = await redis.getAwaitingClaimDataLowers();
   const summaries = await redis.getSummaries();
   let error = false;
 

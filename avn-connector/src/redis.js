@@ -285,7 +285,8 @@ async function removeAwaitingClaimDataLower(txHash) {
 }
 
 async function getAwaitingClaimDataLowers() {
-  return await redisClient.smembers(AWAITING_CLAIM_DATA_LOWERS_KEY);
+  const awaiting = await redisClient.smembers(AWAITING_CLAIM_DATA_LOWERS_KEY);
+  return awaiting || [];
 }
 
 async function addUnclaimedLower(txHash) {

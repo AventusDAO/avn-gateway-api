@@ -12,8 +12,6 @@ const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
 
 const AVN_URL = config.avnUrl;
-const SCHEDULE_PERIOD = 28800;
-const MAX_SUMMARY_INCLUSION_AGE = SCHEDULE_PERIOD * 3;
 const RELAYER_ADDRESS = config.relayer.address;
 
 let api, vault;
@@ -173,63 +171,6 @@ async function getCurrentBlock() {
   return (await api.derive.chain.bestNumberFinalized()).toString();
 }
 
-async function getSummaryData(blockNumber) {
-  let currentBlock = await getCurrentBlock();
-
-  if (!blockNumber) {
-    blockNumber = currentBlock;
-  } else if (parseInt(blockNumber) > parseInt(currentBlock)) {
-    return { blockNumber: blockNumber.toString(), summaryRange: [], ethTxHash: null };
-  } else {
-    blockNumber = blockNumber.toString();
-  }
-
-  const summaryRange = calculateSummaryRange(blockNumber);
-  let ethTxHash = parseInt(currentBlock) >= parseInt(summaryRange[1]) ? await retrieveEthTxHashIfExists(summaryRange) : null;
-  return { blockNumber, summaryRange, ethTxHash };
-}
-
-async function getSummaryInclusionData(blockNumber, transactionIndex) {
-  // TODO: Remove when we can handle serving historic merkle data
-  if (parseInt(blockNumber) + MAX_SUMMARY_INCLUSION_AGE < parseInt(await getCurrentBlock())) {
-    return { status: 'For historic data please contact Aventus' };
-  }
-
-  let summaryData = await getSummaryData(blockNumber);
-  let { summaryRange, ethTxHash } = summaryData;
-
-  if (ethTxHash === null) {
-    return { status: 'Not yet published' };
-  }
-
-  log.trace({ message: 'Getting summary inclusion data', summaryRange, blockNumber, transactionIndex, ethTxHash });
-  let rpcData = await api.rpc.lower.data(
-    parseInt(summaryRange[0]),
-    parseInt(summaryRange[1]),
-    parseInt(blockNumber),
-    parseInt(transactionIndex)
-  );
-
-  rpcData = Buffer.from(rpcData, 'hex').toString();
-
-  if (rpcData === '') {
-    return { status: 'Transaction not found' };
-  }
-
-  const data = JSON.parse(rpcData);
-  const leaf = '0x' + Buffer.from(data.encoded_leaf).toString('hex');
-
-  return {
-    status: 'Published',
-    inclusionProof: {
-      leaf,
-      leafHash: keccakAsHex(leaf),
-      merklePath: '[' + data.merkle_path.join(',').replace(/'/g, '') + ']'
-    },
-    transactionDetails: decodeExtrinsic(data.encoded_leaf)
-  };
-}
-
 async function getTotalToken(token) {
   token = token.toLowerCase();
   let total = await redis.getTotalToken(token);
@@ -247,44 +188,6 @@ async function getTotalToken(token) {
   }
 
   return total;
-}
-
-function decodeExtrinsic(call) {
-  const decodedCall = api.registry.createType('Extrinsic', call);
-  const result = decodedCall.toHuman();
-  return result.method;
-}
-
-// TODO: Does not account for changes of schedule period, replace with a function that retrieves summary ranges from a database
-function calculateSummaryRange(blockNumber) {
-  blockNumber = parseInt(blockNumber);
-  let summaryFromBlock = 1 + Math.floor(blockNumber / SCHEDULE_PERIOD) * SCHEDULE_PERIOD;
-  const summaryToBlock = summaryFromBlock + SCHEDULE_PERIOD - 1;
-  summaryFromBlock = summaryFromBlock === 1 ? 0 : summaryFromBlock;
-  return [summaryFromBlock.toString(), summaryToBlock.toString()];
-}
-
-async function retrieveEthTxHashIfExists(summaryRange) {
-  let ethTxHash = await redis.getSummaryEthTxHash(summaryRange);
-
-  if (!ethTxHash) {
-    let blockHash = await api.rpc.chain.getBlockHash(summaryRange[1]);
-    let ingressCounter = parseInt(await api.query.summary.totalIngresses.at(blockHash)) + 1;
-    let transactionId = (await api.query.summary.roots(summaryRange, ingressCounter)).tx_id.toString();
-    if (!transactionId) {
-      return null;
-    }
-
-    let ethTransactionCandidate = await api.query.ethereumTransactions.repository(transactionId);
-    ethTxHash = ethTransactionCandidate.eth_tx_hash.toString();
-    if ((await ethereum.transactionExists(ethTxHash)) === false) {
-      return null;
-    }
-
-    await redis.setSummaryEthTxHash(summaryRange, ethTxHash);
-  }
-
-  return ethTxHash;
 }
 
 async function getUnprocessedLifts() {
@@ -493,8 +396,6 @@ module.exports = {
   getCurrentBlock,
   getGatewayUserInfo,
   getSummaries,
-  getSummaryData,
-  getSummaryInclusionData,
   getTotalToken,
   getUnprocessedLifts,
   getNftContractAddresses,

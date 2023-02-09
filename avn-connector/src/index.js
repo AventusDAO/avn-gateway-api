@@ -131,26 +131,6 @@ app.post('/avnCurrentBlock', async (req, res, next) => {
   }
 });
 
-app.post('/avnSummaryData', async (req, res, next) => {
-  try {
-    log.trace({ avnSummaryDataRequest: req.body });
-    const result = await avn.getSummaryData(req.body.blockNumber);
-    res.send(result);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/avnSummaryInclusionData', async (req, res, next) => {
-  try {
-    log.trace({ avnSummaryInclusionDataRequest: req.body });
-    const result = await avn.getSummaryInclusionData(req.body.blockNumber, req.body.transactionIndex);
-    res.send(result);
-  } catch (err) {
-    next(err);
-  }
-});
-
 app.get('/unprocessedLifts', async (req, res, next) => {
   try {
     log.trace('unprocessedLifts invoked');

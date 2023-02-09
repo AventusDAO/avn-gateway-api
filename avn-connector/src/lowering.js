@@ -32,7 +32,7 @@ async function updateSummaries(avnContract) {
   for (let i = 0; i < summaries.length; i++) {
     if (publishedRoots.includes(summaries[i].rootHash)) {
       summaries[i].published = true;
-      latestPublishedBlock = parseInt(summaries[i].toBlock);
+      latestPublishedBlock = summaries[i].toBlock;
     } else {
       summaries[i].published = false;
     }
@@ -109,7 +109,7 @@ async function updateAwaitingClaimDataLowers() {
         if (!rpcData.isEmpty) {
           try {
             rpcData = JSON.parse(Buffer.from(rpcData, 'hex').toString());
-            const lowerData = JSON.parse(await redis.getLowerData(txHash));
+            const lowerData = await redis.getLowerData(txHash);
             lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
             lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
             await redis.setLowerData(txHash, lowerData);

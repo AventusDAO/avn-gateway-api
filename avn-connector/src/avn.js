@@ -125,8 +125,8 @@ async function getNonce(senderAddress) {
 async function getValidatorsToNominate() {
   let collators = await redis.getCollatorsToNominate();
 
-  if (!collators) {
-    let collators = JSON.stringify(await api.query.parachainStaking.selectedCandidates());
+  if (collators === undefined) {
+    let collators = await api.query.parachainStaking.selectedCandidates();
     await redis.setCollatorsToNominate(collators);
   }
 
@@ -136,7 +136,7 @@ async function getValidatorsToNominate() {
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
 
-  if (!stakingStats) {
+  if (stakingStats === undefined) {
     const stakersData = await api.derive.staking.electedInfo({ withExposure: true });
 
     const [minUserBond, maxNominatorsRewardedPerValidator] = await Promise.all([
@@ -145,7 +145,7 @@ async function getStakingStats() {
     ]);
 
     stakingStats = stakingHelper.calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator);
-    await redis.setStakingStats(JSON.stringify(stakingStats));
+    await redis.setStakingStats(stakingStats);
   }
 
   return stakingStats;
@@ -154,7 +154,7 @@ async function getStakingStats() {
 async function getChainInfo() {
   let chainInfo = await redis.getChainInfo();
 
-  if (!chainInfo.latest) {
+  if (chainInfo === undefined) {
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
     chainInfo.avtContract = await api.query.tokenManager.avtTokenContract();

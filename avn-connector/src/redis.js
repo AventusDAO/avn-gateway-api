@@ -189,27 +189,29 @@ async function resetNonce(senderAddress) {
 }
 
 async function setNonce(senderAddress, nonce) {
-  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
+  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, parseInt(nonce));
 }
 
 function refreshNonce(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
-async function setCollatorsToNominate(validatorsJsonString) {
-  await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, validatorsJsonString);
+async function setCollatorsToNominate(collators) {
+  await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, JSON.stringify(collators));
 }
 
 async function getCollatorsToNominate() {
-  return await redisClient.get(COLLATORS_KEY);
+  const collators = await redisClient.get(COLLATORS_KEY);
+  return collators ? JSON.parse(collators) : undefined;
 }
 
-async function setStakingStats(stakingStatJsonString) {
-  await redisClient.setex(STAKING_STAT_KEY, STAKING_STAT_EXPIRY_IN_SECONDS, stakingStatJsonString);
+async function setStakingStats(stakingStats) {
+  await redisClient.setex(STAKING_STAT_KEY, STAKING_STAT_EXPIRY_IN_SECONDS, JSON.stringify(stakingStats));
 }
 
 async function getStakingStats() {
-  return await redisClient.get(STAKING_STAT_KEY);
+  const stakingStats = await redisClient.get(STAKING_STAT_KEY);
+  return stakingStats ? JSON.parse(stakingStats) : undefined;
 }
 
 async function setChainInfo(chainInfo) {
@@ -265,7 +267,7 @@ async function deleteBlockIndex(txHash) {
 
 async function getBlockIndex(txHash) {
   const blockIndex = await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
-  return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
+  return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1 };
 }
 
 async function addUnpublishedLower(txHash) {
@@ -314,7 +316,7 @@ async function setSummaries(summaries) {
 
 async function getSummaries() {
   const summaries = await redisClient.lrange(SUMMARIES_KEY, 0, -1);
-  return summaries.map(s => JSON.parse(s));
+  return summaries ? summaries.map(s => JSON.parse(s)) || [];
 }
 
 async function setLowerData(txHash, lowerData) {
@@ -326,7 +328,8 @@ async function deleteLowerData(txHash) {
 }
 
 async function getLowerData(txHash) {
-  return JSON.parse(await redisClient.get(LOWER_DATA_KEY + txHash));
+  const lowerData = await redisClient.get(LOWER_DATA_KEY + txHash);
+  return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
 module.exports = {

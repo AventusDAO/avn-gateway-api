@@ -105,7 +105,7 @@ app.post('/avnStakingStats', async (req, res, next) => {
   try {
     log.trace({ avnStakingStatsRequest: req.body });
     const result = await avn.getStakingStats();
-    res.send(result);
+    res.send(JSON.stringify(result));
   } catch (err) {
     next(err);
   }

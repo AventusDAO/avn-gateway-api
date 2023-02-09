@@ -66,7 +66,7 @@ async function getPayer(user, payer) {
     return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
   }
 
-  return encodeAddress(splitFeeUser.payer.publicKey, 42);
+  return {payerId: splitFeeUser.id, payerAddress: encodeAddress(splitFeeUser.publicKey, 42)};
 }
 
 // This function will return the fee as a string

@@ -37,11 +37,12 @@ async function validateAwtToken(event) {
   }
 
   if (utils.isSplitFeeToken(awtToken) === true) {
-    const payerAddress = await tryGetPayerAddressForUser(awtToken);
+    const {payerId, payerAddress} = await tryGetPayerAddressForUser(awtToken);
 
     if (payerAddress) {
       // Pass the authenticated payer address to the target lambda
       ValidRequestResponse.context.isSplitFeeUser = true;
+      ValidRequestResponse.context.splitFeePayerId = payerId;
       ValidRequestResponse.context.splitFeePayerAddress = payerAddress;
     } else {
       console.info(`No payer found for user ${awtToken.pk}`);

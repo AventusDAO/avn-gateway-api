@@ -252,8 +252,8 @@ async function getCheckClaimedLowersFromBlock() {
   return await redisClient.get(CLAIMED_LOWERS_FROM_BLOCK_KEY);
 }
 
-async function setBlockIndex(txHash, blockIndexString) {
-  return await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, blockIndexString);
+async function setBlockIndex(txHash, blockIndex) {
+  return await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, JSON.stringify(blockIndex));
 }
 
 async function deleteBlockIndex(txHash) {
@@ -261,7 +261,8 @@ async function deleteBlockIndex(txHash) {
 }
 
 async function getBlockIndex(txHash) {
-  return await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
+  const blockIndex = await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
+  return (blockIndex) ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
 }
 
 async function addUnpublishedLower(txHash) {

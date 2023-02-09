@@ -66,7 +66,8 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     if (isHex(lowerTx.amount)) lowerTx.amount = hexToBn(lowerTx.amount).toString();
     const lowerData = { token: lowerTx.token, from: lowerTx.from, to: lowerTx.to, amount: lowerTx.amount, claimData: {} };
     await redis.setLowerData(txHash, lowerData);
-    await redis.setBlockIndex(txHash, JSON.stringify({ blockNumber, index: lowerTx.index }));
+    const blockIndex = { blockNumber, index: lowerTx.index };
+    await redis.setBlockIndex(txHash, blockIndex);
   }
 
   await redis.setRetrieveLowersFromBlock(retrieveFromBlock.toString());
@@ -78,7 +79,7 @@ async function updateUnpublishedLowers(latestPublishedBlock) {
   console.log(`\tLowers not yet published to Ethereum: ${unpublished.length}`)
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
-    const { blockNumber } = JSON.parse(await redis.getBlockIndex(txHash));
+    const { blockNumber } = await redis.getBlockIndex(txHash);
 
     if (blockNumber <= latestPublishedBlock) {
       await redis.removeUnpublishedLower(txHash);
@@ -95,9 +96,8 @@ async function updateAwaitingClaimDataLowers() {
   console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`)
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
-    const blockIndex = JSON.parse(await redis.getBlockIndex(txHash));
-    if (blockIndex === null) break;
-    const { blockNumber, index } = blockIndex;
+    const { blockNumber, index } = await redis.getBlockIndex(txHash);
+    if (blockNumber === -1) break;
     const summaryData = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
 
     if (summaryData) {

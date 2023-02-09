@@ -29,8 +29,8 @@ const CHAIN_INFO_KEY = 'chainInfo';
 const LIFTS_FROM_ETH_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
-const LOWERS_FROM_BLOCK_KEY = 'lowersFromBlock';
-const CLAIMED_LOWERS_FROM_BLOCK_KEY = 'claimedLowersFromBlock';
+const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
+const CLAIMED_LOWERS_FROM_AVN_BLOCK_KEY = 'claimedLowersFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
 const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
@@ -236,21 +236,21 @@ async function getTotalToken(token) {
   return await redisClient.get(TOTAL_TOKEN_NAMESPACE + token);
 }
 
-async function setRetrieveLowersFromBlock(blockNumber) {
-  await redisClient.set(LOWERS_FROM_BLOCK_KEY, blockNumber);
+async function setRetrieveLowersFromAvnBlock(blockNumber) {
+  await redisClient.set(LOWERS_FROM_AVN_BLOCK_KEY, blockNumber);
 }
 
-async function getRetrieveLowersFromBlock() {
-  const fromBlock = await redisClient.get(LOWERS_FROM_BLOCK_KEY);
+async function getRetrieveLowersFromAvnBlock() {
+  const fromBlock = await redisClient.get(LOWERS_FROM_AVN_BLOCK_KEY);
   return fromBlock || 0;
 }
 
-async function setCheckClaimedLowersFromBlock(blockNumber) {
-  await redisClient.set(CLAIMED_LOWERS_FROM_BLOCK_KEY, blockNumber);
+async function setCheckClaimedLowersFromAvnBlock(blockNumber) {
+  await redisClient.set(CLAIMED_LOWERS_FROM_AVN_BLOCK_KEY, blockNumber);
 }
 
-async function getCheckClaimedLowersFromBlock() {
-  const fromBlock = await redisClient.get(CLAIMED_LOWERS_FROM_BLOCK_KEY);
+async function getCheckClaimedLowersFromAvnBlock() {
+  const fromBlock = await redisClient.get(CLAIMED_LOWERS_FROM_AVN_BLOCK_KEY);
   return fromBlock || 0;
 }
 
@@ -350,10 +350,10 @@ module.exports = {
   setCheckLiftsFromEthBlock,
   getTotalToken,
   setTotalToken,
-  setRetrieveLowersFromBlock,
-  getRetrieveLowersFromBlock,
-  setCheckClaimedLowersFromBlock,
-  getCheckClaimedLowersFromBlock,
+  setRetrieveLowersFromAvnBlock,
+  getRetrieveLowersFromAvnBlock,
+  setCheckClaimedLowersFromAvnBlock,
+  getCheckClaimedLowersFromAvnBlock,
   setBlockIndex,
   deleteBlockIndex,
   getBlockIndex,

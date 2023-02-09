@@ -267,7 +267,7 @@ async function deleteBlockIndex(txHash) {
 
 async function getBlockIndex(txHash) {
   const blockIndex = await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
-  return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1 };
+  return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
 }
 
 async function addUnpublishedLower(txHash) {
@@ -316,7 +316,7 @@ async function setSummaries(summaries) {
 
 async function getSummaries() {
   const summaries = await redisClient.lrange(SUMMARIES_KEY, 0, -1);
-  return summaries ? summaries.map(s => JSON.parse(s)) || [];
+  return summaries ? summaries.map(s => JSON.parse(s)) : [];
 }
 
 async function setLowerData(txHash, lowerData) {

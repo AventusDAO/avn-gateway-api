@@ -297,7 +297,8 @@ async function removeUnclaimedLower(txHash) {
 }
 
 async function getUnclaimedLowers() {
-  return await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
+  const unclaimed = await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
+  return unclaimed || [];
 }
 
 async function setSummaries(summaries) {

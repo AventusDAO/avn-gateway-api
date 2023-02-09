@@ -134,7 +134,7 @@ async function updateAwaitingClaimDataLowers() {
 
 async function updateUnclaimedLowers(avnContract, account) {
   const { claimedLowers, nextFromBlock } = await ethereum.getLatestClaimedLowers(avnContract);
-  const unclaimed = (await redis.getUnclaimedLowers()) || [];
+  const unclaimed = await redis.getUnclaimedLowers();
   console.log(`\tPublished lowers waiting to be claimed: ${unclaimed.length} `);
 
   for (let i = 0; i < unclaimed.length; i++) {

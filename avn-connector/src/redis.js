@@ -302,19 +302,20 @@ async function getUnclaimedLowers() {
 
 async function setSummaries(summaries) {
   await redisClient.del(SUMMARIES_KEY);
-  return await redisClient.rpush(SUMMARIES_KEY, summaries)
+  await redisClient.rpush(SUMMARIES_KEY, summaries.map(s => JSON.stringify(s)));
 }
 
 async function getSummaries() {
-  return await redisClient.lrange(SUMMARIES_KEY, 0, -1);
+  const summaries = await redisClient.lrange(SUMMARIES_KEY, 0, -1);
+  return summaries.map(s => JSON.parse(s));
 }
 
 async function setLowerData(txHash, lowerData) {
-  return await redisClient.set(LOWER_DATA_KEY + txHash, JSON.stringify(lowerData));
+  await redisClient.set(LOWER_DATA_KEY + txHash, JSON.stringify(lowerData));
 }
 
 async function deleteLowerData(txHash) {
-  return await redisClient.del(LOWER_DATA_KEY + txHash);
+  await redisClient.del(LOWER_DATA_KEY + txHash);
 }
 
 async function getLowerData(txHash) {

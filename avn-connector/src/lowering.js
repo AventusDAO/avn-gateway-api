@@ -38,7 +38,7 @@ async function updateSummaries(avnContract) {
     }
   }
 
-  await redis.setSummaries(summaries.map(s => JSON.stringify(s)));
+  await redis.setSummaries(summaries);
   return latestPublishedBlock;
 }
 
@@ -89,7 +89,7 @@ async function updateUnpublishedLowers(latestPublishedBlock) {
 
 async function updateAwaitingClaimDataLowers() {
   const awaiting = (await redis.getAwaitingClaimDataLowers()) || [];
-  const summaries = (await redis.getSummaries()).map(s => JSON.parse(s));
+  const summaries = await redis.getSummaries();
   let error = false;
 
   console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`)

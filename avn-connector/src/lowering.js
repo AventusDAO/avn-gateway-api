@@ -73,7 +73,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {
-  const unpublished = (await redis.getUnpublishedLowers()) || [];
+  const unpublished = await redis.getUnpublishedLowers();
 
   console.log(`\tLowers not yet published to Ethereum: ${unpublished.length}`)
   for (let i = 0; i < unpublished.length; i++) {

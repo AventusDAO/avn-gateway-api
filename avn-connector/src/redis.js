@@ -189,7 +189,7 @@ async function resetNonce(senderAddress) {
 }
 
 async function setNonce(senderAddress, nonce) {
-  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, parseInt(nonce));
+  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
 }
 
 function refreshNonce(senderAddress) {

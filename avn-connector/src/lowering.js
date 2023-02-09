@@ -70,7 +70,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     await redis.setBlockIndex(txHash, blockIndex);
   }
 
-  await redis.setRetrieveLowersFromBlock(retrieveFromBlock.toString());
+  await redis.setRetrieveLowersFromBlock(retrieveFromBlock);
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {

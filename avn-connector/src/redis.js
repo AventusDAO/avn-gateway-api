@@ -241,7 +241,8 @@ async function setRetrieveLowersFromBlock(blockNumber) {
 }
 
 async function getRetrieveLowersFromBlock() {
-  return await redisClient.get(LOWERS_FROM_BLOCK_KEY);
+  const fromBlock = await redisClient.get(LOWERS_FROM_BLOCK_KEY);
+  return fromBlock || 0;
 }
 
 async function setCheckClaimedLowersFromBlock(blockNumber) {

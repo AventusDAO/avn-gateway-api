@@ -22,7 +22,6 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
-const SUMMARY_RANGE_NAMESPACE = 's.';
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
@@ -310,8 +309,8 @@ async function getSummaries() {
   return await redisClient.lrange(SUMMARIES_KEY, 0, -1);
 }
 
-async function setLowerData(txHash, lowerDataString) {
-  return await redisClient.set(LOWER_DATA_KEY + txHash, lowerDataString);
+async function setLowerData(txHash, lowerData) {
+  return await redisClient.set(LOWER_DATA_KEY + txHash, JSON.stringify(lowerData));
 }
 
 async function deleteLowerData(txHash) {
@@ -319,7 +318,7 @@ async function deleteLowerData(txHash) {
 }
 
 async function getLowerData(txHash) {
-  return await redisClient.get(LOWER_DATA_KEY + txHash);
+  return JSON.parse(await redisClient.get(LOWER_DATA_KEY + txHash));
 }
 
 module.exports = {

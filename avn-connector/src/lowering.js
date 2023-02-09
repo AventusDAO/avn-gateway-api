@@ -65,7 +65,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 
     if (isHex(lowerTx.amount)) lowerTx.amount = hexToBn(lowerTx.amount).toString();
     const lowerData = { token: lowerTx.token, from: lowerTx.from, to: lowerTx.to, amount: lowerTx.amount, claimData: {} };
-    await redis.setLowerData(txHash, JSON.stringify(lowerData));
+    await redis.setLowerData(txHash, lowerData);
     await redis.setBlockIndex(txHash, JSON.stringify({ blockNumber, index: lowerTx.index }));
   }
 
@@ -112,7 +112,7 @@ async function updateAwaitingClaimDataLowers() {
             const lowerData = JSON.parse(await redis.getLowerData(txHash));
             lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
             lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
-            await redis.setLowerData(txHash, JSON.stringify(lowerData));
+            await redis.setLowerData(txHash, lowerData);
             await redis.removeAwaitingClaimDataLower(txHash);
             await redis.deleteBlockIndex(txHash);
             await redis.addUnclaimedLower(txHash);
@@ -139,7 +139,7 @@ async function updateUnclaimedLowers(avnContract, account) {
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];
-    const lowerData = JSON.parse(await redis.getLowerData(txHash));
+    const lowerData = await redis.getLowerData(txHash);
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
     if (claimedLowers.includes(leafHash)) {
@@ -166,7 +166,7 @@ async function getLowersForAccount(account) {
   let lowers = [];
 
   for (let i = 0; i < outstanding.length; i++) {
-    const lowerData = JSON.parse(await redis.getLowerData(outstanding[i]));
+    const lowerData = await redis.getLowerData(outstanding[i]);
     if (lowerData && lowerDataContainsAccount(lowerData, account)) {
       lowers.push(lowerData);
     }

@@ -249,28 +249,29 @@ async function setCheckClaimedLowersFromBlock(blockNumber) {
 }
 
 async function getCheckClaimedLowersFromBlock() {
-  return await redisClient.get(CLAIMED_LOWERS_FROM_BLOCK_KEY);
+  const fromBlock = await redisClient.get(CLAIMED_LOWERS_FROM_BLOCK_KEY);
+  return fromBlock || 0;
 }
 
 async function setBlockIndex(txHash, blockIndex) {
-  return await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, JSON.stringify(blockIndex));
+  await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, JSON.stringify(blockIndex));
 }
 
 async function deleteBlockIndex(txHash) {
-  return await redisClient.del(LOWER_BLOCK_INDEX_KEY + txHash);
+  await redisClient.del(LOWER_BLOCK_INDEX_KEY + txHash);
 }
 
 async function getBlockIndex(txHash) {
   const blockIndex = await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
-  return (blockIndex) ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
+  return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
 }
 
 async function addUnpublishedLower(txHash) {
-  return await redisClient.sadd(UNPUBLISHED_LOWERS_KEY, txHash);
+  await redisClient.sadd(UNPUBLISHED_LOWERS_KEY, txHash);
 }
 
 async function removeUnpublishedLower(txHash) {
-  return await redisClient.srem(UNPUBLISHED_LOWERS_KEY, txHash);
+  await redisClient.srem(UNPUBLISHED_LOWERS_KEY, txHash);
 }
 
 async function getUnpublishedLowers() {
@@ -279,11 +280,11 @@ async function getUnpublishedLowers() {
 }
 
 async function addAwaitingClaimDataLower(txHash) {
-  return await redisClient.sadd(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+  await redisClient.sadd(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
 }
 
 async function removeAwaitingClaimDataLower(txHash) {
-  return await redisClient.srem(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+  await redisClient.srem(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
 }
 
 async function getAwaitingClaimDataLowers() {
@@ -292,11 +293,11 @@ async function getAwaitingClaimDataLowers() {
 }
 
 async function addUnclaimedLower(txHash) {
-  return await redisClient.sadd(UNCLAIMED_LOWERS_KEY, txHash);
+  await redisClient.sadd(UNCLAIMED_LOWERS_KEY, txHash);
 }
 
 async function removeUnclaimedLower(txHash) {
-  return await redisClient.srem(UNCLAIMED_LOWERS_KEY, txHash);
+  await redisClient.srem(UNCLAIMED_LOWERS_KEY, txHash);
 }
 
 async function getUnclaimedLowers() {

@@ -113,7 +113,7 @@ async function getAccountInfo(accountId) {
 
 async function getNonce(senderAddress) {
   let nonce = await redis.getNextNonce(senderAddress);
-  if (!nonce) {
+  if (nonce === undefined) {
     nonce = (await api.query.system.account(senderAddress)).nonce;
     await redis.setNonce(senderAddress, nonce);
   } else {

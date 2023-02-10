@@ -1,0 +1,36 @@
+{
+  "accounts": {
+    "relayer": {
+      "seed": "0xa343da434e14c8cef7c474551a63e7e4c0cb4670a2374368ee01e670ab0d2464",
+      "address": "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh",
+      "publicKey": "0x9c2bfffc466eb9c1bad0d8393df93770468ee54b0a0f05232e4b5dde6960b004"
+    },
+    "user": {
+      "seed": "0xe325f546663744c538a89eca93eaaaba093091136e5e2f8dd3275a07fcfce683",
+      "address": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf",
+      "publicKey": "0xea055d6f2e2280ecfd691e28f3062047c3904273ea699ec5d05c43a5b8413e55"
+    },
+    "otherUser": {
+      "seed": "0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7",
+      "address": "5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3",
+      "publicKey": "0xf8aeb9e9dc54ccc50aef0c6389f1be774e3f3ea80ec842f7c76ba91a4eb0cc2e"
+    },
+    "avnValidator": {
+      "mnemonic": "swing sauce apology chase pair pave gauge craft device east holiday siege",
+      "seed": "0x45680fd8785cff03bd24fe81e2eabc331816a0b470397d5240bfc829dde32570",
+      "address": "5CotT1vYBQZjDey7YETH6Z121ohzVztURs5bAcXgAtM1wx3W",
+      "publicKey": "0x20ef357ca657d8cce8fcfc2e230871347fc68b1451a575eaedb9797616101608"
+    },
+    "bank": {
+      "mnemonic": "depend pelican pulse knock rely program blanket blanket pioneer slight crush energy",
+      "seed": "0x45680fd8785cff03bd24fe81e2eabc331816a0b470397d5240bfc829dde32570",
+      "address": "5ECK71TeMYwhQz5DhUFhLAMW3VZdE9krGukXrvUjzaEadAUf",
+      "publicKey": "0x5e45d6682a718a8b6af49a21ef82556d154e96a8db045ed842604b113bc85b5e"
+    },
+    "payer": {
+      "seed": "0x890c48638e715e1bd26c13339bc06aa71a27de23ee3001d9d5299d1260de0719",
+      "address": "5G7B3YUshXaFtcpQYL63oHi7kQQy8mq5NNLU7jVseMoxRUTt",
+      "publicKey": "0xb2d2f22620bc96459d22ebee118e1f423d445032a6e48938ac811699c6e68a0b"
+    }
+  }
+}

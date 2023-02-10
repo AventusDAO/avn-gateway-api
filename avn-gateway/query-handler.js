@@ -91,7 +91,7 @@ async function getNonce(call, request) {
     case 'payment':
       return await queryChain(call, request, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString);
     case 'staking':
-      return await queryChain(call, request, 'validatorsManager', 'proxyNonces', [accountId], formatNumAsString);
+      return await queryChain(call, request, 'parachainStaking', 'proxyNonces', [accountId], formatNumAsString);
     case 'confirmation':
       return await queryChain(call, request, 'ethereumEvents', 'proxyNonces', [accountId], formatNumAsString);
     default:

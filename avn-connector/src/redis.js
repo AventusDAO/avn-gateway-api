@@ -279,7 +279,7 @@ async function removeUnpublishedLower(txHash) {
 }
 
 async function getUnpublishedLowers() {
-  const unpublished = return await redisClient.smembers(UNPUBLISHED_LOWERS_KEY);
+  const unpublished = await redisClient.smembers(UNPUBLISHED_LOWERS_KEY);
   return unpublished || [];
 }
 

@@ -113,7 +113,7 @@ async function getAccountInfo(accountId) {
 
 async function getNonce(senderAddress) {
   let nonce = await redis.getNextNonce(senderAddress);
-  if (!nonce) {
+  if (nonce === undefined) {
     nonce = (await api.query.system.account(senderAddress)).nonce;
     await redis.setNonce(senderAddress, nonce);
   } else {
@@ -125,8 +125,8 @@ async function getNonce(senderAddress) {
 async function getValidatorsToNominate() {
   let collators = await redis.getCollatorsToNominate();
 
-  if (!collators) {
-    let collators = JSON.stringify(await api.query.parachainStaking.selectedCandidates());
+  if (collators === undefined) {
+    let collators = await api.query.parachainStaking.selectedCandidates();
     await redis.setCollatorsToNominate(collators);
   }
 
@@ -136,7 +136,7 @@ async function getValidatorsToNominate() {
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
 
-  if (!stakingStats) {
+  if (stakingStats === undefined) {
     const stakersData = await api.derive.staking.electedInfo({ withExposure: true });
 
     const [minUserBond, maxNominatorsRewardedPerValidator] = await Promise.all([
@@ -145,7 +145,7 @@ async function getStakingStats() {
     ]);
 
     stakingStats = stakingHelper.calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator);
-    await redis.setStakingStats(JSON.stringify(stakingStats));
+    await redis.setStakingStats(stakingStats);
   }
 
   return stakingStats;
@@ -154,13 +154,11 @@ async function getStakingStats() {
 async function getChainInfo() {
   let chainInfo = await redis.getChainInfo();
 
-  if (!chainInfo) {
-    chainInfo = {};
+  if (chainInfo === undefined) {
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
     chainInfo.avtContract = await api.query.tokenManager.avtTokenContract();
     chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
-    chainInfo = JSON.stringify(chainInfo);
     await redis.setChainInfo(chainInfo);
   }
 
@@ -176,7 +174,7 @@ async function getTotalToken(token) {
   let total = await redis.getTotalToken(token);
 
   if (!total) {
-    let chainInfo = JSON.parse(await getChainInfo());
+    let chainInfo = await getChainInfo();
 
     if (token === chainInfo.avtContract.toLowerCase()) {
       total = (await api.query.balances.totalIssuance()).toString();
@@ -192,7 +190,7 @@ async function getTotalToken(token) {
 
 async function getUnprocessedLifts() {
   let unprocessedLifts = [];
-  let avnContract = JSON.parse(await getChainInfo()).avnContract;
+  let { avnContract } = await getChainInfo();
   let { fromBlock, toBlock, liftEvents } = await ethereum.getLiftEvents(avnContract);
 
   if (liftEvents.length > 0) {
@@ -205,7 +203,7 @@ async function getUnprocessedLifts() {
   }
 
   if (unprocessedLifts.length === 0) {
-    await redis.setCheckLiftsFromBlock(parseInt(toBlock) + 1);
+    await redis.setCheckLiftsFromEthBlock(parseInt(toBlock) + 1);
   }
 
   return { fromBlock, toBlock, unprocessedLifts };
@@ -218,7 +216,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   let result;
   try {
     result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
-    await redis.setCheckLiftsFromBlock(parseInt(toBlock) + 1);
+    await redis.setCheckLiftsFromEthBlock(parseInt(toBlock) + 1);
   } catch (err) {
     result = err;
   }

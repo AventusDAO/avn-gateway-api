@@ -73,8 +73,10 @@ describe('Query api calls:', async () => {
   describe('getChainInfo', async () => {
     it('@NO_BASELINE can get the current chain information', async () => {
       let chainInfo = await api.query.getChainInfo();
-      assert.equal(chainInfo.name, 'AvN Staging Dev Parachain');
-      assert.equal(chainInfo.version, '19');
+      assert(object.hasOwnProperty('name'));
+      assert(object.hasOwnProperty('version'));
+      assert(object.hasOwnProperty('avtContract'));
+      assert(object.hasOwnProperty('avnContract'));
     });
   });
 

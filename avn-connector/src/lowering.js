@@ -12,7 +12,7 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
-  const { avnContract } = JSON.parse(await avn.getChainInfo());
+  const { avnContract } = await avn.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
   console.log(`\tLast published block: ${latestPublishedBlock}`);
@@ -32,18 +32,18 @@ async function updateSummaries(avnContract) {
   for (let i = 0; i < summaries.length; i++) {
     if (publishedRoots.includes(summaries[i].rootHash)) {
       summaries[i].published = true;
-      latestPublishedBlock = parseInt(summaries[i].toBlock);
+      latestPublishedBlock = summaries[i].toBlock;
     } else {
       summaries[i].published = false;
     }
   }
 
-  await redis.setSummaries(summaries.map(s => JSON.stringify(s)));
+  await redis.setSummaries(summaries);
   return latestPublishedBlock;
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
-  let retrieveFromBlock = parseInt((await redis.getRetrieveLowersFromBlock()) || 0);
+  let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
   console.log(`\tChecking for lowers from block: ${retrieveFromBlock}`);
@@ -65,20 +65,21 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 
     if (isHex(lowerTx.amount)) lowerTx.amount = hexToBn(lowerTx.amount).toString();
     const lowerData = { token: lowerTx.token, from: lowerTx.from, to: lowerTx.to, amount: lowerTx.amount, claimData: {} };
-    await redis.setLowerData(txHash, JSON.stringify(lowerData));
-    await redis.setBlockIndex(txHash, JSON.stringify({ blockNumber, index: lowerTx.index }));
+    await redis.setLowerData(txHash, lowerData);
+    const blockIndex = { blockNumber, index: lowerTx.index };
+    await redis.setBlockIndex(txHash, blockIndex);
   }
 
-  await redis.setRetrieveLowersFromBlock(retrieveFromBlock.toString());
+  await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {
-  const unpublished = (await redis.getUnpublishedLowers()) || [];
+  const unpublished = await redis.getUnpublishedLowers();
 
   console.log(`\tLowers not yet published to Ethereum: ${unpublished.length}`)
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
-    const { blockNumber } = JSON.parse(await redis.getBlockIndex(txHash));
+    const { blockNumber } = await redis.getBlockIndex(txHash);
 
     if (blockNumber <= latestPublishedBlock) {
       await redis.removeUnpublishedLower(txHash);
@@ -88,16 +89,15 @@ async function updateUnpublishedLowers(latestPublishedBlock) {
 }
 
 async function updateAwaitingClaimDataLowers() {
-  const awaiting = (await redis.getAwaitingClaimDataLowers()) || [];
-  const summaries = (await redis.getSummaries()).map(s => JSON.parse(s));
+  const awaiting = await redis.getAwaitingClaimDataLowers();
+  const summaries = await redis.getSummaries();
   let error = false;
 
   console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`)
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
-    const blockIndex = JSON.parse(await redis.getBlockIndex(txHash));
-    if (blockIndex === null) break;
-    const { blockNumber, index } = blockIndex;
+    const { blockNumber, index } = await redis.getBlockIndex(txHash);
+    if (blockNumber === -1) break;
     const summaryData = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
 
     if (summaryData) {
@@ -109,10 +109,10 @@ async function updateAwaitingClaimDataLowers() {
         if (!rpcData.isEmpty) {
           try {
             rpcData = JSON.parse(Buffer.from(rpcData, 'hex').toString());
-            const lowerData = JSON.parse(await redis.getLowerData(txHash));
+            const lowerData = await redis.getLowerData(txHash);
             lowerData.claimData.leaf = '0x' + Buffer.from(rpcData.encoded_leaf).toString('hex');
             lowerData.claimData.merklePath = '[' + rpcData.merkle_path.join(',').replace(/'/g, '') + ']';
-            await redis.setLowerData(txHash, JSON.stringify(lowerData));
+            await redis.setLowerData(txHash, lowerData);
             await redis.removeAwaitingClaimDataLower(txHash);
             await redis.deleteBlockIndex(txHash);
             await redis.addUnclaimedLower(txHash);
@@ -134,12 +134,12 @@ async function updateAwaitingClaimDataLowers() {
 
 async function updateUnclaimedLowers(avnContract, account) {
   const { claimedLowers, nextFromBlock } = await ethereum.getLatestClaimedLowers(avnContract);
-  const unclaimed = (await redis.getUnclaimedLowers()) || [];
+  const unclaimed = await redis.getUnclaimedLowers();
   console.log(`\tPublished lowers waiting to be claimed: ${unclaimed.length} `);
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];
-    const lowerData = JSON.parse(await redis.getLowerData(txHash));
+    const lowerData = await redis.getLowerData(txHash);
     const leafHash = keccakAsHex(lowerData.claimData.leaf);
 
     if (claimedLowers.includes(leafHash)) {
@@ -148,7 +148,7 @@ async function updateUnclaimedLowers(avnContract, account) {
     }
   }
 
-  await redis.setCheckClaimedLowersFromBlock(nextFromBlock);
+  await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
 }
 
 async function getLowerTransactions(blockNumber) {
@@ -166,7 +166,7 @@ async function getLowersForAccount(account) {
   let lowers = [];
 
   for (let i = 0; i < outstanding.length; i++) {
-    const lowerData = JSON.parse(await redis.getLowerData(outstanding[i]));
+    const lowerData = await redis.getLowerData(outstanding[i]);
     if (lowerData && lowerDataContainsAccount(lowerData, account)) {
       lowers.push(lowerData);
     }

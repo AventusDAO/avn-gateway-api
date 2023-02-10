@@ -155,6 +155,7 @@ async function getChainInfo() {
   let chainInfo = await redis.getChainInfo();
 
   if (chainInfo === undefined) {
+    chainInfo = {};
     chainInfo.name = await api.rpc.system.chain();
     chainInfo.version = api.runtimeVersion.specVersion.toString();
     chainInfo.avtContract = await api.query.tokenManager.avtTokenContract();

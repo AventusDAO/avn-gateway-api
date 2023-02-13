@@ -84,7 +84,7 @@ async function connect() {
   });
 }
 
-function toJsonString(data) {
+function dataToJsonString(data) {
   if (_.isString(data)) {
     throw new Error('Data is already stringified: ' + data);
   } else {
@@ -206,7 +206,7 @@ function refreshNonce(senderAddress) {
 }
 
 async function setCollatorsToNominate(collators) {
-  await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, toJsonString(collators));
+  await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, dataToJsonString(collators));
 }
 
 async function getCollatorsToNominate() {
@@ -215,7 +215,7 @@ async function getCollatorsToNominate() {
 }
 
 async function setStakingStats(stakingStats) {
-  await redisClient.setex(STAKING_STAT_KEY, STAKING_STAT_EXPIRY_IN_SECONDS, toJsonString(stakingStats));
+  await redisClient.setex(STAKING_STAT_KEY, STAKING_STAT_EXPIRY_IN_SECONDS, dataToJsonString(stakingStats));
 }
 
 async function getStakingStats() {
@@ -224,7 +224,7 @@ async function getStakingStats() {
 }
 
 async function setChainInfo(chainInfo) {
-  await redisClient.setex(CHAIN_INFO_KEY, CHAIN_INFO_EXPIRY_IN_SECONDS, toJsonString(chainInfo));
+  await redisClient.setex(CHAIN_INFO_KEY, CHAIN_INFO_EXPIRY_IN_SECONDS, dataToJsonString(chainInfo));
 }
 
 async function getChainInfo() {
@@ -267,7 +267,7 @@ async function getCheckClaimedLowersFromAvnBlock() {
 }
 
 async function setBlockIndex(txHash, blockIndex) {
-  await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, toJsonString(blockIndex));
+  await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, dataToJsonString(blockIndex));
 }
 
 async function deleteBlockIndex(txHash) {
@@ -320,7 +320,7 @@ async function getUnclaimedLowers() {
 
 async function setSummaries(summaries) {
   await redisClient.del(SUMMARIES_KEY);
-  await redisClient.rpush(SUMMARIES_KEY, summaries.map(s => toJsonString(s)));
+  await redisClient.rpush(SUMMARIES_KEY, summaries.map(s => dataToJsonString(s)));
 }
 
 async function getSummaries() {
@@ -329,7 +329,7 @@ async function getSummaries() {
 }
 
 async function setLowerData(txHash, lowerData) {
-  await redisClient.set(LOWER_DATA_KEY + txHash, toJsonString(lowerData));
+  await redisClient.set(LOWER_DATA_KEY + txHash, dataToJsonString(lowerData));
 }
 
 async function deleteLowerData(txHash) {

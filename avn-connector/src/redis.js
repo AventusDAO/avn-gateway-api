@@ -1,4 +1,5 @@
 const Redis = require('ioredis');
+const _ = require('lodash');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
@@ -22,16 +23,15 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
-const SUMMARY_RANGE_NAMESPACE = 's.';
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
-const LIFTS_FROM_BLOCK_KEY = 'liftsFromBlock';
+const LIFTS_FROM_ETH_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
-const LOWERS_FROM_BLOCK_KEY = 'lowersFromBlock';
-const CLAIMED_LOWERS_FROM_BLOCK_KEY = 'claimedLowersFromBlock';
+const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
+const CLAIMED_LOWERS_FROM_AVN_BLOCK_KEY = 'claimedLowersFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
 const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
@@ -82,6 +82,14 @@ async function connect() {
             return {}
           end`
   });
+}
+
+function dataToJsonString(data) {
+  if (_.isString(data)) {
+    throw new Error('Data is already stringified: ' + data);
+  } else {
+    return JSON.stringify(data);
+  }
 }
 
 function getKey(key) {
@@ -190,43 +198,46 @@ async function resetNonce(senderAddress) {
 }
 
 async function setNonce(senderAddress, nonce) {
-  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
+  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
 }
 
 function refreshNonce(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
-async function setCollatorsToNominate(validatorsJsonString) {
-  await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, validatorsJsonString);
+async function setCollatorsToNominate(collators) {
+  await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, dataToJsonString(collators));
 }
 
 async function getCollatorsToNominate() {
-  return await redisClient.get(COLLATORS_KEY);
+  const collators = await redisClient.get(COLLATORS_KEY);
+  return collators ? JSON.parse(collators) : undefined;
 }
 
-async function setStakingStats(stakingStatJsonString) {
-  await redisClient.setex(STAKING_STAT_KEY, STAKING_STAT_EXPIRY_IN_SECONDS, stakingStatJsonString);
+async function setStakingStats(stakingStats) {
+  await redisClient.setex(STAKING_STAT_KEY, STAKING_STAT_EXPIRY_IN_SECONDS, dataToJsonString(stakingStats));
 }
 
 async function getStakingStats() {
-  return await redisClient.get(STAKING_STAT_KEY);
+  const stakingStats = await redisClient.get(STAKING_STAT_KEY);
+  return stakingStats ? JSON.parse(stakingStats) : undefined;
 }
 
-async function setChainInfo(chainInfoJsonString) {
-  await redisClient.setex(CHAIN_INFO_KEY, CHAIN_INFO_EXPIRY_IN_SECONDS, chainInfoJsonString);
+async function setChainInfo(chainInfo) {
+  await redisClient.setex(CHAIN_INFO_KEY, CHAIN_INFO_EXPIRY_IN_SECONDS, dataToJsonString(chainInfo));
 }
 
 async function getChainInfo() {
-  return await redisClient.get(CHAIN_INFO_KEY);
+  const chainInfo = await redisClient.get(CHAIN_INFO_KEY);
+  return chainInfo ? JSON.parse(chainInfo) : undefined;
 }
 
-async function setCheckLiftsFromBlock(blockNumber) {
-  await redisClient.set(LIFTS_FROM_BLOCK_KEY, blockNumber);
+async function setCheckLiftsFromEthBlock(blockNumber) {
+  await redisClient.set(LIFTS_FROM_ETH_BLOCK_KEY, blockNumber);
 }
 
-async function getCheckLiftsFromBlock() {
-  return await redisClient.get(LIFTS_FROM_BLOCK_KEY);
+async function getCheckLiftsFromEthBlock() {
+  return await redisClient.get(LIFTS_FROM_ETH_BLOCK_KEY);
 }
 
 async function setTotalToken(token, total) {
@@ -237,89 +248,97 @@ async function getTotalToken(token) {
   return await redisClient.get(TOTAL_TOKEN_NAMESPACE + token);
 }
 
-async function setRetrieveLowersFromBlock(blockNumber) {
-  await redisClient.set(LOWERS_FROM_BLOCK_KEY, blockNumber);
+async function setRetrieveLowersFromAvnBlock(blockNumber) {
+  await redisClient.set(LOWERS_FROM_AVN_BLOCK_KEY, blockNumber);
 }
 
-async function getRetrieveLowersFromBlock() {
-  return await redisClient.get(LOWERS_FROM_BLOCK_KEY);
+async function getRetrieveLowersFromAvnBlock() {
+  const fromBlock = await redisClient.get(LOWERS_FROM_AVN_BLOCK_KEY);
+  return fromBlock || 0;
 }
 
-async function setCheckClaimedLowersFromBlock(blockNumber) {
-  await redisClient.set(CLAIMED_LOWERS_FROM_BLOCK_KEY, blockNumber);
+async function setCheckClaimedLowersFromAvnBlock(blockNumber) {
+  await redisClient.set(CLAIMED_LOWERS_FROM_AVN_BLOCK_KEY, blockNumber);
 }
 
-async function getCheckClaimedLowersFromBlock() {
-  return await redisClient.get(CLAIMED_LOWERS_FROM_BLOCK_KEY);
+async function getCheckClaimedLowersFromAvnBlock() {
+  const fromBlock = await redisClient.get(CLAIMED_LOWERS_FROM_AVN_BLOCK_KEY);
+  return fromBlock || 0;
 }
 
-async function setBlockIndex(txHash, blockIndexString) {
-  return await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, blockIndexString);
+async function setBlockIndex(txHash, blockIndex) {
+  await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, dataToJsonString(blockIndex));
 }
 
 async function deleteBlockIndex(txHash) {
-  return await redisClient.del(LOWER_BLOCK_INDEX_KEY + txHash);
+  await redisClient.del(LOWER_BLOCK_INDEX_KEY + txHash);
 }
 
 async function getBlockIndex(txHash) {
-  return await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
+  const blockIndex = await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
+  return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
 }
 
 async function addUnpublishedLower(txHash) {
-  return await redisClient.sadd(UNPUBLISHED_LOWERS_KEY, txHash);
+  await redisClient.sadd(UNPUBLISHED_LOWERS_KEY, txHash);
 }
 
 async function removeUnpublishedLower(txHash) {
-  return await redisClient.srem(UNPUBLISHED_LOWERS_KEY, txHash);
+  await redisClient.srem(UNPUBLISHED_LOWERS_KEY, txHash);
 }
 
 async function getUnpublishedLowers() {
-  return await redisClient.smembers(UNPUBLISHED_LOWERS_KEY);
+  const unpublished = await redisClient.smembers(UNPUBLISHED_LOWERS_KEY);
+  return unpublished || [];
 }
 
 async function addAwaitingClaimDataLower(txHash) {
-  return await redisClient.sadd(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+  await redisClient.sadd(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
 }
 
 async function removeAwaitingClaimDataLower(txHash) {
-  return await redisClient.srem(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+  await redisClient.srem(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
 }
 
 async function getAwaitingClaimDataLowers() {
-  return await redisClient.smembers(AWAITING_CLAIM_DATA_LOWERS_KEY);
+  const awaiting = await redisClient.smembers(AWAITING_CLAIM_DATA_LOWERS_KEY);
+  return awaiting || [];
 }
 
 async function addUnclaimedLower(txHash) {
-  return await redisClient.sadd(UNCLAIMED_LOWERS_KEY, txHash);
+  await redisClient.sadd(UNCLAIMED_LOWERS_KEY, txHash);
 }
 
 async function removeUnclaimedLower(txHash) {
-  return await redisClient.srem(UNCLAIMED_LOWERS_KEY, txHash);
+  await redisClient.srem(UNCLAIMED_LOWERS_KEY, txHash);
 }
 
 async function getUnclaimedLowers() {
-  return await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
+  const unclaimed = await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
+  return unclaimed || [];
 }
 
 async function setSummaries(summaries) {
   await redisClient.del(SUMMARIES_KEY);
-  return await redisClient.rpush(SUMMARIES_KEY, summaries)
+  await redisClient.rpush(SUMMARIES_KEY, summaries.map(s => dataToJsonString(s)));
 }
 
 async function getSummaries() {
-  return await redisClient.lrange(SUMMARIES_KEY, 0, -1);
+  const summaries = await redisClient.lrange(SUMMARIES_KEY, 0, -1);
+  return summaries ? summaries.map(s => JSON.parse(s)) : [];
 }
 
-async function setLowerData(txHash, lowerDataString) {
-  return await redisClient.set(LOWER_DATA_KEY + txHash, lowerDataString);
+async function setLowerData(txHash, lowerData) {
+  await redisClient.set(LOWER_DATA_KEY + txHash, dataToJsonString(lowerData));
 }
 
 async function deleteLowerData(txHash) {
-  return await redisClient.del(LOWER_DATA_KEY + txHash);
+  await redisClient.del(LOWER_DATA_KEY + txHash);
 }
 
 async function getLowerData(txHash) {
-  return await redisClient.get(LOWER_DATA_KEY + txHash);
+  const lowerData = await redisClient.get(LOWER_DATA_KEY + txHash);
+  return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
 module.exports = {
@@ -340,14 +359,14 @@ module.exports = {
   setStakingStats,
   getChainInfo,
   setChainInfo,
-  getCheckLiftsFromBlock,
-  setCheckLiftsFromBlock,
+  getCheckLiftsFromEthBlock,
+  setCheckLiftsFromEthBlock,
   getTotalToken,
   setTotalToken,
-  setRetrieveLowersFromBlock,
-  getRetrieveLowersFromBlock,
-  setCheckClaimedLowersFromBlock,
-  getCheckClaimedLowersFromBlock,
+  setRetrieveLowersFromAvnBlock,
+  getRetrieveLowersFromAvnBlock,
+  setCheckClaimedLowersFromAvnBlock,
+  getCheckClaimedLowersFromAvnBlock,
   setBlockIndex,
   deleteBlockIndex,
   getBlockIndex,

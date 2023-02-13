@@ -1503,7 +1503,7 @@ There are a few different options to run tests. All of them can be run against d
 The configuration files for both gateway and AVN accounts are stored, from the root folder, at this location `./avn-api/config/`.
 AVN test accounts are currently shared between different chains.
 
-Common options are: `sandbox`, `cba`, `testnet`.
+Common options are: `parachainUAT`, `cba`, `testnet`.
 
 To run smoke tests, type:
 ```

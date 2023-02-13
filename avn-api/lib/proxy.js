@@ -179,9 +179,8 @@ function signProxyUnstake({ relayer, amount, nonce, signer }) {
   return signData(signer, encodedDataToSign);
 }
 
-function signProxyWithdrawUnlocked({ relayer, nonce, signer }) {
+function signProxyWithdrawUnlocked({ relayer, nominator, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
-  let nominator = common.convertToPublicKeyIfNeeded(signer);
 
   const orderedData = [
     { Text: 'parachain authorization for executing nomination requests operation' },

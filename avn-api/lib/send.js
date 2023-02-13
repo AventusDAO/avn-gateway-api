@@ -151,7 +151,8 @@ function unstake(api, queryApi) {
 function withdrawUnlocked(api, queryApi) {
   return async function (relayer) {
     common.validateAccount(relayer);
-    const methodArgs = {};
+    const nominator = api.signer().address;
+    const methodArgs = { nominator };
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking);
   };

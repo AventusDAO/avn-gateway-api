@@ -5,7 +5,7 @@ module "gateway_cognito_acm" {
   source  = "terraform-aws-modules/acm/aws"
   version = "4.3.1"
 
-  domain_name = "*.${local.environment}.gateway.aventus.io"
+  domain_name = "*.${local.gateway_url}"
   zone_id     = module.dns.public_zone_id
 
   wait_for_validation = true
@@ -27,7 +27,8 @@ module "gateway_cognito_acm" {
 module "gateway_cognito" {
   source = "../../../modules/cognito"
 
-  hosted_zone            = "${local.environment}.gateway.aventus.io"
-  domain                 = "admin.${local.environment}.gateway.aventus.io"
+  hosted_zone            = local.gateway_url
+  domain                 = "auth.${local.gateway_url}"
+  callback_urls          = ["admin.${local.gateway_url}/payerAdmin"]
   domain_certificate_arn = module.gateway_cognito_acm.acm_certificate_arn
 }

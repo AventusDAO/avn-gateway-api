@@ -35,7 +35,7 @@ EOT
     require_numbers                  = true
     require_symbols                  = true
     require_uppercase                = true
-    temporary_password_validity_days = 7
+    temporary_password_validity_days = 1
   }
 
   software_token_mfa_configuration {

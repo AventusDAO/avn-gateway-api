@@ -12,6 +12,17 @@ resource "aws_cognito_user_pool" "this" {
 
   admin_create_user_config {
     allow_admin_create_user_only = true
+
+    invite_message_template {
+      email_message = <<EOT
+    <h3>Welcome to the AvN Gateway</h3>
+    <p>You have successfully registered as a payer on the avn gateway.</p>
+    Your username is <b>{username}</b> and temporary password is <b>{####}</b>
+    <p>You will be prompted to change your password when you first log in, this password will expire in 1 day.</p>
+EOT
+      email_subject = "AvN Gateway registration - your temporary password"
+      sms_message   = "Your username is {username} and temporary password is {####}."
+    }
   }
 
   email_configuration {
@@ -24,7 +35,7 @@ resource "aws_cognito_user_pool" "this" {
     require_numbers                  = true
     require_symbols                  = true
     require_uppercase                = true
-    temporary_password_validity_days = 7
+    temporary_password_validity_days = 1
   }
 
   software_token_mfa_configuration {
@@ -56,11 +67,11 @@ resource "aws_cognito_user_pool_domain" "this" {
 resource "aws_cognito_user_pool_client" "this" {
   name                                 = "admin-split-fee"
   user_pool_id                         = aws_cognito_user_pool.this.id
-  generate_secret                      = false
+  generate_secret                      = true
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["email", "openid"]
-  callback_urls                        = ["https://aventus.io"]
+  callback_urls                        = formatlist("https://%s", var.callback_urls)
   prevent_user_existence_errors        = "ENABLED"
   supported_identity_providers         = ["COGNITO"]
 }

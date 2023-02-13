@@ -82,7 +82,7 @@ async function poll(requestId) {
 async function getAccountInfo(accountId) {
   let balancesAll = await api.derive.balances.all(accountId);
   let currentEraIndex = (await api.query.parachainStaking.era()).current;
-  let collators = JSON.parse(await getValidatorsToNominate(api));
+  let collators = await getCollatorsToNominate(api);
 
   let stakedBalance, unlockedBalance, unstakedBalance;
 
@@ -122,7 +122,7 @@ async function getNonce(senderAddress) {
   return nonce;
 }
 
-async function getValidatorsToNominate() {
+async function getCollatorsToNominate() {
   let collators = await redis.getCollatorsToNominate();
 
   if (collators === undefined) {
@@ -388,7 +388,7 @@ function isTransactionHash(requestId) {
 
 module.exports = {
   getAccountInfo,
-  getValidatorsToNominate,
+  getCollatorsToNominate,
   getLowerDataFromRpc,
   getStakingStats,
   getChainInfo,

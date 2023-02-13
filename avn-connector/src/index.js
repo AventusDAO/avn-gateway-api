@@ -94,8 +94,8 @@ app.post('/avnAccountInfo', async (req, res, next) => {
 app.post('/avnValidatorsToNominate', async (req, res, next) => {
   try {
     log.trace({ avnValidatorsToNominateRequest: req.body });
-    const result = await avn.getValidatorsToNominate();
-    res.send(result);
+    const result = await avn.getCollatorsToNominate();
+    res.send(JSON.stringify(result));
   } catch (err) {
     next(err);
   }

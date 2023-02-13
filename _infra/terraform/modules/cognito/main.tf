@@ -72,6 +72,7 @@ resource "aws_cognito_user_pool_client" "this" {
   allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["email", "openid"]
   callback_urls                        = formatlist("https://%s", var.callback_urls)
+  logout_urls                          = formatlist("https://%s", var.logout_urls)
   prevent_user_existence_errors        = "ENABLED"
   supported_identity_providers         = ["COGNITO"]
 }

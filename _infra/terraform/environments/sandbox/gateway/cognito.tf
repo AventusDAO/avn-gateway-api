@@ -30,5 +30,6 @@ module "gateway_cognito" {
   hosted_zone            = local.gateway_url
   domain                 = "auth.${local.gateway_url}"
   callback_urls          = ["admin.${local.gateway_url}/payerAdmin"]
+  logout_urls            = ["admin.${local.gateway_url}/payerLogout"]
   domain_certificate_arn = module.gateway_cognito_acm.acm_certificate_arn
 }

@@ -15,12 +15,12 @@ module "api_gateway" {
 }
 
 module "dns" {
-  source             = "../../../modules/dns"
-  vpc_id             = data.terraform_remote_state.vpc.outputs.vpc_id
-  environment        = local.environment
-  api_gateway_url    = module.api_gateway.url
-  api_gateway_id     = module.api_gateway.api_id
-  api_gateway_stage  = module.api_gateway.stage_id
+  source            = "../../../modules/dns"
+  vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
+  environment       = local.environment
+  api_gateway_url   = module.api_gateway.url
+  api_gateway_id    = module.api_gateway.api_id
+  api_gateway_stage = module.api_gateway.stage_id
 
   providers = {
     aws         = aws
@@ -34,10 +34,10 @@ module "rabbit_credentials" {
 }
 
 module "rabbitmq" {
-  source          = "../../../modules/rabbitmq"
-  vpc_id          = data.terraform_remote_state.vpc.outputs.vpc_id
-  subnet_ids      = setunion(data.terraform_remote_state.vpc.outputs.private_subnets, data.terraform_remote_state.vpc.outputs.public_subnets)
-  instance_type   = "mq.t3.micro"
+  source        = "../../../modules/rabbitmq"
+  vpc_id        = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnet_ids    = setunion(data.terraform_remote_state.vpc.outputs.private_subnets, data.terraform_remote_state.vpc.outputs.public_subnets)
+  instance_type = "mq.t3.micro"
 }
 
 data "aws_eks_cluster" "eks" {

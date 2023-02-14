@@ -29,7 +29,7 @@ module "gateway_cognito" {
 
   hosted_zone            = local.gateway_url
   domain                 = "auth.${local.gateway_url}"
-  callback_urls          = ["admin-gateway.dev.aventus.io/payerAdmin", "localhost:3007/payerAdmin"]
-  logout_urls            = ["admin-gateway.dev.aventus.io/payerLogout", "localhost:3007/payerLogout"]
+  callback_urls          = ["https://admin-gateway.dev.aventus.io/payerAdmin", "http://localhost:3007/payerAdmin"]
+  logout_urls            = ["https://admin-gateway.dev.aventus.io/payerLogout", "http://localhost:3007/payerLogout"]
   domain_certificate_arn = module.gateway_cognito_acm.acm_certificate_arn
 }

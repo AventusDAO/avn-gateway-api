@@ -13,6 +13,10 @@ module.exports = new EntitySchema({
             unique: true,
             length: 66
         },
+        cognitoId: {
+            type: "varchar",
+            unique: true,
+        },
         description: {
             type: "varchar",
             nullable: true,

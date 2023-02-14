@@ -81,8 +81,15 @@ async function poll(requestId) {
 
 async function getAccountInfo(accountId) {
   let balancesAll = await api.derive.balances.all(accountId);
+  log.trace({ message: 'balancesAll', balancesAll: `${balancesAll}` });
+
   let currentEraIndex = (await api.query.parachainStaking.era()).current;
+
+  log.trace({ message: 'currentEraIndex', currentEraIndex: `${currentEraIndex}` });
+
   let collators = await getCollatorsToNominate(api);
+
+  log.trace({ message: 'collators', collators: `${collators}` });
 
   let stakedBalance, unlockedBalance, unstakedBalance;
 
@@ -125,8 +132,16 @@ async function getNonce(senderAddress) {
 async function getCollatorsToNominate() {
   let collators = await redis.getCollatorsToNominate();
 
+  log.trace({ message: 'collators inside get collators to nominate', collators: `${collators}` });
+
+
   if (collators === undefined) {
+  log.trace({ message: 'collators undefined'});
+
     let collators = await api.query.parachainStaking.selectedCandidates();
+
+    log.trace({ message: 'collators undefined inside get collators to nominate ', collators: `${collators}` });
+
     await redis.setCollatorsToNominate(collators);
   }
 

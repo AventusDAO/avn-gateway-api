@@ -58,24 +58,29 @@ function getRequestedAmount(requestAction) {
   return BN_ZERO;
 }
 
-function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator) {
-  let totalStaked = new BN('0');
-  let numActiveStakes = 0;
+function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator, totalStaked) {
+  // let totalStaked = new BN('0');
+  let numActiveStakes = stakersData.length;
   let totalStakers = 0;
   const nominators = {};
 
-  stakersData.info.forEach(({ exposure }) => {
-    const bondTotal = exposure.total.unwrap();
-    if (!bondTotal.isZero()) {
-      totalStaked = totalStaked.add(bondTotal);
-      numActiveStakes++;
-    }
-
-    (exposure.others || []).forEach(otherStaker => {
-      const nominator = otherStaker.who.toString();
-      nominators[nominator] = (nominators[nominator] || BN_ZERO).add(otherStaker.value?.toBn() || BN_ZERO);
-    });
+  stakersData.forEach( stake => {
+    const nominator = stake[1].id;
+    nominators[nominator] = stake[1]?.total || BN_ZERO;
   });
+  // stakersData.info.forEach(({ exposure }) => {
+  //   const bondTotal = exposure.total.unwrap();
+  //   if (!bondTotal.isZero()) {
+  //     totalStaked = totalStaked.add(bondTotal);
+  //     numActiveStakes++;
+  //   }
+
+  //   (exposure.others || []).forEach(otherStaker => {
+  //     const nominator = otherStaker.who.toString();
+  //     nominators[nominator] = (nominators[nominator] || BN_ZERO).add(otherStaker.value?.toBn() || BN_ZERO);
+  //   });
+  // });
+
   const averageStaked = totalStaked.divn(numActiveStakes).toString();
   const minimumStaked = Object.values(nominators).reduce((minStake, value) => {
     totalStakers++;

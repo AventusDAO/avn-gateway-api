@@ -81,7 +81,7 @@ async function poll(requestId) {
 
 async function getAccountInfo(accountId) {
   let balancesAll = await api.derive.balances.all(accountId);
-  log.trace({ message: 'balancesAll', balancesAll: `${balancesAll}` });
+  log.trace({ message: 'balancesAll', balancesAll: `${JSON.stringify(balancesAll, null, 2)}` });
 
   let currentEraIndex = (await api.query.parachainStaking.era()).current;
 
@@ -166,15 +166,33 @@ async function getCollatorsToNominate() {
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
 
+  log.trace({ message: 'api.derive', derive: `${JSON.stringify(api.derive, null, 2)}` });
+
   if (stakingStats === undefined) {
-    const stakersData = await api.derive.staking.electedInfo({ withExposure: true });
+    // const stakersData = await api.derive.staking.electedInfo({ withExposure: true });
+    const totalStaked = await api.query.parachainStaking.total();
+
+    log.trace({ message: 'totalStaked', totalStaked: `${totalStaked.toString()}` });
+
+
+    const stakersData = await api.query.parachainStaking.nominatorState();
+
+    log.trace({ message: 'stakersData', stakersData: `${JSON.stringify(stakersData, null, 2)}` });
+
 
     const [minUserBond, maxNominatorsRewardedPerValidator] = await Promise.all([
-      api.query.validatorsManager.minUserBond(),
+      api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.staking.maxNominatorRewardedPerValidator
     ]);
 
-    stakingStats = stakingHelper.calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator);
+    log.trace({ message: 'minUserBond', minUserBond: `${minUserBond.toString()}` });
+    log.trace({ message: 'maxNominatorsRewardedPerValidator', maxNominatorsRewardedPerValidator: `${maxNominatorsRewardedPerValidator.toString()}` });
+
+
+    stakingStats = stakingHelper.calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator, totalStaked);
+
+    log.trace({ message: 'stakingStats', stakingStats: `${JSON.stringify(stakingStats, null, 2)}` });
+
     await redis.setStakingStats(stakingStats);
   }
 

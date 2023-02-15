@@ -99,11 +99,21 @@ async function getAccountInfo(accountId) {
         stakingHelper.calculateCollatorStakingBalances(candidateInfo, currentEraIndex));
   } else {
     const nominatorState = await api.query.parachainStaking.nominatorState(accountId);
+
+    log.trace({ message: 'nominatorState', nominatorState: `${nominatorState}` });
+
+
     let allRequests = (await api.query.parachainStaking.nominationScheduledRequests.multi(collators))
+
+    log.trace({ message: 'allRequests', allRequests: `${allRequests}` });
+
 
     let nominatorRequests = allRequests
         .filter(reqArray => reqArray.some(req => req.nominator.eq(accountId)))
         .flat();
+
+    log.trace({ message: 'nominatorRequests', nominatorRequests: `${nominatorRequests}` });
+
 
     ({stakedBalance, unlockedBalance, unstakedBalance} =
         stakingHelper.calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex));

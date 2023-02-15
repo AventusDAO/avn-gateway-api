@@ -71,10 +71,9 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
 
 
     log.trace({ message: 'stake[1]', stake_one: `${JSON.stringify(stake[1])}` });
-    log.trace({ message: 'stake[1][id]', stake_one_id: `${JSON.stringify(stake[1]["id"])}` });
 
-    const nominator = stake[1]["id"].toString();
-    nominators[nominator] = stake[1]?.total?.toBn() || BN_ZERO;
+    const nominator = JSON.parse(stake[1]).id.toString();
+    nominators[nominator] = JSON.parse(stake[1]).total?.toBn() || BN_ZERO;
   });
   // stakersData.info.forEach(({ exposure }) => {
   //   const bondTotal = exposure.total.unwrap();

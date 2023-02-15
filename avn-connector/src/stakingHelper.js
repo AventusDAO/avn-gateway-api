@@ -73,7 +73,7 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
     log.trace({ message: 'stake[1]', stake_one: `${JSON.stringify(stake[1])}` });
 
     const nominator = JSON.parse(stake[1]).id.toString();
-    nominators[nominator] = JSON.parse(stake[1]).total?.toBn() || BN_ZERO;
+    nominators[nominator] = hexToBn(JSON.parse(stake[1]).total) || BN_ZERO;
   });
   // stakersData.info.forEach(({ exposure }) => {
   //   const bondTotal = exposure.total.unwrap();

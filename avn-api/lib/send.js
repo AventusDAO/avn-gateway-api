@@ -16,6 +16,7 @@ function Send(api, queryApi) {
   this.confirmTokenLift = generateFunction(confirmTokenLift, api, queryApi);
   this.lowerToken = generateFunction(lowerToken, api, queryApi);
   this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi);
+  this.mintBatchNft = generateFunction(mintBatchNft, api, queryApi);
   this.listFiatNftForSale = generateFunction(listFiatNftForSale, api, queryApi);
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi);
   this.cancelFiatNftListing = generateFunction(cancelFiatNftListing, api, queryApi);
@@ -82,6 +83,19 @@ function mintSingleNft(api, queryApi) {
     const methodArgs = { externalRef, royalties, t1Authority };
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyMintSingleNft, NONCE_TYPE.None);
+  };
+}
+
+function mintBatchNft(api, queryApi) {
+  return async function (relayer, batchId, index, owner, externalRef) {
+    common.validateAccount(relayer);
+    common.validateNftId(batchId);
+    common.validateNumber(index);
+    common.validateAccount(owner);
+    common.validateStringIsPopulated(externalRef);
+    const methodArgs = { batchId, index, owner, externalRef };
+
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyMintBatchNft, NONCE_TYPE.None);
   };
 }
 

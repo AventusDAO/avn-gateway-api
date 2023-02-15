@@ -13,6 +13,7 @@ const signing = {
   proxyConfirmTokenLift: proxyArgs => signProxyConfirmTokenLift(proxyArgs),
   proxyTokenLower: proxyArgs => signProxyTokenLower(proxyArgs),
   proxyMintSingleNft: proxyArgs => signProxyMintSingleNft(proxyArgs),
+  proxyMintBatchNft: proxyArgs => signProxyMintBatchNft(proxyArgs),
   proxyListNftOpenForSale: proxyArgs => signProxyListNftOpenForSale(proxyArgs),
   proxyTransferFiatNft: proxyArgs => signProxyTransferFiatNft(proxyArgs),
   proxyCancelListFiatNft: proxyArgs => signProxyCancelListFiatNft(proxyArgs),
@@ -86,6 +87,22 @@ function signProxyMintSingleNft({ relayer, externalRef, royalties, t1Authority, 
     { 'Vec<u8>': externalRef },
     { SkipEncode: encodeRoyalties(royalties) },
     { H160: t1Authority }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyMintBatchNft({ relayer, batchId, index, owner, externalRef, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'authorization for mint batch nft operation' },
+    { AccountId: relayer },
+    { U256: batchId },
+    { u64: index },
+    { AccountId: owner },
+    { 'Vec<u8>': externalRef }
   ];
 
   const encodedDataToSign = encodeOrderedData(orderedData);

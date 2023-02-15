@@ -175,10 +175,11 @@ async function getStakingStats() {
     log.trace({ message: 'totalStaked', totalStaked: `${totalStaked.toString()}` });
 
     // const stakersData = await api.query().parachainStaking.nominatorState();
-    let stakersDataJSON = await this.query('parachainStaking', 'nominatorState', ['entries']);
-    let stakersData = stakersDataJSON.toJSON();
+    // let stakersDataJSON = await this.query('parachainStaking', 'nominatorState', ['entries']);
+    let stakersData = await api.query[parachainStaking][nominatorState].entries();
+    log.trace({ message: 'stakersData', stakersData: `${JSON.stringify(stakersData)}` });
 
-    log.trace({ message: 'stakersData', stakersData: `${JSON.stringify(stakersData, null, 2)}` });
+    // let stakersData = stakersDataJSON.toJSON();
 
     // const minUserBond = await api.query.parachainStaking.minTotalNominatorStake();
 

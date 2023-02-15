@@ -176,7 +176,7 @@ async function getStakingStats() {
 
     // const stakersData = await api.query().parachainStaking.nominatorState();
     // let stakersDataJSON = await this.query('parachainStaking', 'nominatorState', ['entries']);
-    let stakersData = await api.query[parachainStaking][nominatorState].entries();
+    let stakersData = await api.query['parachainStaking']['nominatorState'].entries();
     log.trace({ message: 'stakersData', stakersData: `${JSON.stringify(stakersData)}` });
 
     // let stakersData = stakersDataJSON.toJSON();

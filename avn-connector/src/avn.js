@@ -175,7 +175,8 @@ async function getStakingStats() {
     log.trace({ message: 'totalStaked', totalStaked: `${totalStaked.toString()}` });
 
 
-    const stakersData = await api.query.parachainStaking.nominatorState();
+    // const stakersData = await api.query().parachainStaking.nominatorState();
+    const stakersData = await this.query('parachainStaking', 'nominatorState', ['entries']);
 
     log.trace({ message: 'stakersData', stakersData: `${JSON.stringify(stakersData, null, 2)}` });
 

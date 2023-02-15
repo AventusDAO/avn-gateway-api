@@ -65,8 +65,8 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
   const nominators = {};
 
   stakersData.forEach( stake => {
-    const nominator = stake[1].id;
-    nominators[nominator] = stake[1]?.total || BN_ZERO;
+    const nominator = stake[1].id.toString();
+    nominators[nominator] = stake[1]?.total?.toBn() || BN_ZERO;
   });
   // stakersData.info.forEach(({ exposure }) => {
   //   const bondTotal = exposure.total.unwrap();

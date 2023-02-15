@@ -2,6 +2,8 @@ const BN = require('bn.js');
 const BN_ZERO = new BN(0);
 const lambda = require('./lambdas');
 const { u8aConcat, u8aToHex, hexToBn } = require('@polkadot/util');
+const log4js = require('log4js');
+const log = log4js.getLogger();
 
 function calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex) {
   let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
@@ -65,6 +67,11 @@ function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPe
   const nominators = {};
 
   stakersData.forEach( stake => {
+    log.trace({ message: 'stake', stake: `${JSON.stringify(stake)}` });
+
+
+    log.trace({ message: 'stake[1]', stake_one: `${JSON.stringify(stake[1])}` });
+
     const nominator = stake[1].id.toString();
     nominators[nominator] = stake[1]?.total?.toBn() || BN_ZERO;
   });

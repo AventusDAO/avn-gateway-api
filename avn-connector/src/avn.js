@@ -180,10 +180,12 @@ async function getStakingStats() {
 
     log.trace({ message: 'stakersData', stakersData: `${JSON.stringify(stakersData, null, 2)}` });
 
+    // const minUserBond = await api.query.parachainStaking.minTotalNominatorStake();
 
+    // const maxNominatorsRewardedPerValidator =
     const [minUserBond, maxNominatorsRewardedPerValidator] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
-      api.consts.staking.maxNominatorRewardedPerValidator
+      api.consts.parachainStaking.maxTopNominationsPerCandidate
     ]);
 
     log.trace({ message: 'minUserBond', minUserBond: `${minUserBond.toString()}` });

@@ -12,6 +12,7 @@ const signing = {
   proxyTokenTransfer: proxyArgs => signProxyTokenTransfer(proxyArgs),
   proxyConfirmTokenLift: proxyArgs => signProxyConfirmTokenLift(proxyArgs),
   proxyTokenLower: proxyArgs => signProxyTokenLower(proxyArgs),
+  proxyCreateNftBatch: proxyArgs => signProxyCreateNftBatch(proxyArgs),
   proxyMintSingleNft: proxyArgs => signProxyMintSingleNft(proxyArgs),
   proxyMintBatchNft: proxyArgs => signProxyMintBatchNft(proxyArgs),
   proxyListNftOpenForSale: proxyArgs => signProxyListNftOpenForSale(proxyArgs),
@@ -72,6 +73,21 @@ function signProxyTokenLower({ relayer, user, token, amount, t1Recipient, nonce,
     { u128: amount },
     { H160: t1Recipient },
     { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyCreateNftBatch({ relayer, totalSupply, royalties, t1Authority, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'authorization for create batch operation' },
+    { AccountId: relayer },
+    { u64: totalSupply },
+    { SkipEncode: encodeRoyalties(royalties) },
+    { H160: t1Authority }
   ];
 
   const encodedDataToSign = encodeOrderedData(orderedData);

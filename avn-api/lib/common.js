@@ -14,6 +14,7 @@ const TX_TYPE = {
   ProxyTokenTransfer: 'proxyTokenTransfer',
   ProxyConfirmTokenLift: 'proxyConfirmTokenLift',
   ProxyTokenLower: 'proxyTokenLower',
+  ProxyCreateNftBatch: 'proxyCreateNftBatch',
   ProxyMintSingleNft: 'proxyMintSingleNft',
   ProxyMintBatchNft: 'proxyMintBatchNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',

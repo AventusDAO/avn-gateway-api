@@ -15,6 +15,7 @@ function Send(api, queryApi) {
   this.transferToken = generateFunction(transferToken, api, queryApi);
   this.confirmTokenLift = generateFunction(confirmTokenLift, api, queryApi);
   this.lowerToken = generateFunction(lowerToken, api, queryApi);
+  this.createNftBatch = generateFunction(createNftBatch, api, queryApi);
   this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi);
   this.mintBatchNft = generateFunction(mintBatchNft, api, queryApi);
   this.listFiatNftForSale = generateFunction(listFiatNftForSale, api, queryApi);
@@ -71,6 +72,18 @@ function lowerToken(api, queryApi) {
     const methodArgs = { t1Recipient, token, amount };
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyTokenLower, NONCE_TYPE.Token);
+  };
+}
+
+function createNftBatch(api, queryApi) {
+  return async function (relayer, totalSupply, royalties, t1Authority) {
+    common.validateAccount(relayer);
+    common.validateNumber(totalSupply);
+    common.validateRoyalties(royalties);
+    common.validateEthereumAddress(t1Authority);
+    const methodArgs = { totalSupply, royalties, t1Authority };
+
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyCreateNftBatch, NONCE_TYPE.None);
   };
 }
 

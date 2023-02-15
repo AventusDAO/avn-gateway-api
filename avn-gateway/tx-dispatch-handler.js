@@ -100,6 +100,8 @@ async function callSwitch(call, request, requestId) {
       return await processProxyAddEthereumLog(call, request, requestId);
     case 'proxyTokenLower':
       return await processProxyTokenLower(call, request, requestId);
+    case 'proxyCreateNftBatch':
+      return await processProxyCreateNftBatch(call, request, requestId);
     case 'proxyCancelListFiatNft':
       return await processProxyCancelListFiatNft(call, request, requestId);
     case 'proxyListNftOpenForSale':
@@ -168,6 +170,23 @@ async function processProxyTokenLower(call, request, requestId) {
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidEthereumAddress(t1Recipient) === false) throw 't1Recipient';
+  } catch (param) {
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyCreateNftBatch(call, request, requestId) {
+  const pallet = 'nftManager';
+  const method = 'signedCreateBatch';
+  const { totalSupply, royalties, t1Authority } = call.params;
+  const methodParams = [totalSupply, royalties, t1Authority];
+
+  try {
+    if (utils.isValidNumber(totalSupply) === false) throw 'totalSupply';
+    if (utils.isValidArray(royalties) === false) throw 'royalties';
+    if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }

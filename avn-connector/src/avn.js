@@ -108,9 +108,14 @@ async function getAccountInfo(accountId) {
     log.trace({ message: 'allRequests', allRequests: `${allRequests}` });
 
 
+    // let nominatorRequests = allRequests
+    //     .filter(reqArray => reqArray.some(req => req.nominator.eq(accountId)))
+    //     .flat();
+
+
     let nominatorRequests = allRequests
-        .filter(reqArray => reqArray.some(req => req.nominator.eq(accountId)))
-        .flat();
+      .flat()
+      .filter(req => req.nominator.eq(accountId));
 
     log.trace({ message: 'nominatorRequests', nominatorRequests: `${nominatorRequests}` });
 

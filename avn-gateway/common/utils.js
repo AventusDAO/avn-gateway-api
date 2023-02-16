@@ -23,6 +23,7 @@ const TX_TYPES = [
   'proxyListNftBatchForSale',
   'proxyTransferFiatNft',
   'proxyCancelListFiatNft',
+  'proxyEndNftBatchSale',
   'proxyIncreaseStake',
   'proxyUnstake',
   'proxyWithdrawUnlocked',

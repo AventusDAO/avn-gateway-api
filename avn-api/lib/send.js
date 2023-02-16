@@ -22,6 +22,7 @@ function Send(api, queryApi) {
   this.listFiatNftBatchForSale = generateFunction(listFiatNftBatchForSale, api, queryApi);
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi);
   this.cancelFiatNftListing = generateFunction(cancelFiatNftListing, api, queryApi);
+  this.endNftBatchSale = generateFunction(endNftBatchSale, api, queryApi);
   this.stake = generateFunction(stake, api, queryApi);
   this.unstake = generateFunction(unstake, api, queryApi);
   this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
@@ -145,6 +146,16 @@ function transferFiatNft(api, queryApi) {
     const methodArgs = { nftId, recipient };
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyTransferFiatNft, NONCE_TYPE.Nft);
+  };
+}
+
+function endNftBatchSale(api, queryApi) {
+  return async function (relayer, batchId) {
+    common.validateAccount(relayer);
+    common.validateNftId(batchId);
+    const methodArgs = { batchId };
+
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyEndNftBatchSale, NONCE_TYPE.Nft);
   };
 }
 

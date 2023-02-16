@@ -19,6 +19,7 @@ const signing = {
   proxyListNftBatchForSale: proxyArgs => signProxyListNftBatchForSale(proxyArgs),
   proxyTransferFiatNft: proxyArgs => signProxyTransferFiatNft(proxyArgs),
   proxyCancelListFiatNft: proxyArgs => signProxyCancelListFiatNft(proxyArgs),
+  proxyEndNftBatchSale: proxyArgs => signProxyEndNftBatchSale(proxyArgs),
   proxyBond: proxyArgs => signProxyBond(proxyArgs),
   proxyNominate: proxyArgs => signProxyNominate(proxyArgs),
   proxyIncreaseStake: proxyArgs => signProxyIncreaseStake(proxyArgs),
@@ -187,6 +188,21 @@ function signProxyCancelListFiatNft({ relayer, nftId, nonce, signer }) {
   const encodedDataToSign = encodeOrderedData(orderedData);
   return signData(signer, encodedDataToSign);
 }
+
+function signProxyEndNftBatchSale({ relayer, batchId, nonce, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'authorization for end batch sale operation' },
+    { AccountId: relayer },
+    { U256: batchId },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
 
 function signProxyNominate({ relayer, targets, amount, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);

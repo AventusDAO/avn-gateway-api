@@ -95,6 +95,7 @@ function signProxyMintSingleNft({ relayer, externalRef, royalties, t1Authority, 
 
 function signProxyMintBatchNft({ relayer, batchId, index, owner, externalRef, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
+  owner = common.convertToPublicKeyIfNeeded(owner);
 
   const orderedData = [
     { Text: 'authorization for mint batch nft operation' },

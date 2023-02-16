@@ -69,6 +69,9 @@ The api exposes the following methods:
   - `api.proxy.generateProxySignature('proxyTokenLower', { relayer, user, token, amount, t1Recipient, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_
 
+  - `api.proxy.generateProxySignature('proxyCreateNftBatch', { relayer, totalSupply, royalties, t1Authority, nonce })`\
+  _for the nonce call [getNftNonce](#getNftNonce) with `nftId` = nftId_
+
   - `api.proxy.generateProxySignature('proxyMintSingleNft', { relayer, externalRef, royalties, t1Authority })`\
   _no nonce required_
 
@@ -671,6 +674,7 @@ Returns fees for a particular relayer, optionally by user and/or transaction typ
   "proxyTokenTransfer"
   "proxyConfirmTokenLift"
   "proxyTokenLower"
+  "proxyCreateNftBatch"
   "proxyMintSingleNft"
   "proxyMintBatchNft"
   "proxyListNftOpenForSale"
@@ -716,6 +720,7 @@ OR
     "proxyTokenTransfer": "7000000000000000",
     "proxyConfirmTokenLift": "7000000000000000",
     "proxyTokenLower": "7000000000000000",
+    "proxyCreateNftBatch": "7000000000000000",
     "proxyMintSingleNft": "7000000000000000",
     "proxyMintBatchNft": "7000000000000000",
     "proxyListNftOpenForSale": "7000000000000000",
@@ -1052,6 +1057,49 @@ curl https://AVN-API-URL/send \
   "jsonrpc": "2.0",
   "id": 1,
   "result": "8b62441c-e032-46e3-bd1d-0f8a0a764442"
+}
+```
+
+#### proxyCreateNftBatch
+Creates a new batch of NFTs
+
+**REQUEST**\
+`POST https://AVN-API-URL/send`
+
+**HEADERS**\
+`Content-Type: application/json`\
+`Authorization: bearer <awtToken>`
+
+**REQUEST PARAMS**\
+`relayer` *[required]* - a string representing the relayer's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
+`payer` *[required]* - a string representing the payer's SS58 address \
+`totalSupply` *[required]* - string integer value of the number of NFTs in the batch \
+`royalties` *[optional]* - an array of royalty rates with percentages set in parts per million - accepts empty array if no royalties\
+`t1Authority` *[required]* - a hex string representing the 20 byte Ethereum address of the relevant authority \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/send \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"proxyCreateNftBatch", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "payer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "totalSupply":"1234", "royalties": [{"recipient_t1_address":"0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03", "rate": {"parts_per_million":"10000"}}], "t1Authority":"0xd6ae8250b8348c94847280928c79fb3b63ca453e", "proxySignature":"0xd4d20c5be0943cd1e784b7d83f7bf69d1c2419411c1b6b6d60c1e6d2c636742c30f44100d0fe24717104cad467890272d47a36f8daf497ebd2ec3ed106c58d8f", "feePaymentSignature":"0x4e4ec2190d44765d1b5fa88f6aabbf87744ef964c171f0ec48763fcfbc99e47e9b0ccd633403f75068604cf3b94336c7e93a56b13a0973d181432d381b5b0f8a", "paymentNonce":"201"}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - a request ID that can be queried for the transaction's status
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "a3ef1c40-c1be-4beb-9953-357d0ab504a9"
 }
 ```
 

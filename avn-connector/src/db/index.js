@@ -14,6 +14,7 @@ const transactionTypes = {
   proxyTokenTransfer: 'proxyTokenTransfer',
   proxyConfirmTokenLift: 'proxyConfirmTokenLift',
   proxyTokenLower: 'proxyTokenLower',
+  proxyCreateNftBatch: 'proxyCreateNftBatch',
   proxyMintSingleNft: 'proxyMintSingleNft',
   proxyMintBatchNft: 'proxyMintBatchNft',
   proxyListNftOpenForSale: 'proxyListNftOpenForSale',

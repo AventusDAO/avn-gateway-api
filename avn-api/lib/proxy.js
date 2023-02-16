@@ -143,7 +143,7 @@ function signProxyListNftOpenForSale({ relayer, nftId, market, nonce, signer }) 
   return signData(signer, encodedDataToSign);
 }
 
-function signProxyListNftBatchForSale({ relayer, user, batchId, market, nonce, signer }) {
+function signProxyListNftBatchForSale({ relayer, batchId, market, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [

@@ -81,16 +81,8 @@ async function poll(requestId) {
 
 async function getAccountInfo(accountId) {
   let balancesAll = await api.derive.balances.all(accountId);
-  log.trace({ message: 'balancesAll', balancesAll: `${JSON.stringify(balancesAll, null, 2)}` });
-
   let currentEraIndex = (await api.query.parachainStaking.era()).current;
-
-  log.trace({ message: 'currentEraIndex', currentEraIndex: `${currentEraIndex}` });
-
   let collators = await getCollatorsToNominate(api);
-
-  log.trace({ message: 'collators', collators: `${collators}` });
-
   let stakedBalance, unlockedBalance, unstakedBalance;
 
   if (collators.some(c => c.toLowerCase() === accountId.toLowerCase())) {
@@ -99,26 +91,11 @@ async function getAccountInfo(accountId) {
         stakingHelper.calculateCollatorStakingBalances(candidateInfo, currentEraIndex));
   } else {
     const nominatorState = await api.query.parachainStaking.nominatorState(accountId);
-
-    log.trace({ message: 'nominatorState', nominatorState: `${nominatorState}` });
-
-
     let allRequests = (await api.query.parachainStaking.nominationScheduledRequests.multi(collators))
-
-    log.trace({ message: 'allRequests', allRequests: `${allRequests}` });
-
-
-    // let nominatorRequests = allRequests
-    //     .filter(reqArray => reqArray.some(req => req.nominator.eq(accountId)))
-    //     .flat();
-
 
     let nominatorRequests = allRequests
       .flat()
       .filter(req => req.nominator.eq(accountId));
-
-    log.trace({ message: 'nominatorRequests', nominatorRequests: `${nominatorRequests}` });
-
 
     ({stakedBalance, unlockedBalance, unstakedBalance} =
         stakingHelper.calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex));
@@ -147,16 +124,8 @@ async function getNonce(senderAddress) {
 async function getCollatorsToNominate() {
   let collators = await redis.getCollatorsToNominate();
 
-  log.trace({ message: 'collators inside get collators to nominate', collators: `${collators}` });
-
-
   if (collators === undefined) {
-  log.trace({ message: 'collators undefined'});
-
     let collators = await api.query.parachainStaking.selectedCandidates();
-
-    log.trace({ message: 'collators undefined inside get collators to nominate ', collators: `${collators}` });
-
     await redis.setCollatorsToNominate(collators);
   }
 
@@ -165,41 +134,22 @@ async function getCollatorsToNominate() {
 
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
-
-  log.trace({ message: 'api.derive', derive: `${JSON.stringify(api.derive, null, 2)}` });
-
   if (stakingStats === undefined) {
-    // const stakersData = await api.derive.staking.electedInfo({ withExposure: true });
-    const totalStaked = await api.query.parachainStaking.total();
-
-    log.trace({ message: 'totalStaked', totalStaked: `${totalStaked.toString()}` });
-
-    // const stakersData = await api.query().parachainStaking.nominatorState();
-    // let stakersDataJSON = await this.query('parachainStaking', 'nominatorState', ['entries']);
     let stakersData = await api.query['parachainStaking']['nominatorState'].entries();
-    log.trace({ message: 'stakersData', stakersData: `${JSON.stringify(stakersData)}` });
-
-    // let stakersData = stakersDataJSON.toJSON();
-
-    // const minUserBond = await api.query.parachainStaking.minTotalNominatorStake();
-
-    // const maxNominatorsRewardedPerValidator =
-    const [minUserBond, maxNominatorsRewardedPerValidator] = await Promise.all([
+    const [minUserBond, maxNominatorsRewardedPerValidator, totalStaked] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
-      api.consts.parachainStaking.maxTopNominationsPerCandidate
+      api.consts.parachainStaking.maxTopNominationsPerCandidate,
+      api.query.parachainStaking.total()
     ]);
 
-    log.trace({ message: 'minUserBond', minUserBond: `${minUserBond.toString()}` });
-    log.trace({ message: 'maxNominatorsRewardedPerValidator', maxNominatorsRewardedPerValidator: `${maxNominatorsRewardedPerValidator.toString()}` });
-
-
-    stakingStats = stakingHelper.calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator, totalStaked);
-
-    log.trace({ message: 'stakingStats', stakingStats: `${JSON.stringify(stakingStats, null, 2)}` });
-
+    stakingStats = {
+      totalStaked: totalStaked.toString(),
+      minUserBond: minUserBond.toString(),
+      maxNominatorsRewardedPerValidator: maxNominatorsRewardedPerValidator.toString(),
+      totalStakers: stakersData.length,
+    };
     await redis.setStakingStats(stakingStats);
   }
-
   return stakingStats;
 }
 

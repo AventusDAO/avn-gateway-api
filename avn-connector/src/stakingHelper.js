@@ -2,8 +2,6 @@ const BN = require('bn.js');
 const BN_ZERO = new BN(0);
 const lambda = require('./lambdas');
 const { u8aConcat, u8aToHex, hexToBn } = require('@polkadot/util');
-const log4js = require('log4js');
-const log = log4js.getLogger();
 
 function calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex) {
   let stakedBalance = BN_ZERO, unlockedBalance = BN_ZERO, unstakedBalance = BN_ZERO;
@@ -58,50 +56,6 @@ function getRequestedAmount(requestAction) {
 
   console.log(`Warning: Scheduled request action (${requestAction}) is not recognised. Unable to return amount`);
   return BN_ZERO;
-}
-
-function calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator, totalStaked) {
-  // let totalStaked = new BN('0');
-  let numActiveStakes = stakersData.length;
-  let totalStakers = 0;
-  const nominators = {};
-
-  stakersData.forEach( stake => {
-    log.trace({ message: 'stake', stake: `${JSON.stringify(stake)}` });
-
-
-    log.trace({ message: 'stake[1]', stake_one: `${JSON.stringify(stake[1])}` });
-
-    const nominator = JSON.parse(stake[1]).id.toString();
-    nominators[nominator] = hexToBn(JSON.parse(stake[1]).total) || BN_ZERO;
-  });
-  // stakersData.info.forEach(({ exposure }) => {
-  //   const bondTotal = exposure.total.unwrap();
-  //   if (!bondTotal.isZero()) {
-  //     totalStaked = totalStaked.add(bondTotal);
-  //     numActiveStakes++;
-  //   }
-
-  //   (exposure.others || []).forEach(otherStaker => {
-  //     const nominator = otherStaker.who.toString();
-  //     nominators[nominator] = (nominators[nominator] || BN_ZERO).add(otherStaker.value?.toBn() || BN_ZERO);
-  //   });
-  // });
-
-  const averageStaked = totalStaked.divn(numActiveStakes).toString();
-  const minimumStaked = Object.values(nominators).reduce((minStake, value) => {
-    totalStakers++;
-    return minStake.isZero() || value.lt(minStake) ? value : minStake;
-  }, BN_ZERO);
-
-  return {
-    totalStaked: totalStaked.toString(),
-    minimumStaked: minimumStaked.toString(),
-    minUserBond: minUserBond.toString(),
-    maxNominatorsRewardedPerValidator: maxNominatorsRewardedPerValidator.toString(),
-    totalStakers,
-    averageStaked
-  };
 }
 
 module.exports = {

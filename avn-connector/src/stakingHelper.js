@@ -60,6 +60,5 @@ function getRequestedAmount(requestAction) {
 
 module.exports = {
   calculateCollatorStakingBalances,
-  calculateNominatorStakingBalances,
-  calculateStakingStats
+  calculateNominatorStakingBalances
 };

@@ -79,7 +79,7 @@ function signProxyTokenLower({ relayer, user, token, amount, t1Recipient, nonce,
   return signData(signer, encodedDataToSign);
 }
 
-function signProxyCreateNftBatch({ relayer, totalSupply, royalties, t1Authority, signer }) {
+function signProxyCreateNftBatch({ relayer, totalSupply, royalties, t1Authority, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
@@ -87,7 +87,8 @@ function signProxyCreateNftBatch({ relayer, totalSupply, royalties, t1Authority,
     { AccountId: relayer },
     { u64: totalSupply },
     { SkipEncode: encodeRoyalties(royalties) },
-    { H160: t1Authority }
+    { H160: t1Authority },
+    { u64: nonce }
   ];
 
   const encodedDataToSign = encodeOrderedData(orderedData);

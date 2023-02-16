@@ -18,6 +18,7 @@ const TX_TYPE = {
   ProxyMintSingleNft: 'proxyMintSingleNft',
   ProxyMintBatchNft: 'proxyMintBatchNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
+  ProxyListNftBatchForSale: 'proxyListNftBatchForSale',
   ProxyTransferFiatNft: 'proxyTransferFiatNft',
   ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
   proxyStakeAvt: 'proxyStakeAvt',

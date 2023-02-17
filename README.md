@@ -70,7 +70,7 @@ The api exposes the following methods:
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_
 
   - `api.proxy.generateProxySignature('proxyCreateNftBatch', { relayer, totalSupply, royalties, t1Authority, nonce })`\
-  _for the nonce call [getNftNonce](#getNftNonce) with `nftId` = nftId_
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'batch'_
 
   - `api.proxy.generateProxySignature('proxyMintSingleNft', { relayer, externalRef, royalties, t1Authority })`\
   _no nonce required_
@@ -78,7 +78,7 @@ The api exposes the following methods:
   - `api.proxy.generateProxySignature('proxyMintBatchNft', { relayer, batchId, index, owner, externalRef })`\
   _no nonce required_
 
-  - `api.proxy.generateProxySignature('proxyListNftOpenForSale', { relayer, user, nftId, market, nonce })`\
+  - `api.proxy.generateProxySignature('proxyListNftOpenForSale', { relayer, nftId, market, nonce })`\
   _for the nonce call [getNftNonce](#getNftNonce) with `nftId` = nftId_
 
   - `api.proxy.generateProxySignature('proxyTransferFiatNft', { relayer, nftId, recipient, nonce })`\

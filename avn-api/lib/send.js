@@ -83,7 +83,7 @@ function createNftBatch(api, queryApi) {
     common.validateEthereumAddress(t1Authority);
     const methodArgs = { totalSupply, royalties, t1Authority };
 
-    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyCreateNftBatch, NONCE_TYPE.Nft);
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyCreateNftBatch, NONCE_TYPE.Batch);
   };
 }
 

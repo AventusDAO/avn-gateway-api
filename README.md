@@ -91,7 +91,7 @@ The api exposes the following methods:
   _for the nonce call [getNftNonce](#getNftNonce) with `nftId` = nftId_
 
   - `api.proxy.generateProxySignature('proxyEndNftBatchSale', { relayer, batchId, nonce })`\
-  _for the nonce call [getNftNonce](#getNftNonce) with `nftId` = nftId_
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'batch'_
 
   - `api.proxy.generateProxySignature('proxyBond', { relayer, user, amount, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_

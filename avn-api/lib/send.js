@@ -155,7 +155,7 @@ function endNftBatchSale(api, queryApi) {
     common.validateNftId(batchId);
     const methodArgs = { batchId };
 
-    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyEndNftBatchSale, NONCE_TYPE.Nft);
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyEndNftBatchSale, NONCE_TYPE.Batch);
   };
 }
 

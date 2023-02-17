@@ -4,12 +4,15 @@ const assert = chai.assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
+const bnEquals = helper.bnEquals;
 
 const amount = new BN('10000000000000000000');
 const user = accounts.payer.address;
 const relayer = accounts.relayer.address;
 const FIFTY_AVT = new BN('50000000000000000000');
-const ONE_AVT = new BN('1000000000000000000');
+const ONE_AVT = new BN('1001000000000000000');
+const gatewayFee = new BN('1000000000000000');
+
 
 describe('Staking', async () => {
     let api;
@@ -19,75 +22,107 @@ describe('Staking', async () => {
     });
 
     describe('Successful cases', function() {
+        xdescribe('Staking stats', function() {
+            let accountBalancesBefore;
+
+            before(async () => {
+                accountBalancesBefore = await api.query.getStakingStats();
+            });
+            it('Staking stats', async () => { // works
+                console.log(accountBalancesBefore);
+                assert( 1 == 1 );
+
+            });
+        });
         xdescribe('First-time stake, with amount greater than minimum limit', function() {
-            it('Staked balance is increased by the bonded amount', async () => { // works
-                // const re = await api.query.getAccountInfo(user);
-                // console.log(re);
-                const stakingStatus = await api.query.getStakingStatus(user);
-                console.log(stakingStatus);
+            let accountBalancesBefore;
+            let accountBalanceAfter;
 
-
+            before(async () => {
+                accountBalancesBefore = await api.query.getAccountInfo(user);
                 const requestId = await api.send.stake(relayer, FIFTY_AVT);
-
-                console.log("requestId: " + requestId);
-
                 await helper.confirmStatus(api, requestId, 'Processed');
-
-                // const after = await api.query.getAccountInfo(user);
-                // console.log(after);
-
-                // let stakerStakingStatusAfter = await api.query.getAccountInfo(user);
-
-                // bnEquals(new BN(stakerStakingStatusBefore.stakedBalance).add(amount), new BN(stakerStakingStatusAfter.stakedBalance));
+                accountBalanceAfter = await api.query.getAccountInfo(user);
+            });
+            it('Staked balance is increased by the bonded amount', async () => { // works
+                assert.equal(new BN(accountBalancesBefore.stakedBalance).add(FIFTY_AVT), new BN(accountBalanceAfter.stakedBalance))
             });
             xit('Locked balance is increased by the bonded amount');
-            xit('Active balance is decreased by the bonded amount');
-        });
-        xdescribe('Stake more', function() {
-            it('Staked balance is increased by the extra bonded amount', async () => { // works
-                const stakingStatus = await api.query.getStakingStatus(user);
-                console.log(stakingStatus);
-
-                const requestId = await api.send.stake(relayer, ONE_AVT);
-
-                console.log("requestId: " + requestId);
-
-                await helper.confirmStatus(api, requestId, 'Processed');
-
+            it('Free balance is decreased by the bonded amount', async () => {
+                assert.equal(new BN(accountBalancesBefore.freeBalance), new BN(accountBalanceAfter.freeBalance).sub(FIFTY_AVT))
             });
-            xit('Locked balance is increased by the extra bonded amount');
-            xit('Active balance is decreased by the extra bonded amount');
+        });
+        describe('Stake more', function() {
+            let accountBalancesBefore;
+            let accountBalanceAfter;
+
+            before(async () => {
+                accountBalancesBefore = await api.query.getAccountInfo(user);
+                console.log(accountBalancesBefore)
+                const requestId = await api.send.stake(relayer, ONE_AVT);
+                await helper.confirmStatus(api, requestId, 'Processed');
+                accountBalanceAfter = await api.query.getAccountInfo(user);
+                console.log(accountBalanceAfter)
+            });
+
+            it('Staked balance is increased by the extra bonded amount', async () => { // works
+                // assert.equal(new BN(accountBalancesBefore.stakedBalance).add(ONE_AVT), new BN(accountBalanceAfter.stakedBalance))
+                bnEquals(new BN(accountBalancesBefore.stakedBalance).add(ONE_AVT), new BN(accountBalanceAfter.stakedBalance));
+            });
+            it('Free balance is decreased by the extra bonded amount', async () => {
+                // assert.equal(new BN(accountBalancesBefore.freeBalance), new BN(accountBalanceAfter.freeBalance).sub(ONE_AVT))
+                bnEquals(new BN(accountBalancesBefore.freeBalance), new BN(accountBalanceAfter.freeBalance).sub(ONE_AVT));
+            });
         });
         xdescribe('Request to withdraw', function() {
-            it('Staked balance is decreased by the unbonded amount', async() => {
-                const stakingStatus = await api.query.getStakingStatus(user);
-                console.log(stakingStatus);
+            let accountBalancesBefore;
+            let accountBalanceAfter;
 
+            before(async () => {
+                accountBalancesBefore = await api.query.getAccountInfo(user);
+                console.log(accountBalancesBefore)
                 const requestId = await api.send.unstake(relayer, ONE_AVT);
-
-                console.log("requestId: " + requestId);
-
                 await helper.confirmStatus(api, requestId, 'Processed');
+                accountBalanceAfter = await api.query.getAccountInfo(user);
+                console.log(accountBalanceAfter)
             });
-            xit('Unbonding balance is increased by the unbonded amount');
-            xit('Locked balance remains the same by the unbonded amount');
-            xit('Active balance remains the same by the unbonded amount');
+            xit('Staked balance is decreased by the unbonded amount', async() => {
+                assert.equal(new BN(accountBalancesBefore.stakedBalance).sub(ONE_AVT), new BN(accountBalanceAfter.stakedBalance));
+            });
+            xit('Unbonding balance is increased by the unbonded amount', async() => {
+                bnEquals(new BN(accountBalancesBefore.unstakedBalance).add(ONE_AVT), new BN(accountBalanceAfter.unstakedBalance));
+                // assert.equal(new BN(accountBalancesBefore.unstakedBalance), new BN(accountBalanceAfter.unstakedBalance).add(ONE_AVT));
+            });
+            xit('Free balance remains the same by the unbonded amount', async() => {
+                bnEquals(new BN(accountBalancesBefore.freeBalance), new BN(accountBalanceAfter.freeBalance));
+                // assert.equal(new BN(accountBalancesBefore.freeBalance), new BN(accountBalanceAfter.freeBalance));
+            });
         });
-        describe('Withdraw funds', function() {
-            it('Staked balance remains the same by the withdrawn amount', async() => {
-                const stakingStatus = await api.query.getStakingStatus(user);
-                console.log(stakingStatus);
+        xdescribe('Withdraw funds', function() {
+            let accountBalancesBefore;
+            let accountBalanceAfter;
 
+            before(async () => {
+                accountBalancesBefore = await api.query.getAccountInfo(user);
+                console.log(accountBalancesBefore)
                 const requestId = await api.send.withdrawUnlocked(relayer);
-
-                console.log("requestId: " + requestId);
-
                 await helper.confirmStatus(api, requestId, 'Processed');
+                accountBalanceAfter = await api.query.getAccountInfo(user);
+                console.log(accountBalanceAfter)
             });
-            xit('Unbonding balance remains the same by the withdrawn amount');
+            xit('Staked balance remains the same by the withdrawn amount', async() => {
+                assert.equal(new BN(accountBalancesBefore.stakedBalance).sub(ONE_AVT), new BN(accountBalanceAfter.stakedBalance));
+            });
+            it('Unbonding balance remains the same by the withdrawn amount', async() => {
+                assert.equal(new BN(accountBalancesBefore.unstakedBalance.toString()), new BN(accountBalanceAfter.unstakedBalance.toString()));
+            });
             xit('Locked balance is decreased by the withdrawn amount');
-            xit('Active balance is increased by the withdrawn amount');
-            xit('Unbonded balance is decreased by the withdrawn amount');
+            it('Free balance is increased by the withdrawn amount', async() => {
+                assert.equal(new BN(accountBalancesBefore.freeBalance.toString()).add(ONE_AVT), new BN(accountBalanceAfter.freeBalance.toString()));
+            });
+            it('Unbonded balance is decreased by the withdrawn amount', async() => {
+                assert.equal(new BN(accountBalancesBefore.unlockedBalance.toString()).sub(ONE_AVT), new BN(accountBalanceAfter.unlockedBalance.toString()));
+            });
         });
     });
     xdescribe('Failure cases', function() {

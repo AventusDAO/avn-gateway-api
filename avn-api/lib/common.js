@@ -31,6 +31,7 @@ const NONCE_TYPE = {
   Staking: 'staking',
   Confirmation: 'confirmation',
   Nft: 'nft',
+  Batch: 'batch',
   None: 'none'
 };
 

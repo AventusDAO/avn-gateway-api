@@ -34,7 +34,7 @@ async function init() {
     username: config.postgres.username,
     password: config.postgres.password,
     database: config.postgres.database,
-    synchronize: config.postgres.synchronize,
+    synchronize: config.postgres.synchronize === "true",
     entities: [
       require("./entity/payer"),
       require("./entity/splitFeeUser"),

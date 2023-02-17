@@ -131,7 +131,7 @@ function listFiatNftBatchForSale(api, queryApi) {
     const market = MARKET.Fiat;
     const methodArgs = { batchId, market };
 
-    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyListNftBatchForSale, NONCE_TYPE.Nft);
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyListNftBatchForSale, NONCE_TYPE.Batch);
   };
 }
 

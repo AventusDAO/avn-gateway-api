@@ -15,11 +15,14 @@ function Send(api, queryApi) {
   this.transferToken = generateFunction(transferToken, api, queryApi);
   this.confirmTokenLift = generateFunction(confirmTokenLift, api, queryApi);
   this.lowerToken = generateFunction(lowerToken, api, queryApi);
+  this.createNftBatch = generateFunction(createNftBatch, api, queryApi);
   this.mintSingleNft = generateFunction(mintSingleNft, api, queryApi);
   this.mintBatchNft = generateFunction(mintBatchNft, api, queryApi);
   this.listFiatNftForSale = generateFunction(listFiatNftForSale, api, queryApi);
+  this.listFiatNftBatchForSale = generateFunction(listFiatNftBatchForSale, api, queryApi);
   this.transferFiatNft = generateFunction(transferFiatNft, api, queryApi);
   this.cancelFiatNftListing = generateFunction(cancelFiatNftListing, api, queryApi);
+  this.endNftBatchSale = generateFunction(endNftBatchSale, api, queryApi);
   this.stake = generateFunction(stake, api, queryApi);
   this.unstake = generateFunction(unstake, api, queryApi);
   this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
@@ -74,6 +77,18 @@ function lowerToken(api, queryApi) {
   };
 }
 
+function createNftBatch(api, queryApi) {
+  return async function (relayer, totalSupply, royalties, t1Authority) {
+    common.validateAccount(relayer);
+    common.validateNumber(totalSupply);
+    common.validateRoyalties(royalties);
+    common.validateEthereumAddress(t1Authority);
+    const methodArgs = { totalSupply, royalties, t1Authority };
+
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyCreateNftBatch, NONCE_TYPE.Batch);
+  };
+}
+
 function mintSingleNft(api, queryApi) {
   return async function (relayer, externalRef, royalties, t1Authority) {
     common.validateAccount(relayer);
@@ -110,6 +125,18 @@ function listFiatNftForSale(api, queryApi) {
   };
 }
 
+function listFiatNftBatchForSale(api, queryApi) {
+  return async function (relayer, batchId) {
+    common.validateAccount(relayer);
+    common.validateNftId(batchId);
+    const market = MARKET.Fiat;
+    const methodArgs = { batchId, market };
+
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyListNftBatchForSale, NONCE_TYPE.Batch);
+  };
+}
+
+
 function transferFiatNft(api, queryApi) {
   return async function (relayer, recipient, nftId) {
     common.validateAccount(relayer);
@@ -119,6 +146,16 @@ function transferFiatNft(api, queryApi) {
     const methodArgs = { nftId, recipient };
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyTransferFiatNft, NONCE_TYPE.Nft);
+  };
+}
+
+function endNftBatchSale(api, queryApi) {
+  return async function (relayer, batchId) {
+    common.validateAccount(relayer);
+    common.validateNftId(batchId);
+    const methodArgs = { batchId };
+
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyEndNftBatchSale, NONCE_TYPE.Batch);
   };
 }
 

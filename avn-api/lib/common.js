@@ -14,10 +14,14 @@ const TX_TYPE = {
   ProxyTokenTransfer: 'proxyTokenTransfer',
   ProxyConfirmTokenLift: 'proxyConfirmTokenLift',
   ProxyTokenLower: 'proxyTokenLower',
+  ProxyCreateNftBatch: 'proxyCreateNftBatch',
   ProxyMintSingleNft: 'proxyMintSingleNft',
+  ProxyMintBatchNft: 'proxyMintBatchNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
+  ProxyListNftBatchForSale: 'proxyListNftBatchForSale',
   ProxyTransferFiatNft: 'proxyTransferFiatNft',
   ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
+  ProxyEndNftBatchSale: 'proxyEndNftBatchSale',
   proxyStakeAvt: 'proxyStakeAvt',
   ProxyIncreaseStake: 'proxyIncreaseStake',
   ProxyUnstake: 'proxyUnstake',
@@ -30,6 +34,7 @@ const NONCE_TYPE = {
   Staking: 'staking',
   Confirmation: 'confirmation',
   Nft: 'nft',
+  Batch: 'batch',
   None: 'none'
 };
 

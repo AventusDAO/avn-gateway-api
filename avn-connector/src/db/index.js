@@ -21,6 +21,7 @@ const transactionTypes = {
   proxyListNftBatchForSale: 'proxyListNftBatchForSale',
   proxyTransferFiatNft: 'proxyTransferFiatNft',
   proxyCancelListFiatNft: 'proxyCancelListFiatNft',
+  proxyEndNftBatchSale: 'proxyEndNftBatchSale',
   proxyStakeAvt: 'proxyStakeAvt',
   proxyIncreaseStake: 'proxyIncreaseStake',
   proxyUnstake: 'proxyUnstake',

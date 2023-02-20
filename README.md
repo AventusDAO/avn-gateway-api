@@ -90,6 +90,9 @@ The api exposes the following methods:
   - `api.proxy.generateProxySignature('proxyCancelListFiatNft', { relayer, nftId, nonce })`\
   _for the nonce call [getNftNonce](#getNftNonce) with `nftId` = nftId_
 
+  - `api.proxy.generateProxySignature('proxyEndNftBatchSale', { relayer, batchId, nonce })`\
+  _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'batch'_
+
   - `api.proxy.generateProxySignature('proxyBond', { relayer, user, amount, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
@@ -684,6 +687,7 @@ Returns fees for a particular relayer, optionally by user and/or transaction typ
   "proxyListNftBatchForSale"
   "proxyTransferFiatNft"
   "proxyCancelListFiatNft"
+  "proxyEndNftBatchSale"
   "proxyBond"
   "proxyNominate"
   "proxyIncreaseStake"
@@ -731,6 +735,7 @@ OR
     "proxyListNftBatchForSale": "7000000000000000",
     "proxyTransferFiatNft": "7000000000000000",
     "proxyCancelListFiatNft": "7000000000000000",
+    "proxyEndNftBatchSale": "7000000000000000",
     "proxyBond": "7000000000000000",
     "proxyNominate": "7000000000000000",
     "proxyIncreaseStake": "7000000000000000",
@@ -1349,6 +1354,47 @@ curl https://AVN-API-URL/send \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"proxyCancelListFiatNft", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "payer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "nftId":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x7e8fb895d9c33fbfd2b0122a586d2d29a6c606ee2ca485c8eb69163be8ef7a6ddd2a52e6802f40720e192d4ca407d657cdfa703a8ce502e9c4f0feedfc3e5e8b", "feePaymentSignature":"0xaae7983775fc1a5bc04b500af156dcba343f1d305549737821b7e31a12f6ce430941856c1259d520759548281afd465b3d66b7e48e72fc2c8c0a3a5bb9f8fa87", "paymentNonce":"209"}, "id":1}'
+```
+
+**RESULT FIELDS** \
+`VALUE` - a request ID that can be queried for the transaction's status
+
+**BODY**
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "b043df72-5636-49a6-999c-aad1fa574bc5"
+}
+```
+
+#### proxyEndNftBatchSale
+Ends a listing for all NFTs in a batch
+
+**REQUEST**\
+`POST https://AVN-API-URL/send`
+
+**HEADERS**\
+`Content-Type: application/json`\
+`Authorization: bearer <awtToken>`
+
+**REQUEST PARAMS**\
+`relayer` *[required]* - a string representing the relayer's SS58 address \
+`user` *[required]* - a string representing the user's SS58 address \
+`payer` *[required]* - a string representing the payer's SS58 address \
+`batchId` *[required]* - a string representing the batch ID (32 bytes) to check for nonce \
+`proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
+`feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
+`paymentNonce` *[required]* - string integer value of the current payment nonce of the payer
+
+**EXAMPLE**
+```
+## JSON-RPC over HTTPS POST
+curl https://AVN-API-URL/send \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: bearer <awtToken>" \
+    -d '{"jsonrpc":"2.0", "method":"proxyEndNftBatchSale", "params":{"relayer":"5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh", "user":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "payer":"5DAgxVxKmnJ7hfhDEB9UetZm4jR2MPjGZGrmJZjirSVJDdMr", "batchId":"0x899697fff9eccfb4de41ad689334751f28a7b5c026e9cf23c4e8ddecb11dcf35", "proxySignature":"0x7e8fb895d9c33fbfd2b0122a586d2d29a6c606ee2ca485c8eb69163be8ef7a6ddd2a52e6802f40720e192d4ca407d657cdfa703a8ce502e9c4f0feedfc3e5e8b", "feePaymentSignature":"0xaae7983775fc1a5bc04b500af156dcba343f1d305549737821b7e31a12f6ce430941856c1259d520759548281afd465b3d66b7e48e72fc2c8c0a3a5bb9f8fa87", "paymentNonce":"209"}, "id":1}'
 ```
 
 **RESULT FIELDS** \

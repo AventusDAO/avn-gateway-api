@@ -104,6 +104,8 @@ async function callSwitch(call, request, requestId) {
       return await processProxyCreateNftBatch(call, request, requestId);
     case 'proxyCancelListFiatNft':
       return await processProxyCancelListFiatNft(call, request, requestId);
+    case 'proxyEndNftBatchSale':
+      return await processProxyEndNftBatchSale(call, request, requestId);
     case 'proxyListNftOpenForSale':
       return await processProxyListNftOpenForSale(call, request, requestId);
     case 'proxyListNftBatchForSale':
@@ -204,6 +206,21 @@ async function processProxyCancelListFiatNft(call, request, requestId) {
 
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID';
+  } catch (param) {
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyEndNftBatchSale(call, request, requestId) {
+  const pallet = 'nftManager';
+  const method = 'signedEndBatchSale';
+  const { batchId } = call.params;
+  const methodParams = [batchId];
+
+  try {
+    if (utils.isValidNftId(batchId) === false) throw 'batch ID';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }

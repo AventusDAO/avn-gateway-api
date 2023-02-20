@@ -64,6 +64,8 @@ async function callSwitch(call, request) {
       return await queryValidatorsToNominateFromChain(call, request);
     case 'getActiveEra':
       return await queryActiveEra(call, request);
+    case 'getStakingDelay':
+      return await queryStakingDelay(call, request);
     case 'getOwnedNfts':
       return await getOwnedNfts(call, request);
     case 'getStakingStats':
@@ -225,6 +227,10 @@ async function getAccountInfo(call, request) {
 
 async function queryActiveEra(call, request) {
   return await queryChain(call, request, 'parachainStaking', 'era', [], formatEraAsString);
+}
+
+async function queryStakingDelay(call, request) {
+  return await queryChain(call, request, 'parachainStaking', 'delay', []);
 }
 
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {

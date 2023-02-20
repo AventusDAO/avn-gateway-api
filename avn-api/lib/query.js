@@ -20,6 +20,7 @@ function Query(api) {
   this.getStakingStatus = generateFunction(getStakingStatus, api);
   this.getValidatorsToNominate = generateFunction(getValidatorsToNominate, api);
   this.getActiveEra = generateFunction(getActiveEra, api);
+  this.getStakingDelay = generateFunction(getStakingDelay, api);
   this.getStakingStats = generateFunction(getStakingStats, api);
   this.getRelayerFees = generateFunction(getRelayerFees, api);
   this.getCurrentBlock = generateFunction(getCurrentBlock, api);
@@ -160,6 +161,12 @@ function getValidatorsToNominate(api) {
 function getActiveEra(api) {
   return async function () {
     return await this.postRequest(api, 'getActiveEra');
+  };
+}
+
+function getStakingDelay(api) {
+  return async function () {
+    return await this.postRequest(api, 'getStakingDelay');
   };
 }
 

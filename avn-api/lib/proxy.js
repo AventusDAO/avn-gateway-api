@@ -16,8 +16,10 @@ const signing = {
   proxyMintSingleNft: proxyArgs => signProxyMintSingleNft(proxyArgs),
   proxyMintBatchNft: proxyArgs => signProxyMintBatchNft(proxyArgs),
   proxyListNftOpenForSale: proxyArgs => signProxyListNftOpenForSale(proxyArgs),
+  proxyListNftBatchForSale: proxyArgs => signProxyListNftBatchForSale(proxyArgs),
   proxyTransferFiatNft: proxyArgs => signProxyTransferFiatNft(proxyArgs),
   proxyCancelListFiatNft: proxyArgs => signProxyCancelListFiatNft(proxyArgs),
+  proxyEndNftBatchSale: proxyArgs => signProxyEndNftBatchSale(proxyArgs),
   proxyBond: proxyArgs => signProxyBond(proxyArgs),
   proxyNominate: proxyArgs => signProxyNominate(proxyArgs),
   proxyIncreaseStake: proxyArgs => signProxyIncreaseStake(proxyArgs),
@@ -142,6 +144,21 @@ function signProxyListNftOpenForSale({ relayer, nftId, market, nonce, signer }) 
   return signData(signer, encodedDataToSign);
 }
 
+function signProxyListNftBatchForSale({ relayer, batchId, market, nonce, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'authorization for list batch for sale operation' },
+    { AccountId: relayer },
+    { U256: batchId },
+    { u8: market },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
 function signProxyTransferFiatNft({ relayer, nftId, recipient, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
   recipient = common.convertToPublicKeyIfNeeded(recipient);
@@ -171,6 +188,21 @@ function signProxyCancelListFiatNft({ relayer, nftId, nonce, signer }) {
   const encodedDataToSign = encodeOrderedData(orderedData);
   return signData(signer, encodedDataToSign);
 }
+
+function signProxyEndNftBatchSale({ relayer, batchId, nonce, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'authorization for end batch sale operation' },
+    { AccountId: relayer },
+    { U256: batchId },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
 
 function signProxyNominate({ relayer, targets, amount, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);

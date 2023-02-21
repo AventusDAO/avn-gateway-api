@@ -212,7 +212,7 @@ function withdrawUnlocked(api, queryApi) {
 }
 
 function scheduleLeaveNominators(api, queryApi) {
-  return async function (relayer, amount) {
+  return async function (relayer) {
     common.validateAccount(relayer);
     const methodArgs = {};
 
@@ -221,7 +221,7 @@ function scheduleLeaveNominators(api, queryApi) {
 }
 
 function executeLeaveNominators(api, queryApi) {
-  return async function (relayer, amount) {
+  return async function (relayer) {
     common.validateAccount(relayer);
     const nominator = api.signer().address;
     const methodArgs = { nominator };

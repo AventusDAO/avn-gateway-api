@@ -24,7 +24,9 @@ const signing = {
   proxyBond: proxyArgs => signProxyBond(proxyArgs),
   proxyIncreaseStake: proxyArgs => signProxyIncreaseStake(proxyArgs),
   proxyUnstake: proxyArgs => signProxyUnstake(proxyArgs),
-  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs)
+  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs),
+  proxyScheduleLeaveNominators: proxyArgs => signProxyScheduleLeaveNominators(proxyArgs),
+  proxyExecuteLeaveNominators: proxyArgs => signProxyExecuteLeaveNominators(proxyArgs)
 };
 
 const numTypes = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
@@ -252,6 +254,33 @@ function signProxyWithdrawUnlocked({ relayer, nominator, nonce, signer }) {
 
   const orderedData = [
     { Text: 'parachain authorization for executing nomination requests operation' },
+    { AccountId: relayer },
+    { AccountId: nominator },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyScheduleLeaveNominators({ relayer, nominator, nonce, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'parachain authorization for scheduling leaving nominators operation' },
+    { AccountId: relayer },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyExecuteLeaveNominators({ relayer, nominator, nonce, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'parachain authorization for executing leave nominators operation' },
     { AccountId: relayer },
     { AccountId: nominator },
     { u64: nonce }

@@ -124,6 +124,10 @@ async function callSwitch(call, request, requestId) {
       return await processProxyUnstake(call, request, requestId);
     case 'proxyWithdrawUnlocked':
       return await processProxyWithdrawUnlocked(call, request, requestId);
+    case 'proxyScheduleLeaveNominators':
+      return await processProxyScheduleLeaveNominators(call, request, requestId);
+    case 'proxyExecuteLeaveNominators':
+      return await processProxyExecuteLeaveNominators(call, request, requestId);
     default:
       return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -382,6 +386,23 @@ async function processProxyUnstake(call, request, requestId) {
 async function processProxyWithdrawUnlocked(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedExecuteNominationRequest';
+  const { nominator } = call.params;
+  const methodParams = [nominator];
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyScheduleLeaveNominators(call, request, requestId) {
+  const pallet = 'parachainStaking';
+  const method = 'signedScheduleLeaveNominators';
+  const methodParams = [];
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyExecuteLeaveNominators(call, request, requestId) {
+  const pallet = 'parachainStaking';
+  const method = 'signedExecuteLeaveNominators';
   const { nominator } = call.params;
   const methodParams = [nominator];
 

@@ -25,6 +25,8 @@ function Send(api, queryApi) {
   this.endNftBatchSale = generateFunction(endNftBatchSale, api, queryApi);
   this.stake = generateFunction(stake, api, queryApi);
   this.unstake = generateFunction(unstake, api, queryApi);
+  this.scheduleLeaveNominators = generateFunction(scheduleLeaveNominators, api, queryApi);
+  this.executeLeaveNominators = generateFunction(executeLeaveNominators, api, queryApi);
   this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
   this.nonceMap = {};
   this.feesMap = {};
@@ -206,6 +208,25 @@ function withdrawUnlocked(api, queryApi) {
     const methodArgs = { nominator };
 
     return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking);
+  };
+}
+
+function scheduleLeaveNominators(api, queryApi) {
+  return async function (relayer, amount) {
+    common.validateAccount(relayer);
+    const methodArgs = {};
+
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyScheduleLeaveNominators, NONCE_TYPE.Staking);
+  };
+}
+
+function executeLeaveNominators(api, queryApi) {
+  return async function (relayer, amount) {
+    common.validateAccount(relayer);
+    const nominator = api.signer().address;
+    const methodArgs = { nominator };
+
+    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyExecuteLeaveNominators, NONCE_TYPE.Staking);
   };
 }
 

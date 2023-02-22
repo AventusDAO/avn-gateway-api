@@ -194,10 +194,23 @@ function stake(api, queryApi) {
 function unstake(api, queryApi) {
   return async function (relayer, amount) {
     common.validateAccount(relayer);
-    amount = common.validateAndConvertAmountToString(amount);
-    const methodArgs = { amount };
+    const user = api.signer().address;
 
-    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyUnstake, NONCE_TYPE.Staking);
+    let minStakingValuePerValidator = new BN(await queryApi.getMinTotalNominatorStake());
+    let validators = await queryApi.getValidatorsToNominate();
+    let minimumFirstTimeStakingValue = new BN(minStakingValuePerValidator.mul(new BN(validators.length)));
+
+    const accountStakingBalance = await queryApi.getAccountInfo(user);
+    let newStakedBalance = new BN(accountStakingBalance && accountStakingBalance.stakedBalance).sub(new BN(amount));
+
+    if (newStakedBalance.lt(minimumFirstTimeStakingValue) && newStakedBalance.gte(new BN(0))) {
+      const methodArgs = {};
+      return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyScheduleLeaveNominators, NONCE_TYPE.Staking);
+    } else {
+      amount = common.validateAndConvertAmountToString(amount);
+      const methodArgs = { amount };
+      return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyUnstake, NONCE_TYPE.Staking);
+    }
   };
 }
 
@@ -207,7 +220,14 @@ function withdrawUnlocked(api, queryApi) {
     const nominator = api.signer().address;
     const methodArgs = { nominator };
 
-    return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking);
+    const user = api.signer().address;
+    const accountStakingBalance = await queryApi.getAccountInfo(user);
+
+    if (accountStakingBalance && new BN(accountStakingBalance.stakedBalance).eq(new BN(accountStakingBalance.unlockedBalance))) {
+      return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyExecuteLeaveNominators, NONCE_TYPE.Staking);
+    } else {
+      return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking);
+    }
   };
 }
 

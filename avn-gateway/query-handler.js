@@ -267,7 +267,7 @@ async function queryValidatorsToNominateFromChain(call, request) {
 }
 
 async function getMinTotalNominatorStake(call, request) {
-  return await queryChain(call, request, 'parachainStaking', 'minTotalNominatorStake', []);
+  return await queryChain(call, request, 'parachainStaking', 'minTotalNominatorStake', [], formatNumAsString);
 }
 
 async function getOwnedNfts(call, request) {

@@ -19,6 +19,7 @@ function Query(api) {
   this.getAccountInfo = generateFunction(getAccountInfo, api);
   this.getStakingStatus = generateFunction(getStakingStatus, api);
   this.getValidatorsToNominate = generateFunction(getValidatorsToNominate, api);
+  this.getMinTotalNominatorStake = generateFunction(getMinTotalNominatorStake, api);
   this.getActiveEra = generateFunction(getActiveEra, api);
   this.getStakingDelay = generateFunction(getStakingDelay, api);
   this.getStakingStats = generateFunction(getStakingStats, api);
@@ -155,6 +156,12 @@ function getStakingStatus(api) {
 function getValidatorsToNominate(api) {
   return async function () {
     return await this.postRequest(api, 'getValidatorsToNominate');
+  };
+}
+
+function getMinTotalNominatorStake(api) {
+  return async function () {
+    return await this.postRequest(api, 'getMinTotalNominatorStake');
   };
 }
 

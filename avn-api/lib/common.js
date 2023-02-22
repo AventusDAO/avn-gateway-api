@@ -191,6 +191,12 @@ function validateNonceType(nonceType) {
   }
 }
 
+async function getMinimumStakingValue(api) {
+  const minStakingValuePerValidator = new BN(await api.query.getMinTotalNominatorStake());
+  const validators = await api.query.getValidatorsToNominate();
+  return new BN(minStakingValuePerValidator.mul(new BN(validators.length)));
+}
+
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -218,5 +224,6 @@ module.exports = {
   validateTransactionType,
   validateRoyalties,
   validateStakingTargets,
-  validateNumber
+  validateNumber,
+  getMinimumStakingValue
 };

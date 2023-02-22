@@ -196,14 +196,11 @@ function unstake(api, queryApi) {
     common.validateAccount(relayer);
     const user = api.signer().address;
 
-    let minStakingValuePerValidator = new BN(await queryApi.getMinTotalNominatorStake());
-    let validators = await queryApi.getValidatorsToNominate();
-    let minimumFirstTimeStakingValue = new BN(minStakingValuePerValidator.mul(new BN(validators.length)));
-
+    const minimumFirstTimeStakingValue = common.getMinimumStakingValue(api);
     const accountStakingBalance = await queryApi.getAccountInfo(user);
-    let newStakedBalance = new BN(accountStakingBalance && accountStakingBalance.stakedBalance).sub(new BN(amount));
+    let newStakedBalance = accountStakingBalance && new BN(accountStakingBalance.stakedBalance).sub(new BN(amount));
 
-    if (newStakedBalance.lt(minimumFirstTimeStakingValue) && newStakedBalance.gte(new BN(0))) {
+    if (newStakedBalance && newStakedBalance.lt(minimumFirstTimeStakingValue) && newStakedBalance.gte(new BN(0))) {
       const methodArgs = {};
       return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyScheduleLeaveNominators, NONCE_TYPE.Staking);
     } else {

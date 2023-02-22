@@ -62,8 +62,12 @@ async function callSwitch(call, request) {
       return await getStakingStatus(call, request);
     case 'getValidatorsToNominate':
       return await queryValidatorsToNominateFromChain(call, request);
+    case 'getMinTotalNominatorStake':
+      return await getMinTotalNominatorStake(call, request);
     case 'getActiveEra':
       return await queryActiveEra(call, request);
+    case 'getStakingDelay':
+      return await queryStakingDelay(call, request);
     case 'getOwnedNfts':
       return await getOwnedNfts(call, request);
     case 'getStakingStats':
@@ -227,6 +231,10 @@ async function queryActiveEra(call, request) {
   return await queryChain(call, request, 'parachainStaking', 'era', [], formatEraAsString);
 }
 
+async function queryStakingDelay(call, request) {
+  return await queryChain(call, request, 'parachainStaking', 'delay', []);
+}
+
 async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
   const method = 'avnQuery';
   const requestParams = { callId: call.id, palletName, storageName, params };
@@ -256,6 +264,10 @@ async function queryValidatorsToNominateFromChain(call, request) {
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
+}
+
+async function getMinTotalNominatorStake(call, request) {
+  return await queryChain(call, request, 'parachainStaking', 'minTotalNominatorStake', [], formatNumAsString);
 }
 
 async function getOwnedNfts(call, request) {

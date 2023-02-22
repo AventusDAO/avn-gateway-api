@@ -134,7 +134,7 @@ async function getCollatorsToNominate() {
 
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
-  // if (stakingStats === undefined) {
+  if (stakingStats === undefined) {
     const [minUserBond, maxNominatorsRewardedPerValidator, totalStaked, stakersData] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
@@ -149,7 +149,7 @@ async function getStakingStats() {
       totalStakers: stakersData.length,
     };
     await redis.setStakingStats(stakingStats);
-  // }
+  }
   return stakingStats;
 }
 

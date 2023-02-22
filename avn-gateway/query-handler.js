@@ -94,6 +94,8 @@ async function getNonce(call, request) {
       return await queryChain(call, request, 'parachainStaking', 'proxyNonces', [accountId], formatNumAsString);
     case 'confirmation':
       return await queryChain(call, request, 'ethereumEvents', 'proxyNonces', [accountId], formatNumAsString);
+    case 'batch':
+      return await queryChain(call, request, 'nftManager', 'batchNonces', [accountId], formatNumAsString);
     default:
       return utils.buildErrorBody('params', 'invalid nonce type', nonceType, request, call.id);
   }

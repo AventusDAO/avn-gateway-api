@@ -41,7 +41,7 @@ module.exports = new EntitySchema({
             type: 'many-to-one',
             inverseSide: 'splitFeeUser',
             joinTable: true,
-            eager: true,
+            eager: false,
         }
     }
  })

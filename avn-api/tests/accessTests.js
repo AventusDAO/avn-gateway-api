@@ -49,7 +49,7 @@ describe('Access rights:', async () => {
     });
 
     it('can set SURI via the options', async () => {
-      const options = { suri: newUserSURI };
+      const options = { suri: newUserSURI, relayer: relayer };
       const apiWithOptions = new AvnApi(null, options);
       await apiWithOptions.init();
       assert.equal(apiWithOptions.myAddress(), newUser);
@@ -64,7 +64,7 @@ describe('Access rights:', async () => {
 
       // Transfer the new user enough AVT for entry
       api.setSURI(userSURI);
-      const requestId = await api.send.transferAvt(relayer, newUser, ONE_AVT.toString());
+      const requestId = await api.send.transferAvt(newUser, ONE_AVT.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
       assert.equal(await api.query.getAvtBalance(newUser), ONE_AVT.toString());
 
@@ -74,13 +74,13 @@ describe('Access rights:', async () => {
 
     it('an existing user can access the gateway without AVT', async () => {
       api.setSURI(userSURI);
-      let requestId = await api.send.transferAvt(relayer, existingUser, ONE_AVT.toString());
+      let requestId = await api.send.transferAvt(existingUser, ONE_AVT.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
       assert.equal(await api.query.getAvtBalance(existingUser), ONE_AVT.toString());
 
       api.setSURI(existingUserSURI);
       const relayerFee = await api.query.getRelayerFees(relayer, user, 'proxyTokenTransfer');
-      requestId = await api.send.transferAvt(relayer, user, ONE_AVT.sub(new BN(relayerFee)).toString());
+      requestId = await api.send.transferAvt(user, ONE_AVT.sub(new BN(relayerFee)).toString());
       await helper.confirmStatus(api, requestId, 'Processed');
 
       api.setSURI(userSURI); // this ensures the AWT token is refreshed

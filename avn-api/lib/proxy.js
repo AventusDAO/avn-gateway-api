@@ -262,7 +262,7 @@ function signProxyWithdrawUnlocked({ relayer, nominator, nonce, signer }) {
   return signData(signer, encodedDataToSign);
 }
 
-function signProxyScheduleLeaveNominators({ relayer, nominator, nonce, signer }) {
+function signProxyScheduleLeaveNominators({ relayer, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [

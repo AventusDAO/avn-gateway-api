@@ -15,35 +15,35 @@ describe('AWT authorisation', async () => {
     relayer = accounts.relayer.address;
   });
 
-  // describe('generateAwtToken', async () => {
-  //   it('from a mnemonic', async () => {
-  //     let token = api.awt.generateAwtToken({suri: user.mnemonic});
-  //     assert.equal(token.split('').length, TOKEN_LENGTH);
-  //   });
-  //
-  //   it('from a seed', async () => {
-  //     let token = api.awt.generateAwtToken({suri: user.seed});
-  //     assert.equal(token.split('').length, TOKEN_LENGTH);
-  //   });
-  // });
-  //
-  // describe('tokenAgeIsValid', async () => {
-  //   let token;
-  //
-  //   before(async () => {
-  //     token = api.awt.generateAwtToken({suri: user.mnemonic});
-  //   });
-  //
-  //   it('is valid within its lifetime', async () => {
-  //     assert.equal(api.awt.tokenAgeIsValid(token), true);
-  //   });
-  //
-  //   xit('is invalid once lifetime expires', async () => {
-  //     // Skip since it takes so long to run
-  //     await helper.sleep(TOKEN_LIFETIME);
-  //     assert.equal(api.awt.tokenAgeIsValid(token), false);
-  //   });
-  // });
+  describe('generateAwtToken', async () => {
+    it('from a mnemonic', async () => {
+      let token = api.awt.generateAwtToken({suri: user.mnemonic});
+      assert.equal(token.split('').length, TOKEN_LENGTH);
+    });
+
+    it('from a seed', async () => {
+      let token = api.awt.generateAwtToken({suri: user.seed});
+      assert.equal(token.split('').length, TOKEN_LENGTH);
+    });
+  });
+
+  describe('tokenAgeIsValid', async () => {
+    let token;
+
+    before(async () => {
+      token = api.awt.generateAwtToken({suri: user.mnemonic});
+    });
+
+    it('is valid within its lifetime', async () => {
+      assert.equal(api.awt.tokenAgeIsValid(token), true);
+    });
+
+    xit('is invalid once lifetime expires', async () => {
+      // Skip since it takes so long to run
+      await helper.sleep(TOKEN_LIFETIME);
+      assert.equal(api.awt.tokenAgeIsValid(token), false);
+    });
+  });
 
   describe('splitFeeOptions', async () => {
 

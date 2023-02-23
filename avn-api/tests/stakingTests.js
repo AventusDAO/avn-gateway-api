@@ -7,10 +7,11 @@ const BN = helper.BN;
 const bnEquals = helper.bnEquals;
 const common = require('../lib/common.js');
 
-const user = accounts.payer.address;
+const user = accounts.user.address;
 const relayer = accounts.relayer.address;
 const rewardPayer = accounts.rewardPayer.address;
 const ONE_AVT = new BN('1000000000000000000');
+const ZERO = new BN('0');
 
 let unlockStakedBalance = async api => {
   let activeEra = await api.query.getActiveEra();
@@ -45,7 +46,7 @@ let leaveNominators = async (api, amount) => {
     new BN(stakingBalance.stakedBalance).gt(
         new BN(stakingBalance.unlockedBalance).add(new BN(stakingBalance.unstakedBalance)))
   ) {
-    let stakedValue = amount || new BN(stakingBalance?.stakedBalance);
+    let stakedValue = amount ?? new BN(stakingBalance?.stakedBalance);
     requestId = await api.send.unstake(relayer, stakedValue);
     await helper.confirmStatus(api, requestId, 'Processed');
   }
@@ -219,6 +220,25 @@ describe('Staking', async () => {
             new BN(stakingBalanceAfter && stakingBalanceAfter.freeBalance)
           )
         );
+      });
+    });
+
+    describe('Stake another zero AVT', function () {
+      let stakingBalanceBefore;
+      let stakingBalanceAfter;
+
+      before(async () => {
+        const stakingStatus = await api.query.getStakingStatus(user);
+        if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
+
+        stakingBalanceBefore = await api.query.getAccountInfo(user);
+        const requestId = await api.send.stake(relayer, ZERO);
+        await helper.confirmStatus(api, requestId, 'Processed');
+        stakingBalanceAfter = await api.query.getAccountInfo(user);
+      });
+
+      it('Staked balance remains the same', async () => {
+        bnEquals(new BN(stakingBalanceBefore.stakedBalance), new BN(stakingBalanceAfter.stakedBalance));
       });
     });
 

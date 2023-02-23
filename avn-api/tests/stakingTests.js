@@ -37,7 +37,7 @@ let forceRewards = async api => {
   }
 };
 
-let leaveNominators = async (api, amount) => {
+let withdrawStakedBalance = async (api, amount) => {
   let requestId;
   let stakingBalance = await api.query.getAccountInfo(user);
 
@@ -79,7 +79,7 @@ describe('Staking', async () => {
 
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isStaking) await leaveNominators(api);
+        if (stakingStatus === common.STAKING_STATUS.isStaking) await withdrawStakedBalance(api);
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
         await firstTimeStake(api, testsFirstTimeStakingValue);
@@ -152,7 +152,7 @@ describe('Staking', async () => {
         }
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
-        if (new BN(stakingBalanceBefore && stakingBalanceBefore.unstakedBalance).gt(new BN(0))) await unlockStakedBalance(api);
+        if (new BN(stakingBalanceBefore?.unstakedBalance).gt(new BN(0))) await unlockStakedBalance(api);
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
         requestId = await api.send.withdrawUnlocked(relayer);
@@ -183,7 +183,7 @@ describe('Staking', async () => {
         if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
-        await leaveNominators(api);
+        await withdrawStakedBalance(api);
         stakingBalanceAfter = await api.query.getAccountInfo(user);
       });
 
@@ -205,9 +205,9 @@ describe('Staking', async () => {
 
         let stakingBalanceBefore = await api.query.getAccountInfo(user);
         let withdrawValue = new BN(
-          new BN(stakingBalanceBefore && stakingBalanceBefore.stakedBalance).sub(minimumFirstTimeStakingValue)
+          new BN(stakingBalanceBefore?.stakedBalance).sub(minimumFirstTimeStakingValue)
         ).add(new BN(1));
-        await leaveNominators(api, withdrawValue);
+        await withdrawStakedBalance(api, withdrawValue);
         stakingBalanceAfter = await api.query.getAccountInfo(user);
       });
 
@@ -216,8 +216,8 @@ describe('Staking', async () => {
       });
       it('Free balance is increased by the withdrawn amount', async () => {
         assert(
-          new BN(stakingBalanceBefore && stakingBalanceBefore.freeBalance).lt(
-            new BN(stakingBalanceAfter && stakingBalanceAfter.freeBalance)
+          new BN(stakingBalanceBefore?.freeBalance).lt(
+            new BN(stakingBalanceAfter?.freeBalance)
           )
         );
       });
@@ -259,8 +259,8 @@ describe('Staking', async () => {
 
       it('Free balance is increased by the withdrawn amount', async () => {
         assert(
-          new BN(stakingBalanceBefore && stakingBalanceBefore.freeBalance).lt(
-            new BN(stakingBalanceAfter && stakingBalanceAfter.freeBalance)
+          new BN(stakingBalanceBefore?.freeBalance).lt(
+            new BN(stakingBalanceAfter?.freeBalance)
           )
         );
       });
@@ -271,7 +271,7 @@ describe('Staking', async () => {
     describe('Stake', function () {
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isStaking) await leaveNominators(api);
+        if (stakingStatus === common.STAKING_STATUS.isStaking) await withdrawStakedBalance(api);
       });
 
       it('with a null relayer account', async () => {
@@ -301,7 +301,7 @@ describe('Staking', async () => {
       });
       it('more than your available balance', async () => {
         let accountBalances = await api.query.getAccountInfo(user);
-        let stakingValue = new BN(accountBalances && accountBalances.freeBalance).add(ONE_AVT);
+        let stakingValue = new BN(accountBalances?.freeBalance).add(ONE_AVT);
         const requestId = await api.send.stake(relayer, stakingValue);
         await helper.confirmStatus(api, requestId, 'Rejected');
       });
@@ -336,7 +336,7 @@ describe('Staking', async () => {
       });
       it('more than your staked balance', async () => {
         let accountBalances = await api.query.getAccountInfo(user);
-        let withdrawValue = new BN(accountBalances && accountBalances.stakedBalance).add(ONE_AVT);
+        let withdrawValue = new BN(accountBalances?.stakedBalance).add(ONE_AVT);
         const requestId = await api.send.unstake(relayer, withdrawValue);
         await helper.confirmStatus(api, requestId, 'Rejected');
       });

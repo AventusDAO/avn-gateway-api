@@ -153,7 +153,7 @@ async function getStakingStats() {
     //   console.log(`STAKER: ${JSON.stringify(staker)}`)
     //   ts++;
     // })
-    stakersData.forEach( stake => {
+    stakersData.data.forEach( stake => {
       const nominator = stake[1].id;
       nominators[nominator] = stake[1]?.total || BN_ZERO;
       totalStakers++;

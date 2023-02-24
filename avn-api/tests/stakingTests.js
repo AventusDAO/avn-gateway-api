@@ -7,7 +7,7 @@ const BN = helper.BN;
 const bnEquals = helper.bnEquals;
 const common = require('../lib/common.js');
 
-const user = accounts.payer.address;
+const user = accounts.user.address;
 const relayer = accounts.relayer.address;
 const rewardPayer = accounts.rewardPayer.address;
 const ONE_AVT = new BN('1000000000000000000');

@@ -7,13 +7,13 @@ const BN = helper.BN;
 const bnEquals = helper.bnEquals;
 const common = require('../lib/common.js');
 
-const user = accounts.user.address;
+const user = accounts.payer.address;
 const relayer = accounts.relayer.address;
 const rewardPayer = accounts.rewardPayer.address;
 const ONE_AVT = new BN('1000000000000000000');
 const ZERO = new BN('0');
 
-let unlockStakedBalance = async api => {
+const unlockStakedBalance = async api => {
   let activeEra = await api.query.getActiveEra();
   let stakingDelay = await api.query.getStakingDelay();
   let unlockedEra = stakingDelay + activeEra;
@@ -24,12 +24,12 @@ let unlockStakedBalance = async api => {
   }
 };
 
-let firstTimeStake = async (api, amount) => {
+const firstTimeStake = async (api, amount) => {
   const requestId = await api.send.stake(relayer, amount);
   await helper.confirmStatus(api, requestId, 'Processed');
 };
 
-let forceRewards = async api => {
+const forceRewards = async api => {
   let payerAvtBalance = new BN(await api.query.getAvtBalance(rewardPayer));
   if (payerAvtBalance.eq(new BN(0))) {
     const requestId = await api.send.transferAvt(relayer, rewardPayer, ONE_AVT);
@@ -37,22 +37,22 @@ let forceRewards = async api => {
   }
 };
 
-let withdrawStakedBalance = async (api, amount) => {
+const withdrawStakedBalance = async (api, amount) => {
   let requestId;
-  let stakingBalance = await api.query.getAccountInfo(user);
+  let accountInfo = await api.query.getAccountInfo(user);
 
   if (
-    stakingBalance &&
-    new BN(stakingBalance.stakedBalance).gt(
-        new BN(stakingBalance.unlockedBalance).add(new BN(stakingBalance.unstakedBalance)))
+    accountInfo &&
+    new BN(accountInfo.stakedBalance).gt(
+        new BN(accountInfo.unlockedBalance).add(new BN(accountInfo.unstakedBalance)))
   ) {
-    let stakedValue = amount ?? new BN(stakingBalance?.stakedBalance);
+    let stakedValue = amount ?? new BN(accountInfo?.stakedBalance);
     requestId = await api.send.unstake(relayer, stakedValue);
     await helper.confirmStatus(api, requestId, 'Processed');
   }
 
-  stakingBalance = await api.query.getAccountInfo(user);
-  if (new BN(stakingBalance?.unstakedBalance).gt(new BN(0))) await unlockStakedBalance(api);
+  accountInfo = await api.query.getAccountInfo(user);
+  if (new BN(accountInfo?.unstakedBalance).gt(new BN(0))) await unlockStakedBalance(api);
 
   requestId = await api.send.withdrawUnlocked(relayer);
   await helper.confirmStatus(api, requestId, 'Processed');
@@ -223,25 +223,6 @@ describe('Staking', async () => {
       });
     });
 
-    describe('Stake another zero AVT', function () {
-      let stakingBalanceBefore;
-      let stakingBalanceAfter;
-
-      before(async () => {
-        const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
-
-        stakingBalanceBefore = await api.query.getAccountInfo(user);
-        const requestId = await api.send.stake(relayer, ZERO);
-        await helper.confirmStatus(api, requestId, 'Processed');
-        stakingBalanceAfter = await api.query.getAccountInfo(user);
-      });
-
-      it('Staked balance remains the same', async () => {
-        bnEquals(new BN(stakingBalanceBefore.stakedBalance), new BN(stakingBalanceAfter.stakedBalance));
-      });
-    });
-
     describe('Rewards get paid after an era', function () {
       let stakingBalanceBefore;
       let stakingBalanceAfter;
@@ -289,11 +270,14 @@ describe('Staking', async () => {
       it('an empty value', async () => {
         await expect(api.send.stake(relayer, '')).to.be.rejectedWith(/Invalid amount type:/);
       });
-      it('a string as value', async () => {
+      it('a non-numeric string as value', async () => {
         await expect(api.send.stake(relayer, 'string')).to.be.rejectedWith(/Invalid amount type:/);
       });
       it('a negative value', async () => {
         await expect(api.send.stake(relayer, -1)).to.be.rejectedWith(/Invalid amount type:/);
+      });
+      it('a zero value', async () => {
+        await expect(api.send.stake(relayer, ZERO)).to.be.rejectedWith(/Invalid amount type:/);
       });
       it('less than minimum staking value', async () => {
         const requestId = await api.send.stake(relayer, minimumFirstTimeStakingValue.sub(ONE_AVT));
@@ -328,7 +312,7 @@ describe('Staking', async () => {
       it('an empty value', async () => {
         await expect(api.send.unstake(relayer, '')).to.be.rejectedWith(/Invalid amount type:/);
       });
-      it('a string as value', async () => {
+      it('a non-numeric string as value', async () => {
         await expect(api.send.unstake(relayer, 'string')).to.be.rejectedWith(/Invalid character/);
       });
       it('a negative value', async () => {

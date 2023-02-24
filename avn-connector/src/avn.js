@@ -10,6 +10,7 @@ const redis = require('./redis');
 const ethereum = require('./ethereum');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
+const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -144,11 +145,14 @@ async function getStakingStats() {
       query('parachainStaking', 'nominatorState', ['keys'])
     ]);
 
+    console.log(JSON.stringify(stakersData));
+
     stakingStats = {
       totalStaked: totalStaked.toString(),
       minUserBond: minUserBond.toString(),
       maxNominatorsRewardedPerValidator: maxNominatorsRewardedPerValidator.toString(),
       totalStakers: stakersData.length,
+      averageStaked: new BN(totalStaked).div(new BN(stakersData.length))
     };
     await redis.setStakingStats(stakingStats);
   // }

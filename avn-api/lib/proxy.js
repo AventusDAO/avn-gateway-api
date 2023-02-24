@@ -263,11 +263,11 @@ function signProxyWithdrawUnlocked({ relayer, nominator, nonce, signer }) {
 }
 
 function signProxyScheduleLeaveNominators({ relayer, nonce, signer }) {
-  relayer = common.convertToPublicKeyIfNeeded(relayer);
+  const dataRelayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
     { Text: 'parachain authorization for scheduling leaving nominators operation' },
-    { AccountId: relayer },
+    { AccountId: dataRelayer },
     { u64: nonce }
   ];
 
@@ -276,11 +276,11 @@ function signProxyScheduleLeaveNominators({ relayer, nonce, signer }) {
 }
 
 function signProxyExecuteLeaveNominators({ relayer, nominator, nonce, signer }) {
-  relayer = common.convertToPublicKeyIfNeeded(relayer);
+  const dataRelayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
     { Text: 'parachain authorization for executing leave nominators operation' },
-    { AccountId: relayer },
+    { AccountId: dataRelayer },
     { AccountId: nominator },
     { u64: nonce }
   ];

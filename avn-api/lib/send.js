@@ -196,7 +196,7 @@ function unstake(api, queryApi) {
     common.validateAccount(relayer);
     const user = api.signer().address;
 
-    const minimumFirstTimeStakingValue = common.getMinimumStakingValue(api);
+    const minimumFirstTimeStakingValue = await common.getMinimumStakingValue(api);
     const accountInfo = await queryApi.getAccountInfo(user);
     let newStakedBalance = accountInfo && new BN(accountInfo.stakedBalance).sub(new BN(amount));
 

@@ -142,11 +142,14 @@ async function getStakingStats() {
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
       api.query.parachainStaking.total(),
-      query('parachainStaking', 'nominatorState', ['keys'])
+      query('parachainStaking', 'nominatorState', ['entries'])
     ]);
 
     console.log(JSON.stringify(stakersData));
 
+    stakersData.data.forEach(staker => {
+      console.log(`STAKER: ${JSON.stringify(staker)}`)
+    })
     stakingStats = {
       totalStaked: totalStaked.toString(),
       minUserBond: minUserBond.toString(),

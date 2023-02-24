@@ -21,7 +21,6 @@ const signing = {
   proxyCancelListFiatNft: proxyArgs => signProxyCancelListFiatNft(proxyArgs),
   proxyStakeAvt: proxyArgs => signProxyNominate(proxyArgs),
   proxyEndNftBatchSale: proxyArgs => signProxyEndNftBatchSale(proxyArgs),
-  proxyBond: proxyArgs => signProxyBond(proxyArgs),
   proxyIncreaseStake: proxyArgs => signProxyIncreaseStake(proxyArgs),
   proxyUnstake: proxyArgs => signProxyUnstake(proxyArgs),
   proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs),

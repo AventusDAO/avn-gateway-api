@@ -145,17 +145,19 @@ async function getStakingStats() {
       query('parachainStaking', 'nominatorState', ['entries'])
     ]);
 
-    console.log(JSON.stringify(stakersData));
-
+    let ts = 0;
     stakersData.data.forEach(staker => {
       console.log(`STAKER: ${JSON.stringify(staker)}`)
+      ts++;
     })
+    console.log("stakers count:" + ts)
+    let avg = new BN(totalStaked).div(new BN(stakersData.length));
     stakingStats = {
       totalStaked: totalStaked.toString(),
       minUserBond: minUserBond.toString(),
       maxNominatorsRewardedPerValidator: maxNominatorsRewardedPerValidator.toString(),
       totalStakers: stakersData.length,
-      averageStaked: new BN(totalStaked).div(new BN(stakersData.length))
+      averageStaked: avg.toString()
     };
     await redis.setStakingStats(stakingStats);
   // }

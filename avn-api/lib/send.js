@@ -197,10 +197,10 @@ function unstake(api, queryApi) {
     const user = api.signer().address;
 
     const minimumFirstTimeStakingValue = common.getMinimumStakingValue(api);
-    const accountStakingBalance = await queryApi.getAccountInfo(user);
-    let newStakedBalance = accountStakingBalance && new BN(accountStakingBalance.stakedBalance).sub(new BN(amount));
+    const accountInfo = await queryApi.getAccountInfo(user);
+    let newStakedBalance = accountInfo && new BN(accountInfo.stakedBalance).sub(new BN(amount));
 
-    if (newStakedBalance && newStakedBalance.lt(minimumFirstTimeStakingValue) && newStakedBalance.gte(new BN(0))) {
+    if (newStakedBalance && newStakedBalance.lt(minimumFirstTimeStakingValue)) {
       const methodArgs = {};
       return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyScheduleLeaveNominators, NONCE_TYPE.Staking);
     } else {
@@ -218,9 +218,9 @@ function withdrawUnlocked(api, queryApi) {
     const methodArgs = { nominator };
 
     const user = api.signer().address;
-    const accountStakingBalance = await queryApi.getAccountInfo(user);
+    const accountInfo = await queryApi.getAccountInfo(user);
 
-    if (accountStakingBalance && new BN(accountStakingBalance.stakedBalance).eq(new BN(accountStakingBalance.unlockedBalance))) {
+    if (accountInfo && new BN(accountInfo.stakedBalance).eq(new BN(accountInfo.unlockedBalance))) {
       return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyExecuteLeaveNominators, NONCE_TYPE.Staking);
     } else {
       return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking);

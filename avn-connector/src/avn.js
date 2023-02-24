@@ -138,8 +138,7 @@ async function getCollatorsToNominate() {
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
   // if (stakingStats === undefined) {
-    let numActiveStakes = stakersData.length;
-    // let totalStakers = 0;
+    let totalStakers = 0;
     const nominators = {};
     const [minUserBond, maxNominatorsRewardedPerValidator, totalStaked, stakersData] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
@@ -147,20 +146,20 @@ async function getStakingStats() {
       api.query.parachainStaking.total(),
       query('parachainStaking', 'nominatorState', ['entries'])
     ]);
+    let numActiveStakes = stakersData.length;
 
-    console.log(JSON.stringify(stakersData, null, 2));
     // let ts = 0;
     // stakersData.data.forEach(staker => {
     //   console.log(`STAKER: ${JSON.stringify(staker)}`)
     //   ts++;
     // })
-    // stakersData.forEach( stake => {
-    //   const nominator = stake[1].id;
-    //   nominators[nominator] = stake[1]?.total || BN_ZERO;
-    // });
-    // console.log("stakers count:" + numActiveStakes)
-    // const averageStaked = totalStaked.divn(numActiveStakes).toString();
-    // let avg = new BN(totalStaked).div(new BN(stakersData.length));
+    stakersData.forEach( stake => {
+      const nominator = stake[1].id;
+      nominators[nominator] = stake[1]?.total || BN_ZERO;
+      totalStakers++;
+    });
+    console.log("stakers count:" + numActiveStakes)
+    const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {
       totalStaked: totalStaked.toString(),
       minUserBond: minUserBond.toString(),

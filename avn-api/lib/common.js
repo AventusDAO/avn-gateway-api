@@ -191,9 +191,9 @@ function validateNonceType(nonceType) {
   }
 }
 
-async function getMinimumStakingValue(api) {
-  const minStakingValuePerValidator = new BN(await api.query.getMinTotalNominatorStake());
-  const validators = await api.query.getValidatorsToNominate();
+async function getMinimumStakingValue(queryApi) {
+  const minStakingValuePerValidator = new BN(await queryApi.getMinTotalNominatorStake());
+  const validators = await queryApi.getValidatorsToNominate();
   return new BN(minStakingValuePerValidator.mul(new BN(validators.length)));
 }
 

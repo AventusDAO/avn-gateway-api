@@ -22,6 +22,8 @@ async function query(palletName, storageName, params) {
 
   if (params[0] === 'entries') {
     result = await api.query[palletName][storageName].entries();
+  } else if (params[0] === 'keys') {
+    result = await api.query[palletName][storageName].keys();
   } else if (params[0] === 'at') {
     const blockHash = await api.rpc.chain.getBlockHash(params[1]);
     result = await api.query[palletName][storageName].at(blockHash, ...params.slice(2));
@@ -134,12 +136,12 @@ async function getCollatorsToNominate() {
 
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
-  if (stakingStats === undefined) {
+  // if (stakingStats === undefined) {
     const [minUserBond, maxNominatorsRewardedPerValidator, totalStaked, stakersData] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
       api.query.parachainStaking.total(),
-      api.query['parachainStaking']['nominatorState'].keys()
+      query('parachainStaking', 'nominatorState', ['keys'])
     ]);
 
     stakingStats = {
@@ -149,7 +151,7 @@ async function getStakingStats() {
       totalStakers: stakersData.length,
     };
     await redis.setStakingStats(stakingStats);
-  }
+  // }
   return stakingStats;
 }
 

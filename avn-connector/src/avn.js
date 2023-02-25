@@ -144,7 +144,7 @@ async function getStakingStats() {
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
       api.query.parachainStaking.total(),
-      query('parachainStaking', 'nominatorState', ['entries'])
+      api.query['parachainStaking']['nominatorState'].entries()
     ]);
     let numActiveStakes = stakersData.length;
 
@@ -152,17 +152,19 @@ async function getStakingStats() {
       message: `GEtting staking stats.`,
       extrinsic: `${JSON.stringify(stakersData, null, 2)}`
     });
-    // let ts = 0;
-    // stakersData.data.forEach(staker => {
-    //   console.log(`STAKER: ${JSON.stringify(staker)}`)
-    //   ts++;
-    // })
+
+    let ts = 0;
+    stakersData.forEach(staker => {
+      console.log(`STAKER: ${JSON.stringify(staker)}`)
+      ts++;
+    })
     // stakersData.data.forEach( stake => {
     //   const nominator = stake[1].id;
     //   nominators[nominator] = stake[1]?.total || BN_ZERO;
     //   totalStakers++;
     // });
     console.log("stakers count:" + numActiveStakes)
+    console.log("ts:" + ts)
     const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {
       totalStaked: totalStaked.toString(),

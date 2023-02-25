@@ -148,16 +148,20 @@ async function getStakingStats() {
     ]);
     let numActiveStakes = stakersData.length;
 
+    log.trace({
+      message: `GEtting staking stats.`,
+      extrinsic: `${JSON.stringify(stakersData, null, 2)}`
+    });
     // let ts = 0;
     // stakersData.data.forEach(staker => {
     //   console.log(`STAKER: ${JSON.stringify(staker)}`)
     //   ts++;
     // })
-    stakersData.data.forEach( stake => {
-      const nominator = stake[1].id;
-      nominators[nominator] = stake[1]?.total || BN_ZERO;
-      totalStakers++;
-    });
+    // stakersData.data.forEach( stake => {
+    //   const nominator = stake[1].id;
+    //   nominators[nominator] = stake[1]?.total || BN_ZERO;
+    //   totalStakers++;
+    // });
     console.log("stakers count:" + numActiveStakes)
     const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {

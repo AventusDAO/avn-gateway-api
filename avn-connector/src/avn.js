@@ -138,8 +138,6 @@ async function getCollatorsToNominate() {
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
   // if (stakingStats === undefined) {
-    let totalStakers = 0;
-    const nominators = {};
     const [minUserBond, maxNominatorsRewardedPerValidator, totalStaked, stakersData] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
@@ -147,37 +145,6 @@ async function getStakingStats() {
       api.query['parachainStaking']['nominatorState'].entries()
     ]);
     let numActiveStakes = stakersData.length;
-
-    log.trace({
-      message: `GEtting staking stats.`,
-      extrinsic: `${JSON.stringify(stakersData, null, 2)}`
-    });
-
-    let ts = 0;
-    let maxtotal = new BN('0');
-    stakersData.forEach(staker => {
-      // const bondTotal = staker.total.unwrap();
-      // if (!bondTotal.isZero()) {
-      //   totalStaked = totalStaked.add(bondTotal);
-      //   numActiveStakes++;
-      // }
-      console.log(`STAKER: ${JSON.stringify(staker, null, 2)}`)
-      let s = JSON.parse(staker[1]);
-      console.log(`STAKER: ${JSON.stringify(s, null, 2)}`)
-      console.log(`STAKER: ${JSON.stringify(s.total, null, 2)}`)
-      maxtotal = maxtotal.add(hexToBn(s.total) || new BN('0'));
-      ts++;
-    })
-    // stakersData.data.forEach( stake => {
-    //   const nominator = stake[1].id;
-    //   nominators[nominator] = stake[1]?.total || BN_ZERO;
-    //   totalStakers++;
-    // });
-    console.log("stakers count:" + numActiveStakes)
-    console.log("ts:" + ts)
-    console.log("maxtotal:" + maxtotal.toString())
-    console.log("totalStaked:" + totalStaked.toString())
-
     const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {
       totalStaked: totalStaked.toString(),

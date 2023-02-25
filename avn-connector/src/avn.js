@@ -162,10 +162,10 @@ async function getStakingStats() {
       //   numActiveStakes++;
       // }
       console.log(`STAKER: ${JSON.stringify(staker, null, 2)}`)
-      let s = staker[1];
+      let s = JSON.parse(staker[1]);
       console.log(`STAKER: ${JSON.stringify(s, null, 2)}`)
       console.log(`STAKER: ${JSON.stringify(s.total, null, 2)}`)
-      maxtotal = maxtotal.add(new BN(s.total));
+      maxtotal = maxtotal.add(hexToBn(new BN(s.total)) || new BN('0'));
       ts++;
     })
     // stakersData.data.forEach( stake => {

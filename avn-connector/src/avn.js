@@ -157,7 +157,7 @@ async function getStakingStats() {
     let maxtotal = new BN('0');
     stakersData.forEach(staker => {
       console.log(`STAKER: ${JSON.stringify(staker)}`)
-      maxtotal = staker?.total ? maxtotal.add(staker.total) : maxtotal;
+      maxtotal = maxtotal.add(new BN(staker.total));
       ts++;
     })
     // stakersData.data.forEach( stake => {

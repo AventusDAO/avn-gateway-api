@@ -153,6 +153,7 @@ async function getStakingStats() {
       averageStaked: averageStaked
     };
     await redis.setStakingStats(stakingStats);
+  }
   return stakingStats;
 }
 

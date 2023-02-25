@@ -14,10 +14,10 @@ let argv = yargs
 let gatewayFile = argv.gateway;
 const accountsPath = gatewayFile ? `../config/accounts/${gatewayFile}.json` : '../config/accounts/sandbox.json';
 const { accounts } = require(accountsPath);
-process.env.AVN_SURI = accounts.payer.seed;
+process.env.AVN_SURI = accounts.user.seed;
 
 describe('Setting SURI as user seed', async () => {
   it('SURI is correctly set', async () => {
-    assert.equal(process.env.AVN_SURI, accounts.payer.seed);
+    assert.equal(process.env.AVN_SURI, accounts.user.seed);
   });
 });

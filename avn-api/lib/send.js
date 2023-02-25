@@ -205,7 +205,6 @@ function unstake(api, queryApi) {
       const methodArgs = {};
       return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyScheduleLeaveNominators, NONCE_TYPE.Staking);
     } else {
-      const amount = common.validateAndConvertAmountToString(unstakeAmount);
       const methodArgs = { amount };
       return await this.proxyRequest(api, queryApi, relayer, methodArgs, TX_TYPE.ProxyUnstake, NONCE_TYPE.Staking);
     }

@@ -271,13 +271,7 @@ function signProxyScheduleLeaveNominators({ relayer, nonce, signer }) {
     { u64: nonce }
   ];
 
-  console.log("orderedData")
-  console.log(orderedData)
   const encodedDataToSign = encodeOrderedData(orderedData);
-
-  console.log("encodedDataToSign")
-  console.log(encodedDataToSign)
-
   return signData(signer, encodedDataToSign);
 }
 

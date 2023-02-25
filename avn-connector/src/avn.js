@@ -1,6 +1,6 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { isHex, stringToHex, hexToBn } = require('@polkadot/util');
+const { isHex, stringToHex } = require('@polkadot/util');
 const { keccakAsHex } = require('@polkadot/util-crypto');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -10,7 +10,6 @@ const redis = require('./redis');
 const ethereum = require('./ethereum');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
-const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -137,7 +136,7 @@ async function getCollatorsToNominate() {
 
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
-  // if (stakingStats === undefined) {
+  if (stakingStats === undefined) {
     const [minUserBond, maxNominatorsRewardedPerValidator, totalStaked, stakersData] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
@@ -145,7 +144,6 @@ async function getStakingStats() {
       api.query['parachainStaking']['nominatorState'].keys()
     ]);
     let numActiveStakes = stakersData.length;
-    console.log("@@@@@@@@@@@@@@@@: " + numActiveStakes);
     const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {
       totalStaked: totalStaked.toString(),
@@ -155,7 +153,6 @@ async function getStakingStats() {
       averageStaked: averageStaked
     };
     await redis.setStakingStats(stakingStats);
-  // }
   return stakingStats;
 }
 

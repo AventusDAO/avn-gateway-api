@@ -142,9 +142,10 @@ async function getStakingStats() {
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
       api.query.parachainStaking.total(),
-      api.query['parachainStaking']['nominatorState'].entries()
+      api.query['parachainStaking']['nominatorState'].keys()
     ]);
     let numActiveStakes = stakersData.length;
+    console.log("@@@@@@@@@@@@@@@@: " + numActiveStakes);
     const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {
       totalStaked: totalStaked.toString(),

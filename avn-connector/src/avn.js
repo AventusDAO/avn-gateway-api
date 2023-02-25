@@ -141,14 +141,16 @@ async function getStakingStats() {
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
       api.query.parachainStaking.total(),
-      query('parachainStaking', 'nominatorState', ['keys'])
+      api.query['parachainStaking']['nominatorState'].keys()
     ]);
-
+    let numActiveStakes = stakersData.length;
+    const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {
       totalStaked: totalStaked.toString(),
       minUserBond: minUserBond.toString(),
       maxNominatorsRewardedPerValidator: maxNominatorsRewardedPerValidator.toString(),
       totalStakers: stakersData.length,
+      averageStaked: averageStaked
     };
     await redis.setStakingStats(stakingStats);
   }

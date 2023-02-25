@@ -22,6 +22,8 @@ async function query(palletName, storageName, params) {
 
   if (params[0] === 'entries') {
     result = await api.query[palletName][storageName].entries();
+  } else if (params[0] === 'keys') {
+    result = await api.query[palletName][storageName].keys();
   } else if (params[0] === 'at') {
     const blockHash = await api.rpc.chain.getBlockHash(params[1]);
     result = await api.query[palletName][storageName].at(blockHash, ...params.slice(2));
@@ -83,7 +85,6 @@ async function getAccountInfo(accountId) {
   let balancesAll = await api.derive.balances.all(accountId);
   let currentEraIndex = (await api.query.parachainStaking.era()).current;
   let collators = await getCollatorsToNominate(api);
-
   let stakedBalance, unlockedBalance, unstakedBalance;
 
   if (collators.some(c => c.toLowerCase() === accountId.toLowerCase())) {
@@ -95,8 +96,8 @@ async function getAccountInfo(accountId) {
     let allRequests = (await api.query.parachainStaking.nominationScheduledRequests.multi(collators))
 
     let nominatorRequests = allRequests
-        .filter(reqArray => reqArray.some(req => req.nominator.eq(accountId)))
-        .flat();
+      .flat()
+      .filter(req => req.nominator.eq(accountId));
 
     ({stakedBalance, unlockedBalance, unstakedBalance} =
         stakingHelper.calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex));
@@ -135,19 +136,24 @@ async function getCollatorsToNominate() {
 
 async function getStakingStats() {
   let stakingStats = await redis.getStakingStats();
-
   if (stakingStats === undefined) {
-    const stakersData = await api.derive.staking.electedInfo({ withExposure: true });
-
-    const [minUserBond, maxNominatorsRewardedPerValidator] = await Promise.all([
-      api.query.validatorsManager.minUserBond(),
-      api.consts.staking.maxNominatorRewardedPerValidator
+    const [minUserBond, maxNominatorsRewardedPerValidator, totalStaked, stakersData] = await Promise.all([
+      api.query.parachainStaking.minTotalNominatorStake(),
+      api.consts.parachainStaking.maxTopNominationsPerCandidate,
+      api.query.parachainStaking.total(),
+      api.query['parachainStaking']['nominatorState'].keys()
     ]);
-
-    stakingStats = stakingHelper.calculateStakingStats(stakersData, minUserBond, maxNominatorsRewardedPerValidator);
+    let numActiveStakes = stakersData.length;
+    const averageStaked = totalStaked.divn(numActiveStakes).toString();
+    stakingStats = {
+      totalStaked: totalStaked.toString(),
+      minUserBond: minUserBond.toString(),
+      maxNominatorsRewardedPerValidator: maxNominatorsRewardedPerValidator.toString(),
+      totalStakers: stakersData.length,
+      averageStaked: averageStaked
+    };
     await redis.setStakingStats(stakingStats);
   }
-
   return stakingStats;
 }
 

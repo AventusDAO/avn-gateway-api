@@ -26,6 +26,8 @@ const TX_TYPE = {
   ProxyIncreaseStake: 'proxyIncreaseStake',
   ProxyUnstake: 'proxyUnstake',
   ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
+  ProxyScheduleLeaveNominators: 'proxyScheduleLeaveNominators',
+  ProxyExecuteLeaveNominators: 'proxyExecuteLeaveNominators'
 };
 
 const NONCE_TYPE = {
@@ -189,6 +191,12 @@ function validateNonceType(nonceType) {
   }
 }
 
+async function getMinimumStakingValue(queryApi) {
+  const minStakingValuePerValidator = new BN(await queryApi.getMinTotalNominatorStake());
+  const validators = await queryApi.getValidatorsToNominate();
+  return new BN(minStakingValuePerValidator.mul(new BN(validators.length)));
+}
+
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -216,5 +224,6 @@ module.exports = {
   validateTransactionType,
   validateRoyalties,
   validateStakingTargets,
-  validateNumber
+  validateNumber,
+  getMinimumStakingValue
 };

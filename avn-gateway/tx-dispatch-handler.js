@@ -124,6 +124,10 @@ async function callSwitch(call, request, requestId) {
       return await processProxyUnstake(call, request, requestId);
     case 'proxyWithdrawUnlocked':
       return await processProxyWithdrawUnlocked(call, request, requestId);
+    case 'proxyScheduleLeaveNominators':
+      return await processProxyScheduleLeaveNominators(call, request, requestId);
+    case 'proxyExecuteLeaveNominators':
+      return await processProxyExecuteLeaveNominators(call, request, requestId);
     default:
       return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -335,10 +339,10 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 
 
 async function processProxyStakeAvt(call, request, requestId) {
-  const pallet = 'validatorsManager';
+  const pallet = 'parachainStaking';
   const method = 'signedNominate';
-  const numSlashSpan = 0;
-  const methodParams = [numSlashSpan];
+  const { targets, amount } = call.params;
+  const methodParams = [targets, amount];
 
   try {
     if (utils.isValidArray(call.params.targets) === false || call.params.targets.length === 0) throw 'targets';
@@ -350,7 +354,7 @@ async function processProxyStakeAvt(call, request, requestId) {
 }
 
 async function processProxyIncreaseStake(call, request, requestId) {
-  const pallet = 'validatorsManager';
+  const pallet = 'parachainStaking';
   const method = 'signedBondExtra';
   const { amount } = call.params;
   const methodParams = [amount];
@@ -365,8 +369,8 @@ async function processProxyIncreaseStake(call, request, requestId) {
 }
 
 async function processProxyUnstake(call, request, requestId) {
-  const pallet = 'validatorsManager';
-  const method = 'signedUnbond';
+  const pallet = 'parachainStaking';
+  const method = 'signedScheduleNominatorUnbond';
   const { amount } = call.params;
   const methodParams = [amount];
 
@@ -380,10 +384,27 @@ async function processProxyUnstake(call, request, requestId) {
 }
 
 async function processProxyWithdrawUnlocked(call, request, requestId) {
-  const pallet = 'validatorsManager';
-  const method = 'signedWithdrawUnbonded';
-  const numSlashSpan = 0;
-  const methodParams = [numSlashSpan];
+  const pallet = 'parachainStaking';
+  const method = 'signedExecuteNominationRequest';
+  const { nominator } = call.params;
+  const methodParams = [nominator];
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyScheduleLeaveNominators(call, request, requestId) {
+  const pallet = 'parachainStaking';
+  const method = 'signedScheduleLeaveNominators';
+  const methodParams = [];
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyExecuteLeaveNominators(call, request, requestId) {
+  const pallet = 'parachainStaking';
+  const method = 'signedExecuteLeaveNominators';
+  const { nominator } = call.params;
+  const methodParams = [nominator];
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }

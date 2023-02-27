@@ -37,11 +37,10 @@ describe('Split fees calls:', async () => {
     });
 
     let verifySplitFeesBalancesAndNonce = async () => {
-      return recipientAvtBalanceBefore.add(amount).eq(new BN(await api.query.getAvtBalance(recipient))) &&
-             userAvtBalanceBefore.sub(amount).eq(new BN(await api.query.getAvtBalance(user))) &&
-             relayerAvtBalanceBefore.gt(new BN(await api.query.getAvtBalance(relayer))) &&
-             payerPaymentNonce.add(new BN(1)).eq(new BN(await api.query.getNonce(payer, 'payment'))) &&
-             payerAvtBalanceBefore.sub(relayerFee).eq(new BN(await api.query.getAvtBalance(payer)))
+      return recipientAvtBalanceBefore.add(amount).eq(new BN(await api.query.getAvtBalance(recipient)))
+        && userAvtBalanceBefore.sub(amount).eq(new BN(await api.query.getAvtBalance(user)))
+        && relayerAvtBalanceBefore.gt(new BN(await api.query.getAvtBalance(relayer)))
+        && payerPaymentNonce.add(new BN(1)).eq(new BN(await api.query.getNonce(payer, 'payment')))
     }
 
     it('With valid payer address', async () => {

@@ -19,12 +19,13 @@ const signing = {
   proxyListNftBatchForSale: proxyArgs => signProxyListNftBatchForSale(proxyArgs),
   proxyTransferFiatNft: proxyArgs => signProxyTransferFiatNft(proxyArgs),
   proxyCancelListFiatNft: proxyArgs => signProxyCancelListFiatNft(proxyArgs),
+  proxyStakeAvt: proxyArgs => signProxyNominate(proxyArgs),
   proxyEndNftBatchSale: proxyArgs => signProxyEndNftBatchSale(proxyArgs),
-  proxyBond: proxyArgs => signProxyBond(proxyArgs),
-  proxyNominate: proxyArgs => signProxyNominate(proxyArgs),
   proxyIncreaseStake: proxyArgs => signProxyIncreaseStake(proxyArgs),
   proxyUnstake: proxyArgs => signProxyUnstake(proxyArgs),
-  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs)
+  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs),
+  proxyScheduleLeaveNominators: proxyArgs => signProxyScheduleLeaveNominators(proxyArgs),
+  proxyExecuteLeaveNominators: proxyArgs => signProxyExecuteLeaveNominators(proxyArgs)
 };
 
 const numTypes = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
@@ -247,14 +248,40 @@ function signProxyUnstake({ relayer, amount, nonce, signer }) {
   return signData(signer, encodedDataToSign);
 }
 
-function signProxyWithdrawUnlocked({ relayer, nonce, signer }) {
+function signProxyWithdrawUnlocked({ relayer, nominator, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
-  const numSlashSpan = 0; // We dont use slashing
 
   const orderedData = [
-    { Text: 'authorization for withdraw unbonded operation' },
+    { Text: 'parachain authorization for executing nomination requests operation' },
     { AccountId: relayer },
-    { u32: numSlashSpan },
+    { AccountId: nominator },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyScheduleLeaveNominators({ relayer, nonce, signer }) {
+  const dataRelayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'parachain authorization for scheduling leaving nominators operation' },
+    { AccountId: dataRelayer },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyExecuteLeaveNominators({ relayer, nominator, nonce, signer }) {
+  const dataRelayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'parachain authorization for executing leave nominators operation' },
+    { AccountId: dataRelayer },
+    { AccountId: nominator },
     { u64: nonce }
   ];
 

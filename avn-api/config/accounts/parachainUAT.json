@@ -31,6 +31,9 @@
       "seed": "0x890c48638e715e1bd26c13339bc06aa71a27de23ee3001d9d5299d1260de0719",
       "address": "5G7B3YUshXaFtcpQYL63oHi7kQQy8mq5NNLU7jVseMoxRUTt",
       "publicKey": "0xb2d2f22620bc96459d22ebee118e1f423d445032a6e48938ac811699c6e68a0b"
+    },
+    "rewardPayer": {
+      "address": "5EYCAe5fjFpowfFbMhiZM6vdW1nzdr91vZDVLnrBf2E28x2Y"
     }
   }
 }

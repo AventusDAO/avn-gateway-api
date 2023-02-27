@@ -25,6 +25,8 @@ function Send(api, queryApi) {
   this.endNftBatchSale = generateFunction(endNftBatchSale, api, queryApi);
   this.stake = generateFunction(stake, api, queryApi);
   this.unstake = generateFunction(unstake, api, queryApi);
+  this.scheduleLeaveNominators = generateFunction(scheduleLeaveNominators, api, queryApi);
+  this.executeLeaveNominators = generateFunction(executeLeaveNominators, api, queryApi);
   this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
   this.nonceMap = {};
   this.feesMap = {};
@@ -171,28 +173,59 @@ function stake(api, queryApi) {
       const targets = await queryApi.getValidatorsToNominate();
       common.validateStakingTargets(targets);
       const methodArgs = { amount, targets };
-
-      // first time staking is made up of 2 transactions: Bond + Nominate, so we cannot use the standard proxyRequest function
-      // TODO: update to the new version of staking
-      // return await this.proxyRequest(api, queryApi, methodArgs, 'proxyStakeAvt', NONCE_TYPE.Staking);
+      return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.proxyStakeAvt, NONCE_TYPE.Staking);
     }
   };
 }
 
 function unstake(api, queryApi) {
-  return async function (amount) {
-    amount = common.validateAndConvertAmountToString(amount);
-    const methodArgs = { amount };
+  return async function (unstakeAmount) {
+    const amount = common.validateAndConvertAmountToString(unstakeAmount);
+    const user = api.signer().address;
 
-    return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyUnstake, NONCE_TYPE.Staking);
+    const minimumFirstTimeStakingValue = await common.getMinimumStakingValue(queryApi);
+    const accountInfo = await queryApi.getAccountInfo(user);
+    let newStakedBalance = new BN(accountInfo?.stakedBalance).sub(new BN(amount));
+
+    if (newStakedBalance?.lt(minimumFirstTimeStakingValue)) {
+      const methodArgs = {};
+      return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyScheduleLeaveNominators, NONCE_TYPE.Staking);
+    } else {
+      const methodArgs = { amount };
+      return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyUnstake, NONCE_TYPE.Staking);
+    }
   };
 }
 
 function withdrawUnlocked(api, queryApi) {
   return async function () {
-    const methodArgs = {};
+    const nominator = api.signer().address;
+    const methodArgs = { nominator };
 
-    return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking);
+    const user = api.signer().address;
+    const accountInfo = await queryApi.getAccountInfo(user);
+
+    if (new BN(accountInfo?.stakedBalance).eq(new BN(accountInfo?.unlockedBalance))) {
+      return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyExecuteLeaveNominators, NONCE_TYPE.Staking);
+    } else {
+      return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyWithdrawUnlocked, NONCE_TYPE.Staking);
+    }
+  };
+}
+
+function scheduleLeaveNominators(api, queryApi) {
+  return async function () {
+    const methodArgs = {};
+    return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyScheduleLeaveNominators, NONCE_TYPE.Staking);
+  };
+}
+
+function executeLeaveNominators(api, queryApi) {
+  return async function () {
+    const nominator = api.signer().address;
+    const methodArgs = { nominator };
+
+    return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyExecuteLeaveNominators, NONCE_TYPE.Staking);
   };
 }
 

@@ -26,6 +26,8 @@ const transactionTypes = {
   proxyIncreaseStake: 'proxyIncreaseStake',
   proxyUnstake: 'proxyUnstake',
   proxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
+  proxyScheduleLeaveNominators: 'proxyScheduleLeaveNominators',
+  proxyExecuteLeaveNominators: 'proxyExecuteLeaveNominators'
 }
 
 let dataSource;

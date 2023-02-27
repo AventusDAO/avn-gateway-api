@@ -12,15 +12,20 @@ const signing = {
   proxyTokenTransfer: proxyArgs => signProxyTokenTransfer(proxyArgs),
   proxyConfirmTokenLift: proxyArgs => signProxyConfirmTokenLift(proxyArgs),
   proxyTokenLower: proxyArgs => signProxyTokenLower(proxyArgs),
+  proxyCreateNftBatch: proxyArgs => signProxyCreateNftBatch(proxyArgs),
   proxyMintSingleNft: proxyArgs => signProxyMintSingleNft(proxyArgs),
+  proxyMintBatchNft: proxyArgs => signProxyMintBatchNft(proxyArgs),
   proxyListNftOpenForSale: proxyArgs => signProxyListNftOpenForSale(proxyArgs),
+  proxyListNftBatchForSale: proxyArgs => signProxyListNftBatchForSale(proxyArgs),
   proxyTransferFiatNft: proxyArgs => signProxyTransferFiatNft(proxyArgs),
   proxyCancelListFiatNft: proxyArgs => signProxyCancelListFiatNft(proxyArgs),
-  proxyBond: proxyArgs => signProxyBond(proxyArgs),
-  proxyNominate: proxyArgs => signProxyNominate(proxyArgs),
+  proxyStakeAvt: proxyArgs => signProxyNominate(proxyArgs),
+  proxyEndNftBatchSale: proxyArgs => signProxyEndNftBatchSale(proxyArgs),
   proxyIncreaseStake: proxyArgs => signProxyIncreaseStake(proxyArgs),
   proxyUnstake: proxyArgs => signProxyUnstake(proxyArgs),
-  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs)
+  proxyWithdrawUnlocked: proxyArgs => signProxyWithdrawUnlocked(proxyArgs),
+  proxyScheduleLeaveNominators: proxyArgs => signProxyScheduleLeaveNominators(proxyArgs),
+  proxyExecuteLeaveNominators: proxyArgs => signProxyExecuteLeaveNominators(proxyArgs)
 };
 
 const numTypes = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
@@ -77,6 +82,22 @@ function signProxyTokenLower({ relayer, user, token, amount, t1Recipient, nonce,
   return signData(signer, encodedDataToSign);
 }
 
+function signProxyCreateNftBatch({ relayer, totalSupply, royalties, t1Authority, nonce, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'authorization for create batch operation' },
+    { AccountId: relayer },
+    { u64: totalSupply },
+    { SkipEncode: encodeRoyalties(royalties) },
+    { H160: t1Authority },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
 function signProxyMintSingleNft({ relayer, externalRef, royalties, t1Authority, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
@@ -92,13 +113,45 @@ function signProxyMintSingleNft({ relayer, externalRef, royalties, t1Authority, 
   return signData(signer, encodedDataToSign);
 }
 
-function signProxyListNftOpenForSale({ relayer, user, nftId, market, nonce, signer }) {
+function signProxyMintBatchNft({ relayer, batchId, index, owner, externalRef, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+  owner = common.convertToPublicKeyIfNeeded(owner);
+
+  const orderedData = [
+    { Text: 'authorization for mint batch nft operation' },
+    { AccountId: relayer },
+    { U256: batchId },
+    { u64: index },
+    { AccountId: owner },
+    { 'Vec<u8>': externalRef }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyListNftOpenForSale({ relayer, nftId, market, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
 
   const orderedData = [
     { Text: 'authorization for list nft open for sale operation' },
     { AccountId: relayer },
     { U256: nftId },
+    { u8: market },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyListNftBatchForSale({ relayer, batchId, market, nonce, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'authorization for list batch for sale operation' },
+    { AccountId: relayer },
+    { U256: batchId },
     { u8: market },
     { u64: nonce }
   ];
@@ -136,6 +189,21 @@ function signProxyCancelListFiatNft({ relayer, nftId, nonce, signer }) {
   const encodedDataToSign = encodeOrderedData(orderedData);
   return signData(signer, encodedDataToSign);
 }
+
+function signProxyEndNftBatchSale({ relayer, batchId, nonce, signer }) {
+  relayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'authorization for end batch sale operation' },
+    { AccountId: relayer },
+    { U256: batchId },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
 
 function signProxyNominate({ relayer, targets, amount, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
@@ -180,14 +248,40 @@ function signProxyUnstake({ relayer, amount, nonce, signer }) {
   return signData(signer, encodedDataToSign);
 }
 
-function signProxyWithdrawUnlocked({ relayer, nonce, signer }) {
+function signProxyWithdrawUnlocked({ relayer, nominator, nonce, signer }) {
   relayer = common.convertToPublicKeyIfNeeded(relayer);
-  const numSlashSpan = 0; // We dont use slashing
 
   const orderedData = [
-    { Text: 'authorization for withdraw unbonded operation' },
+    { Text: 'parachain authorization for executing nomination requests operation' },
     { AccountId: relayer },
-    { u32: numSlashSpan },
+    { AccountId: nominator },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyScheduleLeaveNominators({ relayer, nonce, signer }) {
+  const dataRelayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'parachain authorization for scheduling leaving nominators operation' },
+    { AccountId: dataRelayer },
+    { u64: nonce }
+  ];
+
+  const encodedDataToSign = encodeOrderedData(orderedData);
+  return signData(signer, encodedDataToSign);
+}
+
+function signProxyExecuteLeaveNominators({ relayer, nominator, nonce, signer }) {
+  const dataRelayer = common.convertToPublicKeyIfNeeded(relayer);
+
+  const orderedData = [
+    { Text: 'parachain authorization for executing leave nominators operation' },
+    { AccountId: dataRelayer },
+    { AccountId: nominator },
     { u64: nonce }
   ];
 

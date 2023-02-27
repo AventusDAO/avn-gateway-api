@@ -100,12 +100,20 @@ async function callSwitch(call, request, requestId) {
       return await processProxyAddEthereumLog(call, request, requestId);
     case 'proxyTokenLower':
       return await processProxyTokenLower(call, request, requestId);
+    case 'proxyCreateNftBatch':
+      return await processProxyCreateNftBatch(call, request, requestId);
     case 'proxyCancelListFiatNft':
       return await processProxyCancelListFiatNft(call, request, requestId);
+    case 'proxyEndNftBatchSale':
+      return await processProxyEndNftBatchSale(call, request, requestId);
     case 'proxyListNftOpenForSale':
       return await processProxyListNftOpenForSale(call, request, requestId);
+    case 'proxyListNftBatchForSale':
+      return await processProxyListNftBatchForSale(call, request, requestId);
     case 'proxyMintSingleNft':
       return await processProxyMintSingleNft(call, request, requestId);
+    case 'proxyMintBatchNft':
+      return await processProxyMintBatchNft(call, request, requestId);
     case 'proxyTransferFiatNft':
       return await processProxyTransferFiatNft(call, request, requestId);
     case 'proxyStakeAvt':
@@ -116,6 +124,10 @@ async function callSwitch(call, request, requestId) {
       return await processProxyUnstake(call, request, requestId);
     case 'proxyWithdrawUnlocked':
       return await processProxyWithdrawUnlocked(call, request, requestId);
+    case 'proxyScheduleLeaveNominators':
+      return await processProxyScheduleLeaveNominators(call, request, requestId);
+    case 'proxyExecuteLeaveNominators':
+      return await processProxyExecuteLeaveNominators(call, request, requestId);
     default:
       return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -173,6 +185,23 @@ async function processProxyTokenLower(call, request, requestId) {
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
+async function processProxyCreateNftBatch(call, request, requestId) {
+  const pallet = 'nftManager';
+  const method = 'signedCreateBatch';
+  const { totalSupply, royalties, t1Authority } = call.params;
+  const methodParams = [totalSupply, royalties, t1Authority];
+
+  try {
+    if (utils.isValidNumber(totalSupply) === false) throw 'totalSupply';
+    if (utils.isValidArray(royalties) === false) throw 'royalties';
+    if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
+  } catch (param) {
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
 async function processProxyCancelListFiatNft(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedCancelListFiatNft';
@@ -181,6 +210,21 @@ async function processProxyCancelListFiatNft(call, request, requestId) {
 
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID';
+  } catch (param) {
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyEndNftBatchSale(call, request, requestId) {
+  const pallet = 'nftManager';
+  const method = 'signedEndBatchSale';
+  const { batchId } = call.params;
+  const methodParams = [batchId];
+
+  try {
+    if (utils.isValidNftId(batchId) === false) throw 'batch ID';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -204,6 +248,22 @@ async function processProxyListNftOpenForSale(call, request, requestId) {
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
+async function processProxyListNftBatchForSale(call, request, requestId) {
+  const pallet = 'nftManager';
+  const method = 'signedListBatchForSale';
+  const { batchId, market } = call.params;
+  const methodParams = [batchId, market];
+
+  try {
+    if (utils.isValidNftId(batchId) === false) throw 'batch ID';
+    if (utils.isValidMarket(market) === false) throw 'market';
+  } catch (param) {
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
 async function processProxyMintSingleNft(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedMintSingleNft';
@@ -214,6 +274,24 @@ async function processProxyMintSingleNft(call, request, requestId) {
     if (utils.isValidString(externalRef) === false) throw 'externalRef';
     if (utils.isValidArray(royalties) === false) throw 'royalties';
     if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
+  } catch (param) {
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  }
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyMintBatchNft(call, request, requestId) {
+  const pallet = 'nftManager';
+  const method = 'signedMintBatchNft';
+  const { batchId, index, owner, externalRef } = call.params;
+  const methodParams = [batchId, index, owner, externalRef];
+
+  try {
+    if (utils.isValidNftId(batchId) === false) throw 'batch ID';
+    if (utils.isValidNumber(index) === false) throw 'index';
+    if (utils.isValidAccountId(owner) === false) throw 'owner';
+    if (utils.isValidString(externalRef) === false) throw 'externalRef';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -261,10 +339,10 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 
 
 async function processProxyStakeAvt(call, request, requestId) {
-  const pallet = 'validatorsManager';
+  const pallet = 'parachainStaking';
   const method = 'signedNominate';
-  const numSlashSpan = 0;
-  const methodParams = [numSlashSpan];
+  const { targets, amount } = call.params;
+  const methodParams = [targets, amount];
 
   try {
     if (utils.isValidArray(call.params.targets) === false || call.params.targets.length === 0) throw 'targets';
@@ -276,7 +354,7 @@ async function processProxyStakeAvt(call, request, requestId) {
 }
 
 async function processProxyIncreaseStake(call, request, requestId) {
-  const pallet = 'validatorsManager';
+  const pallet = 'parachainStaking';
   const method = 'signedBondExtra';
   const { amount } = call.params;
   const methodParams = [amount];
@@ -291,8 +369,8 @@ async function processProxyIncreaseStake(call, request, requestId) {
 }
 
 async function processProxyUnstake(call, request, requestId) {
-  const pallet = 'validatorsManager';
-  const method = 'signedUnbond';
+  const pallet = 'parachainStaking';
+  const method = 'signedScheduleNominatorUnbond';
   const { amount } = call.params;
   const methodParams = [amount];
 
@@ -306,10 +384,27 @@ async function processProxyUnstake(call, request, requestId) {
 }
 
 async function processProxyWithdrawUnlocked(call, request, requestId) {
-  const pallet = 'validatorsManager';
-  const method = 'signedWithdrawUnbonded';
-  const numSlashSpan = 0;
-  const methodParams = [numSlashSpan];
+  const pallet = 'parachainStaking';
+  const method = 'signedExecuteNominationRequest';
+  const { nominator } = call.params;
+  const methodParams = [nominator];
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyScheduleLeaveNominators(call, request, requestId) {
+  const pallet = 'parachainStaking';
+  const method = 'signedScheduleLeaveNominators';
+  const methodParams = [];
+
+  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function processProxyExecuteLeaveNominators(call, request, requestId) {
+  const pallet = 'parachainStaking';
+  const method = 'signedExecuteLeaveNominators';
+  const { nominator } = call.params;
+  const methodParams = [nominator];
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }

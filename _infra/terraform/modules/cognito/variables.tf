@@ -21,3 +21,13 @@ variable "hosted_zone" {
   type        = string
   default     = null
 }
+
+variable "callback_urls" {
+  description = "Cognito callback url - URL redirected after successful login."
+  type        = list(string)
+}
+
+variable "logout_urls" {
+  description = "Cognito logout urls - URL redirected after successful logout."
+  type        = list(string)
+}

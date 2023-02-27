@@ -23,7 +23,7 @@ async function getLockedBalance(address, token) {
 }
 
 async function getLiftEvents(avnContract) {
-  let fromBlock = (await redis.getCheckLiftsFromBlock()) || (await getBlocknumber(MAX_LIFT_AGE, 0));
+  let fromBlock = (await redis.getCheckLiftsFromEthBlock()) || (await getBlocknumber(MAX_LIFT_AGE, 0));
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
   toBlock = (fromBlock > toBlock) ? fromBlock : toBlock;
 
@@ -54,7 +54,7 @@ async function callEtherscan(request) {
 }
 
 async function getLatestClaimedLowers(avnContract) {
-  let fromBlock = (await redis.getCheckClaimedLowersFromBlock()) || 0;
+  let fromBlock = await redis.getCheckClaimedLowersFromAvnBlock();
   const claimedLowers = [];
 
   try {

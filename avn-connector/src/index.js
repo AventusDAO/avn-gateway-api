@@ -94,8 +94,8 @@ app.post('/avnAccountInfo', async (req, res, next) => {
 app.post('/avnValidatorsToNominate', async (req, res, next) => {
   try {
     log.trace({ avnValidatorsToNominateRequest: req.body });
-    const result = await avn.getValidatorsToNominate();
-    res.send(result);
+    const result = await avn.getCollatorsToNominate();
+    res.send(JSON.stringify(result));
   } catch (err) {
     next(err);
   }
@@ -105,7 +105,7 @@ app.post('/avnStakingStats', async (req, res, next) => {
   try {
     log.trace({ avnStakingStatsRequest: req.body });
     const result = await avn.getStakingStats();
-    res.send(result);
+    res.send(JSON.stringify(result));
   } catch (err) {
     next(err);
   }
@@ -115,7 +115,7 @@ app.post('/avnChainInfo', async (req, res, next) => {
   try {
     log.trace({ avnChainInfoRequest: req.body });
     const result = await avn.getChainInfo();
-    res.send(result);
+    res.send(JSON.stringify(result));
   } catch (err) {
     next(err);
   }

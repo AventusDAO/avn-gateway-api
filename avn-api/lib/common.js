@@ -14,14 +14,20 @@ const TX_TYPE = {
   ProxyTokenTransfer: 'proxyTokenTransfer',
   ProxyConfirmTokenLift: 'proxyConfirmTokenLift',
   ProxyTokenLower: 'proxyTokenLower',
+  ProxyCreateNftBatch: 'proxyCreateNftBatch',
   ProxyMintSingleNft: 'proxyMintSingleNft',
+  ProxyMintBatchNft: 'proxyMintBatchNft',
   ProxyListNftOpenForSale: 'proxyListNftOpenForSale',
+  ProxyListNftBatchForSale: 'proxyListNftBatchForSale',
   ProxyTransferFiatNft: 'proxyTransferFiatNft',
   ProxyCancelListFiatNft: 'proxyCancelListFiatNft',
+  ProxyEndNftBatchSale: 'proxyEndNftBatchSale',
   proxyStakeAvt: 'proxyStakeAvt',
   ProxyIncreaseStake: 'proxyIncreaseStake',
   ProxyUnstake: 'proxyUnstake',
   ProxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
+  ProxyScheduleLeaveNominators: 'proxyScheduleLeaveNominators',
+  ProxyExecuteLeaveNominators: 'proxyExecuteLeaveNominators'
 };
 
 const NONCE_TYPE = {
@@ -30,6 +36,7 @@ const NONCE_TYPE = {
   Staking: 'staking',
   Confirmation: 'confirmation',
   Nft: 'nft',
+  Batch: 'batch',
   None: 'none'
 };
 
@@ -184,6 +191,12 @@ function validateNonceType(nonceType) {
   }
 }
 
+async function getMinimumStakingValue(queryApi) {
+  const minStakingValuePerValidator = new BN(await queryApi.getMinTotalNominatorStake());
+  const validators = await queryApi.getValidatorsToNominate();
+  return new BN(minStakingValuePerValidator.mul(new BN(validators.length)));
+}
+
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -211,5 +224,6 @@ module.exports = {
   validateTransactionType,
   validateRoyalties,
   validateStakingTargets,
-  validateNumber
+  validateNumber,
+  getMinimumStakingValue
 };

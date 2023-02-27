@@ -14,14 +14,20 @@ const transactionTypes = {
   proxyTokenTransfer: 'proxyTokenTransfer',
   proxyConfirmTokenLift: 'proxyConfirmTokenLift',
   proxyTokenLower: 'proxyTokenLower',
+  proxyCreateNftBatch: 'proxyCreateNftBatch',
   proxyMintSingleNft: 'proxyMintSingleNft',
+  proxyMintBatchNft: 'proxyMintBatchNft',
   proxyListNftOpenForSale: 'proxyListNftOpenForSale',
+  proxyListNftBatchForSale: 'proxyListNftBatchForSale',
   proxyTransferFiatNft: 'proxyTransferFiatNft',
   proxyCancelListFiatNft: 'proxyCancelListFiatNft',
+  proxyEndNftBatchSale: 'proxyEndNftBatchSale',
   proxyStakeAvt: 'proxyStakeAvt',
   proxyIncreaseStake: 'proxyIncreaseStake',
   proxyUnstake: 'proxyUnstake',
   proxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
+  proxyScheduleLeaveNominators: 'proxyScheduleLeaveNominators',
+  proxyExecuteLeaveNominators: 'proxyExecuteLeaveNominators'
 }
 
 let dataSource;
@@ -34,7 +40,7 @@ async function init() {
     username: config.postgres.username,
     password: config.postgres.password,
     database: config.postgres.database,
-    synchronize: config.postgres.synchronize,
+    synchronize: config.postgres.synchronize === "true",
     entities: [
       require("./entity/payer"),
       require("./entity/splitFeeUser"),

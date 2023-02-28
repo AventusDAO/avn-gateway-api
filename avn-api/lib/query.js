@@ -2,6 +2,9 @@
 
 const common = require('./common.js');
 
+const { ethereumEncode } = require('@polkadot/util-crypto');
+const { isHex,u8aToHex, hexToU8a } = require('@polkadot/util')
+
 function Query(api) {
   this.getChainInfo = generateFunction(getChainInfo, api);
   this.getAvtContractAddress = generateFunction(getAvtContractAddress, api);
@@ -25,6 +28,7 @@ function Query(api) {
   this.getStakingStats = generateFunction(getStakingStats, api);
   this.getRelayerFees = generateFunction(getRelayerFees, api);
   this.getCurrentBlock = generateFunction(getCurrentBlock, api);
+  this.getOutstandingLowersForAccount = generateFunction(getOutstandingLowersForAccount, api);
   this.contracts = {};
   this.nftsMap = {};
 }
@@ -199,12 +203,24 @@ function getCurrentBlock(api) {
   };
 }
 
+function getOutstandingLowersForAccount(api) {
+  return async function (address) {
+    const u8a = isHex(address)
+                ? hexToU8a(address)
+                : keyring.decodeAddress(address);
+    const account = u8a.length === 20 ? ethereumEncode(u8a) : u8aToHex(u8a);
+              
+   
+    return await this.getRequest(api, 'getLowers', { account }, 'lowers');
+  };
+}
+
 function generateFunction(functionName, api) {
   return functionName(api);
 }
 
-Query.prototype.postRequest = async function (api, method, params) {
-  const endpoint = api.gateway + '/query';
+Query.prototype.postRequest = async function (api, method, params, handler = 'query') {
+  const endpoint = api.gateway + `/${handler}`;
   const response = await api.axios().post(endpoint, { jsonrpc: '2.0', id: api.uuid(), method: method, params: params });
 
   if (!response || !response.data) {
@@ -217,5 +233,17 @@ Query.prototype.postRequest = async function (api, method, params) {
 
   throw new Error(`Error processing query. Response: ${JSON.stringify(response.data)}`);
 };
+
+Query.prototype.getRequest = async function (api, method, params, handler = 'query') {
+  const endpoint = api.gateway + `/${handler}?account=${params.account}`;
+  const response = await api.axios().get(endpoint);
+
+  if (!response || !response.data) {    
+    throw new Error('Invalid server response');
+  }
+
+  return response.data;
+};
+
 
 module.exports = Query;

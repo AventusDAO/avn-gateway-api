@@ -39,7 +39,7 @@ EOT
   }
 
   software_token_mfa_configuration {
-    enabled = false
+    enabled = true
   }
 
   mfa_configuration = "OPTIONAL"

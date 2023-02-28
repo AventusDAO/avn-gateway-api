@@ -60,6 +60,7 @@ async function sendMessageToDefaultQueue(tx, awsRequestId) {
 async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext) {
   tx.splitFeePayerId = authoriserContext.splitFeePayerId;
   tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress;
+  tx.splitFeePayerVaultId = authoriserContext.splitFeePayerVaultId;
   tx.awsRequestId = awsRequestId;
   const messageBody = JSON.stringify(tx);
 

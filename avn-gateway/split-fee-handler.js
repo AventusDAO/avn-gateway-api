@@ -96,7 +96,7 @@ function validateTransaction(tx) {
 async function signPaymentInfo(transaction, encodedParams, requestId) {
   // validate if the payer is willing to pay for this transaction
   if (await payerCanPayForTransaction(transaction.splitFeePayerAddress, transaction.method)) {
-    const payerUserName = getPayerVaultUsername(transaction.splitFeePayerId)
+    const payerUserName = getPayerVaultUsername(transaction.splitFeePayerVaultId)
     return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payerUserName);
   } else {
     // transaction has been rejected by payer, inform user

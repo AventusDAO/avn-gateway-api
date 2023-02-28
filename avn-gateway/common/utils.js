@@ -246,8 +246,8 @@ async function getRelayerFee(connectorUrl, relayer, user, transactionType) {
   }
 }
 
-function getPayerVaultUsername(payerId) {
-  return `${VAULT_PAYER_USERNAME_PREFIX}${payerId}`;
+function getPayerVaultUsername(payerVaultId) {
+  return `${VAULT_PAYER_USERNAME_PREFIX}${payerVaultId}`;
 }
 
 // Keep alphabetical

@@ -42,6 +42,8 @@ EOT
     enabled = true
   }
 
+  mfa_configuration = "OPTIONAL"
+
   user_pool_add_ons {
     advanced_security_mode = var.user_pool_advanced_security_mode
   }
@@ -70,6 +72,7 @@ resource "aws_cognito_user_pool_client" "this" {
   generate_secret                      = true
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code"]
+  explicit_auth_flows                  = ["ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_CUSTOM_AUTH", "ALLOW_USER_SRP_AUTH", "USER_PASSWORD_AUTH"]
   allowed_oauth_scopes                 = ["email", "openid"]
   callback_urls                        = var.callback_urls
   logout_urls                          = var.logout_urls

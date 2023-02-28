@@ -42,8 +42,6 @@ EOT
     enabled = true
   }
 
-  mfa_configuration = "OPTIONAL"
-
   user_pool_add_ons {
     advanced_security_mode = var.user_pool_advanced_security_mode
   }
@@ -54,7 +52,7 @@ EOT
   }
 
   deletion_protection = "ACTIVE"
-  mfa_configuration   = "ON"
+  mfa_configuration   = "OPTIONAL"
   username_attributes = ["email"]
 
   tags = local.all_resources_tags

@@ -304,13 +304,13 @@ async function getGatewayUserInfo(account) {
   }
 }
 
-async function signPaymentInfo(message, payerAddress) {
+async function signPaymentInfo(message, payerUsername) {
   const paymentInfoContext = stringToHex('authorization for proxy payment');
   const messageWithoutPrefix = '0x' + message.slice(4);
 
   // Important: we only want to sign correctly formatted payment data.
   if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error ('Invalid data to sign.');
-  return vault.payerSign(message, payerAddress);
+  return vault.payerSign(message, payerUsername);
 }
 
 async function init() {

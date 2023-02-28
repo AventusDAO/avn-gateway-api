@@ -71,8 +71,7 @@ async function processRequest(request) {
 
   const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
   const encodedPaymentParams = fees.encodePaymentParams(feeParams.relayer, feeParams.relayerFee, feeParams.paymentNonce, feeParams.proxyProof);
-
-  const paymentSignature = await signPaymentInfo(tx.method, tx.splitFeePayerAddress, encodedPaymentParams, requestId);
+  const paymentSignature = await signPaymentInfo(tx, encodedPaymentParams, requestId);
 
   tx.params.payer = tx.splitFeePayerAddress;
   tx.params.feePaymentSignature = paymentSignature;
@@ -87,16 +86,18 @@ function validateTransaction(tx) {
   try {
     if (utils.isValidAccountId(tx.params.relayer) === false) throw 'relayer';
     if (utils.isValidAccountId(tx.params.user) === false) throw 'user';
+    if (utils.isValidNumber(tx.splitFeePayerId) === false) throw 'splitFeePayerId';
     if (utils.isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
     if (utils.isValidSignatureFormat(tx.params.proxySignature) === false) throw 'proxy signature format';
   } catch (errParam) {
     throw new Error(`Invalid transaction data: ${errParam}`);
   }
 }
-async function signPaymentInfo(transaction, payer, encodedParams, requestId) {
+async function signPaymentInfo(transaction, encodedParams, requestId) {
   // validate if the payer is willing to pay for this transaction
-  if (await payerCanPayForTransaction(payer, transaction)) {
-    return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payer);
+  if (await payerCanPayForTransaction(transaction.splitFeePayerAddress, transaction.method)) {
+    const payerUserName = getPayerVaultUsername(transaction.splitFeePayerVaultId)
+    return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payerUserName);
   } else {
     // transaction has been rejected by payer, inform user
     await updateTransactionStatusToRejected(requestId);

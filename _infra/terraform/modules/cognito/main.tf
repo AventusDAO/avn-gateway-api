@@ -39,7 +39,7 @@ EOT
   }
 
   software_token_mfa_configuration {
-    enabled = true
+    enabled = false
   }
 
   user_pool_add_ons {
@@ -70,6 +70,7 @@ resource "aws_cognito_user_pool_client" "this" {
   generate_secret                      = true
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code"]
+  explicit_auth_flows                  = ["USER_PASSWORD_AUTH"]
   allowed_oauth_scopes                 = ["email", "openid"]
   callback_urls                        = var.callback_urls
   logout_urls                          = var.logout_urls

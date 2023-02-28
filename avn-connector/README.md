@@ -94,7 +94,7 @@ fields @timestamp, data.level, @message
 
 Vault is used to store Relayer and Payer private keys. When creating an account and signing, vault requires a username in order to pick the correct keypair.
 
-For payers, the username has this format: 'GatewayPayer_' + Postgres payer Id. e.g. `GatewayPayer_1`, `GatewayPayer_2`.
+For payers, the username has this format: 'GatewayPayer_' + Postgres vault Id. e.g. `GatewayPayer_1add50e8-bff0-469e-983d-e43edc32a5cc`, `GatewayPayer_1add50e8-bff0-469e-983d-e43edc32a5ce`.
 
 **This means its important to remove/reset vault if the payer database is reset. Any funds in those accounts will be lost so please be careful before resetting vault**
 

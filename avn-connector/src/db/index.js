@@ -64,15 +64,21 @@ async function getPayer(user, payer) {
   const userDataSource = await dataSource.getRepository(SPLIT_FEE_USER_TABLE);
 
   const splitFeeUser = await userDataSource.findOne({ where: { publicKey: userPublicKey, enabled: true }, relations: ['payer']});
-  if (!splitFeeUser) return undefined;
+  if (!splitFeeUser || !splitFeeUser.payer) return undefined;
 
   // This check is useful when we start supporting multiple payers for the same user.
   if (payer) {
     const payerPublicKey = getPublicKey(payer);
-    return splitFeeUser.payer.publicKey === payerPublicKey ? encodeAddress(payerPublicKey, 42) : undefined;
+    if (splitFeeUser.payer.publicKey !== payerPublicKey) {
+      return undefined;
+    }
   }
 
-  return {payerId: splitFeeUser.id, payerAddress: encodeAddress(splitFeeUser.publicKey, 42), vaultId: splitFeeUser.vaultId};
+  return {
+    payerId: splitFeeUser.payer.id,
+    payerAddress: encodeAddress(splitFeeUser.payer.publicKey, 42),
+    vaultId: splitFeeUser.payer.vaultId
+  };
 }
 
 // This function will return the fee as a string

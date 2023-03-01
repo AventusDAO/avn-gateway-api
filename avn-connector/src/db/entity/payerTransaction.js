@@ -31,7 +31,7 @@ module.exports = new EntitySchema({
             type: 'many-to-one',
             inverseSide: 'payerTransaction',
             joinTable: true,
-            eager: true,
+            eager: false,
         },
         payer: {
             target: 'payer',
@@ -39,7 +39,7 @@ module.exports = new EntitySchema({
             type: 'many-to-one',
             inverseSide: 'payerTransaction',
             joinTable: true,
-            eager: true,
+            eager: false,
         }
     }
  })

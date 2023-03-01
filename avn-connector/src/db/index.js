@@ -112,7 +112,8 @@ async function isPayerTransaction(payer, transactionName) {
     { where: {
         payer: { publicKey: payerPk, enabled: true},
         transaction: { name: transactionName, enabled: true },
-        enabled: true }
+        enabled: true },
+      relations: ['payer', 'transaction']
     }
   );
 

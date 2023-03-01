@@ -9,6 +9,7 @@ require('./queryApiTest.js');
 require('./sendApiTest.js');
 require('./relayerFees.js');
 require('./splitFees.js');
+require('./stakingTests.js');
 require('./failPollApiTest.js');
 require('./failQueryApiTests.js');
 require('./failSendApiTest.js');

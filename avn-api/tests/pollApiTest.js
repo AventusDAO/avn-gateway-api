@@ -59,7 +59,8 @@ describe('Polling api calls:', async () => {
 
     it('returns an error for an unknown request ID', async () => {
       const badRequestId = uuidv4();
-      assert.equal(await api.poll.requestState(badRequestId), 'Transaction not found');
+      const result = await api.poll.requestState(badRequestId);
+      assert.equal(result.status, 'Transaction not found');
     });
   });
 });

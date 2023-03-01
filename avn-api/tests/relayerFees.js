@@ -16,13 +16,19 @@ describe('Relayer Fees:', async () => {
     proxyTokenTransfer: '1000000000000000',
     proxyConfirmTokenLift: '1000000000000000',
     proxyTokenLower: '1000000000000000',
+    proxyCreateNftBatch: '1000000000000000',
     proxyMintSingleNft: '1000000000000000',
+    proxyMintBatchNft: '1000000000000000',
     proxyListNftOpenForSale: '1000000000000000',
+    proxyListNftBatchForSale: '1000000000000000',
     proxyTransferFiatNft: '1000000000000000',
     proxyCancelListFiatNft: '1000000000000000',
+    proxyEndNftBatchSale: '1000000000000000',
     proxyIncreaseStake: '1000000000000000',
     proxyUnstake: '1000000000000000',
-    proxyWithdrawUnlocked: '1000000000000000'
+    proxyWithdrawUnlocked: '1000000000000000',
+    proxyScheduleLeaveNominators: '1000000000000000',
+    proxyExecuteLeaveNominators: '1000000000000000'
   };
 
   const expectedUserFees = {
@@ -31,13 +37,19 @@ describe('Relayer Fees:', async () => {
     proxyMintSingleNft: '7000000000000000',
     proxyConfirmTokenLift: '1000000000000000',
     proxyTokenLower: '1000000000000000',
+    proxyCreateNftBatch: '1000000000000000',
+    proxyMintBatchNft: '1000000000000000',
     proxyListNftOpenForSale: '1000000000000000',
+    proxyListNftBatchForSale: '1000000000000000',
     proxyTransferFiatNft: '1000000000000000',
     proxyCancelListFiatNft: '1000000000000000',
+    proxyEndNftBatchSale: '1000000000000000',
     proxyStakeAvt: '1000000000000000',
     proxyIncreaseStake: '1000000000000000',
     proxyUnstake: '1000000000000000',
-    proxyWithdrawUnlocked: '1000000000000000'
+    proxyWithdrawUnlocked: '1000000000000000',
+    proxyScheduleLeaveNominators: '1000000000000000',
+    proxyExecuteLeaveNominators: '1000000000000000'
   };
 
   before(async () => {

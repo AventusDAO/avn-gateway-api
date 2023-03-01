@@ -184,7 +184,7 @@ app.post('/gatewayUserInfo', async (req, res, next) => {
 app.post('/signPaymentInfo', async (req, res, next) => {
   try {
     log.trace({ signPaymentInfo: JSON.stringify(req.body) });
-    const result = await avn.signPaymentInfo(req.body.message, req.body.payerAddress);
+    const result = await avn.signPaymentInfo(req.body.message, req.body.payerUserName);
     res.send(result);
   } catch (err) {
     next(err);

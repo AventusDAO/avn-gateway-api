@@ -52,14 +52,6 @@ While in DEV mode, to deploy a new version on the EC2 instance, you should:
  - Get the latest version of the code from github by running `git pull` from anywhere in the `avn-gateway-api` folder. This will pull from `main` by default
  - Start the containers by running `./start` from the `docker` folder
 
- ## Fees
- To insert test fees data in documentDB, from `avn-connector/src`, run:
- ```
-  npm run insertTestFees
- ```
-
- This script attempts to insert a hardcoded test fees data. If this data exists already, the script will print a message and exits without changing anything.
-
 ## Logging
 The avn-connector logs running in kuberentes will be output as JSON and forwarded to cloudwatch. A JSON structure ensures that our logs can be searched and indexed by cloudwatch.
 
@@ -97,3 +89,13 @@ fields @timestamp, data.level, @message
 | filter `kubernetes.labels.app` = "avn-connector"
 | filter @message like "avnProxy"
 ```
+
+## Vault
+
+Vault is used to store Relayer and Payer private keys. When creating an account and signing, vault requires a username in order to pick the correct keypair.
+
+For payers, the username has this format: 'GatewayPayer_' + Postgres vault Id. e.g. `GatewayPayer_1add50e8-bff0-469e-983d-e43edc32a5cc`, `GatewayPayer_1add50e8-bff0-469e-983d-e43edc32a5ce`.
+
+**This means its important to remove/reset vault if the payer database is reset. Any funds in those accounts will be lost so please be careful before resetting vault**
+
+For relayers, the username is the relayer public key (this will be updated to match the payer setup soon).

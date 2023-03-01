@@ -17,6 +17,10 @@ module.exports = new EntitySchema({
             type: "varchar",
             unique: true,
         },
+        vaultId: {
+          type: "uuid",
+          generated: "uuid"
+        },
         description: {
             type: "varchar",
             nullable: true,

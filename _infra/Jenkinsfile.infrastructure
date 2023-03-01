@@ -272,6 +272,7 @@ def generateContext(String clusterName, String namespace) {
 }
 
 def terraformPlan() {
+  sh "terraform version"
   sh "terraform init -no-color"
   sh "terraform refresh -no-color"
   switch(env.terraform_target) {

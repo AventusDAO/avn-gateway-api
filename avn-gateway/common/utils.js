@@ -30,6 +30,8 @@ const TX_TYPES = [
   'proxyStakeAvt',
 ];
 
+const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';
+
 let initialised;
 
 async function init() {
@@ -244,6 +246,10 @@ async function getRelayerFee(connectorUrl, relayer, user, transactionType) {
   }
 }
 
+function getPayerVaultUsername(payerVaultId) {
+  return `${VAULT_PAYER_USERNAME_PREFIX}${payerVaultId}`;
+}
+
 // Keep alphabetical
 module.exports = {
   axios,
@@ -251,6 +257,7 @@ module.exports = {
   encodeProxyProof,
   buildSuccessResponse,
   buildErrorResponse,
+  getPayerVaultUsername,
   getProxyProof,
   getRelayerFee,
   hashString,

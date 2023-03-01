@@ -82,12 +82,12 @@ function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
   );
 }
 
-async function signPaymentInfo(connectorUrl, encodedPaymentInfo, payerAddress) {
+async function signPaymentInfo(connectorUrl, encodedPaymentInfo, payerUserName) {
   if (!isHex(encodePaymentParams)) encodedPaymentInfo = u8aToHex(encodedPaymentInfo);
 
   const requestParams = {
     message: encodedPaymentInfo,
-    payerAddress: payerAddress
+    payerUserName: payerUserName
   };
 
   const avnResponse = await utils.axios.post(connectorUrl + 'signPaymentInfo', requestParams);

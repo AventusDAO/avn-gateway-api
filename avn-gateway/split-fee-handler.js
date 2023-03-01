@@ -87,6 +87,7 @@ function validateTransaction(tx) {
     if (utils.isValidAccountId(tx.params.relayer) === false) throw 'relayer';
     if (utils.isValidAccountId(tx.params.user) === false) throw 'user';
     if (utils.isValidNumber(tx.splitFeePayerId) === false) throw 'splitFeePayerId';
+    if (utils.isValidString(tx.splitFeePayerVaultId) === false) throw 'splitFeePayerVaultId';
     if (utils.isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
     if (utils.isValidSignatureFormat(tx.params.proxySignature) === false) throw 'proxy signature format';
   } catch (errParam) {
@@ -96,7 +97,7 @@ function validateTransaction(tx) {
 async function signPaymentInfo(transaction, encodedParams, requestId) {
   // validate if the payer is willing to pay for this transaction
   if (await payerCanPayForTransaction(transaction.splitFeePayerAddress, transaction.method)) {
-    const payerUserName = getPayerVaultUsername(transaction.splitFeePayerVaultId)
+    const payerUserName = utils.getPayerVaultUsername(transaction.splitFeePayerVaultId)
     return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payerUserName);
   } else {
     // transaction has been rejected by payer, inform user

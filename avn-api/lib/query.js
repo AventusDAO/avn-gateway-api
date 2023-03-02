@@ -3,7 +3,7 @@
 const common = require('./common.js');
 
 const { ethereumEncode } = require('@polkadot/util-crypto');
-const { isHex,u8aToHex, hexToU8a } = require('@polkadot/util')
+const { isHex, u8aToHex, hexToU8a } = require('@polkadot/util')
 
 function Query(api) {
   this.getChainInfo = generateFunction(getChainInfo, api);

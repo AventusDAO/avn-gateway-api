@@ -70,7 +70,7 @@ describe('SendTx api calls:', async () => {
       console.log(`   - RequestId: ${requestId}`);
       await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-      bnEquals(recipientAvtBalanceBefore.add(amount), await apiWithOptions.query.getAvtBalance(recipient));
+      bnEquals(recipientAvtBalanceBefore.add(amount), new BN(await apiWithOptions.query.getAvtBalance(recipient)));
       bnEquals(new BN(await apiWithOptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
   });

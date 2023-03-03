@@ -55,7 +55,7 @@ const withdrawStakedBalance = async (api, amount) => {
   accountInfo = await api.query.getAccountInfo(user);
   if (new BN(accountInfo?.unstakedBalance).gt(new BN(0))) await unlockStakedBalance(api);
 
-  requestId = await api.send.withdrawUnlocked(relayer);
+  requestId = await api.send.withdrawUnlocked();
   await helper.confirmStatus(api, requestId, 'Processed');
 };
 
@@ -156,7 +156,7 @@ describe('Staking', async () => {
         if (new BN(stakingBalanceBefore?.unstakedBalance).gt(new BN(0))) await unlockStakedBalance(api);
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
-        requestId = await api.send.withdrawUnlocked(relayer);
+        requestId = await api.send.withdrawUnlocked();
         await helper.confirmStatus(api, requestId, 'Processed');
         stakingBalanceAfter = await api.query.getAccountInfo(user);
       });
@@ -255,16 +255,6 @@ describe('Staking', async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
         if (stakingStatus === common.STAKING_STATUS.isStaking) await withdrawStakedBalance(api);
       });
-
-      it('with a null relayer account', async () => {
-        await expect(api.send.stake(null, testsFirstTimeStakingValue)).to.be.rejectedWith(/Invalid account type:/);
-      });
-      it('with an empty relayer account', async () => {
-        await expect(api.send.stake('', testsFirstTimeStakingValue)).to.be.rejectedWith(/Invalid account type:/);
-      });
-      it('with an invalid relayer account', async () => {
-        await expect(api.send.stake('invalid_account', testsFirstTimeStakingValue)).to.be.rejectedWith(/Invalid account type:/);
-      });
       it('a null value', async () => {
         await expect(api.send.stake(null)).to.be.rejectedWith(/Invalid amount type:/);
       });
@@ -296,16 +286,6 @@ describe('Staking', async () => {
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
         if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
-      });
-
-      it('with a null relayer account', async () => {
-        await expect(api.send.unstake(null, ONE_AVT)).to.be.rejectedWith(/Invalid account type:/);
-      });
-      it('with an empty relayer account', async () => {
-        await expect(api.send.unstake('', ONE_AVT)).to.be.rejectedWith(/Invalid account type:/);
-      });
-      it('with an invalid relayer account', async () => {
-        await expect(api.send.unstake('invalid_account', ONE_AVT)).to.be.rejectedWith(/Invalid account type:/);
       });
       it('a null value', async () => {
         await expect(api.send.unstake(null)).to.be.rejectedWith(/Invalid amount type:/);

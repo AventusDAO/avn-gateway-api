@@ -32,7 +32,7 @@ const TEN_THOUSAND_WEI = '10000';
 const TEN_ETH = '10000000000000000000';
 const TWO_HUNDRED_ETH = '200000000000000000000';
 const WAIT_TIME_IN_SEC = 1;
-const DEFAULT_WAIT_TIME = 2;
+const DEFAULT_WAIT_TIME = 3;
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

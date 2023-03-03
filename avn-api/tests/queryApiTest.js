@@ -224,4 +224,13 @@ describe('Query api calls:', async () => {
       assert([common.STAKING_STATUS.isStaking, common.STAKING_STATUS.isNotStaking].includes(returnedData), 'Staking status is not a valid result');
     });
   });
+
+  describe('getOutstandingLowersForAccount', async () => {
+    it('returns data', async () => {
+        const ethDevAddress = '0xDE7E1091cDE63c05Aa4D82C62e4C54eDbC701B22'
+        const returnedData = await api.query.getOutstandingLowersForAccount(ethDevAddress)
+        assert(Array.isArray(returnedData.lowerData))
+        assert(returnedData.status === 'success')
+    })
+  })
 });

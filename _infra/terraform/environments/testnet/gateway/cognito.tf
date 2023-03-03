@@ -29,7 +29,7 @@ module "gateway_cognito" {
 
   hosted_zone            = local.gateway_url
   domain                 = "auth.${local.gateway_url}"
-  callback_urls          = ["https://admin-gateway-external.dev.aventus.io/payerAdmin"]
-  logout_urls            = ["https://admin-gateway-external.dev.aventus.io/payerLogout"]
+  callback_urls          = ["https://admin-gateway-external.testnet.aventus.io/payerAdmin"]
+  logout_urls            = ["https://admin-gateway-external.testnet.aventus.io/payerLogout"]
   domain_certificate_arn = module.gateway_cognito_acm.acm_certificate_arn
 }

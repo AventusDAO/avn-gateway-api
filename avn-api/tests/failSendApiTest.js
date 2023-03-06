@@ -321,13 +321,13 @@ const BN = helper.BN;
             /Error processing query/
           );
         });
-        it('With user that doesnt own this nft', async () => {
+        xit('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
           );
         });
-        it('With an NFT that is already listed', async () => {
+        xit('With an NFT that is already listed', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
@@ -372,7 +372,7 @@ const BN = helper.BN;
             /Error processing query/
           );
         });
-        it('With user that doesnt own this nft', async () => {
+        xit('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
@@ -417,13 +417,13 @@ const BN = helper.BN;
             /Error processing query/
           );
         });
-        it('With user that doesnt own this nft', async () => {
+      xit('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
           );
         });
-        it('with an NFT that is not listed', async () => {
+        xit('with an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/

@@ -53,7 +53,7 @@ describe('Utilities', async () => {
     it('for split fee tokens', async () => {
       let options = {
         hasPayer: true,
-        payer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'
+        payer: accounts.payer.address
       };
 
       let apiWithOptions = await helper.avnApi(options);

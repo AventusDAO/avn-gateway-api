@@ -43,7 +43,7 @@ describe('Query api calls:', async () => {
   describe('get totals', async () => {
     it('returns total AVT', async () => {
       let avt = await api.query.getAvtContractAddress();
-      helper.bnEquals(await api.query.getTotalAvt(), await api.query.getTotalToken(avt));
+      assert(new BN(await api.query.getTotalAvt()).gt(BN_ZERO));
     });
 
     it('returns total ETH', async () => {

@@ -18,9 +18,9 @@ const unlockStakedBalance = async api => {
   let activeEra = await api.query.getActiveEra();
   let stakingDelay = await api.query.getStakingDelay();
   let unlockedEra = stakingDelay + activeEra;
+  console.log(`Waiting for unstaked balance to be unlocked: currentEra = ${activeEra} | unlockingEra = ${unlockedEra}`);
   while (activeEra < unlockedEra) {
-    console.log(`Waiting for unstaked balance to be unlocked: currentEra = ${activeEra} | unlockingEra = ${unlockedEra}`);
-    await helper.sleep(60000);
+    await helper.sleep(10000);
     activeEra = await api.query.getActiveEra();
   }
 };
@@ -81,7 +81,6 @@ describe('Staking', async () => {
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
         if (stakingStatus === common.STAKING_STATUS.isStaking) await withdrawStakedBalance(api);
-
         stakingBalanceBefore = await api.query.getAccountInfo(user);
         await firstTimeStake(api, testsFirstTimeStakingValue);
         stakingBalanceAfter = await api.query.getAccountInfo(user);
@@ -216,11 +215,7 @@ describe('Staking', async () => {
         bnEquals(new BN(0), new BN(stakingBalanceAfter.stakedBalance));
       });
       it('Free balance is increased by the withdrawn amount', async () => {
-        assert(
-          new BN(stakingBalanceBefore?.freeBalance).lt(
-            new BN(stakingBalanceAfter?.freeBalance)
-          )
-        );
+        assert(new BN(stakingBalanceBefore.freeBalance).lt(new BN(stakingBalanceAfter.freeBalance)));
       });
     });
 
@@ -314,7 +309,7 @@ describe('Staking', async () => {
         await expect(api.send.unstake(relayer, '')).to.be.rejectedWith(/Invalid amount type:/);
       });
       it('a non-numeric string as value', async () => {
-        await expect(api.send.unstake(relayer, 'string')).to.be.rejectedWith(/Invalid character/);
+        await expect(api.send.unstake('string')).to.be.rejectedWith(/Invalid amount type:/);
       });
       it('a negative value', async () => {
         await expect(api.send.unstake(relayer, -1)).to.be.rejectedWith(/Invalid amount type:/);

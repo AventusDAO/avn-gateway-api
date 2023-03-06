@@ -309,7 +309,7 @@ describe('Staking', async () => {
         await expect(api.send.unstake(relayer, '')).to.be.rejectedWith(/Invalid amount type:/);
       });
       it('a non-numeric string as value', async () => {
-        await expect(api.send.unstake('string')).to.be.rejectedWith(/Invalid amount type:/);
+        await expect(api.send.unstake(relayer, 'string')).to.be.rejectedWith(/Invalid amount type:/);
       });
       it('a negative value', async () => {
         await expect(api.send.unstake(relayer, -1)).to.be.rejectedWith(/Invalid amount type:/);

@@ -1,6 +1,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const assert = chai.assert;
+chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;

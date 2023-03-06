@@ -9,7 +9,7 @@ const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 describe('SendTx api calls:', async () => {
   let api;
   let token;
-  let relayer, user, recipient, t1Recipient;
+  let relayer, user, recipient, payer, t1Recipient;
   let relayerFee, relayerLowerFee;
 
   before(async () => {
@@ -18,6 +18,7 @@ describe('SendTx api calls:', async () => {
     relayer = accounts.relayer.address;
     user = accounts.user.address;
     recipient = accounts.otherUser.address;
+    payer = accounts.payer.address;
     recipientPubKey = accounts.otherUser.publicKey;
     relayerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyAvtTransfer);
     relayerLowerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyTokenLower);
@@ -28,6 +29,7 @@ describe('SendTx api calls:', async () => {
     let userAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore;
 
     beforeEach(async () => {
+      await api.setSURI(accounts.user.seed);
       userAvtBalanceBefore = new BN(await api.query.getAvtBalance(user));
       recipientAvtBalanceBefore = new BN(await api.query.getAvtBalance(recipient));
       relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));
@@ -58,7 +60,7 @@ describe('SendTx api calls:', async () => {
     it('can transfer AVT using a recipient address for a split fee user', async () => {
       let options = {
         hasPayer: true,
-        payer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'
+        payer: payer
       };
 
       let apiWithOptions = await helper.avnApi(options);
@@ -68,7 +70,7 @@ describe('SendTx api calls:', async () => {
       console.log(`   - RequestId: ${requestId}`);
       await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-      bnEquals(recipientAvtBalanceBefore.add(amount), await apiWithOptions.query.getAvtBalance(recipient));
+      bnEquals(recipientAvtBalanceBefore.add(amount), new BN(await apiWithOptions.query.getAvtBalance(recipient)));
       bnEquals(new BN(await apiWithOptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
   });

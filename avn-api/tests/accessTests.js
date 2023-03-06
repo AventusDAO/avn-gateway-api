@@ -79,7 +79,7 @@ describe('Access rights:', async () => {
       assert.equal(await api.query.getAvtBalance(existingUser), ONE_AVT.toString());
 
       api.setSURI(existingUserSURI);
-      const relayerFee = await api.query.getRelayerFees(relayer, user, 'proxyTokenTransfer');
+      const relayerFee = await api.query.getRelayerFees(relayer, existingUser, 'proxyTokenTransfer');
       requestId = await api.send.transferAvt(relayer, user, ONE_AVT.sub(new BN(relayerFee)).toString());
       await helper.confirmStatus(api, requestId, 'Processed');
 

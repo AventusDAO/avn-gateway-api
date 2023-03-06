@@ -215,11 +215,7 @@ describe('Staking', async () => {
         bnEquals(new BN(0), new BN(stakingBalanceAfter.stakedBalance));
       });
       it('Free balance is increased by the withdrawn amount', async () => {
-        assert(
-          new BN(stakingBalanceBefore?.freeBalance).lt(
-            new BN(stakingBalanceAfter?.freeBalance)
-          )
-        );
+        assert(new BN(stakingBalanceBefore.freeBalance).lt(new BN(stakingBalanceAfter.freeBalance)));
       });
     });
 
@@ -289,7 +285,7 @@ describe('Staking', async () => {
         await expect(api.send.unstake('')).to.be.rejectedWith(/Invalid amount type:/);
       });
       it('a non-numeric string as value', async () => {
-        await expect(api.send.unstake('string')).to.be.rejectedWith(/Invalid amount type:/);
+        await expect(api.send.unstake(relayer, 'string')).to.be.rejectedWith(/Invalid amount type:/);
       });
       it('a negative value', async () => {
         await expect(api.send.unstake(-1)).to.be.rejectedWith(/Invalid amount type:/);

@@ -29,6 +29,7 @@ describe('SendTx api calls:', async () => {
     let userAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore;
 
     beforeEach(async () => {
+      await api.setSURI(accounts.user.seed);
       userAvtBalanceBefore = new BN(await api.query.getAvtBalance(user));
       recipientAvtBalanceBefore = new BN(await api.query.getAvtBalance(recipient));
       relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));

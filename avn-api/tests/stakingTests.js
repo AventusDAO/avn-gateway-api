@@ -203,7 +203,7 @@ describe('Staking', async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
         if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
 
-        let stakingBalanceBefore = await api.query.getAccountInfo(user);
+        stakingBalanceBefore = await api.query.getAccountInfo(user);
         let withdrawValue = new BN(
           new BN(stakingBalanceBefore?.stakedBalance).sub(minimumFirstTimeStakingValue)
         ).add(new BN(1));

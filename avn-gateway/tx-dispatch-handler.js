@@ -341,11 +341,21 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 async function processProxyStakeAvt(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedNominate';
-  const { targets, amount } = call.params;
+  const { targets, amount, relayer, nonce, proxySignature, signer } = call.params;
   const methodParams = [targets, amount];
+
+  const signData = [
+    { Text: 'parachain authorization for nominate operation' },
+    { AccountId: utils.convertToPublicKey(relayer) },
+    { 'Vec<LookupSource>': targets },
+    { BalanceOf: amount },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidArray(call.params.targets) === false || call.params.targets.length === 0) throw 'targets';
+    if (utils.isValidAmount(amount) === false) throw 'amount';
+    if (utils.isValidProxySignature(proxySignature, signer, signData) === false) throw 'invalid proxy signature';
   } catch (errParam) {
     throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
   }

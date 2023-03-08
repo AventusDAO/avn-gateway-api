@@ -11,6 +11,19 @@ const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
+const NUM_TYPES = [
+  'AccountId',
+  'Balance',
+  'BalanceOf',
+  'EraIndex',
+  'u8',
+  'u32',
+  'u64',
+  'u128',
+  'U256',
+  'H160',
+  'H256'
+];
 const TX_TYPES = [
   'proxyAvtTransfer',
   'proxyTokenTransfer',
@@ -250,6 +263,25 @@ function getPayerVaultUsername(payerVaultId) {
   return `${VAULT_PAYER_USERNAME_PREFIX}${payerVaultId}`;
 }
 
+function isValidProxySignature(proxySignature, signer, data) {
+    const encodedDataToSign = encodeOrderedData(data);
+    const signature = signData(encodedDataToSign, signer);
+    return signature === proxySignature;
+}
+
+function encodeOrderedData(data) {
+  const encodedDataToSign = data.map(d => {
+    const [type, value] = Object.entries(d)[0];
+    return type === 'SkipEncode' ? value : registry.createType(type, value).toU8a(NUM_TYPES.includes(type));
+  });
+  return u8aConcat(...encodedDataToSign);
+}
+
+function signData(encodedDataToSign, signer) {
+  const signature = u8aToHex(signer.sign(encodedDataToSign));
+  return signature;
+}
+
 // Keep alphabetical
 module.exports = {
   axios,
@@ -281,6 +313,7 @@ module.exports = {
   isValidSignatureFormat,
   isValidString,
   isValidTransactionType,
+  isValidProxySignature,
   requestFailed,
   signatureVerify,
   stringToHex,

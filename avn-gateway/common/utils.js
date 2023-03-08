@@ -263,10 +263,9 @@ function getPayerVaultUsername(payerVaultId) {
   return `${VAULT_PAYER_USERNAME_PREFIX}${payerVaultId}`;
 }
 
-function isValidProxySignature(proxySignature, signer, data) {
-    const encodedDataToSign = encodeOrderedData(data);
-    const signature = signData(encodedDataToSign, signer);
-    return signature === proxySignature;
+function isValidProxySignature(proxySignature, user, data) {
+    const encodedData = encodeOrderedData(data);
+    return verifySignatureWithOrWithoutWrapping(encodedData, proxySignature, user)
 }
 
 function encodeOrderedData(data) {
@@ -275,11 +274,6 @@ function encodeOrderedData(data) {
     return type === 'SkipEncode' ? value : registry.createType(type, value).toU8a(NUM_TYPES.includes(type));
   });
   return u8aConcat(...encodedDataToSign);
-}
-
-function signData(encodedDataToSign, signer) {
-  const signature = u8aToHex(signer.sign(encodedDataToSign));
-  return signature;
 }
 
 // Keep alphabetical

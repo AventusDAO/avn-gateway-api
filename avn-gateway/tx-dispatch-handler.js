@@ -136,14 +136,25 @@ async function callSwitch(call, request, requestId) {
 async function processProxyTransfer(call, request, requestId) {
   const pallet = 'tokenManager';
   const method = 'signedTransfer';
-  const { user, recipient, token, amount } = call.params;
+  const { user, recipient, token, amount, relayer, nonce, proxySignature } = call.params;
   const methodParams = [user, recipient, token, amount];
+
+  const signData = [
+    { Text: 'authorization for transfer operation' },
+    { AccountId: relayer },
+    { AccountId: user },
+    { AccountId: recipient },
+    { H160: token },
+    { u128: amount },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidAccountId(recipient) === false) throw 'recipient';
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
     if (utils.isValidAmount(amount) === false) throw 'amount';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -154,12 +165,21 @@ async function processProxyTransfer(call, request, requestId) {
 async function processProxyAddEthereumLog(call, request, requestId) {
   const pallet = 'ethereumEvents';
   const method = 'signedAddEthereumLog';
-  const { eventType, ethereumTransactionHash } = call.params;
+  const { eventType, ethereumTransactionHash, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [eventType, ethereumTransactionHash];
+
+  const signData = [
+    { Text: 'authorization for add ethereum log operation' },
+    { AccountId: relayer },
+    { u8: eventType },
+    { H256: ethereumTransactionHash },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidEventType(eventType) === false) throw 'eventType';
     if (utils.isValidEthereumTransactionHash(ethereumTransactionHash) === false) throw 'ethereumTransactionHash';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -170,14 +190,25 @@ async function processProxyAddEthereumLog(call, request, requestId) {
 async function processProxyTokenLower(call, request, requestId) {
   const pallet = 'tokenManager';
   const method = 'signedLower';
-  const { user, token, amount, t1Recipient } = call.params;
+  const { user, token, amount, t1Recipient, relayer, nonce, proxySignature } = call.params;
   const methodParams = [user, token, amount, t1Recipient];
+
+  const signData = [
+    { Text: 'authorization for lower operation' },
+    { AccountId: relayer },
+    { AccountId: user },
+    { H160: token },
+    { u128: amount },
+    { H160: t1Recipient },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidEthereumAddress(t1Recipient) === false) throw 't1Recipient';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -188,13 +219,23 @@ async function processProxyTokenLower(call, request, requestId) {
 async function processProxyCreateNftBatch(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedCreateBatch';
-  const { totalSupply, royalties, t1Authority } = call.params;
+  const { totalSupply, royalties, t1Authority, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [totalSupply, royalties, t1Authority];
+
+  const signData = [
+    { Text: 'authorization for create batch operation' },
+    { AccountId: relayer },
+    { u64: totalSupply },
+    { SkipEncode: encodeRoyalties(royalties) },
+    { H160: t1Authority },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidNumber(totalSupply) === false) throw 'totalSupply';
     if (utils.isValidArray(royalties) === false) throw 'royalties';
     if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -205,11 +246,19 @@ async function processProxyCreateNftBatch(call, request, requestId) {
 async function processProxyCancelListFiatNft(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedCancelListFiatNft';
-  const { nftId } = call.params;
+  const { nftId, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nftId];
+
+  const signData = [
+    { Text: 'authorization for cancel list fiat nft for sale operation' },
+    { AccountId: relayer },
+    { U256: nftId },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -220,11 +269,19 @@ async function processProxyCancelListFiatNft(call, request, requestId) {
 async function processProxyEndNftBatchSale(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedEndBatchSale';
-  const { batchId } = call.params;
+  const { batchId, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [batchId];
+
+  const signData = [
+    { Text: 'authorization for end batch sale operation' },
+    { AccountId: relayer },
+    { U256: batchId },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidNftId(batchId) === false) throw 'batch ID';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -235,12 +292,21 @@ async function processProxyEndNftBatchSale(call, request, requestId) {
 async function processProxyListNftOpenForSale(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedListNftOpenForSale';
-  const { nftId, market } = call.params;
+  const { nftId, market, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nftId, market];
+
+  const signData = [
+    { Text: 'authorization for list nft open for sale operation' },
+    { AccountId: relayer },
+    { U256: nftId },
+    { u8: market },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID';
     if (utils.isValidMarket(market) === false) throw 'market';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -251,12 +317,21 @@ async function processProxyListNftOpenForSale(call, request, requestId) {
 async function processProxyListNftBatchForSale(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedListBatchForSale';
-  const { batchId, market } = call.params;
+  const { batchId, market, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [batchId, market];
+
+  const signData = [
+    { Text: 'authorization for list batch for sale operation' },
+    { AccountId: relayer },
+    { U256: batchId },
+    { u8: market },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidNftId(batchId) === false) throw 'batch ID';
     if (utils.isValidMarket(market) === false) throw 'market';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -267,13 +342,22 @@ async function processProxyListNftBatchForSale(call, request, requestId) {
 async function processProxyMintSingleNft(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedMintSingleNft';
-  const { externalRef, royalties, t1Authority } = call.params;
+  const { externalRef, royalties, t1Authority, relayer, proxySignature, user } = call.params;
   const methodParams = [externalRef, royalties, t1Authority];
+
+  const signData = [
+    { Text: 'authorization for mint single nft operation' },
+    { AccountId: relayer },
+    { 'Vec<u8>': externalRef },
+    { SkipEncode: encodeRoyalties(royalties) },
+    { H160: t1Authority }
+  ];
 
   try {
     if (utils.isValidString(externalRef) === false) throw 'externalRef';
     if (utils.isValidArray(royalties) === false) throw 'royalties';
     if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -284,14 +368,24 @@ async function processProxyMintSingleNft(call, request, requestId) {
 async function processProxyMintBatchNft(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedMintBatchNft';
-  const { batchId, index, owner, externalRef } = call.params;
+  const { batchId, index, owner, externalRef, relayer, proxySignature, user } = call.params;
   const methodParams = [batchId, index, owner, externalRef];
+
+  const signData = [
+    { Text: 'authorization for mint batch nft operation' },
+    { AccountId: relayer },
+    { U256: batchId },
+    { u64: index },
+    { AccountId: owner },
+    { 'Vec<u8>': externalRef }
+  ];
 
   try {
     if (utils.isValidNftId(batchId) === false) throw 'batch ID';
     if (utils.isValidNumber(index) === false) throw 'index';
     if (utils.isValidAccountId(owner) === false) throw 'owner';
     if (utils.isValidString(externalRef) === false) throw 'externalRef';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -302,12 +396,21 @@ async function processProxyMintBatchNft(call, request, requestId) {
 async function processProxyTransferFiatNft(call, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedTransferFiatNft';
-  const { nftId, recipient } = call.params;
+  const { nftId, recipient, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nftId, recipient];
+
+  const signData = [
+    { Text: 'authorization for transfer fiat nft operation' },
+    { AccountId: relayer },
+    { U256: nftId },
+    { AccountId: recipient },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nft ID';
     if (utils.isValidAccountId(recipient) === false) throw 'recipient';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -337,7 +440,6 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
   return await sendTx(call, request, requestId, pallet, method, params);
 }
 
-
 async function processProxyStakeAvt(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedNominate';
@@ -355,9 +457,9 @@ async function processProxyStakeAvt(call, request, requestId) {
   try {
     if (utils.isValidArray(call.params.targets) === false || call.params.targets.length === 0) throw 'targets';
     if (utils.isValidAmount(amount) === false) throw 'amount';
-    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'invalid proxy signature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (errParam) {
-    throw new Error(`invalid parameter (${errParam}) passed to getNominateParams`);
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -366,11 +468,19 @@ async function processProxyStakeAvt(call, request, requestId) {
 async function processProxyIncreaseStake(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedBondExtra';
-  const { amount } = call.params;
+  const { amount, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [amount];
+
+  const signData = [
+    { Text: 'parachain authorization for nominator bond extra operation' },
+    { AccountId: relayer },
+    { BalanceOf: amount },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidAmount(amount) === false) throw 'amount';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -381,11 +491,19 @@ async function processProxyIncreaseStake(call, request, requestId) {
 async function processProxyUnstake(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedScheduleNominatorUnbond';
-  const { amount } = call.params;
+  const { amount, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [amount];
+
+  const signData = [
+    { Text: 'parachain authorization for scheduling nominator unbond operation' },
+    { AccountId: relayer },
+    { BalanceOf: amount },
+    { u64: nonce }
+  ];
 
   try {
     if (utils.isValidAmount(amount) === false) throw 'amount';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
@@ -396,8 +514,22 @@ async function processProxyUnstake(call, request, requestId) {
 async function processProxyWithdrawUnlocked(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedExecuteNominationRequest';
-  const { nominator } = call.params;
+  const { nominator, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nominator];
+
+  const signData = [
+    { Text: 'parachain authorization for executing nomination requests operation' },
+    { AccountId: relayer },
+    { AccountId: nominator },
+    { u64: nonce }
+  ];
+
+  try {
+    if (utils.isValidAccountId(nominator) === false) throw 'amount';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
+  } catch (param) {
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
@@ -405,7 +537,20 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
 async function processProxyScheduleLeaveNominators(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedScheduleLeaveNominators';
+  const { relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [];
+
+  const signData = [
+    { Text: 'parachain authorization for scheduling leaving nominators operation' },
+    { AccountId: relayer },
+    { u64: nonce }
+  ];
+
+  try {
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
+  } catch (param) {
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
@@ -413,8 +558,22 @@ async function processProxyScheduleLeaveNominators(call, request, requestId) {
 async function processProxyExecuteLeaveNominators(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedExecuteLeaveNominators';
-  const { nominator } = call.params;
+  const { nominator, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nominator];
+
+  const signData = [
+    { Text: 'parachain authorization for executing leave nominators operation' },
+    { AccountId: relayer },
+    { AccountId: nominator },
+    { u64: nonce }
+  ];
+
+  try {
+    if (utils.isValidAccountId(nominator) === false) throw 'amount';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
+  } catch (param) {
+    return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
+  }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }

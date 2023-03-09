@@ -1,6 +1,10 @@
 locals {
   ssh_allowed_ips = [
-    "18.135.167.38/32",     # IP of the nat of Testnet (Jenkins)
+    "18.135.167.38/32",  # IP of the nat of Testnet (Jenkins)
+    "86.126.81.150/32",  # Vuko
+    "109.101.202.38/32", # Vuko
+    "94.60.55.242/32",   # Rui
+    "82.6.50.71/32",     # Nahu
   ]
 }
 
@@ -15,31 +19,31 @@ resource "aws_secretsmanager_secret" "vault" {
 }
 
 module "avn-vault" {
-  source = "git@github.com:Aventus-Network-Services/avn-vault-infrastructure//terraform-module/avn-vault?ref=1.3.0"
-  name = local.environment
-  project = "avn-gateway"
-  ssh-key = "technical-account-vault"
-  avn-vault-vpc-cidr = data.terraform_remote_state.vpc.outputs.vpc_cidr_block
-  vpc-id = data.terraform_remote_state.vpc.outputs.vpc_id
-  subnet-id = data.terraform_remote_state.vpc.outputs.primary_private_subnet.id
-  availability_zone = data.terraform_remote_state.vpc.outputs.primary_private_subnet.availability_zone
-  aws-route53-zone = module.dns.public_zone_id
+  source                  = "git@github.com:Aventus-Network-Services/avn-vault-infrastructure//terraform-module/avn-vault?ref=1.3.0"
+  name                    = local.environment
+  project                 = "avn-gateway"
+  ssh-key                 = "technical-account-vault"
+  avn-vault-vpc-cidr      = data.terraform_remote_state.vpc.outputs.vpc_cidr_block
+  vpc-id                  = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnet-id               = data.terraform_remote_state.vpc.outputs.primary_private_subnet.id
+  availability_zone       = data.terraform_remote_state.vpc.outputs.primary_private_subnet.availability_zone
+  aws-route53-zone        = module.dns.public_zone_id
   avn_vault_instance_type = "t3a.medium"
-  tls_cert_subdomain  = "vault"
-  dynamodb_table_name = "avn-gw-vault-${local.environment}-db"
-  avn-ingress-ports   = []
+  tls_cert_subdomain      = "vault"
+  dynamodb_table_name     = "avn-gw-vault-${local.environment}-db"
+  avn-ingress-ports       = []
 }
 
 module "bastion" {
-  source                = "../../../modules/bastion"
-  vpc_id                = data.terraform_remote_state.vpc.outputs.vpc_id
-  ssh_key_name          = aws_key_pair.vault-ssh-key.key_name
-  public_subnet_id      = data.terraform_remote_state.vpc.outputs.primary_public_subnet.id
-  ssh_allowed_ips       = local.ssh_allowed_ips
+  source           = "../../../modules/bastion"
+  vpc_id           = data.terraform_remote_state.vpc.outputs.vpc_id
+  ssh_key_name     = aws_key_pair.vault-ssh-key.key_name
+  public_subnet_id = data.terraform_remote_state.vpc.outputs.primary_public_subnet.id
+  ssh_allowed_ips  = local.ssh_allowed_ips
 }
 
 resource "local_file" "avn-gateway-vault-instance-file" {
-    content     = <<-EOD
+  content  = <<-EOD
 [bastion]
 ${module.bastion.public_ip} ansible_user=ubuntu
 
@@ -53,5 +57,5 @@ aws_region='${module.avn-vault.aws_region}'
 kms_key_id='${module.avn-vault.kms_key_id}'
 dynamodb_table='${module.avn-vault.dynamodb_table}'
 EOD
-    filename = "${path.module}/vault.inventory"
+  filename = "${path.module}/vault.inventory"
 }

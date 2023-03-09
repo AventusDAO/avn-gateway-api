@@ -2,11 +2,7 @@ variable "ssh_allowed_ips" {
   type        = list(string)
   description = "Allowed ips for incoming ssh connections"
   default = [
-    "18.135.167.38/32",  # IP of the nat of Testnet (Jenkins)
-    "86.126.81.150/32",  # Vuko
-    "109.101.202.38/32", # Vuko
-    "94.60.55.242/32",   # Rui
-    "82.6.50.71/32",     # Nahu
+    "18.135.167.38/32", # IP of the nat of Testnet (Jenkins)
   ]
 }
 

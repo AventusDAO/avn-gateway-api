@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const axios = require('axios');
-const { TypeRegistry } = require('@polkadot/types');
+const { TypeRegistry, createTypeUnsafe } = require('@polkadot/types');
 const registry = new TypeRegistry();
 const { hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat, isNumber } = require('@polkadot/util');
 const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = require('@polkadot/util-crypto');
@@ -276,6 +276,16 @@ function encodeOrderedData(data) {
   return u8aConcat(...encodedDataToSign);
 }
 
+function encodeRoyalties(royalties) {
+  const encodedRoyalties = royalties.map(r => {
+    const orderedData = [{ H160: r.recipient_t1_address }, { u32: r.rate.parts_per_million }];
+    return encodeOrderedData(orderedData);
+  });
+
+  const encodedResult = createTypeUnsafe(registry, 'Vec<(H160, u32)>', [encodedRoyalties]);
+  return encodedResult.toU8a(false);
+}
+
 // Keep alphabetical
 module.exports = {
   axios,
@@ -315,5 +325,6 @@ module.exports = {
   toWholeAVT,
   buildValidResponseBody,
   verifyAwtTokenSignature,
-  verifySignatureWithOrWithoutWrapping
+  verifySignatureWithOrWithoutWrapping,
+  encodeRoyalties
 };

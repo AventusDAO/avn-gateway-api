@@ -226,7 +226,7 @@ async function processProxyCreateNftBatch(call, request, requestId) {
     { Text: 'authorization for create batch operation' },
     { AccountId: relayer },
     { u64: totalSupply },
-    { SkipEncode: encodeRoyalties(royalties) },
+    { SkipEncode: utils.encodeRoyalties(royalties) },
     { H160: t1Authority },
     { u64: nonce }
   ];
@@ -349,7 +349,7 @@ async function processProxyMintSingleNft(call, request, requestId) {
     { Text: 'authorization for mint single nft operation' },
     { AccountId: relayer },
     { 'Vec<u8>': externalRef },
-    { SkipEncode: encodeRoyalties(royalties) },
+    { SkipEncode: utils.encodeRoyalties(royalties) },
     { H160: t1Authority }
   ];
 

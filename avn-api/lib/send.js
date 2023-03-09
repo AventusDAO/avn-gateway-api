@@ -257,7 +257,6 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
   // By default the user pays the relayer fees but this can be changed to any `payer`
   const payer = user;
   let proxyArgs = Object.assign({ relayer, user, payer }, methodArgs);
-  let params = { ...proxyArgs };
 
   if (nonceType !== NONCE_TYPE.None) {
     proxyArgs.nonce =
@@ -265,6 +264,7 @@ Send.prototype.proxyRequest = async function (api, queryApi, relayer, methodArgs
         ? await queryApi.getNftNonce(methodArgs.nftId)
         : await this.smartNonce(queryApi, user, nonceType, retry);
   }
+  let params = { ...proxyArgs };
 
   const proxySignature = proxyApi.generateProxySignature(apiSigner, transactionType, proxyArgs);
   params.proxySignature = proxySignature;

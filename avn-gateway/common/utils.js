@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const axios = require('axios');
-const { TypeRegistry } = require('@polkadot/types');
+const { TypeRegistry, createTypeUnsafe } = require('@polkadot/types');
 const registry = new TypeRegistry();
 const { hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat, isNumber } = require('@polkadot/util');
 const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = require('@polkadot/util-crypto');
@@ -11,6 +11,19 @@ const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
+const NUM_TYPES = [
+  'AccountId',
+  'Balance',
+  'BalanceOf',
+  'EraIndex',
+  'u8',
+  'u32',
+  'u64',
+  'u128',
+  'U256',
+  'H160',
+  'H256'
+];
 const TX_TYPES = [
   'proxyAvtTransfer',
   'proxyTokenTransfer',
@@ -250,6 +263,29 @@ function getPayerVaultUsername(payerVaultId) {
   return `${VAULT_PAYER_USERNAME_PREFIX}${payerVaultId}`;
 }
 
+function isValidProxySignature(proxySignature, user, data) {
+    const encodedData = encodeOrderedData(data);
+    return verifySignatureWithOrWithoutWrapping(encodedData, proxySignature, user)
+}
+
+function encodeOrderedData(data) {
+  const encodedDataToSign = data.map(d => {
+    const [type, value] = Object.entries(d)[0];
+    return type === 'SkipEncode' ? value : registry.createType(type, value).toU8a(NUM_TYPES.includes(type));
+  });
+  return u8aConcat(...encodedDataToSign);
+}
+
+function encodeRoyalties(royalties) {
+  const encodedRoyalties = royalties.map(r => {
+    const orderedData = [{ H160: r.recipient_t1_address }, { u32: r.rate.parts_per_million }];
+    return encodeOrderedData(orderedData);
+  });
+
+  const encodedResult = createTypeUnsafe(registry, 'Vec<(H160, u32)>', [encodedRoyalties]);
+  return encodedResult.toU8a(false);
+}
+
 // Keep alphabetical
 module.exports = {
   axios,
@@ -281,6 +317,7 @@ module.exports = {
   isValidSignatureFormat,
   isValidString,
   isValidTransactionType,
+  isValidProxySignature,
   requestFailed,
   signatureVerify,
   stringToHex,
@@ -288,5 +325,6 @@ module.exports = {
   toWholeAVT,
   buildValidResponseBody,
   verifyAwtTokenSignature,
-  verifySignatureWithOrWithoutWrapping
+  verifySignatureWithOrWithoutWrapping,
+  encodeRoyalties
 };

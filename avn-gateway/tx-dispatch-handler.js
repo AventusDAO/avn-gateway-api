@@ -525,7 +525,7 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
   ];
 
   try {
-    if (utils.isValidAccountId(nominator) === false) throw 'amount';
+    if (utils.isValidAccountId(nominator) === false) throw 'nominator';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
@@ -569,7 +569,7 @@ async function processProxyExecuteLeaveNominators(call, request, requestId) {
   ];
 
   try {
-    if (utils.isValidAccountId(nominator) === false) throw 'amount';
+    if (utils.isValidAccountId(nominator) === false) throw 'nominator';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
   } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);

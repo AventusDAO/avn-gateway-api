@@ -35,7 +35,7 @@ describe('Proxy api calls:', async () => {
 
     it('can transfer tokens', async () => {
       const amount = new BN(2);
-      const requestId = await api.send.transferToken(relayer, recipientPubKey, token, amount);
+      const requestId = await api.send.transferToken(recipientPubKey, token, amount);
 
       await helper.confirmStatus(api, requestId, 'Processed');
 
@@ -56,7 +56,7 @@ describe('Proxy api calls:', async () => {
       let requestId;
 
       for (i = 0; i < numTx; i++) {
-        requestId = await api.send.transferToken(relayer, recipient, token, amount);
+        requestId = await api.send.transferToken(recipient, token, amount);
       }
 
       await helper.confirmStatus(api, requestId, 'Processed');
@@ -83,7 +83,7 @@ describe('Proxy api calls:', async () => {
 
       const amount = new BN('1').mul(ONE_AVT);
 
-      const requestId = await api.send.stake(relayer, amount.toString());
+      const requestId = await api.send.stake(amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
 
       let stakerStakingStatusAfter = await api.query.getAccountInfo(user);
@@ -96,7 +96,7 @@ describe('Proxy api calls:', async () => {
 
       const amount = new BN('1').mul(ONE_AVT);
 
-      const requestId = await api.send.stake(relayer, amount.toString());
+      const requestId = await api.send.stake(amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
 
       let stakerStakingStatusAfter = await api.query.getAccountInfo(user);
@@ -110,7 +110,7 @@ describe('Proxy api calls:', async () => {
 
       const amount = new BN('1').mul(ONE_AVT);
 
-      const requestId = await api.send.unstake(relayer, amount.toString());
+      const requestId = await api.send.unstake(amount.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
 
       let stakerStakingStatusAfter = await api.query.getAccountInfo(user);
@@ -123,7 +123,7 @@ describe('Proxy api calls:', async () => {
 
     it('can withdraw unlocked stake', async () => {
       if (new BN(stakerStakingStatusBefore.unlockedBalance).gt(new BN(0))) {
-        const requestId = await api.send.withdrawUnlocked(relayer);
+        const requestId = await api.send.withdrawUnlocked();
         await helper.confirmStatus(api, requestId, 'Processed');
 
         let stakerStakingStatusAfter = await api.query.getAccountInfo(user);

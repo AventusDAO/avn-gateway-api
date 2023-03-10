@@ -19,7 +19,7 @@ describe('Account funding', async () => {
 
     api = await helper.avnApi();
 
-    relayer = accounts.relayer;
+    relayer = accounts.relayer.address;
     user = accounts.user;
     receiver = accounts.otherUser;
 
@@ -27,7 +27,7 @@ describe('Account funding', async () => {
 
     userAvtBalance = new BN(await api.query.getAvtBalance(user.address));
     receiverAvtBalance = new BN(await api.query.getAvtBalance(receiver.address));
-    relayerAvtBalance = new BN(await api.query.getAvtBalance(relayer.address));
+    relayerAvtBalance = new BN(await api.query.getAvtBalance(relayer));
 
     userTokenBalance = new BN(await api.query.getTokenBalance(user.address, token));
   });
@@ -40,7 +40,7 @@ describe('Account funding', async () => {
     if(userAvtBalance.lt(userMinBalance)) {
         amountInWei = userMinBalance.sub(userAvtBalance);
 
-        const requestId = await api.send.transferAvt(relayer.address, user.address, amountInWei);
+        const requestId = await api.send.transferAvt(user.address, amountInWei);
         await helper.confirmStatus(api, requestId, 'Processed');
 
         userAvtBalance = new BN(await api.query.getAvtBalance(user.address));
@@ -52,7 +52,7 @@ describe('Account funding', async () => {
     if(receiverAvtBalance.lt(receiverMinBalance)) {
         amountInWei = receiverMinBalance.sub(receiverAvtBalance);
 
-        const requestId = await api.send.transferAvt(relayer.address, receiver.address, amountInWei);
+        const requestId = await api.send.transferAvt(receiver.address, amountInWei);
         await helper.confirmStatus(api, requestId, 'Processed');
 
         receiverAvtBalance = new BN(await api.query.getAvtBalance(receiver.address));
@@ -64,10 +64,10 @@ describe('Account funding', async () => {
     if(relayerAvtBalance.lt(relayerMinBalance)) {
         amountInWei = relayerMinBalance.sub(relayerAvtBalance);
 
-        const requestId = await api.send.transferAvt(relayer.address, relayer.address, amountInWei);
+        const requestId = await api.send.transferAvt(relayer, amountInWei);
         await helper.confirmStatus(api, requestId, 'Processed');
 
-        relayerAvtBalance = new BN(await api.query.getAvtBalance(relayer.address));
+        relayerAvtBalance = new BN(await api.query.getAvtBalance(relayer));
     }
     assert(relayerAvtBalance.gte(relayerMinBalance));
   });
@@ -76,7 +76,7 @@ describe('Account funding', async () => {
     if(userTokenBalance.lt(userMinTokenBalance)) {
         amountInWei = userMinTokenBalance.sub(userTokenBalance);
 
-        const requestId = await api.send.transferToken(relayer.address, user.address, token, amountInWei);
+        const requestId = await api.send.transferToken(user.address, token, amountInWei);
         await helper.confirmStatus(api, requestId, 'Processed');
 
         userTokenBalance = new BN(await api.query.getTokenBalance(user.address, token));

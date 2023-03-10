@@ -33,6 +33,7 @@ describe('Split fees calls:', async () => {
       payerPaymentNonce = new BN(await api.query.getNonce(payer, 'payment'));
       options = {
         suri: accounts.user.seed,
+        relayer: relayer
       }
     });
 
@@ -48,7 +49,7 @@ describe('Split fees calls:', async () => {
         let validOptions = {...options, hasPayer: true, payerAddress: payer};
         const apiWithOptions = await helper.avnApi(validOptions);
 
-        const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
+        const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
         await verifySplitFeesBalancesAndNonce();
@@ -58,7 +59,7 @@ describe('Split fees calls:', async () => {
         let validOptions = {...options, hasPayer: true, payerAddress: payerPubKey};
         const apiWithOptions = await helper.avnApi(validOptions);
 
-        const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
+        const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
         await verifySplitFeesBalancesAndNonce();
@@ -68,7 +69,7 @@ describe('Split fees calls:', async () => {
         let validOptions = {...options, hasPayer: true}
         const apiWithOptions = await helper.avnApi(validOptions);
 
-        const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
+        const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
         await verifySplitFeesBalancesAndNonce();
@@ -78,7 +79,7 @@ describe('Split fees calls:', async () => {
         let invalidOptions = {...options, hasPayer: false, payerAddress: payer};
         const apiWithOptions = await helper.avnApi(invalidOptions);
 
-        const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
+        const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
         await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
         await verifySplitFeesBalancesAndNonce();
@@ -92,7 +93,7 @@ describe('Split fees calls:', async () => {
         let invalidOptions = {...options, hasPayer: true, payerAddress: payer};
         const apiWithOptions = await helper.avnApi(invalidOptions);
 
-        const requestId = await apiWithOptions.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+        const requestId = await apiWithOptions.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
         await helper.confirmStatus(apiWithOptions, requestId, 'PayerRefused');
     });
 
@@ -101,7 +102,7 @@ describe('Split fees calls:', async () => {
         let invalidOptions = {...options, hasPayer: true, payerAddress: invalidPayer};
 
         const apiWithOptions = await helper.avnApi(invalidOptions);
-        await expect(apiWithOptions.send.transferAvt(relayer, recipient, amount)).to.be.rejectedWith(
+        await expect(apiWithOptions.send.transferAvt(recipient, amount)).to.be.rejectedWith(
           /Request failed with status code 403/
         );
     });

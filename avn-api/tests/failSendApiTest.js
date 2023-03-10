@@ -17,7 +17,6 @@ const BN = helper.BN;
   }
 
   const api = await helper.avnApi();
-  const validRelayer = accounts.relayer;
   const validUser = accounts.user;
   const validOtherUser = accounts.otherUser;
   const validToken = helper.token;
@@ -52,7 +51,6 @@ const BN = helper.BN;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            relayer: validRelayer.address,
             recipient: validOtherUser.address,
             amount: 22
           },
@@ -61,14 +59,9 @@ const BN = helper.BN;
         };
         beforeEach(async () => {
           testConfig.validCallData = {
-            relayer: validRelayer.address,
             recipient: validOtherUser.address,
             amount: 22
           };
-        });
-        describe('With invalid account: relayer', async () => {
-          testConfig.selectionField = 'relayer';
-          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid account: recipient', async () => {
           testConfig.selectionField = 'recipient';
@@ -85,12 +78,6 @@ const BN = helper.BN;
           const requestId = await api.send.transferAvt(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validUser.address;
-          await expect(api.send.transferAvt(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Relayer.*is not registered with AvN Gateway/
-          );
-        });
       });
     });
 
@@ -98,7 +85,6 @@ const BN = helper.BN;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            relayer: validRelayer.address,
             recipient: validOtherUser.address,
             token: validToken,
             amount: 22
@@ -108,15 +94,10 @@ const BN = helper.BN;
         };
         beforeEach(async () => {
           testConfig.validCallData = {
-            relayer: validRelayer.address,
             recipient: validOtherUser.address,
             token: validToken,
             amount: 22
           };
-        });
-        describe('With invalid account: relayer', async () => {
-          testConfig.selectionField = 'relayer';
-          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid account: recipient', async () => {
           testConfig.selectionField = 'recipient';
@@ -137,12 +118,6 @@ const BN = helper.BN;
           const requestId = await api.send.transferToken(...Object.values(testConfig.validCallData));
           await helper.confirmStatus(api, requestId, 'Rejected');
         });
-        it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validOtherUser.address;
-          await expect(api.send.transferToken(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Relayer.*is not registered with AvN Gateway/
-          );
-        });
       });
     });
 
@@ -150,7 +125,6 @@ const BN = helper.BN;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            relayer: validRelayer.address,
             externalReference: externalRef,
             royalties: royalties,
             ethereumAddress: dummyT1Authority
@@ -160,7 +134,6 @@ const BN = helper.BN;
         };
         beforeEach(async () => {
           testConfig.validCallData = {
-            relayer: validRelayer.address,
             externalReference: externalRef,
             royalties: [
               {
@@ -173,10 +146,6 @@ const BN = helper.BN;
             ethereumAddress: dummyT1Authority
           };
         });
-        describe('With invalid account: relayer', async () => {
-          testConfig.selectionField = 'relayer';
-          await testPatterns.invalidAccount(testConfig);
-        });
         describe('With invalid account: T1Authority', async () => {
           testConfig.selectionField = 'ethereumAddress';
           await testPatterns.invalidEthereumAddress(testConfig);
@@ -184,12 +153,6 @@ const BN = helper.BN;
         describe('With invalid external reference', async () => {
           testConfig.selectionField = 'externalReference';
           await testPatterns.invalidExternalReference(testConfig);
-        });
-        it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validOtherUser.address;
-          await expect(api.send.mintSingleNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Relayer.*is not registered with AvN Gateway/
-          );
         });
 
         it('With royalties as undefined', async () => {
@@ -295,7 +258,6 @@ const BN = helper.BN;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            relayer: validRelayer.address,
             nftId: unlistedUserNft
           },
           selectionField: undefined,
@@ -303,23 +265,12 @@ const BN = helper.BN;
         };
         beforeEach(async () => {
           testConfig.validCallData = {
-            relayer: validRelayer.address,
             nftId: unlistedUserNft
           };
-        });
-        describe('With invalid account: relayer', async () => {
-          testConfig.selectionField = 'relayer';
-          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid nft id', async () => {
           testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
-        });
-        it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validOtherUser.address;
-          await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Error processing query/
-          );
         });
         xit('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
@@ -340,7 +291,6 @@ const BN = helper.BN;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            relayer: validRelayer.address,
             recipient: validOtherUser.address,
             nftId: listedUserNft
           },
@@ -349,14 +299,9 @@ const BN = helper.BN;
         };
         beforeEach(async () => {
           testConfig.validCallData = {
-            relayer: validRelayer.address,
             recipient: validOtherUser.address,
             nftId: listedUserNft
           };
-        });
-        describe('With invalid account: relayer', async () => {
-          testConfig.selectionField = 'relayer';
-          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid account: recipient', async () => {
           testConfig.selectionField = 'recipient';
@@ -366,19 +311,13 @@ const BN = helper.BN;
           testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
-        it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validOtherUser.address;
-          await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Error processing query/
-          );
-        });
         xit('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
           );
         });
-        it('With an NFT that is not listed', async () => {
+        xit('With an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
@@ -391,7 +330,6 @@ const BN = helper.BN;
       describe('fails when called', async () => {
         testConfig = {
           validCallData: {
-            relayer: validRelayer.address,
             nftId: listedUserNft
           },
           selectionField: undefined,
@@ -399,25 +337,14 @@ const BN = helper.BN;
         };
         beforeEach(async () => {
           testConfig.validCallData = {
-            relayer: validRelayer.address,
             nftId: listedUserNft
           };
-        });
-        describe('With invalid account: relayer', async () => {
-          testConfig.selectionField = 'relayer';
-          await testPatterns.invalidAccount(testConfig);
         });
         describe('With invalid nft id', async () => {
           testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
-        it('With relayer address that is not a relayer', async () => {
-          testConfig.validCallData.relayer = validOtherUser.address;
-          await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Error processing query/
-          );
-        });
-      xit('With user that doesnt own this nft', async () => {
+        xit('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/

@@ -37,7 +37,7 @@ describe('SendTx api calls:', async () => {
 
     it('can transfer AVT using a recipient address', async () => {
       const amount = new BN(1);
-      const requestId = await api.send.transferAvt(relayer, recipient, amount);
+      const requestId = await api.send.transferAvt(recipient, amount);
       await helper.confirmStatus(api, requestId, 'Processed');
 
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient));
@@ -48,7 +48,7 @@ describe('SendTx api calls:', async () => {
 
     it('can transfer AVT using a recipient public key', async () => {
       const amount = new BN(2);
-      const requestId = await api.send.transferAvt(relayer, recipientPubKey, amount);
+      const requestId = await api.send.transferAvt(recipientPubKey, amount);
       await helper.confirmStatus(api, requestId, 'Processed');
 
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey));
@@ -60,13 +60,14 @@ describe('SendTx api calls:', async () => {
     it('can transfer AVT using a recipient address for a split fee user', async () => {
       let options = {
         hasPayer: true,
-        payer: payer
+        payer: payer,
+        relayer: relayer
       };
 
       let apiWithOptions = await helper.avnApi(options);
 
       const amount = new BN(3);
-      const requestId = await apiWithOptions.send.transferAvt(relayer, recipient, amount);
+      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
       console.log(`   - RequestId: ${requestId}`);
       await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
@@ -78,7 +79,7 @@ describe('SendTx api calls:', async () => {
   describe('confirmTokenLift', async () => {
     it('can confirm a token lift', async () => {
       const dummyEthereumTransactionHash = helper.randomEthTxHash();
-      const requestId = await api.send.confirmTokenLift(relayer, dummyEthereumTransactionHash);
+      const requestId = await api.send.confirmTokenLift(dummyEthereumTransactionHash);
       await helper.confirmStatus(api, requestId, 'Processed');
     });
   });
@@ -95,7 +96,7 @@ describe('SendTx api calls:', async () => {
 
     it('can lower tokens', async () => {
       const amount = new BN(2);
-      const requestId = await api.send.lowerToken(relayer, t1Recipient, token, amount);
+      const requestId = await api.send.lowerToken(t1Recipient, token, amount);
       await helper.confirmStatus(api, requestId, 'Processed');
 
       bnEquals(userTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(user, token)));
@@ -108,7 +109,7 @@ describe('SendTx api calls:', async () => {
     it('can lower AVT', async () => {
       const avtAddress = await api.query.getAvtContractAddress();
       const amount = new BN(3);
-      const requestId = await api.send.lowerToken(relayer, t1Recipient, avtAddress, amount);
+      const requestId = await api.send.lowerToken(t1Recipient, avtAddress, amount);
       await helper.confirmStatus(api, requestId, 'Processed');
 
       bnEquals(userAvtBalanceBefore.sub(relayerLowerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
@@ -134,7 +135,7 @@ describe('SendTx api calls:', async () => {
     });
 
     it('can mint a single nft and confirm the owner', async () => {
-      const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');
       nftId = await api.query.getNftId(externalRef);
       assert.equal(user, await api.query.getNftOwner(nftId));
@@ -149,7 +150,7 @@ describe('SendTx api calls:', async () => {
           }
         }
       ];
-      const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');
     });
 
@@ -169,7 +170,7 @@ describe('SendTx api calls:', async () => {
         }
       ];
 
-      const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');
     });
   });
@@ -180,13 +181,13 @@ describe('SendTx api calls:', async () => {
 
     beforeEach(async () => {
       externalRef = 'avn-gateway-test-' + new Date().toISOString();
-      const requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');
       nftId = await api.query.getNftId(externalRef);
     });
 
     it('can list an NFT as open for sale', async () => {
-      const requestId = await api.send.listFiatNftForSale(relayer, nftId);
+      const requestId = await api.send.listFiatNftForSale(nftId);
       await helper.confirmStatus(api, requestId, 'Processed');
     });
   });
@@ -197,16 +198,16 @@ describe('SendTx api calls:', async () => {
 
     beforeEach(async () => {
       externalRef = 'avn-gateway-test-' + new Date().toISOString();
-      let requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      let requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');
       nftId = await api.query.getNftId(externalRef);
-      requestId = await api.send.listFiatNftForSale(relayer, nftId);
+      requestId = await api.send.listFiatNftForSale(nftId);
       await helper.confirmStatus(api, requestId, 'Processed');
     });
 
     it('can transfer an NFT after an offline fiat sale', async () => {
       assert.equal(user, await api.query.getNftOwner(nftId));
-      const requestId = await api.send.transferFiatNft(relayer, recipient, nftId);
+      const requestId = await api.send.transferFiatNft(recipient, nftId);
       await helper.confirmStatus(api, requestId, 'Processed');
       assert.equal(recipient, await api.query.getNftOwner(nftId));
     });
@@ -218,15 +219,15 @@ describe('SendTx api calls:', async () => {
 
     beforeEach(async () => {
       externalRef = 'avn-gateway-test-' + new Date().toISOString();
-      let requestId = await api.send.mintSingleNft(relayer, externalRef, royalties, dummyT1Authority);
+      let requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
       await helper.confirmStatus(api, requestId, 'Processed');
       nftId = await api.query.getNftId(externalRef);
-      requestId = await api.send.listFiatNftForSale(relayer, nftId);
+      requestId = await api.send.listFiatNftForSale(nftId);
       await helper.confirmStatus(api, requestId, 'Processed');
     });
 
     it('can cancel a fiat listing', async () => {
-      const requestId = await api.send.cancelFiatNftListing(relayer, nftId);
+      const requestId = await api.send.cancelFiatNftListing(nftId);
       await helper.confirmStatus(api, requestId, 'Processed');
     });
   });

@@ -39,6 +39,7 @@ async function sleep(ms) {
 }
 
 async function avnApi(options) {
+  options = options ?? { relayer: accounts.relayer.address };
   const api = new AvnApi(gateway, options);
 
   await api.init();

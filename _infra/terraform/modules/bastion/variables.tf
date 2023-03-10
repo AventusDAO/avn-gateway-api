@@ -1,8 +1,8 @@
 variable "ssh_allowed_ips" {
   type        = list(string)
   description = "Allowed ips for incoming ssh connections"
-  default     = [
-    "18.135.167.38/32",     # IP of the nat of Testnet (Jenkins)
+  default = [
+    "18.135.167.38/32", # IP of the nat of Testnet (Jenkins)
   ]
 }
 

@@ -14,8 +14,8 @@ module "gateway_alarms" {
   source = "../../../modules/cloudwatch-alarms"
 
   alarms = {
-    gateway_default_queue_dlq_alarm = {
-      alarm_description             = "DLQ Alarm: ${data.aws_sqs_queue.gateway_default_queue.name} queue contains more than 20 messages."
+    gateway-default-queue-dlq-alarm = {
+      alarm_description             = "Warning: DLQ queue [${data.aws_sqs_queue.gateway_default_queue.name}] has more than 20 messages in the queue. Please investigate and take appropriate actions to avoid service disruption."
       comparison_operator           = "GreaterThanOrEqualToThreshold"
       evaluation_periods            = 1
       threshold                     = 20
@@ -30,8 +30,8 @@ module "gateway_alarms" {
       }
     }
 
-    gateway_payer_queue_dlq_alarm = {
-      alarm_description             = "DLQ Alarm: ${data.aws_sqs_queue.gateway_payer_queue.name} queue contains more than 20 messages."
+    gateway-payer-queue-dlq-alarm = {
+      alarm_description             = "Warning: DLQ queue [${data.aws_sqs_queue.gateway_payer_queue.name}] has more than 20 messages in the queue. Please investigate and take appropriate actions to avoid service disruption."      
       comparison_operator           = "GreaterThanOrEqualToThreshold"
       evaluation_periods            = 1
       threshold                     = 20

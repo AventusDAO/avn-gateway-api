@@ -9,7 +9,6 @@ describe('Access rights:', async () => {
     it('api is initializable', async () => {
       const api = new AvnApi();
       await api.init();
-      console.log(api);
     });
   });
 });

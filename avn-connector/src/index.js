@@ -131,6 +131,16 @@ app.post('/avnCurrentBlock', async (req, res, next) => {
   }
 });
 
+app.post('/getDefaultRelayer', async (req, res, next) => {
+  try {
+    log.trace({ defaultRelayerRequest: req.body });
+    const result = avn.RELAYER_ADDRESS;
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.get('/unprocessedLifts', async (req, res, next) => {
   try {
     log.trace('unprocessedLifts invoked');

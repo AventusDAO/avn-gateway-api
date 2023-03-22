@@ -7,6 +7,7 @@ const { isHex, u8aToHex, hexToU8a } = require('@polkadot/util')
 
 function Query(api) {
   this.getChainInfo = generateFunction(getChainInfo, api);
+  this.getDefaultRelayer = generateFunction(getDefaultRelayer, api);
   this.getAvtContractAddress = generateFunction(getAvtContractAddress, api);
   this.getAvnContractAddress = generateFunction(getAvnContractAddress, api);
   this.getNftContractAddress = generateFunction(getNftContractAddress, api);
@@ -36,6 +37,12 @@ function Query(api) {
 function getChainInfo(api) {
   return async function () {
     return await this.postRequest(api, 'getChainInfo');
+  };
+}
+
+function getDefaultRelayer(api) {
+  return async function () {
+    return await this.postRequest(api, 'getDefaultRelayer');
   };
 }
 
@@ -209,8 +216,8 @@ function getOutstandingLowersForAccount(api) {
                 ? hexToU8a(address)
                 : keyring.decodeAddress(address);
     const account = u8a.length === 20 ? ethereumEncode(u8a) : u8aToHex(u8a);
-              
-   
+
+
     return await this.getRequest(api, 'getLowers', { account }, 'lowers');
   };
 }
@@ -238,7 +245,7 @@ Query.prototype.getRequest = async function (api, method, params, handler = 'que
   const endpoint = api.gateway + `/${handler}?account=${params.account}`;
   const response = await api.axios().get(endpoint);
 
-  if (!response || !response.data) {    
+  if (!response || !response.data) {
     throw new Error('Invalid server response');
   }
 

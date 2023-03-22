@@ -42,11 +42,13 @@ AvnApi.prototype.init = async function () {
     this.myAddress = () => this.signer().address;
     this.myPublicKey = () => Utils.convertToPublicKeyIfNeeded(this.myAddress());
 
-    try {
-      common.validateAccount(this.options.relayer);
-      this.relayer = this.options.relayer;
-    } catch {
-      throw new Error('Invalid relayer');
+    if (this.options.relayer) {
+      try {
+        common.validateAccount(this.options.relayer);
+        this.relayer = this.options.relayer;
+      } catch {
+        throw new Error('Invalid relayer');
+      }
     }
 
     this.awtToken = Awt.generateAwtToken(this.options);
@@ -72,6 +74,8 @@ AvnApi.prototype.init = async function () {
     this.query = new Query(avnApi);
     this.send = new Send(avnApi, this.query);
     this.poll = new Poll(avnApi);
+
+    if (this.relayer === undefined) this.relayer = await this.query.getDefaultRelayer();
   }
 };
 

@@ -409,6 +409,7 @@ module.exports = {
   poll,
   processLifts,
   query,
+  RELAYER_ADDRESS,
   signPaymentInfo,
   setTransactionRefusedByPayerStatus
 };

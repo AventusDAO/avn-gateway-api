@@ -35,7 +35,7 @@ When creating an instance of the api, an optional `options` paramater can also b
  - suri (optional): The mnemonic or secret seed of the user. If empty the value is read from the AVN_SURI environment variable.
  - hasPayer flag (optional): A user specified flag used to determine if there is a configured payer for this user. Defaults to false.
  - payerAddress (optional): The payer address for this user. Defaults to the first payer configured for this user.
- - relayer (optional): The relayer to use process transactions. Defaults to Aventus.
+ - relayer (optional): The relayer to use to process transactions. Defaults to Aventus.
 ```
 const options = { suri: '0x226beb8ff69a053e0f101944d4c917819f7b9e44f1d915f3cf30dc97844262e0', hasPayer: false, relayer: '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh'}
 const api = new AvnApi('https://sandbox.gateway.aventus.io', options);

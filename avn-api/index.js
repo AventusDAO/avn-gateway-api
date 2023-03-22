@@ -35,19 +35,20 @@ AvnApi.prototype.init = async function () {
     return this.options.suri;
   };
 
-  if (!getSuri()) throw new Error('Suri is not defined');
-
-  this.signer = () => Utils.getSigner(getSuri());
-  this.myAddress = () => this.signer().address;
-  this.myPublicKey = () => Utils.convertToPublicKeyIfNeeded(this.myAddress());
-  try {
-    common.validateAccount(this.options.relayer);
-    this.relayer = this.options.relayer;
-  } catch {
-    throw new Error('Invalid relayer');
-  }
-
   if (this.gateway) {
+    if (!getSuri()) throw new Error('Suri is not defined');
+
+    this.signer = () => Utils.getSigner(getSuri());
+    this.myAddress = () => this.signer().address;
+    this.myPublicKey = () => Utils.convertToPublicKeyIfNeeded(this.myAddress());
+
+    try {
+      common.validateAccount(this.options.relayer);
+      this.relayer = this.options.relayer;
+    } catch {
+      throw new Error('Invalid relayer');
+    }
+
     this.awtToken = Awt.generateAwtToken(this.options);
 
     const avnApi = {

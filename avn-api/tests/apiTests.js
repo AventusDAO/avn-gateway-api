@@ -1,5 +1,6 @@
 require('./setSuri.js');
 require('./accountFunding.js');
+require('./apiOffline.js');
 require('./accessTests.js');
 require('./awtTest.js');
 require('./utilsTest.js');

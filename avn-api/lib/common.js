@@ -76,7 +76,7 @@ function isAccountPK(accountString) {
 function validateAccount(account) {
   try {
     encodeAddress(isHex(account) ? hexToU8a(account) : decodeAddress(account));
-    return true;
+    return account;
   } catch (e) {
     throw new Error(`Invalid account type: ${account}, err: ${e.toString()}`);
   }

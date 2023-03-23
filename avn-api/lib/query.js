@@ -199,7 +199,6 @@ function getRelayerFees(api) {
     common.validateAccount(relayer);
     if (user) common.validateAccount(user);
     if (transactionType) common.validateTransactionType(transactionType);
-
     return await this.postRequest(api, 'getRelayerFees', { relayer, user, transactionType });
   };
 }
@@ -216,8 +215,6 @@ function getOutstandingLowersForAccount(api) {
                 ? hexToU8a(address)
                 : keyring.decodeAddress(address);
     const account = u8a.length === 20 ? ethereumEncode(u8a) : u8aToHex(u8a);
-
-
     return await this.getRequest(api, 'getLowers', { account }, 'lowers');
   };
 }

@@ -22,8 +22,8 @@ AvnApi.prototype.init = async function () {
   this.setSURI = suri => {
     this.options.suri = suri;
     this.awtToken = this.gateway ? Awt.generateAwtToken(this.options) : undefined;
-    console.info(" - Suri updated");
-  }
+    console.info(' - Suri updated');
+  };
 
   this.awt = Awt;
   this.proxy = Proxy;
@@ -64,13 +64,13 @@ AvnApi.prototype.init = async function () {
     this.query = new Query(avnApi);
     this.send = new Send(avnApi, this.query);
     this.poll = new Poll(avnApi);
-    this.relayer = common.validateAccount(this.options.relayer ?? await this.query.getDefaultRelayer());
+    this.relayer = common.validateAccount(this.options.relayer ?? (await this.query.getDefaultRelayer()));
   }
 };
 
 AvnApi.prototype.hasSplitFeeToken = function () {
   if (!this.options) return false;
-  if (this.options.hasPayer === true) return true
+  if (this.options.hasPayer === true) return true;
 
   return !!this.options.payerAddress;
 };

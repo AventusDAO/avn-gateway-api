@@ -11,19 +11,7 @@ const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
-const NUM_TYPES = [
-  'AccountId',
-  'Balance',
-  'BalanceOf',
-  'EraIndex',
-  'u8',
-  'u32',
-  'u64',
-  'u128',
-  'U256',
-  'H160',
-  'H256'
-];
+const NUM_TYPES = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
 const TX_TYPES = [
   'proxyAvtTransfer',
   'proxyTokenTransfer',
@@ -40,7 +28,7 @@ const TX_TYPES = [
   'proxyIncreaseStake',
   'proxyUnstake',
   'proxyWithdrawUnlocked',
-  'proxyStakeAvt',
+  'proxyStakeAvt'
 ];
 
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';
@@ -72,7 +60,9 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
   const ref = file + ' line ' + lineNum + ' (' + func + ')';
   const errorData = error.response ? error.response.data : 'N/A';
   console.error(
-    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${typeof error === 'object' ? JSON.stringify(error) : error}`
+    `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${
+      typeof error === 'object' ? JSON.stringify(error) : error
+    }`
   );
   let response = { jsonrpc: '2.0', id };
   response.error = RPC_ERROR[rpcError];
@@ -83,7 +73,7 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
 
 function requestFailed(response) {
   if (response && response.error && response.error.length > 0) {
-  	return true;
+    return true;
   }
 
   return false;
@@ -221,7 +211,9 @@ function verifyAwtTokenSignature(publicKey, issuedAt, signature, hasPayer, payer
 function verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey) {
   const message = u8aToHex(encodedData);
   const wrappedMessage = stringToHex('<Bytes>') + message.substr(2) + stringToHex('</Bytes>').substr(2);
-  return signatureVerify(message, signature, publicKey).isValid || signatureVerify(wrappedMessage, signature, publicKey).isValid;
+  return (
+    signatureVerify(message, signature, publicKey).isValid || signatureVerify(wrappedMessage, signature, publicKey).isValid
+  );
 }
 
 function encodeProxyProof(params) {
@@ -264,8 +256,8 @@ function getPayerVaultUsername(payerVaultId) {
 }
 
 function isValidProxySignature(proxySignature, user, data) {
-    const encodedData = encodeOrderedData(data);
-    return verifySignatureWithOrWithoutWrapping(encodedData, proxySignature, user)
+  const encodedData = encodeOrderedData(data);
+  return verifySignatureWithOrWithoutWrapping(encodedData, proxySignature, user);
 }
 
 function encodeOrderedData(data) {

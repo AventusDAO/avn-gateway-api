@@ -317,7 +317,13 @@ async function query(call, request, method, params, responseFormatter) {
       (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.buildErrorBody('internal', `failed to invoke ${method} when querying the chain`, err.toString(), request, call.id);
+    return utils.buildErrorBody(
+      'internal',
+      `failed to invoke ${method} when querying the chain`,
+      err.toString(),
+      request,
+      call.id
+    );
   }
 }
 

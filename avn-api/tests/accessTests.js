@@ -85,8 +85,8 @@ describe('Access rights:', async () => {
 
       api.setSURI(userSURI); // this ensures the AWT token is refreshed
       assert.equal(await api.query.getAvtBalance(existingUser), '0'); // confirm existingUser now holds no AVT
-      assert(await api.query.getNonce(existingUser, 'payment') > 0);
-      assert(await api.query.getNonce(existingUser, 'token') > 0);
+      assert((await api.query.getNonce(existingUser, 'payment')) > 0);
+      assert((await api.query.getNonce(existingUser, 'token')) > 0);
 
       api.setSURI(existingUserSURI);
       assert.equal(await canAccessTheGateway(), true);

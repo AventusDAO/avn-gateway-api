@@ -3,7 +3,7 @@
 const common = require('./common.js');
 
 const { ethereumEncode } = require('@polkadot/util-crypto');
-const { isHex, u8aToHex, hexToU8a } = require('@polkadot/util')
+const { isHex, u8aToHex, hexToU8a } = require('@polkadot/util');
 
 function Query(api) {
   this.getChainInfo = generateFunction(getChainInfo, api);
@@ -211,9 +211,7 @@ function getCurrentBlock(api) {
 
 function getOutstandingLowersForAccount(api) {
   return async function (address) {
-    const u8a = isHex(address)
-                ? hexToU8a(address)
-                : keyring.decodeAddress(address);
+    const u8a = isHex(address) ? hexToU8a(address) : keyring.decodeAddress(address);
     const account = u8a.length === 20 ? ethereumEncode(u8a) : u8aToHex(u8a);
     return await this.getRequest(api, 'getLowers', { account }, 'lowers');
   };
@@ -248,6 +246,5 @@ Query.prototype.getRequest = async function (api, method, params, handler = 'que
 
   return response.data;
 };
-
 
 module.exports = Query;

@@ -44,8 +44,7 @@ const withdrawStakedBalance = async (api, amount) => {
 
   if (
     accountInfo &&
-    new BN(accountInfo.stakedBalance).gt(
-        new BN(accountInfo.unlockedBalance).add(new BN(accountInfo.unstakedBalance)))
+    new BN(accountInfo.stakedBalance).gt(new BN(accountInfo.unlockedBalance).add(new BN(accountInfo.unstakedBalance)))
   ) {
     let stakedValue = amount ?? new BN(accountInfo?.stakedBalance);
     requestId = await api.send.unstake(stakedValue);
@@ -204,9 +203,9 @@ describe('Staking', async () => {
         if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
-        let withdrawValue = new BN(
-          new BN(stakingBalanceBefore?.stakedBalance).sub(minimumFirstTimeStakingValue)
-        ).add(new BN(1));
+        let withdrawValue = new BN(new BN(stakingBalanceBefore?.stakedBalance).sub(minimumFirstTimeStakingValue)).add(
+          new BN(1)
+        );
         await withdrawStakedBalance(api, withdrawValue);
         stakingBalanceAfter = await api.query.getAccountInfo(user);
       });

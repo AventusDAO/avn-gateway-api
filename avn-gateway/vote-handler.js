@@ -43,7 +43,7 @@ async function getFormattedProposalList() {
 
   try {
     const proposals = await listProposals();
-    for await(const proposal of proposals) {
+    for await (const proposal of proposals) {
       const proposalData = await getProposalData(proposal);
       results.push(formatProposalData(proposal, proposalData));
     }
@@ -63,7 +63,7 @@ async function checkVoteAndUpdateProposal(requestData) {
     proposalData = await getProposalData(voterIntention.proposal);
     if (proposalData.votes === undefined) {
       proposalData.votes = {};
-      proposalData.scores = [0,0];
+      proposalData.scores = [0, 0];
     }
   } catch (err) {
     console.log(err);
@@ -163,11 +163,11 @@ function voteStatus(proposalData) {
   const now = Math.floor(new Date().getTime() / 1000);
 
   if (now > proposalData.start && now < proposalData.end) {
-    return 'Active'
+    return 'Active';
   } else if (now < proposalData.start) {
-    return 'Pending'
+    return 'Pending';
   } else {
-    return 'Closed'
+    return 'Closed';
   }
 }
 
@@ -197,8 +197,8 @@ function formatProposalData(proposal, proposalData) {
     status: voteStatus(proposalData),
     blockNumber: proposalData.blockNumber,
     numVotes: proposalData.votes ? Object.keys(proposalData.votes).length : 0,
-    scores: proposalData.scores || [0,0],
-    votingChoice: proposalData.votingChoice || [0,0]
+    scores: proposalData.scores || [0, 0],
+    votingChoice: proposalData.votingChoice || [0, 0]
   };
 }
 

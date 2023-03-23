@@ -11,8 +11,7 @@ let argv = yargs
   .demandOption('c')
   .describe('c', 'Configuration file with gateway parameters')
   .string('c')
-  .alias('c', 'gateway')
-  .argv;
+  .alias('c', 'gateway').argv;
 
 // TODO: pass this in a command line argument (if we find how to do it in package.json)
 // or read it from the env config file

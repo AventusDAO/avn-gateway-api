@@ -16,10 +16,24 @@ function getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSign
   };
 }
 
-async function tryGetPaymentInfo(connectorUrl, payerAddress, relayerAddress, feePaymentSignature, transactionType, paymentNonce, proxyProof)
-{
+async function tryGetPaymentInfo(
+  connectorUrl,
+  payerAddress,
+  relayerAddress,
+  feePaymentSignature,
+  transactionType,
+  paymentNonce,
+  proxyProof
+) {
   const relayerFee = await utils.getRelayerFee(connectorUrl, relayerAddress, payerAddress, transactionType);
-  const isVerified = verifyFeePaymentSignature(payerAddress, relayerAddress, relayerFee, proxyProof, feePaymentSignature, paymentNonce);
+  const isVerified = verifyFeePaymentSignature(
+    payerAddress,
+    relayerAddress,
+    relayerFee,
+    proxyProof,
+    feePaymentSignature,
+    paymentNonce
+  );
   if (isVerified === false) {
     throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
   }
@@ -38,7 +52,7 @@ async function getSplitFeePaymentParams(connectorUrl, call) {
     relayerFee,
     paymentNonce,
     proxyProof
-  }
+  };
 }
 
 async function getPaymentNonce(connectorUrl, requestId, payer) {
@@ -55,7 +69,6 @@ async function getPaymentNonce(connectorUrl, requestId, payer) {
     if (avnResponse.error) throw new Error(avnResponse.error);
 
     return utils.toBnString(avnResponse.data);
-
   } catch (error) {
     throw new Error(`Error getting payment nonce for user ${payer}: ${error.toString()}`);
   }
@@ -91,7 +104,8 @@ async function signPaymentInfo(connectorUrl, encodedPaymentInfo, payerUserName) 
   };
 
   const avnResponse = await utils.axios.post(connectorUrl + 'signPaymentInfo', requestParams);
-  if (!avnResponse || !avnResponse.data) throw new Error(`Null response when signing payment info for payer: ${payerAddress}, data: ${encodedPaymentInfo}`);
+  if (!avnResponse || !avnResponse.data)
+    throw new Error(`Null response when signing payment info for payer: ${payerAddress}, data: ${encodedPaymentInfo}`);
   if (avnResponse.error) throw new Error(avnResponse.error);
 
   return avnResponse.data.signature;

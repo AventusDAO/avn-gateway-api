@@ -46,7 +46,7 @@ describe('Utilities', async () => {
     it('for self pay tokens', async () => {
       const previousAWT = api.awtToken;
       api.setSURI(accounts.otherUser.seed);
-      assert(previousAWT !== api.awtToken)
+      assert(previousAWT !== api.awtToken);
       api.setSURI(accounts.user.seed);
     });
 
@@ -71,7 +71,7 @@ describe('Utilities', async () => {
       const previousAWT = api.awtToken;
       api.setSURI(accounts.user.seed);
       assert.equal(previousUserAddress, api.myAddress());
-      assert(previousAWT !== api.awtToken)
+      assert(previousAWT !== api.awtToken);
     });
   });
 });

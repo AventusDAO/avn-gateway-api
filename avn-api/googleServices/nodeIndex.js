@@ -13,8 +13,7 @@ let argv = yargs
   .demandOption('c')
   .describe('c', 'Configuration file with gateway parameters')
   .string('c')
-  .alias('c', 'gateway')
-  .argv;
+  .alias('c', 'gateway').argv;
 
 dotenv.config();
 
@@ -34,15 +33,13 @@ const test_descriptive = argv.test_descriptive || '';
     throw new Error('File not found!');
   }
 
-  let folder = await googleDriveService
-      .searchSharedFolder(sharedDriveId, folderName)
-      .catch((error) => {
+  let folder = await googleDriveService.searchSharedFolder(sharedDriveId, folderName).catch(error => {
     console.error(error);
     return null;
   });
 
   if (!folder) {
-    console.log("Please provide a valid shared drive Id")
+    console.log('Please provide a valid shared drive Id');
     return;
   }
 
@@ -50,13 +47,13 @@ const test_descriptive = argv.test_descriptive || '';
   // uat_gateway_api_nightly_test_report_2022-07-19T08_02_43
   let fileName = test_descriptive ? `_${test_descriptive}_` : '_gateway_api_nightly_test_report_';
   const date_now = new Date();
-  let dateStringFormat = date_now.toISOString().split(".")[0].replaceAll(":", "_");
+  let dateStringFormat = date_now.toISOString().split('.')[0].replaceAll(':', '_');
   let fileAdded = await googleDriveService
-      .saveFile(argv.gateway + fileName + dateStringFormat + '.html', finalHtmlReportPath, 'text/html', folder.id)
-      .catch((error) => {
-    console.error(error);
-    return;
-  });
+    .saveFile(argv.gateway + fileName + dateStringFormat + '.html', finalHtmlReportPath, 'text/html', folder.id)
+    .catch(error => {
+      console.error(error);
+      return;
+    });
 
   let reportJson = JSON.parse(fs.readFileSync(finalJsonReportPath, 'utf8'));
   reportJson = { ...reportJson, fileId: fileAdded.data.id };

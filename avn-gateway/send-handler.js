@@ -13,7 +13,7 @@ exports.handler = async (event, context) => {
     return utils.buildErrorResponse(500, result.error.data, JSON.stringify(result));
   }
 
-  return utils.buildSuccessResponse(JSON.stringify(result))
+  return utils.buildSuccessResponse(JSON.stringify(result));
 };
 
 async function processRequest(request, authoriserContext, awsRequestId) {
@@ -28,13 +28,16 @@ async function processRequest(request, authoriserContext, awsRequestId) {
   try {
     console.info('TX_ID <-> AWS_REQUESTID:', tx.id + ' : ' + awsRequestId);
 
-    if (isSplitFeeTransaction(authoriserContext) === true)
-    {
+    if (isSplitFeeTransaction(authoriserContext) === true) {
       const data = await sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext);
-      console.info(`Sent split fee transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`);
+      console.info(
+        `Sent split fee transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`
+      );
     } else {
       const data = await sendMessageToDefaultQueue(tx, awsRequestId);
-      console.info(`Sent self pay transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`);
+      console.info(
+        `Sent self pay transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`
+      );
     }
 
     return utils.buildValidResponseBody(tx.id, awsRequestId);
@@ -51,7 +54,7 @@ async function sendMessageToDefaultQueue(tx, awsRequestId) {
     QueueUrl: DEFAULT_SQS_URL,
     MessageGroupId: 'DEFAULT',
     MessageDeduplicationId: utils.hashString(messageBody),
-    MessageBody: messageBody,
+    MessageBody: messageBody
   };
 
   return await sqsClient.send(new sqs.SendMessageCommand(params));
@@ -68,7 +71,7 @@ async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserCont
     QueueUrl: PAYER_SQS_URL,
     MessageGroupId: 'PAYER',
     MessageDeduplicationId: utils.hashString(messageBody),
-    MessageBody: messageBody,
+    MessageBody: messageBody
   };
 
   if (tx.params.feePaymentSignature) throw new Error('split fee tx already contains payment info');
@@ -82,5 +85,5 @@ function isSplitFeeTransaction(authoriserContext) {
   }
 
   const hasValidPayer = utils.isValidAccountId(authoriserContext.splitFeePayerAddress);
-  return authoriserContext.isSplitFeeUser === true && hasValidPayer === true
+  return authoriserContext.isSplitFeeUser === true && hasValidPayer === true;
 }

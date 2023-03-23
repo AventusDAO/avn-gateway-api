@@ -128,7 +128,6 @@ async function getAvnContractAddress(call, request) {
 async function getDefaultRelayer(call, request) {
   const method = 'getDefaultRelayer';
   const params = { callId: call.id };
-
   return await query(call, request, method, params);
 }
 

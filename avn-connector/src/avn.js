@@ -89,18 +89,21 @@ async function getAccountInfo(accountId) {
 
   if (collators.some(c => c.toLowerCase() === accountId.toLowerCase())) {
     const candidateInfo = await api.query.parachainStaking.candidateInfo(accountId);
-    ({stakedBalance, unlockedBalance, unstakedBalance} =
-        stakingHelper.calculateCollatorStakingBalances(candidateInfo, currentEraIndex));
+    ({ stakedBalance, unlockedBalance, unstakedBalance } = stakingHelper.calculateCollatorStakingBalances(
+      candidateInfo,
+      currentEraIndex
+    ));
   } else {
     const nominatorState = await api.query.parachainStaking.nominatorState(accountId);
-    let allRequests = (await api.query.parachainStaking.nominationScheduledRequests.multi(collators))
+    let allRequests = await api.query.parachainStaking.nominationScheduledRequests.multi(collators);
 
-    let nominatorRequests = allRequests
-      .flat()
-      .filter(req => req.nominator.eq(accountId));
+    let nominatorRequests = allRequests.flat().filter(req => req.nominator.eq(accountId));
 
-    ({stakedBalance, unlockedBalance, unstakedBalance} =
-        stakingHelper.calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex));
+    ({ stakedBalance, unlockedBalance, unstakedBalance } = stakingHelper.calculateNominatorStakingBalances(
+      nominatorState,
+      nominatorRequests,
+      currentEraIndex
+    ));
   }
 
   return {
@@ -108,7 +111,7 @@ async function getAccountInfo(accountId) {
     freeBalance: balancesAll.availableBalance.toString(),
     stakedBalance: stakedBalance.toString(),
     unlockedBalance: unlockedBalance.toString(),
-    unstakedBalance: unstakedBalance.toString(),
+    unstakedBalance: unstakedBalance.toString()
   };
 }
 
@@ -255,7 +258,13 @@ async function signAndSend(requestId, relayerAddress, txn) {
     if (!result || !result.transactionHash) {
       result.transactionHash = keccakAsHex(requestId);
     }
-    await redis.addFailedAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString(), redis.transactionStatus.SendingFailed);
+    await redis.addFailedAvnTransaction(
+      requestId,
+      result.transactionHash,
+      relayerAccount.address.toString(),
+      nonce.toString(),
+      redis.transactionStatus.SendingFailed
+    );
 
     throw err;
   }
@@ -285,9 +294,7 @@ async function getRelayerAccount(relayerAddress) {
 
 async function getNftContractAddresses() {
   const data = await api.query.ethereumEvents.nftT1Contracts.entries();
-  return JSON.stringify(
-    data.map(([key, _]) => key.args.map((k) => k.toHuman())).flat()
-  );
+  return JSON.stringify(data.map(([key, _]) => key.args.map(k => k.toHuman())).flat());
 }
 
 async function getGatewayUserInfo(account) {
@@ -301,7 +308,7 @@ async function getGatewayUserInfo(account) {
   return {
     paymentNonce: paymentNonce.toString(),
     freeBalance: balance.free.toString()
-  }
+  };
 }
 
 async function signPaymentInfo(message, payerUsername) {
@@ -309,7 +316,7 @@ async function signPaymentInfo(message, payerUsername) {
   const messageWithoutPrefix = '0x' + message.slice(4);
 
   // Important: we only want to sign correctly formatted payment data.
-  if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error ('Invalid data to sign.');
+  if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error('Invalid data to sign.');
   return vault.payerSign(message, payerUsername);
 }
 
@@ -362,21 +369,35 @@ async function connectToAvN() {
 }
 
 async function getSummaries() {
-  let entries = [], summaries = [], startKey;
+  let entries = [],
+    summaries = [],
+    startKey;
 
   do {
     entries = await api.query.summary.roots.entriesPaged({ pageSize: 1000, args: [], startKey });
     if (entries.length > 0) {
       startKey = entries[entries.length - 1][0];
-      const formattedEntries = entries.map(([{ args: [{ fromBlock, toBlock }] }, { rootHash, isValidated }]) => (
-        { fromBlock: parseInt(fromBlock), toBlock: parseInt(toBlock), rootHash: rootHash.toString().toLowerCase(), isValid: isValidated }
-      ));
-      const validEntries = formattedEntries.filter(s => s.isValid == true).map(({ fromBlock, toBlock, rootHash }) => ({ fromBlock, toBlock, rootHash }));
+      const formattedEntries = entries.map(
+        ([
+          {
+            args: [{ fromBlock, toBlock }]
+          },
+          { rootHash, isValidated }
+        ]) => ({
+          fromBlock: parseInt(fromBlock),
+          toBlock: parseInt(toBlock),
+          rootHash: rootHash.toString().toLowerCase(),
+          isValid: isValidated
+        })
+      );
+      const validEntries = formattedEntries
+        .filter(s => s.isValid == true)
+        .map(({ fromBlock, toBlock, rootHash }) => ({ fromBlock, toBlock, rootHash }));
       summaries = summaries.concat(validEntries);
     }
   } while (entries.length > 0);
 
-  return summaries.sort((a,b) => (a.fromBlock < b.fromBlock) ? -1 : 0);
+  return summaries.sort((a, b) => (a.fromBlock < b.fromBlock ? -1 : 0));
 }
 
 async function getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index) {

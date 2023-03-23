@@ -129,7 +129,6 @@ function listFiatNftBatchForSale(api, queryApi) {
   };
 }
 
-
 function transferFiatNft(api, queryApi) {
   return async function (recipient, nftId) {
     common.validateAccount(recipient);

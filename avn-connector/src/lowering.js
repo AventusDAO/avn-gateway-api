@@ -76,7 +76,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 async function updateUnpublishedLowers(latestPublishedBlock) {
   const unpublished = await redis.getUnpublishedLowers();
 
-  console.log(`\tLowers not yet published to Ethereum: ${unpublished.length}`)
+  console.log(`\tLowers not yet published to Ethereum: ${unpublished.length}`);
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
     const { blockNumber } = await redis.getBlockIndex(txHash);
@@ -93,7 +93,7 @@ async function updateAwaitingClaimDataLowers() {
   const summaries = await redis.getSummaries();
   let error = false;
 
-  console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`)
+  console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`);
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = await redis.getBlockIndex(txHash);
@@ -121,7 +121,9 @@ async function updateAwaitingClaimDataLowers() {
             error = true;
           }
         } else {
-          console.warn(`\t  🚨 Unable to get RPC lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
+          console.warn(
+            `\t  🚨 Unable to get RPC lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`
+          );
         }
       }
     }
@@ -155,7 +157,7 @@ async function getLowerTransactions(blockNumber) {
   const response = await axios.post(`${AVN_EXPLORER_URL}/transactions/lowers?blockNumberFrom=${blockNumber}&limit=10000`);
 
   // handle nulls
-  return response.data ? (response.data.data || []) : [];
+  return response.data ? response.data.data || [] : [];
 }
 
 async function getLowersForAccount(account) {

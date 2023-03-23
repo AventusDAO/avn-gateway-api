@@ -320,7 +320,10 @@ async function getUnclaimedLowers() {
 
 async function setSummaries(summaries) {
   await redisClient.del(SUMMARIES_KEY);
-  await redisClient.rpush(SUMMARIES_KEY, summaries.map(s => dataToJsonString(s)));
+  await redisClient.rpush(
+    SUMMARIES_KEY,
+    summaries.map(s => dataToJsonString(s))
+  );
 }
 
 async function getSummaries() {
@@ -384,5 +387,5 @@ module.exports = {
   setLowerData,
   deleteLowerData,
   getLowerData,
-  transactionStatus,
+  transactionStatus
 };

@@ -25,7 +25,7 @@ async function getLockedBalance(address, token) {
 async function getLiftEvents(avnContract) {
   let fromBlock = (await redis.getCheckLiftsFromEthBlock()) || (await getBlocknumber(MAX_LIFT_AGE, 0));
   let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
-  toBlock = (fromBlock > toBlock) ? fromBlock : toBlock;
+  toBlock = fromBlock > toBlock ? fromBlock : toBlock;
 
   const request = `logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}`;
   let result = await callEtherscan(request);
@@ -58,7 +58,18 @@ async function getLatestClaimedLowers(avnContract) {
   const claimedLowers = [];
 
   try {
-    const abi = [{name:'LogLowered',type:'event',inputs:[{indexed:true,type:'address'},{indexed:true,type:'address'},{indexed:true,type:'bytes32'},{indexed:false,type:'uint256'}]}];
+    const abi = [
+      {
+        name: 'LogLowered',
+        type: 'event',
+        inputs: [
+          { indexed: true, type: 'address' },
+          { indexed: true, type: 'address' },
+          { indexed: true, type: 'bytes32' },
+          { indexed: false, type: 'uint256' }
+        ]
+      }
+    ];
     const contract = new web3.eth.Contract(abi, avnContract);
     const events = await contract.getPastEvents('LogLowered', { fromBlock });
     if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
@@ -66,10 +77,15 @@ async function getLatestClaimedLowers(avnContract) {
 
     for (let i = 0; i < transactions.length; i++) {
       const txData = await web3.eth.getTransaction(transactions[i]);
-      const params = web3.eth.abi.decodeParameters([{type:'bytes',name:'leafHash'},{type:'bytes32[]',name:'merklePath'}], '0x'+txData.input.slice(10));
+      const params = web3.eth.abi.decodeParameters(
+        [
+          { type: 'bytes', name: 'leafHash' },
+          { type: 'bytes32[]', name: 'merklePath' }
+        ],
+        '0x' + txData.input.slice(10)
+      );
       claimedLowers.push(web3.utils.sha3(params.leafHash));
     }
-
   } catch (e) {
     console.error(`💔 Error getting claimed lowers from Ethereum: `, e);
   }
@@ -78,7 +94,16 @@ async function getLatestClaimedLowers(avnContract) {
 }
 
 async function getPublishedRoots(avnContract) {
-  const abi = [{name:'LogRootPublished',type:'event',inputs:[{indexed:true,name:'rootHash',type:'bytes32'},{indexed:true,name:'t2TransactionId',type:'uint256'}]}];
+  const abi = [
+    {
+      name: 'LogRootPublished',
+      type: 'event',
+      inputs: [
+        { indexed: true, name: 'rootHash', type: 'bytes32' },
+        { indexed: true, name: 't2TransactionId', type: 'uint256' }
+      ]
+    }
+  ];
   const contract = new web3.eth.Contract(abi, avnContract);
   const events = await contract.getPastEvents('LogRootPublished', { fromBlock: 0 });
   return events.map(log => log.returnValues.rootHash.toLowerCase());
@@ -88,5 +113,5 @@ module.exports = {
   getLatestClaimedLowers,
   getLiftEvents,
   getLockedBalance,
-  getPublishedRoots,
+  getPublishedRoots
 };

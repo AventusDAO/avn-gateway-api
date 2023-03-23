@@ -7,11 +7,10 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 let mqSender;
 
-exports.handler = async (event) => {
+exports.handler = async event => {
   let processedMessagesCount = 0;
 
   try {
-
     if (!event.Records) {
       console.log(`No messages to process.`);
       return {
@@ -45,7 +44,6 @@ exports.handler = async (event) => {
       statusCode: 200,
       body: `${event.Records.length} message(s) processed successfully.`
     };
-
   } catch (err) {
     console.error(`Failed to process messages from default queue: `, err);
 
@@ -58,7 +56,11 @@ exports.handler = async (event) => {
 const connectToMQ = async () => {
   try {
     if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
-      mqSender = new MQSender(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN, process.env.MQ_BROKER_AMQP_ENDPOINT);
+      mqSender = new MQSender(
+        process.env.SECRET_MANAGER_REGION,
+        process.env.MQ_SECRET_ARN,
+        process.env.MQ_BROKER_AMQP_ENDPOINT
+      );
       await mqSender.connectToMessageBroker();
     }
   } catch (err) {
@@ -427,9 +429,16 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
     return utils.buildErrorBody('params', 'Invalid proxy method parameters', err.toString(), request, call.id);
   }
 
-
   const proxyProof = utils.getProxyProof(user, relayer, proxySignature);
-  const paymentInfo = await fees.tryGetPaymentInfo(AVN_CONNECTOR_ENDPOINT, payer, relayer, feePaymentSignature, call.method, paymentNonce, proxyProof);
+  const paymentInfo = await fees.tryGetPaymentInfo(
+    AVN_CONNECTOR_ENDPOINT,
+    payer,
+    relayer,
+    feePaymentSignature,
+    call.method,
+    paymentNonce,
+    proxyProof
+  );
 
   const params = {
     proxyParams: [proxyProof].concat(methodParams),

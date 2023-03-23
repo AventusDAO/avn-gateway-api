@@ -78,7 +78,8 @@ function validateAccount(account) {
     encodeAddress(isHex(account) ? hexToU8a(account) : decodeAddress(account));
     return account;
   } catch (e) {
-    throw new Error(`Invalid account type: ${account}, err: ${e.toString()}`);
+    console.error(e.toString());
+    throw new Error(e);
   }
 }
 

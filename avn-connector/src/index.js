@@ -224,7 +224,17 @@ app.post('/isPayerTransaction', async (req, res, next) => {
 app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
   try {
     log.trace({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });
-    avn.setTransactionRefusedByPayerStatus(req.body.requestId);
+    avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.PayerRefused);
+    res.status(200).send({});
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
+  try {
+    log.trace({ setTransactionFailedToBeSentStatus: JSON.stringify(req.body) });
+    avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
     res.status(200).send({});
   } catch (err) {
     next(err);

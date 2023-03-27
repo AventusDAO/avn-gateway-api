@@ -274,14 +274,20 @@ async function signAndSend(requestId, relayerAddress, txn) {
   return result;
 }
 
-async function setTransactionRefusedByPayerStatus(requestId) {
-  await redis.addFailedAvnTransaction(
-    requestId,
-    keccakAsHex(requestId),
-    undefined,
-    undefined,
-    redis.transactionStatus.PayerRefused
-  );
+async function setSendingFailedStatus(requestId, failure) {
+  const failureReason = redis.transactionStatus[failure];
+
+  if (failureReason) {
+    await redis.addFailedAvnTransaction(
+      requestId,
+      keccakAsHex(requestId),
+      undefined,
+      undefined,
+      failureReason
+    );
+  }
+
+  throw new Error("Invalid failure reason: ", failure);
 }
 
 async function getRelayerAccount(relayerAddress) {
@@ -432,5 +438,5 @@ module.exports = {
   query,
   RELAYER_ADDRESS,
   signPaymentInfo,
-  setTransactionRefusedByPayerStatus
+  setSendingFailedStatus
 };

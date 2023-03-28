@@ -37,7 +37,7 @@ async function validateAwtToken(event) {
   }
 
   if (utils.isSplitFeeToken(awtToken) === true) {
-    const {payerId, payerAddress, vaultId} = await tryGetPayerAddressForUser(awtToken);
+    const { payerId, payerAddress, vaultId } = await tryGetPayerAddressForUser(awtToken);
 
     if (payerAddress) {
       // Pass the authenticated payer address to the target lambda

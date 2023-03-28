@@ -23,7 +23,12 @@ describe('Split fees calls:', async () => {
   });
 
   describe('Split fees', async () => {
-    let userAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore, payerAvtBalanceBefore, options, payerPaymentNonce;
+    let userAvtBalanceBefore,
+      recipientAvtBalanceBefore,
+      relayerAvtBalanceBefore,
+      payerAvtBalanceBefore,
+      options,
+      payerPaymentNonce;
 
     beforeEach(async () => {
       userAvtBalanceBefore = new BN(await api.query.getAvtBalance(user));
@@ -34,7 +39,7 @@ describe('Split fees calls:', async () => {
       options = {
         suri: accounts.user.seed,
         relayer: relayer
-      }
+      };
     });
 
     let verifySplitFeesBalancesAndNonce = async () => {
@@ -43,68 +48,68 @@ describe('Split fees calls:', async () => {
       assert(payerAvtBalanceBefore.sub(relayerFee).eq(new BN(await api.query.getAvtBalance(payer))));
       assert(new BN(await api.query.getAvtBalance(relayer)).gt(relayerAvtBalanceBefore));
       assert(payerPaymentNonce.add(new BN(1)).eq(new BN(await api.query.getNonce(payer, 'payment'))));
-    }
+    };
 
     it('With valid payer address', async () => {
-        let validOptions = {...options, hasPayer: true, payerAddress: payer};
-        const apiWithOptions = await helper.avnApi(validOptions);
+      let validOptions = { ...options, hasPayer: true, payerAddress: payer };
+      const apiWithOptions = await helper.avnApi(validOptions);
 
-        const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
-        await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
+      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        await verifySplitFeesBalancesAndNonce();
+      await verifySplitFeesBalancesAndNonce();
     });
 
     it('With valid payer public key', async () => {
-        let validOptions = {...options, hasPayer: true, payerAddress: payerPubKey};
-        const apiWithOptions = await helper.avnApi(validOptions);
+      let validOptions = { ...options, hasPayer: true, payerAddress: payerPubKey };
+      const apiWithOptions = await helper.avnApi(validOptions);
 
-        const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
-        await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
+      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        await verifySplitFeesBalancesAndNonce();
+      await verifySplitFeesBalancesAndNonce();
     });
 
     it('With default payer account, hasPayer flag true', async () => {
-        let validOptions = {...options, hasPayer: true}
-        const apiWithOptions = await helper.avnApi(validOptions);
+      let validOptions = { ...options, hasPayer: true };
+      const apiWithOptions = await helper.avnApi(validOptions);
 
-        const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
-        await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
+      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        await verifySplitFeesBalancesAndNonce();
+      await verifySplitFeesBalancesAndNonce();
     });
 
     it('With hasPayer flag set to false, valid payer address should override', async () => {
-        let invalidOptions = {...options, hasPayer: false, payerAddress: payer};
-        const apiWithOptions = await helper.avnApi(invalidOptions);
+      let invalidOptions = { ...options, hasPayer: false, payerAddress: payer };
+      const apiWithOptions = await helper.avnApi(invalidOptions);
 
-        const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
-        await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
+      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-        await verifySplitFeesBalancesAndNonce();
+      await verifySplitFeesBalancesAndNonce();
     });
 
     it('With valid payer address but unauthorized transaction, payer should refuse', async () => {
-        let externalRef = 'avn-gateway-test-' + new Date().toISOString();
-        let royalties = [];
-        const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
+      let externalRef = 'avn-gateway-test-' + new Date().toISOString();
+      let royalties = [];
+      const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 
-        let invalidOptions = {...options, hasPayer: true, payerAddress: payer};
-        const apiWithOptions = await helper.avnApi(invalidOptions);
+      let invalidOptions = { ...options, hasPayer: true, payerAddress: payer };
+      const apiWithOptions = await helper.avnApi(invalidOptions);
 
-        const requestId = await apiWithOptions.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-        await helper.confirmStatus(apiWithOptions, requestId, 'PayerRefused');
+      const requestId = await apiWithOptions.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
+      await helper.confirmStatus(apiWithOptions, requestId, 'PayerRefused');
     });
 
     it('With invalid payer, an error is thrown', async () => {
-        let invalidPayer = '5HnPuKiHbyYBMV76vvA46fk6HZHDt7LU9R7YcyiWnBVzUhdu';
-        let invalidOptions = {...options, hasPayer: true, payerAddress: invalidPayer};
+      let invalidPayer = '5HnPuKiHbyYBMV76vvA46fk6HZHDt7LU9R7YcyiWnBVzUhdu';
+      let invalidOptions = { ...options, hasPayer: true, payerAddress: invalidPayer };
 
-        const apiWithOptions = await helper.avnApi(invalidOptions);
-        await expect(apiWithOptions.send.transferAvt(recipient, amount)).to.be.rejectedWith(
-          /Request failed with status code 403/
-        );
+      const apiWithOptions = await helper.avnApi(invalidOptions);
+      await expect(apiWithOptions.send.transferAvt(recipient, amount)).to.be.rejectedWith(
+        /Request failed with status code 403/
+      );
     });
   });
 });

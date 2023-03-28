@@ -39,7 +39,7 @@ async function sleep(ms) {
 }
 
 async function avnApi(options) {
-  options = options ?? { relayer: accounts.relayer.address };
+  options = options ?? {};
   const api = new AvnApi(gateway, options);
 
   await api.init();
@@ -55,7 +55,7 @@ async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMi
   if (!requestId) throw new Error('RequestId cannot be null');
   let response, status;
 
-  for (i = 0; i < (optionalTimeoutInMinutes ?? MAX_WAIT_TIME_IN_MINUTES) * 60 / WAIT_INTERVAL_IN_SECS; i++) {
+  for (i = 0; i < ((optionalTimeoutInMinutes ?? MAX_WAIT_TIME_IN_MINUTES) * 60) / WAIT_INTERVAL_IN_SECS; i++) {
     await sleep(WAIT_INTERVAL_IN_SECS * 1000);
     response = await api.poll.requestState(requestId);
     status = response.status;

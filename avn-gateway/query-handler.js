@@ -40,6 +40,8 @@ async function callSwitch(call, request) {
       return await getAvtContractAddress(call, request);
     case 'getAvnContractAddress':
       return await getAvnContractAddress(call, request);
+    case 'getDefaultRelayer':
+      return await getDefaultRelayer(call, request);
     case 'getNftContractAddress':
       return await getNftContractAddress(call, request);
     case 'getNftId':
@@ -121,6 +123,12 @@ async function getAvtContractAddress(call, request) {
 
 async function getAvnContractAddress(call, request) {
   return await queryChain(call, request, 'ethereumEvents', 'liftingContractAddress', [], formatAsString);
+}
+
+async function getDefaultRelayer(call, request) {
+  const method = 'getDefaultRelayer';
+  const params = { callId: call.id };
+  return await query(call, request, method, params);
 }
 
 async function getNftContractAddress(call, request) {
@@ -309,7 +317,13 @@ async function query(call, request, method, params, responseFormatter) {
       (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.buildErrorBody('internal', `failed to invoke ${method} when querying the chain`, err.toString(), request, call.id);
+    return utils.buildErrorBody(
+      'internal',
+      `failed to invoke ${method} when querying the chain`,
+      err.toString(),
+      request,
+      call.id
+    );
   }
 }
 

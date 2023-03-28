@@ -7,11 +7,10 @@ const sqsClient = new sqs.SQSClient({ region: process.env.SECRET_MANAGER_REGION 
 const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
-exports.handler = async (event) => {
+exports.handler = async event => {
   let processedMessagesCount = 0;
 
   try {
-
     if (!event.Records) {
       console.log(`No messages to process.`);
       return {
@@ -44,7 +43,6 @@ exports.handler = async (event) => {
       statusCode: 200,
       body: `${event.Records.length} message(s) processed successfully.`
     };
-
   } catch (err) {
     console.error(`Failed to process messages from payer queue: `, err);
 
@@ -70,7 +68,12 @@ async function processRequest(request) {
   validateTransaction(tx);
 
   const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
-  const encodedPaymentParams = fees.encodePaymentParams(feeParams.relayer, feeParams.relayerFee, feeParams.paymentNonce, feeParams.proxyProof);
+  const encodedPaymentParams = fees.encodePaymentParams(
+    feeParams.relayer,
+    feeParams.relayerFee,
+    feeParams.paymentNonce,
+    feeParams.proxyProof
+  );
   const paymentSignature = await signPaymentInfo(tx, encodedPaymentParams, requestId);
 
   tx.params.payer = tx.splitFeePayerAddress;
@@ -78,7 +81,9 @@ async function processRequest(request) {
   tx.params.paymentNonce = feeParams.paymentNonce;
 
   const data = await sendMessageToDefaultQueue(tx);
-  console.info(`Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`);
+  console.info(
+    `Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`
+  );
   return utils.buildValidResponseBody(tx.id, requestId);
 }
 
@@ -97,7 +102,7 @@ function validateTransaction(tx) {
 async function signPaymentInfo(transaction, encodedParams, requestId) {
   // validate if the payer is willing to pay for this transaction
   if (await payerCanPayForTransaction(transaction.splitFeePayerAddress, transaction.method)) {
-    const payerUserName = utils.getPayerVaultUsername(transaction.splitFeePayerVaultId)
+    const payerUserName = utils.getPayerVaultUsername(transaction.splitFeePayerVaultId);
     return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payerUserName);
   } else {
     // transaction has been rejected by payer, inform user
@@ -112,7 +117,7 @@ async function sendMessageToDefaultQueue(message) {
     QueueUrl: DEFAULT_SQS_URL,
     MessageGroupId: 'DEFAULT',
     MessageDeduplicationId: utils.hashString(messageBody),
-    MessageBody: messageBody,
+    MessageBody: messageBody
   };
 
   return await sqsClient.send(new sqs.SendMessageCommand(params));

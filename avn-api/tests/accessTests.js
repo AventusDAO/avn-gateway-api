@@ -50,8 +50,7 @@ describe('Access rights:', async () => {
 
     it('can set SURI via the options', async () => {
       const options = { suri: newUserSURI, relayer: relayer };
-      const apiWithOptions = new AvnApi(null, options);
-      await apiWithOptions.init();
+      const apiWithOptions = helper.avnApi(options);
       assert.equal(apiWithOptions.myAddress(), newUser);
       assert.equal(apiWithOptions.signer().address, newUser);
     });
@@ -85,8 +84,8 @@ describe('Access rights:', async () => {
 
       api.setSURI(userSURI); // this ensures the AWT token is refreshed
       assert.equal(await api.query.getAvtBalance(existingUser), '0'); // confirm existingUser now holds no AVT
-      assert(await api.query.getNonce(existingUser, 'payment') > 0);
-      assert(await api.query.getNonce(existingUser, 'token') > 0);
+      assert((await api.query.getNonce(existingUser, 'payment')) > 0);
+      assert((await api.query.getNonce(existingUser, 'token')) > 0);
 
       api.setSURI(existingUserSURI);
       assert.equal(await canAccessTheGateway(), true);

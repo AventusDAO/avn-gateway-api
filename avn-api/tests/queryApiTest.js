@@ -104,46 +104,46 @@ describe('Query api calls:', async () => {
 
   xdescribe('getAvtBalance', async () => {
     it('@NO_BASELINE returns correct avt balance for specific user by address', async () => {
-      assert.fail("actual", "expected", "Error message");
+      assert.fail('actual', 'expected', 'Error message');
     });
     it('@NO_BASELINE returns correct avt balance for specific user by publicKey', async () => {
-      assert.fail("actual", "expected", "Error message");
+      assert.fail('actual', 'expected', 'Error message');
     });
   });
   xdescribe('getTokenBalance', async () => {
     //getTokenBalance(account, token_address)
     it('@NO_BASELINE returns correct token balance for specific user by address', async () => {
-      assert.fail("actual", "expected", "Error message");
+      assert.fail('actual', 'expected', 'Error message');
     });
     it('@NO_BASELINE returns correct token balance for specific user by publicKey', async () => {
-      assert.fail("actual", "expected", "Error message");
+      assert.fail('actual', 'expected', 'Error message');
     });
   });
   xdescribe('getNonce', async () => {
     //getAccountNonce(account)
     it('@NO_BASELINE returns correct account nonce for specific user by address', async () => {
-      assert.fail("actual", "expected", "Error message");
+      assert.fail('actual', 'expected', 'Error message');
     });
     it('@NO_BASELINE returns correct account nonce for specific user by publicKey', async () => {
-      assert.fail("actual", "expected", "Error message");
+      assert.fail('actual', 'expected', 'Error message');
     });
   });
   xdescribe('getNftNonce', async () => {
     //getNftNonce(nftId)
     it('@NO_BASELINE returns correct nft nonce for specific nft id', async () => {
-      assert.fail("actual", "expected", "Error message");
+      assert.fail('actual', 'expected', 'Error message');
     });
   });
   xdescribe('getNftId', async () => {
     //getNftId(external_reference);
     it('@NO_BASELINE returns correct nft id for specific reference', async () => {
-      assert.fail("actual", "expected", "Error message");
+      assert.fail('actual', 'expected', 'Error message');
     });
   });
   xdescribe('getNftOwner', async () => {
     //getNftOwner(nftId)
     it('@NO_BASELINE returns correct nft owner for specific nft id', async () => {
-      assert.fail("actual", "expected", "Error message");
+      assert.fail('actual', 'expected', 'Error message');
     });
   });
 
@@ -221,16 +221,19 @@ describe('Query api calls:', async () => {
     it('returns the correct data', async () => {
       const returnedData = await api.query.getStakingStatus('5FZ9egr9M1tGJ1aEUWG6TPkoko8j7cX2TwtchcFmaMWZzMVU');
       // We can't be sure about the values but we can check the structure
-      assert([common.STAKING_STATUS.isStaking, common.STAKING_STATUS.isNotStaking].includes(returnedData), 'Staking status is not a valid result');
+      assert(
+        [common.STAKING_STATUS.isStaking, common.STAKING_STATUS.isNotStaking].includes(returnedData),
+        'Staking status is not a valid result'
+      );
     });
   });
 
   describe('getOutstandingLowersForAccount', async () => {
     it('returns data', async () => {
-        const ethDevAddress = '0xDE7E1091cDE63c05Aa4D82C62e4C54eDbC701B22'
-        const returnedData = await api.query.getOutstandingLowersForAccount(ethDevAddress)
-        assert(Array.isArray(returnedData.lowerData))
-        assert(returnedData.status === 'success')
-    })
-  })
+      const ethDevAddress = '0xDE7E1091cDE63c05Aa4D82C62e4C54eDbC701B22';
+      const returnedData = await api.query.getOutstandingLowersForAccount(ethDevAddress);
+      assert(Array.isArray(returnedData.lowerData));
+      assert(returnedData.status === 'success');
+    });
+  });
 });

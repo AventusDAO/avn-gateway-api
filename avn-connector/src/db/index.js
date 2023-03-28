@@ -1,6 +1,6 @@
 const config = require('multiconfig').load();
-const typeorm = require("typeorm");
-const { IsNull } = require("typeorm");
+const typeorm = require('typeorm');
+const { IsNull } = require('typeorm');
 const { isHex, u8aToHex } = require('@polkadot/util');
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 
@@ -28,27 +28,27 @@ const transactionTypes = {
   proxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
   proxyScheduleLeaveNominators: 'proxyScheduleLeaveNominators',
   proxyExecuteLeaveNominators: 'proxyExecuteLeaveNominators'
-}
+};
 
 let dataSource;
 
 async function init() {
   dataSource = new typeorm.DataSource({
-    type: "postgres",
+    type: 'postgres',
     host: config.postgres.host,
     port: config.postgres.port,
     username: config.postgres.username,
     password: config.postgres.password,
     database: config.postgres.database,
-    synchronize: config.postgres.synchronize === "true",
+    synchronize: config.postgres.synchronize === 'true',
     entities: [
-      require("./entity/payer"),
-      require("./entity/splitFeeUser"),
-      require("./entity/transaction"),
-      require("./entity/payerTransaction"),
-      require("./entity/fee"),
-      require("./entity/relayer")
-    ],
+      require('./entity/payer'),
+      require('./entity/splitFeeUser'),
+      require('./entity/transaction'),
+      require('./entity/payerTransaction'),
+      require('./entity/fee'),
+      require('./entity/relayer')
+    ]
   });
 
   await dataSource.initialize();
@@ -63,7 +63,10 @@ async function getPayer(user, payer) {
 
   const userDataSource = await dataSource.getRepository(SPLIT_FEE_USER_TABLE);
 
-  const splitFeeUser = await userDataSource.findOne({ where: { publicKey: userPublicKey, enabled: true }, relations: ['payer']});
+  const splitFeeUser = await userDataSource.findOne({
+    where: { publicKey: userPublicKey, enabled: true },
+    relations: ['payer']
+  });
   if (!splitFeeUser || !splitFeeUser.payer) return undefined;
 
   // This check is useful when we start supporting multiple payers for the same user.
@@ -85,7 +88,7 @@ async function getPayer(user, payer) {
 async function getFees(relayerAddress, user, transactionName) {
   let userPk;
 
-  const relayer =  await getRelayer(relayerAddress);
+  const relayer = await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
   if (!relayer.defaultFee) throw new Error(`Relayer  ${relayerAddress} does not have a default fee set`);
 
@@ -96,7 +99,7 @@ async function getFees(relayerAddress, user, transactionName) {
   }
 
   if (transactionName) {
-      return await getSingleFee(feeDataSource, relayer, userPk, transactionName);
+    return await getSingleFee(feeDataSource, relayer, userPk, transactionName);
   }
 
   return await getAllFees(feeDataSource, relayer, userPk);
@@ -108,14 +111,14 @@ async function isPayerTransaction(payer, transactionName) {
 
   const payerTransactionDataSource = await dataSource.getRepository(PAYER_TRANSACTION_TABLE);
 
-  let payerTx = await payerTransactionDataSource.findOne(
-    { where: {
-        payer: { publicKey: payerPk, enabled: true},
-        transaction: { name: transactionName, enabled: true },
-        enabled: true },
-      relations: ['payer', 'transaction']
-    }
-  );
+  let payerTx = await payerTransactionDataSource.findOne({
+    where: {
+      payer: { publicKey: payerPk, enabled: true },
+      transaction: { name: transactionName, enabled: true },
+      enabled: true
+    },
+    relations: ['payer', 'transaction']
+  });
 
   return payerTx ? true : false;
 }
@@ -125,7 +128,7 @@ async function getRelayer(relayerAddress) {
 
   const relayerPk = getPublicKey(relayerAddress);
   const relayerDataSource = await dataSource.getRepository(RELAYER_TABLE);
-  return await relayerDataSource.findOne({ where: { publicKey: relayerPk, enabled: true }});
+  return await relayerDataSource.findOne({ where: { publicKey: relayerPk, enabled: true } });
 }
 
 // This function expects that each relayer has at least one default fee or a fee for each transaction type.
@@ -134,44 +137,45 @@ function buildFeesJson(dbResult, relayerDefaultFee) {
   let relayerFees = {};
 
   (dbResult || []).forEach(r => {
-      const hasTransactionFee = !!r.transaction && !!r.transaction.name;
-      if (hasTransactionFee) {
-          // Prioritise user specific fees over default fees for transaction
-          if (!relayerFees[r.transaction.name] || r.userPublicKey) {
-            relayerFees[r.transaction.name] = r.fee;
-          }
-      } else if (r.userPublicKey) {
-          // This is the default fee for the user
-          defaultFee = r.fee;
+    const hasTransactionFee = !!r.transaction && !!r.transaction.name;
+    if (hasTransactionFee) {
+      // Prioritise user specific fees over default fees for transaction
+      if (!relayerFees[r.transaction.name] || r.userPublicKey) {
+        relayerFees[r.transaction.name] = r.fee;
       }
+    } else if (r.userPublicKey) {
+      // This is the default fee for the user
+      defaultFee = r.fee;
+    }
   });
 
   defaultFee = defaultFee ?? relayerDefaultFee;
-  Object.values(transactionTypes).forEach(v => relayerFees[v] = relayerFees[v] ?? defaultFee);
+  Object.values(transactionTypes).forEach(v => (relayerFees[v] = relayerFees[v] ?? defaultFee));
 
   return relayerFees;
 }
 
 async function getSingleFee(feeDataSource, relayer, userPk, transactionName) {
-  let feeRow = await feeDataSource.findOne(
-      { where: {
-          relayerId: relayer.id,
-          userPublicKey: userPk || IsNull(),
-          enabled: true,
-          transaction: { name: transactionName, enabled: true }
-      }
+  let feeRow = await feeDataSource.findOne({
+    where: {
+      relayerId: relayer.id,
+      userPublicKey: userPk || IsNull(),
+      enabled: true,
+      transaction: { name: transactionName, enabled: true }
+    }
   });
 
   return feeRow ? feeRow.fee : relayer.defaultFee;
 }
 
 async function getAllFees(feeDataSource, relayer, userPk) {
-  const fees = await feeDataSource.find(
-      { where: {
-          relayerId: relayer.id,
-          userPublicKey: userPk || IsNull(),
-          enabled: true
-  }});
+  const fees = await feeDataSource.find({
+    where: {
+      relayerId: relayer.id,
+      userPublicKey: userPk || IsNull(),
+      enabled: true
+    }
+  });
 
   return buildFeesJson(fees, relayer.defaultFee);
 }
@@ -181,9 +185,9 @@ function getPublicKey(account) {
   if (isHex(account) && account.length != 66) throw new Error(`Invalid hex encoded address ${account}`);
 
   try {
-      return u8aToHex(decodeAddress(account));
+    return u8aToHex(decodeAddress(account));
   } catch (err) {
-      throw new Error(`Invalid address ${account}: ${err.toString()}`)
+    throw new Error(`Invalid address ${account}: ${err.toString()}`);
   }
 }
 
@@ -191,5 +195,5 @@ module.exports = {
   getPayer,
   getFees,
   init,
-  isPayerTransaction,
+  isPayerTransaction
 };

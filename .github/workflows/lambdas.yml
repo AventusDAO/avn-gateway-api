@@ -20,6 +20,7 @@ env:
   LOWER: lower-handler
   SPLIT_FEE: split-fee-handler
   TX_DISPATCH: tx-dispatch-handler
+  INVALID_TRANSACTION: invalid-transaction-handler
 
 defaults:
   run:
@@ -78,6 +79,8 @@ jobs:
           mv build/${{ env.LOWER }}.zip build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip
           mv build/${{ env.SPLIT_FEE }}.zip build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-latest.zip
           mv build/${{ env.TX_DISPATCH }}.zip build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-latest.zip
+          mv build/${{ env.INVALID_TRANSACTION }}.zip build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-latest.zip
+
           ls -l build/
 
       - name: create Short sha version
@@ -94,6 +97,7 @@ jobs:
           cp build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip build/${{ env.LOWER }}/${{ env.LOWER }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-latest.zip build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-${{ needs.version-suffix.outputs.version }}.zip
           cp build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-latest.zip build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-latest.zip build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-${{ needs.version-suffix.outputs.version }}.zip
 
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@v0.5.1

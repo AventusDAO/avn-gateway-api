@@ -60,3 +60,8 @@ variable "sqs_queue_arns" {
   type        = map(any)
   description = "list of SQS queues"
 }
+
+variable "dlq_queue_arns" {
+  type        = map(any)
+  description = "list of DLQ queues"
+}

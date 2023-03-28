@@ -183,3 +183,37 @@ resource "aws_iam_policy" "tx_dispatch_access" {
   description = "allow access to SQS and SM"
   policy      = data.aws_iam_policy_document.tx_dispatch_access.json
 }
+
+#
+# invalid-transaction-handler DLQ access
+#
+data "aws_iam_policy_document" "invalid_transaction_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage"
+    ]
+    resources = [
+      "${var.dlq_queue_arns.gateway_default_queue}",
+      "${var.dlq_queue_arns.gateway_payer_queue}",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "${var.rabbit_secret_arn}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "invalid_transaction_access" {
+  name        = "invalid-transaction-handler-access"
+  description = "allow access to SQS and SM"
+  policy      = data.aws_iam_policy_document.invalid_transaction_access.json
+}
+

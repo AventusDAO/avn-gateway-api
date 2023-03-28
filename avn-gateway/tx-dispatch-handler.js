@@ -156,7 +156,7 @@ async function processProxyTransfer(call, request, requestId) {
     if (utils.isValidAccountId(recipient) === false) throw 'recipient';
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
     if (utils.isValidAmount(amount) === false) throw 'amount';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -181,7 +181,7 @@ async function processProxyAddEthereumLog(call, request, requestId) {
   try {
     if (utils.isValidEventType(eventType) === false) throw 'eventType';
     if (utils.isValidEthereumTransactionHash(ethereumTransactionHash) === false) throw 'ethereumTransactionHash';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -210,7 +210,7 @@ async function processProxyTokenLower(call, request, requestId) {
     if (utils.isValidEthereumAddress(token) === false) throw 'token';
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidEthereumAddress(t1Recipient) === false) throw 't1Recipient';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -237,7 +237,7 @@ async function processProxyCreateNftBatch(call, request, requestId) {
     if (utils.isValidNumber(totalSupply) === false) throw 'totalSupply';
     if (utils.isValidArray(royalties) === false) throw 'royalties';
     if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -260,7 +260,7 @@ async function processProxyCancelListFiatNft(call, request, requestId) {
 
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nftId';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -283,7 +283,7 @@ async function processProxyEndNftBatchSale(call, request, requestId) {
 
   try {
     if (utils.isValidNftId(batchId) === false) throw 'batchId';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -308,7 +308,7 @@ async function processProxyListNftOpenForSale(call, request, requestId) {
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nftId';
     if (utils.isValidMarket(market) === false) throw 'market';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -333,7 +333,7 @@ async function processProxyListNftBatchForSale(call, request, requestId) {
   try {
     if (utils.isValidNftId(batchId) === false) throw 'batchId';
     if (utils.isValidMarket(market) === false) throw 'market';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -412,7 +412,7 @@ async function processProxyTransferFiatNft(call, request, requestId) {
   try {
     if (utils.isValidNftId(nftId) === false) throw 'nftId';
     if (utils.isValidAccountId(recipient) === false) throw 'recipient';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -437,7 +437,7 @@ async function processProxyStakeAvt(call, request, requestId) {
   try {
     if (utils.isValidArray(targets) === false || targets.length === 0) throw 'targets';
     if (utils.isValidAmount(amount) === false) throw 'amount';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     // TODO: Include the bad param value in the error logs when returning errors. This applies to all `utils.buildErrorBody()`
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
@@ -461,7 +461,7 @@ async function processProxyIncreaseStake(call, request, requestId) {
 
   try {
     if (utils.isValidAmount(amount) === false) throw 'amount';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -484,7 +484,7 @@ async function processProxyUnstake(call, request, requestId) {
 
   try {
     if (utils.isValidAmount(amount) === false) throw 'amount';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -507,7 +507,7 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
 
   try {
     if (utils.isValidAccountId(nominator) === false) throw 'nominator';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -528,7 +528,7 @@ async function processProxyScheduleLeaveNominators(call, request, requestId) {
   ];
 
   try {
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }
@@ -551,7 +551,7 @@ async function processProxyExecuteLeaveNominators(call, request, requestId) {
 
   try {
     if (utils.isValidAccountId(nominator) === false) throw 'nominator';
-    if (nonce && utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
+    if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
   }

@@ -33,6 +33,7 @@ variable "lambda_functions" {
     "lower-handler" : {},
     "split-fee-handler" : {},
     "tx-dispatch-handler" : {}
+    "invalid-transaction-handler" : {}
   }
 }
 

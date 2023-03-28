@@ -467,7 +467,7 @@ async function processProxyStakeAvt(call, request, requestId) {
     if (utils.isValidArray(call.params.targets) === false || call.params.targets.length === 0) throw 'targets';
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
-  } catch (errParam) {
+  } catch (param) {
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 

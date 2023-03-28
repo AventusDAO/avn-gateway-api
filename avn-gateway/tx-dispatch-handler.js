@@ -141,6 +141,8 @@ async function processProxyTransfer(call, request, requestId) {
   const { user, recipient, token, amount, relayer, nonce, proxySignature } = call.params;
   const methodParams = [user, recipient, token, amount];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'token', user);
+
   const signData = [
     { Text: 'authorization for transfer operation' },
     { AccountId: relayer },
@@ -170,6 +172,8 @@ async function processProxyAddEthereumLog(call, request, requestId) {
   const { eventType, ethereumTransactionHash, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [eventType, ethereumTransactionHash];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'confirmation', user);
+
   const signData = [
     { Text: 'authorization for add ethereum log operation' },
     { AccountId: relayer },
@@ -194,6 +198,8 @@ async function processProxyTokenLower(call, request, requestId) {
   const method = 'signedLower';
   const { user, token, amount, t1Recipient, relayer, nonce, proxySignature } = call.params;
   const methodParams = [user, token, amount, t1Recipient];
+
+  if (!nonce) nonce = await queryNonce(call.id, 'token', user);
 
   const signData = [
     { Text: 'authorization for lower operation' },
@@ -224,6 +230,8 @@ async function processProxyCreateNftBatch(call, request, requestId) {
   const { totalSupply, royalties, t1Authority, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [totalSupply, royalties, t1Authority];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'batch', user);
+
   const signData = [
     { Text: 'authorization for create batch operation' },
     { AccountId: relayer },
@@ -251,6 +259,8 @@ async function processProxyCancelListFiatNft(call, request, requestId) {
   const { nftId, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nftId];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'nft', nftId);
+
   const signData = [
     { Text: 'authorization for cancel list fiat nft for sale operation' },
     { AccountId: relayer },
@@ -274,6 +284,8 @@ async function processProxyEndNftBatchSale(call, request, requestId) {
   const { batchId, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [batchId];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'batch', user);
+
   const signData = [
     { Text: 'authorization for end batch sale operation' },
     { AccountId: relayer },
@@ -296,6 +308,8 @@ async function processProxyListNftOpenForSale(call, request, requestId) {
   const method = 'signedListNftOpenForSale';
   const { nftId, market, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nftId, market];
+
+  if (!nonce) nonce = await queryNonce(call.id, 'nft', nftId);
 
   const signData = [
     { Text: 'authorization for list nft open for sale operation' },
@@ -321,6 +335,8 @@ async function processProxyListNftBatchForSale(call, request, requestId) {
   const method = 'signedListBatchForSale';
   const { batchId, market, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [batchId, market];
+
+  if (!nonce) nonce = await queryNonce(call.id, 'batch', user);
 
   const signData = [
     { Text: 'authorization for list batch for sale operation' },
@@ -401,6 +417,8 @@ async function processProxyTransferFiatNft(call, request, requestId) {
   const { nftId, recipient, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nftId, recipient];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'nft', nftId);
+
   const signData = [
     { Text: 'authorization for transfer fiat nft operation' },
     { AccountId: relayer },
@@ -425,6 +443,8 @@ async function processProxyStakeAvt(call, request, requestId) {
   const method = 'signedNominate';
   const { targets, amount, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [targets, amount];
+
+  if (!nonce) nonce = await queryNonce(call.id, 'staking', user);
 
   const signData = [
     { Text: 'parachain authorization for nominate operation' },
@@ -452,6 +472,8 @@ async function processProxyIncreaseStake(call, request, requestId) {
   const { amount, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [amount];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'staking', user);
+
   const signData = [
     { Text: 'parachain authorization for nominator bond extra operation' },
     { AccountId: relayer },
@@ -474,6 +496,8 @@ async function processProxyUnstake(call, request, requestId) {
   const method = 'signedScheduleNominatorUnbond';
   const { amount, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [amount];
+
+  if (!nonce) nonce = await queryNonce(call.id, 'staking', user);
 
   const signData = [
     { Text: 'parachain authorization for scheduling nominator unbond operation' },
@@ -498,6 +522,8 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
   const { nominator, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nominator];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'staking', user);
+
   const signData = [
     { Text: 'parachain authorization for executing nomination requests operation' },
     { AccountId: relayer },
@@ -521,6 +547,8 @@ async function processProxyScheduleLeaveNominators(call, request, requestId) {
   const { relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'staking', user);
+
   const signData = [
     { Text: 'parachain authorization for scheduling leaving nominators operation' },
     { AccountId: relayer },
@@ -542,6 +570,8 @@ async function processProxyExecuteLeaveNominators(call, request, requestId) {
   const { nominator, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nominator];
 
+  if (!nonce) nonce = await queryNonce(call.id, 'staking', user);
+
   const signData = [
     { Text: 'parachain authorization for executing leave nominators operation' },
     { AccountId: relayer },
@@ -557,6 +587,13 @@ async function processProxyExecuteLeaveNominators(call, request, requestId) {
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+}
+
+async function queryNonce(callId, nonceType, nonceKey) {
+  const { palletName, storageName } = utils.getNonceLocation(nonceType);
+  const params = { callId, palletName, storageName, params: [nonceKey] };
+  const result = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', params);
+  return (nonceType === 'nft') ? utils.toBnString(result.nonce) : utils.toBnString(result);
 }
 
 async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {

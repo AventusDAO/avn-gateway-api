@@ -23,6 +23,7 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	mkdir -p build/tx-dispatch-handler
 	mkdir -p build/common
 	mkdir -p build/queue
+	mkdir -p build/invalid-transaction-handler
 
 clean: ## destroys the build folder
 	rm -rf ./build/

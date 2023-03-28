@@ -32,7 +32,8 @@ variable "lambda_functions" {
     "vote-handler" : {},
     "lower-handler" : {},
     "split-fee-handler" : {},
-    "tx-dispatch-handler" : {}
+    "tx-dispatch-handler" : {},
+    "invalid-transaction-handler" : {}
   }
 }
 

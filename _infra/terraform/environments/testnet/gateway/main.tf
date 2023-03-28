@@ -20,6 +20,7 @@ module "lambda_functions" {
   subnet_ids             = data.terraform_remote_state.vpc.outputs.private_subnets
   vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
   sqs_queue_arns         = module.gateway_sqs.queue_arn
+  dlq_queue_arns         = module.gateway_sqs.dead_letter_queue_arn
 
   lambda_functions = {
 
@@ -104,6 +105,11 @@ module "lambda_functions" {
       timeout     = 4
       memory_size = 512
     }
+
+    invalid-transaction-handler = {
+      timeout     = 4
+      memory_size = 512
+    }    
 
   }
 

@@ -116,6 +116,11 @@ resource "aws_iam_role_policy_attachment" "tx_dispatch_access" {
   policy_arn = aws_iam_policy.tx_dispatch_access.arn
 }
 
+resource "aws_iam_role_policy_attachment" "invalid_transaction_access" {
+  role       = aws_iam_role.lambda_role["invalid-transaction-handler"].name
+  policy_arn = aws_iam_policy.invalid_transaction_access.arn
+}
+
 resource "aws_iam_role_policy_attachment" "network" {
   for_each = { for idx, val in aws_iam_role.lambda_role : idx => val }
 
@@ -162,4 +167,14 @@ resource "aws_lambda_event_source_mapping" "tx_dispatch_handler" {
   event_source_arn        = var.sqs_queue_arns.gateway_default_queue
   function_name           = aws_lambda_function.lambda["tx-dispatch-handler"].arn
   function_response_types = ["ReportBatchItemFailures"]
+}
+
+resource "aws_lambda_event_source_mapping" "invalid_transaction_default_handler" {
+  event_source_arn        = var.dlq_queue_arns.gateway_default_queue
+  function_name           = aws_lambda_function.lambda["invalid-transaction-handler"].arn
+}
+
+resource "aws_lambda_event_source_mapping" "invalid_transaction_payer_handler" {
+  event_source_arn        = var.dlq_queue_arns.gateway_payer_queue
+  function_name           = aws_lambda_function.lambda["invalid-transaction-handler"].arn
 }

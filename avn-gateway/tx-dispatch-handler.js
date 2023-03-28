@@ -464,10 +464,11 @@ async function processProxyStakeAvt(call, request, requestId) {
   ];
 
   try {
-    if (utils.isValidArray(call.params.targets) === false || call.params.targets.length === 0) throw 'targets';
+    if (utils.isValidArray(targets) === false || targets.length === 0) throw 'targets';
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxy signature';
-  } catch (errParam) {
+  } catch (param) {
+    // TODO: Include the bad param value in the error logs when returning errors. This applies to all `utils.buildErrorBody()`
     return utils.buildErrorBody('params', 'invalid ' + param, param, request, call.id);
   }
 

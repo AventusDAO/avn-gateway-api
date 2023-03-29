@@ -81,7 +81,7 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
 }
 
 function requestFailed(response) {
-  if (response && response.error && response.error.length > 0) {
+  if (response && Object.keys(response.error).length > 0) {
     return true;
   }
 

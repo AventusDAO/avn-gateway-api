@@ -106,13 +106,13 @@ The api exposes the following methods:
   - `api.proxy.generateProxySignature('proxyUnstake', { relayer, amount, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
-  - `api.proxy.generateProxySignature('proxyWithdrawUnlocked', { relayer, nominator, nonce })`\
+  - `api.proxy.generateProxySignature('proxyWithdrawUnlocked', { relayer, user, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
   - `api.proxy.generateProxySignature('proxyScheduleLeaveNominators', { relayer, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
-  - `api.proxy.generateProxySignature('proxyExecuteLeaveNominators', { relayer, nominator, nonce })`\
+  - `api.proxy.generateProxySignature('proxyExecuteLeaveNominators', { relayer, user, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
 #### Fee Payment Signature Generation
@@ -1576,7 +1576,6 @@ Withdraws previously unstaked AVT back to free balance
 `relayer` *[required]* - a string representing the relayer's SS58 address \
 `user` *[required]* - a string representing the user's SS58 address \
 `payer` *[required]* - a string representing the payer's SS58 address \
-`nominator` *[required]* - a string representing the nominator's SS58 address \
 `nonce` *[required]* - string integer value of the current proxy nonce of type 'staking' \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
 `feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
@@ -1590,8 +1589,7 @@ curl https://AVN-API-URL/send \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"proxyWithdrawUnlocked", "params":{"relayer": "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh",
-    "user": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf", "payer": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf",
-    "nominator": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf",  "nonce": "115",
+    "user": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf", "payer": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf", "nonce": "115",
     "proxySignature": "0x8ad565c42f4ba4ed64a03cda20b64116ac2b966f28847e3442475825d5455637d4134c4264c1cc8fe38509fbf9474af9dd2721f1a64df944c1ffd6ad167a0784",
     "feePaymentSignature": "0x2494c0c4ebf6bc61785e37ceab7c1bc0b789ec8146ae5573138a9705da1cbe0ca7675b1c987a1cea36b6f3cae1bb9e636c931e7f119f71408f9e7bc3b20fd088",
     "paymentNonce": "10074"}, "id":1}'
@@ -1668,7 +1666,6 @@ Withdraws previously unstaked AVT back to free balance and leaving staking
 `relayer` *[required]* - a string representing the relayer's SS58 address \
 `user` *[required]* - a string representing the user's SS58 address \
 `payer` *[required]* - a string representing the payer's SS58 address \
-`nominator` *[required]* - a string representing the nominator's SS58 address \
 `nonce` *[required]* - string integer value of the current proxy nonce of type 'staking' \
 `proxySignature` *[required]* - a proof signed by the user allowing the transaction to be proxied \
 `feePaymentSignature` *[required]* - a proof signed by the payer allowing the relayer fees to be paid \
@@ -1682,8 +1679,7 @@ curl https://AVN-API-URL/send \
     -H "Content-Type: application/json" \
     -H "Authorization: bearer <awtToken>" \
     -d '{"jsonrpc":"2.0", "method":"proxyWithdrawUnlocked", "params":{"relayer": "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh",
-    "user": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf", "payer": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf",
-    "nominator": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf", "nonce": "117",
+    "user": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf", "payer": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf", "nonce": "117",
     "proxySignature": "0xa6326c1f3e0133325a5f52a076c8334869fb2908f9d8a77d7b3027811e6a536d7530a710d4ebecbab19ccc9ef4a2f91e127268d546447637393505ab935f2b85",
     "feePaymentSignature": "0xd81a53ea9acc81fc9b027372587bf66a3a59c53a7113adeabd0758a75625c91ff4eb731eea6f0d0b73098fe8f98e69b9c91f87e7afb831f8416acc01580e7f80",
     "paymentNonce": "10076"}, "id":1}'

@@ -519,20 +519,20 @@ async function processProxyUnstake(call, request, requestId) {
 async function processProxyWithdrawUnlocked(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedExecuteNominationRequest';
-  let { nominator, relayer, nonce, proxySignature, user } = call.params;
-  const methodParams = [nominator];
+  let { relayer, nonce, proxySignature, user } = call.params;
+  const methodParams = [user];
 
   if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for executing nomination requests operation' },
     { AccountId: relayer },
-    { AccountId: nominator },
+    { AccountId: user },
     { u64: nonce }
   ];
 
   try {
-    if (utils.isValidAccountId(nominator) === false) throw 'nominator';
+    if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
@@ -567,20 +567,20 @@ async function processProxyScheduleLeaveNominators(call, request, requestId) {
 async function processProxyExecuteLeaveNominators(call, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedExecuteLeaveNominators';
-  let { nominator, relayer, nonce, proxySignature, user } = call.params;
-  const methodParams = [nominator];
+  let { relayer, nonce, proxySignature, user } = call.params;
+  const methodParams = [user];
 
   if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for executing leave nominators operation' },
     { AccountId: relayer },
-    { AccountId: nominator },
+    { AccountId: user },
     { u64: nonce }
   ];
 
   try {
-    if (utils.isValidAccountId(nominator) === false) throw 'nominator';
+    if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);

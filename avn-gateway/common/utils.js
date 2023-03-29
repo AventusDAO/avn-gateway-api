@@ -31,6 +31,15 @@ const TX_TYPES = [
   'proxyStakeAvt'
 ];
 
+const NONCE_INFO = {
+  batch: { palletName: 'nftManager', storageName: 'batchNonces' },
+  confirmation: { palletName: 'ethereumEvents', storageName: 'proxyNonces' },
+  nft: { palletName: 'nftManager', storageName: 'nfts' },
+  payment: { palletName: 'avnProxy', storageName: 'paymentNonces' },
+  staking: { palletName: 'parachainStaking', storageName: 'proxyNonces' },
+  token: { palletName: 'tokenManager', storageName: 'nonces' }
+}
+
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';
 
 let initialised;
@@ -310,6 +319,7 @@ module.exports = {
   isValidString,
   isValidTransactionType,
   isValidProxySignature,
+  NONCE_INFO,
   requestFailed,
   signatureVerify,
   stringToHex,

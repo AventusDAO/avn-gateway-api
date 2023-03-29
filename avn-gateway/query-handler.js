@@ -91,20 +91,13 @@ async function getNonce(call, request) {
     return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   }
 
-  switch (nonceType) {
-    case 'token':
-      return await queryChain(call, request, 'tokenManager', 'nonces', [accountId], formatNumAsString);
-    case 'payment':
-      return await queryChain(call, request, 'avnProxy', 'paymentNonces', [accountId], formatNumAsString);
-    case 'staking':
-      return await queryChain(call, request, 'parachainStaking', 'proxyNonces', [accountId], formatNumAsString);
-    case 'confirmation':
-      return await queryChain(call, request, 'ethereumEvents', 'proxyNonces', [accountId], formatNumAsString);
-    case 'batch':
-      return await queryChain(call, request, 'nftManager', 'batchNonces', [accountId], formatNumAsString);
-    default:
-      return utils.buildErrorBody('params', 'invalid nonce type', nonceType, request, call.id);
+  if (nonceType in utils.NONCE_INFO === false) {
+    return utils.buildErrorBody('params', 'invalid nonce type', nonceType, request, call.id);
   }
+
+  const { palletName, storageName } = utils.NONCE_INFO[nonceType];
+
+  return await queryChain(call, request, palletName, storageName, [accountId], formatNumAsString);
 }
 
 async function getAvtBalance(call, request) {
@@ -157,7 +150,8 @@ async function getNftNonce(call, request) {
   if (utils.isValidNftId(nftId) === false) {
     return utils.buildErrorBody('params', 'invalid nft id', nftId, request, call.id);
   } else {
-    return await queryChain(call, request, 'nftManager', 'nfts', [nftId], formatNftNonceAsString);
+    const { palletName, storageName } = utils.NONCE_INFO.nft;
+    return await queryChain(call, request, palletName, storageName, [nftId], formatNftNonceAsString);
   }
 }
 

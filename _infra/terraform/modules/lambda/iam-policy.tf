@@ -192,7 +192,9 @@ data "aws_iam_policy_document" "invalid_transaction_access" {
     effect = "Allow"
     actions = [
       "sqs:ReceiveMessage",
-      "sqs:DeleteMessage"
+      "sqs:DeleteMessage",
+      "sqs:DeleteMessageBatch",
+      "sqs:GetQueueAttributes"
     ]
     resources = [
       "${var.dlq_queue_arns.gateway_default_queue}",

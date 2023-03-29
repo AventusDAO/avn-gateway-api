@@ -593,7 +593,7 @@ async function queryNonce(callId, nonceInfo, nonceKey) {
   const { palletName, storageName } = nonceInfo;
   const params = { callId, palletName, storageName, params: [nonceKey] };
   const result = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', params);
-  return (storageName === 'nfts') ? utils.toBnString(result.data.nonce) : utils.toBnString(result);
+  return (storageName === 'nfts') ? utils.toBnString(result.data.nonce) : utils.toBnString(result.data);
 }
 
 async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {

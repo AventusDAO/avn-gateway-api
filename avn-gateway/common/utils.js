@@ -278,23 +278,13 @@ function encodeRoyalties(royalties) {
   return encodedResult.toU8a(false);
 }
 
-function getNonceLocation(nonceType) {
-  switch (nonceType) {
-    case 'token':
-      return { palletName: 'tokenManager', storageName: 'nonces' };
-    case 'payment':
-      return { palletName: 'avnProxy', storageName: 'paymentNonces' };
-    case 'staking':
-      return { palletName: 'parachainStaking', storageName: 'proxyNonces' };
-    case 'confirmation':
-      return { palletName: 'ethereumEvents', storageName: 'proxyNonces' };
-    case 'batch':
-      return { palletName: 'nftManager', storageName: 'batchNonces' };
-    case 'nft':
-      return { palletName: 'nftManager', storageName: 'nfts' };
-    default:
-      return { palletName: undefined, storageName: undefined };
-  }
+const nonceInfo = {
+  batch: { palletName: 'nftManager', storageName: 'batchNonces' },
+  confirmation: { palletName: 'ethereumEvents', storageName: 'proxyNonces' },
+  nft: { palletName: 'nftManager', storageName: 'nfts' },
+  payment: { palletName: 'avnProxy', storageName: 'paymentNonces' },
+  staking: { palletName: 'parachainStaking', storageName: 'proxyNonces' },
+  token: { palletName: 'tokenManager', storageName: 'nonces' }
 }
 
 // Keep alphabetical
@@ -304,7 +294,6 @@ module.exports = {
   encodeProxyProof,
   buildSuccessResponse,
   buildErrorResponse,
-  getNonceLocation,
   getPayerVaultUsername,
   getProxyProof,
   getRelayerFee,
@@ -330,6 +319,7 @@ module.exports = {
   isValidString,
   isValidTransactionType,
   isValidProxySignature,
+  nonceInfo,
   requestFailed,
   signatureVerify,
   stringToHex,

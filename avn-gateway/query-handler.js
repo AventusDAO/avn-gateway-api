@@ -91,7 +91,7 @@ async function getNonce(call, request) {
     return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   }
 
-  if (nonceType in NONCE_INFO === false) {
+  if (nonceType in utils.NONCE_INFO === false) {
     return utils.buildErrorBody('params', 'invalid nonce type', nonceType, request, call.id);
   }
 

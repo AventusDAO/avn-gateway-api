@@ -91,11 +91,11 @@ async function getNonce(call, request) {
     return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   }
 
-  if (nonceType in nonceInfo === false) {
+  if (nonceType in NONCE_INFO === false) {
     return utils.buildErrorBody('params', 'invalid nonce type', nonceType, request, call.id);
   }
 
-  const { palletName, storageName } = utils.nonceInfo[nonceType];
+  const { palletName, storageName } = utils.NONCE_INFO[nonceType];
 
   return await queryChain(call, request, palletName, storageName, [accountId], formatNumAsString);
 }
@@ -150,7 +150,7 @@ async function getNftNonce(call, request) {
   if (utils.isValidNftId(nftId) === false) {
     return utils.buildErrorBody('params', 'invalid nft id', nftId, request, call.id);
   } else {
-    const { palletName, storageName } = utils.nonceInfo.nft;
+    const { palletName, storageName } = utils.NONCE_INFO.nft;
     return await queryChain(call, request, palletName, storageName, [nftId], formatNftNonceAsString);
   }
 }

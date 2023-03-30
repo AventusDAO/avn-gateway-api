@@ -59,7 +59,7 @@ const RPC_ERROR = {
   internal: { code: -32603, message: 'Internal error' }
 };
 
-function buildErrorBody(rpcError, gatewayError, error, request, id) {
+function buildErrorBody(rpcError, gatewayError = '', error = {}, request, id) {
   const e = new Error();
   const splitStack = e.stack.split('\n');
   const frame = splitStack[2];

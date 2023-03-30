@@ -199,8 +199,8 @@ function unstake(api, queryApi) {
 function withdrawUnlocked(api, queryApi) {
   return async function () {
     const user = api.signer().address;
-    const methodArgs = {};
     const accountInfo = await queryApi.getAccountInfo(user);
+    const methodArgs = {};
 
     if (new BN(accountInfo?.stakedBalance).eq(new BN(accountInfo?.unlockedBalance))) {
       return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyExecuteLeaveNominators, NONCE_TYPE.Staking);
@@ -219,9 +219,7 @@ function scheduleLeaveNominators(api, queryApi) {
 
 function executeLeaveNominators(api, queryApi) {
   return async function () {
-    const user = api.signer().address;
     const methodArgs = {};
-
     return await this.proxyRequest(api, queryApi, methodArgs, TX_TYPE.ProxyExecuteLeaveNominators, NONCE_TYPE.Staking);
   };
 }

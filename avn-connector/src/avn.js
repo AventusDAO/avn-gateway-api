@@ -278,16 +278,10 @@ async function setSendingFailedStatus(requestId, failure) {
   const failureReason = redis.transactionStatus[failure];
 
   if (failureReason) {
-    await redis.addFailedAvnTransaction(
-      requestId,
-      keccakAsHex(requestId),
-      undefined,
-      undefined,
-      failureReason
-    );
+    await redis.addFailedAvnTransaction(requestId, keccakAsHex(requestId), undefined, undefined, failureReason);
   }
 
-  throw new Error("Invalid failure reason: ", failure);
+  throw new Error('Invalid failure reason: ', failure);
 }
 
 async function getRelayerAccount(relayerAddress) {

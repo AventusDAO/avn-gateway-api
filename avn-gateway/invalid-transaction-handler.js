@@ -2,12 +2,11 @@ const utils = require('/opt/utils.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
-exports.handler = async (event) => {
+exports.handler = async event => {
   let processedMessagesCount = 0;
   let failedMessages = [];
 
   try {
-
     if (!event.Records) {
       console.log(`No messages to process.`);
       return {
@@ -22,7 +21,7 @@ exports.handler = async (event) => {
       const result = await processFailedMessage(record.body);
 
       if (utils.requestFailed(result) === true) {
-        failedMessages.push(record)
+        failedMessages.push(record);
       } else {
         processedMessagesCount += 1;
       }
@@ -39,7 +38,6 @@ exports.handler = async (event) => {
       statusCode: 200,
       body: `${event.Records.length} message(s) processed successfully.`
     };
-
   } catch (err) {
     console.error(`Failed to process messages from dead letter queue: `, err);
 
@@ -73,6 +71,6 @@ async function processFailedMessage(message) {
 
     return {
       error: errorMessage
-    }
+    };
   }
 }

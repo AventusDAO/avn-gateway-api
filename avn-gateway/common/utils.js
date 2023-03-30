@@ -38,7 +38,7 @@ const NONCE_INFO = {
   payment: { palletName: 'avnProxy', storageName: 'paymentNonces' },
   staking: { palletName: 'parachainStaking', storageName: 'proxyNonces' },
   token: { palletName: 'tokenManager', storageName: 'nonces' }
-}
+};
 
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';
 
@@ -59,7 +59,7 @@ const RPC_ERROR = {
   internal: { code: -32603, message: 'Internal error' }
 };
 
-function buildErrorBody(rpcError, gatewayError, error, request, id) {
+function buildErrorBody(rpcError, gatewayError = '', error = {}, request, id) {
   const e = new Error();
   const splitStack = e.stack.split('\n');
   const frame = splitStack[2];
@@ -81,7 +81,7 @@ function buildErrorBody(rpcError, gatewayError, error, request, id) {
 }
 
 function requestFailed(response) {
-  if (response && response.error && response.error.length > 0) {
+  if (response && response.error && Object.keys(response.error).length > 0) {
     return true;
   }
 

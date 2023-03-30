@@ -160,7 +160,7 @@ async function processProxyTransfer(call, request, requestId) {
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -187,7 +187,7 @@ async function processProxyAddEthereumLog(call, request, requestId) {
     if (utils.isValidEthereumTransactionHash(ethereumTransactionHash) === false) throw 'ethereumTransactionHash';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -218,7 +218,7 @@ async function processProxyTokenLower(call, request, requestId) {
     if (utils.isValidEthereumAddress(t1Recipient) === false) throw 't1Recipient';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -247,7 +247,7 @@ async function processProxyCreateNftBatch(call, request, requestId) {
     if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -272,7 +272,7 @@ async function processProxyCancelListFiatNft(call, request, requestId) {
     if (utils.isValidNftId(nftId) === false) throw 'nftId';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -297,7 +297,7 @@ async function processProxyEndNftBatchSale(call, request, requestId) {
     if (utils.isValidNftId(batchId) === false) throw 'batchId';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -324,7 +324,7 @@ async function processProxyListNftOpenForSale(call, request, requestId) {
     if (utils.isValidMarket(market) === false) throw 'market';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -351,7 +351,7 @@ async function processProxyListNftBatchForSale(call, request, requestId) {
     if (utils.isValidMarket(market) === false) throw 'market';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -377,7 +377,7 @@ async function processProxyMintSingleNft(call, request, requestId) {
     if (utils.isValidEthereumAddress(t1Authority) === false) throw 't1Authority';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -405,7 +405,7 @@ async function processProxyMintBatchNft(call, request, requestId) {
     if (utils.isValidString(externalRef) === false) throw 'externalRef';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -432,7 +432,7 @@ async function processProxyTransferFiatNft(call, request, requestId) {
     if (utils.isValidAccountId(recipient) === false) throw 'recipient';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -460,7 +460,7 @@ async function processProxyStakeAvt(call, request, requestId) {
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
     // TODO: Include the bad param value in the error logs when returning errors. This applies to all `utils.buildErrorBody()`
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -485,7 +485,7 @@ async function processProxyIncreaseStake(call, request, requestId) {
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -510,7 +510,7 @@ async function processProxyUnstake(call, request, requestId) {
     if (utils.isValidAmount(amount) === false) throw 'amount';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -535,7 +535,7 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
     if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -558,7 +558,7 @@ async function processProxyScheduleLeaveNominators(call, request, requestId) {
   try {
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -583,7 +583,7 @@ async function processProxyExecuteLeaveNominators(call, request, requestId) {
     if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidProxySignature(proxySignature, user, signData) === false) throw 'proxySignature';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -593,7 +593,7 @@ async function queryNonce(callId, nonceInfo, nonceKey) {
   const { palletName, storageName } = nonceInfo;
   const params = { callId, palletName, storageName, params: [nonceKey] };
   const result = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', params);
-  return (storageName === 'nfts') ? utils.toBnString(result.data.nonce) : utils.toBnString(result.data);
+  return storageName === 'nfts' ? utils.toBnString(result.data.nonce) : utils.toBnString(result.data);
 }
 
 async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {
@@ -607,7 +607,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
     if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'feePaymentSignature';
     if (utils.isValidNonce(paymentNonce) === false) throw 'paymentNonce';
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid proxy method ${param}`, call.params[param], request, call.id);
+    return utils.buildErrorBody('params', `invalid proxy method ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   const proxyProof = utils.getProxyProof(user, relayer, proxySignature);

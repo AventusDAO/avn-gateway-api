@@ -13,12 +13,16 @@ module "sqs" {
   create_dlq                    = lookup(each.value, "create_dlq", var.queues)
 
   dynamic "redrive_policy" {
-    for_each = length(lookup(each.value, "max_receive_count", []))
+    for_each = length(lookup(each.value, "max_receive_count", []), [])
 
     content {
       maxReceiveCount = lookup(each.value, "max_receive_count", 5)
     }
   }
+
+  redrive_policy = {
+    maxReceiveCount = lookup(each.value, "max_receive_count", 5)
+  }  
 
   for_each = var.queues
 }

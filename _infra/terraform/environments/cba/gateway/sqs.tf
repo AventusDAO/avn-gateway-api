@@ -19,7 +19,6 @@ module "gateway_sqs" {
       create_dlq                    = true
       dlq_message_retention_seconds = 1209600
       receive_wait_time_seconds     = 10
-      max_receive_count             = 3      
     }
   }
 }

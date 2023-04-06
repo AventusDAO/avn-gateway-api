@@ -18,10 +18,10 @@ describe('Utilities', async () => {
   describe('myAddress', async () => {
     it('can get my address', async () => {
       assert.equal(accounts.user.address, api.myAddress());
-      assert.equal(accounts.user.address, api.signer().address);
+      assert.equal(accounts.user.address, api.signer().address());
       api.setSURI(accounts.otherUser.seed);
       assert.equal(accounts.otherUser.address, api.myAddress());
-      assert.equal(accounts.otherUser.address, api.signer().address);
+      assert.equal(accounts.otherUser.address, api.signer().address());
       api.setSURI(accounts.user.seed);
     });
   });

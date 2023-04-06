@@ -42,17 +42,17 @@ describe('Access rights:', async () => {
   describe('setSURI', async () => {
     it('can set SURI via the api', async () => {
       assert.equal(api.myAddress(), user);
-      assert.equal(api.signer().address, user);
+      assert.equal(api.signer().address(), user);
       api.setSURI(newUserSURI);
       assert.equal(api.myAddress(), newUser);
-      assert.equal(api.signer().address, newUser);
+      assert.equal(api.signer().address(), newUser);
     });
 
     it('can set SURI via the options', async () => {
       const options = { suri: newUserSURI, relayer: relayer };
-      const apiWithOptions = helper.avnApi(options);
+      const apiWithOptions = await helper.avnApi(options);
       assert.equal(apiWithOptions.myAddress(), newUser);
-      assert.equal(apiWithOptions.signer().address, newUser);
+      assert.equal(apiWithOptions.signer().address(), newUser);
     });
   });
 

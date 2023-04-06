@@ -31,6 +31,7 @@ describe('Polling api calls:', async () => {
       // Allow for a small delay in sending the original tx
       await helper.sleep(1000);
       let result = await api.poll.requestState(requestId);
+      assert(Object.keys(result).length > 0);
       assert.equal(result.txHash.length, 66);
       assert.equal(result.status, 'Pending');
     });

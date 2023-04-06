@@ -33,15 +33,15 @@ AvnApi.prototype.init = async function () {
     }
   };
 
-  this.setSURI = suri => {
+  this.setSURI = async suri => {
     if (!suri) throw new Error("Suri is a mandatory field");
     this.options.suri = suri;
 
-    this.awtToken = this.gateway ? Awt.generateAwtToken(this.options, this.signer()) : undefined;
+    this.awtToken = this.gateway ? await Awt.generateAwtToken(this.options, this.signer()) : undefined;
     console.info(' - Suri updated');
   };
 
-  this.setSigner = signer => {
+  this.setSigner = async signer => {
     if (!signer || typeof signer.address !== 'function' || typeof signer.sign !== 'function') {
       throw new Error("Signer must be an object with a sign function and an address function");
     }
@@ -49,8 +49,8 @@ AvnApi.prototype.init = async function () {
     signer.publicKey = () => Utils.convertToPublicKeyBytes(signer.address())
 
     this.options.signer = signer;
-    this.awtToken = this.gateway ? Awt.generateAwtToken(this.options, signer) : undefined;
-    console.info(' - Signer updated');
+    this.awtToken = this.gateway ? await Awt.generateAwtToken(this.options, signer) : undefined;
+    console.info('\t - Signer updated');
   };
 
   this.awt = Awt;
@@ -64,7 +64,7 @@ AvnApi.prototype.init = async function () {
   this.myPublicKey = () => Utils.convertToPublicKeyIfNeeded(this.myAddress());
 
   if (this.gateway) {
-    this.awtToken = Awt.generateAwtToken(this.options, this.signer());
+    this.awtToken = await Awt.generateAwtToken(this.options, this.signer());
 
     const avnApi = {
       relayer: () => this.relayer,
@@ -72,10 +72,10 @@ AvnApi.prototype.init = async function () {
       signer: () => this.signer(),
       hasSplitFeeToken: () => this.hasSplitFeeToken(),
       uuid: () => uuidv4(),
-      axios: () => {
+      axios: async () => {
         if (!Awt.tokenAgeIsValid(this.awtToken)) {
           console.log(' - Awt token has expired, refreshing');
-          this.awtToken = Awt.generateAwtToken(this.options, this.signer());
+          this.awtToken = await Awt.generateAwtToken(this.options, this.signer());
         }
 
         // Add any middlewares here to configure global axios behaviours

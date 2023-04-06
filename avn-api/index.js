@@ -42,13 +42,14 @@ AvnApi.prototype.init = async function () {
   };
 
   this.setSigner = signer => {
-    if (!options.signer || typeof options.signer.address !== 'function' || typeof options.signer.sign !== 'function') {
+    if (!signer || typeof signer.address !== 'function' || typeof signer.sign !== 'function') {
       throw new Error("Signer must be an object with a sign function and an address function");
     }
 
-    this.options.signer = signer;
+    signer.publicKey = () => Utils.convertToPublicKeyBytes(signer.address())
 
-    this.awtToken = this.gateway ? Awt.generateAwtToken(this.options, this.signer()) : undefined;
+    this.options.signer = signer;
+    this.awtToken = this.gateway ? Awt.generateAwtToken(this.options, signer) : undefined;
     console.info(' - Signer updated');
   };
 

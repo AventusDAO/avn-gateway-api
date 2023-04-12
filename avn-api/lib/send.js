@@ -162,7 +162,7 @@ function stake(api, queryApi) {
   return async function (amount) {
     amount = common.validateAndConvertAmountToString(amount);
 
-    const user = api.signer().address();
+    const user = api.signer().address;
     const stakingStatus = await queryApi.getStakingStatus(user);
 
     if (stakingStatus === common.STAKING_STATUS.isStaking) {
@@ -180,7 +180,7 @@ function stake(api, queryApi) {
 function unstake(api, queryApi) {
   return async function (unstakeAmount) {
     const amount = common.validateAndConvertAmountToString(unstakeAmount);
-    const user = api.signer().address();
+    const user = api.signer().address;
 
     const minimumFirstTimeStakingValue = await common.getMinimumStakingValue(queryApi);
     const accountInfo = await queryApi.getAccountInfo(user);
@@ -198,7 +198,7 @@ function unstake(api, queryApi) {
 
 function withdrawUnlocked(api, queryApi) {
   return async function () {
-    const user = api.signer().address();
+    const user = api.signer().address;
     const accountInfo = await queryApi.getAccountInfo(user);
     const methodArgs = {};
 
@@ -230,7 +230,7 @@ function generateFunction(functionName, api, queryApi) {
 
 Send.prototype.proxyRequest = async function (api, queryApi, methodArgs, transactionType, nonceType, retry) {
   const apiSigner = api.signer();
-  const user = apiSigner.address();
+  const user = apiSigner.address;
   // By default the user pays the relayer fees but this can be changed to any `payer`
   const payer = user;
   const relayer = api.relayer();

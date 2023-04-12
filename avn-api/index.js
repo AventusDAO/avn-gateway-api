@@ -25,7 +25,7 @@ AvnApi.prototype.init = async function () {
 
     const hasRemoteSigner = apiHasRemoteSigner(this.options);
     if (hasRemoteSigner === true) {
-      this.options.signer.publicKey = () => Utils.convertToPublicKeyBytes(this.options.signer.address())
+      this.options.signer.publicKey = Utils.convertToPublicKeyBytes(this.options.signer.address)
     }
 
     if (!this.options.suri && !hasRemoteSigner) {
@@ -46,7 +46,7 @@ AvnApi.prototype.init = async function () {
       throw new Error("Signer must be an object with a sign function and an address function");
     }
 
-    signer.publicKey = () => Utils.convertToPublicKeyBytes(signer.address())
+    signer.publicKey = () => Utils.convertToPublicKeyBytes(signer.address)
 
     this.options.signer = signer;
     this.awtToken = this.gateway ? Awt.generateAwtToken(this.options, signer) : undefined;
@@ -60,7 +60,7 @@ AvnApi.prototype.init = async function () {
   setupSigner();
 
   this.signer = () => apiHasRemoteSigner(this.options) ? this.options.signer : Utils.getSigner(this.options.suri);
-  this.myAddress = () => this.signer().address();
+  this.myAddress = () => this.signer().address;
   this.myPublicKey = () => Utils.convertToPublicKeyIfNeeded(this.myAddress());
 
   if (this.gateway) {

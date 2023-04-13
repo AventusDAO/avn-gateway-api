@@ -25,7 +25,7 @@ describe('Remote signer:', async () => {
 
   const signer = {
     sign: (data) => signData(data, accounts.user.seed),
-    address: () => accounts.user.address,
+    address: accounts.user.address,
   }
 
   before(async () => {
@@ -46,26 +46,26 @@ describe('Remote signer:', async () => {
 
     it('can set signer via the api', async () => {
       assert.equal(api.myAddress(), user);
-      assert.equal(api.signer().address(), user);
+      assert.equal(api.signer().address, user);
 
       api.setSigner({
         sign: data => signData(data, newUserSURI),
-        address: () => newUser,
+        address: newUser,
       });
       assert.equal(api.myAddress(), newUser);
-      assert.equal(api.signer().address(), newUser);
+      assert.equal(api.signer().address, newUser);
     });
 
     it('can set async signer via the api', async () => {
       assert.equal(api.myAddress(), user);
-      assert.equal(api.signer().address(), user);
+      assert.equal(api.signer().address, user);
 
       api.setSigner({
         sign: async data => await signDataAsync(data, newUserSURI),
-        address: () => newUser,
+        address: newUser,
       });
       assert.equal(api.myAddress(), newUser);
-      assert.equal(api.signer().address(), newUser);
+      assert.equal(api.signer().address, newUser);
     });
   });
 

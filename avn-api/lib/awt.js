@@ -8,7 +8,7 @@ const MAX_TOKEN_AGE_MSEC = 600000;
 const SIGNING_CONTEXT = 'awt_gateway_api';
 
 async function generateAwtPayload(signer, issuedAt, options) {
-  const avnPublicKey = u8aToHex(signer.publicKey());
+  const avnPublicKey = u8aToHex(signer.publicKey);
 
   let hasPayer = false;
   let payerAddress = undefined;

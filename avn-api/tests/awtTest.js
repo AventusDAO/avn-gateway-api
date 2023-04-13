@@ -17,12 +17,12 @@ describe('AWT authorisation', async () => {
 
   describe('generateAwtToken', async () => {
     it('from a mnemonic', async () => {
-      let token = api.awt.generateAwtToken({ suri: user.mnemonic }, api.signer());
+      let token = await api.awt.generateAwtToken({ suri: user.mnemonic }, api.signer());
       assert.equal(token.split('').length, TOKEN_LENGTH);
     });
 
     it('from a seed', async () => {
-      let token = api.awt.generateAwtToken({ suri: user.seed }, api.signer());
+      let token = await api.awt.generateAwtToken({ suri: user.seed }, api.signer());
       assert.equal(token.split('').length, TOKEN_LENGTH);
     });
   });
@@ -31,7 +31,7 @@ describe('AWT authorisation', async () => {
     let token;
 
     before(async () => {
-      token = api.awt.generateAwtToken({ suri: user.mnemonic }, api.signer());
+      token = await api.awt.generateAwtToken({ suri: user.mnemonic }, api.signer());
     });
 
     it('is valid within its lifetime', async () => {

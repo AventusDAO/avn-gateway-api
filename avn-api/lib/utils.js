@@ -31,8 +31,8 @@ function getSigner(suri) {
   const user = common.keyring.addFromUri(suri);
   return {
     sign: user.sign,
-    address: () => user.address,
-    publicKey: () => user.publicKey
+    address: user.address,
+    publicKey: user.publicKey
   };
 }
 

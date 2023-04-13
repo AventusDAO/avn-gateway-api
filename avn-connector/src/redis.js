@@ -112,6 +112,9 @@ async function addNewAvnTransaction(requestId, requestIdHash) {
     .hset(transactionHashKey, buildTransactionJson(undefined, undefined, transactionStatus.AwaitingToSend))
     .set(requestIdKey, requestIdHash)
     .exec();
+
+    console.log("** getTransactionHashByRequestId: ", await getTransactionHashByRequestId(requestId));
+    console.log("** getAvnTransaction: ", await getAvnTransaction(requestIdHash));
 }
 
 async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce, reason) {

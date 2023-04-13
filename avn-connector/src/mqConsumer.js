@@ -74,7 +74,9 @@ async function whenConnected(conn, components) {
 
   logger.info('MQ message processor has started');
   while (true) {
-    await processMessage(amqpChannel, avnTxQueue).catch(_err => {});
+    await processMessage(amqpChannel, avnTxQueue).catch(_err => {
+      console.error("Error processing message from MQ: ", _err)
+    });
   }
 }
 
@@ -176,13 +178,13 @@ async function sendAvnTx(request) {
       logger.trace({ sendAvnTxRequest: request });
       const { palletName, method, params } = request;
       result = await avn.proxy(requestId, palletName, method, params);
-      logger.info({ proxyRequestId: requestId, result: result });
+      logger.info({ proxyRequestId: requestId, result: JSON.stringify(result) });
       break;
     case 'avnProcessLifts':
       logger.trace({ processingLifts: request });
       const { toBlock, unprocessedLifts } = request;
       result = await avn.processLifts(requestId, toBlock, unprocessedLifts);
-      logger.info({ requestId, result });
+      logger.info({ requestId, result: JSON.stringify(result) });
       break;
     default:
       throw Error('Transaction type not supported');

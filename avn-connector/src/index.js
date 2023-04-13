@@ -221,6 +221,17 @@ app.post('/isPayerTransaction', async (req, res, next) => {
   }
 });
 
+
+app.post('/addNewTransactionStatus', async (req, res, next) => {
+  try {
+    log.trace({ addNewTransactionStatus: JSON.stringify(req.body) });
+    avn.addNewTransaction(req.body.requestId);
+    res.status(200).send({});
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
   try {
     log.trace({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });

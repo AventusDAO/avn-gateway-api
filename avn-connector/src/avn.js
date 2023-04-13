@@ -250,6 +250,14 @@ async function signAndSend(requestId, relayerAddress, txn) {
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
     let receipt = await signedTx.send();
     result = { transactionHash: receipt.toString() };
+
+    await redis.updateTransactionStatusToPending(
+      requestId,
+      result.transactionHash,
+      relayerAccount.address.toString(),
+      nonce.toString()
+    );
+
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`);
     await redis.resetNonce(relayerAccount.address);
@@ -259,7 +267,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
       result.transactionHash = keccakAsHex(requestId);
     }
 
-    await redis.addFailedAvnTransaction(
+    await redis.updateTransactionStatusToFailed(
       requestId,
       result.transactionHash,
       relayerAccount.address.toString(),
@@ -269,8 +277,6 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
     throw err;
   }
-
-  await redis.addPendingAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString());
 
   return result;
 }
@@ -283,6 +289,10 @@ async function setSendingFailedStatus(requestId, failure) {
   }
 
   throw new Error('Invalid failure reason: ', failure);
+}
+
+async function addNewTransaction(requestId) {
+    await redis.addNewAvnTransaction(requestId, keccakAsHex(requestId));
 }
 
 async function getRelayerAccount(relayerAddress) {
@@ -415,6 +425,7 @@ function isTransactionHash(requestId) {
 }
 
 module.exports = {
+  addNewTransaction,
   getAccountInfo,
   getCollatorsToNominate,
   getLowerDataFromRpc,

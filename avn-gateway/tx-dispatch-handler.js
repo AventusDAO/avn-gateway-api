@@ -635,8 +635,15 @@ async function sendTx(call, request, requestId, palletName, method, params) {
     const queue = process.env.MQ_AVN_TX_QUEUE;
     const txType = 'avnProxy';
     const result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params });
+
+    //Update redis with requestId. This prevents a "transaction not found" message when polling directly after sending
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', {requestId});
+
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
+    // Let the caller know that this transaction has failed to be sent to the chain
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', {requestId});
+
     return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
   }
 }

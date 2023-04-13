@@ -26,8 +26,8 @@ module "lambda_functions" {
 
     authorisation-handler = {
       env_vars = {
-        MAX_TOKEN_AGE_MSEC      = 600000
-        MIN_AVT_BALANCE         = "1000000000000000000"
+        MAX_TOKEN_AGE_MSEC = 600000
+        MIN_AVT_BALANCE    = "1000000000000000000"
       }
       memory_size = 512
     }
@@ -86,9 +86,9 @@ module "lambda_functions" {
 
     split-fee-handler = {
       env_vars = {
-        SECRET_MANAGER_REGION     = var.region
-        SQS_PAYER_QUEUE_URL       = module.gateway_sqs.queue_url["gateway_payer_queue"]
-        SQS_DEFAULT_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_default_queue"]
+        SECRET_MANAGER_REGION = var.region
+        SQS_PAYER_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_payer_queue"]
+        SQS_DEFAULT_QUEUE_URL = module.gateway_sqs.queue_url["gateway_default_queue"]
       }
       timeout     = 4
       memory_size = 512
@@ -109,7 +109,7 @@ module "lambda_functions" {
     invalid-transaction-handler = {
       timeout     = 4
       memory_size = 512
-    }    
+    }
 
   }
 
@@ -214,6 +214,13 @@ module "eks" {
       username = "adminuser:{{SessionName}}"
       groups   = ["system:masters"]
     },
+  ]
+  map_users = [
+    {
+      userarn  = data.aws_iam_user.eks.arn
+      username = "adminuser:{{SessionName}}"
+      groups   = ["system:masters"]
+    }
   ]
 }
 

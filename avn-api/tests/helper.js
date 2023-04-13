@@ -31,7 +31,7 @@ const ONE_ETH = '1000000000000000000';
 const TEN_THOUSAND_WEI = '10000';
 const TEN_ETH = '10000000000000000000';
 const TWO_HUNDRED_ETH = '200000000000000000000';
-const WAIT_INTERVAL_IN_SECS = 1;
+const WAIT_INTERVAL_IN_SECS = 6;
 const MAX_WAIT_TIME_IN_MINUTES = 5;
 
 async function sleep(ms) {
@@ -70,6 +70,25 @@ async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMi
   assert.equal(status, expectedStatus);
 }
 
+async function confirmStatusTest(api, requestId, expectedStatus, optionalTimeoutInMinutes) {
+  if (!requestId) throw new Error('RequestId cannot be null');
+  let response, status;
+
+  for (i = 0; i < ((optionalTimeoutInMinutes ?? MAX_WAIT_TIME_IN_MINUTES) * 60) / WAIT_INTERVAL_IN_SECS; i++) {
+    response = await api.poll.requestState(requestId);
+    status = response.status;
+    // TODO: Remove " && status !== undefined" once dev env is reset
+    if (status !== 'Pending' && status !== 'Transaction not found' && status !== undefined) {
+      assert.equal(status, expectedStatus);
+      //console.log('   - Finished in ', i * WAIT_INTERVAL_IN_SECS, ' sec');
+      return response;
+    }
+    await sleep(WAIT_INTERVAL_IN_SECS * 1000);
+  }
+
+  assert.equal(status, expectedStatus);
+}
+
 function randomEthTxHash() {
   return randomAsHex();
 }
@@ -88,5 +107,6 @@ module.exports = {
   bnEquals,
   randomEthTxHash,
   sleep,
-  token
+  token,
+  confirmStatusTest
 };

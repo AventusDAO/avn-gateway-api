@@ -234,7 +234,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
 }
 
 async function signAndSend(requestId, relayerAddress, txn) {
-  let result, nonce, relayerAccount;
+  let result = {}, nonce, relayerAccount;
 
   try {
     log.trace({ message: 'Getting relayer account', address: relayerAddress });
@@ -255,9 +255,10 @@ async function signAndSend(requestId, relayerAddress, txn) {
     await redis.resetNonce(relayerAccount.address);
 
     // If we failed to get a true transaction hash, use the requestId as key
-    if (!result || !result.transactionHash) {
+    if (!result.transactionHash) {
       result.transactionHash = keccakAsHex(requestId);
     }
+
     await redis.addFailedAvnTransaction(
       requestId,
       result.transactionHash,

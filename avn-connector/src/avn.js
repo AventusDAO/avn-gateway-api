@@ -282,6 +282,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 }
 
 async function setSendingFailedStatus(requestId, failure) {
+  if (!requestId) throw new Error("setSendingFailedStatus - RequestId is mandatory");
   const failureReason = redis.transactionStatus[failure];
 
   if (failureReason) {
@@ -292,8 +293,11 @@ async function setSendingFailedStatus(requestId, failure) {
 }
 
 async function addNewTransaction(requestId) {
-    log.trace(`Adding a new transaction for requestId: ${requestId}, txHah: ${keccakAsHex(requestId)}`)
-    await redis.addNewAvnTransaction(requestId, keccakAsHex(requestId));
+  if (!requestId) throw new Error("addNewTransaction - RequestId is mandatory");
+    const requestIdHash = keccakAsHex(requestId);
+
+    log.trace(`Adding a new transaction for requestId: ${requestId}, txHah: ${requestIdHash}`)
+    await redis.addNewAvnTransaction(requestId, requestIdHash);
 }
 
 async function getRelayerAccount(relayerAddress) {

@@ -42,12 +42,12 @@ async function processRequest(request, authoriserContext, awsRequestId) {
     }
 
     //Update redis with requestId. This prevents a "transaction not found" message when polling directly after sending
-    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', {awsRequestId});
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', {requestId: awsRequestId});
 
     return utils.buildValidResponseBody(tx.id, awsRequestId);
   } catch (err) {
     // Let the caller know that this transaction has failed to be sent to the chain
-    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', {awsRequestId});
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', {requestId: awsRequestId});
 
     return utils.buildErrorBody('internal', 'failed to handle send transaction', err.toString(), request, tx.id);
   }

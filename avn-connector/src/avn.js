@@ -118,10 +118,10 @@ async function getAccountInfo(accountId) {
 async function getNonce(senderAddress) {
   let nonce = await redis.getNextNonce(senderAddress);
   if (nonce === undefined) {
-    nonce = (await api.query.system.account(senderAddress)).nonce;
+    nonce = await api.rpc.system.accountNextIndex(senderAddress);
     await redis.setNonce(senderAddress, nonce);
   } else {
-    redis.refreshNonce(senderAddress);
+    await redis.refreshNonce(senderAddress);
   }
   return nonce;
 }
@@ -246,7 +246,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   try {
     log.trace({ encodedTransaction: txn });
-    nonce = await getNonce(relayerAccount.address);
+    nonce = await getNonce(relayerAddress);
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
     let receipt = await signedTx.send();
     result = { transactionHash: receipt.toString() };

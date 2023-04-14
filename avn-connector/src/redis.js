@@ -47,7 +47,7 @@ const PENDING_TX_KEY = {
 
 const MAX_PENDING_TX_TO_CHECK = 500;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 5;
-const NONCE_EXPIRY_IN_SECONDS = 5;
+const NONCE_EXPIRY_IN_SECONDS = 20;
 const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
 const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
@@ -238,7 +238,7 @@ async function setNonce(senderAddress, nonce) {
   await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
 }
 
-function refreshNonce(senderAddress) {
+async function refreshNonce(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 

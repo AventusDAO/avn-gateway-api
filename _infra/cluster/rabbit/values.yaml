@@ -1,4 +1,4 @@
-environment: sandbox
+environment: cba
 
 rabbitmq:
   image:

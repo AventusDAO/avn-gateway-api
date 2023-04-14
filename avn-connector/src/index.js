@@ -9,6 +9,7 @@ const lambda = require('./lambdas');
 const express = require('express');
 const log4js = require('log4js');
 const jsonLayout = require('log4js-json-layout');
+const { cryptoWaitReady } = require('@polkadot/util-crypto');
 
 log4js.addLayout('json', jsonLayout);
 log4js.configure(config.log4Js);
@@ -262,6 +263,8 @@ app.listen(port, () => {
 });
 
 async function instantiateConnector() {
+  await cryptoWaitReady();
+
   await redis.connect();
   await avn.init();
   await mqConsumer.connectToMQ();

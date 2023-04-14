@@ -292,6 +292,7 @@ async function setSendingFailedStatus(requestId, failure) {
 }
 
 async function addNewTransaction(requestId) {
+    log.trace(`Adding a new transaction for requestId: ${requestId}, txHah: ${keccakAsHex(requestId)}`)
     await redis.addNewAvnTransaction(requestId, keccakAsHex(requestId));
 }
 

@@ -121,7 +121,7 @@ async function getNonce(senderAddress) {
     nonce = (await api.query.system.account(senderAddress)).nonce;
     await redis.setNonce(senderAddress, nonce);
   } else {
-    redis.refreshNonce(senderAddress);
+    await redis.refreshNonce(senderAddress);
   }
   return nonce;
 }
@@ -247,8 +247,11 @@ async function signAndSend(requestId, relayerAddress, txn) {
   try {
     log.trace({ encodedTransaction: txn });
     nonce = await getNonce(relayerAccount.address);
+    const nonceInPool = await api.rpc.system.accountNextIndex(relayerAccount);
+    console.log("NONCES", nonce, nonceInPool, nonce == nonceInPool)
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
     let receipt = await signedTx.send();
+    // let receipt = await txn.signAndSend(relayerAccount, { nonce: -1 });
     result = { transactionHash: receipt.toString() };
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`);

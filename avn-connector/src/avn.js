@@ -246,12 +246,10 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   try {
     log.trace({ encodedTransaction: txn });
-    nonce = await getNonce(relayerAccount.address);
-    const nonceInPool = await api.rpc.system.accountNextIndex(relayerAccount.address);
-    console.log("NONCES", nonce, nonceInPool, nonce == nonceInPool)
-    let signedTx = await txn.signAsync(relayerAccount, { nonce });
-    let receipt = await signedTx.send();
-    // let receipt = await txn.signAndSend(relayerAccount, { nonce: -1 });
+    nonce = await getNonce(relayerAddress);
+    // let signedTx = await txn.signAsync(relayerAccount, { nonce });
+    // let receipt = await signedTx.send();
+    let receipt = await txn.signAndSend(relayerAccount, { nonce: -1 });
     result = { transactionHash: receipt.toString() };
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`);

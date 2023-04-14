@@ -102,7 +102,7 @@ async function addNewAvnTransaction(requestId, requestIdHash) {
   const transactionHashKey = getKey(requestIdHash);
 
   if (await redisClient.exists(transactionHashKey)) {
-    console.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
+    log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
     return;
   }
 
@@ -113,8 +113,8 @@ async function addNewAvnTransaction(requestId, requestIdHash) {
     .set(requestIdKey, requestIdHash)
     .exec();
 
-    console.log("** getTransactionHashByRequestId: ", await getTransactionHashByRequestId(requestId));
-    console.log("** getAvnTransaction: ", await getAvnTransaction(requestIdHash));
+    log.trace("** getTransactionHashByRequestId: ", await getTransactionHashByRequestId(requestId));
+    log.trace("** getAvnTransaction: ", await getAvnTransaction(requestIdHash));
 }
 
 async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce, reason) {
@@ -122,7 +122,7 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   const requestIdKey = getKey(requestId);
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
-    console.error(`Key (${txHashOrRequestIdKey}) exists already, cannot add duplicate value.`);
+    log.error(`Key (${txHashOrRequestIdKey}) exists already, cannot add duplicate value.`);
     return;
   }
 

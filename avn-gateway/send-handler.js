@@ -5,6 +5,7 @@ const sqsClient = new sqs.SQSClient({ region: process.env.SECRET_MANAGER_REGION 
 
 const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const PAYER_SQS_URL = process.env.SQS_PAYER_QUEUE_URL;
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event, context) => {
   const result = await processRequest(event.body, event.requestContext.authorizer.lambda, context.awsRequestId);
@@ -40,8 +41,14 @@ async function processRequest(request, authoriserContext, awsRequestId) {
       );
     }
 
+    //Update redis with requestId. This prevents a "transaction not found" message when polling directly after sending
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', {awsRequestId});
+
     return utils.buildValidResponseBody(tx.id, awsRequestId);
   } catch (err) {
+    // Let the caller know that this transaction has failed to be sent to the chain
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', {awsRequestId});
+
     return utils.buildErrorBody('internal', 'failed to handle send transaction', err.toString(), request, tx.id);
   }
 }

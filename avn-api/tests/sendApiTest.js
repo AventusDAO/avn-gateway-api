@@ -42,13 +42,17 @@ describe('SendTx api calls:', async () => {
     it('can transfer AVT using a recipient address', async () => {
       const amount = new BN(1);
       const requestIds = []
-      for (let j=0; j < 300; j++) {
+      for (let j=0; j < 1; j++) {
         const reqId = await api.send.transferAvt(recipient, amount);
         requestIds.push(reqId);
-        console.log(`Tx: ${j}. RequestId: ${reqId}`);
+
+        let result = await api.poll.requestState(reqId);
+        //console.log(`\trequestId: ${reqId}, poll result: ${JSON.stringify(result, null, 2)}`);
+
+        console.log(`\nTx: ${j}. RequestId: ${reqId}, poll result: ${JSON.stringify(result, null, 2)}`);
       }
 
-      await sleep(50)
+      //await sleep(50)
 
       for (let i=0; i < requestIds.length; i++) {
         console.log(`Polling: TxId: ${i} - requestId: ${requestIds[i]}`);

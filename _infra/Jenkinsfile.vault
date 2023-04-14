@@ -106,7 +106,6 @@ pipeline {
 
 def accountId() {
   def environmentMap = [
-    sandbox: "352429414196",
     cba: "602004642405",
     testnet: "189013141504",
     mainnet: "503742778456",

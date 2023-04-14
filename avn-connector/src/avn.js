@@ -247,9 +247,8 @@ async function signAndSend(requestId, relayerAddress, txn) {
   try {
     log.trace({ encodedTransaction: txn });
     nonce = await getNonce(relayerAddress);
-    // let signedTx = await txn.signAsync(relayerAccount, { nonce });
-    // let receipt = await signedTx.send();
-    let receipt = await txn.signAndSend(relayerAccount, { nonce: -1 });
+    let signedTx = await txn.signAsync(relayerAccount, { nonce });
+    let receipt = await signedTx.send();
     result = { transactionHash: receipt.toString() };
   } catch (err) {
     log.error(`Failed sending transaction: ${err}`);

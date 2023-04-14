@@ -60,7 +60,7 @@ async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMi
     response = await api.poll.requestState(requestId);
     status = response.status;
     // TODO: Remove " && status !== undefined" once dev env is reset
-    if (status !== 'Pending' && status !== 'Transaction not found' && status !== undefined) {
+    if (status !== 'AwaitingToSend' && status !== 'Pending' && status !== 'Transaction not found' && status !== undefined) {
       assert.equal(status, expectedStatus);
       console.log('   - Finished in ', i * WAIT_INTERVAL_IN_SECS, ' sec');
       return response;
@@ -76,9 +76,10 @@ async function confirmStatusTest(api, requestId, expectedStatus, optionalTimeout
 
   for (i = 0; i < ((optionalTimeoutInMinutes ?? MAX_WAIT_TIME_IN_MINUTES) * 60) / WAIT_INTERVAL_IN_SECS; i++) {
     response = await api.poll.requestState(requestId);
+    console.log("\tPoll response: ", response.status)
     status = response.status;
     // TODO: Remove " && status !== undefined" once dev env is reset
-    if (status !== 'Pending' && status !== 'Transaction not found' && status !== undefined) {
+    if (status !== 'AwaitingToSend' && status !== 'Pending' && status !== 'Transaction not found' && status !== undefined) {
       assert.equal(status, expectedStatus);
       //console.log('   - Finished in ', i * WAIT_INTERVAL_IN_SECS, ' sec');
       return response;

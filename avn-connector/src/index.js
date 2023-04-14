@@ -225,7 +225,7 @@ app.post('/isPayerTransaction', async (req, res, next) => {
 app.post('/addNewTransactionStatus', async (req, res, next) => {
   try {
     log.trace({ addNewTransactionStatus: JSON.stringify(req.body) });
-    avn.addNewTransaction(req.body.requestId);
+    await avn.addNewTransaction(req.body.requestId);
     res.status(200).send({});
   } catch (err) {
     next(err);
@@ -235,7 +235,7 @@ app.post('/addNewTransactionStatus', async (req, res, next) => {
 app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
   try {
     log.trace({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });
-    avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.PayerRefused);
+    await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.PayerRefused);
     res.status(200).send({});
   } catch (err) {
     next(err);
@@ -245,7 +245,7 @@ app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
 app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
   try {
     log.trace({ setTransactionFailedToBeSentStatus: JSON.stringify(req.body) });
-    avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
+    await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
     res.status(200).send({});
   } catch (err) {
     next(err);

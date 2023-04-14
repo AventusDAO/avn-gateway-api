@@ -16,12 +16,12 @@ module "api_gateway" {
 }
 
 module "dns" {
-  source             = "../../../modules/dns"
-  vpc_id             = data.terraform_remote_state.vpc.outputs.vpc_id
-  environment        = local.environment
-  api_gateway_url    = module.api_gateway.url
-  api_gateway_id     = module.api_gateway.api_id
-  api_gateway_stage  = module.api_gateway.stage_id
+  source            = "../../../modules/dns"
+  vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
+  environment       = local.environment
+  api_gateway_url   = module.api_gateway.url
+  api_gateway_id    = module.api_gateway.api_id
+  api_gateway_stage = module.api_gateway.stage_id
 
   providers = {
     aws         = aws
@@ -68,8 +68,8 @@ module "eks" {
     avn-gateway = {
       create_launch_template = true
 
-      disk_size       = local.eks_node_size
-      disk_type       = "gp3"
+      disk_size = local.eks_node_size
+      disk_type = "gp3"
 
       desired_capacity = 1
       max_capacity     = 10
@@ -99,6 +99,14 @@ module "eks" {
       username = "adminuser:{{SessionName}}"
       groups   = ["system:masters"]
     },
+  ]
+
+  map_users = [
+    {
+      userarn  = data.aws_iam_user.eks.arn
+      username = "adminuser:{{SessionName}}"
+      groups   = ["system:masters"]
+    }
   ]
 }
 

@@ -247,7 +247,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   try {
     log.trace({ encodedTransaction: txn });
-    lock = await redis.lockNonce(senderAddress);
+    lock = await redis.lockNonce(relayerAddress);
     nonce = await getNonce(relayerAddress);
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
     log.trace(`Sending transaction using nonce: ${nonce}`);
@@ -263,7 +263,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   } catch (err) {
     log.error(`Failed sending transaction. Nonce: ${nonce}, error: `, err);
-    await redis.decrementNonce(relayerAccount.address);
+    await redis.decrementNonce(relayerAddress);
     await lock.release();
 
     // If we failed to get a true transaction hash, use the requestId as key

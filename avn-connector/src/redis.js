@@ -1,4 +1,5 @@
 const Redis = require('ioredis');
+const { default: Redlock } = require('redlock');
 const _ = require('lodash');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -53,7 +54,7 @@ const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
-let redisClient;
+let redisClient, redlock;
 
 async function connect() {
   if ('redis' in config) {
@@ -66,6 +67,13 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
+
+  redlock = new Redlock([redisClient], {
+    driftFactor: 0.01,
+    retryCount:  -1, // unlimited
+    retryDelay:  100,
+    retryJitter:  200
+  });
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
@@ -379,6 +387,10 @@ async function getLowerData(txHash) {
   return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
+async function lockRedis() {
+  return await redlock.acquire(['a'], 5000);
+}
+
 module.exports = {
   connect,
   addNewAvnTransaction,
@@ -424,5 +436,6 @@ module.exports = {
   getLowerData,
   transactionStatus,
   updateTransactionStatusToPending,
-  updateTransactionStatusToFailed
+  updateTransactionStatusToFailed,
+  lockRedis
 };

@@ -1,5 +1,4 @@
 const Redis = require('ioredis');
-const { default: Redlock } = require('redlock');
 const _ = require('lodash');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -54,7 +53,7 @@ const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
-let redisClient, redlock;
+let redisClient;
 
 async function connect() {
   if ('redis' in config) {
@@ -67,13 +66,6 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
-
-  // redlock = new Redlock([redisClient], {
-  //   driftFactor: 0.01,
-  //   retryCount:  -1,
-  //   retryDelay:  200,
-  //   retryJitter:  200
-  // });
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
@@ -228,10 +220,6 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
   result[transactionObject.senderNonce] = senderNonce || '';
   result[transactionObject.status] = status;
   return result;
-}
-
-async function lockNonce(senderAddress) {
-  // return await redlock.acquire([NONCE_NAMESPACE + senderAddress], 5000);
 }
 
 async function incrementNonce(senderAddress) {
@@ -396,7 +384,6 @@ module.exports = {
   addNewAvnTransaction,
   addFailedAvnTransaction,
   getAvnTransaction,
-  lockNonce,
   incrementNonce,
   decrementNonce,
   setNonce,

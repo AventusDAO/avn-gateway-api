@@ -1,5 +1,5 @@
 const Redis = require('ioredis');
-const Redlock = require('redlock');
+const { default: Redlock } = require('redlock');
 const _ = require('lodash');
 const config = require('multiconfig').load();
 const log4js = require('log4js');

@@ -68,6 +68,7 @@ async function connect() {
     redisClient = new Redis();
   }
 
+  redisClient.flushall();
   // redlock = new Redlock([redisClient], {
   //   driftFactor: 0.01,
   //   retryCount:  -1,

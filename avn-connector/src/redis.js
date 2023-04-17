@@ -248,7 +248,7 @@ async function setNonce(senderAddress, nonce) {
   await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
 }
 
-async function extendNonceExpiry(senderAddress) {
+async function extendNonceInMemoryExpiry(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
@@ -400,7 +400,7 @@ module.exports = {
   incrementNonce,
   decrementNonce,
   setNonce,
-  extendNonceExpiry,
+  extendNonceInMemoryExpiry,
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,
   getTransactionHashByRequestId,

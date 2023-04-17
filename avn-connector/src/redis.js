@@ -17,7 +17,8 @@ const transactionStatus = {
   Processed: 'Processed',
   Rejected: 'Rejected',
   SendingFailed: 'SendingFailed',
-  PayerRefused: 'PayerRefused'
+  PayerRefused: 'PayerRefused',
+  AwaitingToSend: 'AwaitingToSend'
 };
 
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
@@ -44,9 +45,9 @@ const PENDING_TX_KEY = {
   NEXT: `${SLOT_PREFIX}nTx`
 };
 
-const MAX_PENDING_TX_TO_CHECK = 100;
-const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
-const NONCE_EXPIRY_IN_SECONDS = 5;
+const MAX_PENDING_TX_TO_CHECK = 500;
+const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 5;
+const NONCE_EXPIRY_IN_SECONDS = 20;
 const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
 const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
@@ -96,12 +97,31 @@ function getKey(key) {
   return `${SLOT_PREFIX}${key}`;
 }
 
+// There is no transaction hash at this point, so use a hash of the request Id
+async function addNewAvnTransaction(requestId, requestIdHash) {
+  const transactionHashKey = getKey(requestIdHash);
+
+  if (await redisClient.exists(transactionHashKey)) {
+    log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
+    return;
+  }
+
+  const requestIdKey = getKey(requestId);
+  await redisClient
+    .multi()
+    .hset(transactionHashKey, buildTransactionJson(undefined, undefined, transactionStatus.AwaitingToSend))
+    .set(requestIdKey, requestIdHash)
+    .exec();
+
+}
+
 async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce, reason) {
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const requestIdKey = getKey(requestId);
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
-    throw new Error(`Key (${txHashOrRequestIdKey}) exists already, cannot add duplicate value.`);
+    log.error(`Key (${txHashOrRequestIdKey}) exists already, cannot add duplicate value.`);
+    return;
   }
 
   await redisClient
@@ -111,13 +131,11 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
     .exec();
 }
 
-async function addPendingAvnTransaction(requestId, transactionHash, senderAddress, senderNonce) {
+// When a transaction is pending, it will have a txHash for the first time.
+// This function should not be exposed outside the connector
+async function updateTransactionStatusToPending(requestId, transactionHash, senderAddress, senderNonce) {
   const transactionHashKey = getKey(transactionHash);
   const requestIdKey = getKey(requestId);
-
-  if (await redisClient.exists(transactionHashKey)) {
-    throw new Error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
-  }
 
   await redisClient
     .multi()
@@ -125,6 +143,17 @@ async function addPendingAvnTransaction(requestId, transactionHash, senderAddres
     .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
     .set(requestIdKey, transactionHash)
     .exec();
+}
+
+// This function should not be exposed outside the connector
+async function updateTransactionStatusToFailed(requestId, transactionHash, senderAddress, senderNonce, reason) {
+  const transactionHashKey = getKey(transactionHash);
+
+  if (await redisClient.exists(transactionHashKey)) {
+    await redisClient.hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, reason));
+  } else {
+    await addFailedAvnTransaction(requestId, transactionHash, senderAddress, senderNonce, reason);
+  }
 }
 
 // Returns null if txHashOrRequestIdKey is not found
@@ -154,7 +183,13 @@ async function resolvePendingAvnTransactions(transactions) {
     newValue[transactionObject.blockNumber] = tx.blockNumber;
     newValue[transactionObject.transactionIndex] = tx.index;
 
-    await redisClient.multi().hset(transactionHashKey, newValue).zrem(PENDING_TX_KEY.ALL, tx.transactionHash).exec();
+    await redisClient
+      .multi()
+      .hset(transactionHashKey, newValue)
+      .zrem(PENDING_TX_KEY.ALL, tx.transactionHash)
+      .zrem(PENDING_TX_KEY.CHECKING, tx.transactionHash)
+      .zrem(PENDING_TX_KEY.NEXT, tx.transactionHash)
+      .exec();
   }
 }
 
@@ -201,7 +236,7 @@ async function setNonce(senderAddress, nonce) {
   await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
 }
 
-function refreshNonce(senderAddress) {
+async function refreshNonce(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
@@ -346,7 +381,7 @@ async function getLowerData(txHash) {
 
 module.exports = {
   connect,
-  addPendingAvnTransaction,
+  addNewAvnTransaction,
   addFailedAvnTransaction,
   getAvnTransaction,
   getNextNonce,
@@ -387,5 +422,7 @@ module.exports = {
   setLowerData,
   deleteLowerData,
   getLowerData,
-  transactionStatus
+  transactionStatus,
+  updateTransactionStatusToPending,
+  updateTransactionStatusToFailed
 };

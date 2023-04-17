@@ -118,10 +118,10 @@ async function getAccountInfo(accountId) {
 async function getNonce(senderAddress) {
   let nonce = await redis.getNextNonce(senderAddress);
   if (nonce === undefined) {
-    nonce = (await api.query.system.account(senderAddress)).nonce;
+    nonce = await api.rpc.system.accountNextIndex(senderAddress);
     await redis.setNonce(senderAddress, nonce);
   } else {
-    redis.refreshNonce(senderAddress);
+    await redis.refreshNonce(senderAddress);
   }
   return nonce;
 }
@@ -233,8 +233,9 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   return result;
 }
 
+//This function can be called multiple times (3 by default) from mqConsumer, for the same transaction if it returns an error.
 async function signAndSend(requestId, relayerAddress, txn) {
-  let result, nonce, relayerAccount;
+  let result = {}, nonce, relayerAccount;
 
   try {
     log.trace({ message: 'Getting relayer account', address: relayerAddress });
@@ -246,19 +247,29 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   try {
     log.trace({ encodedTransaction: txn });
-    nonce = await getNonce(relayerAccount.address);
+    nonce = await getNonce(relayerAddress);
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
+    log.trace(`Sending transaction using nonce: ${nonce}`);
     let receipt = await signedTx.send();
     result = { transactionHash: receipt.toString() };
+
+    await redis.updateTransactionStatusToPending(
+      requestId,
+      result.transactionHash,
+      relayerAccount.address.toString(),
+      nonce.toString()
+    );
+
   } catch (err) {
-    log.error(`Failed sending transaction: ${err}`);
+    log.error(`Failed sending transaction. Nonce: ${nonce}, error: `, err);
     await redis.resetNonce(relayerAccount.address);
 
     // If we failed to get a true transaction hash, use the requestId as key
-    if (!result || !result.transactionHash) {
+    if (!result.transactionHash) {
       result.transactionHash = keccakAsHex(requestId);
     }
-    await redis.addFailedAvnTransaction(
+
+    await redis.updateTransactionStatusToFailed(
       requestId,
       result.transactionHash,
       relayerAccount.address.toString(),
@@ -269,12 +280,11 @@ async function signAndSend(requestId, relayerAddress, txn) {
     throw err;
   }
 
-  await redis.addPendingAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString());
-
   return result;
 }
 
 async function setSendingFailedStatus(requestId, failure) {
+  if (!requestId) throw new Error("setSendingFailedStatus - RequestId is mandatory");
   const failureReason = redis.transactionStatus[failure];
 
   if (failureReason) {
@@ -282,6 +292,14 @@ async function setSendingFailedStatus(requestId, failure) {
   }
 
   throw new Error('Invalid failure reason: ', failure);
+}
+
+async function addNewTransaction(requestId) {
+  if (!requestId) throw new Error("addNewTransaction - RequestId is mandatory");
+    const requestIdHash = keccakAsHex(requestId);
+
+    log.trace(`Adding a new transaction for requestId: ${requestId}, txHah: ${requestIdHash}`)
+    await redis.addNewAvnTransaction(requestId, requestIdHash);
 }
 
 async function getRelayerAccount(relayerAddress) {
@@ -414,6 +432,7 @@ function isTransactionHash(requestId) {
 }
 
 module.exports = {
+  addNewTransaction,
   getAccountInfo,
   getCollatorsToNominate,
   getLowerDataFromRpc,

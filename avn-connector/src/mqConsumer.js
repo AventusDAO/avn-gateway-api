@@ -90,6 +90,7 @@ async function assertMqComponents(channel, components) {
     deadLetterRoutingKey: deadLetterKey
   });
   channel.assertQueue(deadLetterQueue, { durable: true });
+  channel.prefetch(1);
   channel.bindQueue(deadLetterQueue, deadLetterExchange, deadLetterKey);
 }
 

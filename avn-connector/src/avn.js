@@ -302,7 +302,7 @@ async function addNewTransaction(requestId) {
   if (!requestId) throw new Error("addNewTransaction - RequestId is mandatory");
     const requestIdHash = keccakAsHex(requestId);
 
-    log.trace(`Adding a new transaction for requestId: ${requestId}, txHah: ${requestIdHash}`)
+    log.trace(`Adding a new transaction for requestId: ${requestId}, txHash: ${requestIdHash}`)
     await redis.addNewAvnTransaction(requestId, requestIdHash);
 }
 

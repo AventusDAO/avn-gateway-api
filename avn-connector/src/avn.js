@@ -247,7 +247,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   try {
     log.trace({ encodedTransaction: txn });
-    nonceLock = await redis.lockNonce(relayerAddress);
+    // nonceLock = await redis.lockNonce(relayerAddress);
     nonce = await getNonce(relayerAddress);
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
     log.trace(`Sending transaction using nonce: ${nonce}`);
@@ -264,7 +264,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
   } catch (err) {
     log.error(`Failed sending transaction. Nonce: ${nonce}, error: `, err);
     await redis.decrementNonce(relayerAddress);
-    await nonceLock.release();
+    // await nonceLock.release();
 
     // If we failed to get a true transaction hash, use the requestId as key
     if (!result.transactionHash) {
@@ -282,7 +282,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     throw err;
   }
 
-  await nonceLock.release();
+  // await nonceLock.release();
 
   return result;
 }
@@ -291,11 +291,9 @@ async function setSendingFailedStatus(requestId, failure) {
   if (!requestId) throw new Error("setSendingFailedStatus - RequestId is mandatory");
   const failureReason = redis.transactionStatus[failure];
 
-  if (failureReason) {
-    await redis.addFailedAvnTransaction(requestId, keccakAsHex(requestId), undefined, undefined, failureReason);
-  }
+  if (!failureReason) throw new Error('Invalid failure reason: ', failure);
 
-  throw new Error('Invalid failure reason: ', failure);
+  await redis.addFailedAvnTransaction(requestId, keccakAsHex(requestId), undefined, undefined, failureReason);
 }
 
 async function addNewTransaction(requestId) {

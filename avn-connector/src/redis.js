@@ -68,12 +68,12 @@ async function connect() {
     redisClient = new Redis();
   }
 
-  redlock = new Redlock([redisClient], {
-    driftFactor: 0.01,
-    retryCount:  -1,
-    retryDelay:  200,
-    retryJitter:  200
-  });
+  // redlock = new Redlock([redisClient], {
+  //   driftFactor: 0.01,
+  //   retryCount:  -1,
+  //   retryDelay:  200,
+  //   retryJitter:  200
+  // });
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
@@ -231,7 +231,7 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
 }
 
 async function lockNonce(senderAddress) {
-  return await redlock.acquire([NONCE_NAMESPACE + senderAddress], 5000);
+  // return await redlock.acquire([NONCE_NAMESPACE + senderAddress], 5000);
 }
 
 async function incrementNonce(senderAddress) {

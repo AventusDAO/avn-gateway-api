@@ -162,7 +162,6 @@ async function getStakingStats() {
 
 async function getChainInfo() {
   let chainInfo = await redis.getChainInfo();
-  console.log("CHAIN INFO 1", chainInfo)
 
   if (chainInfo === undefined) {
     chainInfo = {};
@@ -172,7 +171,7 @@ async function getChainInfo() {
     chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
     await redis.setChainInfo(chainInfo);
   }
-  console.log("CHAIN INFO 2", chainInfo)
+
   return chainInfo;
 }
 

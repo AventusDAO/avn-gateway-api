@@ -116,12 +116,12 @@ async function getAccountInfo(accountId) {
 }
 
 async function getNonce(senderAddress) {
-  let nonce = await redis.getNextNonce(senderAddress);
+  let nonce = await redis.incrementNonce(senderAddress);
   if (nonce === undefined) {
     nonce = await api.rpc.system.accountNextIndex(senderAddress);
     await redis.setNonce(senderAddress, nonce);
   } else {
-    await redis.refreshNonce(senderAddress);
+    await redis.extendNonceExpiry(senderAddress);
   }
   return nonce;
 }
@@ -235,7 +235,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
 
 //This function can be called multiple times (3 by default) from mqConsumer, for the same transaction if it returns an error.
 async function signAndSend(requestId, relayerAddress, txn) {
-  let result = {}, nonce, relayerAccount;
+  let result = {}, nonce, relayerAccount, lock;
 
   try {
     log.trace({ message: 'Getting relayer account', address: relayerAddress });
@@ -247,6 +247,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   try {
     log.trace({ encodedTransaction: txn });
+    lock = await redis.lockNonce(senderAddress);
     nonce = await getNonce(relayerAddress);
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
     log.trace(`Sending transaction using nonce: ${nonce}`);
@@ -262,7 +263,8 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   } catch (err) {
     log.error(`Failed sending transaction. Nonce: ${nonce}, error: `, err);
-    await redis.resetNonce(relayerAccount.address);
+    await redis.decrementNonce(relayerAccount.address);
+    await.lock.release();
 
     // If we failed to get a true transaction hash, use the requestId as key
     if (!result.transactionHash) {
@@ -279,6 +281,8 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
     throw err;
   }
+
+  await lock.release();
 
   return result;
 }

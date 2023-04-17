@@ -1,4 +1,5 @@
 const Redis = require('ioredis');
+const Redlock = require('redlock');
 const _ = require('lodash');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -45,15 +46,15 @@ const PENDING_TX_KEY = {
   NEXT: `${SLOT_PREFIX}nTx`
 };
 
-const MAX_PENDING_TX_TO_CHECK = 500;
+const MAX_PENDING_TX_TO_CHECK = 250;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 5;
-const NONCE_EXPIRY_IN_SECONDS = 20;
+const NONCE_EXPIRY_IN_SECONDS = 10;
 const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
 const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
-let redisClient;
+let redisClient, redlock;
 
 async function connect() {
   if ('redis' in config) {
@@ -66,6 +67,13 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
+
+  redlock = new Redlock([redisClient], {
+    driftFactor: 0.01,
+    retryCount:  10,
+    retryDelay:  50,
+    retryJitter:  200
+  });
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
@@ -222,13 +230,17 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
   return result;
 }
 
-async function getNextNonce(senderAddress) {
+async function lockNonce(senderAddress) {
+  return await redlock.acquire([NONCE_NAMESPACE + senderAddress], 5000);
+}
+
+async function incrementNonce(senderAddress) {
   const nextNonce = await redisClient.incr(NONCE_NAMESPACE + senderAddress);
   // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
   return nextNonce === 1 ? undefined : nextNonce;
 }
 
-async function resetNonce(senderAddress) {
+async function decrementNonce(senderAddress) {
   await redisClient.decr(NONCE_NAMESPACE + senderAddress);
 }
 
@@ -236,7 +248,7 @@ async function setNonce(senderAddress, nonce) {
   await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
 }
 
-async function refreshNonce(senderAddress) {
+async function extendNonceExpiry(senderAddress) {
   redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
@@ -384,10 +396,11 @@ module.exports = {
   addNewAvnTransaction,
   addFailedAvnTransaction,
   getAvnTransaction,
-  getNextNonce,
-  resetNonce,
+  lockNonce,
+  incrementNonce,
+  decrementNonce,
   setNonce,
-  refreshNonce,
+  extendNonceExpiry,
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,
   getTransactionHashByRequestId,

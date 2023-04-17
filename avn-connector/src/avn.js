@@ -264,7 +264,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
   } catch (err) {
     log.error(`Failed sending transaction. Nonce: ${nonce}, error: `, err);
     await redis.decrementNonce(relayerAccount.address);
-    await.lock.release();
+    await lock.release();
 
     // If we failed to get a true transaction hash, use the requestId as key
     if (!result.transactionHash) {

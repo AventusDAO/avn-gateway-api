@@ -70,8 +70,8 @@ async function connect() {
 
   redlock = new Redlock([redisClient], {
     driftFactor: 0.01,
-    retryCount:  10,
-    retryDelay:  50,
+    retryCount:  -1,
+    retryDelay:  200,
     retryJitter:  200
   });
 

@@ -251,9 +251,10 @@ async function signAndSend(requestId, relayerAddress, txn) {
   try {
     log.trace({ encodedTransaction: txn });
     nonce = await getNonce(relayerAddress);
-    let signedTx = await txn.signAsync(relayerAccount, { nonce });
     log.trace(`Sending transaction using nonce: ${nonce}`);
+    let signedTx = await txn.signAsync(relayerAccount, { nonce });
     let receipt = await signedTx.send();
+    log.trace(`Sent transaction using nonce: ${nonce}`);
     result = { transactionHash: receipt.toString() };
 
     await redis.updateTransactionStatusToPending(

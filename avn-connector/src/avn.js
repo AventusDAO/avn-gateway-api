@@ -117,10 +117,13 @@ async function getAccountInfo(accountId) {
 
 async function getNonce(senderAddress) {
   let nonce = await redis.incrementNonce(senderAddress);
+  log.trace(`incrementNonce value: ${nonce}`);
   if (nonce === undefined) {
     nonce = await api.rpc.system.accountNextIndex(senderAddress);
+    log.trace(`Nonce from mem pool: ${nonce}`);
     await redis.setNonce(senderAddress, nonce);
   } else {
+    log.trace(`extending nonce expiry in Redis`);
     await redis.extendNonceInMemoryExpiry(senderAddress);
   }
   return nonce;

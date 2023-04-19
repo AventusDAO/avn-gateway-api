@@ -33,7 +33,7 @@ provider:
   runtime: nodejs14.x
   versionFunctions: false
   logRetentionInDays: ${file(./${env:SLS_ENV}.yml):logRetentionDays}
-  timeout: 6
+  timeout: 30
   environment:
     AVN_CONNECTOR_ENDPOINT: ${file(./${env:SLS_ENV}.yml):avnConnectorEndpoint}
   httpApi:
@@ -147,7 +147,7 @@ functions:
       patterns:
         - '!**/**'
         - tx-status-update-handler.js
-    memorySize: 128
+    memorySize: 256
     layers:
       - { Ref: CommonLambdaLayer }
 
@@ -192,7 +192,6 @@ functions:
     name: lower-handler
     handler: lower-handler.handler
     description: aws:states:opt-out
-    timeout: 30
     package:
       patterns:
         - '!**/**'
@@ -217,7 +216,7 @@ functions:
       patterns:
         - '!**/**'
         - split-fee-handler.js
-    memorySize: 128
+    memorySize: 256
     events:
       - sqs:
           arn: ${file(./${env:SLS_ENV}.yml):sqs_gateway_payer_queue_arn}
@@ -244,7 +243,7 @@ functions:
           functionResponseType: ReportBatchItemFailures
     layers:
       - { Ref: CommonLambdaLayer }
-      - { Ref: QueueLambdaLayer }      
+      - { Ref: QueueLambdaLayer }
 
 
   tx-dispatch-handler:
@@ -262,7 +261,7 @@ functions:
       patterns:
         - '!**/**'
         - tx-dispatch-handler.js
-    memorySize: 128
+    memorySize: 256
     events:
       - sqs:
           arn: ${file(./${env:SLS_ENV}.yml):sqs_gateway_default_queue_arn}

@@ -269,6 +269,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     );
 
     log.error(`Failed sending transaction using relayer nonce: ${nonce}, error: `, err);
+    throw err;
   }
 
   return { transactionHash };

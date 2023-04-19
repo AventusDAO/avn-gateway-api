@@ -240,10 +240,11 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);
-    nonce = nonce != null ? parseInt(nonce) : (await api.rpc.system.accountNextIndex(relayerAddress)).toNumber();
+    nonce = nonce == null ? (await api.rpc.system.accountNextIndex(relayerAddress)).toNumber() : parseInt(nonce);
     const signedTx = await txn.signAsync(relayerAccount, { nonce });
     const receipt = await signedTx.send();
-    await redis.setNextNonce(relayerAddress, nonce + 1);
+    nonce += 1;
+    await redis.setNextNonce(relayerAddress, nonce.toString());
     await lock.release();
 
     await redis.updateTransactionStatusToPending(

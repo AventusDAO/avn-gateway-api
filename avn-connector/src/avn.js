@@ -74,7 +74,7 @@ async function poll(requestId) {
       return { status: `Transaction not found` };
     }
 
-    return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex };
+    return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex, senderNonce: tx.senderNonce };
   } catch (error) {
     log.error(`Error getting transaction status for requestId ${requestId}: ${error}`);
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);
@@ -117,10 +117,13 @@ async function getAccountInfo(accountId) {
 
 async function getNonce(senderAddress) {
   let nonce = await redis.incrementNonce(senderAddress);
+  log.trace(`incrementNonce value: ${nonce}`);
   if (nonce === undefined) {
     nonce = await api.rpc.system.accountNextIndex(senderAddress);
+    log.trace(`Nonce from mem pool: ${nonce}`);
     await redis.setNonce(senderAddress, nonce);
   } else {
+    log.trace(`extending nonce expiry in Redis`);
     await redis.extendNonceInMemoryExpiry(senderAddress);
   }
   return nonce;
@@ -249,9 +252,10 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace({ encodedTransaction: txn });
     nonceLock = await redis.lockNonce(relayerAddress);
     nonce = await getNonce(relayerAddress);
-    let signedTx = await txn.signAsync(relayerAccount, { nonce });
     log.trace(`Sending transaction using nonce: ${nonce}`);
+    let signedTx = await txn.signAsync(relayerAccount, { nonce });
     let receipt = await signedTx.send();
+    log.trace(`Sent transaction using nonce: ${nonce}`);
     result = { transactionHash: receipt.toString() };
   } catch (err) {
     log.error(`Failed sending transaction. Nonce: ${nonce}, error: `, err);

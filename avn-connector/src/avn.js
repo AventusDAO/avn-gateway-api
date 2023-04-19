@@ -234,38 +234,30 @@ async function signAndSend(requestId, relayerAddress, txn) {
     throw err;
   }
 
-  // const lock = await redis.lockNonce(relayerAddress);
-  log.trace(`NONCE A ${await api.rpc.system.accountNextIndex(relayerAddress)}`)
-  log.trace(`NONCE B ${(await api.rpc.system.accountNextIndex(relayerAddress)).toNumber()}`)
-  log.trace(`NONCE C ${await redis.getNextNonce(relayerAddress)}`)
+  log.trace({ encodedTransaction: txn });
+
+  const lock = await redis.lockNonce(relayerAddress);
 
   try {
-    log.trace({ encodedTransaction: txn });
     nonce = await redis.getNextNonce(relayerAddress);
-    log.trace(`RELAYER NONCE - from redis: ${nonce}`);
-    if (nonce == null) {
-      nonce = await api.rpc.system.accountNextIndex(relayerAddress);
-      log.trace(`RELAYER NONCE - from mempool: ${nonce}`);
-    } else {
-      log.trace(`RELAYER NONCE - from redis: ${nonce}`);
-    }
-
+    if (nonce == null) nonce = await api.rpc.system.accountNextIndex(relayerAddress);
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
     let receipt = await signedTx.send();
-    result = { transactionHash: receipt.toString() };
+    await redis.setNextNonce(relayerAddress, nonce.toNumber() + 1);
+    await lock.release();
+
     await redis.updateTransactionStatusToPending(
       requestId,
       result.transactionHash,
       relayerAccount.address.toString(),
-      nonce.toString()
+      nonce
     );
 
-    log.trace(`Transaction sent using RELAYER NONCE: ${nonce}`);
-
-    await redis.setNextNonce(relayerAddress, nonce + 1);
+    result = { transactionHash: receipt.toString() };
+    log.trace(`Transaction sent using relayer nonce: ${nonce}`);
 
   } catch (err) {
-    log.error(`Failed sending transaction using RELAYER NONCE: ${nonce}, error: `, err);
+    await lock.release();
     // If we failed to get a true transaction hash, use the requestId as key
     if (!result.transactionHash) result.transactionHash = keccakAsHex(requestId);
 
@@ -273,12 +265,12 @@ async function signAndSend(requestId, relayerAddress, txn) {
       requestId,
       result.transactionHash,
       relayerAccount.address.toString(),
-      nonce.toString(),
+      nonce,
       redis.transactionStatus.SendingFailed
     );
+    log.error(`Failed sending transaction using relayer nonce: ${nonce}, error: `, err);
   }
 
-  // await lock.release();
   return result;
 }
 

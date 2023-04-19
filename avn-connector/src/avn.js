@@ -236,16 +236,16 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   log.trace({ encodedTransaction: txn });
 
-  const nonceLock = await redis.lockNonce(relayerAddress);
+  // const nonceLock = await redis.lockNonce(relayerAddress);
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);
-    log.trace(`RELAYER NONCE!!!!!!!!!!!!! ${nonce}`);
+    // log.trace(`RELAYER NONCE!!!!!!!!!!!!! ${nonce}`);
     if (nonce === undefined) nonce = (await api.rpc.system.accountNextIndex(relayerAddress)).toNumber();
     const signedTx = await txn.signAsync(relayerAccount, { nonce: nonce.toString() });
     const receipt = await signedTx.send();
     await redis.setNextNonce(relayerAddress, nonce + 1);
-    await nonceLock.release();
+    // await nonceLock.release();
 
     transactionHash = receipt.toString();
     await redis.updateTransactionStatusToPending(
@@ -258,7 +258,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace(`Transaction sent using relayer nonce: ${nonce}`);
 
   } catch (err) {
-    await nonceLock.release();
+    // await nonceLock.release();
 
     transactionHash = keccakAsHex(requestId);
     await redis.updateTransactionStatusToFailed(

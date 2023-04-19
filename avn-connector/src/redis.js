@@ -25,6 +25,7 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
+const NONCE_LOCK_NAMESPACE = 'l.'
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
@@ -231,7 +232,7 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
 }
 
 async function lockNonce(senderAddress) {
-  return await redlock.acquire([NONCE_NAMESPACE + senderAddress], 5000);
+  return await redlock.acquire([NONCE_LOCK_NAMESPACE + senderAddress], 5000);
 }
 
 async function getNextNonce(senderAddress) {

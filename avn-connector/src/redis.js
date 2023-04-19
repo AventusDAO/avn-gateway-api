@@ -230,6 +230,10 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
   return result;
 }
 
+async function lockNonce(senderAddress) {
+  return await redlock.acquire([NONCE_NAMESPACE + senderAddress], 5000);
+}
+
 async function incrementNonce(senderAddress) {
   const nextNonce = await redisClient.incr(NONCE_NAMESPACE + senderAddress);
   // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
@@ -387,15 +391,12 @@ async function getLowerData(txHash) {
   return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
-async function lockRedis() {
-  return await redlock.acquire(['a'], 5000);
-}
-
 module.exports = {
   connect,
   addNewAvnTransaction,
   addFailedAvnTransaction,
   getAvnTransaction,
+  lockNonce,
   incrementNonce,
   decrementNonce,
   setNonce,
@@ -436,6 +437,5 @@ module.exports = {
   getLowerData,
   transactionStatus,
   updateTransactionStatusToPending,
-  updateTransactionStatusToFailed,
-  lockRedis
+  updateTransactionStatusToFailed
 };

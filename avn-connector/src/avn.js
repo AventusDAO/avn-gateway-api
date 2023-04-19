@@ -238,7 +238,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
 
 //This function can be called multiple times (3 by default) from mqConsumer, for the same transaction if it returns an error.
 async function signAndSend(requestId, relayerAddress, txn) {
-  let result = {}, nonce, nonceLock, relayerAccount;
+  let result = {}, nonce, lock, relayerAccount;
 
   try {
     log.trace({ message: 'Getting relayer account', address: relayerAddress });
@@ -250,7 +250,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   try {
     log.trace({ encodedTransaction: txn });
-    nonceLock = await redis.lockNonce(relayerAddress);
+    lock = await redis.lockNonce(relayerAddress);
     nonce = await getNonce(relayerAddress);
     log.trace(`Sending transaction using nonce: ${nonce}`);
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
@@ -260,7 +260,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
   } catch (err) {
     log.error(`Failed sending transaction. Nonce: ${nonce}, error: `, err);
     await redis.decrementNonce(relayerAddress);
-    await nonceLock.release();
+    await lock.release();
 
     // If we failed to get a true transaction hash, use the requestId as key
     if (!result.transactionHash) {
@@ -278,7 +278,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     throw err;
   }
 
-  await nonceLock.release();
+  await lock.release();
 
   await redis.updateTransactionStatusToPending(
     requestId,

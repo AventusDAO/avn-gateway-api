@@ -129,7 +129,8 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   const requestIdKey = getKey(requestId);
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
-    log.error(`Key (${txHashOrRequestIdKey}) exists already, cannot add duplicate value.`);
+    log.trace(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
+    await redisClient.hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, reason));
     return;
   }
 
@@ -152,17 +153,6 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
     .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
     .set(requestIdKey, transactionHash)
     .exec();
-}
-
-// This function should not be exposed outside the connector
-async function updateTransactionStatusToFailed(requestId, transactionHash, senderAddress, senderNonce, reason) {
-  const transactionHashKey = getKey(transactionHash);
-
-  if (await redisClient.exists(transactionHashKey)) {
-    await redisClient.hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, reason));
-  } else {
-    await addFailedAvnTransaction(requestId, transactionHash, senderAddress, senderNonce, reason);
-  }
 }
 
 // Returns null if txHashOrRequestIdKey is not found
@@ -426,6 +416,5 @@ module.exports = {
   deleteLowerData,
   getLowerData,
   transactionStatus,
-  updateTransactionStatusToPending,
-  updateTransactionStatusToFailed
+  updateTransactionStatusToPending
 };

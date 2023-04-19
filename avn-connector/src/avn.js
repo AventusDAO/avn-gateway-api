@@ -260,7 +260,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     await nonceLock.release();
 
     transactionHash = keccakAsHex(requestId);
-    await redis.updateTransactionStatusToFailed(
+    await redis.addFailedAvnTransaction(
       requestId,
       transactionHash,
       relayerAddress,

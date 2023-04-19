@@ -240,6 +240,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);
+    log.trace(`RELAYER NONCE!!!!!!!!!!!!! ${nonce}`);
     if (nonce === undefined) nonce = (await api.rpc.system.accountNextIndex(relayerAddress)).toNumber();
     const signedTx = await txn.signAsync(relayerAccount, { nonce: nonce.toString() });
     const receipt = await signedTx.send();

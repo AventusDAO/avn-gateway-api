@@ -235,11 +235,12 @@ async function lockNonce(senderAddress) {
 }
 
 async function getNextNonce(senderAddress) {
-  return await redisClient.get(NONCE_NAMESPACE + senderAddress);
+  const nonce = await redisClient.get(NONCE_NAMESPACE + senderAddress);
+  return nonce == null ? undefined : parseInt(nonce);
 }
 
 async function setNextNonce(senderAddress, nonce) {
-  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
+  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
 }
 
 async function setCollatorsToNominate(collators) {

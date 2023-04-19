@@ -115,20 +115,6 @@ async function getAccountInfo(accountId) {
   };
 }
 
-async function getNonce(senderAddress) {
-  let nonce = await redis.incrementNonce(senderAddress);
-  log.trace(`incrementNonce value: ${nonce}`);
-  if (nonce === undefined) {
-    nonce = await api.rpc.system.accountNextIndex(senderAddress);
-    log.trace(`Nonce from mem pool: ${nonce}`);
-    await redis.setNonce(senderAddress, nonce);
-  } else {
-    log.trace(`extending nonce expiry in Redis`);
-    await redis.extendNonceInMemoryExpiry(senderAddress);
-  }
-  return nonce;
-}
-
 async function getCollatorsToNominate() {
   let collators = await redis.getCollatorsToNominate();
 
@@ -238,7 +224,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
 
 //This function can be called multiple times (3 by default) from mqConsumer, for the same transaction if it returns an error.
 async function signAndSend(requestId, relayerAddress, txn) {
-  let result = {}, nonce, lock, relayerAccount;
+  let result = {}, nonce, relayerAccount;
 
   try {
     log.trace({ message: 'Getting relayer account', address: relayerAddress });
@@ -248,24 +234,37 @@ async function signAndSend(requestId, relayerAddress, txn) {
     throw err;
   }
 
+  const lock = await redis.lockNonce(relayerAddress);
+
   try {
     log.trace({ encodedTransaction: txn });
-    lock = await redis.lockNonce(relayerAddress);
-    nonce = await getNonce(relayerAddress);
-    log.trace(`Sending transaction using nonce: ${nonce}`);
+    nonce = await redis.getNextNonce(relayerAddress);
+
+    if (nonce === undefined) {
+      nonce = await api.rpc.system.accountNextIndex(relayerAddress);
+      log.trace(`RELAYER NONCE - from mempool: ${nonce}`);
+    } else {
+      log.trace(`RELAYER NONCE - from redis: ${nonce}`);
+    }
+
     let signedTx = await txn.signAsync(relayerAccount, { nonce });
     let receipt = await signedTx.send();
-    log.trace(`Sent transaction using nonce: ${nonce}`);
     result = { transactionHash: receipt.toString() };
-  } catch (err) {
-    log.error(`Failed sending transaction. Nonce: ${nonce}, error: `, err);
-    await redis.decrementNonce(relayerAddress);
-    await lock.release();
+    await redis.updateTransactionStatusToPending(
+      requestId,
+      result.transactionHash,
+      relayerAccount.address.toString(),
+      nonce.toString()
+    );
 
+    log.trace(`Transaction sent using RELAYER NONCE: ${nonce}`);
+
+    await redis.setNextNonce(relayerAddress, nonce + 1);
+
+  } catch (err) {
+    log.error(`Failed sending transaction using RELAYER NONCE: ${nonce}, error: `, err);
     // If we failed to get a true transaction hash, use the requestId as key
-    if (!result.transactionHash) {
-      result.transactionHash = keccakAsHex(requestId);
-    }
+    if (!result.transactionHash) result.transactionHash = keccakAsHex(requestId);
 
     await redis.updateTransactionStatusToFailed(
       requestId,
@@ -274,19 +273,9 @@ async function signAndSend(requestId, relayerAddress, txn) {
       nonce.toString(),
       redis.transactionStatus.SendingFailed
     );
-
-    throw err;
   }
 
   await lock.release();
-
-  await redis.updateTransactionStatusToPending(
-    requestId,
-    result.transactionHash,
-    relayerAccount.address.toString(),
-    nonce.toString()
-  );
-
   return result;
 }
 

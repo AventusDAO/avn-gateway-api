@@ -234,22 +234,12 @@ async function lockNonce(senderAddress) {
   return await redlock.acquire([NONCE_NAMESPACE + senderAddress], 5000);
 }
 
-async function incrementNonce(senderAddress) {
-  const nextNonce = await redisClient.incr(NONCE_NAMESPACE + senderAddress);
-  // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
-  return nextNonce === 1 ? undefined : nextNonce;
+async function getNextNonce(senderAddress) {
+  return await redisClient.get(NONCE_NAMESPACE + senderAddress);
 }
 
-async function decrementNonce(senderAddress) {
-  await redisClient.decr(NONCE_NAMESPACE + senderAddress);
-}
-
-async function setNonce(senderAddress, nonce) {
+async function setNextNonce(senderAddress, nonce) {
   await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
-}
-
-async function extendNonceInMemoryExpiry(senderAddress) {
-  redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
 }
 
 async function setCollatorsToNominate(collators) {
@@ -397,9 +387,8 @@ module.exports = {
   addFailedAvnTransaction,
   getAvnTransaction,
   lockNonce,
-  incrementNonce,
-  decrementNonce,
-  setNonce,
+  getNextNonce,
+  setNextNonce,
   extendNonceInMemoryExpiry,
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,

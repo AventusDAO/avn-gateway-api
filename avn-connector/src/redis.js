@@ -389,7 +389,6 @@ module.exports = {
   lockNonce,
   getNextNonce,
   setNextNonce,
-  extendNonceInMemoryExpiry,
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,
   getTransactionHashByRequestId,

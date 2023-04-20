@@ -254,7 +254,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
       nonce.toString()
     );
 
-    log.trace(`Transaction sent using relayer nonce: ${nonce}`);
+    log.trace(`Transaction sent using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}`);
 
   } catch (err) {
     await nonceLock.release();

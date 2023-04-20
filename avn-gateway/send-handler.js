@@ -29,6 +29,9 @@ async function processRequest(request, authoriserContext, awsRequestId) {
   try {
     console.info('TX_ID <-> AWS_REQUESTID:', tx.id + ' : ' + awsRequestId);
 
+    //Update redis with requestId. This prevents a "transaction not found" message when polling directly after sending
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', {requestId: awsRequestId});
+
     if (isSplitFeeTransaction(authoriserContext) === true) {
       const data = await sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext);
       console.info(
@@ -40,9 +43,6 @@ async function processRequest(request, authoriserContext, awsRequestId) {
         `Sent self pay transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`
       );
     }
-
-    //Update redis with requestId. This prevents a "transaction not found" message when polling directly after sending
-    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', {requestId: awsRequestId});
 
     return utils.buildValidResponseBody(tx.id, awsRequestId);
   } catch (err) {

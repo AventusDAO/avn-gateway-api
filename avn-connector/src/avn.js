@@ -33,7 +33,7 @@ async function query(palletName, storageName, params) {
     result = result.toJSON();
   }
 
-  log.trace(`Encoded query response: ${result}`);
+  log.trace(`Encoded query response: ${JSON.stringify(result)}`);
   return JSON.stringify(result);
 }
 

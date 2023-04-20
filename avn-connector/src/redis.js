@@ -110,6 +110,8 @@ function getKey(key) {
 async function addNewAvnTransaction(requestId, requestIdHash) {
   const transactionHashKey = getKey(requestIdHash);
 
+  log.warn(`[addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`)
+
   if (await redisClient.exists(transactionHashKey)) {
     log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
     return;
@@ -127,6 +129,8 @@ async function addNewAvnTransaction(requestId, requestIdHash) {
 async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce, reason) {
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const requestIdKey = getKey(requestId);
+
+  log.warn(`[addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`)
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
     log.trace(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
@@ -146,6 +150,8 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
 async function updateTransactionStatusToPending(requestId, transactionHash, senderAddress, senderNonce) {
   const transactionHashKey = getKey(transactionHash);
   const requestIdKey = getKey(requestId);
+
+  log.warn(`[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`)
 
   await redisClient
     .multi()

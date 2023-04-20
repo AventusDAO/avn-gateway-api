@@ -30,6 +30,7 @@ module "lambda_functions" {
         MIN_AVT_BALANCE    = "1000000000000000000"
       }
       memory_size = 512
+      timeout     = 30
     }
 
     send-handler = {
@@ -41,17 +42,18 @@ module "lambda_functions" {
         SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
         SQS_PAYER_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_payer_queue"]
       }
-      timeout     = 6
+      timeout     = 30
       memory_size = 512
     }
 
     poll-handler = {
-      timeout     = 6
+      timeout     = 30
       memory_size = 256
     }
 
     query-handler = {
       memory_size = 256
+      timeout     = 30
     }
 
     lift-processing-handler = {
@@ -61,7 +63,7 @@ module "lambda_functions" {
         MQ_AVN_TX_QUEUE         = "avnTx"
         SECRET_MANAGER_REGION   = var.region
       }
-      timeout     = 6
+      timeout     = 30
       memory_size = 128
     }
 
@@ -77,6 +79,7 @@ module "lambda_functions" {
       }
       memory_size      = 256
       avn_votes_bucket = local.avn_votes_bucket
+      timeout          = 30
     }
 
     lower-handler = {
@@ -90,7 +93,7 @@ module "lambda_functions" {
         SQS_PAYER_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_payer_queue"]
         SQS_DEFAULT_QUEUE_URL = module.gateway_sqs.queue_url["gateway_default_queue"]
       }
-      timeout     = 4
+      timeout     = 30
       memory_size = 512
     }
 
@@ -102,12 +105,12 @@ module "lambda_functions" {
         SECRET_MANAGER_REGION   = var.region
         SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
       }
-      timeout     = 4
+      timeout     = 30
       memory_size = 512
     }
 
     invalid-transaction-handler = {
-      timeout     = 4
+      timeout     = 30
       memory_size = 512
     }
   }

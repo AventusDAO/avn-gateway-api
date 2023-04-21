@@ -71,6 +71,8 @@ module "lambda_functions" {
       env_vars = {
         BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
       }
+      timeout     = 30
+      memory_size = 128
     }
 
     vote-handler = {

@@ -68,7 +68,7 @@ async function confirmStatus(api, id, requestId, expectedStatus, optionalTimeout
       response = await api.poll.requestState(requestId);
       status = response.status;
       if (status === 'Processed' || status === 'Rejected' ) {
-        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, block: ${response.blockNumber}, index ${response.transactionIndex}\t${new Date().toString().substring(16,25)}`);
+        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, block: ${response.blockNumber}, index ${response.transactionIndex} \t${new Date().toString().substring(16,25)}`);
         if (id === 0) relayerNonceStart = response.senderNonce - 1;
         relayerNonceEnd = response.senderNonce;
         return status === expectedStatus;

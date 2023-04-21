@@ -45,7 +45,6 @@ MQSender.prototype.getMqConnectionUrl = async function () {
 };
 
 MQSender.prototype.sendMessageToMQ = async function (queue, amqpChannel, message, persistent = true) {
-  const amqpChannel = await createChannel(this.amqpConnection);
   return await new Promise((resolve, reject) => {
     try {
       amqpChannel.checkQueue(queue, function (err, ok) {

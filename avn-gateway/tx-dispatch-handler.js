@@ -7,7 +7,7 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 let mqSender;
 
-exports.handler = async event => {
+exports.handler = async (event, context) => {
   let processedMessagesCount = 0;
 
   try {
@@ -23,7 +23,12 @@ exports.handler = async event => {
     const mqChannel = await connectToMQ();
 
     for (let record of event.Records) {
-      const result = await processRequest(mqChannel, record.body);
+      const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
+      if (timeoutMs > 0) {
+        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body]);
+      } else {
+        throw new Error("Lambda execution exceeded allowed time");
+      }
 
       if (utils.requestFailed(result) === true) {
         // Stop on the first failure because this is a FIFO queue

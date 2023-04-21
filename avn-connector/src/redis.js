@@ -1,4 +1,5 @@
 const Redis = require('ioredis');
+const { default: Redlock } = require('redlock');
 const _ = require('lodash');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -24,6 +25,7 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
+const NONCE_LOCK_NAMESPACE = 'l.'
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
@@ -53,7 +55,7 @@ const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
-let redisClient;
+let redisClient, redlock;
 
 async function connect() {
   if ('redis' in config) {
@@ -66,6 +68,13 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
+
+  redlock = new Redlock([redisClient], {
+    driftFactor: 0.01,
+    retryCount:  -1, // unlimited
+    retryDelay:  100,
+    retryJitter:  200
+  });
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
@@ -101,6 +110,8 @@ function getKey(key) {
 async function addNewAvnTransaction(requestId, requestIdHash) {
   const transactionHashKey = getKey(requestIdHash);
 
+  log.trace(`[addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`)
+
   if (await redisClient.exists(transactionHashKey)) {
     log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
     return;
@@ -119,8 +130,11 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const requestIdKey = getKey(requestId);
 
+  log.trace(`[addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`)
+
   if (await redisClient.exists(txHashOrRequestIdKey)) {
-    log.error(`Key (${txHashOrRequestIdKey}) exists already, cannot add duplicate value.`);
+    log.warn(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
+    await redisClient.hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, reason));
     return;
   }
 
@@ -137,23 +151,14 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
   const transactionHashKey = getKey(transactionHash);
   const requestIdKey = getKey(requestId);
 
+  log.trace(`[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`)
+
   await redisClient
     .multi()
     .hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
     .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
     .set(requestIdKey, transactionHash)
     .exec();
-}
-
-// This function should not be exposed outside the connector
-async function updateTransactionStatusToFailed(requestId, transactionHash, senderAddress, senderNonce, reason) {
-  const transactionHashKey = getKey(transactionHash);
-
-  if (await redisClient.exists(transactionHashKey)) {
-    await redisClient.hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, reason));
-  } else {
-    await addFailedAvnTransaction(requestId, transactionHash, senderAddress, senderNonce, reason);
-  }
 }
 
 // Returns null if txHashOrRequestIdKey is not found
@@ -222,22 +227,17 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
   return result;
 }
 
-async function incrementNonce(senderAddress) {
-  const nextNonce = await redisClient.incr(NONCE_NAMESPACE + senderAddress);
-  // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
-  return nextNonce === 1 ? undefined : nextNonce;
+async function lockNonce(senderAddress) {
+  return await redlock.acquire([NONCE_LOCK_NAMESPACE + senderAddress], 5000);
 }
 
-async function decrementNonce(senderAddress) {
-  await redisClient.decr(NONCE_NAMESPACE + senderAddress);
+async function getNextNonce(senderAddress) {
+  const nonce = await redisClient.get(NONCE_NAMESPACE + senderAddress);
+  return nonce == null ? undefined : parseInt(nonce);
 }
 
-async function setNonce(senderAddress, nonce) {
-  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
-}
-
-async function extendNonceInMemoryExpiry(senderAddress) {
-  redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
+async function setNextNonce(senderAddress, nonce) {
+  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
 }
 
 async function setCollatorsToNominate(collators) {
@@ -384,10 +384,9 @@ module.exports = {
   addNewAvnTransaction,
   addFailedAvnTransaction,
   getAvnTransaction,
-  incrementNonce,
-  decrementNonce,
-  setNonce,
-  extendNonceInMemoryExpiry,
+  lockNonce,
+  getNextNonce,
+  setNextNonce,
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,
   getTransactionHashByRequestId,
@@ -423,6 +422,5 @@ module.exports = {
   deleteLowerData,
   getLowerData,
   transactionStatus,
-  updateTransactionStatusToPending,
-  updateTransactionStatusToFailed
+  updateTransactionStatusToPending
 };

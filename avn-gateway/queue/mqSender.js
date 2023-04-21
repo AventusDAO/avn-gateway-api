@@ -44,7 +44,7 @@ MQSender.prototype.getMqConnectionUrl = async function () {
   return rabbitEndpointPrefix.concat(this.mqBrokerAmqpEndpoint);
 };
 
-MQSender.prototype.sendMessageToMQ = async function (queue, message, persistent = true) {
+MQSender.prototype.sendMessageToMQ = async function (queue, amqpChannel, message, persistent = true) {
   const amqpChannel = await createChannel(this.amqpConnection);
   return await new Promise((resolve, reject) => {
     try {
@@ -67,6 +67,10 @@ MQSender.prototype.sendMessageToMQ = async function (queue, message, persistent 
     }
   });
 };
+
+MQSender.prototype.openChannel = async function () {
+  return await createChannel(this.amqpConnection);
+}
 
 MQSender.prototype.connectToMessageBroker = async function () {
   const url = await this.getMqConnectionUrl();

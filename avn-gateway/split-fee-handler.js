@@ -3,11 +3,10 @@ const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
 
 const sqsClient = new sqs.SQSClient({ region: process.env.SECRET_MANAGER_REGION });
-
 const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
-exports.handler = async event => {
+exports.handler = async (event, context) => {
   let processedMessagesCount = 0;
 
   try {
@@ -22,7 +21,12 @@ exports.handler = async event => {
     console.log(`Processing ${event.Records.length} message(s) from queue`);
 
     for (let record of event.Records) {
-      const result = await processRequest(record.body);
+      const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
+      if (timeoutMs > 0) {
+        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body]);
+      } else {
+        throw new Error("Lambda execution exceeded allowed time");
+      }
 
       if (utils.requestFailed(result) === true) {
         // Stop on the first failure because this is a FIFO queue

@@ -3,7 +3,7 @@ const SURI = "0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7
 const RELAYER = "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh";
 const USER = "5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3";
 const RECIPIENT = "5HnPuKiHbyYBMV76vvA46fk6HZHDt7LU9R7YcyiWnBVzUhdu";
-const RUNS = 10;
+const RUNS = 2500;
 
 let relayerNonceStart, relayerNonceEnd;
 
@@ -24,7 +24,7 @@ describe('LOAD TEST', async () => {
     for (let j=0; j < RUNS; j++) {
       const reqId = await api.send.transferAvt(RECIPIENT, 1);
       requestIds.push(reqId);
-      console.log(`Tx: ${j} Request Id: ${reqId}\t${new Date().toString().substring(16,25)}`);
+      console.log(`Tx: ${j} Request Id: ${reqId}\t\t${new Date().toString().substring(16,25)}`);
     }
 
     const timeEndSend = Date.now();
@@ -68,7 +68,7 @@ async function confirmStatus(api, id, requestId, expectedStatus, optionalTimeout
       response = await api.poll.requestState(requestId);
       status = response.status;
       if (status === 'Processed' || status === 'Rejected' ) {
-        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, block: ${response.blockNumber}, index ${response.transactionIndex} \t${new Date().toString().substring(16,25)}`);
+        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, block: ${response.blockNumber}, index ${response.transactionIndex}\t\t${new Date().toString().substring(16,25)}`);
         if (id === 0) relayerNonceStart = response.senderNonce - 1;
         relayerNonceEnd = response.senderNonce;
         return status === expectedStatus;

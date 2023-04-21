@@ -5,7 +5,7 @@ const MQSender = require('/opt/mqSender.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
-let mqSender, mqChannel;
+let mqSender;
 
 exports.handler = async (event, context) => {
   let processedMessagesCount = 0;
@@ -20,7 +20,7 @@ exports.handler = async (event, context) => {
     }
 
     console.log(`Processing ${event.Records.length} message(s) from queue`);
-    mqChannel = await connectToMQ();
+    const mqChannel = await connectToMQ();
 
     for (let record of event.Records) {
       const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
@@ -77,7 +77,7 @@ const connectToMQ = async () => {
   }
 };
 
-async function processRequest(request) {
+async function processRequest(mqChannel, request) {
   let call;
   let requestId;
 
@@ -95,55 +95,55 @@ async function processRequest(request) {
   if (typeof call.method !== 'string') {
     return utils.buildErrorBody('request', 'method type must be string', call.method, request, call.id);
   } else {
-    return await callSwitch(call, request, requestId);
+    return await callSwitch(call, mqChannel, request, requestId);
   }
 }
 
-async function callSwitch(call, request, requestId) {
+async function callSwitch(call, mqChannel, request, requestId) {
   console.info(`Processing call: ${call.method}`);
 
   switch (call.method) {
     case 'proxyAvtTransfer':
     case 'proxyTokenTransfer':
-      return await processProxyTransfer(call, request, requestId);
+      return await processProxyTransfer(call, mqChannel, request, requestId);
     case 'proxyConfirmTokenLift':
-      return await processProxyAddEthereumLog(call, request, requestId);
+      return await processProxyAddEthereumLog(call, mqChannel, request, requestId);
     case 'proxyTokenLower':
-      return await processProxyTokenLower(call, request, requestId);
+      return await processProxyTokenLower(call, mqChannel, request, requestId);
     case 'proxyCreateNftBatch':
-      return await processProxyCreateNftBatch(call, request, requestId);
+      return await processProxyCreateNftBatch(call, mqChannel, request, requestId);
     case 'proxyCancelListFiatNft':
-      return await processProxyCancelListFiatNft(call, request, requestId);
+      return await processProxyCancelListFiatNft(call, mqChannel, request, requestId);
     case 'proxyEndNftBatchSale':
-      return await processProxyEndNftBatchSale(call, request, requestId);
+      return await processProxyEndNftBatchSale(call, mqChannel, request, requestId);
     case 'proxyListNftOpenForSale':
-      return await processProxyListNftOpenForSale(call, request, requestId);
+      return await processProxyListNftOpenForSale(call, mqChannel, request, requestId);
     case 'proxyListNftBatchForSale':
-      return await processProxyListNftBatchForSale(call, request, requestId);
+      return await processProxyListNftBatchForSale(call, mqChannel, request, requestId);
     case 'proxyMintSingleNft':
-      return await processProxyMintSingleNft(call, request, requestId);
+      return await processProxyMintSingleNft(call, mqChannel, request, requestId);
     case 'proxyMintBatchNft':
-      return await processProxyMintBatchNft(call, request, requestId);
+      return await processProxyMintBatchNft(call, mqChannel, request, requestId);
     case 'proxyTransferFiatNft':
-      return await processProxyTransferFiatNft(call, request, requestId);
+      return await processProxyTransferFiatNft(call, mqChannel, request, requestId);
     case 'proxyStakeAvt':
-      return await processProxyStakeAvt(call, request, requestId);
+      return await processProxyStakeAvt(call, mqChannel, request, requestId);
     case 'proxyIncreaseStake':
-      return await processProxyIncreaseStake(call, request, requestId);
+      return await processProxyIncreaseStake(call, mqChannel, request, requestId);
     case 'proxyUnstake':
-      return await processProxyUnstake(call, request, requestId);
+      return await processProxyUnstake(call, mqChannel, request, requestId);
     case 'proxyWithdrawUnlocked':
-      return await processProxyWithdrawUnlocked(call, request, requestId);
+      return await processProxyWithdrawUnlocked(call, mqChannel, request, requestId);
     case 'proxyScheduleLeaveNominators':
-      return await processProxyScheduleLeaveNominators(call, request, requestId);
+      return await processProxyScheduleLeaveNominators(call, mqChannel, request, requestId);
     case 'proxyExecuteLeaveNominators':
-      return await processProxyExecuteLeaveNominators(call, request, requestId);
+      return await processProxyExecuteLeaveNominators(call, mqChannel, request, requestId);
     default:
       return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
 }
 
-async function processProxyTransfer(call, request, requestId) {
+async function processProxyTransfer(call, mqChannel, request, requestId) {
   const pallet = 'tokenManager';
   const method = 'signedTransfer';
   let { user, recipient, token, amount, relayer, nonce, proxySignature } = call.params;
@@ -171,10 +171,10 @@ async function processProxyTransfer(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyAddEthereumLog(call, request, requestId) {
+async function processProxyAddEthereumLog(call, mqChannel, request, requestId) {
   const pallet = 'ethereumEvents';
   const method = 'signedAddEthereumLog';
   let { eventType, ethereumTransactionHash, relayer, nonce, proxySignature, user } = call.params;
@@ -198,10 +198,10 @@ async function processProxyAddEthereumLog(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyTokenLower(call, request, requestId) {
+async function processProxyTokenLower(call, mqChannel, request, requestId) {
   const pallet = 'tokenManager';
   const method = 'signedLower';
   let { user, token, amount, t1Recipient, relayer, nonce, proxySignature } = call.params;
@@ -229,10 +229,10 @@ async function processProxyTokenLower(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyCreateNftBatch(call, request, requestId) {
+async function processProxyCreateNftBatch(call, mqChannel, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedCreateBatch';
   let { totalSupply, royalties, t1Authority, relayer, nonce, proxySignature, user } = call.params;
@@ -258,10 +258,10 @@ async function processProxyCreateNftBatch(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyCancelListFiatNft(call, request, requestId) {
+async function processProxyCancelListFiatNft(call, mqChannel, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedCancelListFiatNft';
   let { nftId, relayer, nonce, proxySignature, user } = call.params;
@@ -283,10 +283,10 @@ async function processProxyCancelListFiatNft(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyEndNftBatchSale(call, request, requestId) {
+async function processProxyEndNftBatchSale(call, mqChannel, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedEndBatchSale';
   let { batchId, relayer, nonce, proxySignature, user } = call.params;
@@ -308,10 +308,10 @@ async function processProxyEndNftBatchSale(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyListNftOpenForSale(call, request, requestId) {
+async function processProxyListNftOpenForSale(call, mqChannel, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedListNftOpenForSale';
   let { nftId, market, relayer, nonce, proxySignature, user } = call.params;
@@ -335,10 +335,10 @@ async function processProxyListNftOpenForSale(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyListNftBatchForSale(call, request, requestId) {
+async function processProxyListNftBatchForSale(call, mqChannel, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedListBatchForSale';
   let { batchId, market, relayer, nonce, proxySignature, user } = call.params;
@@ -362,10 +362,10 @@ async function processProxyListNftBatchForSale(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyMintSingleNft(call, request, requestId) {
+async function processProxyMintSingleNft(call, mqChannel, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedMintSingleNft';
   const { externalRef, royalties, t1Authority, relayer, proxySignature, user } = call.params;
@@ -388,10 +388,10 @@ async function processProxyMintSingleNft(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyMintBatchNft(call, request, requestId) {
+async function processProxyMintBatchNft(call, mqChannel, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedMintBatchNft';
   const { batchId, index, owner, externalRef, relayer, proxySignature, user } = call.params;
@@ -416,10 +416,10 @@ async function processProxyMintBatchNft(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyTransferFiatNft(call, request, requestId) {
+async function processProxyTransferFiatNft(call, mqChannel, request, requestId) {
   const pallet = 'nftManager';
   const method = 'signedTransferFiatNft';
   let { nftId, recipient, relayer, nonce, proxySignature, user } = call.params;
@@ -443,10 +443,10 @@ async function processProxyTransferFiatNft(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyStakeAvt(call, request, requestId) {
+async function processProxyStakeAvt(call, mqChannel, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedNominate';
   let { targets, amount, relayer, nonce, proxySignature, user } = call.params;
@@ -471,10 +471,10 @@ async function processProxyStakeAvt(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyIncreaseStake(call, request, requestId) {
+async function processProxyIncreaseStake(call, mqChannel, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedBondExtra';
   let { amount, relayer, nonce, proxySignature, user } = call.params;
@@ -496,10 +496,10 @@ async function processProxyIncreaseStake(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyUnstake(call, request, requestId) {
+async function processProxyUnstake(call, mqChannel, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedScheduleNominatorUnbond';
   let { amount, relayer, nonce, proxySignature, user } = call.params;
@@ -521,10 +521,10 @@ async function processProxyUnstake(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyWithdrawUnlocked(call, request, requestId) {
+async function processProxyWithdrawUnlocked(call, mqChannel, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedExecuteNominationRequest';
   let { relayer, nonce, proxySignature, user } = call.params;
@@ -546,10 +546,10 @@ async function processProxyWithdrawUnlocked(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyScheduleLeaveNominators(call, request, requestId) {
+async function processProxyScheduleLeaveNominators(call, mqChannel, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedScheduleLeaveNominators';
   let { relayer, nonce, proxySignature, user } = call.params;
@@ -569,10 +569,10 @@ async function processProxyScheduleLeaveNominators(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function processProxyExecuteLeaveNominators(call, request, requestId) {
+async function processProxyExecuteLeaveNominators(call, mqChannel, request, requestId) {
   const pallet = 'parachainStaking';
   const method = 'signedExecuteLeaveNominators';
   let { relayer, nonce, proxySignature, user } = call.params;
@@ -594,7 +594,7 @@ async function processProxyExecuteLeaveNominators(call, request, requestId) {
     return utils.buildErrorBody('params', `invalid ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
+  return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
 async function queryNonce(callId, nonceInfo, nonceKey) {
@@ -604,7 +604,7 @@ async function queryNonce(callId, nonceInfo, nonceKey) {
   return storageName === 'nfts' ? utils.toBnString(result.data.nonce) : utils.toBnString(result.data);
 }
 
-async function processProxyMethod(call, request, requestId, pallet, method, methodParams) {
+async function processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams) {
   const { relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce } = call.params;
 
   try {
@@ -635,10 +635,10 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
     paymentInfo
   };
 
-  return await sendTx(call, request, requestId, pallet, method, params);
+  return await sendTx(call, mqChannel, request, requestId, pallet, method, params);
 }
 
-async function sendTx(call, request, requestId, palletName, method, params) {
+async function sendTx(call, mqChannel, request, requestId, palletName, method, params) {
   try {
     const queue = process.env.MQ_AVN_TX_QUEUE;
     const txType = 'avnProxy';

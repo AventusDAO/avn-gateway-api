@@ -8,7 +8,13 @@ const PAYER_SQS_URL = process.env.SQS_PAYER_QUEUE_URL;
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event, context) => {
-  const result = await processRequest(event.body, event.requestContext.authorizer.lambda, context.awsRequestId);
+  let result;
+  const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
+  if (timeoutMs > 0) {
+    result = await utils.callWithTimeout(timeoutMs, processRequest, [event.body, event.requestContext.authorizer.lambda, context.awsRequestId]);
+  } else {
+    throw new Error("Lambda execution exceeded allowed time");
+  }
 
   if (utils.requestFailed(result) === true) {
     return utils.buildErrorResponse(500, result.error.data, JSON.stringify(result));

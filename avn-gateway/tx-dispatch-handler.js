@@ -5,9 +5,10 @@ const MQSender = require('/opt/mqSender.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
-let mqSender;
+let mqSender, mqChannel;
 
-exports.handler = async event => {
+exports.handler = async (event, context) => {
+
   let processedMessagesCount = 0;
 
   try {
@@ -20,10 +21,15 @@ exports.handler = async event => {
     }
 
     console.log(`Processing ${event.Records.length} message(s) from queue`);
-    await connectToMQ();
+    mqChannel = await connectToMQ();
 
     for (let record of event.Records) {
-      const result = await processRequest(record.body);
+      const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
+      if (timeoutMs > 0) {
+        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body]);
+      } else {
+        throw new Error("Lambda execution exceeded allowed time");
+      }
 
       if (utils.requestFailed(result) === true) {
         // Stop on the first failure because this is a FIFO queue
@@ -32,6 +38,8 @@ exports.handler = async event => {
 
       processedMessagesCount += 1;
     }
+
+    await mqChannel.close();
 
     if (processedMessagesCount < event.Records.length) {
       console.warn(`Processed ${processedMessagesCount} out of ${event.Records.length} message(s) successfully.`);
@@ -63,6 +71,7 @@ const connectToMQ = async () => {
       );
       await mqSender.connectToMessageBroker();
     }
+    return await mqSender.openChannel();
   } catch (err) {
     console.error(`Failed to connect to Rabbit MQ: `, err);
     throw err;
@@ -634,7 +643,7 @@ async function sendTx(call, request, requestId, palletName, method, params) {
   try {
     const queue = process.env.MQ_AVN_TX_QUEUE;
     const txType = 'avnProxy';
-    const result = await mqSender.sendMessageToMQ(queue, { requestId, txType, palletName, method, params });
+    const result = await mqSender.sendMessageToMQ(queue, mqChannel, { requestId, txType, palletName, method, params });
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
     return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);

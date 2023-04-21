@@ -110,7 +110,7 @@ function getKey(key) {
 async function addNewAvnTransaction(requestId, requestIdHash) {
   const transactionHashKey = getKey(requestIdHash);
 
-  log.warn(`[addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`)
+  log.trace(`[addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`)
 
   if (await redisClient.exists(transactionHashKey)) {
     log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
@@ -130,10 +130,10 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const requestIdKey = getKey(requestId);
 
-  log.warn(`[addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`)
+  log.trace(`[addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`)
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
-    log.trace(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
+    log.warn(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
     await redisClient.hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, reason));
     return;
   }
@@ -151,7 +151,7 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
   const transactionHashKey = getKey(transactionHash);
   const requestIdKey = getKey(requestId);
 
-  log.warn(`[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`)
+  log.trace(`[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`)
 
   await redisClient
     .multi()

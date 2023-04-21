@@ -9,7 +9,7 @@ let relayerNonceStart, relayerNonceEnd;
 
 describe('LOAD TEST', async () => {
   before(async () => {
-    api = new AvnApi("https://uat.gateway.aventus.io", { suri: SURI });
+    api = new AvnApi("https://uat.gateway.aventus.io", { suri: SURI, relayer: RELAYER });
     await api.init();
   });
 
@@ -24,7 +24,7 @@ describe('LOAD TEST', async () => {
     for (let j=0; j < RUNS; j++) {
       const reqId = await api.send.transferAvt(RECIPIENT, 1);
       requestIds.push(reqId);
-      console.log(`Tx: ${j} Request Id: ${reqId}   ${new Date().toString().substring(16,25)}`);
+      console.log(`Tx: ${j} Request Id: ${reqId}\t${new Date().toString().substring(16,25)}`);
     }
 
     const timeEndSend = Date.now();
@@ -40,7 +40,7 @@ describe('LOAD TEST', async () => {
     const timeEndPoll = Date.now()
 
     console.log("");
-    console.log("Relayer nonce start:", relayerNonceStart);
+    console.log("Relayer nonce start:", relayerNonceStart.toString());
     console.log("Relayer nonce end  :", relayerNonceEnd);
     console.log("");
     console.log("User system nonce start:", nonceStart);
@@ -49,8 +49,8 @@ describe('LOAD TEST', async () => {
     console.log("Recipient balance start:", recipStart);
     console.log("Recipient balance end  :", await api.query.getAvtBalance(RECIPIENT));
     console.log("");
-    console.log("Seconds to send:", parseInt((timeEndSend - timeStart)/1000));
-    console.log("Seconds to poll:", parseInt((timeEndPoll - timeEndSend)/1000));
+    console.log("Seconds to send:", parseInt((timeEndSend - timeStart)/1000).toString());
+    console.log("Seconds to poll:", parseInt((timeEndPoll - timeEndSend)/1000).toString());
     console.log("");
     console.log("DONE");
   });
@@ -68,8 +68,8 @@ async function confirmStatus(api, id, requestId, expectedStatus, optionalTimeout
       response = await api.poll.requestState(requestId);
       status = response.status;
       if (status === 'Processed' || status === 'Rejected' ) {
-        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, block: ${response.blockNumber}, index ${response.transactionIndex}   ${new Date().toString().substring(16,25)}`);
-        if (id === 0) relayerNonceStart = response.senderNonce -1;
+        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, block: ${response.blockNumber}, index ${response.transactionIndex}\t${new Date().toString().substring(16,25)}`);
+        if (id === 0) relayerNonceStart = response.senderNonce - 1;
         relayerNonceEnd = response.senderNonce;
         return status === expectedStatus;
       }

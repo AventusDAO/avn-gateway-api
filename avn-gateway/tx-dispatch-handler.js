@@ -8,7 +8,6 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 let mqSender, mqChannel;
 
 exports.handler = async (event, context) => {
-
   let processedMessagesCount = 0;
 
   try {

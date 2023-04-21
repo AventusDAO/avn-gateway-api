@@ -6,10 +6,6 @@ const bnEquals = helper.bnEquals;
 
 const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 
-async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 describe('SendTx api calls:', async () => {
   let api;
   let token;
@@ -17,7 +13,7 @@ describe('SendTx api calls:', async () => {
   let relayerFee, relayerLowerFee;
 
   before(async () => {
-    api = await helper.avnApi({suri: accounts.user.seed});
+    api = await helper.avnApi();
     token = helper.token;
     relayer = accounts.relayer.address;
     user = accounts.user.address;
@@ -41,66 +37,45 @@ describe('SendTx api calls:', async () => {
 
     it('can transfer AVT using a recipient address', async () => {
       const amount = new BN(1);
-      const requestIds = []
-      const nonceStart = await api.query.getNonce(user, 'token')
-      const recipStart = await api.query.getAvtBalance(recipient)
+      const requestId = await api.send.transferAvt(recipient, amount);
+      await helper.confirmStatus(api, requestId, 'Processed');
 
-      console.log(`\nUser address: ${user}\n`)
-
-      for (let j=0; j < 2000; j++) {
-        console.log(`${new Date().toString().substring(0,25)} - Sending tx: ${j}`);
-        const reqId = await api.send.transferAvt(recipient, amount);
-        requestIds.push(reqId);
-        console.log(`\t RequestId: ${reqId}`);
-      }
-
-      //await sleep(50)
-      console.log(`\n`);
-      for (let i=0; i < requestIds.length; i++) {
-        console.log(`\nPolling: TxId: ${i} - requestId: ${requestIds[i]}`);
-        console.log("\tresult:", await helper.confirmStatusTest(api, requestIds[i], 'Processed'));
-      }
-
-      console.log("")
-      console.log("User system nonce start:", nonceStart)
-      console.log("User system nonce end  :", await api.query.getNonce(user, 'token'))
-      console.log("")
-      console.log("Recipient balance start:", recipStart)
-      console.log("Recipient balance end  :", await api.query.getAvtBalance(recipient))
-      console.log("")
-      console.log("DONE")
+      bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient));
+      bnEquals(userAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
+      // TODO: include network fees when we've sorted the accounts out
+      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
 
-    // it('can transfer AVT using a recipient public key', async () => {
-    //   const amount = new BN(2);
-    //   const requestId = await api.send.transferAvt(recipientPubKey, amount);
-    //   await helper.confirmStatus(api, requestId, 'Processed');
+    it('can transfer AVT using a recipient public key', async () => {
+      const amount = new BN(2);
+      const requestId = await api.send.transferAvt(recipientPubKey, amount);
+      await helper.confirmStatus(api, requestId, 'Processed');
 
-    //   bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey));
-    //   bnEquals(userAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
-    //   // TODO: include network fees when we've sorted the accounts out
-    //   bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
-    // });
+      bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey));
+      bnEquals(userAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
+      // TODO: include network fees when we've sorted the accounts out
+      bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+    });
 
-    // it('can transfer AVT using a recipient address for a split fee user', async () => {
-    //   let options = {
-    //     hasPayer: true,
-    //     payer: payer,
-    //     relayer: relayer
-    //   };
+    it('can transfer AVT using a recipient address for a split fee user', async () => {
+      let options = {
+        hasPayer: true,
+        payer: payer,
+        relayer: relayer
+      };
 
-    //   let apiWithOptions = await helper.avnApi(options);
+      let apiWithOptions = await helper.avnApi(options);
 
-    //   const amount = new BN(3);
-    //   const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
-    //   console.log(`   - RequestId: ${requestId}`);
-    //   await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const amount = new BN(3);
+      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
+      console.log(`   - RequestId: ${requestId}`);
+      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
-    //   bnEquals(recipientAvtBalanceBefore.add(amount), new BN(await apiWithOptions.query.getAvtBalance(recipient)));
-    //   bnEquals(new BN(await apiWithOptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
-    // });
+      bnEquals(recipientAvtBalanceBefore.add(amount), new BN(await apiWithOptions.query.getAvtBalance(recipient)));
+      bnEquals(new BN(await apiWithOptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+    });
   });
-/*
+
   describe('confirmTokenLift', async () => {
     it('can confirm a token lift', async () => {
       const dummyEthereumTransactionHash = helper.randomEthTxHash();
@@ -256,5 +231,4 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(api, requestId, 'Processed');
     });
   });
-  */
 });

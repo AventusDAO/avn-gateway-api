@@ -331,6 +331,12 @@ async function signPaymentInfo(message, payerUsername) {
 
 async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
+  await vault.createNewRelayer('5G6Sm1KRsowjMxAh4QfgdsueGNcqRFwSZyrbXnzdWrcaSRqT');
+  await vault.createNewRelayer('5GbtQ91FsiqkrY7ZmA1hNebUfjpTAiUBS6pgiTCBCqXi1YAh');
+  await vault.createNewRelayer('5FQtiVt986w5LTkgtMsGrbBHAHpDpM9cpuTZ6Ko75xJ72Q83');
+  await vault.setNewRelayer('5G6Sm1KRsowjMxAh4QfgdsueGNcqRFwSZyrbXnzdWrcaSRqT','0x9a845e32a68b46ed2c10ed1bc356e7eb6938bad0b25d1626a7e13d4598d58f46');
+  await vault.setNewRelayer('5GbtQ91FsiqkrY7ZmA1hNebUfjpTAiUBS6pgiTCBCqXi1YAh','0xfe1ef9ea2f14f9161d84b7c1462997e1685fa2a95ff09233217c847460d9c671');
+  await vault.setNewRelayer('5FQtiVt986w5LTkgtMsGrbBHAHpDpM9cpuTZ6Ko75xJ72Q83','0xda0fe6ced0ee7d341dda6dfea0f2f5feba75018c3c3dad32cf6b7b4594f1c969');
   await connectToAvN();
 }
 

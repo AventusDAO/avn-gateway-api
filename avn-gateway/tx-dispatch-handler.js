@@ -23,6 +23,7 @@ exports.handler = async (event, context) => {
     const mqChannel = await connectToMQ();
 
     for (let record of event.Records) {
+      let result;
       const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
       if (timeoutMs > 0) {
         result = await utils.callWithTimeout(timeoutMs, processRequest, [mqChannel, record.body]);

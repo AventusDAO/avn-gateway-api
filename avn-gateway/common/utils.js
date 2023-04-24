@@ -296,10 +296,14 @@ async function callWithTimeout(timeoutMs, fn, params) {
         reject(new Error('Function timed out'));
       }, timeoutMs);
 
-      const result = await fn(...params);
+      try {
+        const result = await fn(...params);
 
-      clearTimeout(timeout);
-      resolve(result);
+        clearTimeout(timeout);
+        resolve(result);
+      } catch (err) {
+        reject(err);
+      }
     })();
   });
 }

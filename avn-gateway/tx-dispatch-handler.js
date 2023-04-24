@@ -87,16 +87,21 @@ async function processRequest(mqChannel, request) {
     requestId = call.awsRequestId;
   } catch (err) {
     console.error(`Failed to parse message as JSON: `, err);
-    throw err;
+    return utils.buildErrorBody('parse', 'Failed to parse message as JSON', err.toString(), request, null);
   }
 
-  if (call.id === undefined) call.id = null;
-  console.info('CALLID_TO_REQUESTID:', call.id + ' : ' + requestId);
+  try {
+    if (call.id === undefined) call.id = null;
+    console.info('CALLID_TO_REQUESTID:', call.id + ' : ' + requestId);
 
-  if (typeof call.method !== 'string') {
-    return utils.buildErrorBody('request', 'method type must be string', call.method, request, call.id);
-  } else {
-    return await callSwitch(call, mqChannel, request, requestId);
+    if (typeof call.method !== 'string') {
+      return utils.buildErrorBody('request', 'method type must be string', call.method, request, call.id);
+    } else {
+      return await callSwitch(call, mqChannel, request, requestId);
+    }
+  } catch (err) {
+    console.error(`Failed to process message from default queue: `, err);
+    return utils.buildErrorBody('request', 'Failed to process message from default queue', err.toString(), request, call.id);
   }
 }
 

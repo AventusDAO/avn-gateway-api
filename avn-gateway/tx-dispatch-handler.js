@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
     for (let record of event.Records) {
       const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
       if (timeoutMs > 0) {
-        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body]);
+        result = await utils.callWithTimeout(timeoutMs, processRequest, [mqChannel, record.body]);
       } else {
         throw new Error("Lambda execution exceeded allowed time");
       }

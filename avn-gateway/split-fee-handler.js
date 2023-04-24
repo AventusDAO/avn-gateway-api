@@ -65,30 +65,35 @@ async function processRequest(request) {
     requestId = tx.awsRequestId;
   } catch (err) {
     console.error(`Failed to parse message as JSON: `, err);
-    throw err;
+    return utils.buildErrorBody('parse', 'Failed to parse message as JSON', err.toString(), request, null);
   }
 
-  console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
-  validateTransaction(tx);
+  try {
+    console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
+    validateTransaction(tx);
 
-  const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
-  const encodedPaymentParams = fees.encodePaymentParams(
-    feeParams.relayer,
-    feeParams.relayerFee,
-    feeParams.paymentNonce,
-    feeParams.proxyProof
-  );
-  const paymentSignature = await signPaymentInfo(tx, encodedPaymentParams, requestId);
+    const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
+    const encodedPaymentParams = fees.encodePaymentParams(
+      feeParams.relayer,
+      feeParams.relayerFee,
+      feeParams.paymentNonce,
+      feeParams.proxyProof
+    );
+    const paymentSignature = await signPaymentInfo(tx, encodedPaymentParams, requestId);
 
-  tx.params.payer = tx.splitFeePayerAddress;
-  tx.params.feePaymentSignature = paymentSignature;
-  tx.params.paymentNonce = feeParams.paymentNonce;
+    tx.params.payer = tx.splitFeePayerAddress;
+    tx.params.feePaymentSignature = paymentSignature;
+    tx.params.paymentNonce = feeParams.paymentNonce;
 
-  const data = await sendMessageToDefaultQueue(tx);
-  console.info(
-    `Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`
-  );
-  return utils.buildValidResponseBody(tx.id, requestId);
+    const data = await sendMessageToDefaultQueue(tx);
+    console.info(
+      `Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`
+    );
+    return utils.buildValidResponseBody(tx.id, requestId);
+  } catch (err) {
+    console.error(`Failed to process message from split fee queue: `, err);
+    return utils.buildErrorBody('request', 'Failed to process message from split fee queue', err.toString(), request, call.id);
+  }
 }
 
 function validateTransaction(tx) {

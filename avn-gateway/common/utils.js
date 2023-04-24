@@ -289,19 +289,24 @@ function encodeRoyalties(royalties) {
 }
 
 async function callWithTimeout(timeoutMs, fn, params) {
-  return await new Promise((resolve, reject) =>  {
-    (async () => {
-      // Set a timeout for the function to complete
-      const timeout = setTimeout(() => {
-        reject(new Error('Function timed out'));
-      }, timeoutMs);
+  try {
+    return await new Promise((resolve, reject) =>  {
+      (async () => {
+        // Set a timeout for the function to complete
+        const timeout = setTimeout(() => {
+          reject(new Error('Function timed out'));
+        }, timeoutMs);
 
-      const result = await fn(...params);
+        const result = await fn(...params);
 
-      clearTimeout(timeout);
-      resolve(result);
-    })();
-  });
+        clearTimeout(timeout);
+        resolve(result);
+      })();
+    });
+  } catch (err) {
+    console.log("Erroring invoking function with timeout: ", err);
+    throw err;
+  }
 }
 
 // Keep alphabetical

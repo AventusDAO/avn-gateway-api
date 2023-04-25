@@ -52,8 +52,8 @@ async function proxy(requestId, palletName, method, params) {
     const txn = api.tx.utility.batchAll(innerCalls);
     const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
 
-    for (const param of params) {
-      await redis.setNextPayerNonce(param.splitFeePayerAddress, parseInt(param.paymentNonce) + 1);
+    for (const p of params) {
+      await redis.setNextPayerNonce(p.params.splitFeePayerAddress, parseInt(p.params.paymentNonce) + 1);
     }
 
     return result;

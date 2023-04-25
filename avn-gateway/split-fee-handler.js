@@ -8,6 +8,7 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event, context) => {
   let processedMessagesCount = 0;
+  let paymentNonces = {};
 
   try {
     if (!event.Records) {
@@ -23,7 +24,7 @@ exports.handler = async (event, context) => {
     for (let record of event.Records) {
       const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
       if (timeoutMs > 0) {
-        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body]);
+        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body, paymentNonces]);
       } else {
         throw new Error("Lambda execution exceeded allowed time");
       }
@@ -56,7 +57,7 @@ exports.handler = async (event, context) => {
   }
 };
 
-async function processRequest(request) {
+async function processRequest(request, paymentNonces) {
   let tx;
   let requestId;
 
@@ -72,11 +73,12 @@ async function processRequest(request) {
     console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
     validateTransaction(tx);
 
+    const paymentNonce = await getPaymentNonce(tx, paymentNonces);
     const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
     const encodedPaymentParams = fees.encodePaymentParams(
       feeParams.relayer,
       feeParams.relayerFee,
-      feeParams.paymentNonce,
+      paymentNonce,
       feeParams.proxyProof
     );
     const paymentSignature = await signPaymentInfo(tx, encodedPaymentParams, requestId);
@@ -94,6 +96,16 @@ async function processRequest(request) {
     console.error(`Failed to process message from split fee queue: `, err);
     return utils.buildErrorBody('request', 'Failed to process message from split fee queue', err.toString(), request, tx.id);
   }
+}
+
+async function getPaymentNonce(tx, paymentNonces) {
+  if (!paymentNonces[tx.splitFeePayerAddress]) {
+    // paymentNonces is passed by ref
+    paymentNonces[tx.splitFeePayerAddress] = await fees.getPaymentNonce(AVN_CONNECTOR_ENDPOINT, `${tx.id}:${tx.awsRequestId}`, tx.splitFeePayerAddress);
+    return paymentNonces[tx.splitFeePayerAddress];
+  }
+
+  return utils.BN(paymentNonces[tx.splitFeePayerAddress]).add(utils.BN(1)).toString();
 }
 
 function validateTransaction(tx) {

@@ -48,8 +48,16 @@ async function proxy(requestId, palletName, method, params) {
       let innerCall = api.tx[p.palletName][p.method](...p.params.proxyParams);
       return api.tx.avnProxy.proxy(innerCall, p.params.paymentInfo);
     });
+
     const txn = api.tx.utility.batchAll(innerCalls);
-    return await signAndSend(requestId, params[0].params.relayerAddress, txn);
+    const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
+
+    for (const param of params) {
+      await redis.setNextPayerNonce(param.splitFeePayerAddress, parseInt(param.paymentNonce) + 1);
+    }
+
+    return result;
+
   } else {
     log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
 
@@ -58,7 +66,7 @@ async function proxy(requestId, palletName, method, params) {
     const result = await signAndSend(requestId, params.relayerAddress, txn);
 
     if (params.proxyParams.splitFeePayerAddress) {
-      await redis.setNextPayerNonce(params.splitFeePayerAddress, params.paymentNonce + 1);
+      await redis.setNextPayerNonce(params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
     }
 
     return result;

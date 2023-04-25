@@ -46,11 +46,9 @@ async function getSplitFeePaymentParams(connectorUrl, call) {
   const { relayer, user, proxySignature } = call.params;
   const proxyProof = utils.getProxyProof(user, relayer, proxySignature);
   const relayerFee = await utils.getRelayerFee(connectorUrl, relayer, call.splitFeePayerAddress, call.method);
-  const paymentNonce = await getPaymentNonce(connectorUrl, `${call.id}:${call.awsRequestId}`, call.splitFeePayerAddress);
   return {
     relayer,
     relayerFee,
-    paymentNonce,
     proxyProof
   };
 }

@@ -40,19 +40,6 @@ async function tryGetPaymentInfo(
   return getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSignature);
 }
 
-async function getSplitFeePaymentParams(connectorUrl, call) {
-  if (!call) return undefined;
-
-  const { relayer, user, proxySignature } = call.params;
-  const proxyProof = utils.getProxyProof(user, relayer, proxySignature);
-  const relayerFee = await utils.getRelayerFee(connectorUrl, relayer, call.splitFeePayerAddress, call.method);
-  return {
-    relayer,
-    relayerFee,
-    proxyProof
-  };
-}
-
 async function getPaymentNonce(connectorUrl, requestId, payer) {
   try {
     const requestParams = {
@@ -112,7 +99,6 @@ module.exports = {
   encodePaymentParams,
   getPaymentInfo,
   getPaymentNonce,
-  getSplitFeePaymentParams,
   tryGetPaymentInfo,
   signPaymentInfo,
   verifyFeePaymentSignature

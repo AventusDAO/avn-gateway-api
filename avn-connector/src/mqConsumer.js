@@ -7,6 +7,7 @@
 
 const amqp = require('amqplib/callback_api');
 const avn = require('./avn');
+const fees = require('./paymentInfoHelper');
 const config = require('multiconfig').load();
 const logger = require('log4js').configure(config.log4Js).getLogger();
 const SecretsManager = require('./secretsManager');
@@ -178,6 +179,12 @@ async function sendAvnTx(request) {
     case 'avnProxy':
       logger.trace({ sendAvnTxRequest: request });
       const { palletName, method, params } = request;
+
+      if (isSplitFeeTransaction(request)) {
+        const paymentNonce = await avn.getPayerPaymentNonce(request.params.splitFeePayerAddress);
+        params.paymentInfo = await fees.generatePaymentInfo(avn, requestId, params, paymentNonce);
+      }
+
       result = await avn.proxy(requestId, palletName, method, params);
       logger.info({ proxyRequestId: requestId, result: JSON.stringify(result) });
       break;
@@ -190,6 +197,10 @@ async function sendAvnTx(request) {
     default:
       throw Error('Transaction type not supported');
   }
+}
+
+function isSplitFeeTransaction(request) {
+  return !!request.params.splitFeePayerAddress;
 }
 
 module.exports = { connectToMQ };

@@ -65,7 +65,7 @@ async function proxy(requestId, palletName, method, params) {
     const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
     const result = await signAndSend(requestId, params.relayerAddress, txn);
 
-    if (params.proxyParams.splitFeePayerAddress) {
+    if (params.splitFeePayerAddress) {
       await redis.setNextPayerNonce(params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
     }
 
@@ -474,5 +474,5 @@ module.exports = {
   RELAYER_ADDRESS,
   signPaymentInfo,
   setSendingFailedStatus,
-  getPayerPaymentNonce
+  getPayerPaymentNonce,
 };

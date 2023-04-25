@@ -19,6 +19,11 @@ describe('LOAD TEST', async () => {
     const recipStart = await api.query.getAvtBalance(RECIPIENT);
     const timeStart = Date.now();
 
+    console.log("Relayer nonce start:", relayerNonceStart.toString());
+    console.log("User system nonce start:", nonceStart);
+    console.log("Recipient balance start:", recipStart);
+
+    let finalResult = true;
     console.log("");
 
     for (let j=0; j < RUNS; j++) {
@@ -34,7 +39,8 @@ describe('LOAD TEST', async () => {
     console.log("");
 
     for (let i=0; i < requestIds.length; i++) {
-      await confirmStatus(api, i, requestIds[i]);
+      let result = await confirmStatus(api, i, requestIds[i]);
+      if (result === false) finalResult = false;
     }
 
     const timeEndPoll = Date.now()
@@ -52,6 +58,7 @@ describe('LOAD TEST', async () => {
     console.log("Seconds to send:", parseInt((timeEndSend - timeStart)/1000).toString());
     console.log("Seconds to poll:", parseInt((timeEndPoll - timeEndSend)/1000).toString());
     console.log("");
+    console.log("Final result: ", finalResult);
     console.log("DONE");
   });
 });
@@ -60,7 +67,7 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function confirmStatus(api, id, requestId, expectedStatus, optionalTimeoutInMinutes) {
+async function confirmStatus(api, id, requestId) {
   let response, status;
 
   for (i = 0; i < 12; i++) {
@@ -71,7 +78,7 @@ async function confirmStatus(api, id, requestId, expectedStatus, optionalTimeout
         console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, block: ${response.blockNumber}, index ${response.transactionIndex}\t\t${new Date().toString().substring(16,25)}`);
         if (id === 0) relayerNonceStart = response.senderNonce - 1;
         relayerNonceEnd = response.senderNonce;
-        return status === expectedStatus;
+        return status === 'Processed';
       }
     } catch (err) {
       console.log('polling error', err)

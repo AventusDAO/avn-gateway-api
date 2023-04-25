@@ -55,7 +55,13 @@ async function proxy(requestId, palletName, method, params) {
 
     const innerCall = api.tx[palletName][method](...params.proxyParams);
     const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
-    return await signAndSend(requestId, params.relayerAddress, txn);
+    const result = await signAndSend(requestId, params.relayerAddress, txn);
+
+    if (params.proxyParams.splitFeePayerAddress) {
+      await redis.setNextPayerNonce(params.splitFeePayerAddress, params.paymentNonce + 1);
+    }
+
+    return result;
   }
 }
 
@@ -420,6 +426,20 @@ function createAccount(suri) {
 
 function isTransactionHash(requestId) {
   return isHex(requestId) && requestId.split('').length == 66;
+}
+
+async function getPayerPaymentNonce(payerAddress) {
+  const nonceLock = await redis.lockPayerNonce(payerAddress);
+
+  try {
+    nonce = await redis.getNextPayerNonce(payerAddress);
+    if (nonce === undefined) nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
+    log.trace(`Payer payment nonce: ${nonce}`)
+    await nonceLock.release();
+    return nonce;
+
+  } catch (err) {
+    await nonceLock.release();
 }
 
 module.exports = {

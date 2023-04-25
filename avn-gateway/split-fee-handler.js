@@ -19,7 +19,7 @@ exports.handler = async (event, context) => {
     }
 
     console.log(`Processing ${event.Records.length} message(s) from queue`);
-
+    let result;
     for (let record of event.Records) {
       const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
       if (timeoutMs > 0) {
@@ -92,7 +92,7 @@ async function processRequest(request) {
     return utils.buildValidResponseBody(tx.id, requestId);
   } catch (err) {
     console.error(`Failed to process message from split fee queue: `, err);
-    return utils.buildErrorBody('request', 'Failed to process message from split fee queue', err.toString(), request, call.id);
+    return utils.buildErrorBody('request', 'Failed to process message from split fee queue', err.toString(), request, tx.id);
   }
 }
 

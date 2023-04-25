@@ -58,13 +58,11 @@ async function getSplitFeePaymentParams(connectorUrl, call) {
 async function getPaymentNonce(connectorUrl, requestId, payer) {
   try {
     const requestParams = {
-      callId: requestId,
-      palletName: 'avnProxy',
-      storageName: 'paymentNonces',
-      params: [payer]
+      requestId,
+      payer
     };
 
-    const avnResponse = await utils.axios.post(connectorUrl + 'avnQuery', requestParams);
+    const avnResponse = await utils.axios.post(connectorUrl + 'getPayerPaymentNonce', requestParams);
     if (!avnResponse) throw new Error(`Null response when querying payment nonce for user: ${payer}, id: ${requestId}`);
     if (avnResponse.error) throw new Error(avnResponse.error);
 

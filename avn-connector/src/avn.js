@@ -440,14 +440,17 @@ async function getPayerPaymentNonce(payerAddress) {
   const nonceLock = await redis.lockPayerNonce(payerAddress);
 
   try {
-    nonce = await redis.getNextPayerNonce(payerAddress);
+    let nonce = await redis.getNextPayerNonce(payerAddress);
     if (nonce === undefined) nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
     log.trace(`Payer payment nonce: ${nonce}`)
     await nonceLock.release();
     return nonce;
-
   } catch (err) {
+    log.error(`Error getting payer (${payerAddress}) payment nonce: `, err);
     await nonceLock.release();
+
+    throw err;
+  }
 }
 
 module.exports = {
@@ -470,5 +473,6 @@ module.exports = {
   query,
   RELAYER_ADDRESS,
   signPaymentInfo,
-  setSendingFailedStatus
+  setSendingFailedStatus,
+  getPayerPaymentNonce
 };

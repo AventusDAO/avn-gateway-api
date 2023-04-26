@@ -1,6 +1,6 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { isHex, stringToHex } = require('@polkadot/util');
+const { isHex, stringToHex, u8aToHex } = require('@polkadot/util');
 const { keccakAsHex } = require('@polkadot/util-crypto');
 const config = require('multiconfig').load();
 const log4js = require('log4js');

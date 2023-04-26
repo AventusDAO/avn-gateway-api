@@ -11,16 +11,19 @@ const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 
 async function generatePaymentInfo(avn, requestId, transaction, paymentNonce) {
   log.trace(`Generating payment info for requestId: ${requestId}, payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`);
-  log.trace("TX: ", transaction);
+
   const encodedPaymentParams = encodePaymentParams(
     transaction.relayerAddress,
     transaction.relayerFees,
     paymentNonce,
     transaction.splitFeeProxyProof);
 
+  log.trace("Encoded params");
   const payerUserName = getPayerVaultUsername(transaction.splitFeePayerVaultId);
+  log.trace("Signing...");
   const signedData = await avn.signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
 
+  log.trace("Done");
   return {
     payer: transaction.splitFeePayerAddress,
     recipient: transaction.relayerAddress,

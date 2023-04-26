@@ -54,7 +54,7 @@ async function proxy(requestId, palletName, method, params) {
     const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
 
     for (const p of params) {
-      await redis.setNextPayerNonce(p.params.splitFeePayerAddress, parseInt(p.params.paymentNonce) + 1);
+      await setNextPayerNonce(p.params.splitFeePayerAddress, parseInt(p.params.paymentNonce) + 1);
     }
 
     return result;
@@ -67,10 +67,19 @@ async function proxy(requestId, palletName, method, params) {
     const result = await signAndSend(requestId, params.relayerAddress, txn);
 
     if (params.splitFeePayerAddress) {
-      await redis.setNextPayerNonce(params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
+      await setNextPayerNonce(params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
     }
 
     return result;
+  }
+}
+
+async function setNextPayerNonce(payerAddress, nonce) {
+  const nonceLock = await redis.lockPayerNonce(payerAddress);
+  try {
+    await redis.setNextPayerNonce(payerAddress, nonce);
+  } finally {
+    await nonceLock.release();
   }
 }
 

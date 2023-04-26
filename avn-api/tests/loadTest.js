@@ -1,23 +1,18 @@
 const AvnApi = require('../index.js');
+
 const GATEWAY_URL = 'https://uat.gateway.aventus.io'
 const SURI = "0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7"
 const USER = "5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3";
 const RELAYER = "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh";
 const RECIPIENT = "5HnPuKiHbyYBMV76vvA46fk6HZHDt7LU9R7YcyiWnBVzUhdu";
+const SPLIT_FEE_TEST = true;
 const RUNS = 100;
-
-const options = {
-  suri: SURI,
-  relayer: RELAYER
-}
-
-const splitFeeOptions = { ...options, hasPayer: true }
 
 let relayerNonceStart = 0, relayerNonceEnd = 0;
 
 describe('LOAD TEST', async () => {
   before(async () => {
-    api = new AvnApi(GATEWAY_URL, options);
+    api = new AvnApi(GATEWAY_URL, { suri: SURI, relayer: RELAYER, hasPayer: SPLIT_FEE_TEST });
     await api.init();
   });
 

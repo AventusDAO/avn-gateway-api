@@ -40,18 +40,32 @@ async function get(url, token) {
 async function appLogin(baseURL, roleId, secretId) {
   const url = baseURL + 'auth/approle/login';
   const data = { role_id: roleId, secret_id: secretId };
-  const loginToken = await post(url, data);
-  log.trace("[VAULT login token]: ", loginToken);
-  return loginToken;
+  const token = await post(url, data);
+
+  log.trace("[VAULT login token]: ", token);
+  return token;
 }
 
 module.exports = function (baseURL, roleId, secretId) {
+  this.loginToken = {};
   this.baseURL = baseURL;
   const ROLE_ID = roleId;
   const SECRET_ID = secretId;
+  const EXPIRY = 1000 * 60 * 10; //10 min
+
+  this.getToken = async function () {
+    const now = Date.now();
+    if (!this.loginToken.token || this.loginToken.validUntil < now) {
+      const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+      this.loginToken.token = token;
+      this.loginToken.validUntil = now + EXPIRY;
+    }
+
+    return loginToken.token;
+  }
 
   this.createNewRelayer = async function (userName) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    const token = await getToken();
     const userUrl = this.baseURL + 'avn-vault/user/' + userName;
     const res = await get(userUrl, token);
     if (res === '') {
@@ -60,7 +74,7 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.setNewRelayer = async function (userName, seed) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    const token = await getToken();
     const userUrl = this.baseURL + 'avn-vault/user/set/' + userName;
     const res = await get(userUrl, token);
     if (res === '') {
@@ -70,7 +84,7 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.getRelayerSeed = async function (userName) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    const token = await getToken();
     const url = this.baseURL + 'avn-vault/user/' + userName;
     return (await get(url, token)).seed;
   };
@@ -78,7 +92,8 @@ module.exports = function (baseURL, roleId, secretId) {
   this.payerSign = async function (message, username) {
     console.log("");
     log.trace("[VAULT payer sign] - 1");
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+
+    const token = await getToken();
 
     log.trace("[VAULT payer sign] - 2");
     const res = await get(this.baseURL + 'avn-vault/user/' + username, token);

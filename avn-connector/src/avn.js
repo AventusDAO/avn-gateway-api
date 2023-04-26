@@ -253,7 +253,6 @@ async function signAndSend(requestId, relayerAddress, txn) {
   try {
     log.trace({ message: 'Getting relayer account', address: relayerAddress });
     relayerAccount = await getRelayerAccount(relayerAddress);
-    log.trace({ message: 'GOT RELAYER!!!!!!!!!!!!!', relayerAccount: relayerAccount.address, relayerAddress });
   } catch (err) {
     log.error(`Error getting relayer account for ${relayerAddress}: ${err}`);
     throw err;
@@ -321,7 +320,6 @@ async function addNewTransaction(requestId) {
 async function getRelayerAccount(relayerAddress) {
   if (!relayers[relayerAddress]) {
     const relayer = await vault.getRelayer(relayerAddress);
-    log.trace(`RELAYER!!!!!!!!!! ${relayer}                     ADDRESS: ${relayerAddress}`)
     relayers[relayerAddress] = getSigner(relayer.seed);
   }
   return relayers[relayerAddress];

@@ -65,24 +65,22 @@ module.exports = function (baseURL, roleId, secretId) {
     const userUrl = this.baseURL + 'avn-vault/user/' + userName;
     const res = await get(userUrl, token);
     if (res === '') {
-      return (await post(userUrl, { name: userName }, token)).publicKey;
-    } else return res.publicKey;
+      await post(userUrl, { name: userName }, token);
+      return true;
+    } else return false;
   };
 
-  this.setNewRelayer = async function (userName, seed) {
+  this.setRelayer = async function (userName, seed) {
     const token = await this.getToken();
     const userUrl = this.baseURL + 'avn-vault/user/set/' + userName;
-    const res = await get(userUrl, token);
-    if (res === '') {
-      data = { name: userName, seed: seed };
-      return (await post(userUrl, data, token)).publicKey;
-    } else return res.publicKey;
+    const data = { name: userName, seed: seed };
+    await post(userUrl, data, token);
   };
 
-  this.getRelayerSeed = async function (userName) {
+  this.getRelayer = async function (userName) {
     const token = await this.getToken();
     const url = this.baseURL + 'avn-vault/user/' + userName;
-    return (await get(url, token)).seed;
+    return await get(url, token);
   };
 
   this.payerSign = async function (message, username) {

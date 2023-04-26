@@ -25,8 +25,9 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
+const PAYER_NONCE_NAMESPACE = 'pn.'
 const NONCE_LOCK_NAMESPACE = 'l.'
-const PAYER_NONCE_NAMESPACE = 'p.'
+const PAYER_NONCE_LOCK_NAMESPACE = 'p.'
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
@@ -242,7 +243,7 @@ async function setNextNonce(senderAddress, nonce) {
 }
 
 async function lockPayerNonce(payerAddress) {
-  return await redlock.acquire([PAYER_NONCE_NAMESPACE + payerAddress], 5000);
+  return await redlock.acquire([PAYER_NONCE_LOCK_NAMESPACE + payerAddress], 5000);
 }
 
 async function getNextPayerNonce(payerAddress) {

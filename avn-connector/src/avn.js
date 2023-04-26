@@ -343,7 +343,7 @@ async function signPaymentInfo(message, payerUsername) {
   // Important: we only want to sign correctly formatted payment data.
   if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error('Invalid data to sign.');
   console.log("[signPaymentInfo] - 2");
-  const result = vault.payerSign(message, payerUsername);
+  const result = await vault.payerSign(message, payerUsername);
   console.log("[signPaymentInfo] - 3");
   return result;
 }

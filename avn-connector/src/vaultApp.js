@@ -66,7 +66,7 @@ module.exports = function (baseURL, roleId, secretId) {
   }
 
   this.createNewRelayer = async function (userName) {
-    const token = await getToken();
+    const token = await this.getToken();
     const userUrl = this.baseURL + 'avn-vault/user/' + userName;
     const res = await get(userUrl, token);
     if (res === '') {
@@ -75,7 +75,7 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.setNewRelayer = async function (userName, seed) {
-    const token = await getToken();
+    const token = await this.getToken();
     const userUrl = this.baseURL + 'avn-vault/user/set/' + userName;
     const res = await get(userUrl, token);
     if (res === '') {
@@ -85,7 +85,7 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.getRelayerSeed = async function (userName) {
-    const token = await getToken();
+    const token = await this.getToken();
     const url = this.baseURL + 'avn-vault/user/' + userName;
     return (await get(url, token)).seed;
   };
@@ -94,7 +94,7 @@ module.exports = function (baseURL, roleId, secretId) {
     console.log("");
     log.trace("[VAULT payer sign] - 1");
 
-    const token = await getToken();
+    const token = await this.getToken();
 
     log.trace("[VAULT payer sign] - 2");
     const res = await get(this.baseURL + 'avn-vault/user/' + username, token);

@@ -40,23 +40,6 @@ async function tryGetPaymentInfo(
   return getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSignature);
 }
 
-async function getPaymentNonce(connectorUrl, requestId, payer) {
-  try {
-    const requestParams = {
-      requestId,
-      payer
-    };
-
-    const avnResponse = await utils.axios.post(connectorUrl + 'getPayerPaymentNonce', requestParams);
-    if (!avnResponse) throw new Error(`Null response when querying payment nonce for user: ${payer}, id: ${requestId}`);
-    if (avnResponse.error) throw new Error(avnResponse.error);
-
-    return utils.toBnString(avnResponse.data);
-  } catch (error) {
-    throw new Error(`Error getting payment nonce for user ${payer}: ${error.toString()}`);
-  }
-}
-
 function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof);
   return utils.verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
@@ -98,7 +81,6 @@ async function signPaymentInfo(connectorUrl, encodedPaymentInfo, payerUserName) 
 module.exports = {
   encodePaymentParams,
   getPaymentInfo,
-  getPaymentNonce,
   tryGetPaymentInfo,
   signPaymentInfo,
   verifyFeePaymentSignature

@@ -183,6 +183,7 @@ async function sendAvnTx(request) {
       if (isSplitFeeTransaction(request)) {
         const paymentNonce = await avn.getPayerPaymentNonce(request.params.splitFeePayerAddress);
         params.paymentInfo = await fees.generatePaymentInfo(avn, requestId, params, paymentNonce);
+        params.paymentNonce = paymentNonce;
       }
 
       result = await avn.proxy(requestId, palletName, method, params);

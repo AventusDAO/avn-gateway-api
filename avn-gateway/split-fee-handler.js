@@ -8,7 +8,6 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event, context) => {
   let processedMessagesCount = 0;
-  let paymentNonces = {};
 
   try {
     if (!event.Records) {
@@ -24,7 +23,7 @@ exports.handler = async (event, context) => {
     for (let record of event.Records) {
       const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
       if (timeoutMs > 0) {
-        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body, paymentNonces]);
+        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body]);
       } else {
         throw new Error("Lambda execution exceeded allowed time");
       }
@@ -57,7 +56,7 @@ exports.handler = async (event, context) => {
   }
 };
 
-async function processRequest(request, paymentNonces) {
+async function processRequest(request) {
   let tx;
   let requestId;
 
@@ -79,7 +78,7 @@ async function processRequest(request, paymentNonces) {
       return;
     }
 
-    const relayerFee = await utils.getRelayerFee(AVN_CONNECTOR_ENDPOINT, call.params.relayer, call.splitFeePayerAddress, call.method);
+    const relayerFee = await utils.getRelayerFee(AVN_CONNECTOR_ENDPOINT, tx.params.relayer, tx.splitFeePayerAddress, tx.method);
     tx.params.payer = tx.splitFeePayerAddress;
     tx.relayerFee = relayerFee;
 

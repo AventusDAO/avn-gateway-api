@@ -211,16 +211,6 @@ app.post('/getPayer', async (req, res, next) => {
   }
 });
 
-app.post('/getPayerPaymentNonce', async (req, res, next) => {
-  try {
-    log.trace({ getPayerPaymentNonce: JSON.stringify(req.body) });
-    const result = await avn.getPayerPaymentNonce(req.body.payer);
-    res.send(result);
-  } catch (err) {
-    next(err);
-  }
-});
-
 app.post('/isPayerTransaction', async (req, res, next) => {
   try {
     log.trace({ isPayerTransaction: JSON.stringify(req.body) });

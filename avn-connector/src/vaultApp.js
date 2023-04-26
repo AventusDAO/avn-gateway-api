@@ -12,11 +12,7 @@ async function post(url, data, token) {
   }
 
   try {
-    console.log("");
-    log.trace("[VAULT post] - 1");
     const res = await axios({ method: 'post', url: url, data: data, headers: headers });
-    log.trace("[VAULT post] - 2");
-    console.log("");
     return tokenReq ? res.data.auth.client_token : res.data.data;
   } catch (err) {
     if (err.response) throw new Error('vault - ' + err.response.data.errors.toString());
@@ -42,7 +38,6 @@ async function appLogin(baseURL, roleId, secretId) {
   const data = { role_id: roleId, secret_id: secretId };
   const token = await post(url, data);
 
-  log.trace("[VAULT login token]: ", token);
   return token;
 }
 
@@ -91,23 +86,14 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.payerSign = async function (message, username) {
-    console.log("");
-    log.trace("[VAULT payer sign] - 1");
-
     const token = await this.getToken();
-
-    log.trace("[VAULT payer sign] - 2");
     const res = await get(this.baseURL + 'avn-vault/user/' + username, token);
-    log.trace("[VAULT payer sign] - 3");
     if (res === '') {
       throw new Error(`User ${username} does not exist in vault`);
     }
 
     const url = this.baseURL + 'avn-vault/user/' + username + '/sign';
     const data = { name: username, message: message };
-    const postResult = await post(url, data, token);
-    log.trace("[VAULT payer sign] - 4");
-    console.log("");
-    return postResult;
+    return await post(url, data, token);
   };
 };

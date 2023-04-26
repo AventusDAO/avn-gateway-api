@@ -1,15 +1,23 @@
 const AvnApi = require('../index.js');
-const SURI = "0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7"
+const GATEWAY_URL = 'https://uat.gateway.aventus.io'
+const SURI = "movie must museum ship object photo panda radio focus where retire soul"
+const USER = "5DRi9cjRvqosAR9V1N8vRGfWXys1YUeN6cYV9U3PqR1RqE5p";
 const RELAYER = "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh";
-const USER = "5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3";
-const RECIPIENT = "5HnPuKiHbyYBMV76vvA46fk6HZHDt7LU9R7YcyiWnBVzUhdu";
+const RECIPIENT = "5DV3cTXU5Yx4Xdwd9tteuBKFY9GiAiDbFH9y8Mc6BTUv1McP";
 const RUNS = 100;
 
-let relayerNonceStart, relayerNonceEnd;
+const options = {
+  suri: SURI,
+  relayer: RELAYER
+}
+
+const splitFeeOptions = { ...options, hasPayer: true }
+
+let relayerNonceStart = 0, relayerNonceEnd = 0;
 
 describe('LOAD TEST', async () => {
   before(async () => {
-    api = new AvnApi("https://uat.gateway.aventus.io", { suri: SURI, relayer: RELAYER });
+    api = new AvnApi(GATEWAY_URL, options);
     await api.init();
   });
 
@@ -19,7 +27,6 @@ describe('LOAD TEST', async () => {
     const recipStart = await api.query.getAvtBalance(RECIPIENT);
     const timeStart = Date.now();
 
-    console.log("Relayer nonce start:", relayerNonceStart.toString());
     console.log("User system nonce start:", nonceStart);
     console.log("Recipient balance start:", recipStart);
 
@@ -80,6 +87,7 @@ async function confirmStatus(api, id, requestId) {
         relayerNonceEnd = response.senderNonce;
         return status === 'Processed';
       }
+      console.log('\tStatus:', status);
     } catch (err) {
       console.log('polling error', err)
     }

@@ -336,18 +336,12 @@ async function getGatewayUserInfo(account) {
 }
 
 async function signPaymentInfo(message, payerUsername) {
-  console.log("\n");
-  log.trace("[signPaymentInfo] - 1");
   const paymentInfoContext = stringToHex('authorization for proxy payment');
   const messageWithoutPrefix = '0x' + message.slice(4);
 
   // Important: we only want to sign correctly formatted payment data.
   if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error('Invalid data to sign.');
-  log.trace("[signPaymentInfo] - 2");
-  const result = await vault.payerSign(message, payerUsername);
-  log.trace("[signPaymentInfo] - 3");
-  console.log("");
-  return result;
+  return await vault.payerSign(message, payerUsername);
 }
 
 async function init() {
@@ -448,9 +442,8 @@ async function getPayerPaymentNonce(payerAddress) {
 
   try {
     let nonce = await redis.getNextPayerNonce(payerAddress);
-    log.trace(`Payer payment nonce from redis: ${nonce}`)
     if (!nonce) nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
-    log.trace(`Payer payment nonce: ${nonce}`)
+    log.trace(`Payer ${payerAddress} payment nonce: ${nonce}`)
     await nonceLock.release();
     return nonce;
   } catch (err) {
@@ -470,12 +463,9 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
     paymentNonce,
     transaction.splitFeeProxyProof);
 
-  log.trace("Encoded params");
   const payerUserName = fees.getPayerVaultUsername(transaction.splitFeePayerVaultId);
-  log.trace("Signing...");
   const signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
 
-  log.trace("Done");
   return {
     payer: transaction.splitFeePayerAddress,
     recipient: transaction.relayerAddress,

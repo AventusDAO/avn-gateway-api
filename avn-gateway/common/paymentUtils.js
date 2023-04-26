@@ -61,27 +61,10 @@ function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
   );
 }
 
-async function signPaymentInfo(connectorUrl, encodedPaymentInfo, payerUserName) {
-  if (!isHex(encodePaymentParams)) encodedPaymentInfo = u8aToHex(encodedPaymentInfo);
-
-  const requestParams = {
-    message: encodedPaymentInfo,
-    payerUserName: payerUserName
-  };
-
-  const avnResponse = await utils.axios.post(connectorUrl + 'signPaymentInfo', requestParams);
-  if (!avnResponse || !avnResponse.data)
-    throw new Error(`Null response when signing payment info for payer: ${payerAddress}, data: ${encodedPaymentInfo}`);
-  if (avnResponse.error) throw new Error(avnResponse.error);
-
-  return avnResponse.data.signature;
-}
-
 // Keep alphabetical
 module.exports = {
   encodePaymentParams,
   getPaymentInfo,
   tryGetPaymentInfo,
-  signPaymentInfo,
   verifyFeePaymentSignature
 };

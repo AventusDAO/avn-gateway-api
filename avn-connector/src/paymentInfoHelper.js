@@ -11,6 +11,7 @@ const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 
 async function generatePaymentInfo(avn, requestId, transaction, paymentNonce) {
   log.trace(`Generating payment info for requestId: ${requestId}, payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`);
+  log.trace("TX: ", transaction);
   const encodedPaymentParams = encodePaymentParams(
     transaction.relayerAddress,
     transaction.relayerFees,

@@ -611,35 +611,49 @@ async function queryNonce(callId, nonceInfo, nonceKey) {
 }
 
 async function processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams) {
-  const { relayer, user, payer, proxySignature, feePaymentSignature, paymentNonce } = call.params;
+  const { relayer, user, payer, proxySignature } = call.params;
 
   try {
     if (utils.isValidAccountId(relayer) === false) throw 'relayer';
     if (utils.isValidAccountId(user) === false) throw 'user';
     if (utils.isValidAccountId(payer) === false) throw 'payer';
     if (utils.isValidSignatureFormat(proxySignature) === false) throw 'proxySignature';
-    if (utils.isValidSignatureFormat(feePaymentSignature) === false) throw 'feePaymentSignature';
-    if (utils.isValidNonce(paymentNonce) === false) throw 'paymentNonce';
+
+    if (!utils.isSplitFeeTransaction(call)) {
+      if (utils.isValidSignatureFormat(call.params.feePaymentSignature) === false) throw 'feePaymentSignature';
+      if (utils.isValidNonce(call.params.paymentNonce) === false) throw 'paymentNonce';
+    }
+
   } catch (param) {
     return utils.buildErrorBody('params', `invalid proxy method ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
   const proxyProof = utils.getProxyProof(user, relayer, proxySignature);
-  const paymentInfo = await fees.tryGetPaymentInfo(
-    AVN_CONNECTOR_ENDPOINT,
-    payer,
-    relayer,
-    feePaymentSignature,
-    call.method,
-    paymentNonce,
-    proxyProof
-  );
 
   const params = {
     proxyParams: [proxyProof].concat(methodParams),
-    relayerAddress: relayer,
-    paymentInfo
-  };
+    relayerAddress: relayer
+   };
+
+  // Split fee transactions will get a payment signature in the connector, before sending to the chain.
+  if (utils.isSplitFeeTransaction(call) === true) {
+    params.splitFeePayerAddress = call.splitFeePayerAddress;
+    params.splitFeePayerVaultId = call.splitFeePayerVaultId;
+    params.relayerFees = call.relayerFee;
+    params.splitFeeProxyProof = proxyProof;
+  } else {
+    const paymentInfo = await fees.tryGetPaymentInfo(
+      AVN_CONNECTOR_ENDPOINT,
+      payer,
+      relayer,
+      call.params.feePaymentSignature,
+      call.method,
+      call.params.paymentNonce,
+      proxyProof
+    );
+
+    params.paymentInfo = paymentInfo;
+  }
 
   return await sendTx(call, mqChannel, request, requestId, pallet, method, params);
 }

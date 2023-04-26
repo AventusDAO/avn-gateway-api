@@ -178,6 +178,15 @@ async function sendAvnTx(request) {
     case 'avnProxy':
       logger.trace({ sendAvnTxRequest: request });
       const { palletName, method, params } = request;
+
+      if (isSplitFeeTransaction(request)) {
+        const paymentNonce = await avn.getPayerPaymentNonce(request.params.splitFeePayerAddress);
+        logger.trace('Processing split fee transaction. Payment nonce: ', paymentNonce);
+
+        params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, paymentNonce);
+        params.paymentNonce = paymentNonce;
+      }
+
       result = await avn.proxy(requestId, palletName, method, params);
       logger.info({ proxyRequestId: requestId, result: JSON.stringify(result) });
       break;
@@ -190,6 +199,10 @@ async function sendAvnTx(request) {
     default:
       throw Error('Transaction type not supported');
   }
+}
+
+function isSplitFeeTransaction(request) {
+  return !!request.params.splitFeePayerAddress;
 }
 
 module.exports = { connectToMQ };

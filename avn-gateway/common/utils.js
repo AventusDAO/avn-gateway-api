@@ -99,6 +99,10 @@ function isSplitFeeToken(token) {
   return token.hasPayer === true || payerAddressIsSet === true;
 }
 
+function isSplitFeeTransaction(tx) {
+  return !!tx.splitFeePayerAddress && isValidAccountId(tx.splitFeePayerAddress);
+}
+
 function isValidAccountId(accountId) {
   try {
     encodeAddress(isHex(accountId) ? hexToU8a(accountId) : decodeAddress(accountId));
@@ -326,6 +330,7 @@ module.exports = {
   buildErrorBody,
   init,
   isSplitFeeToken,
+  isSplitFeeTransaction,
   isValidAccountId,
   isValidAmount,
   isValidArray,

@@ -1,6 +1,6 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { isHex, stringToHex } = require('@polkadot/util');
+const { isHex, stringToHex, u8aToHex } = require('@polkadot/util');
 const { keccakAsHex } = require('@polkadot/util-crypto');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -10,6 +10,7 @@ const redis = require('./redis');
 const ethereum = require('./ethereum');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
+const fees = require('./paymentInfoHelper');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -48,14 +49,37 @@ async function proxy(requestId, palletName, method, params) {
       let innerCall = api.tx[p.palletName][p.method](...p.params.proxyParams);
       return api.tx.avnProxy.proxy(innerCall, p.params.paymentInfo);
     });
+
     const txn = api.tx.utility.batchAll(innerCalls);
-    return await signAndSend(requestId, params[0].params.relayerAddress, txn);
+    const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
+
+    for (const p of params) {
+      await setNextPayerNonce(p.params.splitFeePayerAddress, parseInt(p.params.paymentNonce) + 1);
+    }
+
+    return result;
+
   } else {
     log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
 
     const innerCall = api.tx[palletName][method](...params.proxyParams);
     const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
-    return await signAndSend(requestId, params.relayerAddress, txn);
+    const result = await signAndSend(requestId, params.relayerAddress, txn);
+
+    if (params.splitFeePayerAddress) {
+      await setNextPayerNonce(params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
+    }
+
+    return result;
+  }
+}
+
+async function setNextPayerNonce(payerAddress, nonce) {
+  const nonceLock = await redis.lockPayerNonce(payerAddress);
+  try {
+    await redis.setNextPayerNonce(payerAddress, nonce);
+  } finally {
+    await nonceLock.release();
   }
 }
 
@@ -326,7 +350,7 @@ async function signPaymentInfo(message, payerUsername) {
 
   // Important: we only want to sign correctly formatted payment data.
   if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error('Invalid data to sign.');
-  return vault.payerSign(message, payerUsername);
+  return await vault.payerSign(message, payerUsername);
 }
 
 async function init() {
@@ -422,6 +446,46 @@ function isTransactionHash(requestId) {
   return isHex(requestId) && requestId.split('').length == 66;
 }
 
+async function getPayerPaymentNonce(payerAddress) {
+  const nonceLock = await redis.lockPayerNonce(payerAddress);
+
+  try {
+    let nonce = await redis.getNextPayerNonce(payerAddress);
+    if (!nonce) nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
+    log.trace(`Payer ${payerAddress} payment nonce: ${nonce}`)
+    await nonceLock.release();
+    return nonce;
+  } catch (err) {
+    log.error(`Error getting payer (${payerAddress}) payment nonce: `, err);
+    await nonceLock.release();
+
+    throw err;
+  }
+}
+
+async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce) {
+  log.trace(`Generating payment info for requestId: ${requestId}, payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`);
+
+  const encodedPaymentParams = fees.encodePaymentParams(
+    transaction.relayerAddress,
+    transaction.relayerFees,
+    paymentNonce,
+    transaction.splitFeeProxyProof);
+
+  const payerUserName = fees.getPayerVaultUsername(transaction.splitFeePayerVaultId);
+  const signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
+
+  return {
+    payer: transaction.splitFeePayerAddress,
+    recipient: transaction.relayerAddress,
+    amount: transaction.relayerFees,
+    signature: {
+      Sr25519: signedData.signature
+    }
+  };
+
+}
+
 module.exports = {
   addNewTransaction,
   getAccountInfo,
@@ -442,5 +506,7 @@ module.exports = {
   query,
   RELAYER_ADDRESS,
   signPaymentInfo,
-  setSendingFailedStatus
+  setSendingFailedStatus,
+  getPayerPaymentNonce,
+  generateSplitFeePaymentInfo,
 };

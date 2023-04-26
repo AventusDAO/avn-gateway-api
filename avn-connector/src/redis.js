@@ -25,7 +25,9 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
+const PAYER_NONCE_NAMESPACE = 'pn.'
 const NONCE_LOCK_NAMESPACE = 'l.'
+const PAYER_NONCE_LOCK_NAMESPACE = 'p.'
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
@@ -240,6 +242,19 @@ async function setNextNonce(senderAddress, nonce) {
   await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
 }
 
+async function lockPayerNonce(payerAddress) {
+  return await redlock.acquire([PAYER_NONCE_LOCK_NAMESPACE + payerAddress], 5000);
+}
+
+async function getNextPayerNonce(payerAddress) {
+  const nonce = await redisClient.get(PAYER_NONCE_NAMESPACE + payerAddress);
+  return nonce == null ? undefined : parseInt(nonce);
+}
+
+async function setNextPayerNonce(payerAddress, nonce) {
+  await redisClient.setex(PAYER_NONCE_NAMESPACE + payerAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
+}
+
 async function setCollatorsToNominate(collators) {
   await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, dataToJsonString(collators));
 }
@@ -385,8 +400,11 @@ module.exports = {
   addFailedAvnTransaction,
   getAvnTransaction,
   lockNonce,
+  lockPayerNonce,
   getNextNonce,
+  getNextPayerNonce,
   setNextNonce,
+  setNextPayerNonce,
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,
   getTransactionHashByRequestId,

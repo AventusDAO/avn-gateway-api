@@ -1,4 +1,6 @@
 const axios = require('axios');
+const log4js = require('log4js');
+const log = log4js.getLogger();
 
 async function post(url, data, token) {
   const tokenReq = typeof token === 'undefined';
@@ -34,16 +36,32 @@ async function get(url, token) {
 async function appLogin(baseURL, roleId, secretId) {
   const url = baseURL + 'auth/approle/login';
   const data = { role_id: roleId, secret_id: secretId };
-  return await post(url, data);
+  const token = await post(url, data);
+
+  return token;
 }
 
 module.exports = function (baseURL, roleId, secretId) {
+  this.loginToken = {};
   this.baseURL = baseURL;
   const ROLE_ID = roleId;
   const SECRET_ID = secretId;
+  const EXPIRY = 1000 * 60 * 10; //10 min
+
+  this.getToken = async function () {
+    const now = Date.now();
+    if (!this.loginToken.token || this.loginToken.validUntil < now) {
+      log.trace(`token ${this.loginToken.token} has expired on ${this.loginToken.validUntil}. Refreshing...`)
+      const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+      this.loginToken.token = token;
+      this.loginToken.validUntil = now + EXPIRY;
+    }
+
+    return this.loginToken.token;
+  }
 
   this.createNewRelayer = async function (userName) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    const token = await this.getToken();
     const userUrl = this.baseURL + 'avn-vault/user/' + userName;
     const res = await get(userUrl, token);
     if (res === '') {
@@ -52,7 +70,7 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.setNewRelayer = async function (userName, seed) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    const token = await this.getToken();
     const userUrl = this.baseURL + 'avn-vault/user/set/' + userName;
     const res = await get(userUrl, token);
     if (res === '') {
@@ -62,14 +80,13 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.getRelayerSeed = async function (userName) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    const token = await this.getToken();
     const url = this.baseURL + 'avn-vault/user/' + userName;
     return (await get(url, token)).seed;
   };
 
   this.payerSign = async function (message, username) {
-    const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
-
+    const token = await this.getToken();
     const res = await get(this.baseURL + 'avn-vault/user/' + username, token);
     if (res === '') {
       throw new Error(`User ${username} does not exist in vault`);

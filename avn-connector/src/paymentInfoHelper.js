@@ -19,7 +19,7 @@ async function generatePaymentInfo(avn, requestId, transaction, paymentNonce) {
     transaction.splitFeeProxyProof);
 
   const payerUserName = getPayerVaultUsername(transaction.splitFeePayerVaultId);
-  const paymentSignature = avn.signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
+  const paymentSignature = await avn.signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
 
   return {
     payer: transaction.splitFeePayerAddress,

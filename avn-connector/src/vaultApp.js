@@ -56,6 +56,7 @@ module.exports = function (baseURL, roleId, secretId) {
   this.getToken = async function () {
     const now = Date.now();
     if (!this.loginToken.token || this.loginToken.validUntil < now) {
+      log.trace(`token ${this.loginToken.token} has expired on ${this.loginToken.validUntil}. Refreshing...`)
       const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
       this.loginToken.token = token;
       this.loginToken.validUntil = now + EXPIRY;

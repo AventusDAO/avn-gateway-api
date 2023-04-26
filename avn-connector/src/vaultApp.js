@@ -62,7 +62,7 @@ module.exports = function (baseURL, roleId, secretId) {
       this.loginToken.validUntil = now + EXPIRY;
     }
 
-    return loginToken.token;
+    return this.loginToken.token;
   }
 
   this.createNewRelayer = async function (userName) {

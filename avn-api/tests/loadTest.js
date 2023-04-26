@@ -1,9 +1,9 @@
 const AvnApi = require('../index.js');
 const GATEWAY_URL = 'https://uat.gateway.aventus.io'
-const SURI = "movie must museum ship object photo panda radio focus where retire soul"
-const USER = "5DRi9cjRvqosAR9V1N8vRGfWXys1YUeN6cYV9U3PqR1RqE5p";
+const SURI = "0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7"
+const USER = "5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3";
 const RELAYER = "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh";
-const RECIPIENT = "5DV3cTXU5Yx4Xdwd9tteuBKFY9GiAiDbFH9y8Mc6BTUv1McP";
+const RECIPIENT = "5HnPuKiHbyYBMV76vvA46fk6HZHDt7LU9R7YcyiWnBVzUhdu";
 const RUNS = 100;
 
 const options = {

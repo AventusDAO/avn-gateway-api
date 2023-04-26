@@ -12,9 +12,11 @@ async function post(url, data, token) {
   }
 
   try {
-    log.trace("\n[VAULT post] - 1");
+    console.log("");
+    log.trace("[VAULT post] - 1");
     const res = await axios({ method: 'post', url: url, data: data, headers: headers });
-    log.trace("[VAULT post] - 2\n");
+    log.trace("[VAULT post] - 2");
+    console.log("");
     return tokenReq ? res.data.auth.client_token : res.data.data;
   } catch (err) {
     if (err.response) throw new Error('vault - ' + err.response.data.errors.toString());
@@ -72,7 +74,8 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.payerSign = async function (message, username) {
-    log.trace("\n[VAULT payer sign] - 1");
+    console.log("");
+    log.trace("[VAULT payer sign] - 1");
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
 
     log.trace("[VAULT payer sign] - 2");
@@ -85,7 +88,8 @@ module.exports = function (baseURL, roleId, secretId) {
     const url = this.baseURL + 'avn-vault/user/' + username + '/sign';
     const data = { name: username, message: message };
     const postResult = await post(url, data, token);
-    log.trace("[VAULT payer sign] - 4\n");
+    log.trace("[VAULT payer sign] - 4");
+    console.log("");
     return postResult;
   };
 };

@@ -336,7 +336,8 @@ async function getGatewayUserInfo(account) {
 }
 
 async function signPaymentInfo(message, payerUsername) {
-  log.trace("\n\n[signPaymentInfo] - 1");
+  console.log("\n");
+  log.trace("[signPaymentInfo] - 1");
   const paymentInfoContext = stringToHex('authorization for proxy payment');
   const messageWithoutPrefix = '0x' + message.slice(4);
 
@@ -345,6 +346,7 @@ async function signPaymentInfo(message, payerUsername) {
   log.trace("[signPaymentInfo] - 2");
   const result = await vault.payerSign(message, payerUsername);
   log.trace("[signPaymentInfo] - 3");
+  console.log("");
   return result;
 }
 

@@ -68,15 +68,20 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.payerSign = async function (message, username) {
+    console.log("\n[VAULT payer sign] - 1");
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
 
+    console.log("[VAULT payer sign] - 2");
     const res = await get(this.baseURL + 'avn-vault/user/' + username, token);
+    console.log("[VAULT payer sign] - 3");
     if (res === '') {
       throw new Error(`User ${username} does not exist in vault`);
     }
 
     const url = this.baseURL + 'avn-vault/user/' + username + '/sign';
     const data = { name: username, message: message };
-    return await post(url, data, token);
+    const postResult = await post(url, data, token);
+    console.log("[VAULT payer sign] - 4\n");
+    return postResult;
   };
 };

@@ -336,15 +336,15 @@ async function getGatewayUserInfo(account) {
 }
 
 async function signPaymentInfo(message, payerUsername) {
-  console.log("\n\n[signPaymentInfo] - 1");
+  log.trace("\n\n[signPaymentInfo] - 1");
   const paymentInfoContext = stringToHex('authorization for proxy payment');
   const messageWithoutPrefix = '0x' + message.slice(4);
 
   // Important: we only want to sign correctly formatted payment data.
   if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error('Invalid data to sign.');
-  console.log("[signPaymentInfo] - 2");
+  log.trace("[signPaymentInfo] - 2");
   const result = await vault.payerSign(message, payerUsername);
-  console.log("[signPaymentInfo] - 3");
+  log.trace("[signPaymentInfo] - 3");
   return result;
 }
 

@@ -1,4 +1,6 @@
 const axios = require('axios');
+const log4js = require('log4js');
+const log = log4js.getLogger();
 
 async function post(url, data, token) {
   const tokenReq = typeof token === 'undefined';
@@ -10,7 +12,9 @@ async function post(url, data, token) {
   }
 
   try {
+    log.trace("\n[VAULT post] - 1");
     const res = await axios({ method: 'post', url: url, data: data, headers: headers });
+    log.trace("[VAULT post] - 2\n");
     return tokenReq ? res.data.auth.client_token : res.data.data;
   } catch (err) {
     if (err.response) throw new Error('vault - ' + err.response.data.errors.toString());
@@ -68,12 +72,12 @@ module.exports = function (baseURL, roleId, secretId) {
   };
 
   this.payerSign = async function (message, username) {
-    console.log("\n[VAULT payer sign] - 1");
+    log.trace("\n[VAULT payer sign] - 1");
     const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
 
-    console.log("[VAULT payer sign] - 2");
+    log.trace("[VAULT payer sign] - 2");
     const res = await get(this.baseURL + 'avn-vault/user/' + username, token);
-    console.log("[VAULT payer sign] - 3");
+    log.trace("[VAULT payer sign] - 3");
     if (res === '') {
       throw new Error(`User ${username} does not exist in vault`);
     }
@@ -81,7 +85,7 @@ module.exports = function (baseURL, roleId, secretId) {
     const url = this.baseURL + 'avn-vault/user/' + username + '/sign';
     const data = { name: username, message: message };
     const postResult = await post(url, data, token);
-    console.log("[VAULT payer sign] - 4\n");
+    log.trace("[VAULT payer sign] - 4\n");
     return postResult;
   };
 };

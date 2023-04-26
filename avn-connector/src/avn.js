@@ -253,6 +253,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
   try {
     log.trace({ message: 'Getting relayer account', address: relayerAddress });
     relayerAccount = await getRelayerAccount(relayerAddress);
+    log.trace({ message: 'GOT RELAYER!!!!!!!!!!!!!', relayerAccount: relayerAccount.address, relayerAddress });
   } catch (err) {
     log.error(`Error getting relayer account for ${relayerAddress}: ${err}`);
     throw err;
@@ -266,7 +267,6 @@ async function signAndSend(requestId, relayerAddress, txn) {
     nonce = await redis.getNextNonce(relayerAddress);
     if (nonce === undefined) nonce = (await api.rpc.system.accountNextIndex(relayerAddress)).toNumber();
     const signedTx = await txn.signAsync(relayerAccount, { nonce: nonce.toString() });
-    log.trace(`SIGNED_TXXXXXXXX ${signedTx}`)
     const receipt = await signedTx.send();
     await redis.setNextNonce(relayerAddress, nonce + 1);
     await nonceLock.release();

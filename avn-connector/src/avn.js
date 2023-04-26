@@ -441,7 +441,8 @@ async function getPayerPaymentNonce(payerAddress) {
 
   try {
     let nonce = await redis.getNextPayerNonce(payerAddress);
-    if (nonce === undefined) nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
+    log.trace(`Payer payment nonce from redis: ${nonce}`)
+    if (!nonce) nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
     log.trace(`Payer payment nonce: ${nonce}`)
     await nonceLock.release();
     return nonce;

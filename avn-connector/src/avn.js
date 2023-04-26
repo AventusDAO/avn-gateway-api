@@ -10,6 +10,7 @@ const redis = require('./redis');
 const ethereum = require('./ethereum');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
+const fees = require('./paymentInfoHelper');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -454,6 +455,32 @@ async function getPayerPaymentNonce(payerAddress) {
   }
 }
 
+async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce) {
+  log.trace(`Generating payment info for requestId: ${requestId}, payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`);
+
+  const encodedPaymentParams = fees.encodePaymentParams(
+    transaction.relayerAddress,
+    transaction.relayerFees,
+    paymentNonce,
+    transaction.splitFeeProxyProof);
+
+  log.trace("Encoded params");
+  const payerUserName = fees.getPayerVaultUsername(transaction.splitFeePayerVaultId);
+  log.trace("Signing...");
+  const signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
+
+  log.trace("Done");
+  return {
+    payer: transaction.splitFeePayerAddress,
+    recipient: transaction.relayerAddress,
+    amount: transaction.relayerFees,
+    signature: {
+      Sr25519: signedData.signature
+    }
+  };
+
+}
+
 module.exports = {
   addNewTransaction,
   getAccountInfo,
@@ -476,4 +503,5 @@ module.exports = {
   signPaymentInfo,
   setSendingFailedStatus,
   getPayerPaymentNonce,
+  generateSplitFeePaymentInfo,
 };

@@ -7,7 +7,6 @@
 
 const amqp = require('amqplib/callback_api');
 const avn = require('./avn');
-const fees = require('./paymentInfoHelper');
 const config = require('multiconfig').load();
 const logger = require('log4js').configure(config.log4Js).getLogger();
 const SecretsManager = require('./secretsManager');
@@ -182,7 +181,7 @@ async function sendAvnTx(request) {
 
       if (isSplitFeeTransaction(request)) {
         const paymentNonce = await avn.getPayerPaymentNonce(request.params.splitFeePayerAddress);
-        params.paymentInfo = await fees.generatePaymentInfo(avn, requestId, params, paymentNonce);
+        params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, paymentNonce);
         params.paymentNonce = paymentNonce;
         logger.trace('Split fee payment info: ', params.paymentInfo);
       }

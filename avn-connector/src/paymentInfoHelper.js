@@ -1,7 +1,7 @@
 'use strict';
 
 const { TypeRegistry } = require('@polkadot/types');
-const { u8aConcat, u8aToHex } = require('@polkadot/util');
+const { u8aConcat, u8aToHex, stringToHex } = require('@polkadot/util');
 const log4js = require('log4js');
 const log = log4js.getLogger();
 
@@ -9,31 +9,6 @@ const registry = new TypeRegistry();
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 
-async function generatePaymentInfo(avn, requestId, transaction, paymentNonce) {
-  log.trace(`Generating payment info for requestId: ${requestId}, payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`);
-
-  const encodedPaymentParams = encodePaymentParams(
-    transaction.relayerAddress,
-    transaction.relayerFees,
-    paymentNonce,
-    transaction.splitFeeProxyProof);
-
-  log.trace("Encoded params");
-  const payerUserName = getPayerVaultUsername(transaction.splitFeePayerVaultId);
-  log.trace("Signing...");
-  const signedData = await avn.signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
-
-  log.trace("Done");
-  return {
-    payer: transaction.splitFeePayerAddress,
-    recipient: transaction.relayerAddress,
-    amount: transaction.relayerFees,
-    signature: {
-      Sr25519: signedData.signature
-    }
-  };
-
-}
 
 function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
@@ -64,5 +39,5 @@ function getPayerVaultUsername(payerVaultId) {
 
 module.exports = {
   encodePaymentParams,
-  generatePaymentInfo
+  getPayerVaultUsername
 };

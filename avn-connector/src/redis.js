@@ -408,7 +408,7 @@ module.exports = {
   addFailedAvnTransaction,
   getAvnTransaction,
   lockNonce,
-  releaseNonceLock
+  releaseNonceLock,
   lockPayerNonce,
   releasePayerNonceLock,
   getNextNonce,

@@ -9,6 +9,7 @@ const SPLIT_FEE_TEST = true;
 const RUNS = 100;
 
 let relayerNonceStart = 0, relayerNonceEnd = 0;
+const proxyNonces = [];
 
 describe('LOAD TEST', async () => {
   before(async () => {
@@ -18,12 +19,10 @@ describe('LOAD TEST', async () => {
 
   it('can transfer AVT using a recipient address', async () => {
     const requestIds = [];
-    const nonceStart = await api.query.getNonce(USER, 'token');
+    const proxyNonceStart = await api.query.getNonce(USER, 'token');
+    let proxyNonce = proxyNonceStart;
     const recipStart = await api.query.getAvtBalance(RECIPIENT);
     const timeStart = Date.now();
-
-    console.log("User system nonce start:", nonceStart);
-    console.log("Recipient balance start:", recipStart);
 
     let finalResult = true;
     console.log("");
@@ -31,7 +30,8 @@ describe('LOAD TEST', async () => {
     for (let j=0; j < RUNS; j++) {
       const reqId = await api.send.transferAvt(RECIPIENT, 1);
       requestIds.push(reqId);
-      console.log(`Tx: ${j} Request Id: ${reqId}\t\t${new Date().toString().substring(16,25)}`);
+      proxyNonces[reqId] = proxyNonce++;
+      console.log(`Tx: ${j} Request Id: ${reqId}\t ProxyNonce: ${proxyNonces[reqId]}\t\t${new Date().toString().substring(16,25)}`);
     }
 
     const timeEndSend = Date.now();
@@ -51,7 +51,7 @@ describe('LOAD TEST', async () => {
     console.log("Relayer nonce start:", relayerNonceStart.toString());
     console.log("Relayer nonce end  :", relayerNonceEnd);
     console.log("");
-    console.log("User system nonce start:", nonceStart);
+    console.log("User system nonce start:", proxyNonceStart);
     console.log("User system nonce end  :", await api.query.getNonce(USER, 'token'));
     console.log("");
     console.log("Recipient balance start:", recipStart);
@@ -77,7 +77,7 @@ async function confirmStatus(api, id, requestId) {
       response = await api.poll.requestState(requestId);
       status = response.status;
       if (status === 'Processed' || status === 'Rejected' ) {
-        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, block: ${response.blockNumber}, index ${response.transactionIndex}\t\t${new Date().toString().substring(16,25)}`);
+        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, proxy nonce: ${proxyNonces[requestId]}, block: ${response.blockNumber}, index ${response.transactionIndex}\t\t${new Date().toString().substring(16,25)}`);
         if (id === 0) relayerNonceStart = response.senderNonce - 1;
         relayerNonceEnd = response.senderNonce;
         return status === 'Processed';

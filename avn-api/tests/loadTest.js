@@ -1,12 +1,12 @@
 const AvnApi = require('../index.js');
 
 const GATEWAY_URL = 'https://uat.gateway.aventus.io'
-const SURI = "0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7"
-const USER = "5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3";
-const RELAYER = "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh";
-const RECIPIENT = "5HnPuKiHbyYBMV76vvA46fk6HZHDt7LU9R7YcyiWnBVzUhdu";
-const SPLIT_FEE_TEST = true;
-const RUNS = 100;
+const SURI = "0xbeec75b2722a8be9ca4e90362c157d7a93f8c541d493792c8797d6d8d992063f"
+const USER = "5FNUCyAEuCPH9VhEz941WrdkUGxwKCw9JHvpQSdPcrFU4FMR"; // user 3
+const RELAYER = "5GbtQ91FsiqkrY7ZmA1hNebUfjpTAiUBS6pgiTCBCqXi1YAh"; // dev relayer 3
+const RECIPIENT = "5C5PoyyxMPhTK2mrYmGvqBtSmfpVgTcGqWdPxXZX4ACLmV4B";  // recipient 3
+const SPLIT_FEE_TEST = false;
+const RUNS = 500;
 
 let relayerNonceStart = 0, relayerNonceEnd = 0;
 
@@ -31,7 +31,8 @@ describe('LOAD TEST', async () => {
     for (let j=0; j < RUNS; j++) {
       const reqId = await api.send.transferAvt(RECIPIENT, 1);
       requestIds.push(reqId);
-      console.log(`Tx: ${j} Request Id: ${reqId}\t\t${new Date().toString().substring(16,25)}`);
+      let proxyNonce = api.send.reqIdNonceMap[reqId];
+      console.log(`Tx: ${j} Request Id: ${reqId}\t ProxyNonce: ${proxyNonce}\t\t${new Date().toString().substring(16,25)}`);
     }
 
     const timeEndSend = Date.now();
@@ -77,7 +78,8 @@ async function confirmStatus(api, id, requestId) {
       response = await api.poll.requestState(requestId);
       status = response.status;
       if (status === 'Processed' || status === 'Rejected' ) {
-        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, block: ${response.blockNumber}, index ${response.transactionIndex}\t\t${new Date().toString().substring(16,25)}`);
+        let proxyNonce = api.send.reqIdNonceMap[requestId];
+        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, proxy nonce: ${proxyNonce}, block: ${response.blockNumber}, index ${response.transactionIndex}\t\t${new Date().toString().substring(16,25)}`);
         if (id === 0) relayerNonceStart = response.senderNonce - 1;
         relayerNonceEnd = response.senderNonce;
         return status === 'Processed';

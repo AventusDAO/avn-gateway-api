@@ -30,6 +30,7 @@ function Send(api, queryApi) {
   this.withdrawUnlocked = generateFunction(withdrawUnlocked, api, queryApi);
   this.nonceMap = {};
   this.feesMap = {};
+  this.reqIdNonceMap = {};
 }
 
 function transferAvt(api, queryApi) {
@@ -266,6 +267,10 @@ Send.prototype.proxyRequest = async function (api, queryApi, methodArgs, transac
     retry = true;
     await this.proxyRequest(api, queryApi, methodArgs, transactionType, nonceType, retry);
   }
+
+  if (response !== undefined && response !== null) {
+    this.reqIdNonceMap[response] = proxyArgs.nonce;
+  }  
 
   return response;
 };

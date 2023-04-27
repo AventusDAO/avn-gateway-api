@@ -226,7 +226,6 @@ async function lockNonce(senderAddress) {
   while (isLocked === 0) {
     isLocked = await redisClient.setnx(NONCE_LOCK_NAMESPACE + senderAddress, 1);
   }
-  return true;
 }
 
 async function releaseNonceLock(senderAddress) {
@@ -247,7 +246,6 @@ async function lockPayerNonce(payerAddress) {
   while (isLocked === 0) {
     isLocked = await redisClient.setnx(PAYER_NONCE_LOCK_NAMESPACE + payerAddress, 1);
   }
-  return true;
 }
 
 async function releasePayerNonceLock(senderAddress) {

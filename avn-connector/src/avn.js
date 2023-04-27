@@ -39,7 +39,10 @@ async function query(palletName, storageName, params) {
 }
 
 async function proxy(requestId, palletName, method, params) {
+  let relayerAddress;
   if (palletName === 'utility' && method === 'batchAll') {
+    relayerAddress = params[0].params.relayerAddress;
+    await redis.lockNonce(relayerAddress);
     log.trace({
       message: `Creating batch transactions.`,
       extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ')
@@ -60,11 +63,13 @@ async function proxy(requestId, palletName, method, params) {
     return result;
 
   } else {
+    relayerAddress = params.relayerAddress;
+    await redis.lockNonce(relayerAddress);
     log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
 
     const innerCall = api.tx[palletName][method](...params.proxyParams);
     const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
-    const result = await signAndSend(requestId, params.relayerAddress, txn);
+    const result = await signAndSend(requestId, relayerAddress, txn);
 
     if (params.splitFeePayerAddress) {
       await setNextPayerNonce(params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
@@ -259,8 +264,6 @@ async function signAndSend(requestId, relayerAddress, txn) {
   }
 
   log.trace({ encodedTransaction: txn });
-
-  await redis.lockNonce(relayerAddress);
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);

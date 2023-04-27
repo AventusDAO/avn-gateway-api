@@ -1,5 +1,4 @@
 const Redis = require('ioredis');
-const { default: Redlock } = require('redlock');
 const _ = require('lodash');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -57,7 +56,7 @@ const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
-let redisClient, redlock;
+let redisClient;
 
 async function connect() {
   if ('redis' in config) {
@@ -70,13 +69,6 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
-
-  redlock = new Redlock([redisClient], {
-    driftFactor: 0.01,
-    retryCount:  Number.MAX_SAFE_INTEGER,
-    retryDelay:  10,
-    retryJitter:  20
-  });
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
@@ -230,7 +222,15 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
 }
 
 async function lockNonce(senderAddress) {
-  return await redlock.acquire([NONCE_LOCK_NAMESPACE + senderAddress], 100000000);
+  let isLocked = 0;
+  while (isLocked === 0) {
+    isLocked = await redisClient.setnx(NONCE_LOCK_NAMESPACE + senderAddress, 1);
+  }
+  return true;
+}
+
+async function releaseNonceLock(senderAddress) {
+  await redisClient.del(NONCE_LOCK_NAMESPACE + senderAddress);
 }
 
 async function getNextNonce(senderAddress) {
@@ -243,7 +243,15 @@ async function setNextNonce(senderAddress, nonce) {
 }
 
 async function lockPayerNonce(payerAddress) {
-  return await redlock.acquire([PAYER_NONCE_LOCK_NAMESPACE + payerAddress], 100000000);
+  let isLocked = 0;
+  while (isLocked === 0) {
+    isLocked = await redisClient.setnx(PAYER_NONCE_LOCK_NAMESPACE + payerAddress, 1);
+  }
+  return true;
+}
+
+async function releasePayerNonceLock(senderAddress) {
+  await redisClient.del(PAYER_NONCE_LOCK_NAMESPACE + senderAddress);
 }
 
 async function getNextPayerNonce(payerAddress) {
@@ -400,7 +408,9 @@ module.exports = {
   addFailedAvnTransaction,
   getAvnTransaction,
   lockNonce,
+  releaseNonceLock
   lockPayerNonce,
+  releasePayerNonceLock,
   getNextNonce,
   getNextPayerNonce,
   setNextNonce,

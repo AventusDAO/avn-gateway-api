@@ -75,11 +75,11 @@ async function proxy(requestId, palletName, method, params) {
 }
 
 async function setNextPayerNonce(payerAddress, nonce) {
-  const nonceLock = await redis.lockPayerNonce(payerAddress);
+  await redis.lockPayerNonce(payerAddress);
   try {
     await redis.setNextPayerNonce(payerAddress, nonce);
   } finally {
-    await nonceLock.release();
+    await redis.releasePayerNonceLock(payerAddress);
   }
 }
 
@@ -260,7 +260,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   log.trace({ encodedTransaction: txn });
 
-  const nonceLock = await redis.lockNonce(relayerAddress);
+  await redis.lockNonce(relayerAddress);
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);
@@ -268,7 +268,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     const signedTx = await txn.signAsync(relayerAccount, { nonce: nonce.toString() });
     const receipt = await signedTx.send();
     await redis.setNextNonce(relayerAddress, nonce + 1);
-    await nonceLock.release();
+    await redis.releaseNonceLock(relayerAddress);
 
     transactionHash = receipt.toString();
     await redis.updateTransactionStatusToPending(
@@ -281,7 +281,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace(`Transaction sent using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}`);
 
   } catch (err) {
-    await nonceLock.release();
+    await redis.releaseNonceLock(relayerAddress);
 
     transactionHash = keccakAsHex(requestId);
     log.error(`Failed sending transaction using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}, error: `, err);
@@ -453,17 +453,17 @@ function isTransactionHash(requestId) {
 }
 
 async function getPayerPaymentNonce(payerAddress) {
-  const nonceLock = await redis.lockPayerNonce(payerAddress);
+  await redis.lockPayerNonce(payerAddress);
 
   try {
     let nonce = await redis.getNextPayerNonce(payerAddress);
     if (!nonce) nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
     log.trace(`Payer ${payerAddress} payment nonce: ${nonce}`)
-    await nonceLock.release();
+    await redis.releasePayerNonceLock(payerAddress);
     return nonce;
   } catch (err) {
     log.error(`Error getting payer (${payerAddress}) payment nonce: `, err);
-    await nonceLock.release();
+    await redis.releasePayerNonceLock(payerAddress);
 
     throw err;
   }

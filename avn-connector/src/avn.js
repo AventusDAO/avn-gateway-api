@@ -39,7 +39,10 @@ async function query(palletName, storageName, params) {
 }
 
 async function proxy(requestId, palletName, method, params) {
+  let relayerAddress;
   if (palletName === 'utility' && method === 'batchAll') {
+    relayerAddress = params[0].params.relayerAddress;
+    await redis.lockRelayerNonce(relayerAddress);
     log.trace({
       message: `Creating batch transactions.`,
       extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ')
@@ -53,18 +56,20 @@ async function proxy(requestId, palletName, method, params) {
     const txn = api.tx.utility.batchAll(innerCalls);
     const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
 
-    for (const p of params) {
-      await setNextPayerNonce(p.params.splitFeePayerAddress, parseInt(p.params.paymentNonce) + 1);
+    if (params[0].params.splitFeePayerAddress) {
+      await setNextPayerNonce(params[0].params.splitFeePayerAddress, parseInt(params[0].params.paymentNonce) + params.length);
     }
 
     return result;
 
   } else {
+    relayerAddress = params.relayerAddress;
+    await redis.lockRelayerNonce(relayerAddress);
     log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
 
     const innerCall = api.tx[palletName][method](...params.proxyParams);
     const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
-    const result = await signAndSend(requestId, params.relayerAddress, txn);
+    const result = await signAndSend(requestId, relayerAddress, txn);
 
     if (params.splitFeePayerAddress) {
       await setNextPayerNonce(params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
@@ -81,6 +86,8 @@ async function setNextPayerNonce(payerAddress, nonce) {
     log.trace(`Payment nonce (${payerAddress}, ${nonce}) updated`);
   } catch (err) {
     log.error(`Error updating payment nonce (${payerAddress}, ${nonce}): `, err);
+  } finally {
+    await redis.unlockPayerNonce(payerAddress);
   }
 }
 
@@ -255,6 +262,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace({ message: 'Getting relayer account', address: relayerAddress });
     relayerAccount = await getRelayerAccount(relayerAddress);
   } catch (err) {
+    await redis.unlockRelayerNonce(relayerAddress);
     log.error(`Error getting relayer account for ${relayerAddress}: ${err}`);
     throw err;
   }
@@ -267,6 +275,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     const signedTx = await txn.signAsync(relayerAccount, { nonce: nonce.toString() });
     const receipt = await signedTx.send();
     await redis.setNextNonce(relayerAddress, nonce + 1);
+    await redis.unlockRelayerNonce(relayerAddress);
 
     transactionHash = receipt.toString();
     await redis.updateTransactionStatusToPending(
@@ -279,6 +288,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace(`Transaction sent using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}`);
 
   } catch (err) {
+    await redis.unlockRelayerNonce(relayerAddress);
     transactionHash = keccakAsHex(requestId);
     log.error(`Failed sending transaction using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}, error: `, err);
 
@@ -316,7 +326,7 @@ async function addNewTransaction(requestId) {
 async function getRelayerAccount(relayerAddress) {
   if (!relayers[relayerAddress]) {
     const relayerSuri = await vault.getRelayerSeed(relayerAddress);
-    relayers[relayerAddress] = createAccount(relayerSuri);
+    relayers[relayerAddress] = getSigner(relayerSuri);
   }
   return relayers[relayerAddress];
 }
@@ -433,7 +443,7 @@ async function getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index) {
   return await api.rpc.lower.data(fromBlock, toBlock, blockNumber, index);
 }
 
-function createAccount(suri) {
+function getSigner(suri) {
   const keyring = new Keyring({ type: 'sr25519' });
   return keyring.addFromUri(suri);
 }
@@ -443,6 +453,8 @@ function isTransactionHash(requestId) {
 }
 
 async function getPayerPaymentNonce(payerAddress) {
+  await redis.lockPayerNonce(payerAddress);
+
   try {
     let nonce = await redis.getNextPayerNonce(payerAddress);
     if (!nonce) {
@@ -453,6 +465,7 @@ async function getPayerPaymentNonce(payerAddress) {
     return nonce;
   } catch (err) {
     log.error(`Error getting payer (${payerAddress}) payment nonce: `, err);
+    await redis.unlockPayerNonce(payerAddress);
 
     throw err;
   }
@@ -460,15 +473,19 @@ async function getPayerPaymentNonce(payerAddress) {
 
 async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce) {
   log.trace(`Generating payment info for requestId: ${requestId}, payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`);
+  let encodedPaymentParams, payerUserName, signedData;
 
-  const encodedPaymentParams = fees.encodePaymentParams(
-    transaction.relayerAddress,
-    transaction.relayerFees,
-    paymentNonce,
-    transaction.splitFeeProxyProof);
-
-  const payerUserName = fees.getPayerVaultUsername(transaction.splitFeePayerVaultId);
-  const signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
+  try {
+    encodedPaymentParams = fees.encodePaymentParams(
+      transaction.relayerAddress,
+      transaction.relayerFees,
+      paymentNonce,
+      transaction.splitFeeProxyProof);
+    payerUserName = fees.getPayerVaultUsername(transaction.splitFeePayerVaultId);
+    signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
+  } catch (err) {
+    await redis.unlockPayerNonce(transaction.splitFeePayerAddress);
+  }
 
   return {
     payer: transaction.splitFeePayerAddress,

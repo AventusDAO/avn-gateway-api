@@ -11,7 +11,7 @@ deployment:
   server:
     port: 5000
 
-  replicas: 1
+  replicas: 4
   rollingUpdate:
     maxSurge: 25%
     maxUnavailable: 20%

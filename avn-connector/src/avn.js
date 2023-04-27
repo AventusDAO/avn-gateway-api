@@ -80,7 +80,6 @@ async function proxy(requestId, palletName, method, params) {
 }
 
 async function setNextPayerNonce(payerAddress, nonce) {
-  await redis.lockPayerNonce(payerAddress);
   try {
     await redis.setNextPayerNonce(payerAddress, nonce);
   } finally {
@@ -462,7 +461,6 @@ async function getPayerPaymentNonce(payerAddress) {
     let nonce = await redis.getNextPayerNonce(payerAddress);
     if (!nonce) nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
     log.trace(`Payer ${payerAddress} payment nonce: ${nonce}`)
-    await redis.releasePayerNonceLock(payerAddress);
     return nonce;
   } catch (err) {
     log.error(`Error getting payer (${payerAddress}) payment nonce: `, err);

@@ -75,11 +75,12 @@ async function proxy(requestId, palletName, method, params) {
 }
 
 async function setNextPayerNonce(payerAddress, nonce) {
-  const nonceLock = await redis.lockPayerNonce(payerAddress);
+  log.trace(`Updating payment nonce for ${payerAddress} to ${nonce}`);
   try {
     await redis.setNextPayerNonce(payerAddress, nonce);
-  } finally {
-    await nonceLock.release();
+    log.trace(`Payment nonce (${payerAddress}, ${nonce}) updated`);
+  } catch (err) {
+    log.error(`Error updating payment nonce (${payerAddress}, ${nonce}): `, err);
   }
 }
 
@@ -260,15 +261,12 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   log.trace({ encodedTransaction: txn });
 
-  const nonceLock = await redis.lockNonce(relayerAddress);
-
   try {
     nonce = await redis.getNextNonce(relayerAddress);
     if (nonce === undefined) nonce = (await api.rpc.system.accountNextIndex(relayerAddress)).toNumber();
     const signedTx = await txn.signAsync(relayerAccount, { nonce: nonce.toString() });
     const receipt = await signedTx.send();
     await redis.setNextNonce(relayerAddress, nonce + 1);
-    await nonceLock.release();
 
     transactionHash = receipt.toString();
     await redis.updateTransactionStatusToPending(
@@ -281,8 +279,6 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace(`Transaction sent using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}`);
 
   } catch (err) {
-    await nonceLock.release();
-
     transactionHash = keccakAsHex(requestId);
     log.error(`Failed sending transaction using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}, error: `, err);
 
@@ -447,17 +443,16 @@ function isTransactionHash(requestId) {
 }
 
 async function getPayerPaymentNonce(payerAddress) {
-  const nonceLock = await redis.lockPayerNonce(payerAddress);
-
   try {
     let nonce = await redis.getNextPayerNonce(payerAddress);
-    if (!nonce) nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
+    if (!nonce) {
+      nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
+      log.trace(`Nonce expired, refreshing from chain: `, nonce);
+    }
     log.trace(`Payer ${payerAddress} payment nonce: ${nonce}`)
-    await nonceLock.release();
     return nonce;
   } catch (err) {
     log.error(`Error getting payer (${payerAddress}) payment nonce: `, err);
-    await nonceLock.release();
 
     throw err;
   }

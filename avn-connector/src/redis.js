@@ -1,5 +1,4 @@
 const Redis = require('ioredis');
-const { default: Redlock } = require('redlock');
 const _ = require('lodash');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -26,8 +25,6 @@ const transactionStatus = {
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
 const PAYER_NONCE_NAMESPACE = 'pn.'
-const NONCE_LOCK_NAMESPACE = 'l.'
-const PAYER_NONCE_LOCK_NAMESPACE = 'p.'
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
@@ -51,13 +48,13 @@ const PENDING_TX_KEY = {
 
 const MAX_PENDING_TX_TO_CHECK = 250;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 5;
-const NONCE_EXPIRY_IN_SECONDS = 10;
+const NONCE_EXPIRY_IN_SECONDS = 48;
 const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
 const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
-let redisClient, redlock;
+let redisClient;
 
 async function connect() {
   if ('redis' in config) {
@@ -70,13 +67,6 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
-
-  redlock = new Redlock([redisClient], {
-    driftFactor: 0.01,
-    retryCount:  -1, // unlimited
-    retryDelay:  100,
-    retryJitter:  200
-  });
 
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
@@ -229,10 +219,6 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
   return result;
 }
 
-async function lockNonce(senderAddress) {
-  return await redlock.acquire([NONCE_LOCK_NAMESPACE + senderAddress], 5000);
-}
-
 async function getNextNonce(senderAddress) {
   const nonce = await redisClient.get(NONCE_NAMESPACE + senderAddress);
   return nonce == null ? undefined : parseInt(nonce);
@@ -240,10 +226,6 @@ async function getNextNonce(senderAddress) {
 
 async function setNextNonce(senderAddress, nonce) {
   await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
-}
-
-async function lockPayerNonce(payerAddress) {
-  return await redlock.acquire([PAYER_NONCE_LOCK_NAMESPACE + payerAddress], 5000);
 }
 
 async function getNextPayerNonce(payerAddress) {
@@ -399,8 +381,6 @@ module.exports = {
   addNewAvnTransaction,
   addFailedAvnTransaction,
   getAvnTransaction,
-  lockNonce,
-  lockPayerNonce,
   getNextNonce,
   getNextPayerNonce,
   setNextNonce,

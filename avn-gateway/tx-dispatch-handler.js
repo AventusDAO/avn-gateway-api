@@ -603,6 +603,7 @@ async function processProxyExecuteLeaveNominators(call, mqChannel, request, requ
   return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
+//TODO: Fix me. We should not read the nonce from the chain because we risk getting duplicate values for different tx's
 async function queryNonce(callId, nonceInfo, nonceKey) {
   const { palletName, storageName } = nonceInfo;
   const params = { callId, palletName, storageName, params: [nonceKey] };

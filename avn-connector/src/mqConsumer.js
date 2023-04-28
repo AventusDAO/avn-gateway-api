@@ -183,21 +183,21 @@ async function sendAvnTx(request) {
       const isSplitFee = isSplitFeeTransaction(request);
 
       if (isSplitFee) {
-        await redis.lock(request.params.splitFeePayerAddress);
+        await avn.redis.lock(request.params.splitFeePayerAddress);
         const paymentNonce = await avn.getPayerPaymentNonce(request.params.splitFeePayerAddress);
         logger.trace('Processing split fee transaction. Payment nonce: ', paymentNonce);
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, paymentNonce);
         params.paymentNonce = paymentNonce;
       } else {
-        await redis.lock(relayerAddress);
+        await avn.redis.lock(relayerAddress);
       }
 
       result = await avn.proxy(requestId, palletName, method, params);
 
       if (isSplitFee) {
-        await redis.unlock(request.params.splitFeePayerAddress);
+        await avn.redis.unlock(request.params.splitFeePayerAddress);
       } else {
-        await redis.unlock(relayerAddress);
+        await avn.redis.unlock(relayerAddress);
       }
 
       logger.info({ proxyRequestId: requestId, result: JSON.stringify(result) });

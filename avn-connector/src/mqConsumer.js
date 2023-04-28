@@ -110,7 +110,7 @@ async function processMessage(channel, queue) {
           reject();
         } else if (!message) {
           resolve(); /* empty queue */
-        } else {
+        } else if (await canDigest(message)) {
           try {
             await trySendAvnTx(message);
             channel.ack(message);
@@ -119,6 +119,8 @@ async function processMessage(channel, queue) {
             channel.nack(message, allUpTo, requeue);
             reject();
           }
+        } else {
+          channel.nack(message, allUpTo, true);
         }
       }
     );
@@ -170,6 +172,17 @@ async function trySendAvnTx(message) {
   }
 }
 
+async function canDigest(message) {
+  const request = JSON.parse(message.content.toString())
+  const { palletName, method, params } = request;
+  const relayerAddress = (palletName === 'utility' && method === 'batchAll') ? params[0].params.relayerAddress : params.relayerAddress;
+  if (isSplitFeeTransaction(request)) {
+    return await avn.redis.lock(request.params.splitFeePayerAddress) === 1;
+  } else {
+    return await avn.redis.lock(relayerAddress) === 1;
+  }
+}
+
 async function sendAvnTx(request) {
   let result = null;
   let { requestId, txType } = request;
@@ -183,13 +196,10 @@ async function sendAvnTx(request) {
       const isSplitFee = isSplitFeeTransaction(request);
 
       if (isSplitFee) {
-        await avn.redis.lock(request.params.splitFeePayerAddress);
         const paymentNonce = await avn.getPayerPaymentNonce(request.params.splitFeePayerAddress);
         logger.trace('Processing split fee transaction. Payment nonce: ', paymentNonce);
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, paymentNonce);
         params.paymentNonce = paymentNonce;
-      } else {
-        await avn.redis.lock(relayerAddress);
       }
 
       result = await avn.proxy(requestId, palletName, method, params);

@@ -121,7 +121,7 @@ async function processMessage(channel, queue) {
           }
         } else {
           channel.nack(message, allUpTo, true);
-          resolve();
+          reject();
         }
       }
     );

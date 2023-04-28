@@ -53,8 +53,8 @@ async function proxy(requestId, palletName, method, params) {
     const txn = api.tx.utility.batchAll(innerCalls);
     const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
 
-    for (const p of params) {
-      await setNextPayerNonce(p.params.splitFeePayerAddress, parseInt(p.params.paymentNonce) + 1);
+    if (params[0].params.splitFeePayerAddress) {
+      await setNextPayerNonce(params[0].params.splitFeePayerAddress, parseInt(params[0].params.paymentNonce) + params.length);
     }
 
     return result;
@@ -81,6 +81,8 @@ async function setNextPayerNonce(payerAddress, nonce) {
     log.trace(`Payment nonce (${payerAddress}, ${nonce}) updated`);
   } catch (err) {
     log.error(`Error updating payment nonce (${payerAddress}, ${nonce}): `, err);
+  } finally() {
+    await redis.unlockPayerNonce(payerAddress);
   }
 }
 
@@ -448,6 +450,7 @@ function isTransactionHash(requestId) {
 
 async function getPayerPaymentNonce(payerAddress) {
   try {
+    await redis.lockPayerNonce(payerAddress);
     let nonce = await redis.getNextPayerNonce(payerAddress);
     if (!nonce) {
       nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
@@ -457,7 +460,7 @@ async function getPayerPaymentNonce(payerAddress) {
     return nonce;
   } catch (err) {
     log.error(`Error getting payer (${payerAddress}) payment nonce: `, err);
-
+    await redis.unlockPayerNonce(payerAddress);
     throw err;
   }
 }

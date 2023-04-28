@@ -261,12 +261,15 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   log.trace({ encodedTransaction: txn });
 
+  await redis.lockRelayerNonce(relayerAddress);
+
   try {
     nonce = await redis.getNextNonce(relayerAddress);
     if (nonce === undefined) nonce = (await api.rpc.system.accountNextIndex(relayerAddress)).toNumber();
     const signedTx = await txn.signAsync(relayerAccount, { nonce: nonce.toString() });
     const receipt = await signedTx.send();
     await redis.setNextNonce(relayerAddress, nonce + 1);
+    await redis.unlockRelayerNonce(relayerAddress);
 
     transactionHash = receipt.toString();
     await redis.updateTransactionStatusToPending(
@@ -279,6 +282,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace(`Transaction sent using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}`);
 
   } catch (err) {
+    await redis.unlockRelayerNonce(relayerAddress);
     transactionHash = keccakAsHex(requestId);
     log.error(`Failed sending transaction using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}, error: `, err);
 
@@ -316,7 +320,7 @@ async function addNewTransaction(requestId) {
 async function getRelayerAccount(relayerAddress) {
   if (!relayers[relayerAddress]) {
     const relayerSuri = await vault.getRelayerSeed(relayerAddress);
-    relayers[relayerAddress] = createAccount(relayerSuri);
+    relayers[relayerAddress] = getSigner(relayerSuri);
   }
   return relayers[relayerAddress];
 }
@@ -433,7 +437,7 @@ async function getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index) {
   return await api.rpc.lower.data(fromBlock, toBlock, blockNumber, index);
 }
 
-function createAccount(suri) {
+function getSigner(suri) {
   const keyring = new Keyring({ type: 'sr25519' });
   return keyring.addFromUri(suri);
 }

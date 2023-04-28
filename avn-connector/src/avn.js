@@ -267,7 +267,6 @@ async function signAndSend(requestId, relayerAddress, txn) {
     const signedTx = await txn.signAsync(relayerAccount, { nonce: nonce.toString() });
     const receipt = await signedTx.send();
     await redis.setNextNonce(relayerAddress, nonce + 1);
-    await redis.unlockRelayerNonce(relayerAddress);
 
     transactionHash = receipt.toString();
     await redis.updateTransactionStatusToPending(
@@ -454,6 +453,7 @@ async function getPayerPaymentNonce(payerAddress) {
     return nonce;
   } catch (err) {
     log.error(`Error getting payer (${payerAddress}) payment nonce: `, err);
+
     throw err;
   }
 }

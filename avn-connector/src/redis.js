@@ -221,46 +221,44 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
   return result;
 }
 
-async function lockRelayerNonce(relayerAddress) {
+async function lockRelayerNonce(address) {
   let isLocked = 0;
   while (isLocked === 0) {
-    isLocked = await redisClient.setnx(RELAYER_NONCE_LOCK_NAMESPACE + relayerAddress, 1);
+    isLocked = await redisClient.setnx(RELAYER_NONCE_LOCK_NAMESPACE + address, 1);
   }
-  return;
 }
 
-async function unlockRelayerNonce(relayerAddress) {
-  await redisClient.del(RELAYER_NONCE_LOCK_NAMESPACE + relayerAddress);
+async function unlockRelayerNonce(address) {
+  await redisClient.del(RELAYER_NONCE_LOCK_NAMESPACE + address);
 }
 
-async function getNextNonce(senderAddress) {
-  const nonce = await redisClient.get(NONCE_NAMESPACE + senderAddress);
+async function getNextNonce(address) {
+  const nonce = await redisClient.get(NONCE_NAMESPACE + address);
   return nonce == null ? undefined : parseInt(nonce);
 }
 
-async function setNextNonce(senderAddress, nonce) {
-  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
+async function setNextNonce(address, nonce) {
+  await redisClient.setex(NONCE_NAMESPACE + address, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
 }
 
-async function lockPayerNonce(payerAddress) {
+async function lockPayerNonce(address) {
   let isLocked = 0;
   while (isLocked === 0) {
-    isLocked = await redisClient.setnx(PAYER_NONCE_LOCK_NAMESPACE + payerAddress, 1);
+    isLocked = await redisClient.setnx(PAYER_NONCE_LOCK_NAMESPACE + address, 1);
   }
-  return;
 }
 
-async function unlockPayerNonce(senderAddress) {
-  await redisClient.del(PAYER_NONCE_LOCK_NAMESPACE + senderAddress);
+async function unlockPayerNonce(address) {
+  await redisClient.del(PAYER_NONCE_LOCK_NAMESPACE + address);
 }
 
-async function getNextPayerNonce(payerAddress) {
-  const nonce = await redisClient.get(PAYER_NONCE_NAMESPACE + payerAddress);
+async function getNextPayerNonce(address) {
+  const nonce = await redisClient.get(PAYER_NONCE_NAMESPACE + address);
   return nonce == null ? undefined : parseInt(nonce);
 }
 
-async function setNextPayerNonce(payerAddress, nonce) {
-  await redisClient.setex(PAYER_NONCE_NAMESPACE + payerAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
+async function setNextPayerNonce(address, nonce) {
+  await redisClient.setex(PAYER_NONCE_NAMESPACE + address, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
 }
 
 async function setCollatorsToNominate(collators) {

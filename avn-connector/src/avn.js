@@ -54,7 +54,7 @@ async function proxy(requestId, palletName, method, params) {
     const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
 
     if (params[0].params.splitFeePayerAddress) {
-      await setNextPayerNonce(params[0].params.splitFeePayerAddress, parseInt(params[0].params.paymentNonce) + params.length);
+      await setNextPayerNonce(params[0].params.splitFeePayerAddress, parseInt(params[0].params.paymentNonce) + 1);
     }
 
     return result;

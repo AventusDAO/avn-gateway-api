@@ -81,7 +81,7 @@ async function setNextPayerNonce(payerAddress, nonce) {
     log.trace(`Payment nonce (${payerAddress}, ${nonce}) updated`);
   } catch (err) {
     log.error(`Error updating payment nonce (${payerAddress}, ${nonce}): `, err);
-  } finally() {
+  } finally {
     await redis.unlockPayerNonce(payerAddress);
   }
 }

@@ -223,12 +223,14 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
 async function lock(address) {
   let isLocked = 0;
   while (isLocked === 0) {
+    log.trace(`LOCKKKKKKKKKKK ${address}`);
     isLocked = await redisClient.setnx(LOCK_NAMESPACE + address, 1);
   }
   return;
 }
 
 async function unlock(address) {
+  log.trace(`UNNNNNNNNNNLOCKKKKKKKKKKK ${address}`);
   await redisClient.del(LOCK_NAMESPACE + address);
 }
 

@@ -81,8 +81,6 @@ async function setNextPayerNonce(payerAddress, nonce) {
     log.trace(`Payment nonce (${payerAddress}, ${nonce}) updated`);
   } catch (err) {
     log.error(`Error updating payment nonce (${payerAddress}, ${nonce}): `, err);
-  } finally {
-    await redis.unlockPayerNonce(payerAddress);
   }
 }
 
@@ -263,8 +261,6 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   log.trace({ encodedTransaction: txn });
 
-  await redis.lockRelayerNonce(relayerAddress);
-
   try {
     nonce = await redis.getNextNonce(relayerAddress);
     if (nonce === undefined) nonce = (await api.rpc.system.accountNextIndex(relayerAddress)).toNumber();
@@ -284,7 +280,6 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace(`Transaction sent using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}`);
 
   } catch (err) {
-    await redis.unlockRelayerNonce(relayerAddress);
     transactionHash = keccakAsHex(requestId);
     log.error(`Failed sending transaction using relayer nonce: ${nonce}, requestId: ${requestId}, transaction hash: ${transactionHash}, error: `, err);
 
@@ -450,7 +445,6 @@ function isTransactionHash(requestId) {
 
 async function getPayerPaymentNonce(payerAddress) {
   try {
-    await redis.lockPayerNonce(payerAddress);
     let nonce = await redis.getNextPayerNonce(payerAddress);
     if (!nonce) {
       nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
@@ -460,7 +454,6 @@ async function getPayerPaymentNonce(payerAddress) {
     return nonce;
   } catch (err) {
     log.error(`Error getting payer (${payerAddress}) payment nonce: `, err);
-    await redis.unlockPayerNonce(payerAddress);
     throw err;
   }
 }
@@ -506,6 +499,7 @@ module.exports = {
   poll,
   processLifts,
   query,
+  redis,
   RELAYER_ADDRESS,
   signPaymentInfo,
   setSendingFailedStatus,

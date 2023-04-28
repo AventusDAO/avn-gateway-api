@@ -25,8 +25,7 @@ const transactionStatus = {
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
 const PAYER_NONCE_NAMESPACE = 'pn.'
-const RELAYER_NONCE_LOCK_NAMESPACE = 'r.'
-const PAYER_NONCE_LOCK_NAMESPACE = 'p.'
+const LOCK_NAMESPACE = 'l.'
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
@@ -221,15 +220,16 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
   return result;
 }
 
-async function lockRelayerNonce(address) {
+async function lock(address) {
   let isLocked = 0;
   while (isLocked === 0) {
-    isLocked = await redisClient.setnx(RELAYER_NONCE_LOCK_NAMESPACE + address, 1);
+    isLocked = await redisClient.setnx(LOCK_NAMESPACE + address, 1);
   }
+  return;
 }
 
-async function unlockRelayerNonce(address) {
-  await redisClient.del(RELAYER_NONCE_LOCK_NAMESPACE + address);
+async function unlock(address) {
+  await redisClient.del(LOCK_NAMESPACE + address);
 }
 
 async function getNextNonce(address) {
@@ -239,17 +239,6 @@ async function getNextNonce(address) {
 
 async function setNextNonce(address, nonce) {
   await redisClient.setex(NONCE_NAMESPACE + address, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
-}
-
-async function lockPayerNonce(address) {
-  let isLocked = 0;
-  while (isLocked === 0) {
-    isLocked = await redisClient.setnx(PAYER_NONCE_LOCK_NAMESPACE + address, 1);
-  }
-}
-
-async function unlockPayerNonce(address) {
-  await redisClient.del(PAYER_NONCE_LOCK_NAMESPACE + address);
 }
 
 async function getNextPayerNonce(address) {
@@ -405,10 +394,8 @@ module.exports = {
   addNewAvnTransaction,
   addFailedAvnTransaction,
   getAvnTransaction,
-  lockRelayerNonce,
-  unlockRelayerNonce,
-  lockPayerNonce,
-  unlockPayerNonce,
+  lock,
+  unlock,
   getNextNonce,
   getNextPayerNonce,
   setNextNonce,

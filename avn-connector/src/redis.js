@@ -221,15 +221,16 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
   return result;
 }
 
-async function lockRelayerNonce(senderAddress) {
+async function lockRelayerNonce(relayerAddress) {
   let isLocked = 0;
   while (isLocked === 0) {
-    isLocked = await redisClient.setnx(RELAYER_NONCE_LOCK_NAMESPACE + senderAddress, 1);
+    isLocked = await redisClient.setnx(RELAYER_NONCE_LOCK_NAMESPACE + relayerAddress, 1);
   }
+  return;
 }
 
-async function unlockRelayerNonce(senderAddress) {
-  await redisClient.del(RELAYER_NONCE_LOCK_NAMESPACE + senderAddress);
+async function unlockRelayerNonce(relayerAddress) {
+  await redisClient.del(RELAYER_NONCE_LOCK_NAMESPACE + relayerAddress);
 }
 
 async function getNextNonce(senderAddress) {
@@ -246,6 +247,7 @@ async function lockPayerNonce(payerAddress) {
   while (isLocked === 0) {
     isLocked = await redisClient.setnx(PAYER_NONCE_LOCK_NAMESPACE + payerAddress, 1);
   }
+  return;
 }
 
 async function unlockPayerNonce(senderAddress) {

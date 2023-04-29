@@ -83,7 +83,7 @@ async function setNextPayerNonce(requestId, payerAddress, nonce) {
     await redis.setNextPayerNonce(payerAddress, nonce);
     log.trace(`${requestId} - Payment nonce updated`);
   } catch (err) {
-    log.error(`${requestId} - Error updating payment nonce: `, err);
+    log.error({message: `${requestId} - Error updating payment nonce`, err});
   }
 }
 
@@ -104,7 +104,7 @@ async function poll(requestId) {
 
     return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex, senderNonce: tx.senderNonce };
   } catch (error) {
-    log.error(`${requestId} - Error getting transaction status: ${error}`);
+    log.error({message: `${requestId} - Error getting transaction status`, error});
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);
   }
 }
@@ -258,11 +258,11 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace(`${requestId} - Relayer address: ${relayerAddress}`);
     relayerAccount = await getRelayerAccount(relayerAddress);
   } catch (err) {
-    log.error(`${requestId} - Error getting relayer account for ${relayerAddress}: ${err}`);
+    log.error({message: `${requestId} - Error getting relayer account for ${relayerAddress}`, err});
     throw err;
   }
 
-  log.trace(`${requestId} - encodedTransaction: `, txn);
+  log.trace(`${requestId} - encodedTransaction: ${txn}`);
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);
@@ -283,7 +283,10 @@ async function signAndSend(requestId, relayerAddress, txn) {
 
   } catch (err) {
     transactionHash = keccakAsHex(requestId);
-    log.error(`${requestId} - Failed sending transaction using relayer nonce: ${nonce}, transaction hash: ${transactionHash}, error: `, err);
+    log.error({
+      message: `${requestId} - Failed sending transaction using relayer nonce: ${nonce}, transaction hash: ${transactionHash}`,
+      err
+    });
 
     await redis.addFailedAvnTransaction(
       requestId,
@@ -312,7 +315,7 @@ async function addNewTransaction(requestId) {
   if (!requestId) throw new Error("addNewTransaction - RequestId is mandatory");
     const requestIdHash = keccakAsHex(requestId);
 
-    log.trace(`${requestId} - Adding a new transaction. txHash: ${requestIdHash}`)
+    log.trace(`${requestId} - Adding a new transaction. txHash: ${requestIdHash}`);
     await redis.addNewAvnTransaction(requestId, requestIdHash);
 }
 
@@ -450,12 +453,12 @@ async function getPayerPaymentNonce(requestId, payerAddress) {
     let nonce = await redis.getNextPayerNonce(payerAddress);
     if (!nonce) {
       nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
-      log.trace(`${requestId} - Nonce expired, refreshing from chain. New nonce: `, nonce);
+      log.trace(`${requestId} - Nonce expired, refreshing from chain. New nonce: ${nonce}`);
     }
     log.trace(`${requestId} - Payer ${payerAddress}, payment nonce: ${nonce}`)
     return nonce;
   } catch (err) {
-    log.error(`${requestId} - Error getting payer (${payerAddress}) payment nonce: `, err);
+    log.error({message: `${requestId} - Error getting payer (${payerAddress}) payment nonce`, err});
 
     throw err;
   }

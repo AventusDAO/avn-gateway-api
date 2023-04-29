@@ -176,12 +176,12 @@ async function sendAvnTx(request) {
 
   switch (txType) {
     case 'avnProxy':
-      logger.info(`${requestId} - Processing new transaction from queue: `, request);
+      logger.info(`${requestId} - Processing new transaction from queue: ${JSON.stringify(request)}`);
       const { palletName, method, params } = request;
 
       if (isSplitFeeTransaction(request)) {
         const paymentNonce = await avn.getPayerPaymentNonce(requestId, request.params.splitFeePayerAddress);
-        logger.trace(`${requestId} - Split fee transaction. Payment nonce: `, paymentNonce);
+        logger.trace(`${requestId} - Split fee transaction. Payment nonce: ${paymentNonce}`);
 
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, paymentNonce);
         params.paymentNonce = paymentNonce;
@@ -191,7 +191,7 @@ async function sendAvnTx(request) {
       logger.info(`${requestId} - Processing completed. Result: ${JSON.stringify(result)}`);
       break;
     case 'avnProcessLifts':
-      logger.info(`${requestId} - Processing lift transaction from queue: `, request);
+      logger.info(`${requestId} - Processing lift transaction from queue: ${JSON.stringify(request)}`);
       const { toBlock, unprocessedLifts } = request;
       result = await avn.processLifts(requestId, toBlock, unprocessedLifts);
       logger.info(`${requestId} - Processing completed. Result: ${JSON.stringify(result)}`);

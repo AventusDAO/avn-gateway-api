@@ -106,7 +106,7 @@ async function processRequest(mqChannel, request) {
 }
 
 async function callSwitch(call, mqChannel, request, requestId) {
-  console.info(`Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
+  console.info(`${requestId} - Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
 
   switch (call.method) {
     case 'proxyAvtTransfer':

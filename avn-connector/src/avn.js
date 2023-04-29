@@ -262,7 +262,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     throw err;
   }
 
-  log.trace(`${requestId} - encodedTransaction: ${txn}`);
+  log.trace(`${requestId} - encodedTransaction: ${txn.toString()}`);
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);

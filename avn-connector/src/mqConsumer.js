@@ -116,6 +116,7 @@ async function processMessage(channel, queue) {
             channel.ack(message);
             resolve();
           } catch (err) {
+            logger.error({message: `Error processing message from RabbitMQ:`, err});
             channel.nack(message, allUpTo, requeue);
             reject();
           }

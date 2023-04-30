@@ -103,8 +103,8 @@ async function poll(requestId) {
     }
 
     return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex, senderNonce: tx.senderNonce };
-  } catch (error) {
-    log.error({message: `${requestId} - Error getting transaction status`, error});
+  } catch (err) {
+    log.error({message: `${requestId} - Error getting transaction status`, err});
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);
   }
 }

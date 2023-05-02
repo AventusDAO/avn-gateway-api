@@ -106,7 +106,7 @@ async function processRequest(mqChannel, request) {
 }
 
 async function callSwitch(call, mqChannel, request, requestId) {
-  console.info(`Processing call: ${call.method}`);
+  console.info(`${requestId} - Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
 
   switch (call.method) {
     case 'proxyAvtTransfer':
@@ -155,7 +155,7 @@ async function processProxyTransfer(call, mqChannel, request, requestId) {
   let { user, recipient, token, amount, relayer, nonce, proxySignature } = call.params;
   const methodParams = [user, recipient, token, amount];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.token, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.token, user);
 
   const signData = [
     { Text: 'authorization for transfer operation' },
@@ -186,7 +186,7 @@ async function processProxyAddEthereumLog(call, mqChannel, request, requestId) {
   let { eventType, ethereumTransactionHash, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [eventType, ethereumTransactionHash];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.confirmation, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.confirmation, user);
 
   const signData = [
     { Text: 'authorization for add ethereum log operation' },
@@ -213,7 +213,7 @@ async function processProxyTokenLower(call, mqChannel, request, requestId) {
   let { user, token, amount, t1Recipient, relayer, nonce, proxySignature } = call.params;
   const methodParams = [user, token, amount, t1Recipient];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.token, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.token, user);
 
   const signData = [
     { Text: 'authorization for lower operation' },
@@ -244,7 +244,7 @@ async function processProxyCreateNftBatch(call, mqChannel, request, requestId) {
   let { totalSupply, royalties, t1Authority, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [totalSupply, royalties, t1Authority];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.batch, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.batch, user);
 
   const signData = [
     { Text: 'authorization for create batch operation' },
@@ -273,7 +273,7 @@ async function processProxyCancelListFiatNft(call, mqChannel, request, requestId
   let { nftId, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nftId];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.nft, nftId);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.nft, nftId);
 
   const signData = [
     { Text: 'authorization for cancel list fiat nft for sale operation' },
@@ -298,7 +298,7 @@ async function processProxyEndNftBatchSale(call, mqChannel, request, requestId) 
   let { batchId, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [batchId];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.batch, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.batch, user);
 
   const signData = [
     { Text: 'authorization for end batch sale operation' },
@@ -323,7 +323,7 @@ async function processProxyListNftOpenForSale(call, mqChannel, request, requestI
   let { nftId, market, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nftId, market];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.nft, nftId);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.nft, nftId);
 
   const signData = [
     { Text: 'authorization for list nft open for sale operation' },
@@ -350,7 +350,7 @@ async function processProxyListNftBatchForSale(call, mqChannel, request, request
   let { batchId, market, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [batchId, market];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.batch, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.batch, user);
 
   const signData = [
     { Text: 'authorization for list batch for sale operation' },
@@ -431,7 +431,7 @@ async function processProxyTransferFiatNft(call, mqChannel, request, requestId) 
   let { nftId, recipient, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [nftId, recipient];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.nft, nftId);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.nft, nftId);
 
   const signData = [
     { Text: 'authorization for transfer fiat nft operation' },
@@ -458,7 +458,7 @@ async function processProxyStakeAvt(call, mqChannel, request, requestId) {
   let { targets, amount, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [targets, amount];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.staking, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for nominate operation' },
@@ -486,7 +486,7 @@ async function processProxyIncreaseStake(call, mqChannel, request, requestId) {
   let { amount, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [amount];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.staking, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for nominator bond extra operation' },
@@ -511,7 +511,7 @@ async function processProxyUnstake(call, mqChannel, request, requestId) {
   let { amount, relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [amount];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.staking, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for scheduling nominator unbond operation' },
@@ -536,7 +536,7 @@ async function processProxyWithdrawUnlocked(call, mqChannel, request, requestId)
   let { relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [user];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.staking, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for executing nomination requests operation' },
@@ -561,7 +561,7 @@ async function processProxyScheduleLeaveNominators(call, mqChannel, request, req
   let { relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.staking, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for scheduling leaving nominators operation' },
@@ -584,7 +584,7 @@ async function processProxyExecuteLeaveNominators(call, mqChannel, request, requ
   let { relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [user];
 
-  if (!nonce) nonce = await queryNonce(call.id, utils.NONCE_INFO.staking, user);
+  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for executing leave nominators operation' },
@@ -603,11 +603,15 @@ async function processProxyExecuteLeaveNominators(call, mqChannel, request, requ
   return await processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams);
 }
 
-async function queryNonce(callId, nonceInfo, nonceKey) {
+//TODO: Fix me. We should not read the nonce from the chain because we risk getting duplicate values for different tx's
+async function queryNonce(requestId, nonceInfo, nonceKey) {
   const { palletName, storageName } = nonceInfo;
-  const params = { callId, palletName, storageName, params: [nonceKey] };
+  console.log(`${requestId} - Refreshing nonce from chain for ${palletName}.${storageName} - ${nonceKey}`);
+  const params = { requestId, palletName, storageName, params: [nonceKey] };
   const result = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', params);
-  return storageName === 'nfts' ? utils.toBnString(result.data.nonce) : utils.toBnString(result.data);
+  const nonce =  storageName === 'nfts' ? utils.toBnString(result.data.nonce) : utils.toBnString(result.data);
+  console.log(`${requestId} - new nonce: ${nonce}`);
+  return nonce;
 }
 
 async function processProxyMethod(call, mqChannel, request, requestId, pallet, method, methodParams) {

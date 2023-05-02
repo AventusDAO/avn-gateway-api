@@ -116,6 +116,7 @@ async function processMessage(channel, queue) {
             channel.ack(message);
             resolve();
           } catch (err) {
+            logger.error({message: `Error processing message from RabbitMQ:`, err});
             channel.nack(message, allUpTo, requeue);
             reject();
           }
@@ -176,25 +177,25 @@ async function sendAvnTx(request) {
 
   switch (txType) {
     case 'avnProxy':
-      logger.trace({ sendAvnTxRequest: request });
+      logger.info(`${requestId} - Processing new transaction from queue: ${JSON.stringify(request)}`);
       const { palletName, method, params } = request;
 
       if (isSplitFeeTransaction(request)) {
-        const paymentNonce = await avn.getPayerPaymentNonce(request.params.splitFeePayerAddress);
-        logger.trace('Processing split fee transaction. Payment nonce: ', paymentNonce);
+        const paymentNonce = await avn.getPayerPaymentNonce(requestId, request.params.splitFeePayerAddress);
+        logger.trace(`${requestId} - Split fee transaction. Payment nonce: ${paymentNonce}`);
 
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, paymentNonce);
         params.paymentNonce = paymentNonce;
       }
 
       result = await avn.proxy(requestId, palletName, method, params);
-      logger.info({ proxyRequestId: requestId, result: JSON.stringify(result) });
+      logger.info(`${requestId} - Processing completed. Result: ${JSON.stringify(result)}`);
       break;
     case 'avnProcessLifts':
-      logger.trace({ processingLifts: request });
+      logger.info(`${requestId} - Processing lift transaction from queue: ${JSON.stringify(request)}`);
       const { toBlock, unprocessedLifts } = request;
       result = await avn.processLifts(requestId, toBlock, unprocessedLifts);
-      logger.info({ requestId, result: JSON.stringify(result) });
+      logger.info(`${requestId} - Processing completed. Result: ${JSON.stringify(result)}`);
       break;
     default:
       throw Error('Transaction type not supported');

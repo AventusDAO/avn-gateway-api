@@ -66,7 +66,7 @@ async function processFailedMessage(message) {
   try {
     await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', { requestId: requestId });
   } catch (err) {
-    const errorMessage = `Failed to set status of requestId ${requestId} as 'SendingFailed':${err.toString()}`;
+    const errorMessage = `Failed to set status of requestId ${requestId} as 'SendingFailed': ${err.toString()}`;
     console.error(errorMessage);
 
     return {

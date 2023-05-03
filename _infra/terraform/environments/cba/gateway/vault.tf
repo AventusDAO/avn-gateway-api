@@ -20,7 +20,7 @@ resource "aws_secretsmanager_secret" "vault" {
 }
 
 module "avn-vault" {
-  source                  = "git@github.com:Aventus-Network-Services/avn-vault-infrastructure//terraform-module/avn-vault?ref=1.3.0"
+  source                  = "git@github.com:Aventus-Network-Services/avn-vault-infrastructure//terraform-module/avn-vault?ref=2.0.0"
   name                    = local.environment
   project                 = "avn-gateway"
   ssh-key                 = "technical-account-vault"
@@ -33,6 +33,7 @@ module "avn-vault" {
   tls_cert_subdomain      = "vault"
   dynamodb_table_name     = "avn-gw-vault-${local.environment}-db"
   avn-ingress-ports       = []
+  ami_image_id            = "ami-0a8e758f5e873d1c1"
 }
 
 module "bastion" {
@@ -41,6 +42,7 @@ module "bastion" {
   ssh_key_name     = aws_key_pair.vault-ssh-key.key_name
   public_subnet_id = data.terraform_remote_state.vpc.outputs.primary_public_subnet.id
   ssh_allowed_ips  = local.ssh_allowed_ips
+  ami_image_id     = "ami-0a8e758f5e873d1c1"
 }
 
 resource "local_file" "avn-gateway-vault-instance-file" {

@@ -151,6 +151,16 @@ app.get('/unprocessedLifts', async (req, res, next) => {
   }
 });
 
+app.post('/ethereumEventStatus', async (req, res, next) => {
+  try {
+    log.trace({ ethereumEventStatusRequest: req.body });
+    const result = await avn.ethereumEventStatus(req.body.ethTransactionHash);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/avnTotalToken', async (req, res, next) => {
   try {
     log.trace({ avnTotalTokenRequest: req.body });
@@ -210,7 +220,6 @@ app.post('/isPayerTransaction', async (req, res, next) => {
     next(err);
   }
 });
-
 
 app.post('/addNewTransactionStatus', async (req, res, next) => {
   try {

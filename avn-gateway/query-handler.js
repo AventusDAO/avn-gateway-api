@@ -78,6 +78,8 @@ async function callSwitch(call, request) {
       return await getCurrentBlock(call, request);
     case 'getChainInfo':
       return await getChainInfo(call, request);
+    case 'getEthereumEventStatus':
+      return await getEthereumEventStatus(call, request);
 
     default:
       return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -259,6 +261,15 @@ async function queryAccountInfoFromChain(call, request, accountId) {
   const params = { callId: call.id, accountId };
 
   return await query(call, request, method, params);
+}
+
+async function getEthereumEventStatus(call, request) {
+  const method = 'ethereumEventStatus';
+  let { liftStatus } = (await query(call, request, method)).data;
+
+  console.info(`Checked Ethereum event status: ${liftStatus}`);
+
+  return liftStatus;
 }
 
 async function queryValidatorsToNominateFromChain(call, request) {

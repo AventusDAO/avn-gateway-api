@@ -3,7 +3,7 @@ The setup of the authorisation, layers, lambdas and routes of a gateway is handl
 
 For serverless properties see: https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml
 
-Each environment has its own variables which can be set in the other `*.yml` files (eg: `sandbox.yml`)
+Each environment has its own variables which can be set in the other `*.yml` files (eg: `cba-uat.yml`)
 
 Layers (code shared between lambdas) are contained in folders (eg: `common/`)
 
@@ -20,11 +20,11 @@ Set up AWS credentials if required: https://www.serverless.com/framework/docs/pr
 ## Development
 1) Ensure the node modules in any layer folders (eg: `common/` or `queue/`) are up-to-date by running `npm i` in them.
 
-2) Set the environment variable `SLS_ENV` to point to the environment you'll be deploying to (eg: `export SLS_ENV=sandbox`)
+2) Set the environment variable `SLS_ENV` to point to the environment you'll be deploying to (eg: `export SLS_ENV=cba-uat`)
 
 3) Ensure you've set the correct AWS environment variables for your environment in your terminal by copying them from here:
 https://aventus-network-services.awsapps.com/start#/
-(eg: `AWS Account > AVN Sandbox > AdministratorAccess > Command line or programmatic access > Option 1 - "Click to copy these commands"`)
+(eg: `AWS Account > Development > AdministratorAccess > Command line or programmatic access > Option 1 - "Click to copy these commands"`)
 
 4) Push your changes to AWS:
 

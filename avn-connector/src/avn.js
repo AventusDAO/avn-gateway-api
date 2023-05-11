@@ -223,6 +223,7 @@ async function ethereumEventStatus(transactionHash) {
     UNCHECKED_LIFT: 'UncheckedLift',
     PENDING_VALIDATION: 'PendingValidation',
     LIFT_PROCESSED: 'LiftProcessed',
+    LIFT_NOT_FOUND: 'LiftNotFound'
   };
 
   const { avnContract } = await getChainInfo();
@@ -230,7 +231,7 @@ async function ethereumEventStatus(transactionHash) {
 
   const liftEvent = liftEvents.find(liftEvent => liftEvent[1] === transactionHash);
 
-  let liftStatus = liftStatusesEnum.AWAITING_TO_RECEIVE;
+  let liftStatus = liftStatusesEnum.LIFT_NOT_FOUND;
 
   if (!liftEvent) {
     return {
@@ -251,7 +252,7 @@ async function ethereumEventStatus(transactionHash) {
     }
   );
 
-  if (liftStatus !== liftStatusesEnum.AWAITING_TO_RECEIVE) {
+  if (liftStatus !== liftStatusesEnum.LIFT_NOT_FOUND) {
     return {
       transactionHash,
       liftStatus
@@ -265,6 +266,11 @@ async function ethereumEventStatus(transactionHash) {
       transactionHash,
       liftStatus
     };
+  }
+  
+  return {
+    transactionHash,
+    liftStatus: liftStatusesEnum.AWAITING_TO_RECEIVE
   }
 }
 

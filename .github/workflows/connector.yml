@@ -1,6 +1,7 @@
 name: avn-connector
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
@@ -18,57 +19,31 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: avn-connector
 
 jobs:
-  connector:
-    runs-on: ubuntu-latest
-    name: package avn-connector image
-    steps:
-      - uses: actions/checkout@v2
+  avn-docker-connector:
+    name: (AVN) build docker connector
+    uses: ./.github/workflows/docker-build.yaml
+    with:
+      aws_region: eu-west-2
+      aws_account_id: 189013141504
+      context: avn-connector
+      short_image_name: avn-connector
+      ecr_repository_prefix: gateway-api
+    secrets:
+      aws_access_key: ${{ secrets.TESTNET_AWS_ACCESS_KEY_ID }}
+      aws_secret_key: ${{ secrets.TESTNET_AWS_SECRET_ACCESS_KEY }}
 
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '15'
 
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Create tag for PR
-        if: github.ref != 'refs/heads/main'
-        run: echo "DOCKER_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Create tag for merge
-        if: github.ref == 'refs/heads/main'
-        run: echo "DOCKER_TAG=${GITHUB_SHA::7},latest" >> $GITHUB_ENV
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.TESTNET_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.TESTNET_AWS_SECRET_ACCESS_KEY }}
-          aws-region: "eu-west-2"
-
-      - name: Login to ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-        # save registry URL in env
-      - run: echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
-
-      - name: Build and push Docker image
-        uses: whoan/docker-build-with-cache-action@v5
-        env:
-          SHORT_IMAGE_NAME: avn-connector
-          ECR_REPOSITORY_PREFIX: gateway-api
-        with:
-          image_name: ${{ env.ECR_REPOSITORY_PREFIX }}/${{ env.SHORT_IMAGE_NAME }}
-          stages_image_name: ${{ env.ECR_REPOSITORY_PREFIX }}/${{ env.SHORT_IMAGE_NAME }}-stages
-          push_git_tag: true
-          image_tag: ${{ env.DOCKER_TAG }}
-          registry: ${{ env.ECR_REGISTRY }}
-          context: avn-connector/
-          build_extra_args: --compress=true
+  ew-docker-connector:
+    name: (EW) build docker connector
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/docker-build.yaml
+    with:
+      runner: avn-runner
+      config_creds: false
+      aws_region: us-east-1
+      aws_account_id: 541507968610
+      context: avn-connector
+      short_image_name: connector
+      ecr_repository_prefix: gateway

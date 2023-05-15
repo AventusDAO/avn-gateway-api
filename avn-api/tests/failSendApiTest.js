@@ -272,13 +272,13 @@ const BN = helper.BN;
           testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
-        xit('With user that doesnt own this nft', async () => {
+        it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
           );
         });
-        xit('With an NFT that is already listed', async () => {
+        it('With an NFT that is already listed', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
@@ -311,13 +311,13 @@ const BN = helper.BN;
           testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
-        xit('With user that doesnt own this nft', async () => {
+        it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
           );
         });
-        xit('With an NFT that is not listed', async () => {
+        it('With an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
@@ -344,13 +344,13 @@ const BN = helper.BN;
           testConfig.selectionField = 'nftId';
           await testPatterns.invalidNftId(testConfig);
         });
-        xit('With user that doesnt own this nft', async () => {
+        it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/
           );
         });
-        xit('with an NFT that is not listed', async () => {
+        it('with an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
             /Error processing query/

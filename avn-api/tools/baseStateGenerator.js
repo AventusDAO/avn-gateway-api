@@ -90,7 +90,7 @@ const royalties = [
   };
 
   let gatewayFile = argv.gateway;
-  const configPath = gatewayFile ? `../config/environments/${gatewayFile}.json` : '../config/environments/sandbox.json';
+  const configPath = gatewayFile ? `../config/environments/${gatewayFile}.json` : '../config/environments/uat.json';
   const resolvedPath = path.resolve(__dirname, configPath);
 
   const jsonString = fs.readFileSync(resolvedPath);

@@ -36,14 +36,14 @@ describe('Access rights:', async () => {
   });
 
   afterEach(async () => {
-    api.setSURI(userSURI);
+    await api.setSURI(userSURI);
   });
 
   describe('setSURI', async () => {
     it('can set SURI via the api', async () => {
       assert.equal(api.myAddress(), user);
       assert.equal(api.signer().address, user);
-      api.setSURI(newUserSURI);
+      await api.setSURI(newUserSURI);
       assert.equal(api.myAddress(), newUser);
       assert.equal(api.signer().address, newUser);
     });
@@ -58,36 +58,36 @@ describe('Access rights:', async () => {
 
   describe('accessing the gateway', async () => {
     it('a new user cannot access the gateway without AVT', async () => {
-      api.setSURI(newUserSURI);
+      await api.setSURI(newUserSURI);
       assert.equal(await canAccessTheGateway(), false);
 
       // Transfer the new user enough AVT for entry
-      api.setSURI(userSURI);
+      await api.setSURI(userSURI);
       const requestId = await api.send.transferAvt(newUser, ONE_AVT.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
       assert.equal(await api.query.getAvtBalance(newUser), ONE_AVT.toString());
 
-      api.setSURI(newUserSURI);
+      await api.setSURI(newUserSURI);
       assert.equal(await canAccessTheGateway(), true);
     });
 
     it('an existing user can access the gateway without AVT', async () => {
-      api.setSURI(userSURI);
+      await api.setSURI(userSURI);
       let requestId = await api.send.transferAvt(existingUser, ONE_AVT.toString());
       await helper.confirmStatus(api, requestId, 'Processed');
       assert.equal(await api.query.getAvtBalance(existingUser), ONE_AVT.toString());
 
-      api.setSURI(existingUserSURI);
+      await api.setSURI(existingUserSURI);
       const relayerFee = await api.query.getRelayerFees(relayer, existingUser, 'proxyTokenTransfer');
       requestId = await api.send.transferAvt(user, ONE_AVT.sub(new BN(relayerFee)).toString());
       await helper.confirmStatus(api, requestId, 'Processed');
 
-      api.setSURI(userSURI); // this ensures the AWT token is refreshed
+      await api.setSURI(userSURI); // this ensures the AWT token is refreshed
       assert.equal(await api.query.getAvtBalance(existingUser), '0'); // confirm existingUser now holds no AVT
       assert((await api.query.getNonce(existingUser, 'payment')) > 0);
       assert((await api.query.getNonce(existingUser, 'token')) > 0);
 
-      api.setSURI(existingUserSURI);
+      await api.setSURI(existingUserSURI);
       assert.equal(await canAccessTheGateway(), true);
     });
   });

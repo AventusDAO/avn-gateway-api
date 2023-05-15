@@ -7,7 +7,7 @@ const utils = require('./utils.js');
 const MAX_TOKEN_AGE_MSEC = 600000;
 const SIGNING_CONTEXT = 'awt_gateway_api';
 
-function generateAwtPayload(signer, issuedAt, options) {
+async function generateAwtPayload(signer, issuedAt, options) {
   const avnPublicKey = u8aToHex(signer.publicKey);
 
   let hasPayer = false;
@@ -23,7 +23,7 @@ function generateAwtPayload(signer, issuedAt, options) {
   }
 
   const encodedData = encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt, hasPayer, payerAddress);
-  const signature = signer.sign(encodedData);
+  const signature = await signer.sign(encodedData);
 
   return {
     pk: avnPublicKey,
@@ -34,8 +34,8 @@ function generateAwtPayload(signer, issuedAt, options) {
   };
 }
 
-function generateAwtToken(options, signer) {
-  let payload = generateAwtPayload(signer, new Date().toISOString(), options);
+async function generateAwtToken(options, signer) {
+  let payload = await generateAwtPayload(signer, new Date().toISOString(), options);
   return generateAwtTokenFromPayload(payload);
 }
 

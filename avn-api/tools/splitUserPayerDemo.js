@@ -19,13 +19,13 @@ async function main() {
 
   // The user retrieves their token nonce,
   // then uses the api in offline mode to generate a signature for the transfer they wish to make
-  api.setSURI(user.seed);
+  await api.setSURI(user.seed);
   let userTokenNonce = await jsonRpcRequest('query', 'getNonce', { accountId: user.address, nonceType: 'token' });
   let userProxySignature = userGeneratedProxyTokenTransferSignature(userTokenNonce);
 
   // We switch to the payer who takes the transfer signature the user generated,
   // gets their own fee and payment nonce, and then generates a payment signature using the api in offline mode
-  api.setSURI(payer.seed);
+  await api.setSURI(payer.seed);
   let relayerFeeForPayer = await jsonRpcRequest('query', 'getRelayerFees', {
     relayer: relayer.address,
     user: payer.address,
@@ -35,7 +35,7 @@ async function main() {
   let payerFeePaymentSignature = payerGeneratedFeePaymentSignature(userProxySignature, relayerFeeForPayer, payerPaymentNonce);
 
   // No further signing required
-  api.setSURI(null);
+  await api.setSURI(null);
 
   const proxyTokenTransferParams = {
     relayer: relayer.address,
@@ -53,7 +53,7 @@ async function main() {
   await jsonRpcRequest('send', 'proxyTokenTransfer', proxyTokenTransferParams);
   await sleep(10 * 1000);
   await logBalances('\nBALANCES AFTER');
-  api.setSURI(user.seed);
+  await api.setSURI(user.seed);
 }
 
 function userGeneratedProxyTokenTransferSignature(nonce) {
@@ -90,7 +90,7 @@ async function logBalances(heading) {
 }
 
 async function jsonRpcRequest(path, method, params) {
-  const awtToken = api.awt.generateAwtToken(payer.seed); // payer generates all the AWT request tokens to access the gateway
+  const awtToken = await api.awt.generateAwtToken(payer.seed); // payer generates all the AWT request tokens to access the gateway
   const url = `${gateway}/${path}`;
   const body = { jsonrpc: '2.0', id: requestId++, method, params };
   const headers = { 'content-type': 'application/json', Authorization: `bearer ${awtToken}` };

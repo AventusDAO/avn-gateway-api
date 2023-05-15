@@ -29,25 +29,9 @@ defaults:
     working-directory: avn-gateway
 
 jobs:
-  version-suffix:
-    runs-on: ubuntu-latest
-    name: Generate version suffix
-    outputs:
-      version: ${{ steps.suffix.outputs.version }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Create github sha short version
-        run: echo "VERSION_SUFFIX=${GITHUB_SHA::7}" >> $GITHUB_ENV
-
-      - name: output version suffix
-        id: suffix
-        run: echo ::set-output name=version::"${{ env.VERSION_SUFFIX }}"
-
   package:
     runs-on: ubuntu-latest
     name: package lambda functions
-    needs: [version-suffix]
     steps:
       - uses: actions/checkout@v2
 
@@ -64,7 +48,7 @@ jobs:
 
       - name: Package Function
         run: |
-          SLS_ENV=cba-uat make package version=${{ needs.version-suffix.outputs.version }}
+          SLS_ENV=cba-uat make package version=${GITHUB_SHA::7}
 
       - name: create latest version
         run: |
@@ -86,25 +70,65 @@ jobs:
 
       - name: create Short sha version
         run: |
-          cp build/${{ env.POLL }}/${{ env.POLL }}-latest.zip build/${{ env.POLL }}/${{ env.POLL }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.SEND }}/${{ env.SEND }}-latest.zip build/${{ env.SEND }}/${{ env.SEND }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip build/${{ env.QUERY }}/${{ env.QUERY }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-latest.zip build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip build/${{ env.COMMON }}/${{ env.COMMON }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.VOTE }}/${{ env.VOTE }}-latest.zip build/${{ env.VOTE }}/${{ env.VOTE }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip build/${{ env.LOWER }}/${{ env.LOWER }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-latest.zip build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-latest.zip build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-${{ needs.version-suffix.outputs.version }}.zip
-          cp build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-latest.zip build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-${{ needs.version-suffix.outputs.version }}.zip
+          cp build/${{ env.POLL }}/${{ env.POLL }}-latest.zip build/${{ env.POLL }}/${{ env.POLL }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.SEND }}/${{ env.SEND }}-latest.zip build/${{ env.SEND }}/${{ env.SEND }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip build/${{ env.QUERY }}/${{ env.QUERY }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-latest.zip build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip build/${{ env.COMMON }}/${{ env.COMMON }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.VOTE }}/${{ env.VOTE }}-latest.zip build/${{ env.VOTE }}/${{ env.VOTE }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip build/${{ env.LOWER }}/${{ env.LOWER }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-latest.zip build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-latest.zip build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-${GITHUB_SHA::7}.zip
+          cp build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-latest.zip build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-${GITHUB_SHA::7}.zip
 
-      - name: Upload to S3
-        uses: jakejarvis/s3-sync-action@v0.5.1
-        env:
-          AWS_S3_BUCKET: ${{ secrets.AWS_ARTIFACT_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
-          AWS_REGION: 'eu-west-1'
-          SOURCE_DIR: "avn-gateway/build"
+      - name: Upload lambdas to cache
+        uses: actions/upload-artifact@v3
+        with:
+          name: avn-gateway
+          path: avn-gateway/build/
+
+
+  upload-avn:
+    runs-on: ubuntu-latest
+    needs:  [package]
+    name: Upload lambdas to avn s3 bucket
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: avn-gateway
+        path: avn-gateway/build/
+
+    - name: Upload to S3
+      uses: jakejarvis/s3-sync-action@v0.5.1
+      env:
+        AWS_S3_BUCKET: ${{ secrets.AWS_ARTIFACT_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
+        AWS_REGION: 'eu-west-1'
+        SOURCE_DIR: "avn-gateway/build"
+
+  upload-ew:
+    runs-on: avn-runner
+    needs:  [package]
+    name: Upload lambdas to EW s3 bucket
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: avn-gateway
+        path: avn-gateway/build/
+
+    - name: Upload to S3
+      run: |
+        aws s3 sync build/. s3://ewx-internal-artefact/gateway-lambdas
+
+  cleanup-artifacts:
+    runs-on: ubuntu-latest
+    needs:  [ upload-avn, upload-ew ]
+    if: always()
+    steps:
+      - uses: geekyeggo/delete-artifact@v2
+        with:
+          name: avn-gateway

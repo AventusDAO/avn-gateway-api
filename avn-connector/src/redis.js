@@ -17,12 +17,14 @@ const transactionStatus = {
   Processed: 'Processed',
   Rejected: 'Rejected',
   SendingFailed: 'SendingFailed',
-  PayerRefused: 'PayerRefused'
+  PayerRefused: 'PayerRefused',
+  AwaitingToSend: 'AwaitingToSend'
 };
 
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
+const PAYER_NONCE_NAMESPACE = 'pn.'
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
@@ -44,9 +46,9 @@ const PENDING_TX_KEY = {
   NEXT: `${SLOT_PREFIX}nTx`
 };
 
-const MAX_PENDING_TX_TO_CHECK = 100;
-const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 10;
-const NONCE_EXPIRY_IN_SECONDS = 5;
+const MAX_PENDING_TX_TO_CHECK = 250;
+const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 5;
+const NONCE_EXPIRY_IN_SECONDS = 120;
 const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
 const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
@@ -96,12 +98,36 @@ function getKey(key) {
   return `${SLOT_PREFIX}${key}`;
 }
 
+// There is no transaction hash at this point, so use a hash of the request Id
+async function addNewAvnTransaction(requestId, requestIdHash) {
+  const transactionHashKey = getKey(requestIdHash);
+
+  log.trace(`[addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
+
+  if (await redisClient.exists(transactionHashKey)) {
+    log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
+    return;
+  }
+
+  const requestIdKey = getKey(requestId);
+  await redisClient
+    .multi()
+    .hset(transactionHashKey, buildTransactionJson(undefined, undefined, transactionStatus.AwaitingToSend))
+    .set(requestIdKey, requestIdHash)
+    .exec();
+
+}
+
 async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce, reason) {
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const requestIdKey = getKey(requestId);
 
+  log.trace(`[addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`);
+
   if (await redisClient.exists(txHashOrRequestIdKey)) {
-    throw new Error(`Key (${txHashOrRequestIdKey}) exists already, cannot add duplicate value.`);
+    log.warn(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
+    await redisClient.hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, reason));
+    return;
   }
 
   await redisClient
@@ -111,13 +137,13 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
     .exec();
 }
 
-async function addPendingAvnTransaction(requestId, transactionHash, senderAddress, senderNonce) {
+// When a transaction is pending, it will have a txHash for the first time.
+// This function should not be exposed outside the connector
+async function updateTransactionStatusToPending(requestId, transactionHash, senderAddress, senderNonce) {
   const transactionHashKey = getKey(transactionHash);
   const requestIdKey = getKey(requestId);
 
-  if (await redisClient.exists(transactionHashKey)) {
-    throw new Error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
-  }
+  log.trace(`[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`);
 
   await redisClient
     .multi()
@@ -154,7 +180,13 @@ async function resolvePendingAvnTransactions(transactions) {
     newValue[transactionObject.blockNumber] = tx.blockNumber;
     newValue[transactionObject.transactionIndex] = tx.index;
 
-    await redisClient.multi().hset(transactionHashKey, newValue).zrem(PENDING_TX_KEY.ALL, tx.transactionHash).exec();
+    await redisClient
+      .multi()
+      .hset(transactionHashKey, newValue)
+      .zrem(PENDING_TX_KEY.ALL, tx.transactionHash)
+      .zrem(PENDING_TX_KEY.CHECKING, tx.transactionHash)
+      .zrem(PENDING_TX_KEY.NEXT, tx.transactionHash)
+      .exec();
   }
 }
 
@@ -188,21 +220,21 @@ function buildTransactionJson(senderAddress, senderNonce, status) {
 }
 
 async function getNextNonce(senderAddress) {
-  const nextNonce = await redisClient.incr(NONCE_NAMESPACE + senderAddress);
-  // If the nonce does not exist (or has expired) redis will return an incremented 0 value, i.e.: 1
-  return nextNonce === 1 ? undefined : nextNonce;
+  const nonce = await redisClient.get(NONCE_NAMESPACE + senderAddress);
+  return nonce == null ? undefined : parseInt(nonce);
 }
 
-async function resetNonce(senderAddress) {
-  await redisClient.decr(NONCE_NAMESPACE + senderAddress);
+async function setNextNonce(senderAddress, nonce) {
+  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
 }
 
-async function setNonce(senderAddress, nonce) {
-  await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce);
+async function getNextPayerNonce(payerAddress) {
+  const nonce = await redisClient.get(PAYER_NONCE_NAMESPACE + payerAddress);
+  return nonce == null ? undefined : parseInt(nonce);
 }
 
-function refreshNonce(senderAddress) {
-  redisClient.expire(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS);
+async function setNextPayerNonce(payerAddress, nonce) {
+  await redisClient.setex(PAYER_NONCE_NAMESPACE + payerAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
 }
 
 async function setCollatorsToNominate(collators) {
@@ -346,13 +378,13 @@ async function getLowerData(txHash) {
 
 module.exports = {
   connect,
-  addPendingAvnTransaction,
+  addNewAvnTransaction,
   addFailedAvnTransaction,
   getAvnTransaction,
   getNextNonce,
-  resetNonce,
-  setNonce,
-  refreshNonce,
+  getNextPayerNonce,
+  setNextNonce,
+  setNextPayerNonce,
   getNextTransactionsToCheck,
   resolvePendingAvnTransactions,
   getTransactionHashByRequestId,
@@ -387,5 +419,6 @@ module.exports = {
   setLowerData,
   deleteLowerData,
   getLowerData,
-  transactionStatus
+  transactionStatus,
+  updateTransactionStatusToPending
 };

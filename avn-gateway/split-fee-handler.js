@@ -3,11 +3,10 @@ const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
 
 const sqsClient = new sqs.SQSClient({ region: process.env.SECRET_MANAGER_REGION });
-
 const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
-exports.handler = async event => {
+exports.handler = async (event, context) => {
   let processedMessagesCount = 0;
 
   try {
@@ -20,9 +19,14 @@ exports.handler = async event => {
     }
 
     console.log(`Processing ${event.Records.length} message(s) from queue`);
-
+    let result;
     for (let record of event.Records) {
-      const result = await processRequest(record.body);
+      const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
+      if (timeoutMs > 0) {
+        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body]);
+      } else {
+        throw new Error("Lambda execution exceeded allowed time");
+      }
 
       if (utils.requestFailed(result) === true) {
         // Stop on the first failure because this is a FIFO queue
@@ -61,30 +65,32 @@ async function processRequest(request) {
     requestId = tx.awsRequestId;
   } catch (err) {
     console.error(`Failed to parse message as JSON: `, err);
-    throw err;
+    return utils.buildErrorBody('parse', 'Failed to parse message as JSON', err.toString(), request, null);
   }
 
-  console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
-  validateTransaction(tx);
+  try {
+    console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
+    validateTransaction(tx);
 
-  const feeParams = await fees.getSplitFeePaymentParams(AVN_CONNECTOR_ENDPOINT, tx);
-  const encodedPaymentParams = fees.encodePaymentParams(
-    feeParams.relayer,
-    feeParams.relayerFee,
-    feeParams.paymentNonce,
-    feeParams.proxyProof
-  );
-  const paymentSignature = await signPaymentInfo(tx, encodedPaymentParams, requestId);
+    if (await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method) === false) {
+      // transaction has been rejected by payer, inform user
+      await updateTransactionStatusToRejected(requestId);
+      return;
+    }
 
-  tx.params.payer = tx.splitFeePayerAddress;
-  tx.params.feePaymentSignature = paymentSignature;
-  tx.params.paymentNonce = feeParams.paymentNonce;
+    const relayerFee = await utils.getRelayerFee(AVN_CONNECTOR_ENDPOINT, tx.params.relayer, tx.splitFeePayerAddress, tx.method);
+    tx.params.payer = tx.splitFeePayerAddress;
+    tx.relayerFee = relayerFee;
 
-  const data = await sendMessageToDefaultQueue(tx);
-  console.info(
-    `Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`
-  );
-  return utils.buildValidResponseBody(tx.id, requestId);
+    const data = await sendMessageToDefaultQueue(tx);
+    console.info(
+      `Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`
+    );
+    return utils.buildValidResponseBody(tx.id, requestId);
+  } catch (err) {
+    console.error(`Failed to process message from split fee queue: `, err);
+    return utils.buildErrorBody('request', 'Failed to process message from split fee queue', err.toString(), request, tx.id);
+  }
 }
 
 function validateTransaction(tx) {
@@ -97,16 +103,6 @@ function validateTransaction(tx) {
     if (utils.isValidSignatureFormat(tx.params.proxySignature) === false) throw 'proxy signature format';
   } catch (errParam) {
     throw new Error(`Invalid transaction data: ${errParam}`);
-  }
-}
-async function signPaymentInfo(transaction, encodedParams, requestId) {
-  // validate if the payer is willing to pay for this transaction
-  if (await payerCanPayForTransaction(transaction.splitFeePayerAddress, transaction.method)) {
-    const payerUserName = utils.getPayerVaultUsername(transaction.splitFeePayerVaultId);
-    return await fees.signPaymentInfo(AVN_CONNECTOR_ENDPOINT, encodedParams, payerUserName);
-  } else {
-    // transaction has been rejected by payer, inform user
-    await updateTransactionStatusToRejected(requestId);
   }
 }
 

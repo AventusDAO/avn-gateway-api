@@ -9,7 +9,7 @@ pipeline {
     booleanParam( defaultValue: false, description: 'Whether or not deploy the instance of vault', name: 'deploy')
     booleanParam( defaultValue: false, description: 'Attempt to initialise the instance of vault', name: 'vault_init')
     booleanParam( defaultValue: false, description: 'Attempt to setup avn-vault module and application roles', name: 'setup_avn_vault')
-    choice(name: 'gateway_environment', choices: ['sandbox', 'cba', 'pentest', 'testnet', 'mainnet'], description: 'Deploy to which environment?')
+    choice(name: 'gateway_environment', choices: ['cba', 'pentest', 'testnet', 'mainnet'], description: 'Deploy to which environment?')
   }
 
   agent any
@@ -51,7 +51,6 @@ pipeline {
             sh "ansible-galaxy install -r roles/requirements.yml -f"
 
             withCredentials([
-              file(credentialsId: 'vault_tls_key_sandbox', variable: 'vault_tls_key_sandbox'),
               file(credentialsId: 'vault_tls_key_cba', variable: 'vault_tls_key_cba'),
               file(credentialsId: 'vault_tls_key_pentest', variable: 'vault_tls_key_pentest'),
               file(credentialsId: 'vault_tls_key_testnet', variable: 'vault_tls_key_testnet'),
@@ -60,9 +59,6 @@ pipeline {
             {
               script {
                 switch(env.gateway_environment) {
-                  case 'sandbox':
-                    vault_tls_key = '$vault_tls_key_sandbox'
-                    break
                   case 'cba':
                     vault_tls_key = '$vault_tls_key_cba'
                     break
@@ -110,7 +106,6 @@ pipeline {
 
 def accountId() {
   def environmentMap = [
-    sandbox: "352429414196",
     cba: "602004642405",
     testnet: "189013141504",
     mainnet: "503742778456",

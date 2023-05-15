@@ -40,40 +40,6 @@ async function tryGetPaymentInfo(
   return getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSignature);
 }
 
-async function getSplitFeePaymentParams(connectorUrl, call) {
-  if (!call) return undefined;
-
-  const { relayer, user, proxySignature } = call.params;
-  const proxyProof = utils.getProxyProof(user, relayer, proxySignature);
-  const relayerFee = await utils.getRelayerFee(connectorUrl, relayer, call.splitFeePayerAddress, call.method);
-  const paymentNonce = await getPaymentNonce(connectorUrl, `${call.id}:${call.awsRequestId}`, call.splitFeePayerAddress);
-  return {
-    relayer,
-    relayerFee,
-    paymentNonce,
-    proxyProof
-  };
-}
-
-async function getPaymentNonce(connectorUrl, requestId, payer) {
-  try {
-    const requestParams = {
-      callId: requestId,
-      palletName: 'avnProxy',
-      storageName: 'paymentNonces',
-      params: [payer]
-    };
-
-    const avnResponse = await utils.axios.post(connectorUrl + 'avnQuery', requestParams);
-    if (!avnResponse) throw new Error(`Null response when querying payment nonce for user: ${payer}, id: ${requestId}`);
-    if (avnResponse.error) throw new Error(avnResponse.error);
-
-    return utils.toBnString(avnResponse.data);
-  } catch (error) {
-    throw new Error(`Error getting payment nonce for user ${payer}: ${error.toString()}`);
-  }
-}
-
 function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
   const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof);
   return utils.verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
@@ -95,29 +61,10 @@ function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
   );
 }
 
-async function signPaymentInfo(connectorUrl, encodedPaymentInfo, payerUserName) {
-  if (!isHex(encodePaymentParams)) encodedPaymentInfo = u8aToHex(encodedPaymentInfo);
-
-  const requestParams = {
-    message: encodedPaymentInfo,
-    payerUserName: payerUserName
-  };
-
-  const avnResponse = await utils.axios.post(connectorUrl + 'signPaymentInfo', requestParams);
-  if (!avnResponse || !avnResponse.data)
-    throw new Error(`Null response when signing payment info for payer: ${payerAddress}, data: ${encodedPaymentInfo}`);
-  if (avnResponse.error) throw new Error(avnResponse.error);
-
-  return avnResponse.data.signature;
-}
-
 // Keep alphabetical
 module.exports = {
   encodePaymentParams,
   getPaymentInfo,
-  getPaymentNonce,
-  getSplitFeePaymentParams,
   tryGetPaymentInfo,
-  signPaymentInfo,
   verifyFeePaymentSignature
 };

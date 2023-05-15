@@ -23,25 +23,9 @@ resource "aws_security_group" "avn-gw-bastion-sg" {
   }
 }
 
-data "aws_ami" "ubuntu_20_04" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20210430"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
-
 # Bastion Instance
 resource "aws_instance" "avn-gw-bastion" {
-  ami                    = data.aws_ami.ubuntu_20_04.image_id
+  ami                    = var.ami_image_id
   instance_type          = "t3a.nano"
   key_name               = var.ssh_key_name
   monitoring             = true

@@ -1,6 +1,6 @@
 'use strict';
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { isHex, stringToHex } = require('@polkadot/util');
+const { isHex, stringToHex, u8aToHex } = require('@polkadot/util');
 const { keccakAsHex } = require('@polkadot/util-crypto');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -10,6 +10,7 @@ const redis = require('./redis');
 const ethereum = require('./ethereum');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
+const fees = require('./paymentInfoHelper');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -33,14 +34,14 @@ async function query(palletName, storageName, params) {
     result = result.toJSON();
   }
 
-  log.trace(`Encoded query response: ${result}`);
+  log.trace(`Encoded query response: ${JSON.stringify(result)}`);
   return JSON.stringify(result);
 }
 
 async function proxy(requestId, palletName, method, params) {
   if (palletName === 'utility' && method === 'batchAll') {
     log.trace({
-      message: `Creating batch transactions.`,
+      message: `${requestId} - Creating batch transactions.`,
       extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ')
     });
 
@@ -48,14 +49,37 @@ async function proxy(requestId, palletName, method, params) {
       let innerCall = api.tx[p.palletName][p.method](...p.params.proxyParams);
       return api.tx.avnProxy.proxy(innerCall, p.params.paymentInfo);
     });
+
     const txn = api.tx.utility.batchAll(innerCalls);
-    return await signAndSend(requestId, params[0].params.relayerAddress, txn);
+    const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
+
+    if (params[0].params.splitFeePayerAddress) {
+      await setNextPayerNonce(requestId, params[0].params.splitFeePayerAddress, parseInt(params[0].params.paymentNonce) + 1);
+    }
+
+    return result;
   } else {
-    log.trace({ message: 'Creating inner call from extrinsic', extrinsic: `api.tx.${palletName}.proxy` });
+    log.trace(`${requestId} - Creating inner call from extrinsic api.tx.${palletName}.${method}`);
 
     const innerCall = api.tx[palletName][method](...params.proxyParams);
     const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
-    return await signAndSend(requestId, params.relayerAddress, txn);
+    const result = await signAndSend(requestId, params.relayerAddress, txn);
+
+    if (params.splitFeePayerAddress) {
+      await setNextPayerNonce(requestId, params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
+    }
+
+    return result;
+  }
+}
+
+async function setNextPayerNonce(requestId, payerAddress, nonce) {
+  log.trace(`${requestId} - Updating payment nonce for ${payerAddress} to ${nonce}`);
+  try {
+    await redis.setNextPayerNonce(payerAddress, nonce);
+    log.trace(`${requestId} - Payment nonce updated`);
+  } catch (err) {
+    log.error({ message: `${requestId} - Error updating payment nonce`, err });
   }
 }
 
@@ -70,13 +94,19 @@ async function poll(requestId) {
     let tx = await redis.getAvnTransaction(txHash);
 
     if (!tx) {
-      log.warn(`No transaction found for requestId: ${requestId}`);
+      log.warn(`${requestId} - No transaction found.`);
       return { status: `Transaction not found` };
     }
 
-    return { txHash, status: tx.status, blockNumber: tx.blockNumber, transactionIndex: tx.transactionIndex };
-  } catch (error) {
-    log.error(`Error getting transaction status for requestId ${requestId}: ${error}`);
+    return {
+      txHash,
+      status: tx.status,
+      blockNumber: tx.blockNumber,
+      transactionIndex: tx.transactionIndex,
+      senderNonce: tx.senderNonce
+    };
+  } catch (err) {
+    log.error({ message: `${requestId} - Error getting transaction status`, err });
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);
   }
 }
@@ -113,17 +143,6 @@ async function getAccountInfo(accountId) {
     unlockedBalance: unlockedBalance.toString(),
     unstakedBalance: unstakedBalance.toString()
   };
-}
-
-async function getNonce(senderAddress) {
-  let nonce = await redis.getNextNonce(senderAddress);
-  if (nonce === undefined) {
-    nonce = (await api.query.system.account(senderAddress)).nonce;
-    await redis.setNonce(senderAddress, nonce);
-  } else {
-    redis.refreshNonce(senderAddress);
-  }
-  return nonce;
 }
 
 async function getCollatorsToNominate() {
@@ -198,6 +217,63 @@ async function getTotalToken(token) {
   return total;
 }
 
+async function ethereumEventStatus(transactionHash) {
+  const liftStatusesEnum = {
+    AWAITING_TO_RECEIVE: 'AwaitingToReceive',
+    UNCHECKED_LIFT: 'UncheckedLift',
+    PENDING_VALIDATION: 'PendingValidation',
+    LIFT_PROCESSED: 'LiftProcessed',
+    LIFT_NOT_FOUND: 'LiftNotFound'
+  };
+
+  const { avnContract } = await getChainInfo();
+  const { liftEvents } = await ethereum.getLiftEvents(avnContract);
+
+  const liftEvent = liftEvents.find(liftEvent => liftEvent[1] === transactionHash);
+
+  let liftStatus = liftStatusesEnum.LIFT_NOT_FOUND;
+
+  if (!liftEvent) {
+    return {
+      transactionHash,
+      liftStatus
+    };
+  }
+
+  await api.queryMulti(
+    [api.query.ethereumEvents.uncheckedEvents, api.query.ethereumEvents.eventsPendingChallenge],
+    ([uncheckedEvents, eventsPendingChallenge]) => {
+      if (uncheckedEvents.find(t => t.toJSON()[0].transactionHash === transactionHash)) {
+        liftStatus = liftStatusesEnum.UNCHECKED_LIFT;
+      }
+      if (eventsPendingChallenge.find(t => t.toJSON()[0].transactionHash === transactionHash)) {
+        liftStatus = liftStatusesEnum.PENDING_VALIDATION;
+      }
+    }
+  );
+
+  if (liftStatus !== liftStatusesEnum.LIFT_NOT_FOUND) {
+    return {
+      transactionHash,
+      liftStatus
+    };
+  }
+
+  const isProcessed = await api.query.ethereumEvents.processedEvents(liftEvent);
+  if (isProcessed) {
+    liftStatus = liftStatusesEnum.LIFT_PROCESSED;
+    return {
+      transactionHash,
+      liftStatus
+    };
+  }
+  
+  return {
+    transactionHash,
+    liftStatus: liftStatusesEnum.AWAITING_TO_RECEIVE
+  }
+}
+
 async function getUnprocessedLifts() {
   let unprocessedLifts = [];
   let { avnContract } = await getChainInfo();
@@ -233,35 +309,42 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   return result;
 }
 
+//This function can be called multiple times (3 by default) from mqConsumer, for the same transaction if it returns an error.
 async function signAndSend(requestId, relayerAddress, txn) {
-  let result, nonce, relayerAccount;
-
+  let transactionHash, nonce, relayerAccount;
+  log.trace(`${requestId} - Sending transaction to the AvN`);
   try {
-    log.trace({ message: 'Getting relayer account', address: relayerAddress });
+    log.trace(`${requestId} - Relayer address: ${relayerAddress}`);
     relayerAccount = await getRelayerAccount(relayerAddress);
   } catch (err) {
-    log.error(`Error getting relayer account for ${relayerAddress}: ${err}`);
+    log.error({ message: `${requestId} - Error getting relayer account for ${relayerAddress}`, err });
     throw err;
   }
 
-  try {
-    log.trace({ encodedTransaction: txn });
-    nonce = await getNonce(relayerAccount.address);
-    let signedTx = await txn.signAsync(relayerAccount, { nonce });
-    let receipt = await signedTx.send();
-    result = { transactionHash: receipt.toString() };
-  } catch (err) {
-    log.error(`Failed sending transaction: ${err}`);
-    await redis.resetNonce(relayerAccount.address);
+  log.trace(`${requestId} - encodedTransaction: ${txn.toString()}`);
 
-    // If we failed to get a true transaction hash, use the requestId as key
-    if (!result || !result.transactionHash) {
-      result.transactionHash = keccakAsHex(requestId);
-    }
+  try {
+    nonce = await redis.getNextNonce(relayerAddress);
+    if (nonce === undefined) nonce = (await api.rpc.system.accountNextIndex(relayerAddress)).toNumber();
+    const signedTx = await txn.signAsync(relayerAccount, { nonce: nonce.toString() });
+    const receipt = await signedTx.send();
+    await redis.setNextNonce(relayerAddress, nonce + 1);
+
+    transactionHash = receipt.toString();
+    await redis.updateTransactionStatusToPending(requestId, transactionHash, relayerAddress, nonce.toString());
+
+    log.trace(`${requestId} - Transaction sent using relayer nonce: ${nonce}, transaction hash: ${transactionHash}`);
+  } catch (err) {
+    transactionHash = keccakAsHex(requestId);
+    log.error({
+      message: `${requestId} - Failed sending transaction using relayer nonce: ${nonce}, transaction hash: ${transactionHash}`,
+      err
+    });
+
     await redis.addFailedAvnTransaction(
       requestId,
-      result.transactionHash,
-      relayerAccount.address.toString(),
+      transactionHash,
+      relayerAddress,
       nonce.toString(),
       redis.transactionStatus.SendingFailed
     );
@@ -269,19 +352,24 @@ async function signAndSend(requestId, relayerAddress, txn) {
     throw err;
   }
 
-  await redis.addPendingAvnTransaction(requestId, result.transactionHash, relayerAccount.address.toString(), nonce.toString());
-
-  return result;
+  return { transactionHash };
 }
 
 async function setSendingFailedStatus(requestId, failure) {
+  if (!requestId) throw new Error('setSendingFailedStatus - RequestId is mandatory');
   const failureReason = redis.transactionStatus[failure];
 
-  if (failureReason) {
-    await redis.addFailedAvnTransaction(requestId, keccakAsHex(requestId), undefined, undefined, failureReason);
-  }
+  if (!failureReason) throw new Error('Invalid failure reason: ', failure);
 
-  throw new Error('Invalid failure reason: ', failure);
+  await redis.addFailedAvnTransaction(requestId, keccakAsHex(requestId), undefined, undefined, failureReason);
+}
+
+async function addNewTransaction(requestId) {
+  if (!requestId) throw new Error('addNewTransaction - RequestId is mandatory');
+  const requestIdHash = keccakAsHex(requestId);
+
+  log.trace(`${requestId} - Adding a new transaction. txHash: ${requestIdHash}`);
+  await redis.addNewAvnTransaction(requestId, requestIdHash);
 }
 
 async function getRelayerAccount(relayerAddress) {
@@ -317,7 +405,7 @@ async function signPaymentInfo(message, payerUsername) {
 
   // Important: we only want to sign correctly formatted payment data.
   if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error('Invalid data to sign.');
-  return vault.payerSign(message, payerUsername);
+  return await vault.payerSign(message, payerUsername);
 }
 
 async function init() {
@@ -413,7 +501,49 @@ function isTransactionHash(requestId) {
   return isHex(requestId) && requestId.split('').length == 66;
 }
 
+async function getPayerPaymentNonce(requestId, payerAddress) {
+  try {
+    let nonce = await redis.getNextPayerNonce(payerAddress);
+    if (!nonce) {
+      nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
+      log.trace(`${requestId} - Nonce expired, refreshing from chain. New nonce: ${nonce}`);
+    }
+    log.trace(`${requestId} - Payer ${payerAddress}, payment nonce: ${nonce}`);
+    return nonce;
+  } catch (err) {
+    log.error({ message: `${requestId} - Error getting payer (${payerAddress}) payment nonce`, err });
+
+    throw err;
+  }
+}
+
+async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce) {
+  log.trace(
+    `${requestId} - Generating payment info. Payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`
+  );
+
+  const encodedPaymentParams = fees.encodePaymentParams(
+    transaction.relayerAddress,
+    transaction.relayerFees,
+    paymentNonce,
+    transaction.splitFeeProxyProof
+  );
+
+  const payerUserName = fees.getPayerVaultUsername(transaction.splitFeePayerVaultId);
+  const signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
+
+  return {
+    payer: transaction.splitFeePayerAddress,
+    recipient: transaction.relayerAddress,
+    amount: transaction.relayerFees,
+    signature: {
+      Sr25519: signedData.signature
+    }
+  };
+}
+
 module.exports = {
+  addNewTransaction,
   getAccountInfo,
   getCollatorsToNominate,
   getLowerDataFromRpc,
@@ -424,6 +554,7 @@ module.exports = {
   getSummaries,
   getTotalToken,
   getUnprocessedLifts,
+  ethereumEventStatus,
   getNftContractAddresses,
   init,
   proxy,
@@ -432,5 +563,7 @@ module.exports = {
   query,
   RELAYER_ADDRESS,
   signPaymentInfo,
-  setSendingFailedStatus
+  setSendingFailedStatus,
+  getPayerPaymentNonce,
+  generateSplitFeePaymentInfo
 };

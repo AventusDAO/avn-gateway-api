@@ -1,6 +1,6 @@
 pipeline {
   parameters {
-    choice(name: 'environment', choices: ['sandbox', 'cba', 'pentest', 'testnet', 'mainnet'], description: 'Choose the environment to deploy to.')
+    choice(name: 'environment', choices: ['cba', 'pentest', 'testnet', 'mainnet'], description: 'Choose the environment to deploy to.')
     string(name: 'version', defaultValue: 'latest', description: 'Lambda functions version', trim: true)
   }
 
@@ -50,7 +50,6 @@ def terraformApply() {
 
 def accountId() {
   def environmentMap = [
-    sandbox: "352429414196",
     cba: "602004642405",
     testnet: "189013141504",
     mainnet: "503742778456",

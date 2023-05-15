@@ -21,3 +21,7 @@ variable "ssh_key_name" {
   description = "The ssh key used to create the instance & allow ssh access"
 }
 
+variable "ami_image_id" {
+  type        = string
+  description = "AWS AMI image ID"
+}

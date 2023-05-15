@@ -34,5 +34,7 @@ async function processLifts(requestId) {
   }
 
   console.info(`Checked Ethereum blocks ${fromBlock} to ${toBlock} - found lifts to process: ${unprocessedLifts.join(', ')}`);
-  await mqSender.sendMessageToMQ(QUEUE, { txType: 'avnProcessLifts', requestId, toBlock, unprocessedLifts });
+  const mqChannel = await mqSender.openChannel();
+  await mqSender.sendMessageToMQ(QUEUE, mqChannel, { txType: 'avnProcessLifts', requestId, toBlock, unprocessedLifts });
+  await mqChannel.close();
 }

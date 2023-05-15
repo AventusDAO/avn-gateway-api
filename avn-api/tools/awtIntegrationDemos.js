@@ -42,7 +42,7 @@ async function demoCbaAwt() {
   console.log('Verifying Awt token generation by the api with custom time'.bold);
   console.log(SEPARATOR.blue.bold);
   let args = process.argv.slice(2);
-  let configPath = args[0] ? `../config/${args[0]}.json` : '../config/sandbox.json';
+  let configPath = args[0] ? `../config/${args[0]}.json` : '../config/uat.json';
   const { gateway } = require(configPath);
 
   let user = accounts.cbaTestAccount;

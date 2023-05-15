@@ -53,7 +53,8 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
           transactionHash: tx.transactionHash,
           status: tx.isFailed === true ? transactionStatus.Rejected : transactionStatus.Processed,
           blockNumber: tx.blockNumber,
-          index: tx.index
+          index: tx.index,
+          events: tx.events
         };
       });
     }

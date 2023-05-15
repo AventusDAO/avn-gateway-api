@@ -151,6 +151,16 @@ app.get('/unprocessedLifts', async (req, res, next) => {
   }
 });
 
+app.post('/ethereumEventStatus', async (req, res, next) => {
+  try {
+    log.trace({ ethereumEventStatusRequest: req.body });
+    const result = await avn.ethereumEventStatus(req.body.ethTransactionHash);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/avnTotalToken', async (req, res, next) => {
   try {
     log.trace({ avnTotalTokenRequest: req.body });
@@ -191,16 +201,6 @@ app.post('/gatewayUserInfo', async (req, res, next) => {
   }
 });
 
-app.post('/signPaymentInfo', async (req, res, next) => {
-  try {
-    log.trace({ signPaymentInfo: JSON.stringify(req.body) });
-    const result = await avn.signPaymentInfo(req.body.message, req.body.payerUserName);
-    res.send(result);
-  } catch (err) {
-    next(err);
-  }
-});
-
 app.post('/getPayer', async (req, res, next) => {
   try {
     log.trace({ getPayer: JSON.stringify(req.body) });
@@ -221,10 +221,20 @@ app.post('/isPayerTransaction', async (req, res, next) => {
   }
 });
 
+app.post('/addNewTransactionStatus', async (req, res, next) => {
+  try {
+    log.trace({ addNewTransactionStatus: JSON.stringify(req.body) });
+    await avn.addNewTransaction(req.body.requestId);
+    res.status(200).send({});
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
   try {
     log.trace({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });
-    avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.PayerRefused);
+    await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.PayerRefused);
     res.status(200).send({});
   } catch (err) {
     next(err);
@@ -234,7 +244,7 @@ app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
 app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
   try {
     log.trace({ setTransactionFailedToBeSentStatus: JSON.stringify(req.body) });
-    avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
+    await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
     res.status(200).send({});
   } catch (err) {
     next(err);

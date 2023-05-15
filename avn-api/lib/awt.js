@@ -7,9 +7,8 @@ const utils = require('./utils.js');
 const MAX_TOKEN_AGE_MSEC = 600000;
 const SIGNING_CONTEXT = 'awt_gateway_api';
 
-function generateAwtPayload(suri, issuedAt, options) {
-  const tokenOwner = common.keyring.addFromUri(suri);
-  const avnPublicKey = u8aToHex(tokenOwner.publicKey);
+function generateAwtPayload(signer, issuedAt, options) {
+  const avnPublicKey = u8aToHex(signer.publicKey);
 
   let hasPayer = false;
   let payerAddress = undefined;
@@ -24,7 +23,7 @@ function generateAwtPayload(suri, issuedAt, options) {
   }
 
   const encodedData = encodeAvnPublicKeyForSigning(avnPublicKey, issuedAt, hasPayer, payerAddress);
-  const signature = tokenOwner.sign(encodedData);
+  const signature = signer.sign(encodedData);
 
   return {
     pk: avnPublicKey,
@@ -35,12 +34,8 @@ function generateAwtPayload(suri, issuedAt, options) {
   };
 }
 
-function generateAwtToken(options) {
-  options = options || {};
-  options.suri = options.suri ?? process.env.AVN_SURI;
-  if (!options.suri) throw new Error('Please pass a SURI or set AVN_SURI environment variable');
-
-  let payload = generateAwtPayload(options.suri, new Date().toISOString(), options);
+function generateAwtToken(options, signer) {
+  let payload = generateAwtPayload(signer, new Date().toISOString(), options);
   return generateAwtTokenFromPayload(payload);
 }
 

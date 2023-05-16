@@ -38,8 +38,8 @@ describe('AWT authorisation', async () => {
       assert.equal(api.awt.tokenAgeIsValid(token), true);
     });
 
-    xit('is invalid once lifetime expires', async () => {
-      // Skip since it takes so long to run
+    it('is invalid once lifetime expires', async () => {
+      // We should not skip this otherwise we forget to run it
       await helper.sleep(TOKEN_LIFETIME);
       assert.equal(api.awt.tokenAgeIsValid(token), false);
     });

@@ -72,7 +72,7 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
 
       bnEquals(recipientAvtBalanceBefore.add(amount), new BN(await apiWithOptions.query.getAvtBalance(recipient)));
-      bnEquals(new BN(await apiWithOptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
+      assert(new BN(await apiWithOptions.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
   });
 

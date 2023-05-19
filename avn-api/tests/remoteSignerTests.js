@@ -11,12 +11,12 @@ const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
 
 function signData(data, suri) {
   const signer = keyring.addFromUri(suri);
-  return signer.sign(data)
+  return signer.sign(data);
 }
 
 function signDataAsync(data, suri) {
   const signer = keyring.addFromUri(suri);
-  return signer.sign(data)
+  return signer.sign(data);
 }
 
 describe('Remote signer:', async () => {
@@ -24,12 +24,12 @@ describe('Remote signer:', async () => {
   let relayer, user, userSURI, newUser, newUserSURI;
 
   const signer = {
-    sign: (data) => signData(data, accounts.user.seed),
-    address: accounts.user.address,
-  }
+    sign: data => signData(data, accounts.user.seed),
+    address: accounts.user.address
+  };
 
   before(async () => {
-    api = await helper.avnApi({signer});
+    api = await helper.avnApi({ signer });
     relayer = accounts.relayer.address;
     user = accounts.user.address;
     userSURI = accounts.user.seed;
@@ -50,7 +50,7 @@ describe('Remote signer:', async () => {
 
       api.setSigner({
         sign: data => signData(data, newUserSURI),
-        address: newUser,
+        address: newUser
       });
       assert.equal(api.myAddress(), newUser);
       assert.equal(api.signer().address, newUser);
@@ -62,7 +62,7 @@ describe('Remote signer:', async () => {
 
       api.setSigner({
         sign: async data => await signDataAsync(data, newUserSURI),
-        address: newUser,
+        address: newUser
       });
       assert.equal(api.myAddress(), newUser);
       assert.equal(api.signer().address, newUser);
@@ -107,5 +107,4 @@ describe('Remote signer:', async () => {
       await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
     });
   });
-
 });

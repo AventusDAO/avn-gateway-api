@@ -24,7 +24,7 @@ const transactionStatus = {
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
 const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
-const PAYER_NONCE_NAMESPACE = 'pn.'
+const PAYER_NONCE_NAMESPACE = 'pn.';
 const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
@@ -115,14 +115,15 @@ async function addNewAvnTransaction(requestId, requestIdHash) {
     .hset(transactionHashKey, buildTransactionJson(undefined, undefined, transactionStatus.AwaitingToSend))
     .set(requestIdKey, requestIdHash)
     .exec();
-
 }
 
 async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce, reason) {
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const requestIdKey = getKey(requestId);
 
-  log.trace(`[addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`);
+  log.trace(
+    `[addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
+  );
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
     log.warn(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
@@ -143,7 +144,9 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
   const transactionHashKey = getKey(transactionHash);
   const requestIdKey = getKey(requestId);
 
-  log.trace(`[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`);
+  log.trace(
+    `[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
+  );
 
   await redisClient
     .multi()

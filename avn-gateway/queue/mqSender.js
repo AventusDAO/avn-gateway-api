@@ -65,7 +65,7 @@ MQSender.prototype.sendMessageToMQ = async function (queue, amqpChannel, message
 
 MQSender.prototype.openChannel = async function () {
   return await createChannel(this.amqpConnection);
-}
+};
 
 MQSender.prototype.connectToMessageBroker = async function () {
   const url = await this.getMqConnectionUrl();

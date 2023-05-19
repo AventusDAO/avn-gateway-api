@@ -293,7 +293,7 @@ function encodeRoyalties(royalties) {
 }
 
 async function callWithTimeout(timeoutMs, fn, params) {
-  return await new Promise((resolve, reject) =>  {
+  return await new Promise((resolve, reject) => {
     (async () => {
       // Set a timeout for the function to complete
       const timeout = setTimeout(() => {

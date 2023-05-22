@@ -126,7 +126,7 @@ jobs:
 
     - name: Upload to S3
       run: |
-        aws s3 sync build/. s3://ewx-internal-artefact/gateway-lambdas --sse aws:kms
+        aws s3 sync build/. s3://ewx-internal-artefact/gateway-lambdas --acl bucket-owner-full-control
 
   cleanup-artifacts:
     runs-on: ubuntu-latest

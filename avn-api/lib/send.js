@@ -312,7 +312,7 @@ Send.prototype.smartNonce = async function (queryApi, account, nonceType, retry)
       //  - Ignore the nonce from chain
       //  - Do not update the expiry
       //  - Give a chance for the chain to create a block
-      console.warn(`Nonce expired but on-chain nonce ${nonceFromChain} is the same as last nonce used ${nonceData.nonce}.`)
+      console.warn(`Nonce expired but on-chain nonce ${nonceFromChain} is the same as last nonce used ${nonceData.nonce}.`);
       updated = nonceData.updated;
       await common.sleep(TX_PROCESSING_TIME * 2);
     } else {

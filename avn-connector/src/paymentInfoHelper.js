@@ -9,7 +9,6 @@ const registry = new TypeRegistry();
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 
-
 function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
   const encodedProxyProof = encodeProxyProof(proxyProof);

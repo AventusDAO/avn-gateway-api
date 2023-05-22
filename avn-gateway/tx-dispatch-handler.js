@@ -28,7 +28,7 @@ exports.handler = async (event, context) => {
       if (timeoutMs > 0) {
         result = await utils.callWithTimeout(timeoutMs, processRequest, [mqChannel, record.body]);
       } else {
-        throw new Error("Lambda execution exceeded allowed time");
+        throw new Error('Lambda execution exceeded allowed time');
       }
 
       if (utils.requestFailed(result) === true) {
@@ -609,7 +609,7 @@ async function queryNonce(requestId, nonceInfo, nonceKey) {
   console.log(`${requestId} - Refreshing nonce from chain for ${palletName}.${storageName} - ${nonceKey}`);
   const params = { requestId, palletName, storageName, params: [nonceKey] };
   const result = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', params);
-  const nonce =  storageName === 'nfts' ? utils.toBnString(result.data.nonce) : utils.toBnString(result.data);
+  const nonce = storageName === 'nfts' ? utils.toBnString(result.data.nonce) : utils.toBnString(result.data);
   console.log(`${requestId} - new nonce: ${nonce}`);
   return nonce;
 }
@@ -627,7 +627,6 @@ async function processProxyMethod(call, mqChannel, request, requestId, pallet, m
       if (utils.isValidSignatureFormat(call.params.feePaymentSignature) === false) throw 'feePaymentSignature';
       if (utils.isValidNonce(call.params.paymentNonce) === false) throw 'paymentNonce';
     }
-
   } catch (param) {
     return utils.buildErrorBody('params', `invalid proxy method ${param}: ${call.params[param]}`, param, request, call.id);
   }
@@ -637,7 +636,7 @@ async function processProxyMethod(call, mqChannel, request, requestId, pallet, m
   const params = {
     proxyParams: [proxyProof].concat(methodParams),
     relayerAddress: relayer
-   };
+  };
 
   // Split fee transactions will get a payment signature in the connector, before sending to the chain.
   if (utils.isSplitFeeTransaction(call) === true) {

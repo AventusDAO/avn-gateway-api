@@ -25,7 +25,7 @@ AvnApi.prototype.init = async function () {
 
     const hasRemoteSigner = apiHasRemoteSigner(this.options);
     if (hasRemoteSigner === true) {
-      this.options.signer.publicKey = Utils.convertToPublicKeyBytes(this.options.signer.address)
+      this.options.signer.publicKey = Utils.convertToPublicKeyBytes(this.options.signer.address);
     }
 
     if (!this.options.suri && !hasRemoteSigner) {
@@ -34,7 +34,7 @@ AvnApi.prototype.init = async function () {
   };
 
   this.setSURI = async suri => {
-    if (!suri) throw new Error("Suri is a mandatory field");
+    if (!suri) throw new Error('Suri is a mandatory field');
     this.options.suri = suri;
     this.options.signer = undefined;
     this.awtToken = this.gateway ? await Awt.generateAwtToken(this.options, this.signer()) : undefined;
@@ -43,12 +43,12 @@ AvnApi.prototype.init = async function () {
 
   this.setSigner = async signer => {
     if (!signer || !signer.address || typeof signer.sign !== 'function') {
-      throw new Error("Signer must be an object with a sign function and an address function");
+      throw new Error('Signer must be an object with a sign function and an address function');
     }
 
     this.options.suri = undefined;
 
-    signer.publicKey = Utils.convertToPublicKeyBytes(signer.address)
+    signer.publicKey = Utils.convertToPublicKeyBytes(signer.address);
 
     this.options.signer = signer;
     this.awtToken = this.gateway ? await Awt.generateAwtToken(this.options, signer) : undefined;
@@ -61,7 +61,7 @@ AvnApi.prototype.init = async function () {
 
   setupSigner();
 
-  this.signer = () => apiHasRemoteSigner(this.options) ? this.options.signer : Utils.getSigner(this.options.suri);
+  this.signer = () => (apiHasRemoteSigner(this.options) ? this.options.signer : Utils.getSigner(this.options.suri));
   this.myAddress = () => this.signer().address;
   this.myPublicKey = () => Utils.convertToPublicKeyIfNeeded(this.myAddress());
 

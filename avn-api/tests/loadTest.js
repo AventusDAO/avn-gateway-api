@@ -1,14 +1,15 @@
 const AvnApi = require('../index.js');
 
-const GATEWAY_URL = 'https://uat.gateway.aventus.io'
-const SURI = "0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7"
-const USER = "5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3";
-const RELAYER = "5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh";
-const RECIPIENT = "5HnPuKiHbyYBMV76vvA46fk6HZHDt7LU9R7YcyiWnBVzUhdu";
+const GATEWAY_URL = 'https://uat.gateway.aventus.io';
+const SURI = '0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7';
+const USER = '5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3';
+const RELAYER = '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh';
+const RECIPIENT = '5HnPuKiHbyYBMV76vvA46fk6HZHDt7LU9R7YcyiWnBVzUhdu';
 const SPLIT_FEE_TEST = true;
 const RUNS = 100;
 
-let relayerNonceStart = 0, relayerNonceEnd = 0;
+let relayerNonceStart = 0,
+  relayerNonceEnd = 0;
 const proxyNonces = [];
 
 describe('LOAD TEST', async () => {
@@ -25,43 +26,45 @@ describe('LOAD TEST', async () => {
     const timeStart = Date.now();
 
     let finalResult = true;
-    console.log("");
+    console.log('');
 
-    for (let j=0; j < RUNS; j++) {
+    for (let j = 0; j < RUNS; j++) {
       const reqId = await api.send.transferAvt(RECIPIENT, 1);
       requestIds.push(reqId);
       proxyNonces[reqId] = proxyNonce++;
-      console.log(`Tx: ${j} Request Id: ${reqId}\t ProxyNonce: ${proxyNonces[reqId]}\t\t${new Date().toString().substring(16,25)}`);
+      console.log(
+        `Tx: ${j} Request Id: ${reqId}\t ProxyNonce: ${proxyNonces[reqId]}\t\t${new Date().toString().substring(16, 25)}`
+      );
     }
 
     const timeEndSend = Date.now();
 
-    console.log("");
-    console.log("Polling...");
-    console.log("");
+    console.log('');
+    console.log('Polling...');
+    console.log('');
 
-    for (let i=0; i < requestIds.length; i++) {
+    for (let i = 0; i < requestIds.length; i++) {
       let result = await confirmStatus(api, i, requestIds[i]);
       if (result === false) finalResult = false;
     }
 
-    const timeEndPoll = Date.now()
+    const timeEndPoll = Date.now();
 
-    console.log("");
-    console.log("Relayer nonce start:", relayerNonceStart.toString());
-    console.log("Relayer nonce end  :", relayerNonceEnd);
-    console.log("");
-    console.log("User system nonce start:", proxyNonceStart);
-    console.log("User system nonce end  :", await api.query.getNonce(USER, 'token'));
-    console.log("");
-    console.log("Recipient balance start:", recipStart);
-    console.log("Recipient balance end  :", await api.query.getAvtBalance(RECIPIENT));
-    console.log("");
-    console.log("Seconds to send:", parseInt((timeEndSend - timeStart)/1000).toString());
-    console.log("Seconds to poll:", parseInt((timeEndPoll - timeEndSend)/1000).toString());
-    console.log("");
-    console.log("Final result: ", finalResult);
-    console.log("DONE");
+    console.log('');
+    console.log('Relayer nonce start:', relayerNonceStart.toString());
+    console.log('Relayer nonce end  :', relayerNonceEnd);
+    console.log('');
+    console.log('User system nonce start:', proxyNonceStart);
+    console.log('User system nonce end  :', await api.query.getNonce(USER, 'token'));
+    console.log('');
+    console.log('Recipient balance start:', recipStart);
+    console.log('Recipient balance end  :', await api.query.getAvtBalance(RECIPIENT));
+    console.log('');
+    console.log('Seconds to send:', parseInt((timeEndSend - timeStart) / 1000).toString());
+    console.log('Seconds to poll:', parseInt((timeEndPoll - timeEndSend) / 1000).toString());
+    console.log('');
+    console.log('Final result: ', finalResult);
+    console.log('DONE');
   });
 });
 
@@ -76,15 +79,19 @@ async function confirmStatus(api, id, requestId) {
     try {
       response = await api.poll.requestState(requestId);
       status = response.status;
-      if (status === 'Processed' || status === 'Rejected' ) {
-        console.log(`Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, proxy nonce: ${proxyNonces[requestId]}, block: ${response.blockNumber}, index ${response.transactionIndex}\t\t${new Date().toString().substring(16,25)}`);
+      if (status === 'Processed' || status === 'Rejected') {
+        console.log(
+          `Tx: ${id} Request Id: ${requestId} Status: ${status}, relayer nonce: ${response.senderNonce}, proxy nonce: ${
+            proxyNonces[requestId]
+          }, block: ${response.blockNumber}, index ${response.transactionIndex}\t\t${new Date().toString().substring(16, 25)}`
+        );
         if (id === 0) relayerNonceStart = response.senderNonce - 1;
         relayerNonceEnd = response.senderNonce;
         return status === 'Processed';
       }
       console.log('\tStatus:', status);
     } catch (err) {
-      console.log('polling error', err)
+      console.log('polling error', err);
     }
     await sleep(10000);
   }

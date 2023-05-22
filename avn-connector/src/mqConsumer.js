@@ -75,7 +75,7 @@ async function whenConnected(conn, components) {
   logger.info('MQ message processor has started');
   while (true) {
     await processMessage(amqpChannel, avnTxQueue).catch(_err => {
-      console.error("Error processing message from MQ: ", _err)
+      console.error('Error processing message from MQ: ', _err);
     });
   }
 }
@@ -116,7 +116,7 @@ async function processMessage(channel, queue) {
             channel.ack(message);
             resolve();
           } catch (err) {
-            logger.error({message: `Error processing message from RabbitMQ:`, err});
+            logger.error({ message: `Error processing message from RabbitMQ:`, err });
             channel.nack(message, allUpTo, requeue);
             reject();
           }

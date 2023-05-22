@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
       if (timeoutMs > 0) {
         result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body]);
       } else {
-        throw new Error("Lambda execution exceeded allowed time");
+        throw new Error('Lambda execution exceeded allowed time');
       }
 
       if (utils.requestFailed(result) === true) {
@@ -72,7 +72,7 @@ async function processRequest(request) {
     console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
     validateTransaction(tx);
 
-    if (await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method) === false) {
+    if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method)) === false) {
       // transaction has been rejected by payer, inform user
       await updateTransactionStatusToRejected(requestId);
       return;

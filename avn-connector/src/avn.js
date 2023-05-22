@@ -267,11 +267,11 @@ async function ethereumEventStatus(transactionHash) {
       liftStatus
     };
   }
-  
+
   return {
     transactionHash,
     liftStatus: liftStatusesEnum.AWAITING_TO_RECEIVE
-  }
+  };
 }
 
 async function getUnprocessedLifts() {

@@ -11,9 +11,13 @@ exports.handler = async (event, context) => {
   let result;
   const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
   if (timeoutMs > 0) {
-    result = await utils.callWithTimeout(timeoutMs, processRequest, [event.body, event.requestContext.authorizer.lambda, context.awsRequestId]);
+    result = await utils.callWithTimeout(timeoutMs, processRequest, [
+      event.body,
+      event.requestContext.authorizer.lambda,
+      context.awsRequestId
+    ]);
   } else {
-    throw new Error("Lambda execution exceeded allowed time");
+    throw new Error('Lambda execution exceeded allowed time');
   }
 
   if (utils.requestFailed(result) === true) {
@@ -36,7 +40,7 @@ async function processRequest(request, authoriserContext, awsRequestId) {
     console.info('TX_ID <-> AWS_REQUESTID:', tx.id + ' : ' + awsRequestId);
 
     //Update redis with requestId. This prevents a "transaction not found" message when polling directly after sending
-    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', {requestId: awsRequestId});
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', { requestId: awsRequestId });
 
     if (isSplitFeeTransaction(authoriserContext) === true) {
       const data = await sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext);
@@ -53,7 +57,7 @@ async function processRequest(request, authoriserContext, awsRequestId) {
     return utils.buildValidResponseBody(tx.id, awsRequestId);
   } catch (err) {
     // Let the caller know that this transaction has failed to be sent to the chain
-    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', {requestId: awsRequestId});
+    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', { requestId: awsRequestId });
 
     return utils.buildErrorBody('internal', 'failed to handle send transaction', err.toString(), request, tx.id);
   }

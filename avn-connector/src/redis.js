@@ -68,6 +68,34 @@ async function connect() {
     redisClient = new Redis();
   }
 
+  // Reads a range from sorted set KEYS[1] and adds it to sorted set KEYS[2] 
+  // The range is defined by score, and includes all elements with score value between ARGV[1] and ARGV[2]
+  // We extract the elements with their scores with ZRANGE ... WITHSCORES.
+  // This returns sequences of <Key Score>
+  // But to insert / update these with zadd, we have to invert the order, and send
+  // ZADD ... <Score Key> <Score Key> ...
+  // We invert the array pair-wise in the foor loop
+  redisClient.defineCommand('addzrangebyscore', {
+    numberOfKeys: 2,
+    lua: `local subset = redis.call('ZRANGE', KEYS[1], ARGV[1], ARGV[2], 'BYSCORE', 'WITHSCORES')
+          local subsetCopy = {unpack(subset)}
+          if table.getn(subset) > 0 then
+            for i=1,table.getn(subset)/2 do
+              local pos1 = 2 * i
+              local pos2 = pos1 - 1
+              local swap = subset[pos1]
+              subset[pos1] = subset[pos2]
+              subset[pos2] = swap
+            end
+            table.insert(subset, 1, 'ZADD')
+            table.insert(subset, 2, KEYS[2])
+            redis.call(unpack(subset))
+            return table.getn(subset)
+          else
+            return {}
+          end`
+  });
+
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
     lua: `local subset = redis.call('ZRANGE', KEYS[1], 0, ARGV[1]-1)
@@ -148,10 +176,13 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
     `[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
   );
 
+  // Add new transactions to the queue, with the current time as their score. New transactions will be picked after
+  // current transactions that have not been polled yet
+  const age = Date.now();
   await redisClient
     .multi()
     .hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
-    .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
+    .zadd(PENDING_TX_KEY.ALL, age, transactionHash)
     .set(requestIdKey, transactionHash)
     .exec();
 }
@@ -199,10 +230,46 @@ async function getNextTransactionsToCheck() {
 
   const [_numExpired, numAwaitingCheck, txToCheckNext] = await redisClient
     .multi()
-    .zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow) // Expire any transactions that have been being checked for too long
+    .addzrangebyscore(PENDING_TX_KEY.CHECKING, PENDING_TX_KEY.ALL, '-inf', timeNow) // Update expiry of any transaction in ALL that has expired while being checked
+    .zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow) // Expire the transactions updated in the previous step
     .zdiffstore(PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING) // Get transactions that are not currently being checked
     .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
     .exec();
+
+  // Notes on the above commmands
+  // These are here because we are not experts in Lua script and may need to go back to this logic in some future debugging
+
+  // zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow)
+  /* Removes all elements of the PENDING_TX_KEY.CHECKING set with whose key has a score between infinity and now
+   * The score in our data structures is an expiration timestamp
+   */
+
+  // zdiffstore(PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING)
+  /*
+   * Computes the set PENDING_TX_KEY.ALL - PENDING_TX_KEY.CHECKING (set difference) and places the result in PENDING_TX_KEY.NEXT
+   * PENDING_TX_KEY.NEXT is cleared before receiving the results. At any one point, this has all the keys that we are not checking yet
+   * Nothing is removed from the master list
+   */
+
+  // nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry)
+  /*
+   * [Our implementation]
+   * Extracts up to MAX_PENDING_TX_TO_CHECK transactions from PENDING_TX_KEY.NEXT
+   * These are sorted by their expiry, from the smallest (oldest) to largest (newest). Transactions with the same expiry are sorted alphabetically
+   * The selected transactions are added to PENDING_TX_KEY.CHECKING with an updated expiry, equal to the current time plus the Expiration Window
+   */
+
+  /*
+   * In essence:
+   * we have all the requests in PENDING_TX_KEY.ALL
+   * we have all the requests we are currently checking in PENDING_TX_KEY.CHECKING
+   * in each request:
+   * - Update in the main list (PENDING_TX_KEY.ALL) the expiration time of the transactions that have expired
+   * - Clear all the expired pending (PENDING_TX_KEY.CHECKING) transactions. 
+   * - These are selectable again on the next (which is about to start) round but due to their new expiry, they should now be selected last
+   * - Place all the keys we are not checking yet in the list of next requests we are going to check: PENDING_TX_KEY.NEXT
+   * - Take the first 250 records from the PENDING_TX_KEY.NEXT set and put them in PENDING_TX_KEY.CHECKING
+   */
 
   log.trace(`Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
   log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`);

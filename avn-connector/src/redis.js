@@ -70,7 +70,7 @@ async function connect() {
 
   // Reads a range from sorted set KEYS[1] and adds it to sorted set KEYS[2] 
   // The range is defined by score, and includes all elements with score value between ARGV[1] and ARGV[2]
-  // We extract the elements with their scores with ZRANGE ... WITHSCORES.
+  // We extract the elements with their scores with ZRANGE ... BYSCORE WITHSCORES.
   // This returns sequences of <Key Score>
   // But to insert / update these with zadd, we have to invert the order, and send
   // ZADD ... <Score Key> <Score Key> ...
@@ -90,9 +90,9 @@ async function connect() {
             table.insert(subset, 1, 'ZADD')
             table.insert(subset, 2, KEYS[2])
             redis.call(unpack(subset))
-            return table.getn(subset)
+            return table.getn(subsetCopy)
           else
-            return {}
+            return 0
           end`
   });
 
@@ -228,7 +228,7 @@ async function getNextTransactionsToCheck() {
   const timeNow = Date.now();
   const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000;
 
-  const [_numExpired, numAwaitingCheck, txToCheckNext] = await redisClient
+  const [numUpdated, numExpired, numAwaitingCheck, txToCheckNext] = await redisClient
     .multi()
     .addzrangebyscore(PENDING_TX_KEY.CHECKING, PENDING_TX_KEY.ALL, '-inf', timeNow) // Update expiry of any transaction in ALL that has expired while being checked
     .zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow) // Expire the transactions updated in the previous step
@@ -236,41 +236,10 @@ async function getNextTransactionsToCheck() {
     .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
     .exec();
 
-  // Notes on the above commmands
-  // These are here because we are not experts in Lua script and may need to go back to this logic in some future debugging
-
-  // zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow)
-  /* Removes all elements of the PENDING_TX_KEY.CHECKING set with whose key has a score between infinity and now
-   * The score in our data structures is an expiration timestamp
-   */
-
-  // zdiffstore(PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING)
-  /*
-   * Computes the set PENDING_TX_KEY.ALL - PENDING_TX_KEY.CHECKING (set difference) and places the result in PENDING_TX_KEY.NEXT
-   * PENDING_TX_KEY.NEXT is cleared before receiving the results. At any one point, this has all the keys that we are not checking yet
-   * Nothing is removed from the master list
-   */
-
-  // nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry)
-  /*
-   * [Our implementation]
-   * Extracts up to MAX_PENDING_TX_TO_CHECK transactions from PENDING_TX_KEY.NEXT
-   * These are sorted by their expiry, from the smallest (oldest) to largest (newest). Transactions with the same expiry are sorted alphabetically
-   * The selected transactions are added to PENDING_TX_KEY.CHECKING with an updated expiry, equal to the current time plus the Expiration Window
-   */
-
-  /*
-   * In essence:
-   * we have all the requests in PENDING_TX_KEY.ALL
-   * we have all the requests we are currently checking in PENDING_TX_KEY.CHECKING
-   * in each request:
-   * - Update in the main list (PENDING_TX_KEY.ALL) the expiration time of the transactions that have expired
-   * - Clear all the expired pending (PENDING_TX_KEY.CHECKING) transactions. 
-   * - These are selectable again on the next (which is about to start) round but due to their new expiry, they should now be selected last
-   * - Place all the keys we are not checking yet in the list of next requests we are going to check: PENDING_TX_KEY.NEXT
-   * - Take the first 250 records from the PENDING_TX_KEY.NEXT set and put them in PENDING_TX_KEY.CHECKING
-   */
-
+  if (numUpdated !== numExpired[1]) {
+    log.warn(`Count of expired (${numExpired[1]}) and updated (${numUpdated}) transactions differs\n`);  
+  }
+  log.trace(`Transactions with updated expiry: ${numUpdated}\n`);
   log.trace(`Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
   log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`);
   return txToCheckNext[1];

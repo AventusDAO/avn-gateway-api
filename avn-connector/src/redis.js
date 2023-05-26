@@ -130,7 +130,7 @@ function getKey(key) {
 async function addNewAvnTransaction(requestId, requestIdHash) {
   const transactionHashKey = getKey(requestIdHash);
 
-  log.trace(`[addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
+  log.trace(`[redis][addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
 
   if (await redisClient.exists(transactionHashKey)) {
     log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
@@ -150,7 +150,7 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   const requestIdKey = getKey(requestId);
 
   log.trace(
-    `[addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
+    `[redis][addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
   );
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
@@ -173,7 +173,7 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
   const requestIdKey = getKey(requestId);
 
   log.trace(
-    `[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
+    `[redis][updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
   );
 
   // Add new transactions to the queue, with the current time as their score. New transactions will be picked after
@@ -196,11 +196,11 @@ async function getAvnTransaction(txHashOrRequestId) {
 
 async function resolvePendingAvnTransactions(transactions) {
   if (!transactions) {
-    log.trace(`No transactions to update`);
+    log.trace(`[redis]No transactions to update`);
     return;
   }
 
-  log.trace(`Updating ${transactions.length} transactions`);
+  log.trace(`[redis]Updating ${transactions.length} transactions`);
   for (const tx of transactions) {
     const transactionHashKey = getKey(tx.transactionHash);
 
@@ -237,11 +237,11 @@ async function getNextTransactionsToCheck() {
     .exec();
 
   if (numUpdated !== numExpired[1]) {
-    log.warn(`Count of expired (${numExpired[1]}) and updated (${numUpdated}) transactions differs\n`);  
+    log.warn(`Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);  
   }
-  log.trace(`Transactions with updated expiry: ${numUpdated}\n`);
-  log.trace(`Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
-  log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`);
+  log.trace(`[redis]Transactions with updated expiry: ${numUpdated[1]}\n`);
+  log.trace(`[redis]Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
+  log.trace(`[redis]Next transactions to check: ${txToCheckNext[1]}\n`);
   return txToCheckNext[1];
 }
 

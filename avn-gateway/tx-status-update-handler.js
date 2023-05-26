@@ -43,9 +43,10 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
     console.info(`Requesting ${transactionHashes.length} transaction statuses from graphQL`);
     const successFilter = ['System.ExtrinsicSuccess'];
-    const nftFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
     const failFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
-    const extrinsicFilter = successFilter.concat(failFilter).concat(nftFilter);
+    // Any extrinsics where we wish to capture the output of their events can be added to the eventArgsFilter:
+    const eventArgsFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
+    const extrinsicFilter = successFilter.concat(failFilter).concat(eventArgsFilter);
     const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name args extrinsic { hash indexInBlock success block { height } } } }`;
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, variables: null, operationName: 'GatewayApiStatus' });
     const events = response.data.data.events;
@@ -57,7 +58,7 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
         status: failFilter.includes(event.name) ? transactionStatus.Rejected : transactionStatus.Processed,
         blockNumber: event.extrinsic.block.height,
         index: event.indexInBlock,
-        eventArgs: nftFilter.includes(event.name) ? event.args : {}
+        eventArgs: eventArgsFilter.includes(event.name) ? event.args : {}
       };
     });
   } catch (error) {

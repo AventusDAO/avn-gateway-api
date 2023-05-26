@@ -41,23 +41,23 @@ async function processRequest() {
 
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
-    console.info(`Getting ${transactionHashes.length} transaction statuses from chain indexer`);
-    const blockExplorerResponse = await utils.axios.post(`${BLOCK_EXPLORER_BASE_URL}/transactions/bulk`, { transactionHashes });
-    const response = blockExplorerResponse.data.data;
+    console.info(`Requesting ${transactionHashes.length} transaction statuses from graphQL`);
+    const successFilter = ['System.ExtrinsicSuccess', 'NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
+    const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
+    const extrinsicFilter = failureFilter.concat(successFilter);
+    const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name extrinsic { hash indexInBlock success block { height } } } }`;
+    const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, variables: null, operationName: 'GatewayApiStatus' });
+    const statuses = response.data.data.events;
+    console.info(`Recieved ${statuses.length} transaction statuses from graphQL`);
 
-    if (response && response.length > 0) {
-      console.info(`Recieved ${response.length} responses from chain indexer`);
-
-      return response.map(tx => {
-        return {
-          transactionHash: tx.transactionHash,
-          status: tx.isFailed === true ? transactionStatus.Rejected : transactionStatus.Processed,
-          blockNumber: tx.blockNumber,
-          index: tx.index,
-          events: tx.events
-        };
-      });
-    }
+    return statuses.map(status => {
+      return {
+        transactionHash: status.extrinsic.hash,
+        status: failureFilter.includes(status.name) ? transactionStatus.Rejected : transactionStatus.Processed,
+        blockNumber: status.extrinsic.block.height,
+        index: status.indexInBlock
+      };
+    });
   } catch (error) {
     throw new Error(`Error getting transaction status from indexer: ${error}`);
   }

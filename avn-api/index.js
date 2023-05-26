@@ -89,7 +89,7 @@ AvnApi.prototype.init = async function () {
     this.query = new Query(avnApi);
     this.send = new Send(avnApi, this.query);
     this.poll = new Poll(avnApi);
-    this.relayer = common.validateAccount(this.options.relayer ?? (await this.query.getDefaultRelayer()));
+    this.relayer = common.validateAccount(this.options.relayer || (await this.query.getDefaultRelayer()));
   }
 };
 

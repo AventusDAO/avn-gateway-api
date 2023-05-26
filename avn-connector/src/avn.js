@@ -98,8 +98,6 @@ async function poll(requestId) {
       return { status: `Transaction not found` };
     }
 
-    console.log("POLLLLLL", tx.eventArgs)
-
     return {
       txHash,
       status: tx.status,

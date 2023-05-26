@@ -50,9 +50,19 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name args extrinsic { hash indexInBlock success block { height } } } }`;
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, variables: null, operationName: 'GatewayApiStatus' });
     const events = response.data.data.events;
-    console.info(`Received ${events.length} transaction statuses from graphQL`);
+    const filteredEvents = {};
 
-    return events.map(event => {
+    events.forEach(event => {
+      const txHash = event.extrinsic.hash;
+      // We can overwrite any existing success entries with failures or event args:
+      if (txHash in filteredEvents) {
+        if (failureFilter.concat(eventArgsFilter).includes(event.name)) filteredEvents[txHash] = event;
+      } else filteredEvents[txHash] = event;
+    });
+
+    console.info(`Received ${Object.keys(filteredEvents).length} transaction statuses from graphQL`);
+
+    return Object.values(filteredEvents).map(event => {
       return {
         transactionHash: event.extrinsic.hash,
         status: failureFilter.includes(event.name) ? transactionStatus.Rejected : transactionStatus.Processed,

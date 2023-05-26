@@ -103,7 +103,8 @@ async function poll(requestId) {
       status: tx.status,
       blockNumber: tx.blockNumber,
       transactionIndex: tx.transactionIndex,
-      senderNonce: tx.senderNonce
+      senderNonce: tx.senderNonce,
+      eventArgs: tx.eventArgs
     };
   } catch (err) {
     log.error({ message: `${requestId} - Error getting transaction status`, err });

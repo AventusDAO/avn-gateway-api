@@ -119,6 +119,7 @@ We use `ioredis` to access the Redis API and manipulate the database. In some ca
 - Some notes of Lua script:
   - `unpack`: converts an array into a multitude of several results. Similar to the JS `...` operator. It can be used to convert an array into a series of arguments for a function.
   - `table`: is a library that allows to operate on arrays, for example obtaining the length (`getn`) or adding (`table.insert`) and removing (`table.remove`) elements.
+  - numbers appear to be represented in a structure that contains type and value. For that reason, we have to extract the value with `[1]`.
 
 ### Notes on polling algorithm
 

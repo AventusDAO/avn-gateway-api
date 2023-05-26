@@ -237,8 +237,6 @@ async function getNextTransactionsToCheck() {
     .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
     .exec();
 
-  console.log(`Num Updated`, numUpdated, `numExpired`, numExpired)
-
   if (numUpdated[1] !== numExpired[1]) {
     log.warn(`[redis]Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);  
   }

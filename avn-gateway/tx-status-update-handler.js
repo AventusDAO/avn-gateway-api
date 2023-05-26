@@ -48,7 +48,7 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     const argsFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
     const extrinsicFilter = successFilter.concat(failureFilter).concat(argsFilter);
     const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name args extrinsic { hash indexInBlock success block { height } } } }`;
-    const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, variables: null, operationName: 'GatewayStatus' });
+    const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
     const events = response.data.data.events;
     const txStatus = {};
 

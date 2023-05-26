@@ -57,7 +57,7 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
         transactionHash: event.extrinsic.hash,
         status: failureFilter.includes(event.name) ? transactionStatus.Rejected : transactionStatus.Processed,
         blockNumber: event.extrinsic.block.height,
-        index: event.indexInBlock,
+        index: event.extrinsic.indexInBlock,
         eventArgs: eventArgsFilter.includes(event.name) ? event.args : {}
       };
     });

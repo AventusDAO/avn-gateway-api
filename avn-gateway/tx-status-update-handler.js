@@ -42,20 +42,22 @@ async function processRequest() {
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
     console.info(`Requesting ${transactionHashes.length} transaction statuses from graphQL`);
-    const successFilter = ['System.ExtrinsicSuccess', 'NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
-    const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
-    const extrinsicFilter = failureFilter.concat(successFilter);
-    const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name extrinsic { hash indexInBlock success block { height } } } }`;
+    const successFilter = ['System.ExtrinsicSuccess'];
+    const nftFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
+    const failFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
+    const extrinsicFilter = successFilter.concat(failFilter).concat(nftFilter);
+    const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name args extrinsic { hash indexInBlock success block { height } } } }`;
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, variables: null, operationName: 'GatewayApiStatus' });
-    const statuses = response.data.data.events;
-    console.info(`Received ${statuses.length} transaction statuses from graphQL`);
+    const events = response.data.data.events;
+    console.info(`Received ${events.length} transaction statuses from graphQL`);
 
-    return statuses.map(status => {
+    return events.map(event => {
       return {
-        transactionHash: status.extrinsic.hash,
-        status: failureFilter.includes(status.name) ? transactionStatus.Rejected : transactionStatus.Processed,
-        blockNumber: status.extrinsic.block.height,
-        index: status.indexInBlock
+        transactionHash: event.extrinsic.hash,
+        status: failFilter.includes(event.name) ? transactionStatus.Rejected : transactionStatus.Processed,
+        blockNumber: event.extrinsic.block.height,
+        index: event.indexInBlock,
+        eventArgs: nftFilter.includes(event.name) ? event.args : {}
       };
     });
   } catch (error) {

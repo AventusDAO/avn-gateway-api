@@ -9,7 +9,8 @@ const transactionObject = {
   senderNonce: 'senderNonce',
   status: 'status',
   blockNumber: 'blockNumber',
-  transactionIndex: 'transactionIndex'
+  transactionIndex: 'transactionIndex',
+  eventArgs: 'eventArgs'
 };
 
 const transactionStatus = {
@@ -182,6 +183,7 @@ async function resolvePendingAvnTransactions(transactions) {
     newValue[transactionObject.status] = tx.status;
     newValue[transactionObject.blockNumber] = tx.blockNumber;
     newValue[transactionObject.transactionIndex] = tx.index;
+    newValue[transactionObject.eventArgs] = tx.eventArgs;
 
     await redisClient
       .multi()

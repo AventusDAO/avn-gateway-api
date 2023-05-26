@@ -44,31 +44,29 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     console.info(`Requesting ${transactionHashes.length} transaction statuses from graphQL`);
     const successFilter = ['System.ExtrinsicSuccess'];
     const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
-    // Any extrinsics for which we wish to capture the event output can be added to the eventArgsFilter:
-    const eventArgsFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
-    const extrinsicFilter = successFilter.concat(failureFilter).concat(eventArgsFilter);
+    // Any extrinsics for which we wish to capture the event output can be added to the argsFilter:
+    const argsFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
+    const extrinsicFilter = successFilter.concat(failureFilter).concat(argsFilter);
     const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name args extrinsic { hash indexInBlock success block { height } } } }`;
-    const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, variables: null, operationName: 'GatewayApiStatus' });
+    const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, variables: null, operationName: 'GatewayStatus' });
     const events = response.data.data.events;
-    const filteredEvents = {};
+    const txStatus = {};
 
+    // We boil down the events and any failure events or events with args will take precedence over successes:
     events.forEach(event => {
       const txHash = event.extrinsic.hash;
-      // We can overwrite any existing success entries with failures or event args:
-      if (txHash in filteredEvents) {
-        if (failureFilter.concat(eventArgsFilter).includes(event.name)) filteredEvents[txHash] = event;
-      } else filteredEvents[txHash] = event;
+      if (failureFilter.concat(argsFilter).includes(event.name) || txHash in txStatus === false) txStatus[txHash] = event;
     });
 
-    console.info(`Received ${Object.keys(filteredEvents).length} transaction statuses from graphQL`);
+    console.info(`Received ${Object.keys(txStatus).length} transaction statuses from graphQL`);
 
-    return Object.values(filteredEvents).map(event => {
+    return Object.values(txStatus).map(status => {
       return {
-        transactionHash: event.extrinsic.hash,
-        status: failureFilter.includes(event.name) ? transactionStatus.Rejected : transactionStatus.Processed,
-        blockNumber: event.extrinsic.block.height,
-        index: event.extrinsic.indexInBlock,
-        eventArgs: eventArgsFilter.includes(event.name) ? event.args : {}
+        transactionHash: status.extrinsic.hash,
+        status: failureFilter.includes(status.name) ? transactionStatus.Rejected : transactionStatus.Processed,
+        blockNumber: status.extrinsic.block.height,
+        index: status.extrinsic.indexInBlock,
+        eventArgs: argsFilter.includes(status.name) ? status.args : {}
       };
     });
   } catch (error) {

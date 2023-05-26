@@ -211,6 +211,8 @@ async function resolvePendingAvnTransactions(transactions) {
       continue;
     }
 
+    console.log("RESOLVEEEEEE", tx.eventArgs)
+
     const newValue = {};
     newValue[transactionObject.status] = tx.status;
     newValue[transactionObject.blockNumber] = tx.blockNumber;

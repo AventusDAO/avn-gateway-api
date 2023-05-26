@@ -210,7 +210,7 @@ async function resolvePendingAvnTransactions(transactions) {
       log.warn({ message: 'invalid status, ignoring request', transactionHashKey: transactionHashKey, txStatus: tx.status });
       continue;
     }
-    
+
     const newValue = {};
     newValue[transactionObject.status] = tx.status;
     newValue[transactionObject.blockNumber] = tx.blockNumber;

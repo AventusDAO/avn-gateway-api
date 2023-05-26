@@ -69,6 +69,35 @@ async function connect() {
     redisClient = new Redis();
   }
 
+  // Reads a range from sorted set KEYS[1] and adds it to sorted set KEYS[2] 
+  // The range is defined by score, and includes all elements with score value between ARGV[1] and ARGV[2]
+  // We extract the elements with their scores with ZRANGE ... BYSCORE WITHSCORES.
+  // This returns sequences of <Key Score>
+  // But to insert / update these with zadd, we have to invert the order, and send
+  // ZADD ... <Score Key> <Score Key> ...
+  // We invert the array pair-wise in the foor loop
+  // The result returned is divided by 2, because ZRANGE is returning (member, score) pairs
+  redisClient.defineCommand('addzrangebyscore', {
+    numberOfKeys: 2,
+    lua: `local subset = redis.call('ZRANGE', KEYS[1], ARGV[1], ARGV[2], 'BYSCORE', 'WITHSCORES')
+          local subsetCopy = {unpack(subset)}
+          if table.getn(subset) > 0 then
+            for i=1,table.getn(subset)/2 do
+              local pos1 = 2 * i
+              local pos2 = pos1 - 1
+              local swap = subset[pos1]
+              subset[pos1] = subset[pos2]
+              subset[pos2] = swap
+            end
+            table.insert(subset, 1, 'ZADD')
+            table.insert(subset, 2, KEYS[2])
+            redis.call(unpack(subset))
+            return table.getn(subsetCopy)/2 
+          else
+            return 0
+          end`
+  });
+
   redisClient.defineCommand('nextzsubset', {
     numberOfKeys: 2,
     lua: `local subset = redis.call('ZRANGE', KEYS[1], 0, ARGV[1]-1)
@@ -103,7 +132,7 @@ function getKey(key) {
 async function addNewAvnTransaction(requestId, requestIdHash) {
   const transactionHashKey = getKey(requestIdHash);
 
-  log.trace(`[addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
+  log.trace(`[redis][addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
 
   if (await redisClient.exists(transactionHashKey)) {
     log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
@@ -123,7 +152,7 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   const requestIdKey = getKey(requestId);
 
   log.trace(
-    `[addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
+    `[redis][addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
   );
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
@@ -146,13 +175,16 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
   const requestIdKey = getKey(requestId);
 
   log.trace(
-    `[updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
+    `[redis][updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
   );
 
+  // Add new transactions to the queue, with the current time as their score. New transactions will be picked after
+  // current transactions that have not been polled yet
+  const age = Date.now();
   await redisClient
     .multi()
     .hset(transactionHashKey, buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending))
-    .zadd(PENDING_TX_KEY.ALL, '+inf', transactionHash)
+    .zadd(PENDING_TX_KEY.ALL, age, transactionHash)
     .set(requestIdKey, transactionHash)
     .exec();
 }
@@ -166,11 +198,11 @@ async function getAvnTransaction(txHashOrRequestId) {
 
 async function resolvePendingAvnTransactions(transactions) {
   if (!transactions) {
-    log.trace(`No transactions to update`);
+    log.trace(`[redis]No transactions to update`);
     return;
   }
 
-  log.trace(`Updating ${transactions.length} transactions`);
+  log.trace(`[redis]Updating ${transactions.length} transactions`);
   for (const tx of transactions) {
     const transactionHashKey = getKey(tx.transactionHash);
 
@@ -199,15 +231,20 @@ async function getNextTransactionsToCheck() {
   const timeNow = Date.now();
   const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000;
 
-  const [_numExpired, numAwaitingCheck, txToCheckNext] = await redisClient
+  const [numUpdated, numExpired, numAwaitingCheck, txToCheckNext] = await redisClient
     .multi()
-    .zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow) // Expire any transactions that have been being checked for too long
+    .addzrangebyscore(PENDING_TX_KEY.CHECKING, PENDING_TX_KEY.ALL, '-inf', timeNow) // Update expiry of any transaction in ALL that has expired while being checked
+    .zremrangebyscore(PENDING_TX_KEY.CHECKING, '-inf', timeNow) // Expire the transactions updated in the previous step
     .zdiffstore(PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING) // Get transactions that are not currently being checked
     .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
     .exec();
 
-  log.trace(`Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
-  log.trace(`Next transactions to check: ${txToCheckNext[1]}\n`);
+  if (numUpdated[1] !== numExpired[1]) {
+    log.warn(`[redis]Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);  
+  }
+  log.trace(`[redis]Transactions with updated expiry: ${numUpdated[1]}\n`);
+  log.trace(`[redis]Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
+  log.trace(`[redis]Next transactions to check: ${txToCheckNext[1]}\n`);
   return txToCheckNext[1];
 }
 

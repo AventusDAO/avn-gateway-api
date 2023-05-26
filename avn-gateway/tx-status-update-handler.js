@@ -48,7 +48,7 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name extrinsic { hash indexInBlock success block { height } } } }`;
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, variables: null, operationName: 'GatewayApiStatus' });
     const statuses = response.data.data.events;
-    console.info(`Recieved ${statuses.length} transaction statuses from graphQL`);
+    console.info(`Received ${statuses.length} transaction statuses from graphQL`);
 
     return statuses.map(status => {
       return {

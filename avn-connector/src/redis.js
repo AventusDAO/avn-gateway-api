@@ -75,6 +75,7 @@ async function connect() {
   // But to insert / update these with zadd, we have to invert the order, and send
   // ZADD ... <Score Key> <Score Key> ...
   // We invert the array pair-wise in the foor loop
+  // The result returned is divided by 2, because ZRANGE is returning (member, score) pairs
   redisClient.defineCommand('addzrangebyscore', {
     numberOfKeys: 2,
     lua: `local subset = redis.call('ZRANGE', KEYS[1], ARGV[1], ARGV[2], 'BYSCORE', 'WITHSCORES')
@@ -90,7 +91,7 @@ async function connect() {
             table.insert(subset, 1, 'ZADD')
             table.insert(subset, 2, KEYS[2])
             redis.call(unpack(subset))
-            return table.getn(subsetCopy)
+            return table.getn(subsetCopy)/2 
           else
             return 0
           end`
@@ -236,8 +237,10 @@ async function getNextTransactionsToCheck() {
     .nextzsubset(PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry) // Update the expiry of the next subset to check and return it
     .exec();
 
-  if (numUpdated !== numExpired[1]) {
-    log.warn(`Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);  
+  console.log(`Num Updated`, numUpdated, `numExpired`, numExpired)
+
+  if (numUpdated[1] !== numExpired[1]) {
+    log.warn(`[redis]Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);  
   }
   log.trace(`[redis]Transactions with updated expiry: ${numUpdated[1]}\n`);
   log.trace(`[redis]Transactions awaiting check: ${numAwaitingCheck[1]}\n`);

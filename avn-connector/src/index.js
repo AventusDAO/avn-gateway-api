@@ -41,8 +41,9 @@ app.post('/avnQuery', async (req, res, next) => {
 app.post('/avnPoll', async (req, res, next) => {
   try {
     log.trace({ avnPollRequest: req.body });
+    const txToCheck = await redis.getNextTransactionsToCheck();
     // the await is removed on purpose here
-    lambda.resolvePendingTransactionsState();
+    if (txToCheck.length > 0) lambda.resolvePendingTransactionsState();
 
     const result = await avn.poll(req.body.requestId);
     res.send(result);

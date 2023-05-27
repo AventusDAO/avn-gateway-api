@@ -50,17 +50,17 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name args extrinsic { hash indexInBlock success block { height } } } }`;
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
     const events = response.data.data.events;
-    const txStatus = {};
+    const txStatuses = {};
 
-    // We boil down the events and any failure events or events with args will take precedence over successes:
+    // Reduce the events by having any failure events or events with args take precedence over successes:
     events.forEach(event => {
       const txHash = event.extrinsic.hash;
-      if (failureFilter.concat(argsFilter).includes(event.name) || txHash in txStatus === false) txStatus[txHash] = event;
+      if (failureFilter.concat(argsFilter).includes(event.name) || txHash in txStatuses === false) txStatuses[txHash] = event;
     });
 
-    console.info(`Received ${Object.keys(txStatus).length} transaction statuses from graphQL`);
+    console.info(`Received ${Object.keys(txStatuses).length} transaction statuses from graphQL`);
 
-    return Object.values(txStatus).map(status => {
+    return Object.values(txStatuses).map(status => {
       return {
         transactionHash: status.extrinsic.hash,
         status: failureFilter.includes(status.name) ? transactionStatus.Rejected : transactionStatus.Processed,

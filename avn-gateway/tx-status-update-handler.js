@@ -41,24 +41,27 @@ async function processRequest() {
 
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
-    console.info(`Requesting ${transactionHashes.length} transaction statuses from graphQL`);
+    log('Requesting', transactionHashes);
+
     const successFilter = ['System.ExtrinsicSuccess'];
     const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
-    // Any extrinsics for which we wish to capture the event output can be added to the argsFilter:
+    // Any extrinsics for which we wish to capture event output can be added to the argsFilter:
     const argsFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
     const extrinsicFilter = successFilter.concat(failureFilter).concat(argsFilter);
-    const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}}, name_in: ${JSON.stringify(extrinsicFilter)}}) { name args extrinsic { hash indexInBlock success block { height } } } }`;
+    const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}},
+        name_in: ${JSON.stringify(extrinsicFilter)}}) { name args extrinsic { hash indexInBlock success block { height } } } }`;
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
     const events = response.data.data.events;
-    const txStatuses = {};
 
-    // Reduce the events by having any failure events or events with args take precedence over successes:
+    // The same transaction can have multiple events returned for it. Here we reduce them
+    // by having any failure events or events with args supplant success events:
+    const txStatuses = {};
     events.forEach(event => {
       const txHash = event.extrinsic.hash;
       if (failureFilter.concat(argsFilter).includes(event.name) || txHash in txStatuses === false) txStatuses[txHash] = event;
     });
 
-    console.info(`Received ${Object.keys(txStatuses).length} transaction statuses from graphQL`);
+    log('Received', Object.keys(txStatuses));
 
     return Object.values(txStatuses).map(status => {
       return {
@@ -71,5 +74,15 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     });
   } catch (error) {
     throw new Error(`Error getting transaction status from indexer: ${error}`);
+  }
+}
+
+function log(state, txHashes) {
+  if (txHashes.length > 0) {
+    console.info(`${state} ${txHashes.length} transaction statuses from graphQL
+      - start tx: ${txHashes[0]}
+      - end tx: ${txHashes[txHashes.length-1]}`);
+  } else {
+    console.info(`${state} 0 transaction statuses from graphQL`);
   }
 }

@@ -9,7 +9,8 @@ const transactionObject = {
   senderNonce: 'senderNonce',
   status: 'status',
   blockNumber: 'blockNumber',
-  transactionIndex: 'transactionIndex'
+  transactionIndex: 'transactionIndex',
+  eventArgs: 'eventArgs'
 };
 
 const transactionStatus = {
@@ -68,7 +69,7 @@ async function connect() {
     redisClient = new Redis();
   }
 
-  // Reads a range from sorted set KEYS[1] and adds it to sorted set KEYS[2] 
+  // Reads a range from sorted set KEYS[1] and adds it to sorted set KEYS[2]
   // The range is defined by score, and includes all elements with score value between ARGV[1] and ARGV[2]
   // We extract the elements with their scores with ZRANGE ... BYSCORE WITHSCORES.
   // This returns sequences of <Key Score>
@@ -91,7 +92,7 @@ async function connect() {
             table.insert(subset, 1, 'ZADD')
             table.insert(subset, 2, KEYS[2])
             redis.call(unpack(subset))
-            return table.getn(subsetCopy)/2 
+            return table.getn(subsetCopy)/2
           else
             return 0
           end`
@@ -214,6 +215,7 @@ async function resolvePendingAvnTransactions(transactions) {
     newValue[transactionObject.status] = tx.status;
     newValue[transactionObject.blockNumber] = tx.blockNumber;
     newValue[transactionObject.transactionIndex] = tx.index;
+    newValue[transactionObject.eventArgs] = dataToJsonString(tx.eventArgs);
 
     await redisClient
       .multi()
@@ -238,7 +240,7 @@ async function getNextTransactionsToCheck() {
     .exec();
 
   if (numUpdated[1] !== numExpired[1]) {
-    log.warn(`[redis]Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);  
+    log.warn(`[redis]Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);
   }
   log.trace(`[redis]Transactions with updated expiry: ${numUpdated[1]}\n`);
   log.trace(`[redis]Transactions awaiting check: ${numAwaitingCheck[1]}\n`);

@@ -98,12 +98,15 @@ async function poll(requestId) {
       return { status: `Transaction not found` };
     }
 
+    const eventArgs = tx.eventArgs ? JSON.parse(tx.eventArgs) : {};
+
     return {
       txHash,
       status: tx.status,
       blockNumber: tx.blockNumber,
       transactionIndex: tx.transactionIndex,
-      senderNonce: tx.senderNonce
+      senderNonce: tx.senderNonce,
+      eventArgs
     };
   } catch (err) {
     log.error({ message: `${requestId} - Error getting transaction status`, err });

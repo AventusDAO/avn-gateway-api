@@ -41,24 +41,48 @@ async function processRequest() {
 
 async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
-    console.info(`Getting ${transactionHashes.length} transaction statuses from chain indexer`);
-    const blockExplorerResponse = await utils.axios.post(`${BLOCK_EXPLORER_BASE_URL}/transactions/bulk`, { transactionHashes });
-    const response = blockExplorerResponse.data.data;
+    log('Requesting', transactionHashes);
 
-    if (response && response.length > 0) {
-      console.info(`Recieved ${response.length} responses from chain indexer`);
+    const successFilter = ['System.ExtrinsicSuccess'];
+    const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
+    // Any extrinsics for which we wish to capture event output can be added to the argsFilter:
+    const argsFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
+    const extrinsicFilter = successFilter.concat(failureFilter).concat(argsFilter);
+    const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}},
+        name_in: ${JSON.stringify(extrinsicFilter)}}) { name args extrinsic { hash indexInBlock success block { height } } } }`;
+    const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
+    const events = response.data.data.events;
 
-      return response.map(tx => {
-        return {
-          transactionHash: tx.transactionHash,
-          status: tx.isFailed === true ? transactionStatus.Rejected : transactionStatus.Processed,
-          blockNumber: tx.blockNumber,
-          index: tx.index,
-          events: tx.events
-        };
-      });
-    }
+    // The same transaction can have multiple events returned for it. Here we reduce them
+    // by having any failure events or events with args supplant success events:
+    const txStatuses = {};
+    events.forEach(event => {
+      const txHash = event.extrinsic.hash;
+      if (failureFilter.concat(argsFilter).includes(event.name) || txHash in txStatuses === false) txStatuses[txHash] = event;
+    });
+
+    log('Received', Object.keys(txStatuses));
+
+    return Object.values(txStatuses).map(status => {
+      return {
+        transactionHash: status.extrinsic.hash,
+        status: failureFilter.includes(status.name) ? transactionStatus.Rejected : transactionStatus.Processed,
+        blockNumber: status.extrinsic.block.height,
+        index: status.extrinsic.indexInBlock,
+        eventArgs: argsFilter.includes(status.name) ? status.args : {}
+      };
+    });
   } catch (error) {
     throw new Error(`Error getting transaction status from indexer: ${error}`);
+  }
+}
+
+function log(state, txHashes) {
+  if (txHashes.length > 0) {
+    console.info(`${state} ${txHashes.length} transaction statuses from graphQL
+      - start tx: ${txHashes[0]}
+      - end tx: ${txHashes[txHashes.length-1]}`);
+  } else {
+    console.info(`${state} 0 transaction statuses from graphQL`);
   }
 }

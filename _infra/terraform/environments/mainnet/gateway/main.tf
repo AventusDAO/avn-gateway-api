@@ -6,7 +6,7 @@ locals {
   account_id             = "503742778456"
   avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
   avn_votes_bucket       = "avn-votes-mainnet"
-  block_explorer_url     = "https://index.mainnet.aventus.io"
+  block_explorer_url     = "https://archive-explorer.mainnet.aventus.io/graphql"
   vault_recovery_window  = 30
 }
 

@@ -154,10 +154,43 @@ async function updateUnclaimedLowers(avnContract, account) {
 }
 
 async function getLowerTransactions(blockNumber) {
-  const response = await axios.post(`${AVN_EXPLORER_URL}/transactions/lowers?blockNumberFrom=${blockNumber}&limit=10000`);
+  const lowerFilter = ['TokenManager.TokenLowered'];
+  const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed'];
 
-  // handle nulls
-  return response.data ? response.data.data || [] : [];
+  const txQuery = `query ConnectorLowerTx = {
+      events(where: { name_in:${JSON.stringify(lowerFilter)}, block: { height_gte: ${blockNumber}}}) { extrinsic { hash }}}`;
+  const txQueryResponse = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { txQuery, operationName: 'ConnectorLowerTx' });
+  const lowerTxHashes = txQueryResponse.data.data.events.map(event => event.extrinsic.hash);
+
+  const extrinsicFilter = failureFilter.concat(lowerFilter);
+  const statusQuery = `query ConnectorLowerStatus = { events(where: { name_in: ${JSON.stringify(extrinsicFilter)},
+      extrinsic: { hash_in:${JSON.stringify(lowerTxHashes)}}}) { name extrinsic indexInBlock args { hash block { height }}}}`;
+  const statusQueryResponse = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'ConnectorLowerStatus' });
+  const events = statusQueryResponse.data.data.events;
+
+  const failedLowers = events.reduce((failed, event) => {
+    if (failureFilter.includes(event.name)) {
+      failed.push(event.extrinsic.hash);
+    }
+    return failed;
+  }, []);
+
+  const lowers = events.reduce((lowerData, event) => {
+    const txHash = event.extrinsic.hash;
+    if (txHash in failedLowers === false) {
+      lowerData.push({
+        txHash,
+        blockNumber: event.extrinsic.block.height,
+        index: event.indexInBlock,
+        amount: event.args.amount,
+        from: event.args.sender,
+        to: event.args.t1Recipient
+      });
+    }
+    return lowerData;
+  }, []);
+
+  return lowers;
 }
 
 async function getLowersForAccount(account) {

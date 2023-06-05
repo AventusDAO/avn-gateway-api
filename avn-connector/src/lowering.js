@@ -159,13 +159,13 @@ async function getLowerTransactions(blockNumber) {
 
   const txQuery = `query ConnectorLowerTx = {
       events(where: { name_in:${JSON.stringify(lowerFilter)}, block: { height_gte: ${blockNumber}}}) { extrinsic { hash }}}`;
-  const txQueryResponse = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { txQuery, operationName: 'ConnectorLowerTx' });
+  const txQueryResponse = await axios.post(BLOCK_EXPLORER_BASE_URL, { txQuery, operationName: 'ConnectorLowerTx' });
   const lowerTxHashes = txQueryResponse.data.data.events.map(event => event.extrinsic.hash);
 
   const extrinsicFilter = failureFilter.concat(lowerFilter);
   const statusQuery = `query ConnectorLowerStatus = { events(where: { name_in: ${JSON.stringify(extrinsicFilter)},
       extrinsic: { hash_in:${JSON.stringify(lowerTxHashes)}}}) { name extrinsic indexInBlock args { hash block { height }}}}`;
-  const statusQueryResponse = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'ConnectorLowerStatus' });
+  const statusQueryResponse = await axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'ConnectorLowerStatus' });
   const events = statusQueryResponse.data.data.events;
 
   const failedLowers = events.reduce((failed, event) => {
@@ -189,7 +189,7 @@ async function getLowerTransactions(blockNumber) {
     }
     return lowerData;
   }, []);
-
+  console.log(lowers)
   return lowers;
 }
 

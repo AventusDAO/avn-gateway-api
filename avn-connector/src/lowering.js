@@ -160,6 +160,7 @@ async function getLowerTransactions(blockNumber) {
   const txQuery = `query ConnectorLowerTx {
       events(where: { name_in:${JSON.stringify(lowerFilter)}, block: { height_gte: ${blockNumber}}}) { extrinsic { hash }}}`;
   const txQueryResponse = await axios.post(AVN_EXPLORER_URL, { query: txQuery, operationName: 'ConnectorLowerTx' });
+  console.log(txQueryResponse)
   const lowerTxHashes = txQueryResponse.data.data.events.map(event => event.extrinsic.hash);
 
   const extrinsicFilter = failureFilter.concat(lowerFilter);

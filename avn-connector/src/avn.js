@@ -183,18 +183,7 @@ async function getStakingStats() {
 }
 
 async function getChainInfo() {
-  let chainInfo = await redis.getChainInfo();
-
-  if (chainInfo === undefined) {
-    chainInfo = {};
-    chainInfo.name = await api.rpc.system.chain();
-    chainInfo.version = api.runtimeVersion.specVersion.toString();
-    chainInfo.avtContract = await api.query.tokenManager.avtTokenContract();
-    chainInfo.avnContract = await api.query.ethereumEvents.liftingContractAddress();
-    await redis.setChainInfo(chainInfo);
-  }
-
-  return chainInfo;
+  return await redis.getChainInfo();
 }
 
 async function getCurrentBlock() {
@@ -414,6 +403,15 @@ async function signPaymentInfo(message, payerUsername) {
 async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
   await connectToAvN();
+
+  const chainInfo = {
+    name: await api.rpc.system.chain(),
+    version: api.runtimeVersion.specVersion.toString(),
+    avtContract: await api.query.tokenManager.avtTokenContract(),
+    avnContract: await api.query.ethereumEvents.liftingContractAddress(),
+  }
+
+  await redis.setChainInfo(chainInfo);
 }
 
 async function connectToAvN() {

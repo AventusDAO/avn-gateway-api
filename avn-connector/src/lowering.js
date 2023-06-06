@@ -9,7 +9,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const LOWER_QUERY_SIZE = 60;
+const LOWER_QUERY_SIZE = 10;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
@@ -44,58 +44,35 @@ async function updateSummaries(avnContract) {
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
-  let lowerTx = [];
-  let txCount = 0;
+  let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
+  const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
-  do {
-    let fromBlock = await redis.getRetrieveLowersFromAvnBlock();
-    // Retrieve a chunk of lowers from the indexer and remove any duplicate entries from a previous call
-    lowerTx = (await getLowerTx(fromBlock)).filter(l2 => !lowerTx.some(l1 => l2.txHash === l1.txHash));
-    txCount += lowerTx.length;
-    console.log(`\tChecking for lowers from block ${fromBlock} - found ${lowerTx.length}`);
+  console.log(`\tChecking for lowers from block ${fromBlock} - found ${lowerTransactions.length}`);
+  for (let i = 0; i < lowerTransactions.length; i++) {
+    const lowerTx = lowerTransactions[i];
+    const txHash = lowerTx.txHash;
+    const blockNumber = parseInt(lowerTx.blockNumber);
 
-    for (let i = 0; i < lowerTx.length; i++) {
-      const lower = lowerTx[i];
-      const txHash = lower.txHash;
-      const blockNumber = parseInt(lower.blockNumber);
-
-      if (blockNumber > latestPublishedBlock) {
-        await redis.addUnpublishedLower(txHash);
-      } else {
-        await redis.addAwaitingClaimDataLower(txHash);
-      }
-
-      if (blockNumber > fromBlock) {
-        fromBlock = blockNumber;
-      }
-
-      if (isHex(lower.amount)) lower.amount = hexToBn(lower.amount).toString();
-      const lowerData = { token: lower.token, from: lower.from, to: lower.to, amount: lower.amount, claimData: {} };
-      await redis.setLowerData(txHash, lowerData);
-      const blockIndex = { blockNumber, index: lower.index };
-      await redis.setBlockIndex(txHash, blockIndex);
-    }
-
-    await redis.setRetrieveLowersFromAvnBlock(fromBlock);
-  } while (lowerTx.length > 0);
-
-  console.log(`\tLowers updated - found ${txCount} in total`);
-}
-
-async function updateUnpublishedLowers(latestPublishedBlock) {
-  const unpublished = await redis.getUnpublishedLowers();
-
-  console.log(`\tLowers not yet published: ${unpublished.length}`);
-  for (let i = 0; i < unpublished.length; i++) {
-    const txHash = unpublished[i];
-    const { blockNumber } = await redis.getBlockIndex(txHash);
-
-    if (blockNumber <= latestPublishedBlock) {
-      await redis.removeUnpublishedLower(txHash);
+    if (blockNumber > latestPublishedBlock) {
+      await redis.addUnpublishedLower(txHash);
+    } else {
       await redis.addAwaitingClaimDataLower(txHash);
     }
+
+    if (blockNumber > retrieveFromBlock) {
+      retrieveFromBlock = blockNumber + 1;
+    }
+
+    if (isHex(lowerTx.amount)) lowerTx.amount = hexToBn(lowerTx.amount).toString();
+    const lowerData = { token: lowerTx.token, from: lowerTx.from, to: lowerTx.to, amount: lowerTx.amount, claimData: {} };
+    await redis.setLowerData(txHash, lowerData);
+    const blockIndex = { blockNumber, index: lowerTx.index };
+    await redis.setBlockIndex(txHash, blockIndex);
   }
+
+  await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
 }
+
 
 async function updateAwaitingClaimDataLowers() {
   const awaiting = await redis.getAwaitingClaimDataLowers();
@@ -165,57 +142,63 @@ async function updateUnclaimedLowers(avnContract, account) {
   await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
 }
 
-async function getLowerTx(fromBlock) {
+async function getLowerTransactions(fromBlock) {
   const lowerFilter = ['TokenManager.TokenLowered'];
   const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed'];
-  let lowerTxHashes = [];
-  let lowerTx = [];
+  let lowerTxChunk = [];
+  let lowerTransactions = [];
 
-  try {
-    const query = `query ConnectorLower1 { events(where: { extrinsic: { block: { height_gte: ${fromBlock} }},
-      name_in:${JSON.stringify(lowerFilter)} }, limit: ${LOWER_QUERY_SIZE}, orderBy: block_height_ASC) { extrinsic { hash }}}`;
-    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower1' });
-    lowerTxHashes = response.data.data.events.map(event => event.extrinsic.hash);
-  } catch (error) {
-    console.error(`💔 Error running lower query 1: `, error);
-  }
+  do {
+    const lowerTxHashes = [];
+    try {
+      const query = `query ConnectorLower1 { events(where: { extrinsic: { block: { height_gte: ${fromBlock} }},
+        name_in:${JSON.stringify(lowerFilter)} }, limit: ${LOWER_QUERY_SIZE}, orderBy: block_height_ASC) { extrinsic { hash }}}`;
+      const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower1' });
+      lowerTxHashes = response.data.data.events.map(event => event.extrinsic.hash);
+    } catch (error) {
+      console.error(`💔 Error running lower query 1: `, error);
+    }
 
-  const extrinsics = failureFilter.concat(lowerFilter);
-  const limit = lowerTxHashes.length * extrinsics.length;
+    const extrinsics = failureFilter.concat(lowerFilter);
+    const limit = lowerTxHashes.length * extrinsics.length;
 
-  try {
-    const query = `query ConnectorLower2 { events(where: { extrinsic: { hash_in:${JSON.stringify(lowerTxHashes)} },
-      name_in: ${JSON.stringify(extrinsics)} }, limit: ${limit}) { name args extrinsic { hash indexInBlock block { height }}}}`;
-    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower2' });
-    const events = response.data.data.events;
+    try {
+      const query = `query ConnectorLower2 { events(where: { extrinsic: { hash_in:${JSON.stringify(lowerTxHashes)} },
+        name_in: ${JSON.stringify(extrinsics)} }, limit: ${limit}) { name args extrinsic { hash indexInBlock block { height }}}}`;
+      const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower2' });
+      const events = response.data.data.events;
 
-    const failedLowers = events.reduce((failed, event) => {
-      if (failureFilter.includes(event.name)) {
-        failed.push(event.extrinsic.hash);
-      }
-      return failed;
-    }, []);
+      const failedLowers = events.reduce((failed, event) => {
+        if (failureFilter.includes(event.name)) {
+          failed.push(event.extrinsic.hash);
+        }
+        return failed;
+      }, []);
 
-    lowerTx = events.reduce((successfulLowers, event) => {
-      const txHash = event.extrinsic.hash;
-      if (txHash in failedLowers === false) {
-        successfulLowers.push({
-          txHash: txHash,
-          blockNumber: event.extrinsic.block.height,
-          index: event.extrinsic.indexInBlock,
-          amount: event.args.amount,
-          from: event.args.sender,
-          to: event.args.t1Recipient
-        });
-      }
-      return successfulLowers;
-    }, []);
+      const nextLowerTxChunk = events.reduce((successfulLowers, event) => {
+        const txHash = event.extrinsic.hash;
+        if (txHash in failedLowers === false) {
+          successfulLowers.push({
+            txHash: txHash,
+            blockNumber: event.extrinsic.block.height,
+            index: event.extrinsic.indexInBlock,
+            amount: event.args.amount,
+            from: event.args.sender,
+            to: event.args.t1Recipient
+          });
+        }
+        return successfulLowers;
+      }, []);
 
-  } catch (error) {
-    console.error(`💔 Error running lower query 2: `, error);
-  }
+      lowerTxChunk = nextLowerTxChunk.filter(l2 => !lowerTxChunk.some(l1 => l2.txHash === l1.txHash));
+      lowerTransactions = lowerTransactions.concat(lowerTxChunk);
 
-  return lowerTx;
+    } catch (error) {
+      console.error(`💔 Error running lower query 2: `, error);
+    }
+  } while (lowerTxChunk.length > 0);
+
+  return lowerTransactions;
 }
 
 async function getLowersForAccount(account) {

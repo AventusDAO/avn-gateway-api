@@ -164,7 +164,6 @@ async function getLowerTransactions(fromBlock) {
       name_in:${JSON.stringify(lowerFilter)} }, limit: 100, orderBy: block_height_ASC) { extrinsic { hash }}}`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower1' });
     lowerTxHashes = response.data.data.events.map(event => event.extrinsic.hash);
-    console.log("HEY MAMBO", JSON.stringify(response.data))
   } catch (error) {
     console.error(`💔 Error running lower query 1: `, error);
   }

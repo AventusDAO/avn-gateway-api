@@ -160,17 +160,78 @@ async function getLowerTransactions(fromBlock) {
   let lowers = [];
   let lowersChunk = [];
 
-  do {
-    const txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    console.log("XXXXXXXXXXXX", txHashes)
+  // do {
+    let txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
     lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log("YYYYYYYYYYYY", lowersChunk)
+    console.log(lowers.length, lowersChunk.length)
     if (lowersChunk.length > 0) {
       fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
       lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
-      console.log("ZZZZZZZZZZZZ", fromBlock, lowers)
     }
-  } while (lowersChunk.length > 0);
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log(lowers.length, lowersChunk.length)
+    if (lowersChunk.length > 0) {
+      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
+      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+    }
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log(lowers.length, lowersChunk.length)
+    if (lowersChunk.length > 0) {
+      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
+      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+    }
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log(lowers.length, lowersChunk.length)
+    if (lowersChunk.length > 0) {
+      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
+      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+    }
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log(lowers.length, lowersChunk.length)
+    if (lowersChunk.length > 0) {
+      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
+      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+    }
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log(lowers.length, lowersChunk.length)
+    if (lowersChunk.length > 0) {
+      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
+      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+    }
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log(lowers.length, lowersChunk.length)
+    if (lowersChunk.length > 0) {
+      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
+      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+    }
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log(lowers.length, lowersChunk.length)
+    if (lowersChunk.length > 0) {
+      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
+      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+    }
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log(lowers.length, lowersChunk.length)
+    if (lowersChunk.length > 0) {
+      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
+      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+    }
+  // } while (lowersChunk.length > 0);
 
   return lowers;
 }
@@ -183,7 +244,6 @@ async function getNextLowerTxHashesFromIndexer(fromBlock) {
       events( where: { extrinsic: { block: { height_gte: ${fromBlock} } }, name_eq: "TokenManager.TokenLowered" },
       limit: ${LOWERS_CHUNK_SIZE}, orderBy: block_height_ASC) { extrinsic { hash block { height } } } }`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxHashes' });
-    console.log("AAAAA", response)
     const events = response.data.data.events;
     txHashes = events.map(event => event.extrinsic.hash);
   } catch (error) {

@@ -161,9 +161,9 @@ async function getLowerTransactions(fromBlock) {
   let lowersChunk = [];
 
   do {
-    const txHashes = await getNextLowerTxHashes(fromBlock);
+    const txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
     console.log("XXXXXXXXXXXX", txHashes)
-    lowersChunk = await getLowerTxData(txHashes);
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
     console.log("YYYYYYYYYYYY", lowersChunk)
     if (lowersChunk.length > 0) {
       fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
@@ -175,22 +175,26 @@ async function getLowerTransactions(fromBlock) {
   return lowers;
 }
 
-async function getNextLowerTxHashes(fromBlock) {
+async function getNextLowerTxHashesFromIndexer(fromBlock) {
+  let txHashes = [];
+
   try {
     const query = `query ConnectorLowerTxHashes {
       events( where: { extrinsic: { block: { height_gte: ${fromBlock} } }, name_eq: "TokenManager.TokenLowered" },
       limit: ${LOWERS_CHUNK_SIZE}, orderBy: block_height_ASC) { extrinsic { hash block { height } } } }`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxHashes' });
+    console.log("AAAAA", response)
     const events = response.data.data.events;
-    const txHashes = events.map(event => event.extrinsic.hash);
-    return txHashes;
+    txHashes = events.map(event => event.extrinsic.hash);
   } catch (error) {
-    console.error(`💔 Error running lower query 1: `, error);
+    console.error(`💔 Error running next lower tx hashes query: `, error);
   }
+
+  return txHashes;
 }
 
-async function getLowerTxData(txHashes) {
-  let lowers = [];
+async function getLowerDataFromIndexer(txHashes) {
+  let lowerData = [];
 
   try {
     const lowerFilter = ['TokenManager.TokenLowered'];
@@ -210,7 +214,7 @@ async function getLowerTxData(txHashes) {
       return failed;
     }, []);
 
-    lowers = events.reduce((successfulLowers, event) => {
+    lowerData = events.reduce((successfulLowers, event) => {
       const txHash = event.extrinsic.hash;
       if (txHash in failedLowers === false) {
         successfulLowers.push({
@@ -225,10 +229,10 @@ async function getLowerTxData(txHashes) {
       return successfulLowers;
     }, []);
   } catch (error) {
-    console.error(`💔 Error running lower query 2: `, error);
+    console.error(`💔 Error running lower data query: `, error);
   }
 
-  return lowers;
+  return lowerData;
 }
 
 async function getLowersForAccount(account) {

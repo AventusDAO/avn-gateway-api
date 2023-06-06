@@ -16,7 +16,6 @@ async function getLowers(account) {
   const { avnContract } = await redis.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
-
   console.log(`\tLatest block published: ${latestPublishedBlock}`);
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
@@ -163,7 +162,7 @@ async function getLowerTransactions(fromBlock) {
   let lowerTransactions = [];
 
   do {
-    const lowerTxHashes = [];
+    let lowerTxHashes = [];
     try {
       const query = `query ConnectorLower1 { events(where: { extrinsic: { block: { height_gte: ${fromBlock} }},
         name_in:${JSON.stringify(lowerFilter)} }, limit: ${LOWER_QUERY_SIZE}, orderBy: block_height_ASC) { extrinsic { hash }}}`;
@@ -204,6 +203,7 @@ async function getLowerTransactions(fromBlock) {
         return successfulLowers;
       }, []);
 
+      // Remove any duplicates
       lowerTxChunk = nextLowerTxChunk.filter(l2 => !lowerTxChunk.some(l1 => l2.txHash === l1.txHash));
       lowerTransactions = lowerTransactions.concat(lowerTxChunk);
 

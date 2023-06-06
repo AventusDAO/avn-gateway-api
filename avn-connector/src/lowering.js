@@ -9,7 +9,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const LOWER_CHUNK_SIZE = 200;
+const LOWER_QUERY_SIZE = 10;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
@@ -49,7 +49,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 
   do {
     let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
-    lowerTransactions = await getLowerTransactions(retrieveFromBlock);
+    lowerTransactions = await getLowerTransactions(retrieveFromBlock).filter(tx => !lowerTransactions.includes(tx));
     lowersCount += lowerTransactions.length;
     console.log(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
 
@@ -76,7 +76,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     }
 
     await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
-  } while (lowerTransactions.length === LOWER_CHUNK_SIZE);
+  } while (lowerTransactions.length === LOWER_QUERY_SIZE);
 
   console.log(`\tLowers updated - found ${lowersCount} in total`);
 }
@@ -172,7 +172,7 @@ async function getLowerTransactions(fromBlock) {
 
   try {
     const query = `query ConnectorLower1 { events(where: { extrinsic: { block: { height_gte: ${fromBlock} }},
-      name_in:${JSON.stringify(lowerFilter)} }, limit: ${LOWER_CHUNK_SIZE}, orderBy: block_height_ASC) { extrinsic { hash }}}`;
+      name_in:${JSON.stringify(lowerFilter)} }, limit: ${LOWER_QUERY_SIZE}, orderBy: block_height_ASC) { extrinsic { hash }}}`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower1' });
     lowerTxHashes = response.data.data.events.map(event => event.extrinsic.hash);
   } catch (error) {

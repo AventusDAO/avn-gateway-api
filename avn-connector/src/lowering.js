@@ -157,22 +157,26 @@ async function updateUnclaimedLowers(avnContract, account) {
 }
 
 async function getLowerTransactions(fromBlock) {
-  let lowers = [];
+  let lowerTransactions = [];
   let lowersChunk = [];
 
   do {
-    let txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    // Get the tx hashes of any new lowers first:
+    const txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    // Then we can get their data and weed out the failures:
+    lowersChunk = await getSuccessfulLowersFromIndexer(txHashes);
 
     if (lowersChunk.length > 0) {
-      lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
-      lowers = lowers.concat(lowersChunk);
-      fromBlock = lowers[lowers.length-1].blockNumber;
+      // Remove any duplicates that may have been caused by a from block overlapping chunks:
+      lowersChunk = lowersChunk.filter(l1 => !lowerTransactions.some(l2 => l1.txHash === l2.txHash));
+      lowerTransactions = lowerTransactions.concat(lowersChunk);
+      // Lowers are ordered so the last entry is the latest:
+      fromBlock = lowerTransactions[lowerTransactions.length-1].blockNumber;
     }
 
   } while (lowersChunk.length > 0);
 
-  return lowers;
+  return lowerTransactions;
 }
 
 async function getNextLowerTxHashesFromIndexer(fromBlock) {
@@ -192,8 +196,8 @@ async function getNextLowerTxHashesFromIndexer(fromBlock) {
   return txHashes;
 }
 
-async function getLowerDataFromIndexer(txHashes) {
-  let lowerData = [];
+async function getSuccessfulLowersFromIndexer(txHashes) {
+  let successfulLowers = [];
 
   try {
     const lowerFilter = ['TokenManager.TokenLowered'];
@@ -213,10 +217,10 @@ async function getLowerDataFromIndexer(txHashes) {
       return failed;
     }, []);
 
-    lowerData = events.reduce((successfulLowers, event) => {
+    successfulLowers = events.reduce((lowers, event) => {
       const txHash = event.extrinsic.hash;
       if (txHash in failedLowers === false) {
-        successfulLowers.push({
+        lowers.push({
           txHash: txHash,
           blockNumber: event.extrinsic.block.height,
           index: event.extrinsic.indexInBlock,
@@ -225,13 +229,13 @@ async function getLowerDataFromIndexer(txHashes) {
           to: event.args.t1Recipient
         });
       }
-      return successfulLowers;
+      return lowers;
     }, []);
   } catch (error) {
     console.error(`💔 Error running lower data query: `, error);
   }
 
-  return lowerData;
+  return successfulLowers;
 }
 
 async function getLowersForAccount(account) {

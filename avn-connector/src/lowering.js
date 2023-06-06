@@ -48,10 +48,10 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let lowersCount = 0;
 
   do {
-    let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
-    lowerTransactions = (await getLowerTransactions(retrieveFromBlock)).filter(tx => !lowerTransactions.includes(tx));
+    let fromBlock = await redis.getRetrieveLowersFromAvnBlock();
+    lowerTransactions = (await getLowerTransactions(fromBlock)).filter(l1 => !lowerTransactions.some(l2 => l1.tx === l2.tx));
     lowersCount += lowerTransactions.length;
-    console.log(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
+    console.log(`\tChecking for lowers from block ${fromBlock} - found ${lowerTransactions.length}`);
 
     for (let i = 0; i < lowerTransactions.length; i++) {
       const lowerTx = lowerTransactions[i];
@@ -64,8 +64,8 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
         await redis.addAwaitingClaimDataLower(txHash);
       }
 
-      if (blockNumber > retrieveFromBlock) {
-        retrieveFromBlock = blockNumber;
+      if (blockNumber > fromBlock) {
+        fromBlock = blockNumber;
       }
 
       if (isHex(lowerTx.amount)) lowerTx.amount = hexToBn(lowerTx.amount).toString();
@@ -75,7 +75,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
       await redis.setBlockIndex(txHash, blockIndex);
     }
 
-    await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
+    await redis.setRetrieveLowersFromAvnBlock(fromBlock);
   } while (lowerTransactions.length === LOWER_QUERY_SIZE);
 
   console.log(`\tLowers updated - found ${lowersCount} in total`);

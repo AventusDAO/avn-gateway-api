@@ -158,16 +158,17 @@ async function getLowerTransactions(blockNumber) {
   const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed'];
 
   const txQuery = `query ConnectorLowerTx { events(where: { extrinsic: {block: { height_gte: ${blockNumber}}},
-      name_in:${JSON.stringify(lowerFilter)}}) { extrinsic { hash }}}`;
+      name_in:${JSON.stringify(lowerFilter)}}, limit: 250) { extrinsic { hash }}}`;
   const txQueryResponse = await axios.post(AVN_EXPLORER_URL, { query: txQuery, operationName: 'ConnectorLowerTx' });
-  console.log(JSON.stringify(txQueryResponse.data))
-  return [];
+  console.log("111111111111111111", JSON.stringify(txQueryResponse.data))
   const lowerTxHashes = txQueryResponse.data.data.events.map(event => event.extrinsic.hash);
+  console.log("222222222222222222", lowerTxHashes)
 
   const extrinsicFilter = failureFilter.concat(lowerFilter);
   const statusQuery = `query ConnectorLowerStatus { events(where: extrinsic: { hash_in:${JSON.stringify(lowerTxHashes)}},
       name_in: ${JSON.stringify(extrinsicFilter)}}) { name indexInBlock args extrinsic { hash block { height }}}`;
   const statusQueryResponse = await axios.post(AVN_EXPLORER_URL, { query: statusQuery, operationName: 'ConnectorLowerStatus' });
+  console.log("333333333333333333", JSON.stringify(statusQueryResponse.data))
   const events = statusQueryResponse.data.data.events;
 
   const failedLowers = events.reduce((failed, event) => {
@@ -176,6 +177,8 @@ async function getLowerTransactions(blockNumber) {
     }
     return failed;
   }, []);
+
+  console.log("44444444444444444444", failedLowers)
 
   const lowers = events.reduce((lowerData, event) => {
     const txHash = event.extrinsic.hash;
@@ -191,7 +194,7 @@ async function getLowerTransactions(blockNumber) {
     }
     return lowerData;
   }, []);
-  console.log(lowers)
+  console.log("555555555555555555555", lowers)
   return lowers;
 }
 

@@ -9,7 +9,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const LOWER_QUERY_SIZE = 10;
+const QUERY_SIZE = 10;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
@@ -17,6 +17,7 @@ async function getLowers(account) {
 
   const latestPublishedBlock = await updateSummaries(avnContract);
   console.log(`\tLatest block published: ${latestPublishedBlock}`);
+
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
   await updateAwaitingClaimDataLowers();
@@ -165,9 +166,11 @@ async function getLowerTransactions(fromBlock) {
     let lowerTxHashes = [];
     try {
       const query = `query ConnectorLower1 { events(where: { extrinsic: { block: { height_gte: ${fromBlock} }},
-        name_in:${JSON.stringify(lowerFilter)} }, limit: ${LOWER_QUERY_SIZE}, orderBy: block_height_ASC) { extrinsic { hash }}}`;
+        name_in:${JSON.stringify(lowerFilter)} }, limit: ${QUERY_SIZE}, orderBy: block_height_ASC) { extrinsic { hash block { height }}}}`;
       const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower1' });
-      lowerTxHashes = response.data.data.events.map(event => event.extrinsic.hash);
+      const events = response.data.data.events;
+      lowerTxHashes = events.map(event => event.extrinsic.hash);
+      if (lowerTxHashes.length > 0) fromBlock = events[events.length-1].extrinsic.block.height;
     } catch (error) {
       console.error(`💔 Error running lower query 1: `, error);
     }

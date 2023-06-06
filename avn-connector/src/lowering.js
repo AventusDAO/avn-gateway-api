@@ -9,6 +9,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
+const LOWER_QUERY_LIMIT = 10;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
@@ -167,7 +168,7 @@ async function getLowerTransactions(fromBlock) {
 
   try {
     const query = `query ConnectorLower1 { events(where: { extrinsic: { block: { height_gte: ${fromBlock} }},
-      name_in:${JSON.stringify(lowerFilter)} }, limit: 100, orderBy: block_height_ASC) { extrinsic { hash }}}`;
+      name_in:${JSON.stringify(lowerFilter)} }, limit: ${LOWER_QUERY_LIMIT}, orderBy: block_height_ASC) { extrinsic { hash }}}`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower1' });
     lowerTxHashes = response.data.data.events.map(event => event.extrinsic.hash);
   } catch (error) {

@@ -168,6 +168,8 @@ async function getLowerTransactions(fromBlock) {
     console.error(`💔 Error running lower query 1: `, error);
   }
 
+  console.log("XXXXXXXXXXXX", fromBlock, lowerTxHashes)
+
   const extrinsics = failureFilter.concat(lowerFilter);
   const limit = lowerTxHashes.length * extrinsics.length;
 
@@ -184,7 +186,9 @@ async function getLowerTransactions(fromBlock) {
       return failed;
     }, []);
 
-    const lowerTransactions = events.reduce((successfulLowers, event) => {
+    console.log("YYYYYYYYYYYYY", failedLowers)
+
+    lowerTransactions = events.reduce((successfulLowers, event) => {
       const txHash = event.extrinsic.hash;
       if (txHash in failedLowers === false) {
         successfulLowers.push({
@@ -202,6 +206,8 @@ async function getLowerTransactions(fromBlock) {
   } catch (error) {
     console.error(`💔 Error running lower query 2: `, error);
   }
+
+  console.log("ZZZZZZZZZZZZ", lowerTransactions)
 
   return lowerTransactions;
 }

@@ -9,7 +9,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const QUERY_SIZE = 10;
+const LOWERS_CHUNK_SIZE = 10;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
@@ -157,65 +157,75 @@ async function updateUnclaimedLowers(avnContract, account) {
 }
 
 async function getLowerTransactions(fromBlock) {
-  const lowerFilter = ['TokenManager.TokenLowered'];
-  const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed'];
-  let lowerTxChunk = [];
-  let lowerTransactions = [];
+  let lowers = [];
+  let lowersChunk = [];
 
   do {
-    let lowerTxHashes = [];
-    try {
-      const query = `query ConnectorLower1 { events(where: { extrinsic: { block: { height_gte: ${fromBlock} }},
-        name_in:${JSON.stringify(lowerFilter)} }, limit: ${QUERY_SIZE}, orderBy: block_height_ASC) { extrinsic { hash block { height }}}}`;
-      const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower1' });
-      const events = response.data.data.events;
-      lowerTxHashes = events.map(event => event.extrinsic.hash);
-      if (lowerTxHashes.length > 0) fromBlock = events[events.length-1].extrinsic.block.height;
-    } catch (error) {
-      console.error(`💔 Error running lower query 1: `, error);
+    const txHashes = await getNextLowerTxHashes(fromBlock);
+    lowersChunk = await getLowerTxData(txHashes, lowers);
+    if (lowersChunk.length > 0) {
+      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
+      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
     }
+  } while (lowersChunk.length > 0);
 
-    const extrinsics = failureFilter.concat(lowerFilter);
-    const limit = lowerTxHashes.length * extrinsics.length;
+  return lowers;
+}
 
-    try {
-      const query = `query ConnectorLower2 { events(where: { extrinsic: { hash_in:${JSON.stringify(lowerTxHashes)} },
-        name_in: ${JSON.stringify(extrinsics)} }, limit: ${limit}) { name args extrinsic { hash indexInBlock block { height }}}}`;
-      const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower2' });
-      const events = response.data.data.events;
+async function getNextLowerTxHashes(fromBlock) {
+  try {
+    const query = `query ConnectorLowerQuery1 {
+      events( where: { extrinsic: { block: { height_gte: ${fromBlock} } }, name_eq: "TokenManager.TokenLowered" },
+      limit: ${LOWERS_CHUNK_SIZE}, orderBy: block_height_ASC) { extrinsic { hash block { height } } } }`;
+    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerQuery1' });
+    const events = response.data.data.events;
+    const txHashes = events.map(event => event.extrinsic.hash);
+    return txHashes;
+  } catch (error) {
+    console.error(`💔 Error running lower query 1: `, error);
+  }
+}
 
-      const failedLowers = events.reduce((failed, event) => {
-        if (failureFilter.includes(event.name)) {
-          failed.push(event.extrinsic.hash);
-        }
-        return failed;
-      }, []);
+async function getLowerTxData(txHashes) {
+  let lowers = [];
 
-      const nextLowerTxChunk = events.reduce((successfulLowers, event) => {
-        const txHash = event.extrinsic.hash;
-        if (txHash in failedLowers === false) {
-          successfulLowers.push({
-            txHash: txHash,
-            blockNumber: event.extrinsic.block.height,
-            index: event.extrinsic.indexInBlock,
-            amount: event.args.amount,
-            from: event.args.sender,
-            to: event.args.t1Recipient
-          });
-        }
-        return successfulLowers;
-      }, []);
+  try {
+    const lowerFilter = ['TokenManager.TokenLowered'];
+    const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed'];
+    const extrinsicsFilter = failureFilter.concat(lowerFilter);
+    const eventsLimit = txHashes.length * extrinsicsFilter.length;
 
-      // Remove any duplicates
-      lowerTxChunk = nextLowerTxChunk.filter(l2 => !lowerTxChunk.some(l1 => l2.txHash === l1.txHash));
-      lowerTransactions = lowerTransactions.concat(lowerTxChunk);
+    const query = `query ConnectorLowerQuery2 {
+      events( where: { extrinsic: { hash_in: ${JSON.stringify(txHashes)} }, name_in: ${JSON.stringify(extrinsicsFilter)} },
+      limit: ${eventsLimit}) { name args extrinsic { hash indexInBlock block { height } } } }`;
 
-    } catch (error) {
-      console.error(`💔 Error running lower query 2: `, error);
-    }
-  } while (lowerTxChunk.length > 0);
+    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerQuery2' });
+    const events = response.data.data.events;
 
-  return lowerTransactions;
+    const failedLowers = events.reduce((failed, event) => {
+      if (failureFilter.includes(event.name)) failed.push(event.extrinsic.hash);
+      return failed;
+    }, []);
+
+    lowers = events.reduce((successfulLowers, event) => {
+      const txHash = event.extrinsic.hash;
+      if (txHash in failedLowers === false) {
+        successfulLowers.push({
+          txHash: txHash,
+          blockNumber: event.extrinsic.block.height,
+          index: event.extrinsic.indexInBlock,
+          amount: event.args.amount,
+          from: event.args.sender,
+          to: event.args.t1Recipient
+        });
+      }
+      return successfulLowers;
+    }, []);
+  } catch (error) {
+    console.error(`💔 Error running lower query 2: `, error);
+  }
+
+  return lowers;
 }
 
 async function getLowersForAccount(account) {

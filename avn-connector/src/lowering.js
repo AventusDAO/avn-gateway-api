@@ -160,78 +160,20 @@ async function getLowerTransactions(fromBlock) {
   let lowers = [];
   let lowersChunk = [];
 
-  // do {
+  let x = 1;
+
+  do {
     let txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
     lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log(lowers.length, lowersChunk.length)
     if (lowersChunk.length > 0) {
-      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
-      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+      lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
+      lowers = lowers.concat(lowersChunk);
+      fromBlock = lowers[lowers.length-1].blockNumber;
     }
-
-    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log(lowers.length, lowersChunk.length)
-    if (lowersChunk.length > 0) {
-      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
-      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
-    }
-
-    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log(lowers.length, lowersChunk.length)
-    if (lowersChunk.length > 0) {
-      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
-      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
-    }
-    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log(lowers.length, lowersChunk.length)
-    if (lowersChunk.length > 0) {
-      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
-      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
-    }
-
-    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log(lowers.length, lowersChunk.length)
-    if (lowersChunk.length > 0) {
-      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
-      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
-    }
-
-    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log(lowers.length, lowersChunk.length)
-    if (lowersChunk.length > 0) {
-      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
-      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
-    }
-
-    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log(lowers.length, lowersChunk.length)
-    if (lowersChunk.length > 0) {
-      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
-      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
-    }
-
-    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log(lowers.length, lowersChunk.length)
-    if (lowersChunk.length > 0) {
-      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
-      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
-    }
-
-    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log(lowers.length, lowersChunk.length)
-    if (lowersChunk.length > 0) {
-      fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
-      lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
-    }
+    console.log("LOWERS", lowers)
+    console.log("CHUNK", lowersChunk)
   // } while (lowersChunk.length > 0);
+} while (x < 10);
 
   return lowers;
 }

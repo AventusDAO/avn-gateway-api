@@ -9,7 +9,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const LOWER_QUERY_SIZE = 3;
+const LOWER_QUERY_SIZE = 60;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);

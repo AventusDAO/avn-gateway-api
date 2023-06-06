@@ -44,19 +44,19 @@ async function updateSummaries(avnContract) {
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
-  let lowerTransactions = [];
-  let lowersCount = 0;
+  let lowerTx = [];
+  let txCount = 0;
 
   do {
     let fromBlock = await redis.getRetrieveLowersFromAvnBlock();
-    lowerTransactions = (await getLowerTransactions(fromBlock)).filter(l1 => !lowerTransactions.some(l2 => l1.tx === l2.tx));
-    lowersCount += lowerTransactions.length;
-    console.log(`\tChecking for lowers from block ${fromBlock} - found ${lowerTransactions.length}`);
+    lowerTx = (await getLowerTx(fromBlock)).filter(l2 => !lowerTx.some(l1 => l2.txHash === l1.txHash));
+    txCount += lowerTx.length;
+    console.log(`\tChecking for lowers from block ${fromBlock} - found ${lowerTx.length}`);
 
-    for (let i = 0; i < lowerTransactions.length; i++) {
-      const lowerTx = lowerTransactions[i];
-      const txHash = lowerTx.txHash;
-      const blockNumber = parseInt(lowerTx.blockNumber);
+    for (let i = 0; i < lowerTx.length; i++) {
+      const lower = lowerTx[i];
+      const txHash = lower.txHash;
+      const blockNumber = parseInt(lower.blockNumber);
 
       if (blockNumber > latestPublishedBlock) {
         await redis.addUnpublishedLower(txHash);
@@ -68,17 +68,17 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
         fromBlock = blockNumber;
       }
 
-      if (isHex(lowerTx.amount)) lowerTx.amount = hexToBn(lowerTx.amount).toString();
-      const lowerData = { token: lowerTx.token, from: lowerTx.from, to: lowerTx.to, amount: lowerTx.amount, claimData: {} };
+      if (isHex(lower.amount)) lower.amount = hexToBn(lower.amount).toString();
+      const lowerData = { token: lower.token, from: lower.from, to: lower.to, amount: lower.amount, claimData: {} };
       await redis.setLowerData(txHash, lowerData);
-      const blockIndex = { blockNumber, index: lowerTx.index };
+      const blockIndex = { blockNumber, index: lower.index };
       await redis.setBlockIndex(txHash, blockIndex);
     }
 
     await redis.setRetrieveLowersFromAvnBlock(fromBlock);
-  } while (lowerTransactions.length === LOWER_QUERY_SIZE);
+  } while (lowerTx.length === LOWER_QUERY_SIZE);
 
-  console.log(`\tLowers updated - found ${lowersCount} in total`);
+  console.log(`\tLowers updated - found ${txCount} in total`);
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {
@@ -164,11 +164,11 @@ async function updateUnclaimedLowers(avnContract, account) {
   await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
 }
 
-async function getLowerTransactions(fromBlock) {
+async function getLowerTx(fromBlock) {
   const lowerFilter = ['TokenManager.TokenLowered'];
   const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed'];
   let lowerTxHashes = [];
-  let lowerTransactions = [];
+  let lowerTx = [];
 
   try {
     const query = `query ConnectorLower1 { events(where: { extrinsic: { block: { height_gte: ${fromBlock} }},
@@ -195,7 +195,7 @@ async function getLowerTransactions(fromBlock) {
       return failed;
     }, []);
 
-    lowerTransactions = events.reduce((successfulLowers, event) => {
+    lowerTx = events.reduce((successfulLowers, event) => {
       const txHash = event.extrinsic.hash;
       if (txHash in failedLowers === false) {
         successfulLowers.push({
@@ -214,7 +214,7 @@ async function getLowerTransactions(fromBlock) {
     console.error(`💔 Error running lower query 2: `, error);
   }
 
-  return lowerTransactions;
+  return lowerTx;
 }
 
 async function getLowersForAccount(account) {

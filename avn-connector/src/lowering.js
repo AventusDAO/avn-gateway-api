@@ -9,10 +9,14 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
+let avnContract;
+
+async function init() {
+  avnContract = (await redis.getChainInfo()).avnContract;
+}
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
-  const { avnContract } = await redis.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
   console.log(`\tLast published block: ${latestPublishedBlock}`);
@@ -230,5 +234,6 @@ function lowerDataContainsAccount(lowerData, account) {
 }
 
 module.exports = {
-  getLowers
+  getLowers,
+  init
 };

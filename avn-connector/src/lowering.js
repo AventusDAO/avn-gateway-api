@@ -9,7 +9,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const LOWER_CHUNK_SIZE = 10;
+const LOWER_CHUNK_SIZE = 200;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
@@ -17,7 +17,7 @@ async function getLowers(account) {
 
   const latestPublishedBlock = await updateSummaries(avnContract);
 
-  console.log(`\tLatest block published to Ethereum: ${latestPublishedBlock}`);
+  console.log(`\tLatest block published: ${latestPublishedBlock}`);
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
   await updateAwaitingClaimDataLowers();
@@ -78,13 +78,13 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
   } while (lowerTransactions.length === LOWER_CHUNK_SIZE);
 
-  console.log(`\tLowers up to date - found ${lowersCount} lowers to process`);
+  console.log(`\tLowers updated - found ${lowersCount} in total`);
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {
   const unpublished = await redis.getUnpublishedLowers();
 
-  console.log(`\tLowers not yet published to Ethereum: ${unpublished.length}`);
+  console.log(`\tLowers not yet published: ${unpublished.length}`);
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
     const { blockNumber } = await redis.getBlockIndex(txHash);
@@ -159,8 +159,8 @@ async function updateUnclaimedLowers(avnContract, account) {
     }
   }
 
-  console.log(`\tRecently claimed lowers: ${claimed} `);
-  console.log(`\tLowers still waiting to be claimed: ${unclaimed.length - claimed} `);
+  console.log(`\tRecently claimed: ${claimed} `);
+  console.log(`\tPublished but unclaimed: ${unclaimed.length - claimed} `);
   await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
 }
 

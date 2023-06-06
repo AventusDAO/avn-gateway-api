@@ -76,7 +76,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     }
 
     await redis.setRetrieveLowersFromAvnBlock(fromBlock);
-  } while (lowerTx.length === LOWER_QUERY_SIZE);
+  } while (lowerTx.length > 0);
 
   console.log(`\tLowers updated - found ${txCount} in total`);
 }

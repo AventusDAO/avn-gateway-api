@@ -162,10 +162,13 @@ async function getLowerTransactions(fromBlock) {
 
   do {
     const txHashes = await getNextLowerTxHashes(fromBlock);
-    lowersChunk = await getLowerTxData(txHashes, lowers);
+    console.log("XXXXXXXXXXXX", txHashes)
+    lowersChunk = await getLowerTxData(txHashes);
+    console.log("YYYYYYYYYYYY", lowersChunk)
     if (lowersChunk.length > 0) {
       fromBlock = lowersChunk[lowersChunk.length-1].blockNumber;
       lowers = lowers.concat(lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash)));
+      console.log("ZZZZZZZZZZZZ", fromBlock, lowers)
     }
   } while (lowersChunk.length > 0);
 

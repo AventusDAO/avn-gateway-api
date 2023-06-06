@@ -9,7 +9,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const LOWER_QUERY_SIZE = 10;
+const LOWER_QUERY_SIZE = 3;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
@@ -49,6 +49,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 
   do {
     let fromBlock = await redis.getRetrieveLowersFromAvnBlock();
+    // Retrieve a chunk of lowers from the indexer and remove any duplicate entries from a previous call
     lowerTx = (await getLowerTx(fromBlock)).filter(l2 => !lowerTx.some(l1 => l2.txHash === l1.txHash));
     txCount += lowerTx.length;
     console.log(`\tChecking for lowers from block ${fromBlock} - found ${lowerTx.length}`);

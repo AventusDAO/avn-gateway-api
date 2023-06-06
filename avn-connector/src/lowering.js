@@ -159,23 +159,18 @@ async function updateUnclaimedLowers(avnContract, account) {
 async function getLowerTransactions(fromBlock) {
   let lowers = [];
   let lowersChunk = [];
-  let x = 0;
 
   do {
     let txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
     lowersChunk = await getLowerDataFromIndexer(txHashes);
-    console.log("LOW-L", lowers.length)
-    console.log("LOW-C", lowersChunk.length)
 
     if (lowersChunk.length > 0) {
-      console.log("INNIT")
       lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
       lowers = lowers.concat(lowersChunk);
       fromBlock = lowers[lowers.length-1].blockNumber;
     }
-    console.log("FROMBO", fromBlock)
-    x++
-  } while (lowersChunk.length > 0 && x < 8);
+
+  } while (lowersChunk.length > 0);
 
   return lowers;
 }

@@ -167,7 +167,12 @@ async function getLowerTransactions(blockNumber) {
   const extrinsicFilter = failureFilter.concat(lowerFilter);
   const statusQuery = `query ConnectorLowerStatus { events(where: extrinsic: { hash_in:${JSON.stringify(lowerTxHashes)}},
       name_in: ${JSON.stringify(extrinsicFilter)}}) { name indexInBlock args extrinsic { hash block { height }}}`;
+  console.log("XXXXXXXXXXXXXXXXXXXXX", statusQuery)
+  try{
   const statusQueryResponse = await axios.post(AVN_EXPLORER_URL, { query: statusQuery, operationName: 'ConnectorLowerStatus' });
+} catch (e) {
+  console.log("EEEEEEEEEEEEEEEEEEEE", e)
+}
   console.log("333333333333333333", JSON.stringify(statusQueryResponse.data))
   const events = statusQueryResponse.data.data.events;
 

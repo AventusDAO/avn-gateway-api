@@ -174,10 +174,10 @@ async function getLowerTransactions(fromBlock) {
 
 async function getNextLowerTxHashes(fromBlock) {
   try {
-    const query = `query ConnectorLowerQuery1 {
+    const query = `query ConnectorLowerTxHashes {
       events( where: { extrinsic: { block: { height_gte: ${fromBlock} } }, name_eq: "TokenManager.TokenLowered" },
       limit: ${LOWERS_CHUNK_SIZE}, orderBy: block_height_ASC) { extrinsic { hash block { height } } } }`;
-    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerQuery1' });
+    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxHashes' });
     const events = response.data.data.events;
     const txHashes = events.map(event => event.extrinsic.hash);
     return txHashes;
@@ -195,11 +195,11 @@ async function getLowerTxData(txHashes) {
     const extrinsicsFilter = failureFilter.concat(lowerFilter);
     const eventsLimit = txHashes.length * extrinsicsFilter.length;
 
-    const query = `query ConnectorLowerQuery2 {
+    const query = `query ConnectorLowerTxData {
       events( where: { extrinsic: { hash_in: ${JSON.stringify(txHashes)} }, name_in: ${JSON.stringify(extrinsicsFilter)} },
       limit: ${eventsLimit}) { name args extrinsic { hash indexInBlock block { height } } } }`;
 
-    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerQuery2' });
+    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxData' });
     const events = response.data.data.events;
 
     const failedLowers = events.reduce((failed, event) => {

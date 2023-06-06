@@ -173,6 +173,7 @@ async function getLowerTransactions(fromBlock) {
     console.log("LOWERS", lowers)
     console.log("CHUNK", lowersChunk)
   // } while (lowersChunk.length > 0);
+  x++
 } while (x < 10);
 
   return lowers;

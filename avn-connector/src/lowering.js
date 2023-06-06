@@ -93,7 +93,7 @@ async function updateAwaitingClaimDataLowers() {
   const summaries = await redis.getSummaries();
   let error = false;
 
-  console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`);
+  console.log(`\tChecking for claim data: ${awaiting.length}`);
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = await redis.getBlockIndex(txHash);
@@ -168,8 +168,6 @@ async function getLowerTransactions(fromBlock) {
     console.error(`💔 Error running lower query 1: `, error);
   }
 
-  console.log("XXXXXXXXXXXX", fromBlock, lowerTxHashes)
-
   const extrinsics = failureFilter.concat(lowerFilter);
   const limit = lowerTxHashes.length * extrinsics.length;
 
@@ -185,8 +183,6 @@ async function getLowerTransactions(fromBlock) {
       }
       return failed;
     }, []);
-
-    console.log("YYYYYYYYYYYYY", failedLowers)
 
     lowerTransactions = events.reduce((successfulLowers, event) => {
       const txHash = event.extrinsic.hash;
@@ -207,8 +203,6 @@ async function getLowerTransactions(fromBlock) {
     console.error(`💔 Error running lower query 2: `, error);
   }
 
-  console.log("ZZZZZZZZZZZZ", lowerTransactions)
-
   return lowerTransactions;
 }
 
@@ -216,6 +210,7 @@ async function getLowersForAccount(account) {
   const unpublished = await redis.getUnpublishedLowers();
   const awaiting = await redis.getAwaitingClaimDataLowers();
   const unclaimed = await redis.getUnclaimedLowers();
+  console.log("Unpub:", unpublished, "Await:", awaiting, "Unclaimed:", unclaimed)
   const outstanding = unpublished.concat(awaiting).concat(unclaimed);
   let lowers = [];
 

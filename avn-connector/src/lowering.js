@@ -73,6 +73,20 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
 }
 
+async function updateUnpublishedLowers(latestPublishedBlock) {
+  const unpublished = await redis.getUnpublishedLowers();
+
+  console.log(`\tLowers not yet published: ${unpublished.length}`);
+  for (let i = 0; i < unpublished.length; i++) {
+    const txHash = unpublished[i];
+    const { blockNumber } = await redis.getBlockIndex(txHash);
+
+    if (blockNumber <= latestPublishedBlock) {
+      await redis.removeUnpublishedLower(txHash);
+      await redis.addAwaitingClaimDataLower(txHash);
+    }
+  }
+}
 
 async function updateAwaitingClaimDataLowers() {
   const awaiting = await redis.getAwaitingClaimDataLowers();

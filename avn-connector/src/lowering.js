@@ -9,7 +9,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const LOWERS_CHUNK_SIZE = 10;
+const LOWERS_CHUNK_SIZE = 25;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
@@ -159,16 +159,64 @@ async function updateUnclaimedLowers(avnContract, account) {
 async function getLowerTransactions(fromBlock) {
   let lowers = [];
   let lowersChunk = [];
-
-  do {
+console.log("00000000000000", fromBlock)
+  // do {
     let txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    console.log("00000000000000000", txHashes)
     lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log("11111111111111111", lowersChunk)
+    console.log("22222222222222222", lowers)
     if (lowersChunk.length > 0) {
-      // lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
+      lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
+      console.log("3333333333333333", lowersChunk)
       lowers = lowers.concat(lowersChunk);
+      console.log("4444444444444444", lowers)
       fromBlock = lowers[lowers.length-1].blockNumber;
+      console.log("5555555555555555", fromBlock)
     }
-  } while (lowersChunk.length > 0);
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    console.log("a00000000000000000", txHashes)
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log("a11111111111111111", lowersChunk)
+    console.log("a22222222222222222", lowers)
+    if (lowersChunk.length > 0) {
+      lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
+      console.log("a3333333333333333", lowersChunk)
+      lowers = lowers.concat(lowersChunk);
+      console.log("a4444444444444444", lowers)
+      fromBlock = lowers[lowers.length-1].blockNumber;
+      console.log("a5555555555555555", fromBlock)
+    }
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    console.log("b00000000000000000", txHashes)
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log("b11111111111111111", lowersChunk)
+    console.log("b22222222222222222", lowers)
+    if (lowersChunk.length > 0) {
+      lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
+      console.log("b3333333333333333", lowersChunk)
+      lowers = lowers.concat(lowersChunk);
+      console.log("b4444444444444444", lowers)
+      fromBlock = lowers[lowers.length-1].blockNumber;
+      console.log("b5555555555555555", fromBlock)
+    }
+
+    txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
+    console.log("d00000000000000000", txHashes)
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+    console.log("d11111111111111111", lowersChunk)
+    console.log("d22222222222222222", lowers)
+    if (lowersChunk.length > 0) {
+      lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
+      console.log("d3333333333333333", lowersChunk)
+      lowers = lowers.concat(lowersChunk);
+      console.log("d4444444444444444", lowers)
+      fromBlock = lowers[lowers.length-1].blockNumber;
+      console.log("d5555555555555555", fromBlock)
+    }
+  // } while (lowersChunk.length > 0);
 
   return lowers;
 }

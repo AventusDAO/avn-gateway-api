@@ -175,7 +175,7 @@ async function getLowerTransactions(fromBlock) {
 
   try {
     const query = `query ConnectorLower2 { events(where: { extrinsic: { hash_in:${JSON.stringify(lowerTxHashes)} },
-      name_in: ${JSON.stringify(extrinsics)} }, limit: ${limit}) { name indexInBlock args extrinsic { hash block { height }}}}`;
+      name_in: ${JSON.stringify(extrinsics)} }, limit: ${limit}) { name args extrinsic { hash indexInBlock block { height }}}}`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower2' });
     const events = response.data.data.events;
 
@@ -194,7 +194,7 @@ async function getLowerTransactions(fromBlock) {
         successfulLowers.push({
           txHash: txHash,
           blockNumber: event.extrinsic.block.height,
-          index: event.indexInBlock,
+          index: event.extrinsic.indexInBlock,
           amount: event.args.amount,
           from: event.args.sender,
           to: event.args.t1Recipient

@@ -49,7 +49,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 
   do {
     let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
-    lowerTransactions = await getLowerTransactions(retrieveFromBlock).filter(tx => !lowerTransactions.includes(tx));
+    lowerTransactions = (await getLowerTransactions(retrieveFromBlock)).filter(tx => !lowerTransactions.includes(tx));
     lowersCount += lowerTransactions.length;
     console.log(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
 

@@ -160,21 +160,15 @@ async function getLowerTransactions(fromBlock) {
   let lowers = [];
   let lowersChunk = [];
 
-  let x = 1;
-
   do {
     let txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
     lowersChunk = await getLowerDataFromIndexer(txHashes);
     if (lowersChunk.length > 0) {
-      lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
+      // lowersChunk = lowersChunk.filter(l1 => !lowers.some(l2 => l1.txHash === l2.txHash));
       lowers = lowers.concat(lowersChunk);
       fromBlock = lowers[lowers.length-1].blockNumber;
     }
-    console.log("LOWERS", lowers)
-    console.log("CHUNK", lowersChunk)
-  // } while (lowersChunk.length > 0);
-  x++
-} while (x < 10);
+  } while (lowersChunk.length > 0);
 
   return lowers;
 }

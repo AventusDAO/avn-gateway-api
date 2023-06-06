@@ -265,7 +265,6 @@ async function instantiateConnector() {
   await avn.init();
   await mqConsumer.connectToMQ();
   await rds.init();
-  await lowering.init();
   lowering.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 

@@ -45,12 +45,13 @@ async function updateSummaries(avnContract) {
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let lowerTransactions = [];
+  let lowersCount = 0;
 
   do {
     let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
-    console.log(`\tChecking for lowers from block: ${retrieveFromBlock}`);
     lowerTransactions = await getLowerTransactions(retrieveFromBlock);
-    console.log(`\tNew lower transactions found: ${lowerTransactions.length}`);
+    lowersCount += lowerTransactions.length;
+    console.log(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
 
     for (let i = 0; i < lowerTransactions.length; i++) {
       const lowerTx = lowerTransactions[i];
@@ -76,6 +77,8 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 
     await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
   } while (lowerTransactions.length === LOWER_CHUNK_SIZE);
+
+  console.log(`\tLowers up to date - found ${lowersCount} lowers to process`);
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {
@@ -156,7 +159,7 @@ async function updateUnclaimedLowers(avnContract, account) {
     }
   }
 
-  console.log(`\tRecently claimed lowers: ${unclaimed.length} `);
+  console.log(`\tRecently claimed lowers: ${claimed} `);
   console.log(`\tLowers still waiting to be claimed: ${unclaimed.length - claimed} `);
   await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
 }

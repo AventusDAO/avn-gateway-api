@@ -9,13 +9,14 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const LOWER_QUERY_LIMIT = 10;
+const LOWER_CHUNK_SIZE = 10;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
   const { avnContract } = await redis.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
+
   console.log(`\tLatest block published to Ethereum: ${latestPublishedBlock}`);
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
@@ -43,11 +44,12 @@ async function updateSummaries(avnContract) {
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
-  let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
-  console.log(`\tChecking for lowers from block: ${retrieveFromBlock}`);
-  let lowerTransactions = await getLowerTransactions(retrieveFromBlock);
+  let lowerTransactions = [];
 
-  do while (lowerTransactions.length > 0) {
+  do {
+    let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
+    console.log(`\tChecking for lowers from block: ${retrieveFromBlock}`);
+    lowerTransactions = await getLowerTransactions(retrieveFromBlock);
     console.log(`\tNew lower transactions found: ${lowerTransactions.length}`);
 
     for (let i = 0; i < lowerTransactions.length; i++) {
@@ -73,8 +75,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     }
 
     await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
-    lowerTransactions = await getLowerTransactions(retrieveFromBlock);
-  }
+  } while (lowerTransactions.length === LOWER_CHUNK_SIZE);
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {
@@ -168,7 +169,7 @@ async function getLowerTransactions(fromBlock) {
 
   try {
     const query = `query ConnectorLower1 { events(where: { extrinsic: { block: { height_gte: ${fromBlock} }},
-      name_in:${JSON.stringify(lowerFilter)} }, limit: ${LOWER_QUERY_LIMIT}, orderBy: block_height_ASC) { extrinsic { hash }}}`;
+      name_in:${JSON.stringify(lowerFilter)} }, limit: ${LOWER_CHUNK_SIZE}, orderBy: block_height_ASC) { extrinsic { hash }}}`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower1' });
     lowerTxHashes = response.data.data.events.map(event => event.extrinsic.hash);
   } catch (error) {

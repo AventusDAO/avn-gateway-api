@@ -15,8 +15,7 @@ async function getLowers(account) {
   const { avnContract } = await redis.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
-  console.log(`\tLast published block: ${latestPublishedBlock}`);
-
+  console.log(`\tLatest block published to Ethereum: ${latestPublishedBlock}`);
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
   await updateAwaitingClaimDataLowers();
@@ -44,33 +43,37 @@ async function updateSummaries(avnContract) {
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
-  const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
-
   console.log(`\tChecking for lowers from block: ${retrieveFromBlock}`);
-  console.log(`\tNew lower transactions found: ${lowerTransactions.length}`);
-  for (let i = 0; i < lowerTransactions.length; i++) {
-    const lowerTx = lowerTransactions[i];
-    const txHash = lowerTx.txHash;
-    const blockNumber = parseInt(lowerTx.blockNumber);
+  let lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
-    if (blockNumber > latestPublishedBlock) {
-      await redis.addUnpublishedLower(txHash);
-    } else {
-      await redis.addAwaitingClaimDataLower(txHash);
+  do while (lowerTransactions.length > 0) {
+    console.log(`\tNew lower transactions found: ${lowerTransactions.length}`);
+
+    for (let i = 0; i < lowerTransactions.length; i++) {
+      const lowerTx = lowerTransactions[i];
+      const txHash = lowerTx.txHash;
+      const blockNumber = parseInt(lowerTx.blockNumber);
+
+      if (blockNumber > latestPublishedBlock) {
+        await redis.addUnpublishedLower(txHash);
+      } else {
+        await redis.addAwaitingClaimDataLower(txHash);
+      }
+
+      if (blockNumber > retrieveFromBlock) {
+        retrieveFromBlock = blockNumber;
+      }
+
+      if (isHex(lowerTx.amount)) lowerTx.amount = hexToBn(lowerTx.amount).toString();
+      const lowerData = { token: lowerTx.token, from: lowerTx.from, to: lowerTx.to, amount: lowerTx.amount, claimData: {} };
+      await redis.setLowerData(txHash, lowerData);
+      const blockIndex = { blockNumber, index: lowerTx.index };
+      await redis.setBlockIndex(txHash, blockIndex);
     }
 
-    if (blockNumber > retrieveFromBlock) {
-      retrieveFromBlock = blockNumber;
-    }
-
-    if (isHex(lowerTx.amount)) lowerTx.amount = hexToBn(lowerTx.amount).toString();
-    const lowerData = { token: lowerTx.token, from: lowerTx.from, to: lowerTx.to, amount: lowerTx.amount, claimData: {} };
-    await redis.setLowerData(txHash, lowerData);
-    const blockIndex = { blockNumber, index: lowerTx.index };
-    await redis.setBlockIndex(txHash, blockIndex);
+    await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
+    lowerTransactions = await getLowerTransactions(retrieveFromBlock);
   }
-
-  await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {
@@ -137,7 +140,7 @@ async function updateAwaitingClaimDataLowers() {
 async function updateUnclaimedLowers(avnContract, account) {
   const { claimedLowers, nextFromBlock } = await ethereum.getLatestClaimedLowers(avnContract);
   const unclaimed = await redis.getUnclaimedLowers();
-  console.log(`\tPublished lowers waiting to be claimed: ${unclaimed.length} `);
+  let claimed = 0;
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];
@@ -147,9 +150,12 @@ async function updateUnclaimedLowers(avnContract, account) {
     if (claimedLowers.includes(leafHash)) {
       await redis.removeUnclaimedLower(txHash);
       await redis.deleteLowerData(txHash);
+      claimed++;
     }
   }
 
+  console.log(`\tRecently claimed lowers: ${unclaimed.length} `);
+  console.log(`\tLowers still waiting to be claimed: ${unclaimed.length - claimed} `);
   await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
 }
 
@@ -210,7 +216,6 @@ async function getLowersForAccount(account) {
   const unpublished = await redis.getUnpublishedLowers();
   const awaiting = await redis.getAwaitingClaimDataLowers();
   const unclaimed = await redis.getUnclaimedLowers();
-  console.log("Unpub:", unpublished, "Await:", awaiting, "Unclaimed:", unclaimed)
   const outstanding = unpublished.concat(awaiting).concat(unclaimed);
   let lowers = [];
 
@@ -221,7 +226,7 @@ async function getLowersForAccount(account) {
     }
   }
 
-  console.log(`\tTotal outstanding lowers: ${outstanding.length}`);
+  console.log(`\tTotal lowers outstanding: ${outstanding.length}`);
   console.log(`\tFound ${lowers.length} lowers relating to account ${account}`);
   return lowers;
 }

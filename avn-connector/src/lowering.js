@@ -184,7 +184,7 @@ async function getLowerTransactions(fromBlock) {
       return failed;
     }, []);
 
-    const lowerTransactions = events.reduce((lowerData, event) => {
+    const lowerTransactions = events.reduce((successfulLowers, event) => {
       const txHash = event.extrinsic.hash;
       if (txHash in failedLowers === false) {
         successfulLowers.push({

@@ -9,7 +9,6 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const LOWERS_CHUNK_SIZE = 10;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
@@ -158,38 +157,41 @@ async function updateUnclaimedLowers(avnContract, account) {
 
 async function getLowerTransactions(fromBlock) {
   let lowerTransactions = [];
-  let lowersChunk = [];
+  let lowers = [];
+  let txLimit = 50; // Small enough for graphQL to handle but larger than the number of lowers we will ever see per block
 
-  // We get the lowers in chunks so as to never overwhelm the indexer:
+  // We loop to retrieve lowers, so as to never overwhelm the indexer:
   do {
-    // Get the tx hashes of any new lowers first:
-    const txHashes = await getNextLowerTxHashesFromIndexer(fromBlock);
-    // Then we can get their data and weed out the failures:
-    lowersChunk = await getSuccessfulLowersFromIndexer(txHashes);
+    // Get the next set of lower tx hashes:
+    const txHashes = await getNextLowerTxHashesFromIndexer(fromBlock, txLimit);
+    // Use the hashes to retrieve the full data (and weed out any failures):
+    lowers = await getLowerDataFromIndexer(txHashes);
 
-    if (lowersChunk.length > 0) {
-      // Remove any duplicates that may have been caused by a from block overlapping chunks:
-      lowersChunk = lowersChunk.filter(l1 => !lowerTransactions.some(l2 => l1.txHash === l2.txHash));
-      lowerTransactions = lowerTransactions.concat(lowersChunk);
-      // Lowers are ordered so the last entry is the latest:
+    if (lowers.length > 0) {
+      // Remove any duplicates that may have been caused by a fromBlock straddling requests:
+      lowers = lowers.filter(l1 => !lowerTransactions.some(l2 => l1.txHash === l2.txHash));
+      lowerTransactions = lowerTransactions.concat(lowers);
+      // Update the starting position (lowers are ordered so the last entry is always the most recent):
       fromBlock = lowerTransactions[lowerTransactions.length-1].blockNumber;
     }
 
-  } while (lowersChunk.length > 0);
+  } while (lowers.length > 0);
 
   return lowerTransactions;
 }
 
-async function getNextLowerTxHashesFromIndexer(fromBlock) {
+async function getNextLowerTxHashesFromIndexer(fromBlock, txLimit) {
   let txHashes = [];
 
   try {
     const query = `query ConnectorLowerTxHashes {
       events( where: { extrinsic: { block: { height_gte: ${fromBlock} } }, name_eq: "TokenManager.TokenLowered" },
-      limit: ${LOWERS_CHUNK_SIZE}, orderBy: block_height_ASC) { extrinsic { hash block { height } } } }`;
+      limit: ${txLimit}, orderBy: block_height_ASC) { extrinsic { hash block { height } } } }`;
+
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxHashes' });
     const events = response.data.data.events;
     txHashes = events.map(event => event.extrinsic.hash);
+
   } catch (error) {
     console.error(`💔 Error running next lower tx hashes query: `, error);
   }
@@ -197,7 +199,7 @@ async function getNextLowerTxHashesFromIndexer(fromBlock) {
   return txHashes;
 }
 
-async function getSuccessfulLowersFromIndexer(txHashes) {
+async function getLowerDataFromIndexer(txHashes) {
   let successfulLowers = [];
 
   try {
@@ -214,7 +216,9 @@ async function getSuccessfulLowersFromIndexer(txHashes) {
     const events = response.data.data.events;
 
     const failedLowers = events.reduce((failed, event) => {
-      if (failureFilter.includes(event.name)) failed.push(event.extrinsic.hash);
+      if (failureFilter.includes(event.name)) {
+        failed.push(event.extrinsic.hash);
+      }
       return failed;
     }, []);
 
@@ -232,6 +236,7 @@ async function getSuccessfulLowersFromIndexer(txHashes) {
       }
       return lowers;
     }, []);
+
   } catch (error) {
     console.error(`💔 Error running lower data query: `, error);
   }

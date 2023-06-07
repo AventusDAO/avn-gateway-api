@@ -155,10 +155,6 @@ async function updateUnclaimedLowers(avnContract, account) {
   await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
 }
 
-function generateId(block, index) {
-  return [block.padStart(10, '0'), index.padStart(6, '0'), 'aaaaa'].join('-');
-}
-
 async function getLowerTransactions(fromBlock) {
   let lowers = [];
   let lowersChunk = [];
@@ -169,7 +165,7 @@ async function getLowerTransactions(fromBlock) {
   do {
     // Get the next set of lower tx hashes:
     const txHashes = await getNextLowerTxHashesFromIndexer(fromId, txLimit);
-    // Use the hashes to retrieve the full data (and weed out any failures):
+    // Use the hashes to retrieve the full data (weeding out any failures):
     lowersChunk = await getLowerDataFromIndexer(txHashes);
 
     if (lowersChunk.length > 0) {
@@ -180,6 +176,10 @@ async function getLowerTransactions(fromBlock) {
   } while (lowersChunk.length > 0);
 
   return lowers;
+}
+
+function generateId(block, index) {
+  return [block.padStart(10, '0'), index.padStart(6, '0'), '00000'].join('-');
 }
 
 async function getNextLowerTxHashesFromIndexer(fromId, txLimit) {

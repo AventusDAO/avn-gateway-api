@@ -156,10 +156,10 @@ async function updateUnclaimedLowers(avnContract, account) {
 }
 
 async function getLowerTransactions(fromBlock) {
-  const generateId = (block, index) => [block.padStart(10, '0'), index.padStart(6, '0'), '00000'].join('-');
+  const generateId = (block, index) => [block.toString().padStart(10,'0'), index.toString().padStart(6,'0'), '00000'].join('-');
   let lowers = [];
   let lowersChunk = [];
-  let fromId = generateId(fromBlock, '0');
+  let fromId = generateId(fromBlock, 0);
   let txLimit = 25;
 
   // We (potentially) loop to retrieve the lowers, so as not to exceed the indexer limit:

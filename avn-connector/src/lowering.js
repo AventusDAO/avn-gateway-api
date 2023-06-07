@@ -155,39 +155,39 @@ async function updateUnclaimedLowers(avnContract, account) {
   await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
 }
 
-async function getLowerTransactions(fromBlock) {
-  let lowerTransactions = [];
-  let lowers = [];
-  let txLimit = 50; // Small enough for graphQL to handle but larger than the number of lowers we will ever see per block
-
-  // We loop to retrieve lowers, so as to never overwhelm the indexer:
-  do {
-    // Get the next set of lower tx hashes:
-    const txHashes = await getNextLowerTxHashesFromIndexer(fromBlock, txLimit);
-    // Use the hashes to retrieve the full data (and weed out any failures):
-    lowers = await getLowerDataFromIndexer(txHashes);
-
-    if (lowers.length > 0) {
-      // Remove any duplicates that may have been caused by a fromBlock straddling requests:
-      lowers = lowers.filter(l1 => !lowerTransactions.some(l2 => l1.txHash === l2.txHash));
-      lowerTransactions = lowerTransactions.concat(lowers);
-      // Update the starting position (lowers are ordered so the last entry is always the most recent):
-      fromBlock = lowerTransactions[lowerTransactions.length-1].blockNumber;
-    }
-
-  } while (lowers.length > 0);
-
-  return lowerTransactions;
+function generateId(block, index) {
+  return [block.padStart(10, '0'), index.padStart(6, '0'), 'aaaaa'].join('-');
 }
 
-async function getNextLowerTxHashesFromIndexer(fromBlock, txLimit) {
+async function getLowerTransactions(fromBlock) {
+  let lowers = [];
+  let lowersChunk = [];
+  let fromId = generateId(fromBlock, 0);
+  let txLimit = 25;
+
+  // We (potentially) loop to retrieve the lowers, so as not to exceed the indexer limit:
+  do {
+    // Get the next set of lower tx hashes:
+    const txHashes = await getNextLowerTxHashesFromIndexer(fromId, txLimit);
+    // Use the hashes to retrieve the full data (and weed out any failures):
+    lowersChunk = await getLowerDataFromIndexer(txHashes);
+
+    if (lowersChunk.length > 0) {
+      lowers = lowers.concat(lowersChunk);
+      // Update the starting position (lowers are ordered so the last entry is always the most recent):
+      fromId = generateId(lowers[lowers.length-1].blockNumber, lowers[lowers.length-1].index + 1);
+    }
+  } while (lowersChunk.length > 0);
+
+  return lowers;
+}
+
+async function getNextLowerTxHashesFromIndexer(fromId, txLimit) {
   let txHashes = [];
 
   try {
-    const query = `query ConnectorLowerTxHashes {
-      events( where: { extrinsic: { block: { height_gte: ${fromBlock} } }, name_eq: "TokenManager.TokenLowered" },
-      limit: ${txLimit}, orderBy: block_height_ASC) { extrinsic { hash block { height } } } }`;
-
+    const query = `query ConnectorLowerTxHashes { events( where: { name_eq: "TokenManager.TokenLowered",
+        call: {id_gt: ${fromId}} }, limit: ${txLimit}, orderBy: id_ASC) { extrinsic { hash } } }`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxHashes' });
     const events = response.data.data.events;
     txHashes = events.map(event => event.extrinsic.hash);

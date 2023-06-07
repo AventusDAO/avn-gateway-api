@@ -68,7 +68,7 @@ async function connect() {
   } else {
     redisClient = new Redis();
   }
-await redisClient.flushall();
+
   // Reads a range from sorted set KEYS[1] and adds it to sorted set KEYS[2]
   // The range is defined by score, and includes all elements with score value between ARGV[1] and ARGV[2]
   // We extract the elements with their scores with ZRANGE ... BYSCORE WITHSCORES.

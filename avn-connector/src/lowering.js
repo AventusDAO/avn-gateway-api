@@ -183,7 +183,7 @@ async function getLowerTxHashesFromIndexer(fromId, txLimit) {
 
   try {
     const query = `query ConnectorLowerTxHashes { events( where: { name_eq: "TokenManager.TokenLowered",
-        call: {id_gte: ${fromId}} }, limit: ${txLimit}, orderBy: id_ASC) { extrinsic { hash } } }`;
+        call: { id_gte: "${fromId}" } }, limit: ${txLimit}, orderBy: id_ASC) { extrinsic { hash } } }`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxHashes' });
     const events = response.data.data.events;
     txHashes = events.map(event => event.extrinsic.hash);
@@ -199,18 +199,19 @@ async function getLowerDataFromIndexer(txHashes) {
   let successfulLowers = [];
 
   try {
-    const lowerFilter = ['TokenManager.TokenLowered'];
+    const lowerEventFilter = ['TokenManager.TokenLowered'];
     const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed'];
-    const extrinsicsFilter = failureFilter.concat(lowerFilter);
+    const extrinsicsFilter = failureFilter.concat(lowerEventFilter);
     const eventsLimit = txHashes.length * extrinsicsFilter.length;
 
     const query = `query ConnectorLowerTxData {
       events( where: { extrinsic: { hash_in: ${JSON.stringify(txHashes)} }, name_in: ${JSON.stringify(extrinsicsFilter)} },
-      limit: ${eventsLimit}, orderBy: [id_ASC) { name args extrinsic { hash id indexInBlock block { height } } } }`;
+      limit: ${eventsLimit}, orderBy: id_ASC) { name args extrinsic { hash id indexInBlock block { height } } } }`;
 
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxData' });
     const events = response.data.data.events;
 
+    // First we build up an array of the failed tx hashes:
     const failedLowers = events.reduce((failed, event) => {
       if (failureFilter.includes(event.name)) {
         failed.push(event.extrinsic.hash);
@@ -218,6 +219,7 @@ async function getLowerDataFromIndexer(txHashes) {
       return failed;
     }, []);
 
+    // Then we check each lower extrinsic against the known failures to reduce the result to successful lowers only:
     successfulLowers = events.reduce((lowers, event) => {
       const txHash = event.extrinsic.hash;
       if (txHash in failedLowers === false) {

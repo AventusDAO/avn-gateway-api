@@ -157,24 +157,21 @@ async function updateUnclaimedLowers(avnContract, account) {
 
 async function getLowerTransactions(fromBlock) {
   const generateId = (block, index) => [block.toString().padStart(10,'0'), index.toString().padStart(6,'0'), '00000'].join('-');
+  const txLimit = 25;
+  let txHashes = [];
   let lowers = [];
-  let lowersChunk = [];
   let fromId = generateId(fromBlock, 0);
-  let txLimit = 25;
 
   // We (potentially) loop to retrieve the lowers, so as not to exceed the indexer limit:
   do {
-    // Get the next set of lower tx hashes:
-    const txHashes = await getNextLowerTxHashesFromIndexer(fromId, txLimit);
+    txHashes = await getNextLowerTxHashesFromIndexer(fromId, txLimit);
     // Use the hashes to retrieve the full data (weeding out any failures):
-    lowersChunk = await getLowerDataFromIndexer(txHashes);
-
-    if (lowersChunk.length > 0) {
-      lowers = lowers.concat(lowersChunk);
+    if (txHashes.length > 0) {
+      lowers = lowers.concat(await getLowerDataFromIndexer(txHashes));
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
       fromId = generateId(lowers[lowers.length-1].blockNumber, lowers[lowers.length-1].index + 1);
     }
-  } while (lowersChunk.length > 0);
+  } while (txHashes.length > 0);
 
   return lowers;
 }

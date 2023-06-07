@@ -207,7 +207,7 @@ async function getLowerDataFromIndexer(txHashes) {
 
     const query = `query ConnectorLowerTxData {
       events( where: { extrinsic: { hash_in: ${JSON.stringify(txHashes)} }, name_in: ${JSON.stringify(extrinsicsFilter)} },
-      limit: ${eventsLimit}, orderBy: block_height_ASC) { name args extrinsic { hash indexInBlock block { height } } } }`;
+      limit: ${eventsLimit}, orderBy: [id_ASC) { name args extrinsic { hash id indexInBlock block { height } } } }`;
 
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxData' });
     const events = response.data.data.events;

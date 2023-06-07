@@ -162,7 +162,7 @@ function generateId(block, index) {
 async function getLowerTransactions(fromBlock) {
   let lowers = [];
   let lowersChunk = [];
-  let fromId = generateId(fromBlock, 0);
+  let fromId = generateId(fromBlock, '0');
   let txLimit = 25;
 
   // We (potentially) loop to retrieve the lowers, so as not to exceed the indexer limit:

@@ -164,19 +164,21 @@ async function getLowerTransactions(fromBlock) {
 
   // We (potentially) loop to retrieve the lowers, so as not to exceed the indexer limit:
   do {
-    txHashes = await getNextLowerTxHashesFromIndexer(fromId, txLimit);
-    // Use the hashes to retrieve the full data (weeding out any failures):
+    txHashes = await getLowerTxHashesFromIndexer(fromId, txLimit);
+
     if (txHashes.length > 0) {
+      // Use the hashes to retrieve the full data (weeding out any failures):
       lowers = lowers.concat(await getLowerDataFromIndexer(txHashes));
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
       fromId = generateId(lowers[lowers.length-1].blockNumber, lowers[lowers.length-1].index + 1);
     }
+
   } while (txHashes.length > 0);
 
   return lowers;
 }
 
-async function getNextLowerTxHashesFromIndexer(fromId, txLimit) {
+async function getLowerTxHashesFromIndexer(fromId, txLimit) {
   let txHashes = [];
 
   try {

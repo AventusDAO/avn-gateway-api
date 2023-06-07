@@ -184,7 +184,7 @@ async function getNextLowerTxHashesFromIndexer(fromId, txLimit) {
 
   try {
     const query = `query ConnectorLowerTxHashes { events( where: { name_eq: "TokenManager.TokenLowered",
-        call: {id_gt: ${fromId}} }, limit: ${txLimit}, orderBy: id_ASC) { extrinsic { hash } } }`;
+        call: {id_gte: ${fromId}} }, limit: ${txLimit}, orderBy: id_ASC) { extrinsic { hash } } }`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxHashes' });
     const events = response.data.data.events;
     txHashes = events.map(event => event.extrinsic.hash);

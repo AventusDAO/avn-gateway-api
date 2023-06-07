@@ -156,6 +156,7 @@ async function updateUnclaimedLowers(avnContract, account) {
 }
 
 async function getLowerTransactions(fromBlock) {
+  const generateId = (block, index) => [block.padStart(10, '0'), index.padStart(6, '0'), '00000'].join('-');
   let lowers = [];
   let lowersChunk = [];
   let fromId = generateId(fromBlock, '0');
@@ -176,10 +177,6 @@ async function getLowerTransactions(fromBlock) {
   } while (lowersChunk.length > 0);
 
   return lowers;
-}
-
-function generateId(block, index) {
-  return [block.padStart(10, '0'), index.padStart(6, '0'), '00000'].join('-');
 }
 
 async function getNextLowerTxHashesFromIndexer(fromId, txLimit) {

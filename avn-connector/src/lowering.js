@@ -156,11 +156,11 @@ async function updateUnclaimedLowers(avnContract, account) {
 }
 
 async function getLowerTransactions(fromBlock) {
-  const generateId = (block, index) => [block.toString().padStart(10,'0'), index.toString().padStart(6,'0'), '00000'].join('-');
+  const generateId = (block, index) => [block.padStart(10,'0'), index.padStart(6,'0'), '00000'].join('-');
   const txLimit = 25;
   let txHashes = [];
   let lowers = [];
-  let fromId = generateId(fromBlock, 0);
+  let fromId = generateId(fromBlock.toString(), '0');
 
   // We (potentially) loop to retrieve the lowers, so as not to exceed the indexer limit:
   do {
@@ -225,8 +225,8 @@ async function getLowerDataFromIndexer(txHashes) {
       if (txHash in failedLowers === false) {
         lowers.push({
           txHash: txHash,
-          blockNumber: event.extrinsic.block.height,
-          index: event.extrinsic.indexInBlock,
+          blockNumber: event.extrinsic.block.height.toString(),
+          index: event.extrinsic.indexInBlock.toString(),
           amount: event.args.amount,
           from: event.args.sender,
           to: event.args.t1Recipient
@@ -238,7 +238,7 @@ async function getLowerDataFromIndexer(txHashes) {
   } catch (error) {
     console.error(`💔 Error running lower data query: `, error);
   }
-console.log("LOWERS OBJECTS:", successfulLowers)
+
   return successfulLowers;
 }
 

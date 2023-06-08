@@ -12,10 +12,10 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
-  const { avnContract } = await avn.getChainInfo();
+  const { avnContract } = await redis.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
-  console.log(`\tLast published block: ${latestPublishedBlock}`);
+  console.log(`\tLatest block published: ${latestPublishedBlock}`);
 
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
@@ -46,8 +46,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
-  console.log(`\tChecking for lowers from block: ${retrieveFromBlock}`);
-  console.log(`\tNew lower transactions found: ${lowerTransactions.length}`);
+  console.log(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
   for (let i = 0; i < lowerTransactions.length; i++) {
     const lowerTx = lowerTransactions[i];
     const txHash = lowerTx.txHash;
@@ -76,7 +75,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 async function updateUnpublishedLowers(latestPublishedBlock) {
   const unpublished = await redis.getUnpublishedLowers();
 
-  console.log(`\tLowers not yet published to Ethereum: ${unpublished.length}`);
+  console.log(`\tLowers not yet published: ${unpublished.length}`);
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
     const { blockNumber } = await redis.getBlockIndex(txHash);
@@ -93,7 +92,7 @@ async function updateAwaitingClaimDataLowers() {
   const summaries = await redis.getSummaries();
   let error = false;
 
-  console.log(`\tLowers awaiting leaf and path data from RPC node: ${awaiting.length}`);
+  console.log(`\tChecking for claim data: ${awaiting.length}`);
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = await redis.getBlockIndex(txHash);
@@ -137,7 +136,7 @@ async function updateAwaitingClaimDataLowers() {
 async function updateUnclaimedLowers(avnContract, account) {
   const { claimedLowers, nextFromBlock } = await ethereum.getLatestClaimedLowers(avnContract);
   const unclaimed = await redis.getUnclaimedLowers();
-  console.log(`\tPublished lowers waiting to be claimed: ${unclaimed.length} `);
+  let claimed = 0;
 
   for (let i = 0; i < unclaimed.length; i++) {
     const txHash = unclaimed[i];
@@ -147,17 +146,56 @@ async function updateUnclaimedLowers(avnContract, account) {
     if (claimedLowers.includes(leafHash)) {
       await redis.removeUnclaimedLower(txHash);
       await redis.deleteLowerData(txHash);
+      claimed++;
     }
   }
 
+  console.log(`\tRecently claimed: ${claimed} `);
+  console.log(`\tPublished but unclaimed: ${unclaimed.length - claimed} `);
   await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
 }
 
-async function getLowerTransactions(blockNumber) {
-  const response = await axios.post(`${AVN_EXPLORER_URL}/transactions/lowers?blockNumberFrom=${blockNumber}&limit=10000`);
+async function getLowerTransactions(fromBlock) {
+  const generateId = (block, index) => [block.toString().padStart(10,'0'), index.toString().padStart(6,'0'), '00000'].join('-');
+  const txLimit = 50;
+  let newLowers = [];
+  let lowers = [];
+  let fromId = generateId(fromBlock, 0);
 
-  // handle nulls
-  return response.data ? response.data.data || [] : [];
+  // Loop to retrieve lowers so as not to exceed the indexer limit:
+  do {
+    newLowers = await getLowersFromIndexer(fromId, txLimit);
+    if (newLowers.length > 0) {
+      lowers = lowers.concat(newLowers);
+      // Update the starting position (lowers are ordered so the last entry is always the most recent):
+      fromId = generateId(lowers[lowers.length-1].blockNumber, parseInt(lowers[lowers.length-1].index + 1));
+    }
+  } while (newLowers.length > 0);
+
+  return lowers;
+}
+
+async function getLowersFromIndexer(fromId, txLimit) {
+  try {
+    const query = `query ConnectorLower { events( where: { name_eq: "TokenManager.TokenLowered", call: { id_gte: "${fromId}" } },
+        limit: ${txLimit}, orderBy: id_ASC) { args extrinsic { hash id indexInBlock block { height } } } }`;
+    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower' });
+    const events = response.data.data.events;
+    return events.map(event => (
+      {
+        txHash: event.extrinsic.hash,
+        blockNumber: event.extrinsic.block.height.toString(),
+        index: event.extrinsic.indexInBlock.toString(),
+        token: event.args.tokenId,
+        amount: event.args.amount,
+        from: event.args.sender,
+        to: event.args.t1Recipient
+      }
+    ));
+  } catch (error) {
+    console.error(`💔 Error running next lower tx hashes query: `, error);
+    return [];
+  }
 }
 
 async function getLowersForAccount(account) {
@@ -174,7 +212,7 @@ async function getLowersForAccount(account) {
     }
   }
 
-  console.log(`\tTotal outstanding lowers: ${outstanding.length}`);
+  console.log(`\tTotal lowers outstanding: ${outstanding.length}`);
   console.log(`\tFound ${lowers.length} lowers relating to account ${account}`);
   return lowers;
 }

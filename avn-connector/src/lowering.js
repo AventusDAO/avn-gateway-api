@@ -156,90 +156,47 @@ async function updateUnclaimedLowers(avnContract, account) {
 }
 
 async function getLowerTransactions(fromBlock) {
-  const generateId = (block, index) => [block.padStart(10,'0'), index.padStart(6,'0'), '00000'].join('-');
-  const txLimit = 25;
-  let txHashes = [];
+  const generateId = (block, index) => [block.toString().padStart(10,'0'), index.toString().padStart(6,'0'), '00000'].join('-');
+  const txLimit = 50;
+  let newLowers = [];
   let lowers = [];
-  let fromId = generateId(fromBlock.toString(), '0');
+  let fromId = generateId(fromBlock, 0);
 
-  // We (potentially) loop to retrieve the lowers, so as not to exceed the indexer limit:
+  // Loop to retrieve lowers so as not to exceed the indexer limit:
   do {
-    txHashes = await getLowerTxHashesFromIndexer(fromId, txLimit);
-
-    if (txHashes.length > 0) {
-      // Use the hashes to retrieve the full data (weeding out any failures):
-      lowers = lowers.concat(await getLowerDataFromIndexer(txHashes));
+    newLowers = await getLowersFromIndexer(fromId, txLimit);
+    if (newLowers.length > 0) {
+      lowers = lowers.concat(newLowers);
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
-      fromId = generateId(lowers[lowers.length-1].blockNumber, lowers[lowers.length-1].index + 1);
+      fromId = generateId(lowers[lowers.length-1].blockNumber, parseInt(lowers[lowers.length-1].index + 1));
     }
+  } while (newLowers.length > 0);
 
-  } while (txHashes.length > 0);
-
+  console.log(lowers)
   return lowers;
 }
 
-async function getLowerTxHashesFromIndexer(fromId, txLimit) {
-  let txHashes = [];
-
+async function getLowersFromIndexer(fromId, txLimit) {
   try {
-    const query = `query ConnectorLowerTxHashes { events( where: { name_eq: "TokenManager.TokenLowered",
-        call: { id_gte: "${fromId}" } }, limit: ${txLimit}, orderBy: id_ASC) { extrinsic { hash } } }`;
-    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxHashes' });
+    const query = `query ConnectorLower { events( where: { name_eq: "TokenManager.TokenLowered", call: { id_gte: "${fromId}" } },
+        limit: ${txLimit}, orderBy: id_ASC) { args extrinsic { hash id indexInBlock block { height } } } }`;
+    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower' });
     const events = response.data.data.events;
-    txHashes = events.map(event => event.extrinsic.hash);
-
+    return events.map(event => (
+      {
+        txHash: event.extrinsic.hash,
+        blockNumber: event.extrinsic.block.height.toString(),
+        index: event.extrinsic.indexInBlock.toString(),
+        token: event.args.tokenId,
+        amount: event.args.amount,
+        from: event.args.sender,
+        to: event.args.t1Recipient
+      }
+    ));
   } catch (error) {
     console.error(`💔 Error running next lower tx hashes query: `, error);
+    return [];
   }
-
-  return txHashes;
-}
-
-async function getLowerDataFromIndexer(txHashes) {
-  let successfulLowers = [];
-
-  try {
-    const lowerEventFilter = ['TokenManager.TokenLowered'];
-    const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed'];
-    const extrinsicsFilter = failureFilter.concat(lowerEventFilter);
-    const eventsLimit = txHashes.length * extrinsicsFilter.length;
-
-    const query = `query ConnectorLowerTxData {
-      events( where: { extrinsic: { hash_in: ${JSON.stringify(txHashes)} }, name_in: ${JSON.stringify(extrinsicsFilter)} },
-      limit: ${eventsLimit}, orderBy: id_ASC) { name args extrinsic { hash id indexInBlock block { height } } } }`;
-
-    const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLowerTxData' });
-    const events = response.data.data.events;
-
-    // First we build up an array of the failed tx hashes:
-    const failedLowers = events.reduce((failed, event) => {
-      if (failureFilter.includes(event.name)) {
-        failed.push(event.extrinsic.hash);
-      }
-      return failed;
-    }, []);
-
-    // Then we check each lower extrinsic against the known failures to reduce the result to successful lowers only:
-    successfulLowers = events.reduce((lowers, event) => {
-      const txHash = event.extrinsic.hash;
-      if (txHash in failedLowers === false) {
-        lowers.push({
-          txHash: txHash,
-          blockNumber: event.extrinsic.block.height.toString(),
-          index: event.extrinsic.indexInBlock.toString(),
-          amount: event.args.amount,
-          from: event.args.sender,
-          to: event.args.t1Recipient
-        });
-      }
-      return lowers;
-    }, []);
-
-  } catch (error) {
-    console.error(`💔 Error running lower data query: `, error);
-  }
-
-  return successfulLowers;
 }
 
 async function getLowersForAccount(account) {

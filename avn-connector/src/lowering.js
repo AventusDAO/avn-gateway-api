@@ -172,7 +172,6 @@ async function getLowerTransactions(fromBlock) {
     }
   } while (newLowers.length > 0);
 
-  console.log(lowers)
   return lowers;
 }
 

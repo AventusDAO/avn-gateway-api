@@ -238,7 +238,7 @@ async function getLowerDataFromIndexer(txHashes) {
   } catch (error) {
     console.error(`💔 Error running lower data query: `, error);
   }
-
+console.log("LOWERS OBJECTS:", successfulLowers)
   return successfulLowers;
 }
 

@@ -225,16 +225,9 @@ describe('Query api calls:', async () => {
       await helper.confirmStatus(api, requestId, 'Processed');
     });
 
-    it('returns correct nft id for specific reference', async () => {
+    it('can retrieve the NFT ID and use it to confirm the owner', async () => {
       nftId = await api.query.getNftId(externalRef);
-      assert.notEqual(nftId, /Error processing query./);
-    });
-
-    it('returns correct nft nonce for specific nft id', async () => {
       helper.bnEquals(await api.query.getNftNonce(nftId), 0);
-    });
-
-    it('returns correct nft owner for specific nft id', async () => {
       assert.equal(await api.query.getNftOwner(nftId), user.address);
     });
   });

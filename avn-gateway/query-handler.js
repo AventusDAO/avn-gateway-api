@@ -1,6 +1,7 @@
 const utils = require('/opt/utils.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL;
 
 exports.handler = async event => {
   return {
@@ -136,14 +137,14 @@ async function getNftId(call, request) {
 
   if (utils.isValidString(externalRef) === false) {
     return utils.buildErrorBody('params', 'invalid external ref', externalRef, request, call.id);
-  } else {
-    function getNftIdFunction(externalRef) {
-      return function (nftData) {
-        return filterNftId(externalRef, nftData);
-      };
-    }
-    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', externalRef], getNftIdFunction(externalRef));
   }
+
+  const query = `query GatewayApiNftId { events (where: { name_eq: "NftManager.SingleNftMinted",
+      call: { args_jsonContains: "{ \"call\": { \"value\": { \"uniqueExternalRef\": \"${externalRef}\" } } }",
+      OR: { args_jsonContains: "{ \"uniqueExternalRef\": \"${externalRef}\" }" } } }, limit: 1) { args } }`;
+  const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiNftId' });
+  const events = response.data.data.events;
+  return events.length > 0 ? events.args.nftId : undefined;
 }
 
 async function getNftNonce(call, request) {
@@ -347,11 +348,3 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 const formatEraAsString = data => (data ? data.current : 0);
 
 const filterNftOwner = data => (data ? data.owner : null);
-
-// TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
-const filterNftId = (uniqueExternalRef, data) => {
-  const uniqueExternalRefAsHex = '0x' + Buffer.from(uniqueExternalRef, 'utf8').toString('hex');
-  const index = data.findIndex(nft => nft[1].uniqueExternalRef === uniqueExternalRefAsHex);
-  const nftId = index > -1 ? data[index][1].nftId : undefined;
-  return nftId;
-};

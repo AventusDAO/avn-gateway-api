@@ -48,8 +48,9 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     // Any extrinsics for which we wish to capture event output can be added to the argsFilter:
     const argsFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
     const extrinsicFilter = successFilter.concat(failureFilter).concat(argsFilter);
+    const limit = Math.min(extrinsicFilter.length * transactionHashes.length, 2500);
     const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}},
-        name_in: ${JSON.stringify(extrinsicFilter)}}, limit: ${extrinsicFilter.length * transactionHashes.length})
+        name_in: ${JSON.stringify(extrinsicFilter)}}, limit: ${limit})
         { name args extrinsic { hash indexInBlock success block { height } } } }`;
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
     const events = response.data.data.events;

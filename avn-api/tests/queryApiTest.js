@@ -218,15 +218,13 @@ describe('Query api calls:', async () => {
   });
 
   describe('Nft data', async () => {
-    let externalRef, requestId, nftId;
-    before(async () => {
-      externalRef = 'avn-gateway-test-' + new Date().toISOString();
-      requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-      await helper.confirmStatus(api, requestId, 'Processed');
-    });
-
-    it('can retrieve the NFT ID and use it to confirm the owner', async () => {
-      nftId = await api.query.getNftId(externalRef);
+    it('can retrieve the NFT ID and use it to confirm the nonce and owner', async () => {
+      const externalRef = 'avn-gateway-test-' + new Date().toISOString();
+      const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
+      const receipt = await helper.confirmStatus(api, requestId, 'Processed');
+      const nftId = await api.query.getNftId(externalRef);
+      assert(nftId != '');
+      assert.equal(receipt.eventArgs.nftId, nftId);
       helper.bnEquals(await api.query.getNftNonce(nftId), 0);
       assert.equal(await api.query.getNftOwner(nftId), user.address);
     });

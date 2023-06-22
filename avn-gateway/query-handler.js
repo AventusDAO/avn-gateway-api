@@ -148,7 +148,7 @@ async function getNftId(call, request) {
         OR: { args_jsonContains: ${JSON.stringify(JSON.stringify(proxyArgs))} } } }, limit: 1) { args } }`;
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiNftId' });
     const events = response.data.data.events;
-    const nftId = events.length > 0 ? '0x' + new utils.BN(events[0].args.nftId).toString(16) : '';
+    const nftId = events.length === 1 ? '0x' + new utils.BN(events[0].args.nftId).toString(16) : '';
     return utils.buildValidResponseBody(call.id, nftId);
   } catch (err) {
     return utils.buildErrorBody('internal', err, err.toString(), request, call.id);

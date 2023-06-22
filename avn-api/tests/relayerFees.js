@@ -29,7 +29,7 @@ describe('Relayer Fees:', async () => {
     proxyWithdrawUnlocked: '23800000000000000',
     proxyScheduleLeaveNominators: '23800000000000000',
     proxyExecuteLeaveNominators: '23800000000000000'
-  }
+  };
 
   const expectedUserFees = {
     proxyAvtTransfer: '7000000000000000',

@@ -71,7 +71,13 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
         status: failureFilter.includes(status.name) ? transactionStatus.Rejected : transactionStatus.Processed,
         blockNumber: status.extrinsic.block.height,
         index: status.extrinsic.indexInBlock,
-        eventArgs: argsFilter.includes(status.name) ? status.args : {}
+        eventArgs: argsFilter.includes(status.name)
+          ? Object.fromEntries(
+              Object.entries(status.args).map(([k, v]) =>
+                ['batchNftId', 'nftId'].includes(k) ? [k, '0x' + new utils.BN(v).toString(16)] : [k, v]
+              )
+            )
+          : {}
       };
     });
   } catch (error) {
@@ -83,7 +89,7 @@ function log(state, txHashes) {
   if (txHashes.length > 0) {
     console.info(`${state} ${txHashes.length} transaction statuses from graphQL
       - start tx: ${txHashes[0]}
-      - end tx: ${txHashes[txHashes.length-1]}`);
+      - end tx: ${txHashes[txHashes.length - 1]}`);
   } else {
     console.info(`${state} 0 transaction statuses from graphQL`);
   }

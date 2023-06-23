@@ -71,13 +71,7 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
         status: failureFilter.includes(status.name) ? transactionStatus.Rejected : transactionStatus.Processed,
         blockNumber: status.extrinsic.block.height,
         index: status.extrinsic.indexInBlock,
-        eventArgs: argsFilter.includes(status.name)
-          ? Object.fromEntries(
-              Object.entries(status.args).map(([k, v]) =>
-                ['batchNftId', 'nftId'].includes(k) ? [k, '0x' + new utils.BN(v).toString(16)] : [k, v]
-              )
-            )
-          : {}
+        eventArgs: argsFilter.includes(status.name) ? status.args : {}
       };
     });
   } catch (error) {

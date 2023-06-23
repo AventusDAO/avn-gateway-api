@@ -149,8 +149,9 @@ function validateIsArray(array) {
 }
 
 function validateNftId(nftId) {
-  const isValid = isHex(nftId);
-  if (isValid === false) {
+  if (isHex(nftId)) return new BN(nftId).toString();
+  else if (new utils.BN(nftId).toString(16).length === 32) return nftId;
+  else {
     throw new Error(`Invalid nftId type: ${nftId}`);
   }
 }

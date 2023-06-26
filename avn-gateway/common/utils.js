@@ -137,7 +137,8 @@ function isValidMarket(market) {
 }
 
 function isValidNftId(nftId) {
-  return new utils.BN(nftId).toString(16).length === 32;;
+  nftId = new utils.BN(nftId).toString(16)
+  return nftId.length === 63 || nftId.length === 64;
 }
 
 function isValidNonce(nonce) {

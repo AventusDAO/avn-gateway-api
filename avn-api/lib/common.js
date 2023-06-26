@@ -149,10 +149,11 @@ function validateIsArray(array) {
 }
 
 function validateNftId(nftId) {
-  if (isHex(nftId)) return new BN(nftId).toString();
-  else if (new utils.BN(nftId).toString(16).length === 32) return nftId;
+  if (isHex(nftId) && (nftId.length === 63 || nftId.length === 64)) return new BN(nftId).toString(10);
   else {
-    throw new Error(`Invalid nftId type: ${nftId}`);
+    const hexNftId = new BN(nftId).toString(16);
+    if (hexNftId.length === 63 || hexNftId.length === 64) return nftId;
+    else throw new Error(`Invalid nftId type: ${nftId}`);
   }
 }
 

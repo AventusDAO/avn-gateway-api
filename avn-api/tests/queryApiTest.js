@@ -217,7 +217,7 @@ describe('Query api calls:', async () => {
     });
   });
 
-  describe('Nft data', async () => {
+  describe('NFT data', async () => {
     it('can retrieve the NFT ID and use it to confirm the nonce and owner', async () => {
       const externalRef = 'avn-gateway-test-' + new Date().toISOString();
       const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);

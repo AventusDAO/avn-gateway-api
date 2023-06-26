@@ -218,15 +218,35 @@ describe('Query api calls:', async () => {
   });
 
   describe('NFT data', async () => {
-    it('can retrieve the NFT ID and use it to confirm the nonce and owner', async () => {
-      const externalRef = 'avn-gateway-test-' + new Date().toISOString();
-      const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-      const receipt = await helper.confirmStatus(api, requestId, 'Processed');
-      const nftId = await api.query.getNftId(externalRef);
-      assert(nftId != '');
-      assert.equal(receipt.eventArgs.nftId, nftId);
-      helper.bnEquals(await api.query.getNftNonce(nftId), 0);
-      assert.equal(await api.query.getNftOwner(nftId), user.address);
+    let externalRef, requestId, nftId;
+
+    describe('NFT data', async () => {
+      let externalRef, requestId, nftId;
+
+      before(async () => {
+        externalRef = 'avn-gateway-test-' + new Date().toISOString();
+        requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
+        const receipt = await helper.confirmStatus(api, requestId, 'Processed');
+        nftId = receipt.eventArgs.nftId;
+        assert(nftId != '');
+      });
+
+      it('can retrieve the NFT ID via the externalRef', async () => {
+        assert(nftId, await api.query.getNftId(externalRef));
+      });
+
+      it('can retrieve the NFT nonce', async () => {
+        helper.bnEquals(await api.query.getNftNonce(nftId), 0);
+      });
+
+      it('can retrieve the NFT owner via the decimal NFT ID', async () => {
+        assert.equal(await api.query.getNftOwner(nftId), user.address);
+      });
+
+      it('can retrieve the NFT owner via the hex (bytes32) NFT ID', async () => {
+        const bytesNftId = '0x' + new BN(nftId).toString(16);
+        assert.equal(await api.query.getNftOwner(bytesNftId), user.address);
+      });
     });
   });
 });

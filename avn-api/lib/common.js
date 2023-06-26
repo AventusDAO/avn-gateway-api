@@ -149,7 +149,7 @@ function validateIsArray(array) {
 }
 
 function validateNftId(nftId) {
-  if (isHex(nftId) && (nftId.length === 63 || nftId.length === 64)) return new BN(nftId).toString(10);
+  if (isHex(nftId)) return new BN(nftId.substring(2), 16).toString(10);
   else {
     const hexNftId = new BN(nftId).toString(16);
     if (hexNftId.length === 63 || hexNftId.length === 64) return nftId;

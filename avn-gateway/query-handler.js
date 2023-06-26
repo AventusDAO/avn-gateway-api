@@ -298,7 +298,7 @@ async function getOwnedNfts(call, request) {
   if (utils.isValidAccountId(accountId) === false) {
     return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
-    return await queryChain(call, request, 'nftManager', 'ownedNfts', [accountId]);
+    return await queryChain(call, request, 'nftManager', 'ownedNfts', [accountId], formatHexArrayAsDecimal);
   }
 }
 
@@ -356,3 +356,5 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 const formatEraAsString = data => (data ? data.current : 0);
 
 const filterNftOwner = data => (data ? data.owner : null);
+
+const formatHexArrayAsDecimal = data => data.map(d => new utils.BN(d.substring(2), 16).toString(10));

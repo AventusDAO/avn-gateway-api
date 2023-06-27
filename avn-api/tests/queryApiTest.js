@@ -217,25 +217,36 @@ describe('Query api calls:', async () => {
     });
   });
 
-  describe('Nft data', async () => {
+  describe('NFT data', async () => {
     let externalRef, requestId, nftId;
-    before(async () => {
-      externalRef = 'avn-gateway-test-' + new Date().toISOString();
-      requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-      await helper.confirmStatus(api, requestId, 'Processed');
-    });
 
-    it('returns correct nft id for specific reference', async () => {
-      nftId = await api.query.getNftId(externalRef);
-      assert.notEqual(nftId, /Error processing query./);
-    });
+    describe('NFT data', async () => {
+      let externalRef, nftId;
 
-    it('returns correct nft nonce for specific nft id', async () => {
-      helper.bnEquals(await api.query.getNftNonce(nftId), 0);
-    });
+      before(async () => {
+        externalRef = 'avn-gateway-test-' + new Date().toISOString();
+        const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
+        const receipt = await helper.confirmStatus(api, requestId, 'Processed');
+        nftId = receipt.eventArgs.nftId;
+        assert(nftId != '');
+      });
 
-    it('returns correct nft owner for specific nft id', async () => {
-      assert.equal(await api.query.getNftOwner(nftId), user.address);
+      it('can retrieve the NFT ID via the externalRef', async () => {
+        assert(nftId, await api.query.getNftId(externalRef));
+      });
+
+      it('can retrieve the NFT nonce', async () => {
+        helper.bnEquals(await api.query.getNftNonce(nftId), 0);
+      });
+
+      it('can retrieve the NFT owner via the decimal NFT ID', async () => {
+        assert.equal(await api.query.getNftOwner(nftId), user.address);
+      });
+
+      it('can retrieve the NFT owner via the hex (bytes32) NFT ID', async () => {
+        const bytesNftId = '0x' + new BN(nftId).toString(16);
+        assert.equal(await api.query.getNftOwner(bytesNftId), user.address);
+      });
     });
   });
 });

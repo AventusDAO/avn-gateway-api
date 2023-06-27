@@ -52,6 +52,9 @@ module "lambda_functions" {
     }
 
     query-handler = {
+      env_vars = {
+        BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
+      }
       memory_size = 256
       timeout     = 30
     }

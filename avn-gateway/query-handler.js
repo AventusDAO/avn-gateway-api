@@ -1,6 +1,7 @@
 const utils = require('/opt/utils.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL;
 
 exports.handler = async event => {
   return {
@@ -136,13 +137,21 @@ async function getNftId(call, request) {
 
   if (utils.isValidString(externalRef) === false) {
     return utils.buildErrorBody('params', 'invalid external ref', externalRef, request, call.id);
-  } else {
-    function getNftIdFunction(externalRef) {
-      return function (nftData) {
-        return filterNftId(externalRef, nftData);
-      };
-    }
-    return await queryChain(call, request, 'nftManager', 'nfts', ['entries', externalRef], getNftIdFunction(externalRef));
+  }
+
+  try {
+    const uniqueExternalRef = '0x' + Buffer.from(externalRef, 'utf8').toString('hex');
+    const callArgs = { uniqueExternalRef };
+    const proxyArgs = { call: { value: callArgs } };
+    const query = `query GatewayApiNftId { events (where: { name_eq: "NftManager.SingleNftMinted",
+        call: { args_jsonContains: ${JSON.stringify(JSON.stringify(callArgs))},
+        OR: { args_jsonContains: ${JSON.stringify(JSON.stringify(proxyArgs))} } } }, limit: 1) { args } }`;
+    const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiNftId' });
+    const events = response.data.data.events;
+    const nftId = events.length === 1 ? events[0].args.nftId : '';
+    return utils.buildValidResponseBody(call.id, nftId);
+  } catch (err) {
+    return utils.buildErrorBody('internal', err, err.toString(), request, call.id);
   }
 }
 
@@ -289,7 +298,7 @@ async function getOwnedNfts(call, request) {
   if (utils.isValidAccountId(accountId) === false) {
     return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
-    return await queryChain(call, request, 'nftManager', 'ownedNfts', [accountId]);
+    return await queryChain(call, request, 'nftManager', 'ownedNfts', [accountId], formatHexArrayAsDecimal);
   }
 }
 
@@ -348,10 +357,4 @@ const formatEraAsString = data => (data ? data.current : 0);
 
 const filterNftOwner = data => (data ? data.owner : null);
 
-// TODO: Remove this temporary filter on full blob data once the Block Explorer is handling capturing NFT Ids
-const filterNftId = (uniqueExternalRef, data) => {
-  const uniqueExternalRefAsHex = '0x' + Buffer.from(uniqueExternalRef, 'utf8').toString('hex');
-  const index = data.findIndex(nft => nft[1].uniqueExternalRef === uniqueExternalRefAsHex);
-  const nftId = index > -1 ? data[index][1].nftId : undefined;
-  return nftId;
-};
+const formatHexArrayAsDecimal = data => data.map(d => new utils.BN(d.substring(2), 16).toString(10));

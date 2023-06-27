@@ -92,6 +92,8 @@ functions:
     name: query-handler
     handler: query-handler.handler
     description: aws:states:opt-out
+    environment:
+      BLOCK_EXPLORER_BASE_URL: ${file(./${env:SLS_ENV}.yml):blockExplorerUrl}
     package:
       patterns:
         - '!**/**'

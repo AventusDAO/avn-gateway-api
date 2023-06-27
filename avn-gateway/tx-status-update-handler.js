@@ -83,7 +83,7 @@ function log(state, txHashes) {
   if (txHashes.length > 0) {
     console.info(`${state} ${txHashes.length} transaction statuses from graphQL
       - start tx: ${txHashes[0]}
-      - end tx: ${txHashes[txHashes.length-1]}`);
+      - end tx: ${txHashes[txHashes.length - 1]}`);
   } else {
     console.info(`${state} 0 transaction statuses from graphQL`);
   }

@@ -156,7 +156,8 @@ async function updateUnclaimedLowers(avnContract, account) {
 }
 
 async function getLowerTransactions(fromBlock) {
-  const generateId = (block, index) => [block.toString().padStart(10,'0'), index.toString().padStart(6,'0'), '00000'].join('-');
+  const generateId = (block, index) =>
+    [block.toString().padStart(10, '0'), index.toString().padStart(6, '0'), '00000'].join('-');
   const txLimit = 50;
   let newLowers = [];
   let lowers = [];
@@ -168,7 +169,7 @@ async function getLowerTransactions(fromBlock) {
     if (newLowers.length > 0) {
       lowers = lowers.concat(newLowers);
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
-      fromId = generateId(lowers[lowers.length-1].blockNumber, parseInt(lowers[lowers.length-1].index + 1));
+      fromId = generateId(lowers[lowers.length - 1].blockNumber, parseInt(lowers[lowers.length - 1].index + 1));
     }
   } while (newLowers.length > 0);
 
@@ -181,17 +182,15 @@ async function getLowersFromIndexer(fromId, txLimit) {
         limit: ${txLimit}, orderBy: id_ASC) { args extrinsic { hash id indexInBlock block { height } } } }`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower' });
     const events = response.data.data.events;
-    return events.map(event => (
-      {
-        txHash: event.extrinsic.hash,
-        blockNumber: event.extrinsic.block.height.toString(),
-        index: event.extrinsic.indexInBlock.toString(),
-        token: event.args.tokenId,
-        amount: event.args.amount,
-        from: event.args.sender,
-        to: event.args.t1Recipient
-      }
-    ));
+    return events.map(event => ({
+      txHash: event.extrinsic.hash,
+      blockNumber: event.extrinsic.block.height.toString(),
+      index: event.extrinsic.indexInBlock.toString(),
+      token: event.args.tokenId,
+      amount: event.args.amount,
+      from: event.args.sender,
+      to: event.args.t1Recipient
+    }));
   } catch (error) {
     console.error(`💔 Error running next lower tx hashes query: `, error);
     return [];

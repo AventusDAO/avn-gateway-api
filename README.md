@@ -58,61 +58,61 @@ Each transaction send request requires 2 types of proof:
 #### Proxy Signature Generation
 Ensure you suply the relevant transaction type and correct nonce.\
 The api exposes the following methods:
-  - `api.proxy.generateProxySignature('proxyAvtTransfer', { relayer, user, recipient, token, amount, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyAvtTransfer', { relayer, user, recipient, token, amount, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_
 
-  - `api.proxy.generateProxySignature('proxyTokenTransfer', { relayer, user, recipient, token, amount, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyTokenTransfer', { relayer, user, recipient, token, amount, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_
 
-  - `api.proxy.generateProxySignature('proxyConfirmTokenLift', { relayer, eventType, ethereumTransactionHash, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyConfirmTokenLift', { relayer, eventType, ethereumTransactionHash, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'confirmation'_
 
-  - `api.proxy.generateProxySignature('proxyTokenLower', { relayer, user, token, amount, t1Recipient, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyTokenLower', { relayer, user, token, amount, t1Recipient, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'token'_
 
-  - `api.proxy.generateProxySignature('proxyCreateNftBatch', { relayer, totalSupply, royalties, t1Authority, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyCreateNftBatch', { relayer, totalSupply, royalties, t1Authority, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'batch'_
 
-  - `api.proxy.generateProxySignature('proxyMintSingleNft', { relayer, externalRef, royalties, t1Authority })`\
+  - `await api.proxy.generateProxySignature('proxyMintSingleNft', { relayer, externalRef, royalties, t1Authority })`\
   _no nonce required_
 
-  - `api.proxy.generateProxySignature('proxyMintBatchNft', { relayer, batchId, index, owner, externalRef })`\
+  - `await api.proxy.generateProxySignature('proxyMintBatchNft', { relayer, batchId, index, owner, externalRef })`\
   _no nonce required_
 
-  - `api.proxy.generateProxySignature('proxyListNftOpenForSale', { relayer, nftId, market, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyListNftOpenForSale', { relayer, nftId, market, nonce })`\
   _for the nonce call [getNftNonce](#getNftNonce) with `nftId` = nftId_
 
-  - `api.proxy.generateProxySignature('proxyListNftBatchForSale', { relayer, batchId, market, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyListNftBatchForSale', { relayer, batchId, market, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'batch'_
 
-  - `api.proxy.generateProxySignature('proxyTransferFiatNft', { relayer, nftId, recipient, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyTransferFiatNft', { relayer, nftId, recipient, nonce })`\
   _for the nonce call [getNftNonce](#getNftNonce) with `nftId` = nftId_
 
-  - `api.proxy.generateProxySignature('proxyCancelListFiatNft', { relayer, nftId, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyCancelListFiatNft', { relayer, nftId, nonce })`\
   _for the nonce call [getNftNonce](#getNftNonce) with `nftId` = nftId_
 
-  - `api.proxy.generateProxySignature('proxyEndNftBatchSale', { relayer, batchId, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyEndNftBatchSale', { relayer, batchId, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'batch'_
 
-  - `api.proxy.generateProxySignature('proxyBond', { relayer, user, amount, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyBond', { relayer, user, amount, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
-  - `api.proxy.generateProxySignature('proxyNominate', { relayer, targets, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyNominate', { relayer, targets, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
-  - `api.proxy.generateProxySignature('proxyIncreaseStake', { relayer, amount, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyIncreaseStake', { relayer, amount, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
-  - `api.proxy.generateProxySignature('proxyUnstake', { relayer, amount, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyUnstake', { relayer, amount, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
-  - `api.proxy.generateProxySignature('proxyWithdrawUnlocked', { relayer, user, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyWithdrawUnlocked', { relayer, user, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
-  - `api.proxy.generateProxySignature('proxyScheduleLeaveNominators', { relayer, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyScheduleLeaveNominators', { relayer, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
-  - `api.proxy.generateProxySignature('proxyExecuteLeaveNominators', { relayer, user, nonce })`\
+  - `await api.proxy.generateProxySignature('proxyExecuteLeaveNominators', { relayer, user, nonce })`\
   _for the nonce call [getNonce](#getNonce) with `accountId` = user, `nonceType` = 'staking'_
 
 #### Fee Payment Signature Generation

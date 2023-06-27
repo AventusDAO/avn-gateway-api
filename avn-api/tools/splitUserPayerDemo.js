@@ -21,7 +21,7 @@ async function main() {
   // then uses the api in offline mode to generate a signature for the transfer they wish to make
   await api.setSURI(user.seed);
   let userTokenNonce = await jsonRpcRequest('query', 'getNonce', { accountId: user.address, nonceType: 'token' });
-  let userProxySignature = userGeneratedProxyTokenTransferSignature(userTokenNonce);
+  let userProxySignature = await userGeneratedProxyTokenTransferSignature(userTokenNonce);
 
   // We switch to the payer who takes the transfer signature the user generated,
   // gets their own fee and payment nonce, and then generates a payment signature using the api in offline mode
@@ -32,7 +32,7 @@ async function main() {
     transactionType: 'proxyTokenTransfer'
   });
   let payerPaymentNonce = await jsonRpcRequest('query', 'getNonce', { accountId: payer.address, nonceType: 'payment' });
-  let payerFeePaymentSignature = payerGeneratedFeePaymentSignature(userProxySignature, relayerFeeForPayer, payerPaymentNonce);
+  let payerFeePaymentSignature = await payerGeneratedFeePaymentSignature(userProxySignature, relayerFeeForPayer, payerPaymentNonce);
 
   // No further signing required
   await api.setSURI(null);
@@ -56,7 +56,7 @@ async function main() {
   await api.setSURI(user.seed);
 }
 
-function userGeneratedProxyTokenTransferSignature(nonce) {
+async function userGeneratedProxyTokenTransferSignature(nonce) {
   const tokenTransferParams = {
     relayer: relayer.address,
     user: user.address,
@@ -66,10 +66,10 @@ function userGeneratedProxyTokenTransferSignature(nonce) {
     nonce: nonce
   };
 
-  return api.proxy.generateProxySignature(api.signer(), 'proxyTokenTransfer', tokenTransferParams);
+  return await api.proxy.generateProxySignature(api.signer(), 'proxyTokenTransfer', tokenTransferParams);
 }
 
-function payerGeneratedFeePaymentSignature(proxySignature, relayerFee, paymentNonce) {
+async function payerGeneratedFeePaymentSignature(proxySignature, relayerFee, paymentNonce) {
   const feePaymentParams = {
     relayer: relayer.address,
     user: user.address,
@@ -78,7 +78,7 @@ function payerGeneratedFeePaymentSignature(proxySignature, relayerFee, paymentNo
     paymentNonce: paymentNonce
   };
 
-  return api.proxy.generateFeePaymentSignature(feePaymentParams);
+  return await api.proxy.generateFeePaymentSignature(feePaymentParams);
 }
 
 async function logBalances(heading) {

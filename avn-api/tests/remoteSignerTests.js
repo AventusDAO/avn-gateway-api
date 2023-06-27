@@ -1,6 +1,8 @@
 const AvnApi = require('../index.js');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
+const { u8aToHex } = require('@polkadot/util');
+
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 const bnEquals = helper.bnEquals;
@@ -14,8 +16,15 @@ function signData(data, suri) {
   return signer.sign(data);
 }
 
-function signDataAsync(data, suri) {
+async function signDataAsync(data, suri) {
   const signer = keyring.addFromUri(suri);
+  await new Promise(r => setTimeout(r, 2000));
+  return u8aToHex(signer.sign(data));
+}
+
+async function signDataAsync_byteSignature(data, suri) {
+  const signer = keyring.addFromUri(suri);
+  await new Promise(r => setTimeout(r, 2000));
   return signer.sign(data);
 }
 
@@ -24,7 +33,7 @@ describe('Remote signer:', async () => {
   let relayer, user, userSURI, userPublicKey, newUser, newUserSURI, newUserPublicKey;
 
   const signer = {
-    sign: data => signData(data, accounts.user.seed),
+    sign: async data => await signDataAsync(data, accounts.user.seed),
     address: accounts.user.address
   };
 
@@ -58,12 +67,12 @@ describe('Remote signer:', async () => {
       assert.equal(api.signer().address, newUser);
     });
 
-    it('can set async signer via the api', async () => {
+    it('can set sync signer via the api', async () => {
       assert.equal(api.myAddress(), user);
       assert.equal(api.signer().address, user);
 
       api.setSigner({
-        sign: async data => await signDataAsync(data, newUserSURI),
+        sign: data => signData(data, newUserSURI),
         address: newUser
       });
       assert.equal(api.myAddress(), newUser);
@@ -124,6 +133,22 @@ describe('Remote signer:', async () => {
 
   describe('transactionSending', async () => {
     it('can send transaction using a remote signer', async () => {
+      let options = {
+        relayer: relayer,
+        signer
+      };
+
+      let apiWithOptions = await helper.avnApi(options);
+      const requestId = await apiWithOptions.send.transferAvt(accounts.otherUser.address, 1);
+      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+    });
+
+    it('can send transaction using a remote signer returning bytes signature', async () => {
+      const signer = {
+        sign: async data => await signDataAsync_byteSignature(data, accounts.user.seed),
+        address: accounts.user.address
+      };
+
       let options = {
         relayer: relayer,
         signer

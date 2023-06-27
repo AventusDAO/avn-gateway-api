@@ -21,7 +21,7 @@ function signDataAsync(data, suri) {
 
 describe('Remote signer:', async () => {
   let api;
-  let relayer, user, userSURI, newUser, newUserSURI;
+  let relayer, user, userSURI, userPublicKey, newUser, newUserSURI, newUserPublicKey;
 
   const signer = {
     sign: data => signData(data, accounts.user.seed),
@@ -33,10 +33,12 @@ describe('Remote signer:', async () => {
     relayer = accounts.relayer.address;
     user = accounts.user.address;
     userSURI = accounts.user.seed;
+    userPublicKey = accounts.user.publicKey;
 
     newUserAccount = api.utils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserSURI = newUserAccount.seed;
+    newUserPublicKey = newUserAccount.publicKey;
   });
 
   describe('setSigner', async () => {
@@ -67,6 +69,31 @@ describe('Remote signer:', async () => {
       assert.equal(api.myAddress(), newUser);
       assert.equal(api.signer().address, newUser);
     });
+
+    it('can update my public key', async () => {
+      assert.equal(userPublicKey, api.myPublicKey());
+
+      api.setSigner({
+        sign: data => signData(data, newUserSURI),
+        address: newUser
+      });
+
+      assert.equal(newUserPublicKey, api.myPublicKey());
+    });
+
+    it('can update my address', async () => {
+      assert.equal(user, api.myAddress());
+      assert.equal(user, api.signer().address);
+
+      api.setSigner({
+        sign: data => signData(data, newUserSURI),
+        address: newUser
+      });
+
+      assert.equal(newUser, api.myAddress());
+      assert.equal(newUser, api.signer().address);
+    });
+
   });
 
   describe('awtGeneration', async () => {

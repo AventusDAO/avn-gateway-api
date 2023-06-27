@@ -221,11 +221,11 @@ describe('Query api calls:', async () => {
     let externalRef, requestId, nftId;
 
     describe('NFT data', async () => {
-      let externalRef, requestId, nftId;
+      let externalRef, nftId;
 
       before(async () => {
         externalRef = 'avn-gateway-test-' + new Date().toISOString();
-        requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
+        const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
         const receipt = await helper.confirmStatus(api, requestId, 'Processed');
         nftId = receipt.eventArgs.nftId;
         assert(nftId != '');

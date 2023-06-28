@@ -1779,3 +1779,5 @@ Example:
 npm run solo ./avn-api/tests/queryApiTest.js -- -c sandbox
 
 ```
+
+If, when attempting to run a solo test of failure cases, the process exits before the tests are run, add `--delay` to the command.

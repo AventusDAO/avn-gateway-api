@@ -42,6 +42,17 @@ describe('Utilities', async () => {
     });
   });
 
+  describe('publicKeyToAddress', async () => {
+    it('can convert a publickey to an address', async () => {
+      let address = api.utils.publicKeyToAddress(accounts.otherUser.publicKey);
+      assert.equal(address, accounts.otherUser.address);
+
+      // it also works if we pass in an address
+      address = api.utils.publicKeyToAddress(accounts.otherUser.address);
+      assert.equal(address, accounts.otherUser.address);
+    });
+  });
+
   describe('setSuri updates awt token', async () => {
     it('for self pay tokens', async () => {
       const previousAWT = api.awtToken;

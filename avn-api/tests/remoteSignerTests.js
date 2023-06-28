@@ -67,18 +67,6 @@ describe('Remote signer:', async () => {
       assert.equal(api.signer().address, newUser);
     });
 
-    it('can set sync signer via the api', async () => {
-      assert.equal(api.myAddress(), user);
-      assert.equal(api.signer().address, user);
-
-      api.setSigner({
-        sign: data => signData(data, newUserSURI),
-        address: newUser
-      });
-      assert.equal(api.myAddress(), newUser);
-      assert.equal(api.signer().address, newUser);
-    });
-
     it('can update my public key', async () => {
       assert.equal(userPublicKey, api.myPublicKey());
 

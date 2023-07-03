@@ -1,4 +1,4 @@
-const AvnApi = require('../index.js');
+const AvnApi = require('avn-api');
 
 const GATEWAY_URL = 'https://uat.gateway.aventus.io';
 const SURI = '0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7';

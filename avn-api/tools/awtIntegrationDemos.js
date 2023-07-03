@@ -1,4 +1,4 @@
-const AvnApi = require('../index.js');
+const AvnApi = require('avn-api');
 const { accounts } = require('../config/accounts.json');
 const BN = require('bn.js');
 const { hexAddPrefix, hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');

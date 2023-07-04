@@ -1754,6 +1754,13 @@ From the root of the codebase install the dependencies:
 npm install
 ```
 
+Avn-api is imported directly from github public repo, this allows us to test avn-api before we publish it on npm.
+If you want to test a specific branch, update package.json 'install' script to use a branch reference instead:
+"scripts": {
+    "install": "npm install git://github.com/Aventus-Network-Services/avn-api.git#<branch name>",
+    ...
+}
+
 There are a few different options to run tests. All of them can be run against different environments of the gateway. These are specified by a gateway option, that should match the name of a config file (minus the extension).
 The configuration files for both gateway and AVN accounts are stored, from the root folder, at this location `./avn-api/config/`.
 AVN test accounts are currently shared between different chains.

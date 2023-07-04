@@ -15,7 +15,6 @@ function AvnApi(gateway, options) {
   this.awtToken;
   if (gateway) this.gateway = gateway;
   this.options = options || {};
-
   this.utils = Utils;
 }
 

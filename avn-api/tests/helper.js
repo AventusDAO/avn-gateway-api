@@ -78,6 +78,7 @@ function randomEthTxHash() {
 module.exports = {
   ACCOUNTS: accounts,
   NFTS: nfts,
+  GATEWAY: gateway,
   ONE_ETH,
   TEN_ETH,
   TEN_THOUSAND_WEI,

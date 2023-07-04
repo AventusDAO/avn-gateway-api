@@ -1757,7 +1757,7 @@ npm install
 Avn-api is imported directly from github public repo, this allows us to test avn-api before we publish it on npm.
 If you want to test a specific branch, update package.json 'install' script to use a branch reference instead:
 "scripts": {
-    "install": "npm install git://github.com/Aventus-Network-Services/avn-api.git#<branch name>",
+    "install": "npm install git://github.com/Aventus-Network-Services/avn-api.git#<branch_name>",
     ...
 }
 

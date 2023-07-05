@@ -11,6 +11,9 @@ const ethereum = require('./ethereum');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
 const fees = require('./paymentInfoHelper');
+const payer = require('./db/entity/payer');
+const { min } = require('lodash');
+const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -550,6 +553,32 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
   };
 }
 
+function toBnString(val) {
+  return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString();
+}
+
+async function payerHasFunds(payerAddress) {
+  const avtPayerBalance = await this.query('system', 'account', [payerAddress]);
+
+  console.log(`PAYER AVT QUERY BALANCE ${JSON.stringify(avtPayerBalance, null, 2)}`);
+
+  const avtBalance = new BN(toBnString(avtPayerBalance.data.data.free));
+
+  console.log(`PAYER AVT BALANCE FORMATED ${JSON.stringify(avtBalance, null, 2)}`);
+
+  const minAvtBalance = new BN(config.minimumPayerBalance);
+  console.log(`MIN AVT BALANCE ${JSON.stringify(minAvtBalance, null, 2)}`);
+
+  if (avtBalance.lt(minAvtBalance)) {
+    // log the pk of the payer, how much they currently have, how much we expect them to have to be valid
+    log.warn(`Not enough payer balance`);
+    return false;
+  } else {
+    console.log('PAYER BALANCE IS HIGHER THAN MIN BALANCE');
+  }
+  return true;
+}
+
 module.exports = {
   addNewTransaction,
   getAccountInfo,
@@ -573,5 +602,6 @@ module.exports = {
   signPaymentInfo,
   setSendingFailedStatus,
   getPayerPaymentNonce,
-  generateSplitFeePaymentInfo
+  generateSplitFeePaymentInfo,
+  payerHasFunds
 };

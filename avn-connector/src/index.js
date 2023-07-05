@@ -204,7 +204,12 @@ app.post('/gatewayUserInfo', async (req, res, next) => {
 app.post('/getPayer', async (req, res, next) => {
   try {
     log.trace({ getPayer: JSON.stringify(req.body) });
-    const result = await rds.getPayer(req.body.user, req.body.payer);
+    let result = await rds.getPayer(req.body.user, req.body.payer);
+
+    if (result && !avn.payerHasFunds(result.payerAddress)) {
+      result = undefined;
+    }
+
     res.send(result);
   } catch (err) {
     next(err);
@@ -264,7 +269,7 @@ async function instantiateConnector() {
   await redis.connect();
   await avn.init();
   await mqConsumer.connectToMQ();
-  await rds.init();
+  await rds.init(); // pass avn to this function
   lowering.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 

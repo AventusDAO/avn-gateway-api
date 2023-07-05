@@ -564,10 +564,10 @@ async function payerHasFunds(payerAddress) {
 
   const avtBalance = new BN(toBnString(JSON.parse(avtPayerBalance).data.free));
 
-  console.log(`PAYER AVT BALANCE FORMATED ${JSON.stringify(avtBalance, null, 2)}`);
+  console.log(`PAYER AVT BALANCE FORMATED ${avtBalance.toString()}`);
 
   const minAvtBalance = new BN(config.minimumPayerBalance);
-  console.log(`MIN AVT BALANCE ${JSON.stringify(minAvtBalance, null, 2)}`);
+  console.log(`MIN AVT BALANCE ${minAvtBalance.toString()}`);
 
   if (avtBalance.lt(minAvtBalance)) {
     // log the pk of the payer, how much they currently have, how much we expect them to have to be valid

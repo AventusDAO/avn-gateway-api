@@ -1,5 +1,5 @@
 const assert = require('chai').assert;
-const AvnApi = require('../avn-api/index.js');
+const AvnApi = require('avn-api');
 const { accounts } = require('../avn-api/config/accounts.json');
 const yargs = require('yargs');
 const BN = require('bn.js');

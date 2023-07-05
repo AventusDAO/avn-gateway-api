@@ -3,10 +3,10 @@ const expect = chai.expect;
 const assert = chai.assert;
 chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
-const common = require('../lib/common.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 
+const STAKING_STATUS = { isStaking: 'isStaking', isNotStaking: 'isNotStaking' };
 const BN_ZERO = new BN(0);
 const MIN_TOTAL_AVT_SUPPLY = new BN('100000000000000000000');
 const SCHEDULE_PERIOD = 28800;
@@ -109,7 +109,7 @@ describe('Query api calls:', async () => {
     it('returns correct data for user by address', async () => {
       const returnedData = await api.query.getAccountInfo(user.address);
 
-      if ((await api.query.getStakingStatus(user.address)) === common.STAKING_STATUS.isNotStaking) {
+      if ((await api.query.getStakingStatus(user.address)) === STAKING_STATUS.isNotStaking) {
         assert.equal(returnedData.totalBalance, returnedData.freeBalance);
         assert.equal(returnedData.stakedBalance, '0');
         assert.equal(returnedData.unlockedBalance, '0');
@@ -175,7 +175,7 @@ describe('Query api calls:', async () => {
       const returnedData = await api.query.getStakingStatus('5FZ9egr9M1tGJ1aEUWG6TPkoko8j7cX2TwtchcFmaMWZzMVU');
       // We can't be sure about the values but we can check the structure
       assert(
-        [common.STAKING_STATUS.isStaking, common.STAKING_STATUS.isNotStaking].includes(returnedData),
+        [STAKING_STATUS.isStaking, STAKING_STATUS.isNotStaking].includes(returnedData),
         'Staking status is not a valid result'
       );
     });

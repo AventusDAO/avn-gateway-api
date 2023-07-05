@@ -559,10 +559,11 @@ function toBnString(val) {
 
 async function payerHasFunds(payerAddress) {
   const avtPayerBalance = await this.query('system', 'account', [payerAddress]);
+  const avtPayerBalanceJson = avtPayerBalance.toJSON();
 
-  console.log(`PAYER AVT QUERY BALANCE ${JSON.stringify(avtPayerBalance, null, 2)}`);
+  console.log(`PAYER AVT QUERY BALANCE ${JSON.stringify(avtPayerBalanceJson, null, 2)}`);
 
-  const avtBalance = new BN(toBnString(JSON.parse(avtPayerBalance).data.free));
+  const avtBalance = new BN(toBnString(avtPayerBalanceJson.data.free));
 
   console.log(`PAYER AVT BALANCE FORMATED ${JSON.stringify(avtBalance, null, 2)}`);
 

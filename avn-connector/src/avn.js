@@ -562,7 +562,7 @@ async function payerHasFunds(payerAddress) {
 
   console.log(`PAYER AVT QUERY BALANCE ${JSON.stringify(avtPayerBalance, null, 2)}`);
 
-  const avtBalance = new BN(toBnString(avtPayerBalance.data.data.free));
+  const avtBalance = new BN(toBnString(avtPayerBalance.data.free));
 
   console.log(`PAYER AVT BALANCE FORMATED ${JSON.stringify(avtBalance, null, 2)}`);
 

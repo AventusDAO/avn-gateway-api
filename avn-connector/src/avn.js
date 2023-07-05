@@ -553,20 +553,16 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
   };
 }
 
-function toBnString(val) {
-  return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString();
-}
-
 async function payerHasFunds(payerAddress) {
-  const avtPayerBalance = await this.query('system', 'account', [payerAddress]);
+  const payerAvtBalance = await this.query('system', 'account', [payerAddress]);
 
-  console.log(`PAYER AVT QUERY BALANCE ${JSON.stringify(avtPayerBalance, null, 2)}`);
+  console.log(`PAYER AVT QUERY BALANCE ${JSON.stringify(payerAvtBalance, null, 2)}`);
 
-  const avtBalance = new BN(toBnString(JSON.parse(avtPayerBalance).data.free));
+  const avtBalance = formatToBn(JSON.parse(payerAvtBalance).data.free);
 
   console.log(`TEN PAYER AVT BALANCE FORMATED ${avtBalance.toString(10)}`);
 
-  const minAvtBalance = new BN(config.minimumPayerBalance);
+  const minAvtBalance = formatToBn(config.minimumPayerBalance);
   console.log(`TEN MIN AVT BALANCE ${minAvtBalance.toString(10)}`);
 
   if (avtBalance.lt(minAvtBalance)) {
@@ -577,6 +573,10 @@ async function payerHasFunds(payerAddress) {
     console.log('PAYER BALANCE IS HIGHER THAN MIN BALANCE');
   }
   return true;
+}
+
+function formatToBn(val) {
+  return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
 }
 
 module.exports = {

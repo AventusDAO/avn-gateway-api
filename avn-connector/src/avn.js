@@ -553,17 +553,20 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
 
 async function payerHasFunds(payerAddress) {
   const result = await this.query('system', 'account', [payerAddress]);
+  let test = result.toJSON();
   const payerAvtBalance = toBn(JSON.parse(result).data.free);
   const minAvtBalance = toBn(config.minimumPayerBalance);
 
   if (payerAvtBalance.lt(minAvtBalance)) {
-    log.warn(`Insufficient payer balance: - Payer ${payerAddress} - Current payer balance: ${payerAvtBalance.toString(10)} - Minimum payer balance: ${minAvtBalance.toString(10)}`);
+    log.warn(`Insufficient payer balance: - Payer ${payerAddress} - Current payer balance: ${payerAvtBalance.toString()} - Minimum payer balance: ${minAvtBalance.toString()}`);
     return false;
   }
   return true;
 }
 
 function toBn(val) {
+  console.log(isHex(val));
+  console.log(typeof val === 'number');
   return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
 }
 

@@ -553,7 +553,6 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
 
 async function payerHasFunds(payerAddress) {
   const result = await this.query('system', 'account', [payerAddress]);
-  let test = result.toJSON();
   const payerAvtBalance = toBn(JSON.parse(result).data.free);
   const minAvtBalance = toBn(config.minimumPayerBalance);
 

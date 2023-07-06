@@ -564,8 +564,6 @@ async function payerHasFunds(payerAddress) {
 }
 
 function toBn(val) {
-  console.log(`IS HEX: ${isHex(val)}`);
-  console.log(`TYPE NUMBER: ${typeof val === 'number'}`);
   return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
 }
 

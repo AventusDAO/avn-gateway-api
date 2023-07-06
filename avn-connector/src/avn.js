@@ -11,6 +11,9 @@ const ethereum = require('./ethereum');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
 const fees = require('./paymentInfoHelper');
+const payer = require('./db/entity/payer');
+const { min } = require('lodash');
+const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -550,6 +553,22 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
   };
 }
 
+async function payerHasFunds(payerAddress) {
+  const result = await this.query('system', 'account', [payerAddress]);
+  const payerAvtBalance = toBn(JSON.parse(result).data.free);
+  const minAvtBalance = toBn(config.minimumPayerBalance);
+
+  if (payerAvtBalance.lt(minAvtBalance)) {
+    log.warn(`Insufficient payer balance: - Payer ${payerAddress} - Current payer balance: ${payerAvtBalance.toString(10)} - Minimum payer balance: ${minAvtBalance.toString(10)}`);
+    return false;
+  }
+  return true;
+}
+
+function toBn(val) {
+  return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
+}
+
 module.exports = {
   addNewTransaction,
   getAccountInfo,
@@ -573,5 +592,6 @@ module.exports = {
   signPaymentInfo,
   setSendingFailedStatus,
   getPayerPaymentNonce,
-  generateSplitFeePaymentInfo
+  generateSplitFeePaymentInfo,
+  payerHasFunds
 };

@@ -554,28 +554,18 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
 }
 
 async function payerHasFunds(payerAddress) {
-  const payerAvtBalance = await this.query('system', 'account', [payerAddress]);
+  const result = await this.query('system', 'account', [payerAddress]);
+  const payerAvtBalance = toBn(JSON.parse(result).data.free);
+  const minAvtBalance = toBn(config.minimumPayerBalance);
 
-  console.log(`PAYER AVT QUERY BALANCE ${JSON.stringify(payerAvtBalance, null, 2)}`);
-
-  const avtBalance = formatToBn(JSON.parse(payerAvtBalance).data.free);
-
-  console.log(`TEN PAYER AVT BALANCE FORMATED ${avtBalance.toString(10)}`);
-
-  const minAvtBalance = formatToBn(config.minimumPayerBalance);
-  console.log(`TEN MIN AVT BALANCE ${minAvtBalance.toString(10)}`);
-
-  if (avtBalance.lt(minAvtBalance)) {
-    // log the pk of the payer, how much they currently have, how much we expect them to have to be valid
-    log.warn(`Not enough payer balance`);
+  if (payerAvtBalance.lt(minAvtBalance)) {
+    log.warn(`Insufficient payer balance: - Payer ${payerAddress} - Current payer balance: ${payerAvtBalance.toString(10)} - Minimum payer balance: ${minAvtBalance.toString(10)}`);
     return false;
-  } else {
-    console.log('PAYER BALANCE IS HIGHER THAN MIN BALANCE');
   }
   return true;
 }
 
-function formatToBn(val) {
+function toBn(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
 }
 

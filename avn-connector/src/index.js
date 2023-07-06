@@ -204,7 +204,8 @@ app.post('/gatewayUserInfo', async (req, res, next) => {
 app.post('/getPayer', async (req, res, next) => {
   try {
     log.trace({ getPayer: JSON.stringify(req.body) });
-    const result = await rds.getPayer(req.body.user, req.body.payer);
+    let result = await rds.getPayer(req.body.user, req.body.payer);
+    result = !!result && await avn.payerHasFunds(result.payerAddress) ? result : undefined;
     res.send(result);
   } catch (err) {
     next(err);

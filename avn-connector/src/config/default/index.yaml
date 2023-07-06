@@ -2,3 +2,4 @@ avnUrl: wss://avn-parachain.dev.aventus.io/
 avnExplorerUrl: https://archive-explorer.dev.aventus.io/graphql
 serverPort: 5000
 stakingPayoutRelayer: 5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh
+minimumPayerBalance: 1000000000000000000

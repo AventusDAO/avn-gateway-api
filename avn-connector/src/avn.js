@@ -11,8 +11,6 @@ const ethereum = require('./ethereum');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
 const fees = require('./paymentInfoHelper');
-const payer = require('./db/entity/payer');
-const { min } = require('lodash');
 const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;

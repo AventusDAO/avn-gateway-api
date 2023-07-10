@@ -67,7 +67,7 @@ async function getLatestClaimedLowers(avnContract) {
       claimedLowers.push(web3.utils.sha3(params.leafHash));
     }
   } catch (error) {
-    log.error('Error getting claimed lowers:', error);
+    log.error(`Error getting claimed lowers via ${config.tier1.tier1_provider_url}:`, error);
   }
 
   return { claimedLowers, fromBlock };

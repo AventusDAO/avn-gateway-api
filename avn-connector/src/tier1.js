@@ -65,8 +65,7 @@ async function getLatestClaimedLowers(avnContract) {
     for await (const txHash of events.map(event => event.transactionHash)) {
       const txData = await provider.getTransaction(txHash);
       const inputs = ethers.utils.defaultAbiCoder.decode(['bytes','bytes32[]'], ethers.utils.hexDataSlice(txData.data, 4));
-      console.log("XXXXXX-   INPUTSSSS", inputs)
-      claimedLowers.push(web3.utils.keccak256(inputs[1]));
+      claimedLowers.push(ethers.utils.keccak256(inputs[0]));
     }
   } catch (error) {
     log.error('Error getting claimed lowers:', error);

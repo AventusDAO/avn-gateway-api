@@ -1,7 +1,7 @@
 const redis = require('./redis');
 const config = require('multiconfig').load();
 const { ethers } = require('ethers');
-const provider = new ethers.providers.JsonRpcProvider(config.ethereum.eth_provider_url);
+const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provider_url);
 const log4js = require('log4js');
 const log = log4js.getLogger();
 

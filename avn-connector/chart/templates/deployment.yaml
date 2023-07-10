@@ -49,11 +49,11 @@ spec:
             - name: MQ_PROTOCOL
               value: amqp
             {{- end }}
-            - name: ETH_PROVIDER_URL
+            - name: TIER1_PROVIDER_URL
               valueFrom:
                 secretKeyRef:
-                  name: eth-provider-credentials
-                  key: eth_provider_url
+                  name: tier1-provider-credentials
+                  key: tier1_provider_url
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:

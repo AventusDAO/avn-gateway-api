@@ -7,7 +7,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const ETH_AS_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-const MAX_LIFT_AGE_IN_BLOCKS = 60 * 60 * 24 * 5 / 12; // ~5 days @ 12 secs per block
+const MAX_LIFT_AGE_IN_BLOCKS = 60 * 60 * 24 * 5 / 12; // ~5 days @ ~12 secs per block
 const REQUIRED_CONFIRMATION_BLOCKS = 20;
 const EVENT_SIGNATURE = {
   LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
@@ -22,8 +22,8 @@ async function getLockedBalance(avnContract, tokenAddress) {
     if (tokenAddress.toLowerCase() === ETH_AS_TOKEN) {
       balance = await provider.getBalance(avnContract);
     } else {
-      const abiSnippet = 'function balanceOf(address) view returns (uint256)';
-      const tokenContract = new ethers.Contract(tokenAddress, abiSnippet, provider);
+      const abi = 'function balanceOf(address) view returns (uint256)';
+      const tokenContract = new ethers.Contract(tokenAddress, abi, provider);
       balance = await tokenContract.balanceOf(avnContract);
     }
   } catch (error) {

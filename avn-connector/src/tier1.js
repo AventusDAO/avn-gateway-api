@@ -1,7 +1,8 @@
 const redis = require('./redis');
 const config = require('multiconfig').load();
 const { ethers } = require('ethers');
-const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provider_url);
+// const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provider_url);
+const provider = new ethers.providers.JsonRpcProvider('https://goerli.infura.io/v3/3a485a8342a84b6db15949a84ab4f4c8');
 const log4js = require('log4js');
 const log = log4js.getLogger();
 
@@ -67,7 +68,7 @@ async function getLatestClaimedLowers(avnContract) {
       claimedLowers.push(web3.utils.sha3(params.leafHash));
     }
   } catch (error) {
-    log.error(`Error getting claimed lowers via ${config.tier1.tier1_provider_url}:`, error);
+    log.error('Error getting claimed lowers:', error);
   }
 
   return { claimedLowers, fromBlock };

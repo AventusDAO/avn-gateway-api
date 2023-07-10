@@ -38,7 +38,7 @@ async function getLiftEvents(avnContract) {
   const liftEvents = [];
 
   try {
-    const currentBlock = provider.getBlocknumber();
+    const currentBlock = await provider.getBlockNumber();
     const fromBlock = (await redis.getCheckLiftsFromEthBlock()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;
     const toBlock = currentBlock - REQUIRED_CONFIRMATION_BLOCKS;
 

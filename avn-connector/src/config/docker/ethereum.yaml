@@ -1,3 +1,1 @@
-etherscan_url: $ENV:ETHERSCAN_URL
-etherscan_api_key: $ENV:ETHERSCAN_API_KEY
-infura_url: $ENV:INFURA_URL
+eth_provider_url: $ENV:ETH_PROVIDER_URL

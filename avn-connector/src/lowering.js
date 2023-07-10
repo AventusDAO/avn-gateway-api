@@ -2,7 +2,7 @@ const { keccakAsHex } = require('@polkadot/util-crypto');
 const axios = require('axios');
 const avn = require('./avn');
 const redis = require('./redis');
-const ethereum = require('./ethereum');
+const tier1 = require('./tier1');
 const { hexToBn, isHex } = require('@polkadot/util');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
@@ -26,7 +26,7 @@ async function getLowers(account) {
 
 async function updateSummaries(avnContract) {
   const summaries = await avn.getSummaries();
-  const publishedRoots = await ethereum.getPublishedRoots(avnContract);
+  const publishedRoots = await tier1.getPublishedRoots(avnContract);
   let latestPublishedBlock = 0;
 
   for (let i = 0; i < summaries.length; i++) {
@@ -134,7 +134,7 @@ async function updateAwaitingClaimDataLowers() {
 }
 
 async function updateUnclaimedLowers(avnContract, account) {
-  const { claimedLowers, nextFromBlock } = await ethereum.getLatestClaimedLowers(avnContract);
+  const { claimedLowers, fromBlock } = await tier1.getLatestClaimedLowers(avnContract);
   const unclaimed = await redis.getUnclaimedLowers();
   let claimed = 0;
 
@@ -152,7 +152,7 @@ async function updateUnclaimedLowers(avnContract, account) {
 
   console.log(`\tRecently claimed: ${claimed} `);
   console.log(`\tPublished but unclaimed: ${unclaimed.length - claimed} `);
-  await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
+  await redis.setCheckClaimedLowersFromAvnBlock(fromBlock);
 }
 
 async function getLowerTransactions(fromBlock) {

@@ -49,16 +49,11 @@ spec:
             - name: MQ_PROTOCOL
               value: amqp
             {{- end }}
-            - name: ETHERSCAN_API_KEY
+            - name: ETH_PROVIDER_URL
               valueFrom:
                 secretKeyRef:
-                  name: etherscan-credentials
-                  key: etherscan_api_key
-            - name: INFURA_URL
-              valueFrom:
-                secretKeyRef:
-                  name: infura-credentials
-                  key: infura_url
+                  name: eth-provider-credentials
+                  key: eth_provider_url
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:

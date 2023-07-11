@@ -34,26 +34,31 @@ async function getLockedBalance(avnContract, tokenAddress) {
 }
 
 async function getLiftEvents(avnContract) {
-  let fromBlock = (await redis.getLiftsFromTier1Block()) || (await getBlocknumber(MAX_LIFT_AGE, 0));
-  let toBlock = await getBlocknumber(0, REQUIRED_CONFIRMATIONS);
-  toBlock = fromBlock > toBlock ? fromBlock : toBlock;
+  let fromBlock = 0, toBlock = 0;
+  const liftEvents = [];
 
-  const request = `logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${avnContract}&topic0=${LIFT_EVENT_SIGNATURE}`;
-  let result = await callEtherscan(request);
+  try {
+    const currentBlock = await provider.getBlockNumber();
+    const fromBlock = (await redis.getLiftsFromTier1Block()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;
+    const toBlock = currentBlock - REQUIRED_CONFIRMATION_BLOCKS;
 
-  if (Array.isArray(result) === false) {
-    throw new Error(`ETHERSCAN ERROR GETTING LIFTS: ${result}`);
+    if (fromBlock <= toBlock) {
+      const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LIFT], fromBlock, toBlock });
+      events.forEach(event => liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]));
+    }
+  } catch (error) {
+    log.error('Error getting lift events:', error);
   }
 
-  const liftEvents = result.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]);
   return { fromBlock, toBlock, liftEvents };
 }
 
 async function getLatestClaimedLowers(avnContract) {
-  let fromBlock = await redis.getClaimedLowersFromTier1Block();
+  let fromBlock = 0;
   const claimedLowers = [];
 
   try {
+    fromBlock = await redis.getClaimedLowersFromTier1Block();
     const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock, toBlock: 'latest' });
     if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
 
@@ -70,19 +75,15 @@ async function getLatestClaimedLowers(avnContract) {
 }
 
 async function getPublishedRoots(avnContract) {
-  const abi = [
-    {
-      name: 'LogRootPublished',
-      type: 'event',
-      inputs: [
-        { indexed: true, name: 'rootHash', type: 'bytes32' },
-        { indexed: true, name: 't2TransactionId', type: 'uint256' }
-      ]
-    }
-  ];
-  const contract = new web3.eth.Contract(abi, avnContract);
-  const events = await contract.getPastEvents('LogRootPublished', { fromBlock: 0 });
-  return events.map(log => log.returnValues.rootHash.toLowerCase());
+  let events = [];
+
+  try {
+    events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock: 0, toBlock: 'latest' });
+  } catch (error) {
+    log.error('Error getting published roots:', error);
+  }
+
+  return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
 module.exports = {

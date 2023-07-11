@@ -1,3 +1,1 @@
-etherscan_url: https://api-goerli.etherscan.io/api?
-etherscan_api_key: $ENV:ETHERSCAN_API_KEY
-infura_url: $ENV:INFURA_URL
+tier1_provider_url: $ENV:TIER1_PROVIDER_URL

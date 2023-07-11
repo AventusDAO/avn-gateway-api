@@ -158,7 +158,7 @@ async function getCollatorsToNominate() {
     await redis.setCollatorsToNominate(collators);
   }
 
-  log.trace(`COLLATORS -- ${collators} -- COLLATORS`);
+  log.trace(`COLLATORS -- ${JSON.stringify(collators, null, 2)} -- COLLATORS`);
 
   return collators;
 }

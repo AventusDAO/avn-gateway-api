@@ -1,18 +1,19 @@
-const axios = require('axios');
 const redis = require('./redis');
 const config = require('multiconfig').load();
-const Web3 = require('web3');
-const provider = new Web3.providers.HttpProvider(config.ethereum.infura_url);
-const web3 = new Web3(provider);
+const { ethers } = require('ethers');
+const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provider_url);
 const log4js = require('log4js');
 const log = log4js.getLogger();
 
-const ETHERSCAN_URL = config.ethereum.etherscan_url;
-const ETHERSCAN_KEY = config.ethereum.etherscan_api_key;
-const LIFT_EVENT_SIGNATURE = '0x8964776336bc2fa8ecaaf70b6f8e8450807efb1ff78f8b87980707aa821f0ec0';
-const ETH_AS_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-const MAX_LIFT_AGE = 60 * 60 * 24 * 5; // 5 days
-const REQUIRED_CONFIRMATIONS = 20;
+const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+const MAX_LIFT_AGE_IN_BLOCKS = 60 * 60 * 24 * 5 / 12; // ~5 days @ ~12 secs per block
+const REQUIRED_CONFIRMATION_BLOCKS = 20;
+
+const EVENT_SIG = {
+  LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
+  LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
+  ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
+}
 
 async function getLockedBalance(address, token) {
   const request =
@@ -36,21 +37,6 @@ async function getLiftEvents(avnContract) {
 
   const liftEvents = result.map(tx => [LIFT_EVENT_SIGNATURE, tx.transactionHash]);
   return { fromBlock, toBlock, liftEvents };
-}
-
-async function getBlocknumber(timeOffset, blockOffset) {
-  const timeNow = Math.floor(Date.now() / 1000);
-  const timestamp = timeNow - timeOffset;
-  const request = `block&action=getblocknobytime&timestamp=${timestamp}&closest=before`;
-  let result = await callEtherscan(request);
-  return parseInt(result) - blockOffset;
-}
-
-async function callEtherscan(request) {
-  log.trace(`ETHERSCAN REQUEST - ${ETHERSCAN_URL}module=${request}`);
-  let response = await axios.get(`${ETHERSCAN_URL}module=${request}&apikey=${ETHERSCAN_KEY}`);
-  log.trace('ETHERSCAN RESPONSE -', response.data);
-  return response.data.result;
 }
 
 async function getLatestClaimedLowers(avnContract) {

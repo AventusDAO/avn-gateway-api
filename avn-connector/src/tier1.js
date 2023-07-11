@@ -9,7 +9,8 @@ const log = log4js.getLogger();
 const ETH_AS_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 const MAX_LIFT_AGE_IN_BLOCKS = 60 * 60 * 24 * 5 / 12; // ~5 days @ ~12 secs per block
 const REQUIRED_CONFIRMATION_BLOCKS = 20;
-const EVENT_SIGNATURE = {
+
+const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
   LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
@@ -43,8 +44,8 @@ async function getLiftEvents(avnContract) {
     const toBlock = currentBlock - REQUIRED_CONFIRMATION_BLOCKS;
 
     if (fromBlock <= toBlock) {
-      const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIGNATURE.LIFT], fromBlock });
-      events.forEach(event => liftEvents.push([EVENT_SIGNATURE.LIFT, event.transactionHash]));
+      const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LIFT], fromBlock, toBlock });
+      events.forEach(event => liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]));
     }
   } catch (error) {
     log.error('Error getting lift events:', error);
@@ -59,9 +60,7 @@ async function getLatestClaimedLowers(avnContract) {
 
   try {
     fromBlock = await redis.getCheckClaimedLowersFromAvnBlock();
-    console.log("FROM BLOCK", fromBlock)
-    const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIGNATURE.LOWER], fromBlock });
-    console.log("HEY MAN", events)
+    const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock, toBlock: 'latest' });
     if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
 
     for await (const txHash of events.map(event => event.transactionHash)) {
@@ -80,7 +79,7 @@ async function getPublishedRoots(avnContract) {
   let events = [];
 
   try {
-    events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIGNATURE.ROOT], fromBlock: 0 });
+    events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock: 0, toBlock: 'latest' });
   } catch (error) {
     log.error('Error getting published roots:', error);
   }

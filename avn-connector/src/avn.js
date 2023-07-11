@@ -156,6 +156,8 @@ async function getCollatorsToNominate() {
   // if (collators === undefined) {
   let collators = await api.query.parachainStaking.selectedCandidates();
 
+  collators = JSON.parse(collators);
+
   log.trace(`COLLATORS -- ${JSON.stringify(collators, null, 2)} -- END COLLATORS`);
 
   await redis.setCollatorsToNominate(collators);

@@ -150,16 +150,8 @@ async function getAccountInfo(accountId) {
 }
 
 async function getCollatorsToNominate() {
-  // let collators = await redis.getCollatorsToNominate();
-  // let collators = undefined;
-
-  // if (collators === undefined) {
   let collators = await api.query.parachainStaking.selectedCandidates();
-
-  log.trace(`COLLATORS START -- ${JSON.stringify(collators, null, 2)} -- END COLLATORS`);
-
   await redis.setCollatorsToNominate(collators);
-  // }
   collators = await redis.getCollatorsToNominate();
 
   return collators;

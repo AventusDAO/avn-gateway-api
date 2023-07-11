@@ -134,7 +134,7 @@ async function updateAwaitingClaimDataLowers() {
 }
 
 async function updateUnclaimedLowers(avnContract, account) {
-  const { claimedLowers, nextFromBlock } = await tier1.getLatestClaimedLowers(avnContract);
+  const { claimedLowers, fromBlock } = await tier1.getLatestClaimedLowers(avnContract);
   const unclaimed = await redis.getUnclaimedLowers();
   let claimed = 0;
 
@@ -152,7 +152,7 @@ async function updateUnclaimedLowers(avnContract, account) {
 
   console.log(`\tRecently claimed: ${claimed} `);
   console.log(`\tPublished but unclaimed: ${unclaimed.length - claimed} `);
-  await redis.setCheckClaimedLowersFromAvnBlock(nextFromBlock);
+  await redis.setClaimedLowersFromTier1Block(fromBlock);
 }
 
 async function getLowerTransactions(fromBlock) {

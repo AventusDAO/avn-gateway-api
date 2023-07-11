@@ -287,7 +287,7 @@ async function getUnprocessedLifts() {
   }
 
   if (unprocessedLifts.length === 0) {
-    await redis.setCheckLiftsFromEthBlock(parseInt(toBlock) + 1);
+    await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
   }
 
   return { fromBlock, toBlock, unprocessedLifts };
@@ -300,7 +300,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   let result;
   try {
     result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
-    await redis.setCheckLiftsFromEthBlock(parseInt(toBlock) + 1);
+    await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
   } catch (err) {
     result = err;
   }

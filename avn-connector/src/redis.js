@@ -30,11 +30,11 @@ const TOTAL_TOKEN_NAMESPACE = 't.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
-const LIFTS_FROM_ETH_BLOCK_KEY = 'liftsFromBlock';
+const LIFTS_FROM_TIER1_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
-const CLAIMED_LOWERS_FROM_AVN_BLOCK_KEY = 'claimedLowersFromBlock';
+const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
 const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
@@ -306,12 +306,13 @@ async function getChainInfo() {
   return chainInfo ? JSON.parse(chainInfo) : undefined;
 }
 
-async function setCheckLiftsFromEthBlock(blockNumber) {
-  await redisClient.set(LIFTS_FROM_ETH_BLOCK_KEY, blockNumber);
+async function setLiftsFromTier1Block(blockNumber) {
+  await redisClient.set(LIFTS_FROM_TIER1_BLOCK_KEY, blockNumber);
 }
 
-async function getCheckLiftsFromEthBlock() {
-  return await redisClient.get(LIFTS_FROM_ETH_BLOCK_KEY);
+async function getLiftsFromTier1Block() {
+  const blockNumber = await redisClient.get(LIFTS_FROM_TIER1_BLOCK_KEY);
+  return blockNumber ? parseInt(blockNumber) : 0;
 }
 
 async function setTotalToken(token, total) {
@@ -327,17 +328,17 @@ async function setRetrieveLowersFromAvnBlock(blockNumber) {
 }
 
 async function getRetrieveLowersFromAvnBlock() {
-  const fromBlock = await redisClient.get(LOWERS_FROM_AVN_BLOCK_KEY);
-  return fromBlock || 0;
+  const blockNumber = await redisClient.get(LOWERS_FROM_AVN_BLOCK_KEY);
+  return blockNumber ? parseInt(blockNumber) : 0;
 }
 
-async function setCheckClaimedLowersFromAvnBlock(blockNumber) {
-  await redisClient.set(CLAIMED_LOWERS_FROM_AVN_BLOCK_KEY, blockNumber);
+async function setClaimedLowersFromTier1Block(blockNumber) {
+  await redisClient.set(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY, blockNumber);
 }
 
-async function getCheckClaimedLowersFromAvnBlock() {
-  const fromBlock = await redisClient.get(CLAIMED_LOWERS_FROM_AVN_BLOCK_KEY);
-  return fromBlock || 0;
+async function getClaimedLowersFromTier1Block() {
+  const blockNumber = await redisClient.get(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY);
+  return blockNumber ? parseInt(blockNumber) : 0;
 }
 
 async function setBlockIndex(txHash, blockIndex) {
@@ -436,14 +437,14 @@ module.exports = {
   setStakingStats,
   getChainInfo,
   setChainInfo,
-  getCheckLiftsFromEthBlock,
-  setCheckLiftsFromEthBlock,
+  getLiftsFromTier1Block,
+  setLiftsFromTier1Block,
   getTotalToken,
   setTotalToken,
   setRetrieveLowersFromAvnBlock,
   getRetrieveLowersFromAvnBlock,
-  setCheckClaimedLowersFromAvnBlock,
-  getCheckClaimedLowersFromAvnBlock,
+  setClaimedLowersFromTier1Block,
+  getClaimedLowersFromTier1Block,
   setBlockIndex,
   deleteBlockIndex,
   getBlockIndex,

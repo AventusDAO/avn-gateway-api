@@ -40,7 +40,7 @@ async function getLiftEvents(avnContract) {
 
   try {
     const currentBlock = await provider.getBlockNumber();
-    const fromBlock = (await redis.getCheckLiftsFromEthBlock()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;
+    const fromBlock = (await redis.getLiftsFromTier1Block()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;
     const toBlock = currentBlock - REQUIRED_CONFIRMATION_BLOCKS;
 
     if (fromBlock <= toBlock) {
@@ -59,12 +59,8 @@ async function getLatestClaimedLowers(avnContract) {
   let fromBlock = 0;
 
   try {
-    fromBlock = await redis.getCheckClaimedLowersFromAvnBlock();
-    console.log("FAAAAAA", fromBlock)
-    fromBlock = 9242753
-    console.log("FBBBBBB", fromBlock)
+    fromBlock = await redis.getClaimedLowersFromTier1Block();
     const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock, toBlock: 'latest' });
-    console.log("EVENTS", events)
     if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
 
     for await (const txHash of events.map(event => event.transactionHash)) {

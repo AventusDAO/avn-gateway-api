@@ -50,11 +50,10 @@ async function getLiftEvents(avnContract) {
 }
 
 async function getLatestClaimedLowers(avnContract) {
-  let fromBlock = 0;
+  let fromBlock = await redis.getClaimedLowersFromTier1Block();
   const claimedLowers = [];
 
   try {
-    fromBlock = await redis.getClaimedLowersFromTier1Block();
     const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock, toBlock: 'latest' });
     if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
 

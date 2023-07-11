@@ -60,7 +60,9 @@ async function getLatestClaimedLowers(avnContract) {
 
   try {
     fromBlock = await redis.getCheckClaimedLowersFromAvnBlock();
+    console.log("FROMBLOCK", fromBlock)
     const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock, toBlock: 'latest' });
+    console.log("EVENTS", events)
     if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
 
     for await (const txHash of events.map(event => event.transactionHash)) {

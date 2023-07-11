@@ -60,7 +60,9 @@ async function getLatestClaimedLowers(avnContract) {
 
   try {
     fromBlock = await redis.getCheckClaimedLowersFromAvnBlock();
-    fromBlock = 9242752
+    console.log("FAAAAAA", fromBlock)
+    fromBlock = 9242753
+    console.log("FBBBBBB", fromBlock)
     const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock, toBlock: 'latest' });
     console.log("EVENTS", events)
     if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;

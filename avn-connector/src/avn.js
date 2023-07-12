@@ -157,7 +157,7 @@ async function getCollatorsToNominate() {
   // log.trace(`COLLATORS: ${JSON.stringify(collators, null, 2)}`);
   // return collators;
 
-  await this.api.query.parachainStaking.selectedCandidates((candidates) => {
+  await api.query.parachainStaking.selectedCandidates((candidates) => {
     redis.setCollatorsToNominate(candidates);
     log.trace(`COLLATORS CHANGED: ${JSON.stringify(collators, null, 2)}`);
   });

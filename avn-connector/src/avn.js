@@ -157,10 +157,10 @@ async function getCollatorsToNominate() {
   // log.trace(`COLLATORS: ${JSON.stringify(collators, null, 2)}`);
   // return collators;
 
-  await api.query.parachainStaking.selectedCandidates((candidates) => {
-    redis.setCollatorsToNominate(candidates);
-    log.trace(`COLLATORS CHANGED: ${JSON.stringify(collators, null, 2)}`);
-  });
+  // await api.query.parachainStaking.selectedCandidates((candidates) => {
+  //   redis.setCollatorsToNominate(candidates);
+  //   log.trace(`COLLATORS CHANGED: ${JSON.stringify(candidates, null, 2)}`);
+  // });
   return await redis.getCollatorsToNominate();
 }
 
@@ -414,8 +414,15 @@ async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
   await connectToAvN();
   await setChainInfo();
+  await startSubscriptions();
 }
 
+async function startSubscriptions() {
+  let selectedCandidatesSub = await api.query.parachainStaking.selectedCandidates((candidates) => {
+    log.info(`Setting collators to nominate: ${JSON.stringify(candidates, null, 2)}`);
+    redis.setCollatorsToNominate(candidates);
+  });
+}
 async function setChainInfo() {
   const chainInfo = {
     name: await api.rpc.system.chain(),

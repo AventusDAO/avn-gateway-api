@@ -150,18 +150,18 @@ async function getAccountInfo(accountId) {
 }
 
 async function getCollatorsToNominate() {
-  let collators = await api.query.parachainStaking.selectedCandidates();
-  await redis.setCollatorsToNominate(collators);
-  collators = await redis.getCollatorsToNominate();
+  // let collators = await api.query.parachainStaking.selectedCandidates();
+  // await redis.setCollatorsToNominate(collators);
+  // collators = await redis.getCollatorsToNominate();
 
-  log.trace(`COLLATORS: ${JSON.stringify(collators, null, 2)}`);
-  return collators;
+  // log.trace(`COLLATORS: ${JSON.stringify(collators, null, 2)}`);
+  // return collators;
 
-  // await this.api.query.parachainStaking.selectedCandidates((candidates) => {
-  //   redis.setCollatorsToNominate(candidates);
-  //   console.log(`*** Candidates CHANGED: ${JSON.stringify(candidates, null, 2)} ***`);
-  // });
-  // return await redis.getCollatorsToNominate();
+  await this.api.query.parachainStaking.selectedCandidates((candidates) => {
+    redis.setCollatorsToNominate(candidates);
+    log.trace(`COLLATORS CHANGED: ${JSON.stringify(collators, null, 2)}`);
+  });
+  return await redis.getCollatorsToNominate();
 }
 
 async function getStakingStats() {

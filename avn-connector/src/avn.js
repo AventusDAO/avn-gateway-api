@@ -407,8 +407,9 @@ async function init() {
 }
 
 async function startSubscriptions() {
+  // variable name for descriptive porpuses if we add more subscriptions
   let selectedCandidatesSub = await api.query.parachainStaking.selectedCandidates((candidates) => {
-    log.info(`Setting collators to nominate: ${JSON.stringify(candidates, null, 2)}`);
+    log.info(`Setting collators to nominate: ${candidates}`);
     redis.setCollatorsToNominate(candidates);
   });
 }

@@ -22,7 +22,7 @@ async function getLockedBalance(avnContract, tokenAddress) {
     if (tokenAddress.toLowerCase() === EVM_TOKEN) {
       balance = await provider.getBalance(avnContract);
     } else {
-      const abi = 'function balanceOf(address) view returns (uint256)';
+      const abi = ['function balanceOf(address) view returns (uint256)'];
       const tokenContract = new ethers.Contract(tokenAddress, abi, provider);
       balance = await tokenContract.balanceOf(avnContract);
     }
@@ -39,8 +39,8 @@ async function getLiftEvents(avnContract) {
 
   try {
     const currentBlock = await provider.getBlockNumber();
-    const fromBlock = (await redis.getLiftsFromTier1Block()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;
-    const toBlock = currentBlock - REQUIRED_CONFIRMATION_BLOCKS;
+    fromBlock = (await redis.getLiftsFromTier1Block()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;
+    toBlock = currentBlock - REQUIRED_CONFIRMATION_BLOCKS;
 
     if (fromBlock <= toBlock) {
       const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LIFT], fromBlock, toBlock });
@@ -59,7 +59,7 @@ async function getLatestClaimedLowers(avnContract) {
 
   try {
     fromBlock = await redis.getClaimedLowersFromTier1Block();
-    const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock, toBlock: 'latest' });
+    const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock });
     if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
 
     for await (const txHash of events.map(event => event.transactionHash)) {
@@ -78,7 +78,7 @@ async function getPublishedRoots(avnContract) {
   let events = [];
 
   try {
-    events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock: 0, toBlock: 'latest' });
+    events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock: 0 });
   } catch (error) {
     log.error('Error getting published roots:', error);
   }

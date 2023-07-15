@@ -7,10 +7,11 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 const avnTypes = require('avn-types');
 const redis = require('./redis');
-const ethereum = require('./ethereum');
+const tier1 = require('./tier1');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
 const fees = require('./paymentInfoHelper');
+const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -205,7 +206,7 @@ async function getTotalToken(token) {
     if (token === chainInfo.avtContract.toLowerCase()) {
       total = (await api.query.balances.totalIssuance()).toString();
     } else {
-      total = await ethereum.getLockedBalance(chainInfo.avnContract, token);
+      total = await tier1.getLockedBalance(chainInfo.avnContract, token);
     }
 
     await redis.setTotalToken(token, total);
@@ -224,7 +225,7 @@ async function ethereumEventStatus(transactionHash) {
   };
 
   const { avnContract } = await getChainInfo();
-  const { liftEvents } = await ethereum.getLiftEvents(avnContract);
+  const { liftEvents } = await tier1.getLiftEvents(avnContract);
 
   const liftEvent = liftEvents.find(liftEvent => liftEvent[1] === transactionHash);
 
@@ -274,7 +275,7 @@ async function ethereumEventStatus(transactionHash) {
 async function getUnprocessedLifts() {
   let unprocessedLifts = [];
   let { avnContract } = await getChainInfo();
-  let { fromBlock, toBlock, liftEvents } = await ethereum.getLiftEvents(avnContract);
+  let { fromBlock, toBlock, liftEvents } = await tier1.getLiftEvents(avnContract);
 
   if (liftEvents.length > 0) {
     let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
@@ -286,7 +287,7 @@ async function getUnprocessedLifts() {
   }
 
   if (unprocessedLifts.length === 0) {
-    await redis.setCheckLiftsFromEthBlock(parseInt(toBlock) + 1);
+    await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
   }
 
   return { fromBlock, toBlock, unprocessedLifts };
@@ -299,7 +300,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   let result;
   try {
     result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
-    await redis.setCheckLiftsFromEthBlock(parseInt(toBlock) + 1);
+    await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
   } catch (err) {
     result = err;
   }
@@ -550,6 +551,22 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
   };
 }
 
+async function payerHasFunds(payerAddress) {
+  const result = await this.query('system', 'account', [payerAddress]);
+  const payerAvtBalance = toBn(JSON.parse(result).data.free);
+  const minAvtBalance = toBn(config.minimumPayerBalance);
+
+  if (payerAvtBalance.lt(minAvtBalance)) {
+    log.warn(`Insufficient payer balance: - Payer: ${payerAddress} - Current payer balance: ${payerAvtBalance.toString()} - Minimum payer balance: ${minAvtBalance.toString()}`);
+    return false;
+  }
+  return true;
+}
+
+function toBn(val) {
+  return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
+}
+
 module.exports = {
   addNewTransaction,
   getAccountInfo,
@@ -573,5 +590,6 @@ module.exports = {
   signPaymentInfo,
   setSendingFailedStatus,
   getPayerPaymentNonce,
-  generateSplitFeePaymentInfo
+  generateSplitFeePaymentInfo,
+  payerHasFunds
 };

@@ -75,6 +75,8 @@ async function callSwitch(call, request) {
       return await getOwnedNfts(call, request);
     case 'getStakingStats':
       return await getStakingStats(call, request);
+    case 'getStakerRewardsEarned':
+      return await getStakerRewardsEarned(call, request);
     case 'getCurrentBlock':
       return await getCurrentBlock(call, request);
     case 'getChainInfo':
@@ -307,6 +309,42 @@ async function getStakingStats(call, request) {
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
+}
+
+async function getStakerRewardsEarned(call, request) {
+  let { accountId, fromTimestamp, toTimestamp } = call.params;
+
+  if (utils.isValidAccountId(accountId) === false) {
+    return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    try {
+      const account = utils.convertToPublicKey(accountId);
+      const eventsLimit = 500;
+      let events = [], sumRewards = new utils.BN(0);
+
+      fromTimestamp = parseInt(fromTimestamp) > 0 ? new Date(parseInt(fromTimestamp) * 1000 - 1) : new Date(0);
+      toTimestamp = parseInt(toTimestamp) > 0 ? new Date(parseInt(toTimestamp) * 1000) : new Date(32503679999000); // 31/12/2999
+      fromTimestamp = fromTimestamp.toISOString();
+      toTimestamp = toTimestamp.toISOString();
+
+      do {
+        const query = `query GatewayApiStakerRewardsEarned { events (where: { name_eq: "ParachainStaking.Rewarded",
+          args_jsonContains: ${JSON.stringify(JSON.stringify({ account }))},
+          block: { timestamp_gt: "${fromTimestamp}", timestamp_lte: "${toTimestamp}"}},
+          limit: ${eventsLimit}, orderBy: id_ASC) { args block { timestamp } } }`;
+        const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStakerRewardsEarned' });
+        events = response.data.data.events;
+        if (events.length > 0) {
+          sumRewards = sumRewards.add(events.reduce((sum, event) => sum.add(new utils.BN(event.args.rewards)), sumRewards));
+          fromTimestamp = events[events.length - 1].block.timestamp;
+        }
+      } while (events.length === eventsLimit);
+
+      return utils.buildValidResponseBody(call.id, sumRewards.toString());
+    } catch (err) {
+      return utils.buildErrorBody('internal', err, err.toString(), request, call.id);
+    }
+  }
 }
 
 async function getCurrentBlock(call, request) {

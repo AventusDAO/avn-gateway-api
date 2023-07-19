@@ -417,7 +417,7 @@ async function setChainInfo() {
     name: await api.rpc.system.chain(),
     version: api.runtimeVersion.specVersion.toString(),
     avtContract: await api.query.tokenManager.avtTokenContract(),
-    avnContract: await api.query.ethereumEvents.liftingContractAddress()
+    avnContract: await api.query.avn.tier1BridgeContract()
   };
   await redis.setChainInfo(chainInfo);
 }

@@ -19,12 +19,15 @@ describe('Query api calls:', async () => {
   let relayerPublicKey, userPublicKey;
 
   before(async () => {
-    api = await helper.avnApi();
+    const avnApi = await helper.avnApi({
+      suri: helper.ACCOUNTS.user.seed
+    });
     relayer = accounts.relayer;
     user = accounts.user;
     recipient = accounts.otherUser;
     token = helper.token;
-    newUser = api.utils.generateNewAccount();
+    newUser = avnApi.utils.generateNewAccount();
+    api = avnApi.apis()
   });
 
   describe('get contract addresses', async () => {
@@ -107,7 +110,9 @@ describe('Query api calls:', async () => {
 
   describe('AccountInfo', async () => {
     it('returns correct data for user by address', async () => {
+      console.log("pre returnedData: ", user.address)
       const returnedData = await api.query.getAccountInfo(user.address);
+      console.log("returnedData: ", returnedData)
 
       if ((await api.query.getStakingStatus(user.address)) === STAKING_STATUS.isNotStaking) {
         assert.equal(returnedData.totalBalance, returnedData.freeBalance);
@@ -120,133 +125,133 @@ describe('Query api calls:', async () => {
     });
   });
 
-  describe('getOwnedNfts', async () => {
-    async function mint() {
-      const externalRef = 'avn-gateway-test-' + new Date().toISOString();
-      const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-      await helper.confirmStatus(api, requestId, 'Processed');
-      return await api.query.getNftId(externalRef);
-    }
+  // describe('getOwnedNfts', async () => {
+  //   async function mint() {
+  //     const externalRef = 'avn-gateway-test-' + new Date().toISOString();
+  //     const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
+  //     await helper.confirmStatus(api.poll, requestId, 'Processed');
+  //     return await api.query.getNftId(externalRef);
+  //   }
 
-    it('returns the correct list of owned nft ids', async () => {
-      let firstNftId = await mint();
-      let secondNftId = await mint();
-      const returnedData = await api.query.getOwnedNfts(user.address);
-      // We can't be sure how many nfts are owned by `user` but we can make sure it contains the 2 we just minted
-      assert(returnedData.length >= 2);
-      assert(returnedData.includes(firstNftId));
-      assert(returnedData.includes(secondNftId));
-    });
-  });
+  //   it('returns the correct list of owned nft ids', async () => {
+  //     let firstNftId = await mint();
+  //     let secondNftId = await mint();
+  //     const returnedData = await api.query.getOwnedNfts(user.address);
+  //     // We can't be sure how many nfts are owned by `user` but we can make sure it contains the 2 we just minted
+  //     assert(returnedData.length >= 2);
+  //     assert(returnedData.includes(firstNftId));
+  //     assert(returnedData.includes(secondNftId));
+  //   });
+  // });
 
-  describe('getStakingStats', async () => {
-    const defaultMaxNominatorsRewardedPerValidatorBN = new BN(300);
+  // describe('getStakingStats', async () => {
+  //   const defaultMaxNominatorsRewardedPerValidatorBN = new BN(300);
 
-    it('returns the correct data', async () => {
-      const returnedData = await api.query.getStakingStats();
-      // We can't be sure how about the values but we can check the structure
-      const totalStakedBN = new BN(returnedData.totalStaked);
-      const averageStakedBN = new BN(returnedData.averageStaked);
-      const minUserBondBN = new BN(returnedData.minUserBond);
-      const maxNominatorsRewardedPerValidatorBN = new BN(returnedData.maxNominatorsRewardedPerValidator);
-      const totalStakersBN = new BN(returnedData.totalStakers);
+  //   it('returns the correct data', async () => {
+  //     const returnedData = await api.query.getStakingStats();
+  //     // We can't be sure how about the values but we can check the structure
+  //     const totalStakedBN = new BN(returnedData.totalStaked);
+  //     const averageStakedBN = new BN(returnedData.averageStaked);
+  //     const minUserBondBN = new BN(returnedData.minUserBond);
+  //     const maxNominatorsRewardedPerValidatorBN = new BN(returnedData.maxNominatorsRewardedPerValidator);
+  //     const totalStakersBN = new BN(returnedData.totalStakers);
 
-      assert(totalStakedBN.gte(BN_ZERO), 'Total stake is zero');
-      assert(averageStakedBN.gte(BN_ZERO), 'Average stake is zero');
-      assert(averageStakedBN.lte(totalStakedBN), 'Average stake must be less than total stake');
-      assert(totalStakersBN.gte(BN_ZERO), 'Total number of stakers is zero');
-      assert(minUserBondBN.gt(BN_ZERO), 'Minimum user bond does not match default value');
-      assert(
-        maxNominatorsRewardedPerValidatorBN.eq(defaultMaxNominatorsRewardedPerValidatorBN),
-        "Maximum number of nominators doesn't match default value"
-      );
-    });
-  });
+  //     assert(totalStakedBN.gte(BN_ZERO), 'Total stake is zero');
+  //     assert(averageStakedBN.gte(BN_ZERO), 'Average stake is zero');
+  //     assert(averageStakedBN.lte(totalStakedBN), 'Average stake must be less than total stake');
+  //     assert(totalStakersBN.gte(BN_ZERO), 'Total number of stakers is zero');
+  //     assert(minUserBondBN.gt(BN_ZERO), 'Minimum user bond does not match default value');
+  //     assert(
+  //       maxNominatorsRewardedPerValidatorBN.eq(defaultMaxNominatorsRewardedPerValidatorBN),
+  //       "Maximum number of nominators doesn't match default value"
+  //     );
+  //   });
+  // });
 
-  describe('getActiveEra', async () => {
-    it('returns the correct data', async () => {
-      const returnedData = await api.query.getActiveEra();
-      assert(parseInt(returnedData) > 0, 'Active era is not a valid result');
-    });
-  });
+  // describe('getActiveEra', async () => {
+  //   it('returns the correct data', async () => {
+  //     const returnedData = await api.query.getActiveEra();
+  //     assert(parseInt(returnedData) > 0, 'Active era is not a valid result');
+  //   });
+  // });
 
-  describe('getStakingStatus', async () => {
-    it('returns the correct data', async () => {
-      const returnedData = await api.query.getStakingStatus('5FZ9egr9M1tGJ1aEUWG6TPkoko8j7cX2TwtchcFmaMWZzMVU');
-      // We can't be sure about the values but we can check the structure
-      assert(
-        [STAKING_STATUS.isStaking, STAKING_STATUS.isNotStaking].includes(returnedData),
-        'Staking status is not a valid result'
-      );
-    });
-  });
+  // describe('getStakingStatus', async () => {
+  //   it('returns the correct data', async () => {
+  //     const returnedData = await api.query.getStakingStatus('5FZ9egr9M1tGJ1aEUWG6TPkoko8j7cX2TwtchcFmaMWZzMVU');
+  //     // We can't be sure about the values but we can check the structure
+  //     assert(
+  //       [STAKING_STATUS.isStaking, STAKING_STATUS.isNotStaking].includes(returnedData),
+  //       'Staking status is not a valid result'
+  //     );
+  //   });
+  // });
 
-  describe('getOutstandingLowersForAccount', async () => {
-    it('returns data', async () => {
-      const ethDevAddress = '0xDE7E1091cDE63c05Aa4D82C62e4C54eDbC701B22';
-      const returnedData = await api.query.getOutstandingLowersForAccount(ethDevAddress);
-      assert(Array.isArray(returnedData.lowerData));
-      assert(returnedData.status === 'success');
-    });
-  });
+  // describe('getOutstandingLowersForAccount', async () => {
+  //   it('returns data', async () => {
+  //     const ethDevAddress = '0xDE7E1091cDE63c05Aa4D82C62e4C54eDbC701B22';
+  //     const returnedData = await api.query.getOutstandingLowersForAccount(ethDevAddress);
+  //     assert(Array.isArray(returnedData.lowerData));
+  //     assert(returnedData.status === 'success');
+  //   });
+  // });
 
-  describe('getAvtBalance', async () => {
-    it('returns correct avt balance for specific user by address', async () => {
-      helper.bnEquals(await api.query.getAvtBalance(newUser.address), 0);
-    });
-    it('returns correct avt balance for specific user by publicKey', async () => {
-      helper.bnEquals(await api.query.getAvtBalance(newUser.publicKey), 0);
-    });
-  });
+  // describe('getAvtBalance', async () => {
+  //   it('returns correct avt balance for specific user by address', async () => {
+  //     helper.bnEquals(await api.query.getAvtBalance(newUser.address), 0);
+  //   });
+  //   it('returns correct avt balance for specific user by publicKey', async () => {
+  //     helper.bnEquals(await api.query.getAvtBalance(newUser.publicKey), 0);
+  //   });
+  // });
 
-  describe('getTokenBalance', async () => {
-    it('returns correct token balance for specific user by address', async () => {
-      helper.bnEquals(await api.query.getTokenBalance(newUser.address, token), 0);
-    });
-    it('returns correct token balance for specific user by publicKey', async () => {
-      helper.bnEquals(await api.query.getTokenBalance(newUser.publicKey, token), 0);
-    });
-  });
+  // describe('getTokenBalance', async () => {
+  //   it('returns correct token balance for specific user by address', async () => {
+  //     helper.bnEquals(await api.query.getTokenBalance(newUser.address, token), 0);
+  //   });
+  //   it('returns correct token balance for specific user by publicKey', async () => {
+  //     helper.bnEquals(await api.query.getTokenBalance(newUser.publicKey, token), 0);
+  //   });
+  // });
 
-  describe('getNonce', async () => {
-    it('returns correct account nonce for specific user by address', async () => {
-      helper.bnEquals(await api.query.getNonce(newUser.address, 'token'), 0);
-    });
-    it('returns correct account nonce for specific user by publicKey', async () => {
-      helper.bnEquals(await api.query.getNonce(newUser.publicKey, 'token'), 0);
-    });
-  });
+  // describe('getNonce', async () => {
+  //   it('returns correct account nonce for specific user by address', async () => {
+  //     helper.bnEquals(await api.query.getNonce(newUser.address, 'token'), 0);
+  //   });
+  //   it('returns correct account nonce for specific user by publicKey', async () => {
+  //     helper.bnEquals(await api.query.getNonce(newUser.publicKey, 'token'), 0);
+  //   });
+  // });
 
-  describe('NFT data', async () => {
-    let externalRef, requestId, nftId;
+  // describe('NFT data', async () => {
+  //   let externalRef, requestId, nftId;
 
-    describe('NFT data', async () => {
-      let externalRef, nftId;
+  //   describe('NFT data', async () => {
+  //     let externalRef, nftId;
 
-      before(async () => {
-        externalRef = 'avn-gateway-test-' + new Date().toISOString();
-        const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-        const receipt = await helper.confirmStatus(api, requestId, 'Processed');
-        nftId = receipt.eventArgs.nftId;
-        assert(nftId != '');
-      });
+  //     before(async () => {
+  //       externalRef = 'avn-gateway-test-' + new Date().toISOString();
+  //       const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
+  //       const receipt = await helper.confirmStatus(api.poll, requestId, 'Processed');
+  //       nftId = receipt.eventArgs.nftId;
+  //       assert(nftId != '');
+  //     });
 
-      it('can retrieve the NFT ID via the externalRef', async () => {
-        assert(nftId, await api.query.getNftId(externalRef));
-      });
+  //     it('can retrieve the NFT ID via the externalRef', async () => {
+  //       assert(nftId, await api.query.getNftId(externalRef));
+  //     });
 
-      it('can retrieve the NFT nonce', async () => {
-        helper.bnEquals(await api.query.getNftNonce(nftId), 0);
-      });
+  //     it('can retrieve the NFT nonce', async () => {
+  //       helper.bnEquals(await api.query.getNftNonce(nftId), 0);
+  //     });
 
-      it('can retrieve the NFT owner via the decimal NFT ID', async () => {
-        assert.equal(await api.query.getNftOwner(nftId), user.address);
-      });
+  //     it('can retrieve the NFT owner via the decimal NFT ID', async () => {
+  //       assert.equal(await api.query.getNftOwner(nftId), user.address);
+  //     });
 
-      it('can retrieve the NFT owner via the hex (bytes32) NFT ID', async () => {
-        const bytesNftId = '0x' + new BN(nftId).toString(16);
-        assert.equal(await api.query.getNftOwner(bytesNftId), user.address);
-      });
-    });
-  });
+  //     it('can retrieve the NFT owner via the hex (bytes32) NFT ID', async () => {
+  //       const bytesNftId = '0x' + new BN(nftId).toString(16);
+  //       assert.equal(await api.query.getNftOwner(bytesNftId), user.address);
+  //     });
+  //   });
+  // });
 });

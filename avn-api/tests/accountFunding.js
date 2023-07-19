@@ -17,7 +17,8 @@ describe('Account funding', async () => {
   before(async () => {
     process.env.AVN_SURI = accounts.bank.seed;
 
-    api = await helper.avnApi();
+    api = (await helper.avnApi()).apis();
+
 
     relayer = accounts.relayer.address;
     user = accounts.user;

@@ -7,7 +7,10 @@ describe('Access rights:', async () => {
 
   describe('Offline mode', async () => {
     it('api is initializable', async () => {
-      const api = new AvnApi();
+      const undefinedGateway = undefined;
+      const api = new AvnApi(undefinedGateway, {
+        suri: helper.ACCOUNTS.user.seed
+      });
       await api.init();
     });
   });

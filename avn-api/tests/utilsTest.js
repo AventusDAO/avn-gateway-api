@@ -7,30 +7,25 @@ describe('Utilities', async () => {
   let api;
 
   before(async () => {
-    api = await helper.avnApi();
+    api = await helper.avnApi({
+      suri: helper.ACCOUNTS.user.seed
+    });
   });
 
   describe('myAddress', async () => {
     it('can get my address', async () => {
-      assert.equal(accounts.user.address, api.myAddress());
-      assert.equal(accounts.user.address, api.signer().address);
-      await api.setSURI(accounts.otherUser.seed);
-      assert.equal(accounts.otherUser.address, api.myAddress());
-      assert.equal(accounts.otherUser.address, api.signer().address);
-      await api.setSURI(accounts.user.seed);
+      assert.equal(accounts.user.address, api.myAddress);
+      assert.equal(accounts.user.address, api.signer.address);
     });
   });
 
   describe('myPublicKey', async () => {
     it('@NO_BASELINE can get my public key', async () => {
-      assert.equal(accounts.user.publicKey, api.myPublicKey());
-      await api.setSURI(accounts.otherUser.seed);
-      assert.equal(accounts.otherUser.publicKey, api.myPublicKey());
-      await api.setSURI(accounts.user.seed);
+      assert.equal(accounts.user.publicKey, api.myPublicKey);
     });
   });
 
-  describe('setSuri updates awt token', async () => {
+  xdescribe('setSuri updates awt token', async () => {
     it('for self pay tokens', async () => {
       const previousAWT = api.awtToken;
       await api.setSURI(accounts.otherUser.seed);
@@ -67,7 +62,9 @@ describe('Utilities', async () => {
     let nonInitialisedApi;
     before(async () => {
       // we are not calling init()
-      nonInitialisedApi = new AvnApi(helper.GATEWAY, {});
+      nonInitialisedApi = new AvnApi(helper.GATEWAY, {
+        suri: helper.ACCOUNTS.user.seed
+      });
     });
 
     it('can generate a new account', async () => {

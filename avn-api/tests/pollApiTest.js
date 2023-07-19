@@ -9,7 +9,9 @@ describe('Polling api calls:', async () => {
   let recipient;
 
   before(async () => {
-    api = await helper.avnApi();
+    api = (await helper.avnApi({
+      suri: helper.ACCOUNTS.user.seed
+    })).apis();
     relayer = accounts.relayer.address;
     user = accounts.user.address;
     recipient = accounts.otherUser.address;
@@ -37,14 +39,14 @@ describe('Polling api calls:', async () => {
     });
 
     it('returns a rejected status when a transaction fails to be executed', async () => {
-      await helper.confirmStatus(api, invalidRequestId, 'Rejected');
+      await helper.confirmStatus(api.poll, invalidRequestId, 'Rejected');
       let result = await api.poll.requestState(invalidRequestId);
       assert(result.blockNumber != '0');
       assert(result.transactionIndex != '0');
     });
 
     it('returns a processed status for a valid request ID', async () => {
-      await helper.confirmStatus(api, requestId, 'Processed');
+      await helper.confirmStatus(api.poll, requestId, 'Processed');
       let result = await api.poll.requestState(requestId);
       assert(result.blockNumber != '0');
       assert(result.transactionIndex != '0');

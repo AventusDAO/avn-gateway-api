@@ -127,6 +127,7 @@ jobs:
 
   upload-ew:
     runs-on: avn-runner
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs:  [package]
     name: Upload lambdas to EW s3 bucket
     steps:

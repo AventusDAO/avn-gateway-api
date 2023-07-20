@@ -93,8 +93,6 @@ jobs:
 
   upload-avn:
     runs-on: ubuntu-latest
-    #TODO: remove
-    if: github.ref == 'refs/heads/main'
     needs:  [package]
     name: Upload lambdas to avn s3 bucket
     steps:

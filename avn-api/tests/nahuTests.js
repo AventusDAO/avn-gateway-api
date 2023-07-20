@@ -1,4 +1,4 @@
-const AvnApi = require('avn-api');
+const {AvnApi, SetupMode, SigningMode} = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
@@ -40,12 +40,11 @@ describe('Access rights:', async () => {
     user = accounts.user.address;
     userSURI = accounts.user.seed;
 
-
     singleUserApi = (await helper.avnApi({
       suri: accounts.user.seed,
       relayer: relayer,
-      setupMode : AvnApi.SetupMode.SingleUser,
-      signingMode: AvnApi.SigningMode.SuriBased
+      setupMode : SetupMode.SingleUser,
+      signingMode: SigningMode.SuriBased
     })).apis();
 
 
@@ -59,8 +58,8 @@ describe('Access rights:', async () => {
     multiUserApi = await helper.avnApi({
       signer: signer,
       relayer: relayer,
-      setupMode : AvnApi.SetupMode.MultiUser,
-      signingMode: AvnApi.SigningMode.RemoteSigner
+      setupMode : SetupMode.MultiUser,
+      signingMode: SigningMode.RemoteSigner
     });
 
     console.log("\nSingle user api: ", singleUserApi)
@@ -102,7 +101,7 @@ describe('Access rights:', async () => {
 
       console.log("\n single user")
       let requestId = await singleUserApi.send.transferAvt(recipient, amount);
-      await helper.confirmStatus_new(singleUserApi.poll, requestId, 'Processed');
+      await helper.confirmStatus(singleUserApi.poll, requestId, 'Processed');
 
       let requestIds = []
 
@@ -137,7 +136,7 @@ describe('Access rights:', async () => {
 
       for (const r of requestIds) {
         console.log("R: ", r)
-        await helper.confirmStatus_new(apis.poll, r, 'Processed');
+        await helper.confirmStatus(apis.poll, r, 'Processed');
       }
 
 

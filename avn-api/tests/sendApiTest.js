@@ -83,7 +83,6 @@ describe('SendTx api calls:', async () => {
       let apiWithOptions = (await helper.avnApi(options)).apis();
 
       const amount = new BN(3);
-      console.log(recipient, options)
       const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
       console.log(`   - RequestId: ${requestId}`);
       await helper.confirmStatus(apiWithOptions.poll, requestId, 'Processed');

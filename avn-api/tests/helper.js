@@ -1,4 +1,4 @@
-const AvnApi = require('avn-api');
+const {AvnApi} = require('avn-api');
 const assert = require('chai').assert;
 const BN = require('bn.js');
 const yargs = require('yargs');

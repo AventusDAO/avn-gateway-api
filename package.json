@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "install": "npm install git://github.com/Aventus-Network-Services/avn-api.git#nahu-multiUsers",
+    "install": "npm install git://github.com/Aventus-Network-Services/avn-api.git#nahu-multiUser-typescript && rm -rf ./node_modules/avn-api/build && tsc --project ./node_modules/avn-api",
     "slack": "node ./avn-api/slackServices/slackNotifications.js --gateway",
     "upload": "node ./avn-api/googleServices/nodeIndex.js --gateway",
     "smokeTests": "mocha --timeout 200000 ./tests/gateway-smoke-tests.js ${baselineCmd} --gateway",
@@ -43,10 +43,11 @@
     "mochawesome-merge": "^4.2.1",
     "prompt-sync": "^4.1.6",
     "serverless": "^3.1.1",
+    "ts-node": "^10.9.1",
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "avn-api": "github:Aventus-Network-Services/avn-api#nahu-multiUsers",
+    "avn-api": "github:Aventus-Network-Services/avn-api#nahu-multiUser-typescript",
     "dotenv": "^16.0.1",
     "googleapis": "^105.0.0",
     "prettier": "^2.5.1",

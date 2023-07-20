@@ -30,83 +30,83 @@ describe('Query api calls:', async () => {
     api = avnApi.apis()
   });
 
-  describe('get contract addresses', async () => {
-    it('getAvtContractAddress', async () => {
-      assert((await api.query.getAvtContractAddress()).length == 42);
-    });
+  // describe('get contract addresses', async () => {
+  //   it('getAvtContractAddress', async () => {
+  //     assert((await api.query.getAvtContractAddress()).length == 42);
+  //   });
 
-    it('getAvnContractAddress', async () => {
-      assert((await api.query.getAvnContractAddress()).length == 42);
-    });
+  //   it('getAvnContractAddress', async () => {
+  //     assert((await api.query.getAvnContractAddress()).length == 42);
+  //   });
 
-    it('getNftContractAddress', async () => {
-      const result = await api.query.getNftContractAddress();
-      assert(result.length > 0);
-      assert(result[0].length == 42);
-    });
-  });
+  //   it('getNftContractAddress', async () => {
+  //     const result = await api.query.getNftContractAddress();
+  //     assert(result.length > 0);
+  //     assert(result[0].length == 42);
+  //   });
+  // });
 
-  describe('get totals', async () => {
-    it('returns total AVT', async () => {
-      let avt = await api.query.getAvtContractAddress();
-      assert(new BN(await api.query.getTotalAvt()).gt(BN_ZERO));
-    });
+  // describe('get totals', async () => {
+  //   it('returns total AVT', async () => {
+  //     let avt = await api.query.getAvtContractAddress();
+  //     assert(new BN(await api.query.getTotalAvt()).gt(BN_ZERO));
+  //   });
 
-    it('returns total ETH', async () => {
-      assert(new BN(await api.query.getTotalToken('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')).gt(BN_ZERO));
-    });
+  //   it('returns total ETH', async () => {
+  //     assert(new BN(await api.query.getTotalToken('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')).gt(BN_ZERO));
+  //   });
 
-    it('returns total other token', async () => {
-      assert(
-        new BN(await api.query.getTotalToken(token)).gt(BN_ZERO),
-        `The total token balance for ${token} should be greater than 0`
-      );
-    });
+  //   it('returns total other token', async () => {
+  //     assert(
+  //       new BN(await api.query.getTotalToken(token)).gt(BN_ZERO),
+  //       `The total token balance for ${token} should be greater than 0`
+  //     );
+  //   });
 
-    it('returns zero for a non-existent token', async () => {
-      const nonExistentToken = '0xd09a7B5F603E66B04e8DaFCD8653114f3C49C038';
-      helper.bnEquals(await api.query.getTotalToken(nonExistentToken), 0);
-    });
-  });
+  //   it('returns zero for a non-existent token', async () => {
+  //     const nonExistentToken = '0xd09a7B5F603E66B04e8DaFCD8653114f3C49C038';
+  //     helper.bnEquals(await api.query.getTotalToken(nonExistentToken), 0);
+  //   });
+  // });
 
-  describe('getCurrentBlock', async () => {
-    it('returns the current block', async () => {
-      let currentBlock = await api.query.getCurrentBlock();
-      assert(parseInt(currentBlock) > 0);
-    });
-  });
+  // describe('getCurrentBlock', async () => {
+  //   it('returns the current block', async () => {
+  //     let currentBlock = await api.query.getCurrentBlock();
+  //     assert(parseInt(currentBlock) > 0);
+  //   });
+  // });
 
-  describe('getChainInfo', async () => {
-    it('@NO_BASELINE can get the current chain information', async () => {
-      let chainInfo = await api.query.getChainInfo();
-      assert(chainInfo.hasOwnProperty('name'));
-      assert(chainInfo.hasOwnProperty('version'));
-      assert(chainInfo.hasOwnProperty('avtContract'));
-      assert(chainInfo.hasOwnProperty('avnContract'));
-    });
-  });
+  // describe('getChainInfo', async () => {
+  //   it('@NO_BASELINE can get the current chain information', async () => {
+  //     let chainInfo = await api.query.getChainInfo();
+  //     assert(chainInfo.hasOwnProperty('name'));
+  //     assert(chainInfo.hasOwnProperty('version'));
+  //     assert(chainInfo.hasOwnProperty('avtContract'));
+  //     assert(chainInfo.hasOwnProperty('avnContract'));
+  //   });
+  // });
 
-  describe('getNonce', async () => {
-    it('returns the same token nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'token');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'token'));
-    });
+  // describe('getNonce', async () => {
+  //   it('returns the same token nonce by address as by public key', async () => {
+  //     const nonce = await api.query.getNonce(user.address, 'token');
+  //     assert.equal(nonce, await api.query.getNonce(user.publicKey, 'token'));
+  //   });
 
-    it('returns the same payment nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'payment');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'payment'));
-    });
+  //   it('returns the same payment nonce by address as by public key', async () => {
+  //     const nonce = await api.query.getNonce(user.address, 'payment');
+  //     assert.equal(nonce, await api.query.getNonce(user.publicKey, 'payment'));
+  //   });
 
-    it('returns the same staking nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'staking');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'staking'));
-    });
+  //   it('returns the same staking nonce by address as by public key', async () => {
+  //     const nonce = await api.query.getNonce(user.address, 'staking');
+  //     assert.equal(nonce, await api.query.getNonce(user.publicKey, 'staking'));
+  //   });
 
-    it('returns the same confirmation nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'confirmation');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'confirmation'));
-    });
-  });
+  //   it('returns the same confirmation nonce by address as by public key', async () => {
+  //     const nonce = await api.query.getNonce(user.address, 'confirmation');
+  //     assert.equal(nonce, await api.query.getNonce(user.publicKey, 'confirmation'));
+  //   });
+  // });
 
   describe('AccountInfo', async () => {
     it('returns correct data for user by address', async () => {

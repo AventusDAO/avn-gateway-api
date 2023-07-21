@@ -408,8 +408,8 @@ async function processProxyMintBatchNft(call, mqChannel, request, requestId) {
     { AccountId: relayer },
     { U256: batchId },
     { u64: index },
-    { AccountId: owner },
-    { 'Vec<u8>': externalRef }
+    { 'Vec<u8>': externalRef },
+    { AccountId: owner }
   ];
 
   try {

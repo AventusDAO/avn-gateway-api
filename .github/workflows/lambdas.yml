@@ -110,8 +110,24 @@ jobs:
         AWS_REGION: 'eu-west-1'
         SOURCE_DIR: "avn-gateway/build"
 
+  #TODO: delete 'upload-avn' and rename 'upload-internal-tools' when gateway is fully migrated
+  upload-internal-tools:
+    runs-on: avn-runner
+    needs:  [package]
+    name: Upload lambdas to AVN internal-tools s3 bucket
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: avn-gateway
+        path: avn-gateway/build/
+
+    - name: Upload to S3
+      run: |
+        aws s3 sync build/. s3://aventus-internal-artefact/gateway-lambdas --acl bucket-owner-full-control
+
   upload-ew:
     runs-on: avn-runner
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs:  [package]
     name: Upload lambdas to EW s3 bucket
     steps:

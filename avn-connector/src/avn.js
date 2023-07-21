@@ -153,7 +153,7 @@ async function getCollatorsToNominate() {
   let collators = await redis.getCollatorsToNominate();
 
   if (collators === undefined) {
-    let collators = await api.query.parachainStaking.selectedCandidates();
+    collators = await api.query.parachainStaking.selectedCandidates();
     await redis.setCollatorsToNominate(collators);
   }
 
@@ -410,8 +410,16 @@ async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
   await connectToAvN();
   await setChainInfo();
+  await startSubscriptions();
 }
 
+async function startSubscriptions() {
+  // variable name for descriptive porpuses if we add more subscriptions
+  let selectedCandidatesSub = await api.query.parachainStaking.selectedCandidates((candidates) => {
+    log.info(`Setting collators to nominate: ${candidates}`);
+    redis.setCollatorsToNominate(candidates);
+  });
+}
 async function setChainInfo() {
   const chainInfo = {
     name: await api.rpc.system.chain(),

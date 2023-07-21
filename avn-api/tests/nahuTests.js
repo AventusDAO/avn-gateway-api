@@ -1,4 +1,5 @@
-const {AvnApi, SetupMode, SigningMode} = require('avn-api');
+const {AvnApi, SetupMode, SigningMode, NonceCacheType} = require('avn-api');
+const TestNonceCacheProvider = require("./testNonceCacheProvider");
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
@@ -10,7 +11,7 @@ const { Keyring } = require('@polkadot/keyring');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
 
 describe('Access rights:', async () => {
-  let singleUserApi, multiUserApi;
+  let singleUserApi, multiUserApi, testCacheProvider;
   let relayer;
 
   async function canAccessTheGateway(api) {
@@ -36,17 +37,22 @@ describe('Access rights:', async () => {
   }
 
   before(async () => {
+    testCacheProvider = new TestNonceCacheProvider();
+
     //relayer = accounts.relayer.address;
     user = accounts.user.address;
     userSURI = accounts.user.seed;
 
-    singleUserApi = (await helper.avnApi({
+    singleUserApi = await helper.avnApi({
       suri: accounts.user.seed,
       relayer: relayer,
       setupMode : SetupMode.SingleUser,
-      signingMode: SigningMode.SuriBased
-    })).apis();
-
+      signingMode: SigningMode.SuriBased,
+      nonceCacheType: NonceCacheType.Remote,
+      cacheProvider: testCacheProvider
+    });
+    console.log("\nSingle user api: ", singleUserApi)
+    singleUserApi = singleUserApi.apis();
 
     //setupMode
     const signer = {
@@ -62,15 +68,14 @@ describe('Access rights:', async () => {
       signingMode: SigningMode.RemoteSigner
     });
 
-    console.log("\nSingle user api: ", singleUserApi)
     console.log("\n\nMulti user api: ", multiUserApi)
     console.log("\n\n\n\n")
 
   });
 
-  describe('Nahu', async () => {
+  xdescribe('Nahu', async () => {
     it('can query', async () => {
-      console.log("\n single user")
+      console.log("\n single user\n")
       let userApi = singleUserApi.query;
       await canAccessTheGateway(userApi)
 

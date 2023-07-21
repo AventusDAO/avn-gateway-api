@@ -34,6 +34,13 @@
     },
     "rewardPayer": {
       "address": "5EYCAe5fjFpowfFbMhiZM6vdW1nzdr91vZDVLnrBf2E28x2Y"
+    },
+    "nahu": {
+      "mnemonic": "net must element immune juice bread half hole awake custom inner asset",
+      "seed": "0x02ebaf82fb7ce856a3580e2563ba7a7825c218488d0513a68b57b4653a3636e6",
+      "address": "5GvBUnsQAU6nahXUdDXW4pRKQHtgdn2L1gHWG7JKgYtwLq1p",
+      "publicKey": "0xd6acf1fe741658fc006bd70b5d46368b5993ab856b1c9eef4241e461af12e277"
+
     }
   }
 }

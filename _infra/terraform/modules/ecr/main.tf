@@ -1,6 +1,6 @@
 locals {
   avn_ecr_project_name = var.project_name
-  role_arns = formatlist("arn:aws:iam::%s:role/avn-gateway", var.account_ids)
+  role_arns = formatlist("arn:aws:iam::%s:root", var.account_ids)
   tags = {
     Project      = var.project_name
     Orchestrator = "Terraform"

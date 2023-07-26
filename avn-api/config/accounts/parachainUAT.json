@@ -10,6 +10,11 @@
       "address": "5HMYezk4gRAoed54DD76TEyrx57Wv5jZ98XQp7DGZM8rSTyf",
       "publicKey": "0xea055d6f2e2280ecfd691e28f3062047c3904273ea699ec5d05c43a5b8413e55"
     },
+    "splitFeeUser": {
+      "seed": "0x68efd4a5b4e518f26fafdc33c8967ae5fcede5250a473ccfe40d72ad24889b14",
+      "address": "5DQ3J7ucXdUtjR876Hi8qHLTajZzn2dTFqfQoQuKLbKnHj99",
+      "publicKey": "0x3afb55405ed2c6b677dae44a4c56027d6963fc8e7dc8f4695688580e67ccf011"
+    },
     "otherUser": {
       "seed": "0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7",
       "address": "5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3",

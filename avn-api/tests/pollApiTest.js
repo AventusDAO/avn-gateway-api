@@ -9,7 +9,7 @@ describe('Polling api calls:', async () => {
   let recipient;
 
   before(async () => {
-    api = (await helper.avnApi({
+    api = await (await helper.avnApi({
       suri: helper.ACCOUNTS.user.seed
     })).apis();
     relayer = accounts.relayer.address;

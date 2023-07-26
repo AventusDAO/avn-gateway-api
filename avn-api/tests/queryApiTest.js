@@ -27,7 +27,7 @@ describe('Query api calls:', async () => {
     recipient = accounts.otherUser;
     token = helper.token;
     newUser = avnApi.utils.generateNewAccount();
-    api = avnApi.apis()
+    api = await avnApi.apis()
   });
 
   describe('get contract addresses', async () => {

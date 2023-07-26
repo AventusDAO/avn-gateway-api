@@ -27,7 +27,7 @@ describe('SendTx api calls:', async () => {
       signingMode: AvnApi.SigningMode.RemoteSigner
     });
 
-    api = multiUserApi.apis(accounts.user.address);
+    api = await multiUserApi.apis(accounts.user.address);
 
     token = helper.token;
     relayer = accounts.relayer.address;
@@ -44,7 +44,7 @@ describe('SendTx api calls:', async () => {
     let userAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore;
 
     beforeEach(async () => {
-      api = multiUserApi.apis(accounts.user.address);
+      api = await multiUserApi.apis(accounts.user.address);
       userAvtBalanceBefore = new BN(await api.query.getAvtBalance(user));
       recipientAvtBalanceBefore = new BN(await api.query.getAvtBalance(recipient));
       relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));
@@ -80,7 +80,7 @@ describe('SendTx api calls:', async () => {
         suri: accounts.user.seed
       };
 
-      let apiWithOptions = (await helper.avnApi(options)).apis();
+      let apiWithOptions = await (await helper.avnApi(options)).apis();
 
       const amount = new BN(3);
       const requestId = await apiWithOptions.send.transferAvt(recipient, amount);

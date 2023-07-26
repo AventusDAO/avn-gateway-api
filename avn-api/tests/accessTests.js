@@ -7,7 +7,7 @@ const bnEquals = helper.bnEquals;
 const ONE_AVT = new BN('1000000000000000000');
 
 describe('Access rights:', async () => {
-  let multiUserApi, api;
+  let avnGateway, api, options;
   let relayer, user, userSURI, newUser, newUserSURI, existingUserTestAccount, existingUser, existingUserSURI;
 
   async function canAccessTheGateway(api) {
@@ -21,64 +21,53 @@ describe('Access rights:', async () => {
   }
 
   before(async () => {
+    relayer = accounts.relayer.address;
+    user = accounts.user.address;
+    userSURI = accounts.user.seed;
+
     const signer = {
       sign: async (data, signerAddress) => {
         return await helper.remoteSigner(data, signerAddress)
       }
     };
 
-    multiUserApi = await helper.avnApi({
+    options = {
       signer: signer,
       relayer: relayer,
       setupMode : AvnApi.SetupMode.MultiUser,
       signingMode: AvnApi.SigningMode.RemoteSigner
-    });
+    };
 
-    relayer = accounts.relayer.address;
-    user = accounts.user.address;
-    userSURI = accounts.user.seed;
+    avnGateway = await helper.avnApi(options);
+    api = await avnGateway.apis(user)
 
-    newUserAccount = multiUserApi.utils.generateNewAccount();
+    newUserAccount = avnGateway.utils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserSURI = newUserAccount.seed;
     accounts["newUser"] = newUserAccount;
 
-    existingUserTestAccount = multiUserApi.utils.generateNewAccount();
+    existingUserTestAccount = avnGateway.utils.generateNewAccount();
     existingUser = existingUserTestAccount.address;
     existingUserSURI = existingUserTestAccount.seed;
     accounts["existingUser"] = existingUserTestAccount;
-
-    api = multiUserApi.apis(user)
   });
 
   afterEach(async () => {
-    api = multiUserApi.apis(user)
-  });
-
-  describe('setOptions', async () => {
-    it('can set new user via the options', async () => {
-      const options = {
-        suri: newUserSURI,
-        relayer: relayer
-      };
-      const apiWithOptions = await helper.avnApi(options);
-      assert.equal(apiWithOptions.myAddress, newUser);
-      assert.equal(apiWithOptions.signer.address, newUser);
-    });
+    api = await avnGateway.apis(user)
   });
 
   describe('accessing the gateway', async () => {
     it('a new user cannot access the gateway without AVT', async () => {
-      api = multiUserApi.apis(newUser)
+      api = await avnGateway.apis(newUser)
       assert.equal(await canAccessTheGateway(api), false);
 
       // Transfer the new user enough AVT for entry
-      api = multiUserApi.apis(user)
+      api = await avnGateway.apis(user)
       const requestId = await api.send.transferAvt(newUser, ONE_AVT.toString());
       await helper.confirmStatus(api.poll, requestId, 'Processed');
       assert.equal(await api.query.getAvtBalance(newUser), ONE_AVT.toString());
 
-      api = multiUserApi.apis(newUser)
+      api = await avnGateway.apis(newUser)
       assert.equal(await canAccessTheGateway(api), true);
     });
 
@@ -87,17 +76,37 @@ describe('Access rights:', async () => {
       await helper.confirmStatus(api.poll, requestId, 'Processed');
       assert.equal(await api.query.getAvtBalance(existingUser), ONE_AVT.toString());
 
-      api = multiUserApi.apis(existingUser)
+      api = await avnGateway.apis(existingUser)
       const relayerFee = await api.query.getRelayerFees(relayer, existingUser, 'proxyTokenTransfer');
       requestId = await api.send.transferAvt(user, ONE_AVT.sub(new BN(relayerFee)).toString());
       await helper.confirmStatus(api.poll, requestId, 'Processed');
 
-      api = multiUserApi.apis(user); // this ensures the AWT token is refreshed
+      api = await avnGateway.apis(user);
       assert.equal(await api.query.getAvtBalance(existingUser), '0'); // confirm existingUser now holds no AVT
       assert((await api.query.getNonce(existingUser, 'payment')) > 0);
       assert((await api.query.getNonce(existingUser, 'token')) > 0);
 
-      api = multiUserApi.apis(existingUser)
+      api = await avnGateway.apis(existingUser)
+      assert.equal(await canAccessTheGateway(api), true);
+    });
+
+    it('a new split fee user can access the gateway if they have a valid payer', async () => {
+      const splitFeeUserAddress = accounts.splitFeeUser.address;
+      assert((await api.query.getNonce(splitFeeUserAddress, 'payment')) === '0');
+
+      const splitFeeUserBalance = new BN(await api.query.getAvtBalance(splitFeeUserAddress));
+      if (splitFeeUserBalance.gt(new BN(0))) {
+        const relayerFee = await api.query.getRelayerFees(relayer, user, 'proxyTokenTransfer');
+        requestId = await api.send.transferAvt(user, splitFeeUserBalance.sub(new BN(relayerFee)).toString());
+      }
+
+      assert.equal(await api.query.getAvtBalance(splitFeeUserAddress), '0');
+      api = await avnGateway.apis(splitFeeUserAddress);
+      assert.equal(await canAccessTheGateway(api), false);
+
+      options.hasPayer = true;
+      avnGateway = await helper.avnApi(options);
+      api = await avnGateway.apis(splitFeeUserAddress);
       assert.equal(await canAccessTheGateway(api), true);
     });
   });

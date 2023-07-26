@@ -1,0 +1,121 @@
+const {NonceType} = require('avn-api');
+const {Redis} = require("ioredis");
+
+class TestRedisNonceCacheProvider {
+  SLOT_PREFIX = '{avnApi}:';
+  constructor() {
+    this.nonceMap = {};
+    this.redisClient;
+  }
+
+  async connect() {
+      this.redisClient = new Redis();
+
+      console.info(
+          'Connected to Redis database:\n',
+          (await this.redisClient.hello()).map((e, i) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')
+      );
+
+      return this;
+  }
+
+  async initUserNonceCache(signerAddress) {
+    const signerKey = this.getSignerKey(signerAddress);
+    if (await this.redisClient.get(signerKey) !== true) {
+      // Set the signer
+      await this.redisClient.set(this.getSignerKey(signerAddress), true);
+
+      // Set the nonces
+      for (const nonceType of Object.values(NonceType)) {
+        await this.saveNonceDataToRedis(signerAddress, nonceType, {locked: false})
+      }
+    }
+  }
+
+  async getNonceData(signerAddress, nonceType) {
+    const nonceData = await this.readNonceDatafromRedis(signerAddress, nonceType);
+    return nonceData;
+    //return this.nonceMap[signerAddress][nonceType]
+  }
+
+  async getNonceAndLock(signerAddress, nonceType) {
+    let nonceData = await this.readNonceDatafromRedis(signerAddress, nonceType);
+    if (nonceData.locked === false) {
+      //console.log("\t getting lock id: ", new Date())
+      const lockId = this.getLockId(signerAddress, nonceType, nonceData.nonce);
+      //console.log(`\t${lockId}`)
+      nonceData.locked = true;
+      nonceData.lockId = lockId;
+      //console.log(`\tlock updated - pre save`)
+      await this.saveNonceDataToRedis(signerAddress, nonceType, nonceData)
+      // this.nonceMap[signerAddress][nonceType].locked = true;
+      // this.nonceMap[signerAddress][nonceType].lockId = lockId;
+
+      console.log("\t Nonce = ", nonceData.nonce, "  @@  ", new Date())
+      return { lockAquired: true, data: nonceData };
+    }
+
+    return { lockAquired: false, data: undefined };
+  }
+
+  async incrementNonce(lockId, signerAddress, nonceType, updateLastUpdate) {
+    let nonceData = await this.readNonceDatafromRedis(signerAddress, nonceType);
+    if (nonceData.locked !== true || nonceData.lockId !== lockId) {
+        throw new Error(`Invalid attempt to increment lock. Current lock: ${nonceData.lockId} LockId: ${lockId}, signerAddress: ${signerAddress}, nonceType: ${nonceType}`)
+    }
+
+    nonceData.nonce =  parseInt(nonceData.nonce) + 1;
+    if (updateLastUpdate === true) {
+      nonceData.lastUpdated = Date.now();
+    }
+
+    await this.saveNonceDataToRedis(signerAddress, nonceType, nonceData)
+    return nonceData;
+  }
+
+  async unlockNonce(signerAddress, nonceType) {
+    let nonceData = await this.readNonceDatafromRedis(signerAddress, nonceType);
+
+    nonceData.locked = false;
+    nonceData.lockId = undefined;
+    await this.saveNonceDataToRedis(signerAddress, nonceType, nonceData)
+  }
+
+  async setNonce(lockId, signerAddress, nonceType, nonce) {
+    let nonceData = await this.readNonceDatafromRedis(signerAddress, nonceType);
+    if (nonceData.locked !== true || nonceData.lockId !== lockId) {
+        throw new Error(`Invalid attempt to set nonce. Current lock: ${nonceData.lockId}. LockId: ${lockId}, signerAddress: ${signerAddress}, nonceType: ${nonceType}`)
+    }
+
+    nonceData = { nonce: nonce, lastUpdated: Date.now(), locked: false };
+    await this.saveNonceDataToRedis(signerAddress, nonceType, nonceData)
+    //this.nonceMap[signerAddress][nonceType] = { nonce: nonce, lastUpdated: Date.now(), locked: false };
+  }
+
+  getLockId(signerAddress, nonceType, nonce) {
+    return `${Date.now()}-${nonce}-${signerAddress}-${nonceType}`;
+  }
+
+  getNonceKey(signerAddress, nonceType) {
+    return `${this.getSignerKey(signerAddress)}-${nonceType}`;
+  }
+
+  getSignerKey(signerAddress) {
+    return `${this.SLOT_PREFIX}-${signerAddress}`;
+  }
+
+  async readNonceDatafromRedis(signerAddress, nonceType) {
+    const nonceKey = this.getNonceKey(signerAddress, nonceType);
+    const nonceData = await this.redisClient.hgetall(nonceKey);
+    // deal with boolean values
+    nonceData.locked = nonceData.locked === 'true'
+    return nonceData;
+  }
+
+  async saveNonceDataToRedis(signerAddress, nonceType, nonceData) {
+    const nonceKey = this.getNonceKey(signerAddress, nonceType);
+    await this.redisClient.hset(nonceKey, nonceData);
+  }
+}
+
+module.exports = TestRedisNonceCacheProvider;

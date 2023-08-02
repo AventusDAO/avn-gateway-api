@@ -5,19 +5,21 @@ locals {
 }
 
 module "vpc" {
-  source         = "../../../modules/vpc"
+  source = "../../../modules/vpc"
+
+  env            = "mainnet"
   vpc_cidr_block = local.vpc_cidr_block
 
   private_zone_ips = {
-    "a": "172.20.0.0/20",
-    "b": "172.20.16.0/20",
-    "c": "172.20.32.0/20"
+    "a" : "172.20.0.0/20",
+    "b" : "172.20.16.0/20",
+    "c" : "172.20.32.0/20"
   }
 
   public_zone_ips = {
-    "a": "172.20.48.0/28",
-    "b": "172.20.49.0/28",
-    "c": "172.20.50.0/28"
+    "a" : "172.20.48.0/28",
+    "b" : "172.20.49.0/28",
+    "c" : "172.20.50.0/28"
   }
 
   private_subnet_additional_tags = {

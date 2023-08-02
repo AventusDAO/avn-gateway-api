@@ -17,7 +17,7 @@ resource "aws_subnet" "private_subnets" {
   cidr_block        = each.value
 
   tags = merge(
-    {"Name": "${var.name}-private-${each.key}"},
+    { "Name" : "${var.name}-private-${each.key}" },
     var.private_subnet_additional_tags
   )
 }
@@ -30,9 +30,9 @@ resource "aws_subnet" "public_subnets" {
   map_public_ip_on_launch = true
 
   tags = merge(
-      {"Name": "${var.name}-public-${each.key}"},
-      var.public_subnet_additional_tags
-    )
+    { "Name" : "${var.name}-public-${each.key}" },
+    var.public_subnet_additional_tags
+  )
 }
 
 resource "aws_eip" "gateway" {
@@ -110,4 +110,24 @@ resource "aws_route" "internet_gateway" {
   gateway_id             = aws_internet_gateway.gateway.id
   destination_cidr_block = "0.0.0.0/0"
   route_table_id         = aws_route_table.public_route_table.id
+}
+
+#
+# vpc peering accepter from dev-parachain eu-west-1
+#
+resource "aws_vpc_peering_connection_accepter" "addons" {
+  vpc_peering_connection_id = data.terraform_remote_state.addons.outputs.vpc_peering_connection_id_gateway
+  auto_accept               = true
+
+  tags = {
+    Name = "VPC Peering between dev-parachain eu-west-1 and Dev gateway eu-west-1"
+  }
+}
+
+resource "aws_route" "gateway_to_dev_eu_west_1" {
+  count = length(data.aws_route_tables.gateway.ids)
+
+  route_table_id            = tolist(data.aws_route_tables.gateway.ids)[count.index]
+  destination_cidr_block    = data.terraform_remote_state.addons.outputs.vpc_cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.addons.id
 }

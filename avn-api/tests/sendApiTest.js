@@ -1,4 +1,4 @@
-const AvnApi = require('avn-api');
+const {SetupMode, SigningMode} = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
@@ -23,8 +23,8 @@ describe('SendTx api calls:', async () => {
     multiUserApi = await helper.avnApi({
       signer: signer,
       relayer: relayer,
-      setupMode : AvnApi.SetupMode.MultiUser,
-      signingMode: AvnApi.SigningMode.RemoteSigner
+      setupMode : SetupMode.MultiUser,
+      signingMode: SigningMode.RemoteSigner
     });
 
     api = await multiUserApi.apis(accounts.user.address);

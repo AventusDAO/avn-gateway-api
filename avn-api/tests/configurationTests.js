@@ -1,4 +1,4 @@
-const AvnApi = require('avn-api');
+const {SetupMode, SigningMode, NonceCacheType} = require('avn-api');
 const chai = require('chai');
 chai.use(require('chai-as-promised'));
 
@@ -49,10 +49,9 @@ describe('Access rights:', async () => {
       };
       const avnGateway = await helper.avnApi(options);
 
-      assert.equal(avnGateway.options.setupMode, AvnApi.SetupMode.SingleUser);
-      assert.equal(avnGateway.options.signingMode, AvnApi.SigningMode.SuriBased);
-      assert.equal(avnGateway.options.nonceCacheOptions.nonceCacheType, AvnApi.NonceCacheType.Local);
-      assert.equal(avnGateway.options.nonceCacheOptions.sameUserNonceDelayMs, 100);
+      assert.equal(avnGateway.options.setupMode, SetupMode.SingleUser);
+      assert.equal(avnGateway.options.signingMode, SigningMode.SuriBased);
+      assert.equal(avnGateway.options.nonceCacheOptions.nonceCacheType, NonceCacheType.Local);
       assert.equal(avnGateway.options.defaultLogLevel, 'info');
     });
 
@@ -94,11 +93,11 @@ describe('Access rights:', async () => {
       it('can set a single user setup', async () => {
         const options = {
           suri: accounts.user.seed,
-          setupMode: AvnApi.SetupMode.SingleUser
+          setupMode: SetupMode.SingleUser
         };
 
         const avnGateway = await helper.avnApi(options);
-        assert.equal(avnGateway.options.setupMode, AvnApi.SetupMode.SingleUser);
+        assert.equal(avnGateway.options.setupMode, SetupMode.SingleUser);
       });
 
       it('validates single user setup', async () => {
@@ -113,18 +112,18 @@ describe('Access rights:', async () => {
       it('can set a multi user setup', async () => {
         const options = {
           signer,
-          setupMode: AvnApi.SetupMode.MultiUser,
-          signingMode: AvnApi.SigningMode.RemoteSigner,
+          setupMode: SetupMode.MultiUser,
+          signingMode: SigningMode.RemoteSigner,
         };
 
         const avnGateway = await helper.avnApi(options);
-        assert.equal(avnGateway.options.setupMode, AvnApi.SetupMode.MultiUser);
+        assert.equal(avnGateway.options.setupMode, SetupMode.MultiUser);
       });
 
       it('validates multi user setup', async () => {
         const options = {
           suri: accounts.user.seed,
-          setupMode: AvnApi.SetupMode.MultiUser
+          setupMode: SetupMode.MultiUser
         };
 
         await expect(helper.avnApi(options)).to.be.rejectedWith(`In multi user mode, you must use a remote signer`);
@@ -135,17 +134,17 @@ describe('Access rights:', async () => {
       it('can set a remote signer', async () => {
         const options = {
           signer,
-          signingMode: AvnApi.SigningMode.RemoteSigner,
+          signingMode: SigningMode.RemoteSigner,
         };
 
         const avnGateway = await helper.avnApi(options);
-        assert.equal(avnGateway.options.signingMode, AvnApi.SigningMode.RemoteSigner);
+        assert.equal(avnGateway.options.signingMode, SigningMode.RemoteSigner);
       });
 
       it('can validate remote signer', async () => {
         const options = {
           suri: accounts.user.seed,
-          signingMode: AvnApi.SigningMode.RemoteSigner,
+          signingMode: SigningMode.RemoteSigner,
         };
 
         await expect(helper.avnApi(options)).to.be.rejectedWith(`In remote signer mode, a suri must not be specified`);
@@ -154,17 +153,17 @@ describe('Access rights:', async () => {
       it('can set a suri based signer', async () => {
         const options = {
           suri: accounts.user.seed,
-          signingMode: AvnApi.SigningMode.SuriBased,
+          signingMode: SigningMode.SuriBased,
         };
 
         const avnGateway = await helper.avnApi(options);
-        assert.equal(avnGateway.options.signingMode, AvnApi.SigningMode.SuriBased);
+        assert.equal(avnGateway.options.signingMode, SigningMode.SuriBased);
       });
 
       it('can validate suri based signer', async () => {
         const options = {
           signer,
-          signingMode: AvnApi.SigningMode.SuriBased,
+          signingMode: SigningMode.SuriBased,
         };
 
         await expect(helper.avnApi(options)).to.be.rejectedWith(`In suri mode, a remote signer must not be specified`);
@@ -185,12 +184,12 @@ describe('Access rights:', async () => {
         const options = {
           suri: accounts.user.seed,
           nonceCacheOptions: {
-            nonceCacheType: AvnApi.NonceCacheType.Local
+            nonceCacheType: NonceCacheType.Local
           },
         };
 
         const avnGateway = await helper.avnApi(options);
-        assert.equal(avnGateway.options.nonceCacheOptions.nonceCacheType, AvnApi.NonceCacheType.Local);
+        assert.equal(avnGateway.options.nonceCacheOptions.nonceCacheType, NonceCacheType.Local);
       });
 
       it('can set a remote cache', async () => {
@@ -199,19 +198,19 @@ describe('Access rights:', async () => {
           suri: accounts.user.seed,
           nonceCacheOptions: {
             cacheProvider: testCacheProvider,
-            nonceCacheType: AvnApi.NonceCacheType.Remote
+            nonceCacheType: NonceCacheType.Remote
           },
         };
 
         const avnGateway = await helper.avnApi(options);
-        assert.equal(avnGateway.options.nonceCacheOptions.nonceCacheType, AvnApi.NonceCacheType.Remote);
+        assert.equal(avnGateway.options.nonceCacheOptions.nonceCacheType, NonceCacheType.Remote);
       });
 
       it('can validate remote cache mode', async () => {
         const options = {
           suri: accounts.user.seed,
           nonceCacheOptions: {
-            nonceCacheType: AvnApi.NonceCacheType.Remote
+            nonceCacheType: NonceCacheType.Remote
           },
         };
 

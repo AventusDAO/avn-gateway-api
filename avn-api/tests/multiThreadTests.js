@@ -31,38 +31,73 @@ const signer = {
 };
 
 async function sendTransactions() {
-  const start = Date.now();
-
   const testCacheProvider = new TestNonceCacheProvider();
   let api = await avnApi({
       //suri: accounts.nahu.seed,
       signer: signer,
-      //hasPayer: true,
+      hasPayer: true,
       setupMode : SetupMode.MultiUser,
       signingMode: SigningMode.RemoteSigner,
       nonceCacheOptions: {
         nonceCacheType: NonceCacheType.Remote,
         cacheProvider: testCacheProvider,
-        sameUserNonceDelayMs: 100,
       },
-      defaultLogLevel: 'info'
+      defaultLogLevel: 'debug'
   });
 
   let apis = await api.apis(accounts.nahu.address)
+
+  const start = Date.now();
+
+  // for (let i = 0; i < 250; i++)
+  // {
+  //   console.log(`Sending tx ${i}`)
+  //   try {
+  //     await apis.send.transferAvt(accounts.user.address, '1');
+  //   } catch (err) {
+  //     console.log(err)
+  //   }
+
+  // }
+
+  // console.log(`\n\n`)
+  // apis = await api.apis(accounts.user.address);
+  // for (let i = 0; i < 200; i++)
+  // {
+  //   console.log(`Sending tx ${i}`)
+  //   try {
+  //     await apis.send.transferAvt(accounts.otherUser.address, '1');
+  //   } catch (err) {
+  //     console.log(err)
+  //   }
+  // }
+
+  // console.log(`\n\n`)
+  // apis = await api.apis(accounts.otherUser.address);
+  // for (let i = 0; i < 100; i++)
+  // {
+  //   console.log(`Sending tx ${i}`)
+  //   try {
+  //     await apis.send.transferAvt(accounts.nahu.address, '1');
+  //   } catch (err) {
+  //     console.log(err)
+  //   }
+  // }
+
   const sendRequests = []
-  for (let i = 0; i < 100; i++)
+  for (let i = 0; i < 1000; i++)
   {
     sendRequests.push(apis.send.transferAvt(accounts.user.address, '1'));
   }
 
   apis = await api.apis(accounts.user.address);
-  for (let i = 0; i < 100; i++)
+  for (let i = 0; i < 3000; i++)
   {
     sendRequests.push(apis.send.transferAvt(accounts.otherUser.address, '1'));
   }
 
   apis = await api.apis(accounts.otherUser.address);
-  for (let i = 0; i < 100; i++)
+  for (let i = 0; i < 2000; i++)
   {
     sendRequests.push(apis.send.transferAvt(accounts.nahu.address, '1'));
   }
@@ -78,6 +113,8 @@ async function sendTransactions() {
   console.log("\nCurrent proxy nonce - nahu: ", (await apis.proxyNonce(accounts.nahu.address, 'token')).nonce)
   console.log("\nCurrent proxy nonce - otherUser: ", (await apis.proxyNonce(accounts.otherUser.address, 'token')).nonce)
   console.log("\nCurrent proxy nonce - user: ", (await apis.proxyNonce(accounts.user.address, 'token')).nonce)
+
+  process.exit(0)
 }
 
 sendTransactions()

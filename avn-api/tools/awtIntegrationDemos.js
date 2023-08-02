@@ -1,4 +1,4 @@
-const AvnApi = require('avn-api');
+const {AvnApi} = require('avn-api');
 const { accounts } = require('../config/accounts.json');
 const BN = require('bn.js');
 const { hexAddPrefix, hexToU8a, u8aToHex, u8aConcat } = require('@polkadot/util');
@@ -170,6 +170,7 @@ async function avnApi(gateway) {
   console.log('Connecting to Gateway at: ', gateway);
   const api = new AvnApi(gateway);
   await api.init();
+  api = await api.apis();
   return api;
 }
 

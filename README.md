@@ -20,14 +20,14 @@ Examples:
 Offline mode exposes the AWT token generation and signature proof generation required to configure JSON-RPC calls, along with account generation tools.\
 To run the API in offline mode:
 ```
-const AvnApi = require('avn-api');
+const {AvnApi} = require('avn-api');
 const api = new AvnApi();
 await api.init();
 ```
 #### Online mode
 Passing a gateway URL enables the full, connected api:
 ```
-const AvnApi = require('avn-api');
+const {AvnApi} = require('avn-api');
 const api = new AvnApi('https://sandbox.gateway.aventus.io');
 await api.init();
 ```

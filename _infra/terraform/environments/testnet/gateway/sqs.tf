@@ -10,6 +10,7 @@ module "gateway_sqs" {
       dlq_message_retention_seconds = 1209600
       receive_wait_time_seconds     = 10
       max_receive_count             = 3
+      delay_seconds                 = 1
     }
 
     gateway_payer_queue = {
@@ -19,7 +20,8 @@ module "gateway_sqs" {
       create_dlq                    = true
       dlq_message_retention_seconds = 1209600
       receive_wait_time_seconds     = 10
-      max_receive_count             = 3      
+      max_receive_count             = 3
+      delay_seconds                 = 1
     }
   }
 }

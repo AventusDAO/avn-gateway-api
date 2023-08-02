@@ -1,4 +1,4 @@
-const AvnApi = require('avn-api');
+const {AvnApi} = require('avn-api');
 const { accounts } = require('../config/accounts.json');
 const axios = require('axios');
 const { gateway, token } = require('../config/uat.json');

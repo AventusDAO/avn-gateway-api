@@ -3,7 +3,7 @@ const colors = require('colors');
 const prompt = require('prompt-sync')();
 const yargs = require('yargs');
 const { accounts } = require('./demo-accounts-testnet.json');
-const AvnApi = require('avn-api');
+const {AvnApi} = require('avn-api');
 const { Keyring } = require('@polkadot/keyring');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
 
@@ -139,7 +139,7 @@ async function avnApi(gateway) {
   const api = new AvnApi(gateway);
   await api.init();
   console.log(`Connected to Avn @ ${gateway}`.green);
-  return api;
+  return await api.apis();
 }
 
 async function initAccount(suri) {

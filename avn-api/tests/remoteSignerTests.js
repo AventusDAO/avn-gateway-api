@@ -1,4 +1,3 @@
-const AvnApi = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const { u8aToHex } = require('@polkadot/util');
@@ -50,7 +49,7 @@ describe('Remote signer:', async () => {
     user = accounts.user.address;
     userPublicKey = accounts.user.publicKey;
 
-    newUserAccount = api.utils.generateNewAccount();
+    newUserAccount = api.accountUtils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserPublicKey = newUserAccount.publicKey;
     accounts["newUser"] = newUserAccount;

@@ -1,5 +1,5 @@
 const assert = require('chai').assert;
-const AvnApi = require('avn-api');
+const {AvnApi} = require('avn-api');
 const { accounts } = require('../avn-api/config/accounts.json');
 const yargs = require('yargs');
 const BN = require('bn.js');
@@ -26,8 +26,8 @@ describe('AVN Gateway Smoke Tests', function () {
 
   before(async () => {
     const { gateway } = require(`../avn-api/config/${gatewayFile}.json`);
-    api = new AvnApi(gateway);
-    await api.init();
+    const avnGateway = new AvnApi(gateway);
+    api = await (await avnGateway.init()).apis();
 
     relayer = accounts.relayer.address;
     sender = accounts.user.address;

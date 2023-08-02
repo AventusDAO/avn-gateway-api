@@ -1,4 +1,4 @@
-const AvnApi = require('avn-api');
+const {SetupMode, SigningMode} = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
@@ -34,19 +34,19 @@ describe('Access rights:', async () => {
     options = {
       signer: signer,
       relayer: relayer,
-      setupMode : AvnApi.SetupMode.MultiUser,
-      signingMode: AvnApi.SigningMode.RemoteSigner
+      setupMode : SetupMode.MultiUser,
+      signingMode: SigningMode.RemoteSigner
     };
 
     avnGateway = await helper.avnApi(options);
     api = await avnGateway.apis(user)
 
-    newUserAccount = avnGateway.utils.generateNewAccount();
+    newUserAccount = avnGateway.accountUtils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserSURI = newUserAccount.seed;
     accounts["newUser"] = newUserAccount;
 
-    existingUserTestAccount = avnGateway.utils.generateNewAccount();
+    existingUserTestAccount = avnGateway.accountUtils.generateNewAccount();
     existingUser = existingUserTestAccount.address;
     existingUserSURI = existingUserTestAccount.seed;
     accounts["existingUser"] = existingUserTestAccount;

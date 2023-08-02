@@ -1,4 +1,4 @@
-const AvnApi = require('avn-api');
+const {AvnApi} = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
@@ -68,27 +68,27 @@ describe('Utilities', async () => {
     });
 
     it('can generate a new account', async () => {
-      const account = nonInitialisedApi.utils.generateNewAccount();
+      const account = nonInitialisedApi.accountUtils.generateNewAccount();
       assert(account.address)
     });
 
     it('can convert an address to a public key', async () => {
-      const publicKey = nonInitialisedApi.utils.addressToPublicKey(accounts.otherUser.address);
+      const publicKey = nonInitialisedApi.accountUtils.addressToPublicKey(accounts.otherUser.address);
       assert.equal(publicKey, accounts.otherUser.publicKey);
     });
 
     it('can still access utils after initialisation', async () => {
-      const account = api.utils.generateNewAccount();
+      const account = api.accountUtils.generateNewAccount();
       assert(account.address)
     });
 
     describe('publicKeyToAddress', async () => {
       it('can convert a publickey to an address', async () => {
-        let address = nonInitialisedApi.utils.publicKeyToAddress(accounts.otherUser.publicKey);
+        let address = nonInitialisedApi.accountUtils.publicKeyToAddress(accounts.otherUser.publicKey);
         assert.equal(address, accounts.otherUser.address);
 
         // it also works if we pass in an address
-        address = nonInitialisedApi.utils.publicKeyToAddress(accounts.otherUser.address);
+        address = nonInitialisedApi.accountUtils.publicKeyToAddress(accounts.otherUser.address);
         assert.equal(address, accounts.otherUser.address);
       });
     });

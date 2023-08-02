@@ -6,15 +6,13 @@ const TOKEN_LENGTH = 352;
 const TOKEN_LIFETIME = 600000;
 
 describe('AWT authorisation', async () => {
-  let api;
-  let user, relayer;
+  let api, relayer;
 
   before(async () => {
     api = await helper.avnApi({
       suri: accounts.user.seed
     });
 
-    user = accounts.user;
     relayer = accounts.relayer.address;
   });
 

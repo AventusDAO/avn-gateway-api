@@ -26,7 +26,7 @@ describe('Query api calls:', async () => {
     user = accounts.user;
     recipient = accounts.otherUser;
     token = helper.token;
-    newUser = avnApi.utils.generateNewAccount();
+    newUser = avnApi.accountUtils.generateNewAccount();
     api = await avnApi.apis()
   });
 

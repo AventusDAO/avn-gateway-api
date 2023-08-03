@@ -113,18 +113,18 @@ resource "aws_route" "internet_gateway" {
 }
 
 #
-# vpc peering accepter from dev-parachain eu-west-1
+# vpc peering accepter from parachain eu-west-1
 #
 resource "aws_vpc_peering_connection_accepter" "addons" {
   vpc_peering_connection_id = data.terraform_remote_state.addons.outputs.vpc_peering_connection_id_gateway
   auto_accept               = true
 
   tags = {
-    Name = "VPC Peering between dev-parachain eu-west-1 and Dev gateway eu-west-1"
+    Name = "VPC Peering between ${var.env} parachain and ${var.env} gateway eu-west-1"
   }
 }
 
-resource "aws_route" "gateway_to_dev_eu_west_1" {
+resource "aws_route" "gateway_eu_west_1" {
   count = length(data.aws_route_tables.gateway.ids)
 
   route_table_id            = tolist(data.aws_route_tables.gateway.ids)[count.index]

@@ -25,3 +25,8 @@ variable "api_gateway_id" {
 variable "api_gateway_stage" {
   type = string
 }
+
+variable "parachain_vpc_id" {
+  description = "Parachain VPC ID"
+  type        = string
+}

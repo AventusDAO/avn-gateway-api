@@ -73,11 +73,26 @@ resource "aws_security_group" "this" {
     cidr_blocks = [data.aws_vpc.current.cidr_block]
   }
 
+  ingress {
+    description = "Allow all traffic from parachain VPC"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.parachain_vpc_cidr_block]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = [data.aws_vpc.current.cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.parachain_vpc_cidr_block]
   }
 
   tags = local.all_resources_tags

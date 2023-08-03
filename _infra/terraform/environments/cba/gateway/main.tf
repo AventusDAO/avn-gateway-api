@@ -16,8 +16,10 @@ module "api_gateway" {
 }
 
 module "dns" {
-  source            = "../../../modules/dns"
+  source = "../../../modules/dns"
+
   vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
+  parachain_vpc_id  = data.terraform_remote_state.parachain_dev.outputs.vpc_id
   environment       = local.environment
   api_gateway_url   = module.api_gateway.url
   api_gateway_id    = module.api_gateway.api_id
@@ -30,10 +32,12 @@ module "dns" {
 }
 
 module "rabbitmq" {
-  source          = "../../../modules/rabbitmq"
-  vpc_id          = data.terraform_remote_state.vpc.outputs.vpc_id
-  subnet_ids      = setunion(data.terraform_remote_state.vpc.outputs.private_subnets, data.terraform_remote_state.vpc.outputs.public_subnets)
-  deployment_mode = "CLUSTER_MULTI_AZ"
+  source = "../../../modules/rabbitmq"
+
+  vpc_id                   = data.terraform_remote_state.vpc.outputs.vpc_id
+  parachain_vpc_cidr_block = data.terraform_remote_state.parachain_dev.outputs.vpc_cidr_block
+  subnet_ids               = setunion(data.terraform_remote_state.vpc.outputs.private_subnets, data.terraform_remote_state.vpc.outputs.public_subnets)
+  deployment_mode          = "CLUSTER_MULTI_AZ"
 }
 
 data "aws_eks_cluster" "eks" {
@@ -132,6 +136,7 @@ module "documentdb" {
 module "redis" {
   source = "../../../modules/redis"
 
-  vpc_id       = data.terraform_remote_state.vpc.outputs.vpc_id
-  ip_whitelist = data.terraform_remote_state.vpc.outputs.private_subnet_ips
+  vpc_id                   = data.terraform_remote_state.vpc.outputs.vpc_id
+  parachain_vpc_cidr_block = data.terraform_remote_state.parachain_dev.outputs.vpc_cidr_block
+  ip_whitelist             = data.terraform_remote_state.vpc.outputs.private_subnet_ips
 }

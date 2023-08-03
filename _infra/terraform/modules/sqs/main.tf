@@ -9,12 +9,13 @@ module "sqs" {
   visibility_timeout_seconds    = lookup(each.value, "visibility_timeout_seconds", var.queues)
   dlq_message_retention_seconds = lookup(each.value, "dlq_message_retention_seconds", var.queues)
   receive_wait_time_seconds     = lookup(each.value, "receive_wait_time_seconds", 0)
+  delay_seconds                 = lookup(each.value, "delay_seconds", 1)
 
   create_dlq                    = lookup(each.value, "create_dlq", var.queues)
 
   redrive_policy = {
     maxReceiveCount = lookup(each.value, "max_receive_count", 5)
-  }  
+  }
 
   for_each = var.queues
 }

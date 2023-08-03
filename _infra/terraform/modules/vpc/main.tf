@@ -124,7 +124,7 @@ resource "aws_vpc_peering_connection_accepter" "addons" {
   }
 }
 
-resource "aws_route" "gateway_eu_west_1" {
+resource "aws_route" "gateway_to_parachain_eu_west_1" {
   count = length(data.aws_route_tables.gateway.ids)
 
   route_table_id            = tolist(data.aws_route_tables.gateway.ids)[count.index]

@@ -4,6 +4,11 @@ variable "name" {
   default     = "gateway-api"
 }
 
+variable "env" {
+  type        = string
+  description = "Environment name"
+}
+
 variable "instance_tenancy" {
   type        = string
   description = "Instance launch configuration, can be one of default, dedicated or host. See https://docs.aws.amazon.com/autoscaling/ec2/userguide/auto-scaling-dedicated-instances.html"
@@ -42,13 +47,13 @@ variable "public_zone_ips" {
 }
 
 variable "private_subnet_additional_tags" {
-  description = "tags for private subnet" 
+  description = "tags for private subnet"
   type        = map
   default     = {}
 }
 
 variable "public_subnet_additional_tags" {
-  description = "tags for public subnet" 
+  description = "tags for public subnet"
   type        = map
   default     = {}
 }

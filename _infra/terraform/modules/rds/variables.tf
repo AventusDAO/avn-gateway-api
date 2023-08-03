@@ -43,3 +43,8 @@ variable "performance_insights_retention_period" {
   type        = number
   default     = 7
 }
+
+variable "parachain_vpc_cidr_block" {
+  description = "Parachain VPC cidr block"
+  type        = string
+}

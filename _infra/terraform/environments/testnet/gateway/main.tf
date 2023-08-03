@@ -141,9 +141,8 @@ module "api_gateway" {
 module "dns" {
   source = "../../../modules/dns"
 
-  vpc_id           = data.terraform_remote_state.vpc.outputs.vpc_id
-  parachain_vpc_id = data.terraform_remote_state.parachain_testnet.outputs.vpc_id
-
+  vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
+  parachain_vpc_id  = data.terraform_remote_state.parachain_testnet.outputs.vpc_id
   environment       = local.environment
   api_gateway_url   = module.api_gateway.url
   api_gateway_id    = module.api_gateway.api_id

@@ -52,26 +52,6 @@ function bnEquals(a, b) {
   return assert.equal(new BN(a).toString(), new BN(b).toString());
 }
 
-// async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMinutes) {
-//   console.log(`   - max polling wait: [${optionalTimeoutInMinutes ?? MAX_WAIT_TIME_IN_MINUTES}] minutes`);
-//   if (!requestId) throw new Error('RequestId cannot be null');
-//   let response, status;
-
-//   for (i = 0; i < ((optionalTimeoutInMinutes ?? MAX_WAIT_TIME_IN_MINUTES) * 60) / WAIT_INTERVAL_IN_SECS; i++) {
-//     await sleep(WAIT_INTERVAL_IN_SECS * 1000);
-//     response = await api.poll.requestState(requestId);
-//     status = response.status;
-//     // TODO: Remove " && status !== undefined" once dev env is reset
-//     if (status !== 'Pending' && status !== 'AwaitingToSend' && status !== 'Transaction not found' && status !== undefined) {
-//       assert.equal(status, expectedStatus);
-//       console.log('   - Finished in ', i * WAIT_INTERVAL_IN_SECS, ' sec');
-//       return response;
-//     }
-//   }
-
-//   assert.equal(status, expectedStatus);
-// }
-
 async function confirmStatus(pollApi, requestId, expectedStatus, optionalTimeoutInMinutes) {
   console.log(`   - max polling wait: [${optionalTimeoutInMinutes ?? MAX_WAIT_TIME_IN_MINUTES}] minutes`);
   if (!requestId) throw new Error('RequestId cannot be null');
@@ -96,8 +76,9 @@ function randomEthTxHash() {
   return randomAsHex();
 }
 
-async function remoteSigner(data, signerAddress) {
-  const signerSuri = Object.keys(accounts).flatMap(a => accounts[a].address === signerAddress ? [accounts[a].seed] : [])[0];
+async function remoteSigner(data, signerAddress, totalAccounts) {
+  totalAccounts = totalAccounts || accounts;
+  const signerSuri = Object.keys(totalAccounts).flatMap(a => totalAccounts[a].address === signerAddress ? [totalAccounts[a].seed] : [])[0];
   const signer = keyring.addFromUri(signerSuri);
   return signer.sign(data);
 }
@@ -112,7 +93,6 @@ module.exports = {
   TEN_THOUSAND_WEI,
   TWO_HUNDRED_ETH,
   confirmStatus,
-//confirmStatus_new,
   avnApi,
   BN,
   bnEquals,

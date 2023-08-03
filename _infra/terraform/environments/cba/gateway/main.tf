@@ -136,7 +136,7 @@ module "documentdb" {
 module "redis" {
   source = "../../../modules/redis"
 
-  parachain_vpc_cidr_block = data.terraform_remote_state.parachain_dev.outputs.vpc_cidr_block
   vpc_id                   = data.terraform_remote_state.vpc.outputs.vpc_id
+  parachain_vpc_cidr_block = data.terraform_remote_state.parachain_dev.outputs.vpc_cidr_block
   ip_whitelist             = data.terraform_remote_state.vpc.outputs.private_subnet_ips
 }

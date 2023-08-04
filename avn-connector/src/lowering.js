@@ -10,14 +10,17 @@ const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
-let now = Date.now();
+let now;
+let lowerAccount;
 function timing(x) {
   const was = now;
   now = Date.now();
-  console.log('LOWER TIMING', x, now - was);
+  console.log('LOWER TIMING', account, x, now - was);
 }
 
 async function getLowers(account) {
+  now = Date.now();
+  lowerAccount = account;
   timing('A');
   console.log(`\nProcessing lowers`);
   const { avnContract } = await redis.getChainInfo();

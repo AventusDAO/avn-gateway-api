@@ -11,7 +11,6 @@ const log = log4js.getLogger();
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 let now = Date.now();
-
 function timing(x) {
   const was = now;
   now = Date.now();
@@ -53,7 +52,6 @@ async function updateSummaries(avnContract) {
   }
 
   timing('F');
-
   await redis.setSummaries(summaries);
   timing('G');
   return latestPublishedBlock;
@@ -97,6 +95,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
 async function updateUnpublishedLowers(latestPublishedBlock) {
   timing('P');
   const unpublished = await redis.getUnpublishedLowers();
+
   timing('Q');
   console.log(`\tLowers not yet published: ${unpublished.length}`);
   for (let i = 0; i < unpublished.length; i++) {
@@ -181,7 +180,8 @@ async function updateUnclaimedLowers(avnContract, account) {
       claimed++;
     }
   }
-timing('Z');
+
+  timing('Z');
   console.log(`\tRecently claimed: ${claimed} `);
   console.log(`\tPublished but unclaimed: ${unclaimed.length - claimed} `);
   await redis.setClaimedLowersFromTier1Block(fromBlock);
@@ -206,6 +206,7 @@ async function getLowerTransactions(fromBlock) {
       fromId = generateId(lowers[lowers.length - 1].blockNumber, parseInt(lowers[lowers.length - 1].index + 1));
     }
   } while (newLowers.length > 0);
+
   timing('L');
   return lowers;
 }
@@ -249,7 +250,8 @@ async function getLowersForAccount(account) {
       lowers.push(lowerData);
     }
   }
-timing('AG');
+
+  timing('AG');
   console.log(`\tTotal lowers outstanding: ${outstanding.length}`);
   console.log(`\tFound ${lowers.length} lowers relating to account ${account}`);
   return lowers;

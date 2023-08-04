@@ -155,7 +155,6 @@ async function updateAwaitingClaimDataLowers() {
   }
 
   timing('V');
-
   if (error === true) {
     throw new Error('Error processing AwaitingClaimDataLowers');
   }

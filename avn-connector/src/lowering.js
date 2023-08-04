@@ -15,7 +15,7 @@ let lowerAccount;
 function timing(x) {
   const was = now;
   now = Date.now();
-  console.log('LOWER TIMING', account, x, now - was);
+  console.log('LOWER TIMING', lowerAccount, x, now - was);
 }
 
 async function getLowers(account) {

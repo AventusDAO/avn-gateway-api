@@ -44,7 +44,8 @@ async function updateSummaries(avnContract) {
   timing('D');
   const publishedRoots = await tier1.getLatestPublishedRoots(avnContract);
   timing('E');
-  const unpublishedIndex = redisSummaries.findLastIndex(summary => summary.published === true) + 1;
+  // const unpublishedIndex = redisSummaries.findLastIndex(summary => summary.published === true) + 1;
+  let unpublishedIndex = 0
   let latestPublishedBlock = unpublishedIndex > 0 ? redisSummaries[unpublishedIndex - 1].toBlock : 0;
 
   for (let i = unpublishedIndex; i < avnSummaries.length; i++) {

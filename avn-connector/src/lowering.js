@@ -165,28 +165,29 @@ async function updateAwaitingClaimDataLowers() {
 
 async function updateUnclaimedLowers(avnContract, account) {
   timing('W');
-  const { claimedLowers, fromBlock } = await tier1.getLatestClaimedLowers(avnContract);
-  timing('X');
-  const unclaimed = await redis.getUnclaimedLowers();
-  timing('Y');
+  const claimedLowers = await tier1.getLatestClaimedLowers(avnContract);
   let claimed = 0;
+  timing('X');
 
-  for (let i = 0; i < unclaimed.length; i++) {
-    const txHash = unclaimed[i];
-    const lowerData = await redis.getLowerData(txHash);
-    const leafHash = keccakAsHex(lowerData.claimData.leaf);
+  if (claimedLowers.length > 0) {
+    const unclaimed = await redis.getUnclaimedLowers();
+    timing('Y');
 
-    if (claimedLowers.includes(leafHash)) {
-      await redis.removeUnclaimedLower(txHash);
-      await redis.deleteLowerData(txHash);
-      claimed++;
+    for (let i = 0; i < unclaimed.length; i++) {
+      const txHash = unclaimed[i];
+      const lowerData = await redis.getLowerData(txHash);
+      const leafHash = keccakAsHex(lowerData.claimData.leaf);
+
+      if (claimedLowers.includes(leafHash)) {
+        await redis.removeUnclaimedLower(txHash);
+        await redis.deleteLowerData(txHash);
+        claimed++;
+      }
     }
   }
 
   timing('Z');
   console.log(`\tRecently claimed: ${claimed} `);
-  console.log(`\tPublished but unclaimed: ${unclaimed.length - claimed} `);
-  await redis.setClaimedLowersFromTier1Block(fromBlock);
   timing('AA');
 }
 

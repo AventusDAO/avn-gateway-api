@@ -11,6 +11,7 @@ const log = log4js.getLogger();
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
+  const start = Date.now();
   console.log(`\nProcessing lowers`);
   const { avnContract } = await redis.getChainInfo();
 
@@ -21,7 +22,9 @@ async function getLowers(account) {
   await updateUnpublishedLowers(latestPublishedBlock);
   await updateAwaitingClaimDataLowers();
   await updateUnclaimedLowers(avnContract, account);
-  return await getLowersForAccount(account);
+  const result = await getLowersForAccount(account);
+  console.log('LOWER TIMING', Date.now() - start);
+  return result;
 }
 
 async function updateSummaries(avnContract) {

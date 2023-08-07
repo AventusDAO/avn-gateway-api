@@ -59,15 +59,12 @@ async function getLatestClaimedLowers(avnContract) {
   try {
     let fromBlock = await redis.getClaimedLowersFromTier1Block();
     const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock });
-    if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
-
     for await (const txHash of events.map(event => event.transactionHash)) {
       const txData = await provider.getTransaction(txHash);
       const inputs = ethers.utils.defaultAbiCoder.decode(['bytes','bytes32[]'], ethers.utils.hexDataSlice(txData.data, 4));
       claimedLowers.push(ethers.utils.keccak256(inputs[0]));
     }
-
-    await redis.setClaimedLowersFromTier1Block(fromBlock);
+    if (events.length > 0) await redis.setClaimedLowersFromTier1Block(events[events.length - 1].blockNumber + 1);
   } catch (error) {
     log.error('Error getting claimed lowers:', error);
   }
@@ -81,8 +78,7 @@ async function getLatestPublishedRoots(avnContract) {
   try {
     let fromBlock = await redis.getPublishedRootsFromTier1Block();
     events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock });
-    if (events.length > 0) fromBlock = events[events.length - 1].blockNumber + 1;
-    await redis.setPublishedRootsFromTier1Block(fromBlock);
+    if (events.length > 0) await redis.setPublishedRootsFromTier1Block(events[events.length - 1].blockNumber + 1);
   } catch (error) {
     log.error('Error getting published roots:', error);
   }

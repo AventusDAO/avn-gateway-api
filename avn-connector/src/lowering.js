@@ -10,24 +10,11 @@ const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
-let now;
-let lowerAccount;
-function timing(x) {
-  const was = now;
-  now = Date.now();
-  console.log('LOWER TIMING', lowerAccount, x, now - was);
-}
-
 async function getLowers(account) {
-  now = Date.now();
-  lowerAccount = account;
-  timing('A');
   console.log(`\nProcessing lowers`);
   const { avnContract } = await redis.getChainInfo();
-  timing('B');
 
   const latestPublishedBlock = await updateSummaries(avnContract);
-  timing('H');
   console.log(`\tLatest block published: ${latestPublishedBlock}`);
 
   await retrieveLatestLowerTransactions(latestPublishedBlock);
@@ -38,12 +25,9 @@ async function getLowers(account) {
 }
 
 async function updateSummaries(avnContract) {
-  timing('C');
   const avnSummaries = await avn.getSummaries();
   const redisSummaries = await redis.getSummaries();
-  timing('D');
   const publishedRoots = await tier1.getLatestPublishedRoots(avnContract);
-  timing('E');
   let unpublishedIndex = redisSummaries.findIndex(summary => summary.published === false);
   let latestPublishedBlock = 0;
   if (unpublishedIndex < 0) unpublishedIndex = 0;
@@ -59,18 +43,13 @@ async function updateSummaries(avnContract) {
     redisSummaries.push(avnSummaries[i]);
   }
 
-  timing('F');
   await redis.setSummaries(avnSummaries);
-  timing('G');
   return latestPublishedBlock;
 }
 
 async function retrieveLatestLowerTransactions(latestPublishedBlock) {
-  timing('I');
   let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
-  timing('J');
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
-  timing('M');
 
   console.log(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
   for (let i = 0; i < lowerTransactions.length; i++) {
@@ -94,17 +73,13 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
     const blockIndex = { blockNumber, index: lowerTx.index };
     await redis.setBlockIndex(txHash, blockIndex);
   }
-  timing('N');
 
   await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
-  timing('O');
 }
 
 async function updateUnpublishedLowers(latestPublishedBlock) {
-  timing('P');
   const unpublished = await redis.getUnpublishedLowers();
 
-  timing('Q');
   console.log(`\tLowers not yet published: ${unpublished.length}`);
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
@@ -115,15 +90,11 @@ async function updateUnpublishedLowers(latestPublishedBlock) {
       await redis.addAwaitingClaimDataLower(txHash);
     }
   }
-  timing('R');
 }
 
 async function updateAwaitingClaimDataLowers() {
-  timing('S');
   const awaiting = await redis.getAwaitingClaimDataLowers();
-  timing('T');
   const summaries = await redis.getSummaries();
-  timing('U');
   let error = false;
 
   console.log(`\tChecking for claim data: ${awaiting.length}`);
@@ -162,21 +133,17 @@ async function updateAwaitingClaimDataLowers() {
     }
   }
 
-  timing('V');
   if (error === true) {
     throw new Error('Error processing AwaitingClaimDataLowers');
   }
 }
 
 async function updateUnclaimedLowers(avnContract, account) {
-  timing('W');
   const claimedLowers = await tier1.getLatestClaimedLowers(avnContract);
   let claimed = 0;
-  timing('X');
 
   if (claimedLowers.length > 0) {
     const unclaimed = await redis.getUnclaimedLowers();
-    timing('Y');
 
     for (let i = 0; i < unclaimed.length; i++) {
       const txHash = unclaimed[i];
@@ -191,13 +158,10 @@ async function updateUnclaimedLowers(avnContract, account) {
     }
   }
 
-  timing('Z');
   console.log(`\tRecently claimed: ${claimed} `);
-  timing('AA');
 }
 
 async function getLowerTransactions(fromBlock) {
-  timing('K');
   const generateId = (block, index) =>
     [block.toString().padStart(10, '0'), index.toString().padStart(6, '0'), '00000'].join('-');
   const txLimit = 50;
@@ -215,7 +179,6 @@ async function getLowerTransactions(fromBlock) {
     }
   } while (newLowers.length > 0);
 
-  timing('L');
   return lowers;
 }
 
@@ -241,15 +204,10 @@ async function getLowersFromIndexer(fromId, txLimit) {
 }
 
 async function getLowersForAccount(account) {
-  timing('AB');
   const unpublished = await redis.getUnpublishedLowers();
-  timing('AC');
   const awaiting = await redis.getAwaitingClaimDataLowers();
-  timing('AD');
   const unclaimed = await redis.getUnclaimedLowers();
-  timing('AE');
   const outstanding = unpublished.concat(awaiting).concat(unclaimed);
-  timing('AF');
   let lowers = [];
 
   for (let i = 0; i < outstanding.length; i++) {
@@ -259,7 +217,6 @@ async function getLowersForAccount(account) {
     }
   }
 
-  timing('AG');
   console.log(`\tTotal lowers outstanding: ${outstanding.length}`);
   console.log(`\tFound ${lowers.length} lowers relating to account ${account}`);
   return lowers;

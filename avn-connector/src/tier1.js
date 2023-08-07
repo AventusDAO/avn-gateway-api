@@ -57,7 +57,7 @@ async function getLatestClaimedLowers(avnContract) {
   const claimedLowers = [];
 
   try {
-    let fromBlock = await redis.getClaimedLowersFromTier1Block();
+    const fromBlock = await redis.getClaimedLowersFromTier1Block();
     const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock });
     for await (const txHash of events.map(event => event.transactionHash)) {
       const txData = await provider.getTransaction(txHash);
@@ -76,7 +76,7 @@ async function getLatestPublishedRoots(avnContract) {
   let events = [];
 
   try {
-    let fromBlock = await redis.getPublishedRootsFromTier1Block();
+    const fromBlock = await redis.getPublishedRootsFromTier1Block();
     events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock });
     if (events.length > 0) await redis.setPublishedRootsFromTier1Block(events[events.length - 1].blockNumber + 1);
   } catch (error) {

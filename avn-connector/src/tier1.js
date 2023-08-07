@@ -75,7 +75,7 @@ async function getLatestClaimedLowers(avnContract) {
   return claimedLowers;
 }
 
-async function getPublishedRoots(avnContract) {
+async function getLatestPublishedRoots(avnContract) {
   let events = [];
 
   try {
@@ -94,5 +94,5 @@ module.exports = {
   getLatestClaimedLowers,
   getLiftEvents,
   getLockedBalance,
-  getPublishedRoots
+  getLatestPublishedRoots
 };

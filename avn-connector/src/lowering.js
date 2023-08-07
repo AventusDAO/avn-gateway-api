@@ -39,23 +39,26 @@ async function getLowers(account) {
 
 async function updateSummaries(avnContract) {
   timing('C');
-  const summaries = await avn.getSummaries();
+  const avnSummaries = await avn.getSummaries();
+  const redisSummaries = await redis.getSummaries();
   timing('D');
-  const publishedRoots = await tier1.getPublishedRoots(avnContract);
+  const publishedRoots = await tier1.getLatestPublishedRoots(avnContract);
   timing('E');
-  let latestPublishedBlock = 0;
+  const unpublishedIndex = redisSummaries.findLastIndex(summary => summary.published === true) + 1;
+  let latestPublishedBlock = unpublishedIndex > 0 ? redisSummaries[unpublishedIndex - 1].toBlock : 0;
 
-  for (let i = 0; i < summaries.length; i++) {
-    if (publishedRoots.includes(summaries[i].rootHash)) {
-      summaries[i].published = true;
-      latestPublishedBlock = summaries[i].toBlock;
+  for (let i = unpublishedIndex; i < avnSummaries.length; i++) {
+    if (publishedRoots.includes(avnSummaries[i].rootHash)) {
+      avnSummaries[i].published = true;
+      latestPublishedBlock = avnSummaries[i].toBlock;
     } else {
-      summaries[i].published = false;
+      avnSummaries[i].published = false;
     }
+    redisSummaries.push(avnSummaries[i]);
   }
 
   timing('F');
-  await redis.setSummaries(summaries);
+  await redis.setSummaries(avnSummaries);
   timing('G');
   return latestPublishedBlock;
 }

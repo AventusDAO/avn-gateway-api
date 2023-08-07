@@ -30,3 +30,9 @@ variable "parachain_vpc_id" {
   description = "Parachain VPC ID"
   type        = string
 }
+
+variable "create_api_gateway_custom_domain" {
+  description = "Wheter to create or not the custom domain for api-gateway"
+  type        = bool
+  default     = true
+}

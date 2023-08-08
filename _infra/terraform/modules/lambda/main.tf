@@ -158,23 +158,31 @@ resource "aws_security_group" "lambdas" {
 #
 
 resource "aws_lambda_event_source_mapping" "split_fee_handler" {
+  count = var.disable_sqs_triggers ? 0 : 1
+
   event_source_arn        = var.sqs_queue_arns.gateway_payer_queue
   function_name           = aws_lambda_function.lambda["split-fee-handler"].arn
   function_response_types = ["ReportBatchItemFailures"]
 }
 
 resource "aws_lambda_event_source_mapping" "tx_dispatch_handler" {
+  count = var.disable_sqs_triggers ? 0 : 1
+
   event_source_arn        = var.sqs_queue_arns.gateway_default_queue
   function_name           = aws_lambda_function.lambda["tx-dispatch-handler"].arn
   function_response_types = ["ReportBatchItemFailures"]
 }
 
 resource "aws_lambda_event_source_mapping" "invalid_transaction_default_handler" {
+  count = var.disable_sqs_triggers ? 0 : 1
+
   event_source_arn        = var.dlq_queue_arns.gateway_default_queue
   function_name           = aws_lambda_function.lambda["invalid-transaction-handler"].arn
 }
 
 resource "aws_lambda_event_source_mapping" "invalid_transaction_payer_handler" {
+  count = var.disable_sqs_triggers ? 0 : 1
+
   event_source_arn        = var.dlq_queue_arns.gateway_payer_queue
   function_name           = aws_lambda_function.lambda["invalid-transaction-handler"].arn
 }

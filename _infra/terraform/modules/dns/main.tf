@@ -79,6 +79,8 @@ resource "aws_acm_certificate" "api_gateway" {
 }
 
 resource "aws_apigatewayv2_domain_name" "api_gateway" {
+  count = var.create_api_gateway_custom_domain ? 1 : 0
+
   domain_name = aws_route53_zone.public.name
 
   domain_name_configuration {
@@ -94,8 +96,10 @@ resource "aws_apigatewayv2_domain_name" "api_gateway" {
 }
 
 resource "aws_apigatewayv2_api_mapping" "example" {
+  count = var.create_api_gateway_custom_domain ? 1 : 0
+
   api_id      = var.api_gateway_id
-  domain_name = aws_apigatewayv2_domain_name.api_gateway.id
+  domain_name = aws_apigatewayv2_domain_name.api_gateway[0].id
   stage       = var.api_gateway_stage
 }
 
@@ -122,13 +126,15 @@ resource "aws_acm_certificate_validation" "api_gateway" {
 }
 
 resource "aws_route53_record" "api_gateway" {
+  count = var.create_api_gateway_custom_domain ? 1 : 0
+
   zone_id = aws_route53_zone.public.zone_id
   name    = aws_route53_zone.public.name
   type    = "A"
 
   alias {
-    name                   = aws_apigatewayv2_domain_name.api_gateway.domain_name_configuration[0].target_domain_name
-    zone_id                = aws_apigatewayv2_domain_name.api_gateway.domain_name_configuration[0].hosted_zone_id
+    name                   = aws_apigatewayv2_domain_name.api_gateway[0].domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.api_gateway[0].domain_name_configuration[0].hosted_zone_id
     evaluate_target_health = false
   }
 }

@@ -66,3 +66,9 @@ variable "dlq_queue_arns" {
   type        = map(any)
   description = "list of DLQ queues"
 }
+
+variable "disable_sqs_triggers" {
+  type        = bool
+  description = "if set, sqs triggers are disabled."
+  default     = false
+}

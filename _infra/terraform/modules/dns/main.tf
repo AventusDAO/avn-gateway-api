@@ -99,7 +99,7 @@ resource "aws_apigatewayv2_api_mapping" "example" {
   count = var.create_api_gateway_custom_domain ? 1 : 0
 
   api_id      = var.api_gateway_id
-  domain_name = aws_apigatewayv2_domain_name[0].api_gateway.id
+  domain_name = aws_apigatewayv2_domain_name.api_gateway[0].id
   stage       = var.api_gateway_stage
 }
 

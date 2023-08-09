@@ -21,6 +21,7 @@ module "lambda_functions" {
   vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
   sqs_queue_arns         = module.gateway_sqs.queue_arn
   dlq_queue_arns         = module.gateway_sqs.dead_letter_queue_arn
+  disable_sqs_triggers   = true
 
   lambda_functions = {
 
@@ -141,12 +142,13 @@ module "api_gateway" {
 module "dns" {
   source = "../../../modules/dns"
 
-  vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
-  parachain_vpc_id  = data.terraform_remote_state.parachain_testnet.outputs.vpc_id
-  environment       = local.environment
-  api_gateway_url   = module.api_gateway.url
-  api_gateway_id    = module.api_gateway.api_id
-  api_gateway_stage = module.api_gateway.stage_id
+  vpc_id                           = data.terraform_remote_state.vpc.outputs.vpc_id
+  parachain_vpc_id                 = data.terraform_remote_state.parachain_testnet.outputs.vpc_id
+  environment                      = local.environment
+  api_gateway_url                  = module.api_gateway.url
+  api_gateway_id                   = module.api_gateway.api_id
+  api_gateway_stage                = module.api_gateway.stage_id
+  create_api_gateway_custom_domain = false
 
   providers = {
     aws         = aws

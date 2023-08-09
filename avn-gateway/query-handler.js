@@ -335,7 +335,7 @@ async function getStakerRewardsEarned(call, request) {
         const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStakerRewardsEarned' });
         events = response.data.data.events;
         if (events.length > 0) {
-          sumRewards = sumRewards.add(events.reduce((sum, event) => sum.add(new utils.BN(event.args.rewards)), sumRewards));
+          events.forEach(event => sumRewards = sumRewards.add(new utils.BN(event.args.rewards)));
           fromTimestamp = events[events.length - 1].block.timestamp;
         }
       } while (events.length === eventsLimit);

@@ -342,7 +342,7 @@ async function getStakerRewardsEarned(call, request) {
 
       return utils.buildValidResponseBody(call.id, sumRewards.toString());
     } catch (err) {
-      return utils.buildErrorBody('internal', err, err.toString(), request, call.id);
+      return utils.buildErrorBody('internal', err.toString(), err.toString(), request, call.id);
     }
   }
 }

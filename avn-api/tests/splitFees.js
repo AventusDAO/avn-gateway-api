@@ -14,11 +14,14 @@ const payer = accounts.payer.address;
 const payerPubKey = accounts.payer.publicKey;
 
 describe('Split fees calls:', async () => {
-  let api;
+  let avnApi, api;
   let relayerFee;
 
   before(async () => {
-    api = await helper.avnApi();
+    avnApi = await helper.avnApi({
+      suri: accounts.user.seed
+    });
+    api = await avnApi.apis();
     relayerFee = new BN((await api.query.getRelayerFees(relayer, payer)).proxyAvtTransfer);
   });
 
@@ -53,9 +56,9 @@ describe('Split fees calls:', async () => {
     it('With valid payer address', async () => {
       let validOptions = { ...options, hasPayer: true, payerAddress: payer };
       const apiWithOptions = await helper.avnApi(validOptions);
-
-      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
-      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const newApi = await apiWithOptions.apis();
+      const requestId = await newApi.send.transferAvt(recipient, amount);
+      await helper.confirmStatus(newApi.poll, requestId, 'Processed');
 
       await verifySplitFeesBalancesAndNonce();
     });
@@ -63,9 +66,10 @@ describe('Split fees calls:', async () => {
     it('With valid payer public key', async () => {
       let validOptions = { ...options, hasPayer: true, payerAddress: payerPubKey };
       const apiWithOptions = await helper.avnApi(validOptions);
+      const newApi = await apiWithOptions.apis();
 
-      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
-      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const requestId = await newApi.send.transferAvt(recipient, amount);
+      await helper.confirmStatus(newApi.poll, requestId, 'Processed');
 
       await verifySplitFeesBalancesAndNonce();
     });
@@ -73,9 +77,10 @@ describe('Split fees calls:', async () => {
     it('With default payer account, hasPayer flag true', async () => {
       let validOptions = { ...options, hasPayer: true };
       const apiWithOptions = await helper.avnApi(validOptions);
+      const newApi = await apiWithOptions.apis();
 
-      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
-      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const requestId = await newApi.send.transferAvt(recipient, amount);
+      await helper.confirmStatus(newApi.poll, requestId, 'Processed');
 
       await verifySplitFeesBalancesAndNonce();
     });
@@ -83,9 +88,10 @@ describe('Split fees calls:', async () => {
     it('With hasPayer flag set to false, valid payer address should override', async () => {
       let invalidOptions = { ...options, hasPayer: false, payerAddress: payer };
       const apiWithOptions = await helper.avnApi(invalidOptions);
+      const newApi = await apiWithOptions.apis();
 
-      const requestId = await apiWithOptions.send.transferAvt(recipient, amount);
-      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const requestId = await newApi.send.transferAvt(recipient, amount);
+      await helper.confirmStatus(newApi.poll, requestId, 'Processed');
 
       await verifySplitFeesBalancesAndNonce();
     });
@@ -97,9 +103,10 @@ describe('Split fees calls:', async () => {
 
       let invalidOptions = { ...options, hasPayer: true, payerAddress: payer };
       const apiWithOptions = await helper.avnApi(invalidOptions);
+      const newApi = await apiWithOptions.apis();
 
-      const requestId = await apiWithOptions.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-      await helper.confirmStatus(apiWithOptions, requestId, 'PayerRefused');
+      const requestId = await newApi.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
+      await helper.confirmStatus(newApi.poll, requestId, 'PayerRefused');
     });
 
     it('With invalid payer, an error is thrown', async () => {
@@ -107,7 +114,9 @@ describe('Split fees calls:', async () => {
       let invalidOptions = { ...options, hasPayer: true, payerAddress: invalidPayer };
 
       const apiWithOptions = await helper.avnApi(invalidOptions);
-      await expect(apiWithOptions.send.transferAvt(recipient, amount)).to.be.rejectedWith(
+      const newApi = await apiWithOptions.apis();
+
+      await expect(newApi.send.transferAvt(recipient, amount)).to.be.rejectedWith(
         /Request failed with status code 403/
       );
     });

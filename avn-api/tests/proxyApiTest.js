@@ -7,13 +7,16 @@ const BAD_TOKEN = '0x0000000000000000000000000000000000000000';
 const ONE_AVT = new BN('1000000000000000000');
 
 describe('Proxy api calls:', async () => {
-  let api, token;
+  let avnApi, api, token;
   let relayer, user, recipient;
   let relayerFee;
 
   before(async () => {
     token = helper.token;
-    api = await helper.avnApi();
+    avnApi = await helper.avnApi({
+      suri: accounts.user.seed
+    });
+    api = await avnApi.apis();
     relayer = accounts.relayer.address;
     user = accounts.user.address;
     recipient = accounts.otherUser.address;
@@ -37,7 +40,7 @@ describe('Proxy api calls:', async () => {
       const amount = new BN(2);
       const requestId = await api.send.transferToken(recipientPubKey, token, amount);
 
-      await helper.confirmStatus(api, requestId, 'Processed');
+      await helper.confirmStatus(api.poll, requestId, 'Processed');
 
       bnEquals(userTokenBalanceBefore.sub(amount), new BN(await api.query.getTokenBalance(user, token)));
       bnEquals(recipientTokenBalanceBefore.add(amount), new BN(await api.query.getTokenBalance(recipient, token)));
@@ -59,7 +62,7 @@ describe('Proxy api calls:', async () => {
         requestId = await api.send.transferToken(recipient, token, amount);
       }
 
-      await helper.confirmStatus(api, requestId, 'Processed');
+      await helper.confirmStatus(api.poll, requestId, 'Processed');
 
       bnEquals(userTokenBalanceBefore.sub(amount.mul(numTxBn)), new BN(await api.query.getTokenBalance(user, token)));
       bnEquals(recipientTokenBalanceBefore.add(amount.mul(numTxBn)), new BN(await api.query.getTokenBalance(recipient, token)));

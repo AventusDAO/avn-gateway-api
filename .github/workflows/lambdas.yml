@@ -142,7 +142,7 @@ jobs:
 
   cleanup-artifacts:
     runs-on: ubuntu-latest
-    needs:  [ upload-avn, upload-ew ]
+    needs:  [ upload-avn, upload-internal-tools, upload-ew ]
     if: always()
     steps:
       - uses: geekyeggo/delete-artifact@v2

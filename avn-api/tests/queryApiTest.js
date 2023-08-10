@@ -19,12 +19,15 @@ describe('Query api calls:', async () => {
   let relayerPublicKey, userPublicKey;
 
   before(async () => {
-    api = await helper.avnApi();
+    const avnApi = await helper.avnApi({
+      suri: accounts.user.seed
+    });
     relayer = accounts.relayer;
     user = accounts.user;
     recipient = accounts.otherUser;
     token = helper.token;
-    newUser = api.utils.generateNewAccount();
+    newUser = avnApi.accountUtils.generateNewAccount();
+    api = await avnApi.apis()
   });
 
   describe('get contract addresses', async () => {
@@ -124,7 +127,7 @@ describe('Query api calls:', async () => {
     async function mint() {
       const externalRef = 'avn-gateway-test-' + new Date().toISOString();
       const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-      await helper.confirmStatus(api, requestId, 'Processed');
+      await helper.confirmStatus(api.poll, requestId, 'Processed');
       return await api.query.getNftId(externalRef);
     }
 
@@ -226,7 +229,7 @@ describe('Query api calls:', async () => {
       before(async () => {
         externalRef = 'avn-gateway-test-' + new Date().toISOString();
         const requestId = await api.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-        const receipt = await helper.confirmStatus(api, requestId, 'Processed');
+        const receipt = await helper.confirmStatus(api.poll, requestId, 'Processed');
         nftId = receipt.eventArgs.nftId;
         assert(nftId != '');
       });

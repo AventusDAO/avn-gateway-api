@@ -243,6 +243,7 @@ module "k8s_service_account_permissions" {
 
   oidc_provider     = module.eks.oidc_provider_arn
   rabbit_secret_arn = module.rabbitmq.secret_arn
+  status_lambda_arn = "arn:aws:lambda:eu-west-1:189013141504:function:testnet_gateway_tx_status_update_handler"
 
   depends_on = [
     module.eks,

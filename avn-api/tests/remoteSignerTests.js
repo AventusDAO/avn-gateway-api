@@ -1,4 +1,4 @@
-const AvnApi = require('avn-api');
+const {AvnApi, SetupMode, SigningMode, NonceCacheType} = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const { u8aToHex } = require('@polkadot/util');
@@ -36,7 +36,7 @@ async function signDataAsync_byteSignature(data, signerAddress) {
 }
 
 describe('Remote signer:', async () => {
-  let api;
+  let avnApi, api, newApi;
   let relayer, user, userPublicKey, newUser, newUserPublicKey;
 
   const signer = {
@@ -45,63 +45,39 @@ describe('Remote signer:', async () => {
   };
 
   before(async () => {
-    api = await helper.avnApi({ signer });
+    avnApi = await helper.avnApi({
+      setupMode : SetupMode.MultiUser,
+      signingMode: SigningMode.RemoteSigner,
+      signer
+    });
+    api = await avnApi.apis(accounts.user.address);
     relayer = accounts.relayer.address;
     user = accounts.user.address;
     userPublicKey = accounts.user.publicKey;
 
-    newUserAccount = api.utils.generateNewAccount();
+    newUserAccount = avnApi.accountUtils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserPublicKey = newUserAccount.publicKey;
     accounts["newUser"] = newUserAccount;
   });
 
-  describe('setSigner', async () => {
-    afterEach(async () => {
-      await api.setSigner(signer);
+  describe('Change signer', async () => {
+    before(async () => {
+      api = await avnApi.apis(user);
     });
 
-    it('can set signer via the api', async () => {
-      assert.equal(api.myAddress(), user);
-      assert.equal(api.signer().address, user);
-
-      await api.setSigner({
-        sign: (data, signerAddress) => signData(data, signerAddress),
-        address: newUser
-      });
-      assert.equal(api.myAddress(), newUser);
-      assert.equal(api.signer().address, newUser);
+    it('can set signer via the api and update the signer address', async () => {
+      assert.equal(api.query.awtManager.signerAddress, user);
+      api = await avnApi.apis(newUser);
+      assert.equal(api.query.awtManager.signerAddress, newUser);
     });
-
-    it('can update my public key', async () => {
-      assert.equal(userPublicKey, api.myPublicKey());
-
-      await api.setSigner({
-        sign: (data, signerAddress) => signData(data, signerAddress),
-        address: newUser
-      });
-
-      assert.equal(newUserPublicKey, api.myPublicKey());
-    });
-
-    it('can update my address', async () => {
-      assert.equal(user, api.myAddress());
-      assert.equal(user, api.signer().address);
-
-      await api.setSigner({
-        sign: (data, signerAddress) => signData(data, signerAddress),
-        address: newUser
-      });
-
-      assert.equal(newUser, api.myAddress());
-      assert.equal(newUser, api.signer().address);
-    });
-
   });
 
   describe('awtGeneration', async () => {
     it('generates a valid token for self pay users', async () => {
       let options = {
+        setupMode : SetupMode.MultiUser,
+        signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         hasPayer: false,
         payer: undefined,
@@ -109,11 +85,14 @@ describe('Remote signer:', async () => {
       };
 
       let apiWithOptions = await helper.avnApi(options);
-      assert((await apiWithOptions.query.getAvtContractAddress()).length == 42);
+      newApi = await apiWithOptions.apis(user);
+      assert((await newApi.query.getAvtContractAddress()).length == 42);
     });
 
     it('generates a valid token for split fee users', async () => {
       let options = {
+        setupMode : SetupMode.MultiUser,
+        signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         hasPayer: true,
         payer: undefined,
@@ -121,20 +100,24 @@ describe('Remote signer:', async () => {
       };
 
       let apiWithOptions = await helper.avnApi(options);
-      assert((await apiWithOptions.query.getAvtContractAddress()).length == 42);
+      newApi = await apiWithOptions.apis(user);
+      assert((await newApi.query.getAvtContractAddress()).length == 42);
     });
   });
 
   describe('transactionSending', async () => {
     it('can send transaction using a remote signer', async () => {
       let options = {
+        setupMode : SetupMode.MultiUser,
+        signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         signer
       };
 
       let apiWithOptions = await helper.avnApi(options);
-      const requestId = await apiWithOptions.send.transferAvt(accounts.otherUser.address, 1);
-      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      newApi = await apiWithOptions.apis(user);
+      const requestId = await newApi.send.transferAvt(accounts.otherUser.address, 1);
+      await helper.confirmStatus(newApi.poll, requestId, 'Processed');
     });
 
     it('can send transaction using a remote signer returning bytes signature', async () => {
@@ -144,13 +127,16 @@ describe('Remote signer:', async () => {
       };
 
       let options = {
+        setupMode : SetupMode.MultiUser,
+        signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         signer
       };
 
       let apiWithOptions = await helper.avnApi(options);
-      const requestId = await apiWithOptions.send.transferAvt(accounts.otherUser.address, 1);
-      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      newApi = await apiWithOptions.apis(user);
+      const requestId = await newApi.send.transferAvt(accounts.otherUser.address, 1);
+      await helper.confirmStatus(newApi.poll, requestId, 'Processed');
     });
 
     it('can send transaction after setting a new remote signer', async () => {
@@ -160,19 +146,17 @@ describe('Remote signer:', async () => {
       };
 
       let options = {
+        setupMode : SetupMode.MultiUser,
+        signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         signer
       };
 
       let apiWithOptions = await helper.avnApi(options);
+      newApi = await apiWithOptions.apis(user);
 
-      await apiWithOptions.setSigner({
-        sign: (data, signerAddress) => signData(data, signerAddress),
-        address: accounts.user.address
-      });
-
-      const requestId = await apiWithOptions.send.transferAvt(accounts.otherUser.address, 1);
-      await helper.confirmStatus(apiWithOptions, requestId, 'Processed');
+      const requestId = await newApi.send.transferAvt(accounts.otherUser.address, 1);
+      await helper.confirmStatus(newApi.poll, requestId, 'Processed');
     });
   });
 });

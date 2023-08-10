@@ -11,7 +11,12 @@ variable "rabbit_secret_arn" {
 variable "namespaces" {
   description = "Supply a list of objects of namespaces to service account names, namespace: service_account"
   type        = list(string)
-  default     = [
+  default = [
     "dev"
   ]
+}
+
+variable "status_lambda_arn" {
+  description = "Name of the Status lambdas. Used to allow trigger permission to connector"
+  type        = string
 }

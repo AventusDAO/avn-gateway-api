@@ -35,7 +35,7 @@ resource "aws_iam_policy" "avn_connector_rabbit_secret_access" {
       "Action": [
         "lambda:InvokeFunction"
       ],
-      "Resource": "${data.aws_lambda_function.tx_handler.arn}",
+      "Resource": "*",
       "Effect": "Allow"
     }
   ]

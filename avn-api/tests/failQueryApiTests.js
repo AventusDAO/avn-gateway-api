@@ -14,7 +14,10 @@ const nfts = helper.NFTS;
     return;
   }
 
-  const api = await helper.avnApi();
+  const avnApi = await helper.avnApi({
+    suri: accounts.user.seed
+  });
+  const api = await avnApi.apis();
   const validRelayer = accounts.relayer;
   const validUser = accounts.user;
   const otherUser = accounts.otherUser;

@@ -16,7 +16,10 @@ const BN = helper.BN;
     return;
   }
 
-  const api = await helper.avnApi();
+  const avnApi = await helper.avnApi({
+    suri: accounts.user.seed
+  });
+  const api = await avnApi.apis();
   const validUser = accounts.user;
   const validOtherUser = accounts.otherUser;
   const validToken = helper.token;
@@ -76,7 +79,7 @@ const BN = helper.BN;
           const greaterAmount = new BN(userAvtBalance).add(new BN('1'));
           testConfig.validCallData.amount = greaterAmount;
           const requestId = await api.send.transferAvt(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await helper.confirmStatus(api.poll, requestId, 'Rejected');
         });
       });
     });
@@ -116,7 +119,7 @@ const BN = helper.BN;
           const greaterAmount = new BN(userAvtBalance).add(new BN('1'));
           testConfig.validCallData.amount = greaterAmount;
           const requestId = await api.send.transferToken(...Object.values(testConfig.validCallData));
-          await helper.confirmStatus(api, requestId, 'Rejected');
+          await helper.confirmStatus(api.poll, requestId, 'Rejected');
         });
       });
     });
@@ -275,13 +278,13 @@ const BN = helper.BN;
         it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Error processing query/
+            /Invalid nftId type:/
           );
         });
         it('With an NFT that is already listed', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.listFiatNftForSale(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Error processing query/
+            /Invalid nftId type:/
           );
         });
       });
@@ -314,13 +317,13 @@ const BN = helper.BN;
         it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Error processing query/
+            /Invalid nftId type:/
           );
         });
         it('With an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           await expect(api.send.transferFiatNft(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Error processing query/
+            /Invalid nftId type:/
           );
         });
       });
@@ -347,13 +350,13 @@ const BN = helper.BN;
         it('With user that doesnt own this nft', async () => {
           testConfig.validCallData.nftId = listedUserNft;
           await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Error processing query/
+            /Invalid nftId type:/
           );
         });
         it('with an NFT that is not listed', async () => {
           testConfig.validCallData.nftId = unlistedUserNft;
           await expect(api.send.cancelFiatNftListing(...Object.values(testConfig.validCallData))).to.be.rejectedWith(
-            /Error processing query/
+            /Invalid nftId type:/
           );
         });
       });

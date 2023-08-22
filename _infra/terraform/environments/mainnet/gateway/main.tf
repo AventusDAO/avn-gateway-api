@@ -21,6 +21,7 @@ module "lambda_functions" {
   vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
   sqs_queue_arns         = module.gateway_sqs.queue_arn
   dlq_queue_arns         = module.gateway_sqs.dead_letter_queue_arn
+  disable_sqs_triggers   = true
 
   lambda_functions = {
 
@@ -140,12 +141,13 @@ module "api_gateway" {
 module "dns" {
   source = "../../../modules/dns"
 
-  vpc_id            = data.terraform_remote_state.vpc.outputs.vpc_id
-  parachain_vpc_id  = data.terraform_remote_state.parachain_mainnet.outputs.vpc_id
-  environment       = local.environment
-  api_gateway_url   = module.api_gateway.url
-  api_gateway_id    = module.api_gateway.api_id
-  api_gateway_stage = module.api_gateway.stage_id
+  vpc_id                           = data.terraform_remote_state.vpc.outputs.vpc_id
+  parachain_vpc_id                 = data.terraform_remote_state.parachain_mainnet.outputs.vpc_id
+  environment                      = local.environment
+  api_gateway_url                  = module.api_gateway.url
+  api_gateway_id                   = module.api_gateway.api_id
+  api_gateway_stage                = module.api_gateway.stage_id
+  create_api_gateway_custom_domain = false
 
   providers = {
     aws         = aws
@@ -233,7 +235,7 @@ module "k8s_service_account_permissions" {
 
   oidc_provider     = module.eks.oidc_provider_arn
   rabbit_secret_arn = module.rabbitmq.secret_arn
-  status_lambda_arn = "arn:aws:lambda:eu-west-1:${local.account_id}:function:tx-status-update-handler"
+  status_lambda_arn = "arn:aws:lambda:eu-west-1:${local.account_id}:function:mainnet_gateway_tx_status_update_handler"
 
   depends_on = [
     module.eks,

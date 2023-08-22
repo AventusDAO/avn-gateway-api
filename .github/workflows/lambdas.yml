@@ -2,26 +2,15 @@ name: avn-gateway
 
 on:
   workflow_dispatch:
+  #TODO: remove 'pull request'
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
     paths:
       - 'avn-gateway/**'
-
-env:
-  AUTHORISER: authorisation-handler
-  POLL: poll-handler
-  SEND: send-handler
-  QUERY: query-handler
-  TX_STATUS: tx-status-update-handler
-  LIFT_PROC: lift-processing-handler
-  COMMON: common
-  QUEUE: queue
-  VOTE: vote-handler
-  LOWER: lower-handler
-  SPLIT_FEE: split-fee-handler
-  TX_DISPATCH: tx-dispatch-handler
-  INVALID_TRANSACTION: invalid-transaction-handler
 
 defaults:
   run:
@@ -33,56 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     name: package lambda functions
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
-          aws-region: eu-west-1
-
       - name: Package Function
-        run: |
-          SLS_ENV=cba-uat make package version=${GITHUB_SHA::7}
-
-      - name: create latest version
-        run: |
-          mv build/${{ env.POLL }}.zip build/${{ env.POLL }}/${{ env.POLL }}-latest.zip
-          mv build/${{ env.SEND }}.zip build/${{ env.SEND }}/${{ env.SEND }}-latest.zip
-          mv build/${{ env.QUERY }}.zip build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip
-          mv build/${{ env.AUTHORISER }}.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip
-          mv build/${{ env.TX_STATUS }}.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip
-          mv build/${{ env.LIFT_PROC }}.zip build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-latest.zip
-          mv build/${{ env.COMMON }}.zip build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip
-          mv build/${{ env.QUEUE }}.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip
-          mv build/${{ env.VOTE }}.zip build/${{ env.VOTE }}/${{ env.VOTE }}-latest.zip
-          mv build/${{ env.LOWER }}.zip build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip
-          mv build/${{ env.SPLIT_FEE }}.zip build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-latest.zip
-          mv build/${{ env.TX_DISPATCH }}.zip build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-latest.zip
-          mv build/${{ env.INVALID_TRANSACTION }}.zip build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-latest.zip
-
-          ls -l build/
-
-      - name: create Short sha version
-        run: |
-          cp build/${{ env.POLL }}/${{ env.POLL }}-latest.zip build/${{ env.POLL }}/${{ env.POLL }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.SEND }}/${{ env.SEND }}-latest.zip build/${{ env.SEND }}/${{ env.SEND }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.QUERY }}/${{ env.QUERY }}-latest.zip build/${{ env.QUERY }}/${{ env.QUERY }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-latest.zip build/${{ env.AUTHORISER }}/${{ env.AUTHORISER }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-latest.zip build/${{ env.TX_STATUS }}/${{ env.TX_STATUS }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-latest.zip build/${{ env.LIFT_PROC }}/${{ env.LIFT_PROC }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.COMMON }}/${{ env.COMMON }}-latest.zip build/${{ env.COMMON }}/${{ env.COMMON }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.QUEUE }}/${{ env.QUEUE }}-latest.zip build/${{ env.QUEUE }}/${{ env.QUEUE }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.VOTE }}/${{ env.VOTE }}-latest.zip build/${{ env.VOTE }}/${{ env.VOTE }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.LOWER }}/${{ env.LOWER }}-latest.zip build/${{ env.LOWER }}/${{ env.LOWER }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-latest.zip build/${{ env.SPLIT_FEE }}/${{ env.SPLIT_FEE }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-latest.zip build/${{ env.TX_DISPATCH }}/${{ env.TX_DISPATCH }}-${GITHUB_SHA::7}.zip
-          cp build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-latest.zip build/${{ env.INVALID_TRANSACTION }}/${{ env.INVALID_TRANSACTION }}-${GITHUB_SHA::7}.zip
+        run: make package version=${GITHUB_SHA::7}
 
       - name: Upload lambdas to cache
         uses: actions/upload-artifact@v3
@@ -90,27 +37,6 @@ jobs:
           name: avn-gateway
           path: avn-gateway/build/
 
-
-  upload-avn:
-    runs-on: ubuntu-latest
-    needs:  [package]
-    name: Upload lambdas to avn s3 bucket
-    steps:
-    - uses: actions/download-artifact@v3
-      with:
-        name: avn-gateway
-        path: avn-gateway/build/
-
-    - name: Upload to S3
-      uses: jakejarvis/s3-sync-action@v0.5.1
-      env:
-        AWS_S3_BUCKET: ${{ secrets.AWS_ARTIFACT_BUCKET }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_GATEWAY_ACTION_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GATEWAY_ACTION_SECRET }}
-        AWS_REGION: 'eu-west-1'
-        SOURCE_DIR: "avn-gateway/build"
-
-  #TODO: delete 'upload-avn' and rename 'upload-internal-tools' when gateway is fully migrated
   upload-internal-tools:
     runs-on: avn-runner
     needs:  [package]
@@ -142,7 +68,7 @@ jobs:
 
   cleanup-artifacts:
     runs-on: ubuntu-latest
-    needs:  [ upload-avn, upload-internal-tools, upload-ew ]
+    needs:  [ upload-internal-tools, upload-ew ]
     if: always()
     steps:
       - uses: geekyeggo/delete-artifact@v2

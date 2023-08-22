@@ -7,13 +7,12 @@ help: ## Show this help.
 	@sed -ne '/@sed/!s/## //p' $(MAKEFILE_LIST)
 
 package: ## - package the lambdas into a series of zips $ make package version=<version_no>
-	npm i -g serverless
 	npm --prefix ./common i ./common
-	npm --prefix ./queue install ./queue
+	npm --prefix ./queue i ./queue
 	mkdir -p build/common
+	cd common && zip -r ../build/common/common-latest.zip ./*
 	mkdir -p build/queue
-	zip -r build/common/common-latest.zip common
-	zip -r build/queue/queue-latest.zip queue
+	cd queue && zip -r ../build/queue/queue-latest.zip ./*
 	mkdir -p build/query-handler
 	zip build/query-handler/query-handler-latest.zip query-handler.js
 	mkdir -p build/send-handler

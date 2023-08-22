@@ -2,10 +2,6 @@ name: avn-gateway
 
 on:
   workflow_dispatch:
-  #TODO: remove 'pull request'
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - main

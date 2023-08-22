@@ -1,9 +1,10 @@
 locals {
-  name                   = "avn-gateway"
-  environment            = "mainnet"
-  cluster_version        = "1.21"
-  eks_node_size          = 50
-  account_id             = "503742778456"
+  name                  = "avn-gateway"
+  environment           = "mainnet"
+  cluster_version       = "1.21"
+  eks_node_size         = 50
+  account_id            = "503742778456"
+  vault_recovery_window = 0
 }
 
 module "dns" {

@@ -1,154 +1,18 @@
 locals {
-  name                   = "avn-gateway"
-  environment            = "testnet"
-  cluster_version        = "1.21"
-  eks_node_size          = 50
-  account_id             = "189013141504"
-  avn_connector_endpoint = "http://avn-connector.${local.environment}.aventus.internal/"
-  avn_votes_bucket       = "avn-votes-testnet"
-  block_explorer_url     = "https://archive-explorer.public-testnet.aventus.io/graphql"
-  vault_recovery_window  = 0
-}
-
-module "lambda_functions" {
-  source                 = "../../../modules/lambda"
-  artifact_bucket        = "avn-lambda-artifacts-sandbox"
-  log_retention_period   = 7
-  service_version        = var.service_version
-  rabbit_secret_arn      = module.rabbitmq.secret_arn
-  avn_connector_endpoint = local.avn_connector_endpoint
-  subnet_ids             = data.terraform_remote_state.vpc.outputs.private_subnets
-  vpc_id                 = data.terraform_remote_state.vpc.outputs.vpc_id
-  sqs_queue_arns         = module.gateway_sqs.queue_arn
-  dlq_queue_arns         = module.gateway_sqs.dead_letter_queue_arn
-  disable_sqs_triggers   = true
-
-  lambda_functions = {
-
-    authorisation-handler = {
-      env_vars = {
-        MAX_TOKEN_AGE_MSEC = 600000
-        MIN_AVT_BALANCE    = "1000000000000000000"
-      }
-      memory_size = 512
-      timeout     = 30
-    }
-
-    send-handler = {
-      env_vars = {
-        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
-        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
-        MQ_AVN_TX_QUEUE         = "avnTx"
-        SECRET_MANAGER_REGION   = var.region
-        SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
-        SQS_PAYER_QUEUE_URL     = module.gateway_sqs.queue_url["gateway_payer_queue"]
-      }
-      timeout     = 30
-      memory_size = 512
-    }
-
-    poll-handler = {
-      timeout     = 30
-      memory_size = 256
-    }
-
-    query-handler = {
-      env_vars = {
-        BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
-      }
-      memory_size = 256
-      timeout     = 30
-    }
-
-    lift-processing-handler = {
-      env_vars = {
-        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
-        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
-        MQ_AVN_TX_QUEUE         = "avnTx"
-        SECRET_MANAGER_REGION   = var.region
-      }
-      timeout     = 30
-      memory_size = 128
-    }
-
-    tx-status-update-handler = {
-      env_vars = {
-        BLOCK_EXPLORER_BASE_URL = local.block_explorer_url
-      }
-      timeout     = 30
-      memory_size = 256
-    }
-
-    vote-handler = {
-      env_vars = {
-        AVN_VOTES_BUCKET = local.avn_votes_bucket
-      }
-      memory_size      = 256
-      avn_votes_bucket = local.avn_votes_bucket
-      timeout          = 30
-    }
-
-    lower-handler = {
-      timeout     = 30
-      memory_size = 128
-    }
-
-    split-fee-handler = {
-      env_vars = {
-        SECRET_MANAGER_REGION = var.region
-        SQS_PAYER_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_payer_queue"]
-        SQS_DEFAULT_QUEUE_URL = module.gateway_sqs.queue_url["gateway_default_queue"]
-      }
-      timeout     = 30
-      memory_size = 512
-    }
-
-    tx-dispatch-handler = {
-      env_vars = {
-        MQ_BROKER_AMQP_ENDPOINT = module.rabbitmq.broker_endpoint
-        MQ_SECRET_ARN           = module.rabbitmq.secret_arn
-        MQ_AVN_TX_QUEUE         = "avnTx"
-        SECRET_MANAGER_REGION   = var.region
-        SQS_DEFAULT_QUEUE_URL   = module.gateway_sqs.queue_url["gateway_default_queue"]
-      }
-      timeout     = 30
-      memory_size = 512
-    }
-
-    invalid-transaction-handler = {
-      timeout     = 30
-      memory_size = 512
-    }
-
-  }
-
-  depends_on = [
-    module.rabbitmq
-  ]
-}
-
-module "api_gateway" {
-  source                = "../../../modules/api-gateway"
-  authoriser_invoke_arn = module.lambda_functions.invoke_arns["authorisation-handler"]
-  authoriser_arn        = module.lambda_functions.lambda_arns["authorisation-handler"]
-  poll_invoke_arn       = module.lambda_functions.invoke_arns["poll-handler"]
-  send_invoke_arn       = module.lambda_functions.invoke_arns["send-handler"]
-  query_invoke_arn      = module.lambda_functions.invoke_arns["query-handler"]
-  vote_invoke_arn       = module.lambda_functions.invoke_arns["vote-handler"]
-  lower_invoke_arn      = module.lambda_functions.invoke_arns["lower-handler"]
-  auth_cache_duration   = 60
+  name                  = "avn-gateway"
+  environment           = "testnet"
+  cluster_version       = "1.21"
+  eks_node_size         = 50
+  account_id            = "189013141504"
+  vault_recovery_window = 0
 }
 
 module "dns" {
   source = "../../../modules/dns"
 
-  vpc_id                           = data.terraform_remote_state.vpc.outputs.vpc_id
-  parachain_vpc_id                 = data.terraform_remote_state.parachain_testnet.outputs.vpc_id
-  environment                      = local.environment
-  api_gateway_url                  = module.api_gateway.url
-  api_gateway_id                   = module.api_gateway.api_id
-  api_gateway_stage                = module.api_gateway.stage_id
-  create_api_gateway_custom_domain = false
+  vpc_id           = data.terraform_remote_state.vpc.outputs.vpc_id
+  parachain_vpc_id = data.terraform_remote_state.parachain_testnet.outputs.vpc_id
+  environment      = local.environment
 
   providers = {
     aws         = aws
@@ -246,8 +110,7 @@ module "k8s_service_account_permissions" {
   status_lambda_arn = "arn:aws:lambda:eu-west-1:${local.account_id}:function:testnet_gateway_tx_status_update_handler"
 
   depends_on = [
-    module.eks,
-    module.lambda_functions
+    module.eks
   ]
 }
 

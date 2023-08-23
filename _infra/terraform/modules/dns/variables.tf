@@ -14,25 +14,7 @@ variable "environment" {
   type        = string
 }
 
-variable "api_gateway_url" {
-  type = string
-}
-
-variable "api_gateway_id" {
-  type = string
-}
-
-variable "api_gateway_stage" {
-  type = string
-}
-
 variable "parachain_vpc_id" {
   description = "Parachain VPC ID"
   type        = string
-}
-
-variable "create_api_gateway_custom_domain" {
-  description = "Wheter to create or not the custom domain for api-gateway"
-  type        = bool
-  default     = true
 }

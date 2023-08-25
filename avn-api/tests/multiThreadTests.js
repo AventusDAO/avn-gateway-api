@@ -50,10 +50,10 @@ const handleRemoteCache = () => {
   }
 }
 
-const sendUserTransactions = (apis, nTxs) => {
+const sendUserTransactions = (api, nTxs) => {
   let requests = [];
   for (let i = 0; i < nTxs; i++) {
-    requests.push(apis.send.transferAvt(accounts.user.address, '1'));
+    requests.push(api.send.transferAvt(accounts.user.address, '1'));
   }
   return requests;
 }

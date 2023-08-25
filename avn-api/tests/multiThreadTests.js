@@ -34,8 +34,8 @@ const signer = {
 };
 
 const handleSplitFeeAccounts = (nUsers) => {
+  console.log(`Please provide the seed of ${nUsers} split fee users.`);
   for (let i = 0; i < nUsers; i++) {
-    console.log(`Please provide the seed of ${nUsers} split fee users.`);
     let splitFeeAccountSeed = prompt(`User ${i + 1} seed: `);
     addUserFromSeed(splitFeeAccountSeed, i);
   }
@@ -66,12 +66,12 @@ const createAccounts = (api, nUsers) => {
   }
 }
 
-const fundAccounts = async (api, nUsers, nTxs) => {
+const fundAccounts = async (apis, nUsers, nTxs) => {
   let fundValue = new BN(nTxs).mul(ONE_TX_VALUE);
   for (let i = 0; i < nUsers; i++) {
-    let apis = await api.apis(accounts.user.address);
-    const requestId = await apis.send.transferAvt(accounts[i].address, fundValue);
-    await helper.confirmStatus(apis.poll, requestId, 'Processed');
+    let api = await apis.apis(accounts.user.address);
+    const requestId = await api.send.transferAvt(accounts[i].address, fundValue);
+    await helper.confirmStatus(api.poll, requestId, 'Processed');
   }
 }
 
@@ -87,8 +87,8 @@ const customConfirmStatus = async (pollApi, requestId) => {
   }
 }
 
-const pollTransactions = async (api, transactionsToPoll) => {
-  let apis = await api.apis(accounts.user.address);
+const pollTransactions = async (apis, transactionsToPoll) => {
+  let api = await apis.apis(accounts.user.address);
   let requestResults = {
     success: {},
     failed: {}
@@ -96,18 +96,18 @@ const pollTransactions = async (api, transactionsToPoll) => {
 
   for (let i = 0; i < transactionsToPoll.length; i++) {
     let requestId = transactionsToPoll[i].value;
-    let pollResult = await customConfirmStatus(apis.poll, requestId);
+    let pollResult = await customConfirmStatus(api.poll, requestId);
     requestResults[pollResult.status == 'Processed' ? 'success' : 'failed'][requestId] = pollResult;
     console.log(`pollResult - Request: ${requestId} - ${JSON.stringify(pollResult.status)}`)
   }
   return requestResults;
 }
 
-const getProxyNonces = async (api, nUsers, testInfo) => {
+const getProxyNonces = async (apis, nUsers, testInfo) => {
   let newTestInfo = testInfo;
   for (let i = 0; i < nUsers; i++) {
-    let apis = await api.apis(accounts[i].address);
-    const proxyNonce = (await apis.proxyNonce(accounts[i].address, 'token'))?.nonce || 0;
+    let api = await apis.apis(accounts[i].address);
+    const proxyNonce = (await api.proxyNonce(accounts[i].address, 'token'))?.nonce || 0;
 
     if (newTestInfo[i]?.proxyNonceBefore || newTestInfo[i]?.proxyNonceBefore === 0) {
       newTestInfo[i] = {
@@ -124,13 +124,14 @@ const getProxyNonces = async (api, nUsers, testInfo) => {
   return newTestInfo;
 }
 
-const prepareAndSendTransactions = async (api, nUsers, nTxs, testInfo) => {
+const prepareAndSendTransactions = async (apis, nUsers, nTxs, testInfo) => {
   let newTestInfo = testInfo;
   const start = Date.now();
   let allTransactions = [];
   for (let i = 0; i < nUsers; i++) {
-    let apis = await api.apis(accounts[i].address);
-    const userTxs = sendUserTransactions(apis, nTxs);
+    let api = await apis.apis(accounts[i].address);
+    // we deliberately do not use await to fire all transactions in parallel
+    const userTxs = sendUserTransactions(api, nTxs);
     allTransactions.push(...userTxs);
   }
 

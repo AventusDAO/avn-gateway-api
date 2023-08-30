@@ -1,1 +1,1 @@
-statusLambdaName: dev_gateway_tx_status_update_handler
+statusLambdaName: $ENV:STATUS_LAMBDA_NAME

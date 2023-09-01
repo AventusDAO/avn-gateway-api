@@ -13,7 +13,6 @@ Chart.lock
 build/
 
 # Config file for AWS MQ
-avn-connector/src/config/default/mq.yaml
 tests/demo/demo-accounts.json
 tests/demo/demo-accounts-testnet.json
 

@@ -14,13 +14,13 @@ categories:
     level: trace
     appenders:
       - console
-      - file
 
 appenders:
   console:
     type: console
     layout:
-      type: pattern
+      type: json
+      separator: ','
       # ASCII colors in console
       pattern: %d{ISO8601} %[[%-5p]%] %m
   file:

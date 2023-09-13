@@ -1,9 +1,5 @@
 locals {
-  name                  = "avn-gateway"
   environment           = "cba"
-  cluster_version       = "1.21"
-  eks_node_size         = 20
-  account_id            = "602004642405"
   vault_recovery_window = 0
 }
 

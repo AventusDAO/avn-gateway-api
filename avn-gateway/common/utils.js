@@ -173,6 +173,10 @@ function convertToPublicKey(accountId) {
   return isHex(accountId) ? accountId : u8aToHex(decodeAddress(accountId));
 }
 
+function convertHexNftId(nftId) {
+  return isHex(nftId) ? new BN(nftId.substring(2)).toString(10) : nftId;
+}
+
 function toBnString(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString();
 }
@@ -328,6 +332,7 @@ module.exports = {
   STASH_REWARD_DESTINATION,
   convertToAddress,
   convertToPublicKey,
+  convertHexNftId,
   buildErrorBody,
   init,
   isSplitFeeToken,

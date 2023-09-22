@@ -424,7 +424,7 @@ async function setChainInfo() {
   // TODO: Remove defaulting to the old "liftingContractAddress" once the chain has been upgraded in all environments
   let avnContract;
   try {
-    avnContract = await api.query.avn.avnBridgeContractAddress();
+    avnContract = await api.query.avn.bridgeContractAddress();
   } catch {
     avnContract = await api.query.ethereumEvents.liftingContractAddress();
   }

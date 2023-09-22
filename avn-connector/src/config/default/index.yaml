@@ -1,5 +1,6 @@
-avnUrl: wss://avn-parachain.dev.aventus.io/
-avnExplorerUrl: https://archive-explorer.dev.aventus.io/graphql
-serverPort: 5000
-stakingPayoutRelayer: 5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh
-minimumPayerBalance: 1000000000000000000
+avnUrl: $ENV:AVN_NODE_URL
+STATUS_LAMBDA_NAME: $ENV:AVN_NODE_URL
+avnExplorerUrl: $ENV:AVN_EXPLORER_URL
+serverPort: $ENV:SERVER_PORT
+stakingPayoutRelayer: $ENV:STAKING_PAYOUT_RELAYER
+minimumPayerBalance: $ENV:MINIMUM_PAYER_BALANCE

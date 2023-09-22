@@ -14,14 +14,7 @@ variable "environment" {
   type        = string
 }
 
-variable "api_gateway_url" {
-  type = string
-}
-
-variable "api_gateway_id" {
-  type = string
-}
-
-variable "api_gateway_stage" {
-  type = string
+variable "parachain_vpc_id" {
+  description = "Parachain VPC ID"
+  type        = string
 }

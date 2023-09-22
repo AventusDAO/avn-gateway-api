@@ -25,20 +25,25 @@ async function getLowers(account) {
 }
 
 async function updateSummaries(avnContract) {
-  const summaries = await avn.getSummaries();
-  const publishedRoots = await tier1.getPublishedRoots(avnContract);
+  const avnSummaries = await avn.getSummaries();
+  const redisSummaries = await redis.getSummaries();
+  const publishedRoots = await tier1.getLatestPublishedRoots(avnContract);
+  let unpublishedIndex = redisSummaries.findIndex(summary => summary.published === false);
   let latestPublishedBlock = 0;
+  if (unpublishedIndex < 0) unpublishedIndex = 0;
+  if (unpublishedIndex > 0) latestPublishedBlock = redisSummaries[unpublishedIndex - 1].toBlock;
 
-  for (let i = 0; i < summaries.length; i++) {
-    if (publishedRoots.includes(summaries[i].rootHash)) {
-      summaries[i].published = true;
-      latestPublishedBlock = summaries[i].toBlock;
+  for (let i = unpublishedIndex; i < avnSummaries.length; i++) {
+    if (publishedRoots.includes(avnSummaries[i].rootHash)) {
+      avnSummaries[i].published = true;
+      latestPublishedBlock = avnSummaries[i].toBlock;
     } else {
-      summaries[i].published = false;
+      avnSummaries[i].published = false;
     }
+    redisSummaries.push(avnSummaries[i]);
   }
 
-  await redis.setSummaries(summaries);
+  await redis.setSummaries(avnSummaries);
   return latestPublishedBlock;
 }
 
@@ -134,25 +139,26 @@ async function updateAwaitingClaimDataLowers() {
 }
 
 async function updateUnclaimedLowers(avnContract, account) {
-  const { claimedLowers, fromBlock } = await tier1.getLatestClaimedLowers(avnContract);
-  const unclaimed = await redis.getUnclaimedLowers();
+  const claimedLowers = await tier1.getLatestClaimedLowers(avnContract);
   let claimed = 0;
 
-  for (let i = 0; i < unclaimed.length; i++) {
-    const txHash = unclaimed[i];
-    const lowerData = await redis.getLowerData(txHash);
-    const leafHash = keccakAsHex(lowerData.claimData.leaf);
+  if (claimedLowers.length > 0) {
+    const unclaimed = await redis.getUnclaimedLowers();
 
-    if (claimedLowers.includes(leafHash)) {
-      await redis.removeUnclaimedLower(txHash);
-      await redis.deleteLowerData(txHash);
-      claimed++;
+    for (let i = 0; i < unclaimed.length; i++) {
+      const txHash = unclaimed[i];
+      const lowerData = await redis.getLowerData(txHash);
+      const leafHash = keccakAsHex(lowerData.claimData.leaf);
+
+      if (claimedLowers.includes(leafHash)) {
+        await redis.removeUnclaimedLower(txHash);
+        await redis.deleteLowerData(txHash);
+        claimed++;
+      }
     }
   }
 
   console.log(`\tRecently claimed: ${claimed} `);
-  console.log(`\tPublished but unclaimed: ${unclaimed.length - claimed} `);
-  await redis.setClaimedLowersFromTier1Block(fromBlock);
 }
 
 async function getLowerTransactions(fromBlock) {

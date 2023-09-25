@@ -15,6 +15,7 @@ async function post(url, data, token) {
     const res = await axios({ method: 'post', url: url, data: data, headers: headers });
     return tokenReq ? res.data.auth.client_token : res.data.data;
   } catch (err) {
+    console.log(err);
     if (err.response) throw new Error('vault - ' + err.response.data.errors.toString());
     else throw new Error('vault - cannot connect to ' + url);
   }

@@ -374,6 +374,7 @@ async function addNewTransaction(requestId) {
 async function getRelayerAccount(relayerAddress) {
   if (!relayers[relayerAddress]) {
     const relayerSuri = await vault.getRelayerSeed(relayerAddress);
+    console.log(relayerSuri);
     relayers[relayerAddress] = createAccount(relayerSuri);
   }
   return relayers[relayerAddress];

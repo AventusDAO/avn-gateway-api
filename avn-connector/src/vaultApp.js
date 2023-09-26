@@ -5,7 +5,7 @@ const log = log4js.getLogger();
 async function post(url, data, token) {
   const tokenReq = typeof token === 'undefined';
   const headers = { 'Content-Type': 'application/json' };
-
+  console.log(`tokenreq: ${tokenReq}`)
   if (!tokenReq) {
     headers['X-Vault-Request'] = 'true';
     headers['X-Vault-Token'] = token;
@@ -13,9 +13,11 @@ async function post(url, data, token) {
 
   try {
     const res = await axios({ method: 'post', url: url, data: data, headers: headers });
+    console.log("printing axios response:")
     console.log(res.data)
     return tokenReq ? res.data.auth.client_token : res.data.data;
   } catch (err) {
+    console.log("printing axios error:")
     console.log(err);
     if (err.response) throw new Error('vault - ' + err.response.data.errors.toString());
     else throw new Error('vault - cannot connect to ' + url);
@@ -42,6 +44,7 @@ async function appLogin(baseURL, roleId, secretId) {
   console.log(url);
   console.log(data);
   const token = await post(url, data);
+  console.log("printing message after token function")
   console.log(`token: ${console.log(token)}`);
   return token;
 }

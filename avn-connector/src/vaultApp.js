@@ -13,6 +13,7 @@ async function post(url, data, token) {
 
   try {
     const res = await axios({ method: 'post', url: url, data: data, headers: headers });
+    console.log(res.data)
     return tokenReq ? res.data.auth.client_token : res.data.data;
   } catch (err) {
     console.log(err);
@@ -41,6 +42,7 @@ async function appLogin(baseURL, roleId, secretId) {
   console.log(url);
   console.log(data);
   const token = await post(url, data);
+  console.log(`token: ${console.log(token)}`);
   return token;
 }
 

@@ -45,7 +45,7 @@ async function appLogin(baseURL, roleId, secretId) {
   console.log(data);
   const token = await post(url, data);
   console.log("printing message after token function")
-  console.log(`token: ${console.log(token)}`);
+  console.log(`token: ${token}`);
   return token;
 }
 
@@ -90,6 +90,9 @@ module.exports = function (baseURL, roleId, secretId) {
   this.getRelayerSeed = async function (userName) {
     const token = await this.getToken();
     const url = this.baseURL + 'avn-vault/user/' + userName;
+    console.log("getting seed:", url, token);
+    const r = await get(url, token);
+    console.log(r)
     return (await get(url, token)).seed;
   };
 

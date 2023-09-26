@@ -37,8 +37,10 @@ async function get(url, token) {
 async function appLogin(baseURL, roleId, secretId) {
   const url = baseURL + 'auth/approle/login';
   const data = { role_id: roleId, secret_id: secretId };
+  console.log("printing url and data for vault login:")
+  console.log(url);
+  console.log(data);
   const token = await post(url, data);
-
   return token;
 }
 

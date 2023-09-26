@@ -89,7 +89,7 @@ module.exports = function (baseURL, roleId, secretId) {
 
   this.getRelayerSeed = async function (userName) {
     const token = await this.getToken();
-    const url = this.baseURL + 'avn-vault/user/' + userName;
+    const url = this.baseURL + 'avn-vault/relayer/' + userName;
     console.log("getting seed:", url, token);
     const r = await get(url, token);
     console.log(r)

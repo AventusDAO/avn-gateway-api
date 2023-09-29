@@ -2,6 +2,7 @@ name: avn-gateway
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches:
       - main
@@ -49,7 +50,7 @@ jobs:
 
   upload-ew:
     runs-on: avn-runner
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref_name == 'main' }}
     needs:  [package]
     name: Upload lambdas to EW s3 bucket
     steps:

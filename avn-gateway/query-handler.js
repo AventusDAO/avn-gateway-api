@@ -301,7 +301,7 @@ async function getOwnedNfts(call, request) {
     return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
     let nfts = await queryChain(call, request, 'nftManager', 'nfts', ['entries']);
-    nfts.result = nfts.result.filter(nft => nft[1].owner === accountId).map(nft => utils.convertHexNftId(nft[1].nftId));
+    nfts.result = nfts.result.filter(nft => nft[1].owner === accountId).map(nft => utils.toBnString(nft[1].nftId));
     return nfts;
   }
 }

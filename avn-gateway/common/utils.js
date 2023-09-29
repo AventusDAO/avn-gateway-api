@@ -174,7 +174,7 @@ function convertToPublicKey(accountId) {
 }
 
 function convertHexNftId(nftId) {
-  return isHex(nftId) ? new BN(nftId.substring(2)).toString(10) : nftId;
+  return isHex(nftId) ? new BN(nftId.substring(2), 16).toString(10) : nftId;
 }
 
 function toBnString(val) {

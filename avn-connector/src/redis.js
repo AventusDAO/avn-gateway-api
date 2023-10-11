@@ -35,6 +35,7 @@ const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
+const PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY = 'publishedRootsFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
 const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
@@ -341,6 +342,15 @@ async function getClaimedLowersFromTier1Block() {
   return blockNumber ? parseInt(blockNumber) : 0;
 }
 
+async function setPublishedRootsFromTier1Block(blockNumber) {
+  await redisClient.set(PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY, blockNumber);
+}
+
+async function getPublishedRootsFromTier1Block() {
+  const blockNumber = await redisClient.get(PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY);
+  return blockNumber ? parseInt(blockNumber) : 0;
+}
+
 async function setBlockIndex(txHash, blockIndex) {
   await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, dataToJsonString(blockIndex));
 }
@@ -445,6 +455,8 @@ module.exports = {
   getRetrieveLowersFromAvnBlock,
   setClaimedLowersFromTier1Block,
   getClaimedLowersFromTier1Block,
+  setPublishedRootsFromTier1Block,
+  getPublishedRootsFromTier1Block,
   setBlockIndex,
   deleteBlockIndex,
   getBlockIndex,

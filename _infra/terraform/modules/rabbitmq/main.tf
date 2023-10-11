@@ -11,13 +11,13 @@ locals {
     password = random_password.mq_password.result
   }
   subnet_ids = var.deployment_mode == "SINGLE_INSTANCE" ? [
-      for k, subnet in data.aws_subnet.subnets: subnet.id if subnet.map_public_ip_on_launch && 
-        length(regexall("az1$", subnet.availability_zone_id)) > 0
+    for k, subnet in data.aws_subnet.subnets : subnet.id if subnet.map_public_ip_on_launch &&
+    length(regexall("az1$", subnet.availability_zone_id)) > 0
     ] : [
-      for k, subnet in data.aws_subnet.subnets: subnet.id if !subnet.map_public_ip_on_launch
-    ]
+    for k, subnet in data.aws_subnet.subnets : subnet.id if !subnet.map_public_ip_on_launch
+  ]
 
-  subnet_cidr_blocks = [for k, subnet in data.aws_subnet.subnets: subnet.cidr_block]
+  subnet_cidr_blocks = [for k, subnet in data.aws_subnet.subnets : subnet.cidr_block]
   security_groups    = var.publicly_accessible ? null : [aws_security_group.rabbit["private"].id]
 }
 
@@ -62,18 +62,26 @@ resource "aws_security_group" "rabbit" {
   vpc_id      = var.vpc_id
 
   ingress {
-    description      = "rabbit port from vpc subnets"
-    from_port        = "5671"
-    to_port          = "5672"
-    protocol         = "tcp"
-    cidr_blocks      = local.subnet_cidr_blocks
+    description = "rabbit port from vpc subnets"
+    from_port   = "5671"
+    to_port     = "5672"
+    protocol    = "tcp"
+    cidr_blocks = local.subnet_cidr_blocks
+  }
+
+  ingress {
+    description = "Allow all traffic from parachain VPC"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.parachain_vpc_cidr_block]
   }
 
   egress {
-    from_port        = "0"
-    to_port          = "0"
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
+    from_port   = "0"
+    to_port     = "0"
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
@@ -108,7 +116,7 @@ POLICY
 }
 
 resource "aws_secretsmanager_secret_version" "rabbit" {
-  secret_id     = aws_secretsmanager_secret.rabbit.id
+  secret_id = aws_secretsmanager_secret.rabbit.id
   secret_string = jsonencode(
     merge(local.user, { server = aws_mq_broker.gateway.instances.0.endpoints.0 })
   )

@@ -4,7 +4,7 @@ locals {
     "86.126.81.150/32",  # Vuko
     "109.101.202.38/32", # Vuko
     "94.60.55.242/32",   # Rui
-    "82.6.50.71/32",     # Nahu
+    "82.6.48.63/32",     # Nahu
   ]
 }
 
@@ -19,20 +19,21 @@ resource "aws_secretsmanager_secret" "vault" {
 }
 
 module "avn-vault" {
-  source                  = "git@github.com:Aventus-Network-Services/avn-vault-infrastructure//terraform-module/avn-vault?ref=2.0.0"
-  name                    = local.environment
-  project                 = "avn-gateway"
-  ssh-key                 = "technical-account-vault"
-  avn-vault-vpc-cidr      = data.terraform_remote_state.vpc.outputs.vpc_cidr_block
-  vpc-id                  = data.terraform_remote_state.vpc.outputs.vpc_id
-  subnet-id               = data.terraform_remote_state.vpc.outputs.primary_private_subnet.id
-  availability_zone       = data.terraform_remote_state.vpc.outputs.primary_private_subnet.availability_zone
-  aws-route53-zone        = module.dns.public_zone_id
-  avn_vault_instance_type = "t3a.medium"
-  tls_cert_subdomain      = "vault"
-  dynamodb_table_name     = "avn-gw-vault-${local.environment}-db"
-  avn-ingress-ports       = []
-  ami_image_id            = "ami-0a8e758f5e873d1c1"
+  source                   = "git@github.com:Aventus-Network-Services/avn-vault-infrastructure//terraform-module/avn-vault?ref=2.1.0"
+  name                     = local.environment
+  project                  = "avn-gateway"
+  ssh-key                  = "technical-account-vault"
+  avn-vault-vpc-cidr       = data.terraform_remote_state.vpc.outputs.vpc_cidr_block
+  parachain_vpc_cidr_block = data.terraform_remote_state.parachain_mainnet.outputs.vpc_cidr_block
+  vpc-id                   = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnet-id                = data.terraform_remote_state.vpc.outputs.primary_private_subnet.id
+  availability_zone        = data.terraform_remote_state.vpc.outputs.primary_private_subnet.availability_zone
+  aws-route53-zone         = module.dns.public_zone_id
+  avn_vault_instance_type  = "t3a.medium"
+  tls_cert_subdomain       = "vault"
+  dynamodb_table_name      = "avn-gw-vault-${local.environment}-db"
+  avn-ingress-ports        = []
+  ami_image_id             = "ami-0a8e758f5e873d1c1"
 }
 
 module "bastion" {

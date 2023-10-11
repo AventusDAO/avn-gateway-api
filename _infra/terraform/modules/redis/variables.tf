@@ -18,3 +18,8 @@ variable "secret_recovery_window" {
   type    = number
   default = 0
 }
+
+variable "parachain_vpc_cidr_block" {
+  description = "Parachain VPC cidr block"
+  type        = string
+}

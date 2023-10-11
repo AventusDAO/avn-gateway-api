@@ -17,7 +17,7 @@ provider "aws" {
 }
 
 provider "aws" {
-  alias  = "aventus"
+  alias = "aventus"
 }
 
 data "aws_subnet" "private" {
@@ -34,6 +34,10 @@ resource "aws_route53_zone" "private" {
   vpc {
     vpc_id = var.vpc_id
   }
+
+  vpc {
+    vpc_id = var.parachain_vpc_id
+  }
 }
 
 resource "aws_route53_zone" "public" {
@@ -41,8 +45,8 @@ resource "aws_route53_zone" "public" {
 }
 
 data "aws_route53_zone" "aventus_io" {
-  provider  = aws.aventus
-  name      = "aventus.io."
+  provider = aws.aventus
+  name     = "aventus.io."
 }
 
 resource "aws_route53_record" "aventus_io" {
@@ -62,7 +66,7 @@ resource "aws_route53_record" "aventus_io" {
 }
 
 resource "aws_acm_certificate" "api_gateway" {
-  domain_name       = "${aws_route53_zone.public.name}"
+  domain_name       = aws_route53_zone.public.name
   validation_method = "DNS"
 
   tags = {
@@ -72,27 +76,6 @@ resource "aws_acm_certificate" "api_gateway" {
   lifecycle {
     create_before_destroy = true
   }
-}
-
-resource "aws_apigatewayv2_domain_name" "api_gateway" {
-  domain_name = "${aws_route53_zone.public.name}"
-
-  domain_name_configuration {
-    certificate_arn    = aws_acm_certificate.api_gateway.arn
-    endpoint_type      = "REGIONAL"
-    security_policy    = "TLS_1_2"
-  }
-
-  depends_on = [
-    aws_acm_certificate.api_gateway,
-    aws_acm_certificate_validation.api_gateway
-  ]
-}
-
-resource "aws_apigatewayv2_api_mapping" "example" {
-  api_id      = var.api_gateway_id
-  domain_name = aws_apigatewayv2_domain_name.api_gateway.id
-  stage       = var.api_gateway_stage
 }
 
 resource "aws_route53_record" "api_gateway_validation" {
@@ -115,16 +98,4 @@ resource "aws_route53_record" "api_gateway_validation" {
 resource "aws_acm_certificate_validation" "api_gateway" {
   certificate_arn         = aws_acm_certificate.api_gateway.arn
   validation_record_fqdns = [for record in aws_route53_record.api_gateway_validation : record.fqdn]
-}
-
-resource "aws_route53_record" "api_gateway" {
-  zone_id = aws_route53_zone.public.zone_id
-  name    = "${aws_route53_zone.public.name}"
-  type    = "A"
-  
-  alias {
-    name                   = aws_apigatewayv2_domain_name.api_gateway.domain_name_configuration[0].target_domain_name
-    zone_id                = aws_apigatewayv2_domain_name.api_gateway.domain_name_configuration[0].hosted_zone_id
-    evaluate_target_health = false
-  }
 }

@@ -5,8 +5,8 @@ pipeline {
   }
 
   parameters {
-    choice(name: 'environment', choices: ['cba', 'pentest', 'testnet', 'mainnet'], description: 'Chose the environment to deploy to.')
-    choice(name: 'terraform_target', choices: ['none', 'all', 'lambda_functions', 'eks', 'api_gateway', 'vpc', 'k8s_service_account_permissions', 'rabbitmq', "bastion", "avn-vault", "gateway_rds", "gateway_cognito", "gateway_sqs", "gateway_alarms"], description: 'Apply specific terraform module targets.')
+    choice(name: 'environment', choices: ['cba', 'testnet', 'mainnet'], description: 'Chose the environment to deploy to.')
+    choice(name: 'terraform_target', choices: ['none', 'all', 'vpc', 'dns', 'redis', 'rabbitmq', "bastion", "avn-vault", "gateway_sqs", "gateway_alarms"], description: 'Apply specific terraform module targets.')
     string(name: 'additional_terraform_args', defaultValue: '', description: 'Supply additional terraform arguments, The environment can be destroyed by supplying the arg -destroy', trim: true)
     choice(name: 'apply_third_party_charts', choices: ['false', 'true'], description: 'Apply third party helm charts to kubernetes')
     choice(name: 'new_environment', choices: ['false', 'true'], description: 'Apply a new environment, if true then the VPC will be built before the rest of the infrastructure.')
@@ -242,20 +242,6 @@ pipeline {
       }
     }
 
-    stage("Deploy avn-connector") {
-      when {
-        expression {
-            return env.new_environment == 'true';
-        }
-      }
-      steps {
-        withAWS(roleAccount:accountId(), role:'jenkins-access') {
-          generateContext("avn-gateway", "dev")
-          sh "kubectl create ns dev || true"
-          sh "helm template ${env.avn_connector_path}/chart --set environment=${env.environment} --set accountId=${accountId()} --set service.subnetIds={${private_subnets}} | kubectl apply -f -"
-        }
-      }
-    }
   }
   post {
     always {
@@ -278,9 +264,6 @@ def terraformPlan() {
   switch(env.terraform_target) {
     case 'all':
       sh "terraform plan -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
-      break
-    case 'gateway_cognito':
-      sh "terraform plan -target module.gateway_cognito -target module.gateway_cognito_acm -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"
       break
     default:
       sh "terraform plan -target module.${env.terraform_target} -out=plan-out.tfplan -no-color ${env.additional_terraform_args}"

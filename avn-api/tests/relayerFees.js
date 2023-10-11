@@ -7,7 +7,7 @@ const accounts = helper.ACCOUNTS;
 const _ = require('lodash');
 
 describe('Relayer Fees:', async () => {
-  let api;
+  let avnApi, api;
   let relayer, user;
 
   const expectedRelayerFees = {
@@ -53,7 +53,10 @@ describe('Relayer Fees:', async () => {
   };
 
   before(async () => {
-    api = await helper.avnApi();
+    avnApi = await helper.avnApi({
+      suri: accounts.user.seed
+    });
+    api = await avnApi.apis();
     relayer = accounts.relayer;
     user = accounts.user;
     recipient = accounts.otherUser;
@@ -95,7 +98,7 @@ describe('Relayer Fees:', async () => {
 
     it('Errors if relayer is not specified for a specific transaction type and user', async () => {
       const transactionType = 'proxyStakeAvt';
-      await expect(api.query.getRelayerFees(null, user.publicKey, transactionType)).to.be.rejectedWith(/Expected non-null/);
+      await expect(api.query.getRelayerFees(null, user.publicKey, transactionType)).to.be.rejectedWith(/Invalid empty address passed/);
     });
 
     it('errors if relayer is not registered', async () => {

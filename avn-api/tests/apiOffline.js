@@ -1,4 +1,4 @@
-const {AvnApi} = require('avn-api');
+const {SetupMode, AvnApi} = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 
@@ -9,21 +9,32 @@ describe('Access rights:', async () => {
     it('api is initializable', async () => {
       const undefinedGateway = undefined;
       const api = new AvnApi(undefinedGateway, {
-        suri: helper.ACCOUNTS.user.seed
+        setupMode: SetupMode.Offline
       });
       await api.init();
     });
 
-    it('utils work', async () => {
+    it('account utils work', async () => {
       const undefinedGateway = undefined;
       const api = new AvnApi(undefinedGateway, {
-        suri: helper.ACCOUNTS.user.seed
+        setupMode: SetupMode.Offline
       });
       await api.init();
 
       const newAccount = api.accountUtils.generateNewAccount();
       assert(newAccount.mnemonic.length > 0);
       assert(newAccount.seed.startsWith('0x'));
+    });
+
+    it('Awt and proxy utils are not exposed', async () => {
+      const undefinedGateway = undefined;
+      const api = new AvnApi(undefinedGateway, {
+        setupMode: SetupMode.Offline
+      });
+      await api.init();
+
+      assert(api.awtUtils === undefined);
+      assert(api.proxyUtils === undefined);
     });
   });
 });

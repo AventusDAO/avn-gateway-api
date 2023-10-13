@@ -184,7 +184,7 @@ async function getLowerTransactions(fromBlock) {
 
 async function getLowersFromIndexer(fromId, txLimit) {
   try {
-    const query = `query ConnectorLower { events( where: { name_eq: "TokenManager.TokenLowered", call: { id_gte: "${fromId}" } },
+    const query = `query ConnectorLower { events( where: { name_in:[ "TokenManager.TokenLowered", "TokenManager.AvtLowered"], call: { id_gte: "${fromId}" } },
         limit: ${txLimit}, orderBy: id_ASC) { args extrinsic { hash id indexInBlock block { height } } } }`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower' });
     const events = response.data.data.events;

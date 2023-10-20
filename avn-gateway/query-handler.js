@@ -116,11 +116,11 @@ async function getAvtBalance(call, request) {
 }
 
 async function getAvtContractAddress(call, request) {
-  return await queryChain(call, request, 'tokenManager', 'avtTokenContract', [], formatAsString);
+  return await getChainInfo(call, request, filterAvtContract);
 }
 
 async function getAvnContractAddress(call, request) {
-  return await queryChain(call, request, 'ethereumEvents', 'liftingContractAddress', [], formatAsString);
+  return await getChainInfo(call, request, filterAvnContract);
 }
 
 async function getDefaultRelayer(call, request) {
@@ -356,11 +356,11 @@ async function getCurrentBlock(call, request) {
   return await query(call, request, method, params);
 }
 
-async function getChainInfo(call, request) {
+async function getChainInfo(call, request, filter) {
   const method = 'avnChainInfo';
   const params = { callId: call.id };
 
-  return await query(call, request, method, params);
+  return await query(call, request, method, params, filter);
 }
 
 async function query(call, request, method, params, responseFormatter) {
@@ -396,3 +396,7 @@ const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
 const formatEraAsString = data => (data ? data.current : 0);
 
 const filterNftOwner = data => (data ? data.owner : null);
+
+const filterAvnContract = data => (data ? data.avnContract : null);
+
+const filterAvtContract = data => (data ? data.avtContract : null);

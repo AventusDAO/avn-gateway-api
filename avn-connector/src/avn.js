@@ -421,11 +421,19 @@ async function startSubscriptions() {
   });
 }
 async function setChainInfo() {
+  // TODO: Remove defaulting to the old "liftingContractAddress" once the chain has been upgraded in all environments
+  let avnContract;
+  try {
+    avnContract = await api.query.avn.avnBridgeContractAddress();
+  } catch {
+    avnContract = await api.query.ethereumEvents.liftingContractAddress();
+  }
+
   const chainInfo = {
     name: await api.rpc.system.chain(),
     version: api.runtimeVersion.specVersion.toString(),
     avtContract: await api.query.tokenManager.avtTokenContract(),
-    avnContract: await api.query.ethereumEvents.liftingContractAddress()
+    avnContract
   };
   await redis.setChainInfo(chainInfo);
 }

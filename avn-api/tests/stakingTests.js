@@ -6,13 +6,13 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 const bnEquals = helper.bnEquals;
-const common = require('../lib/common.js');
 
 const user = accounts.user.address;
 const relayer = accounts.relayer.address;
 const rewardPayer = accounts.rewardPayer.address;
 const ONE_AVT = new BN('1000000000000000000');
 const ZERO = new BN('0');
+const STAKING_STATUS = { isStaking: 'isStaking', isNotStaking: 'isNotStaking' };
 
 const unlockStakedBalance = async api => {
   let activeEra = await api.query.getActiveEra();
@@ -27,14 +27,14 @@ const unlockStakedBalance = async api => {
 
 const firstTimeStake = async (api, amount) => {
   const requestId = await api.send.stake(amount);
-  await helper.confirmStatus(api, requestId, 'Processed');
+  await helper.confirmStatus(api.poll, requestId, 'Processed');
 };
 
 const forceRewards = async api => {
   let payerAvtBalance = new BN(await api.query.getAvtBalance(rewardPayer));
   if (payerAvtBalance.eq(new BN(0))) {
     const requestId = await api.send.transferAvt(rewardPayer, ONE_AVT);
-    await helper.confirmStatus(api, requestId, 'Processed');
+    await helper.confirmStatus(api.poll, requestId, 'Processed');
   }
 };
 
@@ -48,22 +48,25 @@ const withdrawStakedBalance = async (api, amount) => {
   ) {
     let stakedValue = amount ?? new BN(accountInfo?.stakedBalance);
     requestId = await api.send.unstake(stakedValue);
-    await helper.confirmStatus(api, requestId, 'Processed');
+    await helper.confirmStatus(api.poll, requestId, 'Processed');
   }
 
   accountInfo = await api.query.getAccountInfo(user);
   if (new BN(accountInfo?.unstakedBalance).gt(new BN(0))) await unlockStakedBalance(api);
 
   requestId = await api.send.withdrawUnlocked();
-  await helper.confirmStatus(api, requestId, 'Processed');
+  await helper.confirmStatus(api.poll, requestId, 'Processed');
 };
 
 describe('Staking', async () => {
-  let api;
+  let avnApi, api;
   let minimumFirstTimeStakingValue;
   let testsFirstTimeStakingValue;
   before(async () => {
-    api = await helper.avnApi();
+    avnApi = await helper.avnApi({
+      suri: accounts.user.seed
+    });
+    api = await avnApi.apis();
     let minStakingValuePerValidator = new BN(await api.query.getMinTotalNominatorStake());
     let validators = await api.query.getValidatorsToNominate();
     // We add one avt to the minimumStakingValue so we can use this value to setup tests that need to withdraw balance
@@ -79,7 +82,7 @@ describe('Staking', async () => {
 
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isStaking) await withdrawStakedBalance(api);
+        if (stakingStatus === STAKING_STATUS.isStaking) await withdrawStakedBalance(api);
         stakingBalanceBefore = await api.query.getAccountInfo(user);
         await firstTimeStake(api, testsFirstTimeStakingValue);
         stakingBalanceAfter = await api.query.getAccountInfo(user);
@@ -102,11 +105,12 @@ describe('Staking', async () => {
 
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
+        console.log(JSON.stringify(stakingStatus, null, 2));
+        if (stakingStatus === STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
         const requestId = await api.send.stake(ONE_AVT);
-        await helper.confirmStatus(api, requestId, 'Processed');
+        await helper.confirmStatus(api.poll, requestId, 'Processed');
         stakingBalanceAfter = await api.query.getAccountInfo(user);
       });
 
@@ -124,11 +128,11 @@ describe('Staking', async () => {
 
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
+        if (stakingStatus === STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
         const requestId = await api.send.unstake(ONE_AVT);
-        await helper.confirmStatus(api, requestId, 'Processed');
+        await helper.confirmStatus(api.poll, requestId, 'Processed');
         stakingBalanceAfter = await api.query.getAccountInfo(user);
       });
 
@@ -144,10 +148,10 @@ describe('Staking', async () => {
 
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isNotStaking) {
+        if (stakingStatus === STAKING_STATUS.isNotStaking) {
           await firstTimeStake(api, testsFirstTimeStakingValue);
           requestId = await api.send.unstake(ONE_AVT);
-          await helper.confirmStatus(api, requestId, 'Processed');
+          await helper.confirmStatus(api.poll, requestId, 'Processed');
         }
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
@@ -155,7 +159,7 @@ describe('Staking', async () => {
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
         requestId = await api.send.withdrawUnlocked();
-        await helper.confirmStatus(api, requestId, 'Processed');
+        await helper.confirmStatus(api.poll, requestId, 'Processed');
         stakingBalanceAfter = await api.query.getAccountInfo(user);
       });
 
@@ -179,7 +183,7 @@ describe('Staking', async () => {
 
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
+        if (stakingStatus === STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
         await withdrawStakedBalance(api);
@@ -200,7 +204,7 @@ describe('Staking', async () => {
 
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
+        if (stakingStatus === STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
 
         stakingBalanceBefore = await api.query.getAccountInfo(user);
         let withdrawValue = new BN(new BN(stakingBalanceBefore?.stakedBalance).sub(minimumFirstTimeStakingValue)).add(
@@ -224,7 +228,7 @@ describe('Staking', async () => {
 
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
+        if (stakingStatus === STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
 
         await forceRewards(api);
 
@@ -243,7 +247,7 @@ describe('Staking', async () => {
     describe('Stake', function () {
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isStaking) await withdrawStakedBalance(api);
+        if (stakingStatus === STAKING_STATUS.isStaking) await withdrawStakedBalance(api);
       });
       it('a null value', async () => {
         await expect(api.send.stake(null)).to.be.rejectedWith(/Invalid amount type:/);
@@ -262,20 +266,20 @@ describe('Staking', async () => {
       });
       it('less than minimum staking value', async () => {
         const requestId = await api.send.stake(minimumFirstTimeStakingValue.sub(ONE_AVT));
-        await helper.confirmStatus(api, requestId, 'Rejected');
+        await helper.confirmStatus(api.poll, requestId, 'Rejected');
       });
       it('more than your available balance', async () => {
         let accountBalances = await api.query.getAccountInfo(user);
         let stakingValue = new BN(accountBalances?.freeBalance).add(ONE_AVT);
         const requestId = await api.send.stake(stakingValue);
-        await helper.confirmStatus(api, requestId, 'Rejected');
+        await helper.confirmStatus(api.poll, requestId, 'Rejected');
       });
     });
 
     describe('Request to withdraw', function () {
       before(async () => {
         const stakingStatus = await api.query.getStakingStatus(user);
-        if (stakingStatus === common.STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
+        if (stakingStatus === STAKING_STATUS.isNotStaking) await firstTimeStake(api, testsFirstTimeStakingValue);
       });
       it('a null value', async () => {
         await expect(api.send.unstake(null)).to.be.rejectedWith(/Invalid amount type:/);
@@ -293,7 +297,7 @@ describe('Staking', async () => {
         let accountBalances = await api.query.getAccountInfo(user);
         let withdrawValue = new BN(accountBalances?.stakedBalance).add(ONE_AVT);
         const requestId = await api.send.unstake(withdrawValue);
-        await helper.confirmStatus(api, requestId, 'Rejected');
+        await helper.confirmStatus(api.poll, requestId, 'Rejected');
       });
     });
   });

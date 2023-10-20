@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '18'
 
       - name: Package Function
         run: make package version=${GITHUB_SHA::7}
@@ -49,7 +49,7 @@ jobs:
 
   upload-ew:
     runs-on: avn-runner
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref_name == 'main' }}
     needs:  [package]
     name: Upload lambdas to EW s3 bucket
     steps:

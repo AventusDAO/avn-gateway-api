@@ -1,9 +1,11 @@
-const AvnApi = require('avn-api');
+const {AvnApi} = require('avn-api');
 const assert = require('chai').assert;
 const BN = require('bn.js');
 const yargs = require('yargs');
 const fs = require('fs');
 const { randomAsHex } = require('@polkadot/util-crypto');
+const { Keyring } = require('@polkadot/keyring');
+const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
 
 let argv = yargs
   .usage('Run smoke tests using a given Gateway environment')
@@ -50,14 +52,14 @@ function bnEquals(a, b) {
   return assert.equal(new BN(a).toString(), new BN(b).toString());
 }
 
-async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMinutes) {
+async function confirmStatus(pollApi, requestId, expectedStatus, optionalTimeoutInMinutes) {
   console.log(`   - max polling wait: [${optionalTimeoutInMinutes ?? MAX_WAIT_TIME_IN_MINUTES}] minutes`);
   if (!requestId) throw new Error('RequestId cannot be null');
   let response, status;
 
   for (i = 0; i < ((optionalTimeoutInMinutes ?? MAX_WAIT_TIME_IN_MINUTES) * 60) / WAIT_INTERVAL_IN_SECS; i++) {
     await sleep(WAIT_INTERVAL_IN_SECS * 1000);
-    response = await api.poll.requestState(requestId);
+    response = await pollApi.requestState(requestId);
     status = response.status;
     // TODO: Remove " && status !== undefined" once dev env is reset
     if (status !== 'Pending' && status !== 'AwaitingToSend' && status !== 'Transaction not found' && status !== undefined) {
@@ -72,6 +74,13 @@ async function confirmStatus(api, requestId, expectedStatus, optionalTimeoutInMi
 
 function randomEthTxHash() {
   return randomAsHex();
+}
+
+async function remoteSigner(data, signerAddress, totalAccounts) {
+  totalAccounts = totalAccounts || accounts;
+  const signerSuri = Object.keys(totalAccounts).flatMap(a => totalAccounts[a].address === signerAddress ? [totalAccounts[a].seed] : [])[0];
+  const signer = keyring.addFromUri(signerSuri);
+  return signer.sign(data);
 }
 
 // keep alphabetical
@@ -89,5 +98,6 @@ module.exports = {
   bnEquals,
   randomEthTxHash,
   sleep,
-  token
+  token,
+  remoteSigner
 };

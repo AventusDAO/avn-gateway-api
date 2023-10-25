@@ -47,9 +47,9 @@ async function updateSummaries(avnContract) {
   return latestPublishedBlock;
 }
 
-async function retrieveLatestLowerTransactions(latestPublishedBlock) {
+async function retrieveLatestLowerTransactions(latestPublishedBlock, avtContract) {
   let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
-  const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
+  const lowerTransactions = await getLowerTransactions(retrieveFromBlock, avtContract);
 
   console.log(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
   for (let i = 0; i < lowerTransactions.length; i++) {

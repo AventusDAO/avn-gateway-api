@@ -168,10 +168,11 @@ async function getLowerTransactions(fromBlock) {
   let newLowers = [];
   let lowers = [];
   let fromId = generateId(fromBlock, 0);
+  const { avtContract } = await avn.getChainInfo();
 
   // Loop to retrieve lowers so as not to exceed the indexer limit:
   do {
-    newLowers = await getLowersFromIndexer(fromId, txLimit);
+    newLowers = await getLowersFromIndexer(fromId, txLimit, avtContract);
     if (newLowers.length > 0) {
       lowers = lowers.concat(newLowers);
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
@@ -182,8 +183,8 @@ async function getLowerTransactions(fromBlock) {
   return lowers;
 }
 
-async function getLowersFromIndexer(fromId, txLimit) {
-  const { avtContract } = await avn.getChainInfo();
+async function getLowersFromIndexer(fromId, txLimit, avtContract) {
+
   try {
     const query = `query ConnectorLower { events( where: { name_in:[ "TokenManager.TokenLowered", "TokenManager.AvtLowered"], call: { id_gte: "${fromId}" } },
         limit: ${txLimit}, orderBy: id_ASC) { args extrinsic { hash id indexInBlock block { height } } } }`;

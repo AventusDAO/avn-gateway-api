@@ -12,12 +12,12 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
-  const { avnContract, avtContract } = await redis.getChainInfo();
+  const { avnContract } = await avn.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
   console.log(`\tLatest block published: ${latestPublishedBlock}`);
 
-  await retrieveLatestLowerTransactions(latestPublishedBlock, avtContract);
+  await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
   await updateAwaitingClaimDataLowers();
   await updateUnclaimedLowers(avnContract, account);
@@ -47,9 +47,9 @@ async function updateSummaries(avnContract) {
   return latestPublishedBlock;
 }
 
-async function retrieveLatestLowerTransactions(latestPublishedBlock, avtContract) {
+async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
-  const lowerTransactions = await getLowerTransactions(retrieveFromBlock, avtContract);
+  const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
   console.log(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
   for (let i = 0; i < lowerTransactions.length; i++) {
@@ -161,7 +161,7 @@ async function updateUnclaimedLowers(avnContract, account) {
   console.log(`\tRecently claimed: ${claimed} `);
 }
 
-async function getLowerTransactions(fromBlock, avtContract) {
+async function getLowerTransactions(fromBlock) {
   const generateId = (block, index) =>
     [block.toString().padStart(10, '0'), index.toString().padStart(6, '0'), '00000'].join('-');
   const txLimit = 50;
@@ -171,7 +171,7 @@ async function getLowerTransactions(fromBlock, avtContract) {
 
   // Loop to retrieve lowers so as not to exceed the indexer limit:
   do {
-    newLowers = await getLowersFromIndexer(fromId, txLimit, avtContract);
+    newLowers = await getLowersFromIndexer(fromId, txLimit);
     if (newLowers.length > 0) {
       lowers = lowers.concat(newLowers);
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
@@ -182,7 +182,8 @@ async function getLowerTransactions(fromBlock, avtContract) {
   return lowers;
 }
 
-async function getLowersFromIndexer(fromId, txLimit, avtContract) {
+async function getLowersFromIndexer(fromId, txLimit) {
+  const { avtContract } = await avn.getChainInfo();
   try {
     const query = `query ConnectorLower { events( where: { name_in:[ "TokenManager.TokenLowered", "TokenManager.AvtLowered"], call: { id_gte: "${fromId}" } },
         limit: ${txLimit}, orderBy: id_ASC) { args extrinsic { hash id indexInBlock block { height } } } }`;

@@ -29,6 +29,7 @@ resource "aws_docdb_cluster" "docdb" {
   backup_retention_period = var.backup_retention_period
   preferred_backup_window = "02:00-04:00"
   skip_final_snapshot     = false
+  final_snapshot_identifier = "avn-connector-docdb-final-snap"
   apply_immediately       = var.apply_changes_immediately
   deletion_protection     = var.deletion_protection
   db_subnet_group_name    = aws_docdb_subnet_group.docdb.id

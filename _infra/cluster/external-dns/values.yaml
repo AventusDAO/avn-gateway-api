@@ -1,9 +1,0 @@
-external-dns:
-  provider: aws
-  policy: sync
-  txtOwnerId: zone-id
-  registry: txt
-
-  serviceAccount:
-    create: false
-    name: external-dns

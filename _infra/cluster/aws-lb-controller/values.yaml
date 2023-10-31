@@ -1,7 +1,0 @@
-aws-load-balancer-controller:
-  clusterName: avn-gateway
-
-  serviceAccount:
-    # use pregenerated serviceaccount
-    create: false
-    name: aws-load-balancer-controller

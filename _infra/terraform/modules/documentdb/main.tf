@@ -28,7 +28,7 @@ resource "aws_docdb_cluster" "docdb" {
   master_password         = local.user.password
   backup_retention_period = var.backup_retention_period
   preferred_backup_window = "02:00-04:00"
-  skip_final_snapshot     = true
+  skip_final_snapshot     = false
   apply_immediately       = var.apply_changes_immediately
   deletion_protection     = var.deletion_protection
   db_subnet_group_name    = aws_docdb_subnet_group.docdb.id

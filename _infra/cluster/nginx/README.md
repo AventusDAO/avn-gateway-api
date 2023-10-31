@@ -1,3 +1,0 @@
-## Nginx ingress
-Deploys the nginx ingress. An ephemeral environment will need to be deployed with an internal Rabbit cluster that Lambda functions can can work with. This requires expsoing the rabbit port via the L4 AWS Loadbalancer through the `values-ephemeral.yaml` config. Traffic can then be directly proxied to the rabbitmq service - this will be the `rabbit-rabbitmq:5672` service in the `dev`namespace.
-Test and Mainnet do not require a Rabbit listener in the L4 Loadbalancer and will use the simpler `values.yaml`.

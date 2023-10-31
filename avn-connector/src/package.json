@@ -5,9 +5,7 @@
   "private": true,
   "description": "Connects to the AVN and keeps connection in memory",
   "scripts": {
-    "start": "node index.js",
-    "ssh": "ssh -N -L 27017:172.16.12.33:27017 ubuntu@18.135.125.46",
-    "insertTestFees": "concurrently \"npm run ssh\" \"node scripts/insertTestFees.js\" --kill-others"
+    "start": "node index.js"
   },
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.39.0",
@@ -23,7 +21,6 @@
     "lodash": "^4.17.21",
     "log4js": "^6.3.0",
     "log4js-json-layout": "^2.2.3",
-    "mongodb": "^3.6.4",
     "multiconfig": "^1.1.6",
     "pg": "^8.8.0",
     "reflect-metadata": "^0.1.13",

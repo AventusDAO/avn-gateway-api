@@ -25,14 +25,6 @@ module "rabbitmq" {
   deployment_mode          = "CLUSTER_MULTI_AZ"
 }
 
-module "documentdb" {
-  source = "../../../modules/documentdb"
-
-  subnet_ids               = data.terraform_remote_state.vpc.outputs.private_subnets
-  vpc_id                   = data.terraform_remote_state.vpc.outputs.vpc_id
-  additional_whitelist_ips = [module.bastion.private_cidr]
-}
-
 module "redis" {
   source = "../../../modules/redis"
 

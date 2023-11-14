@@ -1,6 +1,8 @@
-const {S3Client} = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand, ListObjectsV2Command, PutObjectCommand } = require('@aws-sdk/client-s3');
+
 const s3 = new S3Client();
 const utils = require('/opt/utils.js');
+const { Readable } = require('stream');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 const AVN_VOTES_BUCKET = process.env.AVN_VOTES_BUCKET;
@@ -128,8 +130,10 @@ async function getProposalData(proposal) {
 
   try {
     const s3Params = { Bucket: AVN_VOTES_BUCKET, Key: proposal + '.json' };
-    const data = await s3.getObject(s3Params).promise();
-    proposalData = JSON.parse(data.Body.toString());
+    const data = await s3.send(new GetObjectCommand(s3Params));
+    const bodyStream = Readable.from(data.Body);
+    const bodyData = (await bodyStream.toArray()).map(chunk => chunk.toString()).join('');
+    proposalData = JSON.parse(bodyData);
   } catch (err) {
     console.log(err);
   }
@@ -142,7 +146,8 @@ async function listProposals() {
 
   try {
     const s3Params = { Bucket: AVN_VOTES_BUCKET };
-    proposalList = (await s3.listObjectsV2(s3Params).promise()).Contents.map(c => c.Key.split('.')[0]);
+    const data = await s3.send(new ListObjectsV2Command(s3Params));
+    proposalList = data.Contents.map(c => c.Key.split('.')[0]);
   } catch (err) {
     console.log(err);
   }
@@ -153,7 +158,7 @@ async function listProposals() {
 async function updateProposalData(proposal, proposalData) {
   try {
     const s3Params = { Bucket: AVN_VOTES_BUCKET, Key: proposal + '.json', Body: JSON.stringify(proposalData) };
-    await s3.putObject(s3Params).promise();
+    await s3.send(new PutObjectCommand(s3Params));
   } catch (err) {
     console.log(err);
   }

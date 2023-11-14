@@ -128,12 +128,28 @@ describe('Access rights:', async () => {
 
         await expect(helper.avnApi(options)).to.be.rejectedWith(`In multi user mode, you must use a remote signer`);
       });
+
+      it('validates offline mode', async () => {
+        const options = {
+          setupMode: SetupMode.Offline
+        };
+
+        const avnGateway = await helper.avnApi(options);
+        assert.equal(avnGateway.options.setupMode, SetupMode.Offline);
+      });
     });
 
     describe('Signing mode', async () => {
       it('can set a remote signer', async () => {
+        // update options.signer to include a new property called avnAddress
+
+        const newSigner = {
+          sign: signer.sign,
+          address: accounts.user.address
+        }
+
         const options = {
-          signer,
+          signer: newSigner,
           signingMode: SigningMode.RemoteSigner,
         };
 

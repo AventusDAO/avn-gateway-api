@@ -20,7 +20,7 @@ pipeline {
     }
     parameters {
         choice(name: 'Chain', choices: ['uat', 'public_testnet'], description: 'Choose which chain to test');
-        choice(name: 'Test', choices: ['All', 'Configuration', 'apiOffline', 'accessTests', 'awtTest', 'Utils'], description: 'Choose which test to run');
+        choice(name: 'Test', choices: ['All', 'configurationTests', 'accountFunding', 'apiOffline', 'accessTests', 'awtTest', 'utilsTest', 'pollApiTest', 'proxyApiTest', 'queryApiTest', 'sendApiTest', 'relayerFees', 'splitFees', 'stakingTests', 'remoteSignerTests'], description: 'Choose which test to run');
         string(name: 'Descriptive_name', defaultValue: '', description: 'Give a descriptive name to your test run');
     }
     stages {

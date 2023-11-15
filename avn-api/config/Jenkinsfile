@@ -20,6 +20,7 @@ pipeline {
     }
     parameters {
         choice(name: 'Chain', choices: ['uat', 'public_testnet'], description: 'Choose which chain to test');
+        choice(name: 'Test type', choices: ['All', 'Configuration', 'apiOffline', 'accessTests'], description: 'Choose which test to run');
         string(name: 'Descriptive_name', defaultValue: '', description: 'Give a descriptive name to your test run');
     }
     stages {

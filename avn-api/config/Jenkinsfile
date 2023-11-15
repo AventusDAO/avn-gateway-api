@@ -60,11 +60,14 @@ pipeline {
         stage('Gateway tests') {
             steps {
                 script {
-                    if(params.Test == 'awtTest') {
-                        sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT}"
-                    } else {
-                        sh "npm run utilsTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT}"
+                    if(params.Test != 'All') {
+                        sh "npm run ${params.Test} ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT}"
                     }
+                    // if(params.Test == 'awtTest') {
+                    //     sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT}"
+                    // } else {
+                    //     sh "npm run utilsTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT}"
+                    // }
                 }
 
             }

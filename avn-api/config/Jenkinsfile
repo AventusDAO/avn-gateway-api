@@ -55,14 +55,15 @@ pipeline {
                 script {
                     if(params.Test != 'All') {
                         sh "npm run ${params.Test} ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT}"
-                    } else {
-                        stage('Account Funding') {
-                            steps {
-                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    sh "npm run accountFunding ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accountFundingReport;"
-                                }
+                        return
+                    }
+                    stage('Account Funding') {
+                        steps {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                sh "npm run accountFunding ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accountFundingReport;"
                             }
                         }
+                    }
                         // parallel {
                         //     stage('Gateway Api: apiOffline Test') {
                         //         steps {
@@ -180,7 +181,7 @@ pipeline {
                         //         }
                         //     }
                         // }
-                    }
+                    // }
 
                 }
 

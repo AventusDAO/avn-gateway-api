@@ -20,7 +20,7 @@ pipeline {
       steps {
         checkout([
             $class: 'GitSCM',
-            branches: [[name: 'refs/heads/DEVOPS-587-renew-cba-cert-fix']],
+            branches: [[name: 'refs/heads/main']],
             doGenerateSubmoduleConfigurations: false,
             extensions: [[$class: 'CleanCheckout']],
             submoduleCfg: [],

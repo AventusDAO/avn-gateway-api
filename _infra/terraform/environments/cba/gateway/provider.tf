@@ -5,6 +5,7 @@ terraform {
     key                    = "env:/cba/gateway-api/state3.tfstate"
     region                 = "eu-west-2"
     skip_region_validation = "true"
+    role_arn               = "arn:aws:iam::602004642405:role/jenkins-access"
   }
 
   required_version = ">= 0.14"
@@ -20,9 +21,10 @@ terraform {
 data "terraform_remote_state" "vpc" {
   backend = "s3"
   config = {
-    bucket = "tf-state-avn-1"
-    key    = "env:/cba/gateway-api/vpc/terraform.tfstate"
-    region = "eu-west-2"
+    bucket   = "tf-state-avn-1"
+    key      = "env:/cba/gateway-api/vpc/terraform.tfstate"
+    region   = "eu-west-2"
+    role_arn = "arn:aws:iam::602004642405:role/jenkins-access"
   }
 }
 

@@ -5,6 +5,7 @@ terraform {
     key                    = "env:/production/mainnet/avn-gateway/terraform.tfstate"
     region                 = "eu-west-2"
     skip_region_validation = "true"
+    role_arn               = "arn:aws:iam::503742778456:role/jenkins-access"
   }
 
   required_version = ">= 0.14"
@@ -23,12 +24,13 @@ data "terraform_remote_state" "vpc" {
     bucket = "tf-state-avn-1"
     key    = "env:/production/mainnet/avn-gateway/vpc/terraform.tfstate"
     region = "eu-west-2"
+    role_arn               = "arn:aws:iam::503742778456:role/jenkins-access"
   }
 }
 
 provider "aws" {
   region = var.region
-  
+
   assume_role {
     role_arn = "arn:aws:iam::503742778456:role/jenkins-access"
   }
@@ -49,5 +51,5 @@ provider "aws" {
 
   assume_role {
     role_arn = "arn:aws:iam::503742778456:role/jenkins-access"
-  }  
+  }
 }

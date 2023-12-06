@@ -54,17 +54,53 @@ pipeline {
             steps {
                 script {
                     if(params.Test != 'All') {
+                        echo "Running ${params.Test} test on ${params.chain}"
                         sh "npm run ${params.Test} ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT}"
                         return
                     } else {
-                        echo 'Running all tests'
+                        echo "Running all tests on ${params.chain}"
                         // Add stages for running all tests
                         stage('Account Funding') {
-                            // steps {
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                 sh "npm run accountFunding ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accountFundingReport;"
                             }
-                            // }
+                        }
+                        parallel {
+                            stage('Gateway Api: apiOffline Test') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run apiOffline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
+                                }
+                            }
+                            stage('Gateway Api: configuration Test') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run configurationTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
+                                }
+                            }
+                            stage('Gateway Api: Awt Test') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
+                                }
+                            }
+                            stage('Gateway Api: Utils') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run utilsTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsReport;"
+                                }
+                            }
+                            stage('Gateway Api: Poll') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run pollApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=pollApiReport;"
+                                }
+                            }
+                            stage('Gateway Api: Query') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run queryApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                                }
+                            }
+                            stage('Gateway Api: relayerFees') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run relayerFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                                }
+                            }
                         }
                     }
                 }

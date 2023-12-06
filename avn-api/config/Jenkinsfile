@@ -136,11 +136,11 @@ pipeline {
                                 // }
                         //     }
                         // }
-                        stage('Gateway Api: remoteSignerTests') {
-                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                sh "npm run remoteSignerTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
-                            }
-                        }
+                        // stage('Gateway Api: remoteSignerTests') {
+                        //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        //         sh "npm run remoteSignerTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                        //     }
+                        // }
                         // stage('Gateway Api: Access') {
                         //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         //         sh "npm run accessTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"

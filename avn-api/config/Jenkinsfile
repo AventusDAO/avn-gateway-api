@@ -76,9 +76,11 @@ pipeline {
 
                             parallelStages.each { stageName ->
                                 parallelConfig["${stageName}"] = {
-                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        script {
-                                            sh "npm run ${stageName.replaceAll(' ', '')} ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=${stageName.replaceAll(' ', '')}Report;"
+                                    stage("${stageName}") {
+                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                            script {
+                                                sh "npm run ${stageName.replaceAll(' ', '')} ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=${stageName.replaceAll(' ', '')}Report;"
+                                            }
                                         }
                                     }
                                 }

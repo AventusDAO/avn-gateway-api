@@ -66,7 +66,7 @@ pipeline {
                             }
                         }
                         stage('Parallel tests') {
-                            parallel (
+                            parallel {
                                 stage('Gateway Api: apiOffline Test') {
                                     steps {
                                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -111,7 +111,7 @@ pipeline {
                                 //         sh "npm run relayerFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=relayerFeesReport;"
                                 //     }
                                 // }
-                            )
+                            }
                         }
                         stage('Gateway Api: remoteSignerTests') {
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {

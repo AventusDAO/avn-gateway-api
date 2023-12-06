@@ -65,8 +65,8 @@ pipeline {
                                 sh "npm run accountFunding ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accountFundingReport;"
                             }
                         }
-                        // stage('Parallel tests') {
-                        //     parallel {
+                        stage('Parallel tests') {
+                            parallel {
                                 stage('Gateway Api: apiOffline Test') {
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                         sh "npm run apiOffline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
@@ -102,8 +102,8 @@ pipeline {
                                         sh "npm run relayerFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
                                     }
                                 }
-                        //     }
-                        // }
+                            }
+                        }
                         stage('Gateway Api: remoteSignerTests') {
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                 sh "npm run remoteSignerTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"

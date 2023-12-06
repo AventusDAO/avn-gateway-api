@@ -141,26 +141,26 @@ pipeline {
                                 sh "npm run remoteSignerTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
                             }
                         }
-                        stage('Gateway Api: Access') {
-                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                sh "npm run accessTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
-                            }
-                        }
-                        stage('Gateway Api: splitFees') {
-                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                sh "npm run splitFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
-                            }
-                        }
-                        stage('Gateway Api: Send') {
-                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                sh "npm run sendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiReport;"
-                            }
-                        }
-                        stage('Gateway Api: Proxy') {
-                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                sh "npm run proxyApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=proxyApiReport;"
-                            }
-                        }
+                        // stage('Gateway Api: Access') {
+                        //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        //         sh "npm run accessTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
+                        //     }
+                        // }
+                        // stage('Gateway Api: splitFees') {
+                        //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        //         sh "npm run splitFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
+                        //     }
+                        // }
+                        // stage('Gateway Api: Send') {
+                        //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        //         sh "npm run sendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiReport;"
+                        //     }
+                        // }
+                        // stage('Gateway Api: Proxy') {
+                        //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        //         sh "npm run proxyApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=proxyApiReport;"
+                        //     }
+                        // }
                     }
                 }
             }

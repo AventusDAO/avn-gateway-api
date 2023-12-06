@@ -60,11 +60,11 @@ pipeline {
                         echo 'Running all tests'
                         // Add stages for running all tests
                         stage('Account Funding') {
-                            steps {
-                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    sh "npm run accountFunding ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accountFundingReport;"
-                                }
+                            // steps {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                sh "npm run accountFunding ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accountFundingReport;"
                             }
+                            // }
                         }
                     }
                 }

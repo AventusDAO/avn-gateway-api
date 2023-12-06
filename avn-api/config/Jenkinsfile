@@ -66,15 +66,15 @@ pipeline {
                             }
                         }
                         stage('Parallel tests') {
-                            parallel {
+                            parallel (
                                 stage('Gateway Api: apiOffline Test') {
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        sh "npm run apiOffline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
+                                        sh "npm run apiOffline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=apiOfflineReport;"
                                     }
                                 }
                                 stage('Gateway Api: configuration Test') {
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        sh "npm run configurationTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
+                                        sh "npm run configurationTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=configurationReport;"
                                     }
                                 }
                                 stage('Gateway Api: Awt Test') {
@@ -99,10 +99,10 @@ pipeline {
                                 }
                                 stage('Gateway Api: relayerFees') {
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        sh "npm run relayerFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                                        sh "npm run relayerFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=relayerFeesReport;"
                                     }
                                 }
-                            }
+                            )
                         }
                         stage('Gateway Api: remoteSignerTests') {
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {

@@ -20,7 +20,9 @@ pipeline {
     }
     parameters {
         choice(name: 'Chain', choices: ['uat', 'public_testnet'], description: 'Choose which chain to test');
-        choice(name: 'Test', choices: ['All', 'configurationTests', 'accountFunding', 'apiOffline', 'accessTests', 'awtTest', 'utilsTest', 'pollApiTest', 'proxyApiTest', 'queryApiTest', 'sendApiTest', 'relayerFees', 'splitFees', 'stakingTests', 'remoteSignerTests'], description: 'Choose which test to run');
+        choice(name: 'Test', choices: ['All', 'configurationTests', 'accountFunding', 'apiOffline', 'accessTests', 'awtTest',
+        'utilsTest', 'pollApiTest', 'proxyApiTest', 'queryApiTest', 'sendApiTest', 'relayerFees', 'splitFees', 'stakingTests',
+        'remoteSignerTests'], description: 'Choose which test to run');
         string(name: 'Descriptive_name', defaultValue: '', description: 'Give a descriptive name to your test run');
     }
     stages {
@@ -65,15 +67,17 @@ pipeline {
                                 sh "npm run accountFunding ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accountFundingReport;"
                             }
                         }
-
                         script {
                             def parallelStages = [
                                 'awtTest',
-                                'configurationTests'
+                                'configurationTests',
+                                'apiOffline',
+                                'utilsTest',
+                                'pollApiTest',
+                                'relayerFees',
+                                'queryApiTest'
                             ]
-
                             def parallelConfig = [:]
-
                             parallelStages.each { stageName ->
                                 parallelConfig["${stageName}"] = {
                                     stage("${stageName}") {
@@ -85,59 +89,8 @@ pipeline {
                                     }
                                 }
                             }
-
                             parallel parallelConfig
                         }
-
-
-                        // stage('Parallel tests') {
-                        //     parallel {}
-                        //         stage('Gateway Api: apiOffline Test') {
-                        //             steps {
-                        //                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        //                     script {
-                        //                         sh "npm run apiOffline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=apiOfflineReport;"
-                        //                     }
-                        //                 }
-                        //             }
-
-                        //         }
-                        //         stage('Gateway Api: configuration Test') {
-                        //             steps {
-                        //                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        //                     script {
-                        //                         sh "npm run configurationTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=configurationReport;"
-                        //                     }
-                        //                 }
-                        //             }
-                        //         }
-                                // stage('Gateway Api: Awt Test') {
-                                //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                //         sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"
-                                //     }
-                                // }
-                                // stage('Gateway Api: Utils') {
-                                //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                //         sh "npm run utilsTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsReport;"
-                                //     }
-                                // }
-                                // stage('Gateway Api: Poll') {
-                                //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                //         sh "npm run pollApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=pollApiReport;"
-                                //     }
-                                // }
-                                // stage('Gateway Api: Query') {
-                                //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                //         sh "npm run queryApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
-                                //     }
-                                // }
-                                // stage('Gateway Api: relayerFees') {
-                                //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                //         sh "npm run relayerFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=relayerFeesReport;"
-                                //     }
-                                // }
-                        //     }
-                        // }
                         // stage('Gateway Api: remoteSignerTests') {
                         //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         //         sh "npm run remoteSignerTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"

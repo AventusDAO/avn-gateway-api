@@ -67,25 +67,29 @@ pipeline {
                         }
                         stage('Parallel tests') {
                             parallel {
-                                stage('Gateway Api: apiOffline Test') {
-                                    steps {
-                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                            script {
-                                                sh "npm run apiOffline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=apiOfflineReport;"
+                                'first': {
+                                    stage('Gateway Api: apiOffline Test') {
+                                        steps {
+                                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                                script {
+                                                    sh "npm run apiOffline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=apiOfflineReport;"
+                                                }
                                             }
                                         }
                                     }
+                                },
+                                'second': {
+                                    stage('Gateway Api: configuration Test') {
+                                        steps {
+                                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                                script {
+                                                    sh "npm run configurationTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=configurationReport;"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
 
-                                }
-                                stage('Gateway Api: configuration Test') {
-                                    steps {
-                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                            script {
-                                                sh "npm run configurationTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=configurationReport;"
-                                            }
-                                        }
-                                    }
-                                }
                                 // stage('Gateway Api: Awt Test') {
                                 //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                 //         sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=awtReport;"

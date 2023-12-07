@@ -24,6 +24,7 @@ pipeline {
         'utilsTest', 'pollApiTest', 'proxyApiTest', 'queryApiTest', 'sendApiTest', 'relayerFees', 'splitFees', 'stakingTests',
         'remoteSignerTests'], description: 'Choose which test to run');
         string(name: 'Descriptive_name', defaultValue: '', description: 'Give a descriptive name to your test run');
+        multiselect(name: 'MultipleOptions', choices: ['Option1', 'Option2', 'Option3'], description: 'Choose multiple options');
     }
     stages {
         stage('Build') {

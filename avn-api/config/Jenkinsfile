@@ -19,11 +19,11 @@ pipeline {
         cron('0 0 * * *')
     }
     parameters {
+        string(name: 'Report_name', defaultValue: '', description: 'Give a descriptive name to your test run');
         choice(name: 'Chain', choices: ['uat', 'public_testnet'], description: 'Choose which chain to test');
-        choice(name: 'Test', choices: ['All', 'configurationTests', 'accountFunding', 'apiOffline', 'accessTests', 'awtTest',
-        'utilsTest', 'pollApiTest', 'proxyApiTest', 'queryApiTest', 'sendApiTest', 'relayerFees', 'splitFees', 'stakingTests',
-        'remoteSignerTests'], description: 'Choose which test to run');
-        string(name: 'Descriptive_name', defaultValue: '', description: 'Give a descriptive name to your test run');
+        // choice(name: 'Test', choices: ['All', 'configurationTests', 'accountFunding', 'apiOffline', 'accessTests', 'awtTest',
+        // 'utilsTest', 'pollApiTest', 'proxyApiTest', 'queryApiTest', 'sendApiTest', 'relayerFees', 'splitFees', 'stakingTests',
+        // 'remoteSignerTests'], description: 'Choose which test to run');
         booleanParam(name: 'All', defaultValue: false, description: 'Run all tests');
         booleanParam(name: 'configurationTests', defaultValue: false, description: 'Run configurationTests');
         booleanParam(name: 'accountFunding', defaultValue: false, description: 'Run accountFunding');
@@ -69,7 +69,7 @@ pipeline {
         stage('Gateway tests') {
             steps {
                 script {
-                    if(params.Test != 'All') {
+                    if(params.All) {
                         echo "Running ${params.Test} test on ${params.chain}"
                         sh "npm run ${params.Test} ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT}"
                         return

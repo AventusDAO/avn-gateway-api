@@ -24,7 +24,20 @@ pipeline {
         'utilsTest', 'pollApiTest', 'proxyApiTest', 'queryApiTest', 'sendApiTest', 'relayerFees', 'splitFees', 'stakingTests',
         'remoteSignerTests'], description: 'Choose which test to run');
         string(name: 'Descriptive_name', defaultValue: '', description: 'Give a descriptive name to your test run');
-        multiselect(name: 'MultipleOptions', choices: ['Option1', 'Option2', 'Option3'], description: 'Choose multiple options');
+        booleanParam(name: 'All', defaultValue: false, description: 'Run all tests');
+        booleanParam(name: 'configurationTests', defaultValue: false, description: 'Run configurationTests');
+        booleanParam(name: 'accountFunding', defaultValue: false, description: 'Run accountFunding');
+        booleanParam(name: 'apiOffline', defaultValue: false, description: 'Run apiOffline');
+        booleanParam(name: 'accessTests', defaultValue: false, description: 'Run accessTests');
+        booleanParam(name: 'awtTest', defaultValue: false, description: 'Run awtTest');
+        booleanParam(name: 'utilsTest', defaultValue: false, description: 'Run utilsTest');
+        booleanParam(name: 'pollApiTest', defaultValue: false, description: 'Run pollApiTest');
+        booleanParam(name: 'proxyApiTest', defaultValue: false, description: 'Run proxyApiTest');
+        booleanParam(name: 'queryApiTest', defaultValue: false, description: 'Run queryApiTest');
+        booleanParam(name: 'sendApiTest', defaultValue: false, description: 'Run sendApiTest');
+        booleanParam(name: 'relayerFees', defaultValue: false, description: 'Run relayerFees');
+        booleanParam(name: 'splitFees', defaultValue: false, description: 'Run splitFees');
+        booleanParam(name: 'stakingTests', defaultValue: false, description: 'Run stakingTests');
     }
     stages {
         stage('Build') {

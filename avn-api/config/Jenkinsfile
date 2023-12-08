@@ -21,9 +21,6 @@ pipeline {
     parameters {
         string(name: 'Report_name', defaultValue: '', description: 'Give a descriptive name to your test run');
         choice(name: 'Chain', choices: ['uat', 'public_testnet'], description: 'Choose which chain to test');
-        // choice(name: 'Test', choices: ['All', 'configurationTests', 'accountFunding', 'apiOffline', 'accessTests', 'awtTest',
-        // 'utilsTest', 'pollApiTest', 'proxyApiTest', 'queryApiTest', 'sendApiTest', 'relayerFees', 'splitFees', 'stakingTests',
-        // 'remoteSignerTests'], description: 'Choose which test to run');
         booleanParam(name: 'All', defaultValue: false, description: 'Run all tests');
         booleanParam(name: 'configurationTests', defaultValue: false, description: 'Run configurationTests');
         booleanParam(name: 'apiOffline', defaultValue: false, description: 'Run apiOffline');
@@ -55,11 +52,9 @@ pipeline {
                     if (params.Chain == 'uat') {
                         env.ACCOUNTS = env.SECRET_UAT_ACCOUNTS_FILE
                         env.ENVIRONMENT = env.SECRET_UAT_ENVIRONMENT_FILE
-                        // env.AVN_SURI = env.UAT_USER_SEED
                     } else if (params.Chain == 'public_testnet') {
                         env.ACCOUNTS = env.SECRET_PUBLIC_TESTNET_ACCOUNTS_FILE
                         env.ENVIRONMENT = env.SECRET_PUBLIC_TESTNET_ENVIRONMENT_FILE
-                        // env.AVN_SURI = env.PUBLIC_TESTNET_USER_SEED
                     } else {
                         sh 'echo "No chain selected"'
                     }

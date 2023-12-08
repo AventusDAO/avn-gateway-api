@@ -69,7 +69,7 @@ pipeline {
         stage('Gateway tests') {
             steps {
                 script {
-                    if(params.All) {
+                    if(!params.All) {
                         echo "Running ${params.Test} test on ${params.chain}"
                         sh "npm run ${params.Test} ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT}"
                         return

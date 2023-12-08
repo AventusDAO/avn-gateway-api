@@ -26,8 +26,6 @@ pipeline {
         // 'remoteSignerTests'], description: 'Choose which test to run');
         booleanParam(name: 'All', defaultValue: false, description: 'Run all tests');
         booleanParam(name: 'configurationTests', defaultValue: false, description: 'Run configurationTests');
-        booleanParam(name: 'remoteSignerTests', defaultValue: false, description: 'Run remoteSignerTests');
-        booleanParam(name: 'accessTests', defaultValue: false, description: 'Run accessTests');
         booleanParam(name: 'apiOffline', defaultValue: false, description: 'Run apiOffline');
         booleanParam(name: 'accessTests', defaultValue: false, description: 'Run accessTests');
         booleanParam(name: 'awtTest', defaultValue: false, description: 'Run awtTest');
@@ -38,6 +36,7 @@ pipeline {
         booleanParam(name: 'sendApiTest', defaultValue: false, description: 'Run sendApiTest');
         booleanParam(name: 'relayerFees', defaultValue: false, description: 'Run relayerFees');
         booleanParam(name: 'splitFees', defaultValue: false, description: 'Run splitFees');
+        booleanParam(name: 'remoteSignerTests', defaultValue: false, description: 'Run remoteSignerTests');
         booleanParam(name: 'stakingTests', defaultValue: false, description: 'Run stakingTests');
     }
     stages {
@@ -90,10 +89,78 @@ pipeline {
                                 }
                             }
                         }
-                        // return
+                        if (params.apiOffline) {
+                            stage('Gateway Api: apiOffline') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run apiOffline ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                                }
+                            }
+                        }
+                        if (params.awtTest) {
+                            stage('Gateway Api: awtTest') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run awtTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
+                                }
+                            }
+                        }
+                        if (params.utilsTest) {
+                            stage('Gateway Api: utilsTest') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run utilsTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                                }
+                            }
+                        }
+                        if (params.pollApiTest) {
+                            stage('Gateway Api: pollApiTest') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run pollApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
+                                }
+                            }
+                        }
+                        if (params.proxyApiTest) {
+                            stage('Gateway Api: proxyApiTest') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run proxyApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                                }
+                            }
+                        }
+                        if (params.queryApiTest) {
+                            stage('Gateway Api: queryApiTest') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run queryApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
+                                }
+                            }
+                        }
+                        if (params.sendApiTest) {
+                            stage('Gateway Api: sendApiTest') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run sendApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                                }
+                            }
+                        }
+                        if (params.relayerFees) {
+                            stage('Gateway Api: relayerFees') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run relayerFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
+                                }
+                            }
+                        }
+                        if (params.splitFees) {
+                            stage('Gateway Api: splitFees') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run splitFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiReport;"
+                                }
+                            }
+                        }
+                        if (params.stakingTests) {
+                            stage('Gateway Api: stakingTests') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh "npm run stakingTests ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
+                                }
+                            }
+                        }
                     } else {
                         echo "Running all tests on ${params.chain}"
-                        // Add stages for running all tests
                         stage('Account Funding') {
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                 sh "npm run accountFunding ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accountFundingReport;"

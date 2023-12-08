@@ -22,19 +22,19 @@ pipeline {
         string(name: 'Report_name', defaultValue: '', description: 'Give a descriptive name to your test run');
         choice(name: 'Chain', choices: ['uat', 'public_testnet'], description: 'Choose which chain to test');
         booleanParam(name: 'All', defaultValue: false, description: 'Run all tests');
-        booleanParam(name: 'configurationTests', defaultValue: false, description: 'Run configurationTests');
-        booleanParam(name: 'apiOffline', defaultValue: false, description: 'Run apiOffline');
-        booleanParam(name: 'accessTests', defaultValue: false, description: 'Run accessTests');
-        booleanParam(name: 'awtTest', defaultValue: false, description: 'Run awtTest');
-        booleanParam(name: 'utilsTest', defaultValue: false, description: 'Run utilsTest');
-        booleanParam(name: 'pollApiTest', defaultValue: false, description: 'Run pollApiTest');
-        booleanParam(name: 'proxyApiTest', defaultValue: false, description: 'Run proxyApiTest');
-        booleanParam(name: 'queryApiTest', defaultValue: false, description: 'Run queryApiTest');
-        booleanParam(name: 'sendApiTest', defaultValue: false, description: 'Run sendApiTest');
-        booleanParam(name: 'relayerFees', defaultValue: false, description: 'Run relayerFees');
-        booleanParam(name: 'splitFees', defaultValue: false, description: 'Run splitFees');
-        booleanParam(name: 'remoteSignerTests', defaultValue: false, description: 'Run remoteSignerTests');
-        booleanParam(name: 'stakingTests', defaultValue: false, description: 'Run stakingTests');
+        booleanParam(name: 'configurationTests', defaultValue: false);
+        booleanParam(name: 'apiOffline', defaultValue: false);
+        booleanParam(name: 'accessTests', defaultValue: false);
+        booleanParam(name: 'awtTest', defaultValue: false);
+        booleanParam(name: 'utilsTest', defaultValue: false);
+        booleanParam(name: 'pollApiTest', defaultValue: false);
+        booleanParam(name: 'proxyApiTest', defaultValue: false);
+        booleanParam(name: 'queryApiTest', defaultValue: false);
+        booleanParam(name: 'sendApiTest', defaultValue: false);
+        booleanParam(name: 'relayerFees', defaultValue: false);
+        booleanParam(name: 'splitFees', defaultValue: false);
+        booleanParam(name: 'remoteSignerTests', defaultValue: false);
+        booleanParam(name: 'stakingTests', defaultValue: false);
     }
     stages {
         stage('Build') {

@@ -168,8 +168,7 @@ pipeline {
                                 'apiOffline',
                                 'utilsTest',
                                 'pollApiTest',
-                                'relayerFees',
-                                'queryApiTest'
+                                'relayerFees'
                             ]
                             def parallelConfig = [:]
                             parallelStages.each { stageName ->
@@ -198,6 +197,11 @@ pipeline {
                         stage('Gateway Api: splitFees') {
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                 sh "npm run splitFees ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;"
+                            }
+                        }
+                        stage('Gateway Api: Query') {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                sh "npm run queryApiTest ${params.Chain} -- --accounts=${ACCOUNTS} --environment=${ENVIRONMENT} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiReport;"
                             }
                         }
                         stage('Gateway Api: Send') {

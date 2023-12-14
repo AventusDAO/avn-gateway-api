@@ -46,7 +46,7 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     const successFilter = ['System.ExtrinsicSuccess'];
     const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
     // Any extrinsics for which we wish to capture event output can be added to the argsFilter:
-    const argsFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated'];
+    const argsFilter = ['NftManager.SingleNftMinted', 'NftManager.BatchNftMinted', 'NftManager.BatchCreated', 'TokenManager.LowerRequested'];
     const extrinsicFilter = successFilter.concat(failureFilter).concat(argsFilter);
     const limit = Math.min(extrinsicFilter.length * transactionHashes.length, 2500);
     const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}},

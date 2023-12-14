@@ -209,7 +209,7 @@ async function processProxyAddEthereumLog(call, mqChannel, request, requestId) {
 
 async function processProxyTokenLower(call, mqChannel, request, requestId) {
   const pallet = 'tokenManager';
-  const method = 'signedLower';
+  const method = 'scheduleSignedLower';
   let { user, token, amount, t1Recipient, relayer, nonce, proxySignature } = call.params;
   const methodParams = [user, token, amount, t1Recipient];
 

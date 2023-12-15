@@ -87,8 +87,8 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
-async function claimLowers(avnContract, unclaimedLowers, lastClaimedLowerId, loweringAccountPrivateKey) {
-  if (Object.keys(unclaimedLowers).length === 0) return;
+async function claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId, loweringAccountPrivateKey) {
+  if (Object.keys(unclaimedLowerProofs).length === 0) return;
 
   const signer = = new ethers.Wallet(loweringAccountPrivateKey, provider);
   const avnBridge = new ethers.Contract(avnContract, ['function claimLower(bytes calldata)'], signer);
@@ -98,17 +98,17 @@ async function claimLowers(avnContract, unclaimedLowers, lastClaimedLowerId, low
 
   claimEvents.forEach(event => {
     const claimedLowerId = parseInt(event.topics[1]);
-    delete unclaimedLowers[claimedLowerId];
+    delete unclaimedLowerProofs[claimedLowerId];
     fromBlock = Math.max(event.blockNumber, fromBlock);
   });
 
-  for (const [id, proof] of Object.entries(unclaimedLowers)) {
+  for (const [id, proof] of Object.entries(unclaimedLowerProofs)) {
     try {
       const tx = await avnBridge.claimLower(proof);
       log.info(`Claim lower ${id} tx sent: ${tx.hash}`);
       await tx.wait();
       log.info(`Claim lower ${id} tx confirmed: ${tx.hash}`);
-      delete unclaimedLowers[id];
+      delete unclaimedLowerProofs[id];
     } catch (error) {
       log.info(`Claim lower ${id} failed: ${error.message.split('(action="estimateGas"')[0]}`);
       await redis.addFailedLowerClaimId(id); // TODO - Retry these periodically?

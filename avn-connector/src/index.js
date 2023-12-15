@@ -151,6 +151,16 @@ app.get('/unprocessedLifts', async (req, res, next) => {
   }
 });
 
+app.get('/autoLower', async (req, res, next) => {
+  try {
+    log.trace('autoLower invoked');
+    const result = await lowering.autoLower();
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/ethereumEventStatus', async (req, res, next) => {
   try {
     log.trace({ ethereumEventStatusRequest: req.body });

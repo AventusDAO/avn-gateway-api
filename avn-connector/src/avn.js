@@ -579,6 +579,20 @@ async function payerHasFunds(payerAddress) {
   return true;
 }
 
+async function getLowerProofs(fromLowerId) {
+  const claimEntries = await api.query.tokenManager.lowersReadyToClaim.entries();
+
+  return claimEntries.reduce((accumulatedProofs, [key, data]) => {
+    const lowerId = key.args[0].toNumber();
+
+    if (lowerId >= fromLowerId) {
+      accumulatedProofs[lowerId] = data.toHuman().encodedLowerData;
+    }
+
+    return accumulatedProofs;
+  }, {});
+}
+
 function toBn(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
 }
@@ -586,6 +600,7 @@ function toBn(val) {
 module.exports = {
   addNewTransaction,
   getAccountInfo,
+  getLowerProofs,
   getCollatorsToNominate,
   getLowerDataFromRpc,
   getStakingStats,

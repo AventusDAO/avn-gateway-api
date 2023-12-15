@@ -10,6 +10,7 @@ const MAX_LIFT_AGE_IN_BLOCKS = 60 * 60 * 24 * 5 / 12; // ~5 days @ ~12 secs per 
 const REQUIRED_CONFIRMATION_BLOCKS = 20;
 
 const EVENT_SIG = {
+  CLAIMED: ethers.utils.id('LogLowerClaimed(uint32)'),
   LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
   LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
@@ -86,7 +87,41 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
+async function claimLowers(avnContract, unclaimedLowers, lastClaimedLowerId, loweringAccountPrivateKey) {
+  if (Object.keys(unclaimedLowers).length === 0) return;
+
+  const signer = = new ethers.Wallet(loweringAccountPrivateKey, provider);
+  const avnBridge = new ethers.Contract(avnContract, ['function claimLower(bytes calldata)'], signer);
+
+  let fromBlock = await redis.getClaimedLowersFromTier1Block();
+  const claimEvents = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIMED], fromBlock });
+
+  claimEvents.forEach(event => {
+    const claimedLowerId = parseInt(event.topics[1]);
+    delete unclaimedLowers[claimedLowerId];
+    fromBlock = Math.max(event.blockNumber, fromBlock);
+  });
+
+  for (const [id, proof] of Object.entries(unclaimedLowers)) {
+    try {
+      const tx = await avnBridge.claimLower(proof);
+      log.info(`Claim lower ${id} tx sent: ${tx.hash}`);
+      await tx.wait();
+      log.info(`Claim lower ${id} tx confirmed: ${tx.hash}`);
+      delete unclaimedLowers[id];
+    } catch (error) {
+      log.info(`Claim lower ${id} failed: ${error.message.split('(action="estimateGas"')[0]}`);
+      await redis.addFailedLowerClaimId(id); // TODO - Retry these periodically?
+    }
+    lastClaimedLowerId = Math.max(id, lastClaimedLowerId);
+  }
+
+  await redis.setClaimedLowersFromTier1Block(fromBlock);
+  await redis.setLastClaimedLowerId(lastClaimedLowerId);
+}
+
 module.exports = {
+  claimLowers,
   getLatestClaimedLowers,
   getLiftEvents,
   getLockedBalance,

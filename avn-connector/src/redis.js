@@ -34,6 +34,8 @@ const LIFTS_FROM_TIER1_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
+const LAST_CLAIMED_LOWER_ID_KEY = 'lastClaimedLowerId';
+const FAILED_CLAIM_LOWER_IDS_KEY = 'failedClaimLowerIds';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
 const PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY = 'publishedRootsFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
@@ -333,6 +335,15 @@ async function getRetrieveLowersFromAvnBlock() {
   return blockNumber ? parseInt(blockNumber) : 0;
 }
 
+async function setLastClaimedLowerId(lowerId) {
+  await redisClient.set(LAST_CLAIMED_LOWER_ID_KEY, lowerId);
+}
+
+async function getLastClaimedLowerId() {
+  const lowerId = await redisClient.get(LAST_CLAIMED_LOWER_ID_KEY);
+  return lowerId ? parseInt(lowerId) : 0;
+}
+
 async function setClaimedLowersFromTier1Block(blockNumber) {
   await redisClient.set(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY, blockNumber);
 }
@@ -362,6 +373,19 @@ async function deleteBlockIndex(txHash) {
 async function getBlockIndex(txHash) {
   const blockIndex = await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
   return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
+}
+
+async function addFailedClaimLowerId(lowerId) {
+  await redisClient.sadd(FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+}
+
+async function removeFailedClaimLowerId(lowerId) {
+  await redisClient.srem(FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+}
+
+async function getFailedClaimLowerIds() {
+  const failed = await redisClient.smembers(FAILED_CLAIM_LOWER_IDS_KEY);
+  return failed || [];
 }
 
 async function addUnpublishedLower(txHash) {
@@ -453,6 +477,8 @@ module.exports = {
   setTotalToken,
   setRetrieveLowersFromAvnBlock,
   getRetrieveLowersFromAvnBlock,
+  setLastClaimedLowerId,
+  getLastClaimedLowerId,
   setClaimedLowersFromTier1Block,
   getClaimedLowersFromTier1Block,
   setPublishedRootsFromTier1Block,
@@ -460,6 +486,9 @@ module.exports = {
   setBlockIndex,
   deleteBlockIndex,
   getBlockIndex,
+  addFailedClaimLowerId,
+  removeFailedClaimLowerId,
+  getFailedClaimLowerIds,
   addUnpublishedLower,
   removeUnpublishedLower,
   getUnpublishedLowers,

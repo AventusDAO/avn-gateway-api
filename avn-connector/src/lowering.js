@@ -10,6 +10,13 @@ const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
+async function autoLower() {
+  const { avnContract } = await avn.getChainInfo();
+  const lastClaimedLowerId = await redis.getLastClaimedLowerId();
+  const unclaimedLowers = await avn.getLowerProofs(lastClaimedLowerId);
+  await tier1.claimLowers(avnContract, unclaimedLowers, lastClaimedLowerId, loweringAccountPrivateKey);
+}
+
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
   const { avnContract } = await avn.getChainInfo();

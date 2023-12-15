@@ -87,10 +87,10 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
-async function claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId, loweringAccountPrivateKey) {
+async function claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId, lowererPK) {
   if (Object.keys(unclaimedLowerProofs).length === 0) return;
 
-  const signer = = new ethers.Wallet(loweringAccountPrivateKey, provider);
+  const signer = = new ethers.Wallet(lowererPK, provider);
   const avnBridge = new ethers.Contract(avnContract, ['function claimLower(bytes calldata)'], signer);
 
   let fromBlock = await redis.getClaimedLowersFromTier1Block();

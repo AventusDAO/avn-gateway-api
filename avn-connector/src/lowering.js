@@ -14,7 +14,8 @@ async function autoLower() {
   const { avnContract } = await avn.getChainInfo();
   const lastClaimedLowerId = await redis.getLastClaimedLowerId();
   const unclaimedLowerProofs = await avn.getLowerProofs(lastClaimedLowerId);
-  await tier1.claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId, loweringAccountPrivateKey);
+  const lowererPK = await avn.getLowererPK();
+  await tier1.claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId, lowererPK);
 }
 
 async function getLowers(account) {

@@ -88,7 +88,11 @@ async function getLatestPublishedRoots(avnContract) {
 }
 
 async function claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId, lowererPK) {
-  if (Object.keys(unclaimedLowerProofs).length === 0) return;
+  const result = { claimed: 0, failed: 0 };
+
+  if (Object.keys(unclaimedLowerProofs).length === 0) {
+    return result;
+  }
 
   const signer = = new ethers.Wallet(lowererPK, provider);
   const avnBridge = new ethers.Contract(avnContract, ['function claimLower(bytes calldata)'], signer);
@@ -109,15 +113,18 @@ async function claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId
       await tx.wait();
       log.info(`Claim lower ${id} tx confirmed: ${tx.hash}`);
       delete unclaimedLowerProofs[id];
+      result.claimed++;
     } catch (error) {
       log.info(`Claim lower ${id} failed: ${error.message.split('(action="estimateGas"')[0]}`);
       await redis.addFailedLowerClaimId(id); // TODO - Retry these periodically?
+      result.failed++;
     }
     lastClaimedLowerId = Math.max(id, lastClaimedLowerId);
   }
 
   await redis.setClaimedLowersFromTier1Block(fromBlock);
   await redis.setLastClaimedLowerId(lastClaimedLowerId);
+  return result;
 }
 
 module.exports = {

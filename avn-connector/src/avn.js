@@ -579,13 +579,13 @@ async function payerHasFunds(payerAddress) {
   return true;
 }
 
-async function getLowerProofs(fromLowerId) {
+async function getLowerProofs(lastClaimedLowerId) {
   const claimEntries = await api.query.tokenManager.lowersReadyToClaim.entries();
 
   return claimEntries.reduce((accumulatedProofs, [key, data]) => {
     const lowerId = key.args[0].toNumber();
 
-    if (lowerId >= fromLowerId) {
+    if (lowerId > lastClaimedLowerId) {
       accumulatedProofs[lowerId] = data.toHuman().encodedLowerData;
     }
 

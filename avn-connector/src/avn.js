@@ -584,17 +584,17 @@ async function payerHasFunds(payerAddress) {
 }
 
 async function getLowerProofs(lastClaimedLowerId) {
-  const claimEntries = await api.query.tokenManager.lowersReadyToClaim.entries();
-
-  return claimEntries.reduce((accumulatedProofs, [key, data]) => {
-    const lowerId = key.args[0].toNumber();
-
-    if (lowerId > lastClaimedLowerId) {
-      accumulatedProofs[lowerId] = data.toHuman().encodedLowerData;
-    }
-
-    return accumulatedProofs;
-  }, {});
+  try {
+    const lowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
+    const unclaimedLowerIds = lowerIds
+      .map(({ args: [lowerId] }) => lowerId.toNumber())
+      .filter(lowerId => lowerId >= lastClaimedLowerId);
+    const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
+    return claimData.map(data => data.toHuman().encodedLowerData);
+  } catch (error) {
+    log.error("Error in getLowerProofs:", error);
+    throw error;
+  }
 }
 
 function toBn(val) {

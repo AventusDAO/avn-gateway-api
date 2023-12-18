@@ -89,14 +89,17 @@ async function getLatestPublishedRoots(avnContract) {
 
 async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   const result = { checkedToBlock: fromBlock, ids: [] };
-  const claimEvents = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock });
-
-  claimEvents.forEach(event => {
-    const lowerId = parseInt(event.topics[1]);
-    result.checkedToBlock = Math.max(event.blockNumber, result.checkedToBlock);
-    result.ids.push(lowerId);
-  });
-
+  try {
+    const claimEvents = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock });
+    claimEvents.forEach(event => {
+      const lowerId = parseInt(event.topics[1]);
+      result.checkedToBlock = Math.max(event.blockNumber, result.checkedToBlock);
+      result.ids.push(lowerId);
+    });
+  } catch (error) {
+    log.error('Error getting claimed lowers:', error);
+  }
+  
   return result;
 }
 

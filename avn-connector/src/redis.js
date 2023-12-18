@@ -34,7 +34,8 @@ const LIFTS_FROM_TIER1_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
-const LAST_CLAIMED_LOWER_ID_KEY = 'lastClaimedLowerId';
+const LATEST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS = 'latestT1BlockCheckedForLowerClaims';
+const LATEST_CLAIMED_LOWER_ID_KEY = 'latestClaimedLowerId';
 const FAILED_CLAIM_LOWER_IDS_KEY = 'failedClaimLowerIds';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
 const PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY = 'publishedRootsFromBlock';
@@ -335,13 +336,22 @@ async function getRetrieveLowersFromAvnBlock() {
   return blockNumber ? parseInt(blockNumber) : 0;
 }
 
-async function setLastClaimedLowerId(lowerId) {
-  await redisClient.set(LAST_CLAIMED_LOWER_ID_KEY, lowerId);
+async function setLatestT1BlockCheckedForLowerClaims(blockNumber) {
+  await redisClient.set(LATEST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS, blockNumber);
 }
 
-async function getLastClaimedLowerId() {
-  const lowerId = await redisClient.get(LAST_CLAIMED_LOWER_ID_KEY);
-  return lowerId ? parseInt(lowerId) : -1;
+async function getLatestT1BlockCheckedForLowerClaims() {
+  const blockNumber = await redisClient.get(LATEST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS);
+  return blockNumber ? parseInt(blockNumber) : 0;
+}
+
+async function setLatestClaimedLowerId(lowerId) {
+  await redisClient.set(LATEST_CLAIMED_LOWER_ID_KEY, lowerId);
+}
+
+async function getLatestClaimedLowerId() {
+  const lowerId = await redisClient.get(LATEST_CLAIMED_LOWER_ID_KEY);
+  return lowerId ? parseInt(lowerId) : 0;
 }
 
 async function setClaimedLowersFromTier1Block(blockNumber) {
@@ -477,8 +487,10 @@ module.exports = {
   setTotalToken,
   setRetrieveLowersFromAvnBlock,
   getRetrieveLowersFromAvnBlock,
-  setLastClaimedLowerId,
-  getLastClaimedLowerId,
+  setLatestT1BlockCheckedForLowerClaims,
+  getLatestT1BlockCheckedForLowerClaims,
+  setLatestClaimedLowerId,
+  getLatestClaimedLowerId,
   setClaimedLowersFromTier1Block,
   getClaimedLowersFromTier1Block,
   setPublishedRootsFromTier1Block,

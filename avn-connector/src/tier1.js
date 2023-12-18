@@ -10,7 +10,7 @@ const MAX_LIFT_AGE_IN_BLOCKS = 60 * 60 * 24 * 5 / 12; // ~5 days @ ~12 secs per 
 const REQUIRED_CONFIRMATION_BLOCKS = 20;
 
 const EVENT_SIG = {
-  CLAIMED: ethers.utils.id('LogLowerClaimed(uint32)'),
+  CLAIM: ethers.utils.id('LogLowerClaimed(uint32)'),
   LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
   LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
@@ -87,50 +87,43 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
-async function claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId, lowererPK) {
-  const result = { claimed: 0, failed: 0 };
+async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
+  const result = { checkedToBlock: fromBlock, ids: [] };
+  const claimEvents = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock });
 
-  if (Object.keys(unclaimedLowerProofs).length === 0) {
-    return result;
-  }
+  claimEvents.forEach(event => {
+    const lowerId = parseInt(event.topics[1]);
+    result.checkedToBlock = Math.max(event.blockNumber, result.checkedToBlock);
+    result.ids.push(lowerId);
+  });
+
+  return result;
+}
+
+async function claimLowers(avnContract, lowererPK, lowerProofs) {
+  if (Object.keys(lowerProofs).length === 0) return;
 
   const signer = new ethers.Wallet(lowererPK, provider);
   const avnBridge = new ethers.Contract(avnContract, ['function claimLower(bytes calldata)'], signer);
 
-  let fromBlock = await redis.getClaimedLowersFromTier1Block();
-  const claimEvents = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIMED], fromBlock });
-
-  claimEvents.forEach(event => {
-    const claimedLowerId = parseInt(event.topics[1]);
-    delete unclaimedLowerProofs[claimedLowerId];
-    fromBlock = Math.max(event.blockNumber, fromBlock);
-  });
-
-  for (const [id, proof] of Object.entries(unclaimedLowerProofs)) {
+  for (const [id, proof] of Object.entries(lowerProofs)) {
     try {
       const tx = await avnBridge.claimLower(proof);
       log.info(`Claim lower ${id} tx sent: ${tx.hash}`);
       await tx.wait();
       log.info(`Claim lower ${id} tx confirmed: ${tx.hash}`);
-      delete unclaimedLowerProofs[id];
-      result.claimed++;
     } catch (error) {
       log.info(`Claim lower ${id} failed: ${error.message.split('(action="estimateGas"')[0]}`);
-      await redis.addFailedLowerClaimId(id); // TODO - Retry these periodically?
-      result.failed++;
+      await redis.addFailedLowerClaimId(id); // TODO - Retry these periodically
     }
-    lastClaimedLowerId = Math.max(id, lastClaimedLowerId);
   }
-
-  await redis.setClaimedLowersFromTier1Block(fromBlock);
-  await redis.setLastClaimedLowerId(lastClaimedLowerId);
-  return result;
 }
 
 module.exports = {
-  claimLowers,
   getLatestClaimedLowers,
   getLiftEvents,
   getLockedBalance,
-  getLatestPublishedRoots
+  getLatestPublishedRoots,
+  getLowersClaimedSinceBlock,
+  claimLowers,
 };

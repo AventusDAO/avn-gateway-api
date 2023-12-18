@@ -94,7 +94,7 @@ async function claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId
     return result;
   }
 
-  const signer = = new ethers.Wallet(lowererPK, provider);
+  const signer = new ethers.Wallet(lowererPK, provider);
   const avnBridge = new ethers.Contract(avnContract, ['function claimLower(bytes calldata)'], signer);
 
   let fromBlock = await redis.getClaimedLowersFromTier1Block();

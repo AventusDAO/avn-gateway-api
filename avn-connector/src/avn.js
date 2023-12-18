@@ -585,8 +585,8 @@ async function payerHasFunds(payerAddress) {
 
 async function getUnclaimedLowerProofs(lastClaimedLowerId) {
   try {
-    const lowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
-    const unclaimedLowerIds = lowerIds
+    const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
+    const unclaimedLowerIds = allLowerIds
       .map(({ args: [lowerId] }) => lowerId.toNumber())
       .filter(lowerId => lowerId >= lastClaimedLowerId);
     const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);

@@ -583,7 +583,7 @@ async function payerHasFunds(payerAddress) {
   return true;
 }
 
-async function getLowerProofs(lastClaimedLowerId) {
+async function getUnclaimedLowerProofs(lastClaimedLowerId) {
   try {
     const lowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
     const unclaimedLowerIds = lowerIds
@@ -592,7 +592,7 @@ async function getLowerProofs(lastClaimedLowerId) {
     const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
     return claimData.map(data => data.toHuman().encodedLowerData);
   } catch (error) {
-    log.error("Error in getLowerProofs:", error);
+    log.error("Error in getUnclaimedLowerProofs:", error);
     throw error;
   }
 }
@@ -605,7 +605,7 @@ module.exports = {
   addNewTransaction,
   getAccountInfo,
   getLowererPK,
-  getLowerProofs,
+  getUnclaimedLowerProofs,
   getCollatorsToNominate,
   getLowerDataFromRpc,
   getStakingStats,

@@ -13,7 +13,7 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 async function autoLower() {
   const { avnContract } = await avn.getChainInfo();
   const lastClaimedLowerId = await redis.getLastClaimedLowerId();
-  const unclaimedLowerProofs = await avn.getLowerProofs(lastClaimedLowerId);
+  const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(lastClaimedLowerId);
   const lowererPK = await avn.getLowererPK();
   return await tier1.claimLowers(avnContract, unclaimedLowerProofs, lastClaimedLowerId, lowererPK);
 }

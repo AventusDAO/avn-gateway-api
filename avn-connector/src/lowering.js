@@ -12,16 +12,20 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function autoLower() {
   const { avnContract } = await avn.getChainInfo();
+
   let latestClaimedLowerId = await redis.getLatestClaimedLowerId();
   const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
-  const lastBlockChecked = await redis.getLatestT1BlockCheckedForLowerClaims();
-  const claimedLowers = await tier1.getLowersClaimedSinceBlock(avnContract, lastBlockChecked);
+  const latestBlockChecked = await redis.getLatestT1BlockCheckedForLowerClaims();
+  const claimedLowers = await tier1.getLowersClaimedSinceBlock(avnContract, latestBlockChecked);
+
   claimedLowers.lowerIds.forEach(id => {
     delete unclaimedLowerProofs[id]);
     latestClaimedLowerId = Math.max(latestClaimedLowerId, id);
   }
+
   await redis.setLatestClaimedLowerId(latestClaimedLowerId);
   await redis.setLatestT1BlockCheckedForLowerClaims(claimedLowers.checkedToBlock);
+
   const lowererPK = await avn.getLowererPK();
   tier1.claimLowers(avnContract, lowererPK, unclaimedLowerProofs);
 }

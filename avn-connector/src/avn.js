@@ -583,12 +583,12 @@ async function payerHasFunds(payerAddress) {
   return true;
 }
 
-async function getUnclaimedLowerProofs(lastClaimedLowerId) {
+async function getUnclaimedLowerProofs(latestClaimedLowerId) {
   try {
     const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
     const unclaimedLowerIds = allLowerIds
       .map(({ args: [lowerId] }) => lowerId.toNumber())
-      .filter(lowerId => lowerId >= lastClaimedLowerId);
+      .filter(lowerId => lowerId >= latestClaimedLowerId);
     const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
     return claimData.map(data => data.toHuman().encodedLowerData);
   } catch (error) {

@@ -1,0 +1,70 @@
+const axios = require('axios');
+const log4js = require('log4js');
+const log = log4js.getLogger();
+const { hexToBn, isHex } = require('@polkadot/util');
+
+const READY_TO_CLAIM_EVENT_NAME = 'TokenManager.LowerReadyToClaim';
+const LOWER_REQUEST_EVENT_NAME = 'TokenManager.LowerRequested';
+
+const lowerStates = {
+    'TokenManager.AvtLowered': 1,
+    'TokenManager.TokenLowered': 1,
+};
+lowerStates[utils.LOWER_REQUEST_EVENT_NAME] = 0;
+lowerStates[READY_TO_CLAIM_EVENT_NAME] = 2;
+
+async function getLowersFromIndexer(fromId, txLimit) {
+    const query = `
+        query LowerQuery {
+            events(
+                where: {
+                    name_in:["TokenManager.TokenLowered", "TokenManager.AvtLowered", "${LOWER_REQUEST_EVENT_NAME}", "TokenManager.LowerReadyToClaim"],
+                    id_gte: "${fromId}"
+                },
+                limit: ${txLimit},
+                orderBy: id_DESC
+            ) {
+                args
+                block {
+                    height
+                }
+                indexInBlock
+                name
+            }
+        }
+    `;
+
+    try {
+        const response = await axios.post(AVN_EXPLORER_URL, {
+            query,
+            operationName: 'LowerQuery'
+        });
+
+        return response?.data?.data?.events || [];
+    } catch (error) {
+        log.error('💔 Error fetching lower events:', error);
+        return [];
+    }
+}
+
+function formatLowerEvent(lowerEvent, avtContract) {
+    const lowerData = {
+        lowerId: lowerEvent?.args?.lowerId,
+        token: lowerEvent?.args?.tokenId || avtContract,
+        to: lowerEvent?.args?.t1Recipient?.toLowerCase(),
+        amount: isHex(lowerEvent.amount) ? hexToBn(lowerEvent.amount).toString() : lowerEvent.amount,
+        name: lowerEvent.name,
+        claimData: lowerEvent.claimProof
+    };
+
+    lowerData.from = lowerEvent?.name === LOWER_REQUEST_EVENT_NAME ? lowerEvent?.args?.from : lowerEvent?.args?.sender;
+
+    return lowerData;
+}
+
+module.exports = {
+    formatLowerEvent,
+    getLowersFromIndexer,
+    LOWER_REQUEST_EVENT_NAME,
+    lowerStates
+  };

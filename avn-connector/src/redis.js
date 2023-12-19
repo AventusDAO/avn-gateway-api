@@ -34,9 +34,9 @@ const LIFTS_FROM_TIER1_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
-const LAST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY = 'lastT1BlockCheckedForLowerClaims';
-const LATEST_CLAIMED_LOWER_ID_KEY = 'latestClaimedLowerId';
-const FAILED_CLAIM_LOWER_IDS_KEY = 'failedClaimLowerIds';
+const AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY = 'autolowerLastT1BlockChecked';
+const AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY = 'autolowerLatestClaimedLowerId';
+const AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY = 'autolowerFailedClaimLowerIds';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
 const PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY = 'publishedRootsFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
@@ -336,22 +336,8 @@ async function getRetrieveLowersFromAvnBlock() {
   return blockNumber ? parseInt(blockNumber) : 0;
 }
 
-async function setLastT1BlockCheckedForLowerClaims(blockNumber) {
-  await redisClient.set(LAST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY, blockNumber);
-}
-
-async function getLastT1BlockCheckedForLowerClaims() {
-  const blockNumber = await redisClient.get(LAST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY);
-  return blockNumber ? parseInt(blockNumber) : -1;
-}
-
-async function setLatestClaimedLowerId(lowerId) {
-  await redisClient.set(LATEST_CLAIMED_LOWER_ID_KEY, lowerId);
-}
-
-async function getLatestClaimedLowerId() {
-  const lowerId = await redisClient.get(LATEST_CLAIMED_LOWER_ID_KEY);
-  return lowerId ? parseInt(lowerId) : -1;
+async function setAutolowerLastT1BlockChecked(blockNumber) {
+  await redisClient.set(AUTOLOWER_LATEST_T1_BLOCK_CHECKED_KEY, blockNumber);
 }
 
 async function setClaimedLowersFromTier1Block(blockNumber) {
@@ -383,19 +369,6 @@ async function deleteBlockIndex(txHash) {
 async function getBlockIndex(txHash) {
   const blockIndex = await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
   return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
-}
-
-async function addFailedClaimLowerId(lowerId) {
-  await redisClient.sadd(FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
-}
-
-async function removeFailedClaimLowerId(lowerId) {
-  await redisClient.srem(FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
-}
-
-async function getFailedClaimLowerIds() {
-  const failed = await redisClient.smembers(FAILED_CLAIM_LOWER_IDS_KEY);
-  return failed || [];
 }
 
 async function addUnpublishedLower(txHash) {
@@ -463,6 +436,37 @@ async function getLowerData(txHash) {
   return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
+async function setAutolowerLastT1BlockChecked(blockNumber) {
+  await redisClient.set(AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY, blockNumber);
+}
+
+async function getAutolowerLastT1BlockChecked() {
+  const blockNumber = await redisClient.get(AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY);
+  return blockNumber ? parseInt(blockNumber) : -1;
+}
+
+async function setAutolowerLatestClaimedLowerId(lowerId) {
+  await redisClient.set(AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY, lowerId);
+}
+
+async function getAutolowerLatestClaimedLowerId() {
+  const lowerId = await redisClient.get(AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY);
+  return lowerId ? parseInt(lowerId) : -1;
+}
+
+async function addAutolowerFailedClaimLowerId(lowerId) {
+  await redisClient.sadd(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+}
+
+async function removeAutolowerFailedClaimLowerId(lowerId) {
+  await redisClient.srem(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+}
+
+async function getAutolowerFailedClaimLowerIds() {
+  const failed = await redisClient.smembers(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY);
+  return failed || [];
+}
+
 module.exports = {
   connect,
   addNewAvnTransaction,
@@ -487,10 +491,6 @@ module.exports = {
   setTotalToken,
   setRetrieveLowersFromAvnBlock,
   getRetrieveLowersFromAvnBlock,
-  setLastT1BlockCheckedForLowerClaims,
-  getLastT1BlockCheckedForLowerClaims,
-  setLatestClaimedLowerId,
-  getLatestClaimedLowerId,
   setClaimedLowersFromTier1Block,
   getClaimedLowersFromTier1Block,
   setPublishedRootsFromTier1Block,
@@ -498,9 +498,6 @@ module.exports = {
   setBlockIndex,
   deleteBlockIndex,
   getBlockIndex,
-  addFailedClaimLowerId,
-  removeFailedClaimLowerId,
-  getFailedClaimLowerIds,
   addUnpublishedLower,
   removeUnpublishedLower,
   getUnpublishedLowers,
@@ -516,5 +513,12 @@ module.exports = {
   deleteLowerData,
   getLowerData,
   transactionStatus,
-  updateTransactionStatusToPending
+  updateTransactionStatusToPending,
+  setAutolowerLastT1BlockChecked,
+  getAutolowerLastT1BlockChecked,
+  setAutolowerLatestClaimedLowerId,
+  getAutolowerLatestClaimedLowerId,
+  addAutolowerFailedClaimLowerId,
+  removeAutolowerFailedClaimLowerId,
+  getAutolowerFailedClaimLowerIds,
 };

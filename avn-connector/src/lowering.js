@@ -12,9 +12,9 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function autolower() {
   const { avnContract } = await avn.getChainInfo();
-  let latestClaimedLowerId = await redis.getLatestClaimedLowerId();
+  let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
   const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
-  const blockToCheckFrom = (await redis.getLastT1BlockCheckedForLowerClaims()) + 1;
+  const blockToCheckFrom = (await redis.getAutolowerLastT1BlockChecked()) + 1;
   const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(avnContract, blockToCheckFrom);
 
   claimedLowerIds.forEach(lowerId => {
@@ -23,8 +23,8 @@ async function autolower() {
   }
 
   const avnBridge = await tier1.connectToBridge(avnContract);
-  await redis.setLatestClaimedLowerId(latestClaimedLowerId);
-  await redis.setLastT1BlockCheckedForLowerClaims(lastBlockChecked);
+  await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
+  await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
   tier1.claimLowers(avnBridge, unclaimedLowerProofs); // Don't await, let these run in the background
   return `${Object.keys(unclaimedLowerProofs).length} lowers to claim`;
 }

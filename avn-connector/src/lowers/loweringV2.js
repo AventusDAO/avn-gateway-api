@@ -94,10 +94,12 @@ async function getLowerByAddress(address) {
 }
 
 async function deleteClaimedLowers(avnContract) {
-    let claimedLowerIdsOnEthereum = await tier1.getLatestClaimedLowersFromEthereum(avnContract);
+    const lastClaimedEthereumLowerBlock = await redis.getLastClaimedEthereumLowerBlock();
+    let claimedLowerIdsOnEthereum = await tier1.getLowersClaimedSinceBlock(avnContract, lastClaimedEthereumLowerBlock);
     for (lowerId in claimedLowerIdsOnEthereum) {
         await redis.deleteLowerById(lowerId);
     }
 
+    await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
     // TODO: remove the lowerIds from the sender and tier1 recipient mappings
 }

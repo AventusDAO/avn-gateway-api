@@ -12,7 +12,7 @@ const REQUIRED_CONFIRMATION_BLOCKS = 20;
 const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
   LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
-  LOWERV2: ethers.utils.id('LogLowerClaimed(uint32)'),
+  CLAIM: ethers.utils.id('LogLowerClaimed(uint32)'),
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
 }
 
@@ -87,25 +87,21 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
-async function getLatestClaimedLowersFromEthereum(avnContract) {
-  const claimedLowers = [];
-
+async function getLowersClaimedSinceBlock(avnContract, blockToCheckFrom) {
+  const claimedLowerIds = [];
+  const lastBlockChecked = blockToCheckFrom;
   try {
-    const fromBlock = await redis.getLastClaimedEthereumLowerBlock();
-    const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWERV2], fromBlock });
-
-    for await (const txHash of events.map(event => event.transactionHash)) {
-      const txData = await provider.getTransaction(txHash);
-      const eventArgs = ethers.utils.defaultAbiCoder.decode(['uint32'], ethers.utils.hexDataSlice(txData.data, 4));
-      claimedLowers.push(eventArgs[0]);
-    }
-
-    if (events.length > 0) await redis.setLastClaimedEthereumLowerBlock(events[events.length - 1].blockNumber + 1);
+    const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock: blockToCheckFrom });
+    claims.forEach(claim => {
+      const lowerId = parseInt(claim.topics[1]);
+      lastBlockChecked = Math.max(lastBlockChecked, claim.blockNumber);
+      claimedLowerIds.push(lowerId);
+    });
   } catch (error) {
-    log.error('Error getting claimed lowers from ethereum:', error);
+    log.error('Error getting claimed lowers:', error);
   }
 
-  return claimedLowers;
+  return [lastBlockChecked, claimedLowerIds];
 }
 
 module.exports = {
@@ -113,5 +109,5 @@ module.exports = {
   getLiftEvents,
   getLockedBalance,
   getLatestPublishedRoots,
-  getLatestClaimedLowersFromEthereum
+  getLowersClaimedSinceBlock
 };

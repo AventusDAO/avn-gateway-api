@@ -106,3 +106,7 @@ async function deleteClaimedLowers(avnContract) {
     }
     await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
 }
+
+module.exports = {
+    getLowers
+};

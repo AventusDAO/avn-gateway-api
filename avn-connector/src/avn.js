@@ -378,10 +378,6 @@ async function getRelayerAccount(relayerAddress) {
   return relayers[relayerAddress];
 }
 
-async function getLowerer() {
-  return await config.autoLowerPrivateKey();
-}
-
 async function getNftContractAddresses() {
   const data = await api.query.ethereumEvents.nftT1Contracts.entries();
   return JSON.stringify(data.map(([key, _]) => key.args.map(k => k.toHuman())).flat());
@@ -604,7 +600,6 @@ function toBn(val) {
 module.exports = {
   addNewTransaction,
   getAccountInfo,
-  getLowerer,
   getUnclaimedLowerProofs,
   getCollatorsToNominate,
   getLowerDataFromRpc,

@@ -103,11 +103,14 @@ async function getLowersClaimedSinceBlock(avnContract, lastBlockChecked) {
   return [lastBlockChecked, claimedLowers];
 }
 
-async function claimLowers(avnContract, lowererPK, lowerProofs) {
-  if (Object.keys(lowerProofs).length === 0) return [0, []];
+async function connectToBridge(avnContract) {
+  const signer = new ethers.Wallet(config.tier1.autolower_private_key, provider);
+  const abiSnippet = ['function claimLower(bytes calldata)']; // Use only what we need for now
+  return new ethers.Contract(avnContract, abiSnippet, signer);
+}
 
-  const signer = new ethers.Wallet(lowererPK, provider);
-  const avnBridge = new ethers.Contract(avnContract, ['function claimLower(bytes calldata)'], signer);
+async function claimLowers(avnBridge, lowerProofs) {
+  if (Object.keys(lowerProofs).length === 0) return;
 
   for (const [id, proof] of Object.entries(lowerProofs)) {
     try {
@@ -128,5 +131,6 @@ module.exports = {
   getLockedBalance,
   getLatestPublishedRoots,
   getLowersClaimedSinceBlock,
+  connectToBridge,
   claimLowers,
 };

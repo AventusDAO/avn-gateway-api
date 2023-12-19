@@ -151,10 +151,10 @@ app.get('/unprocessedLifts', async (req, res, next) => {
   }
 });
 
-app.get('/autoLower', async (req, res, next) => {
+app.get('/autolower', async (req, res, next) => {
   try {
-    log.trace('autoLower invoked');
-    const result = await lowering.autoLower();
+    log.trace('autolower invoked');
+    const result = await lowering.autolower();
     res.send(result);
   } catch (err) {
     next(err);

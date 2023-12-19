@@ -14,8 +14,8 @@ async function autolower() {
   const { avnContract } = await avn.getChainInfo();
   let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
   const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
-  const blockToCheckFrom = (await redis.getAutolowerLastT1BlockChecked()) + 1;
-  const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(avnContract, blockToCheckFrom);
+  const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
+  const [lastBlockChecked, claimedLowerIds] = await tier1.getV2LowersClaimed(avnContract, fromBlock);
 
   claimedLowerIds.forEach(lowerId => {
     delete unclaimedLowerProofs[lowerId]);

@@ -87,21 +87,20 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
-async function getLowersClaimedSinceBlock(avnContract, blockToCheckFrom) {
+async function getV2LowersClaimed(avnContract, fromBlock) {
   const claimedLowerIds = [];
-  const lastBlockChecked = blockToCheckFrom;
   try {
-    const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock: blockToCheckFrom });
+    const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock });
     claims.forEach(claim => {
       const lowerId = parseInt(claim.topics[1]);
-      lastBlockChecked = Math.max(lastBlockChecked, claim.blockNumber);
+      fromBlock = Math.max(fromBlock, claim.blockNumber);
       claimedLowerIds.push(lowerId);
     });
   } catch (error) {
     log.error('Error getting claimed lowers:', error);
   }
 
-  return [lastBlockChecked, claimedLowerIds];
+  return [fromBlock, claimedLowerIds];
 }
 
 async function connectToBridge(avnContract) {
@@ -131,7 +130,7 @@ module.exports = {
   getLiftEvents,
   getLockedBalance,
   getLatestPublishedRoots,
-  getLowersClaimedSinceBlock,
+  getV2LowersClaimed,
   connectToBridge,
   claimLowers,
 };

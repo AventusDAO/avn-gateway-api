@@ -336,10 +336,6 @@ async function getRetrieveLowersFromAvnBlock() {
   return blockNumber ? parseInt(blockNumber) : 0;
 }
 
-async function setAutolowerLastT1BlockChecked(blockNumber) {
-  await redisClient.set(AUTOLOWER_LATEST_T1_BLOCK_CHECKED_KEY, blockNumber);
-}
-
 async function setClaimedLowersFromTier1Block(blockNumber) {
   await redisClient.set(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY, blockNumber);
 }

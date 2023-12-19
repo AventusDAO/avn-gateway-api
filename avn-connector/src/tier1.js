@@ -105,7 +105,7 @@ async function getLowersClaimedSinceBlock(avnContract, blockToCheckFrom) {
 }
 
 async function connectToBridge(avnContract) {
-  const signer = new ethers.Wallet(config.tier1.autolower_private_key, provider);
+  const signer = new ethers.Wallet(config.tier1.autolower_pk, provider);
   const abiSnippet = ['function claimLower(bytes calldata)']; // Use only what we need for now
   return new ethers.Contract(avnContract, abiSnippet, signer);
 }

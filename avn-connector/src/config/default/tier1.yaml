@@ -1,2 +1,2 @@
 tier1_provider_url: $ENV:TIER1_PROVIDER_URL
-autolower_private_key: $ENV:AUTOLOWER_PRIVATE_KEY
+autolower_pk: $ENV:AUTOLOWER_PK

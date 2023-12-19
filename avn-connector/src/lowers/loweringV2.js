@@ -9,7 +9,7 @@ const log = log4js.getLogger();
 const TX_LIMIT = 50;
 
 async function getLowers(addressOrId) {
-    console.log(`\nGetting lower data for ${addressOrId}`);
+    log.info(`\nGetting lower data for ${addressOrId}`);
     const { avtContract } = await avn.getChainInfo();
 
     let lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
@@ -76,10 +76,10 @@ async function processLowerEvents(fromId, avtContract) {
              await redis.setLowerById(key, distinctLowers[key]);
         }
 
-        console.log(`Processed ${counter} lower(s) from id ${fromId} to block: ${blockNumber}, index: ${index}`);
+        log.info(`Processed ${counter} lower(s) from id ${fromId} to block: ${blockNumber}, index: ${index}`);
         return blockNumber && index ? { blockNumber, index } : null;
       } catch (err) {
-        console.error(`💔 Error processing lower events from ${fromId}. `, err);
+        log.error(`💔 Error processing lower events from ${fromId}. `, err);
         return null;
       }
 }
@@ -88,7 +88,12 @@ async function getLowerByAddress(address) {
     const lowerData = [];
     const lowerIds = await redis.getLowerIdsByAddress(address);
     for (id in lowerIds) {
-        lowerData.push(await redis.getLowerById(id))
+        let lower = await redis.getLowerById(id);
+        if (lower) {
+            lowerData.push(lower)
+        } else {
+            log.error(`Lower Id ${id} for address: ${address} doesn't have any lower data associated.`);
+        }
     }
     return lowerData;
 }
@@ -99,7 +104,5 @@ async function deleteClaimedLowers(avnContract) {
     for (lowerId in claimedLowerIdsOnEthereum) {
         await redis.deleteLowerById(lowerId);
     }
-
     await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
-    // TODO: remove the lowerIds from the sender and tier1 recipient mappings
 }

@@ -444,13 +444,13 @@ async function getLastLowerBlockFromAvn() {
 }
 
 async function setLowerById(lowerId, lowerData) {
-  const sendeKey = LOWER_SENDER_PREFIX + lowerData.sender;
+  const senderKey = LOWER_SENDER_PREFIX + lowerData.sender;
   const recipienteKey = LOWER_RECIPIENT_PREFIX + lowerData.eth_recipient;
   await redisClient
     .multi()
     .set(LOWER_ID_PREFIX + lowerId, dataToJsonString(lowerData))
-    .rpush(sendeKey, lowerId)
-    .rpush(recipienteKey, lowerId)
+    .sadd(senderKey, lowerId)
+    .sadd(recipienteKey, lowerId)
     .exec();
 }
 
@@ -460,13 +460,22 @@ async function getLowerById(lowerId) {
 }
 
 async function deleteLowerById(lowerId) {
-  await redisClient.del(LOWER_ID_PREFIX + lowerId);
+  const lowerData = await getLowerById(lowerId);
+  const senderKey = LOWER_SENDER_PREFIX + lowerData.sender;
+  const recipienteKey = LOWER_RECIPIENT_PREFIX + lowerData.eth_recipient;
+
+  await redisClient
+    .multi()
+    .del(LOWER_ID_PREFIX + lowerId)
+    .srem(senderKey, lowerId)
+    .srem(recipienteKey, lowerId)
+    .exec();
 }
 
 async function getLowerIdsByAddress(address) {
-  const sendeKey = LOWER_SENDER_PREFIX + address;
+  const senderKey = LOWER_SENDER_PREFIX + address;
   const recipienteKey = LOWER_RECIPIENT_PREFIX + address;
-  let lowerIds = await redisClient.lrange(sendeKey, 0, -1);
+  let lowerIds = await redisClient.lrange(senderKey, 0, -1);
   if (!lowerIds) {
     lowerIds = await redisClient.lrange(recipienteKey, 0, -1);
   }

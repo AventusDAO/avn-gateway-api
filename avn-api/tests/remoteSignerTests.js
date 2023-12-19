@@ -1,4 +1,4 @@
-const {AvnApi, SetupMode, SigningMode, NonceCacheType} = require('avn-api');
+const { AvnApi, SetupMode, SigningMode, NonceCacheType } = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const { u8aToHex } = require('@polkadot/util');
@@ -12,7 +12,7 @@ const { Keyring } = require('@polkadot/keyring');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
 
 function getUserSeedFromAddress(userAddress) {
-  return Object.keys(accounts).flatMap(a => accounts[a].address === userAddress ? [accounts[a].seed] : [])[0]
+  return Object.keys(accounts).flatMap(a => (accounts[a].address === userAddress ? [accounts[a].seed] : []))[0];
 }
 
 function signData(data, signerAddress) {
@@ -46,7 +46,7 @@ describe('Remote signer:', async () => {
 
   before(async () => {
     avnApi = await helper.avnApi({
-      setupMode : SetupMode.MultiUser,
+      setupMode: SetupMode.MultiUser,
       signingMode: SigningMode.RemoteSigner,
       signer
     });
@@ -58,7 +58,7 @@ describe('Remote signer:', async () => {
     newUserAccount = avnApi.accountUtils.generateNewAccount();
     newUser = newUserAccount.address;
     newUserPublicKey = newUserAccount.publicKey;
-    accounts["newUser"] = newUserAccount;
+    accounts['newUser'] = newUserAccount;
   });
 
   describe('Change signer', async () => {
@@ -76,7 +76,7 @@ describe('Remote signer:', async () => {
   describe('awtGeneration', async () => {
     it('generates a valid token for self pay users', async () => {
       let options = {
-        setupMode : SetupMode.MultiUser,
+        setupMode: SetupMode.MultiUser,
         signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         hasPayer: false,
@@ -91,7 +91,7 @@ describe('Remote signer:', async () => {
 
     it('generates a valid token for split fee users', async () => {
       let options = {
-        setupMode : SetupMode.MultiUser,
+        setupMode: SetupMode.MultiUser,
         signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         hasPayer: true,
@@ -108,7 +108,7 @@ describe('Remote signer:', async () => {
   describe('transactionSending', async () => {
     it('can send transaction using a remote signer', async () => {
       let options = {
-        setupMode : SetupMode.MultiUser,
+        setupMode: SetupMode.MultiUser,
         signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         signer
@@ -127,7 +127,7 @@ describe('Remote signer:', async () => {
       };
 
       let options = {
-        setupMode : SetupMode.MultiUser,
+        setupMode: SetupMode.MultiUser,
         signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         signer
@@ -146,7 +146,7 @@ describe('Remote signer:', async () => {
       };
 
       let options = {
-        setupMode : SetupMode.MultiUser,
+        setupMode: SetupMode.MultiUser,
         signingMode: SigningMode.RemoteSigner,
         relayer: relayer,
         signer

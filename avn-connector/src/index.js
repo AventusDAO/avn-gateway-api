@@ -215,7 +215,7 @@ app.post('/getPayer', async (req, res, next) => {
   try {
     log.trace({ getPayer: JSON.stringify(req.body) });
     let result = await rds.getPayer(req.body.user, req.body.payer);
-    result = !!result && await avn.payerHasFunds(result.payerAddress) ? result : undefined;
+    result = !!result && (await avn.payerHasFunds(result.payerAddress)) ? result : undefined;
     res.send(result);
   } catch (err) {
     next(err);

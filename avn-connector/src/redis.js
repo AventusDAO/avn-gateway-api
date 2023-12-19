@@ -516,5 +516,5 @@ module.exports = {
   getAutolowerLatestClaimedLowerId,
   addAutolowerFailedClaimLowerId,
   removeAutolowerFailedClaimLowerId,
-  getAutolowerFailedClaimLowerIds,
+  getAutolowerFailedClaimLowerIds
 };

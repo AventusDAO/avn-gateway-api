@@ -1,5 +1,5 @@
-const {SetupMode, SigningMode, NonceCacheType} = require('avn-api');
-const prompt = require("prompt-sync")({ sigint: true });
+const { SetupMode, SigningMode, NonceCacheType } = require('avn-api');
+const prompt = require('prompt-sync')({ sigint: true });
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
@@ -10,7 +10,7 @@ const assert = require('chai').assert;
 const ONE_TX_VALUE = new BN('100000000000000000');
 
 function getUserSeedFromAddress(userAddress) {
-  return Object.keys(accounts).flatMap(a => accounts[a].address === userAddress ? [accounts[a].seed] : [])[0];
+  return Object.keys(accounts).flatMap(a => (accounts[a].address === userAddress ? [accounts[a].seed] : []))[0];
 }
 
 function addUserFromSeed(userSeed, index) {
@@ -18,7 +18,7 @@ function addUserFromSeed(userSeed, index) {
   accounts[index] = {
     seed: userSeed,
     address: user.address
-  }
+  };
 }
 
 async function signData(data, signerAddress) {
@@ -33,22 +33,22 @@ const signer = {
   }
 };
 
-const handleSplitFeeAccounts = (nUsers) => {
+const handleSplitFeeAccounts = nUsers => {
   console.log(`Please provide the seed of ${nUsers} split fee users.`);
   for (let i = 0; i < nUsers; i++) {
     let splitFeeAccountSeed = prompt(`User ${i + 1} seed: `);
     addUserFromSeed(splitFeeAccountSeed, i);
   }
-}
+};
 
 const handleRemoteCache = () => {
-  const TestNonceCacheProvider = require("./testRedisNonceCacheProvider");
+  const TestNonceCacheProvider = require('./testRedisNonceCacheProvider');
   const testCacheProvider = new TestNonceCacheProvider();
   return {
     nonceCacheType: NonceCacheType.Remote,
-    cacheProvider: testCacheProvider,
-  }
-}
+    cacheProvider: testCacheProvider
+  };
+};
 
 const sendUserTransactions = (api, nTxs) => {
   let requests = [];
@@ -56,7 +56,7 @@ const sendUserTransactions = (api, nTxs) => {
     requests.push(api.send.transferAvt(accounts.user.address, '1'));
   }
   return requests;
-}
+};
 
 const createAccounts = (api, nUsers) => {
   for (let i = 0; i < nUsers; i++) {
@@ -64,7 +64,7 @@ const createAccounts = (api, nUsers) => {
     accounts[i] = newUserAccount;
     console.log(`user account created: ${JSON.stringify(newUserAccount, null, 2)}`);
   }
-}
+};
 
 const fundAccounts = async (apis, nUsers, nTxs) => {
   let fundValue = new BN(nTxs).mul(ONE_TX_VALUE);
@@ -73,7 +73,7 @@ const fundAccounts = async (apis, nUsers, nTxs) => {
     const requestId = await api.send.transferAvt(accounts[i].address, fundValue);
     await helper.confirmStatus(api.poll, requestId, 'Processed');
   }
-}
+};
 
 const customConfirmStatus = async (pollApi, requestId) => {
   let response, status;
@@ -85,7 +85,7 @@ const customConfirmStatus = async (pollApi, requestId) => {
       return response;
     }
   }
-}
+};
 
 const pollTransactions = async (apis, transactionsToPoll) => {
   let api = await apis.apis(accounts.user.address);
@@ -98,10 +98,10 @@ const pollTransactions = async (apis, transactionsToPoll) => {
     let requestId = transactionsToPoll[i].value;
     let pollResult = await customConfirmStatus(api.poll, requestId);
     requestResults[pollResult.status == 'Processed' ? 'success' : 'failed'][requestId] = pollResult;
-    console.log(`pollResult - Request: ${requestId} - ${JSON.stringify(pollResult.status)}`)
+    console.log(`pollResult - Request: ${requestId} - ${JSON.stringify(pollResult.status)}`);
   }
   return requestResults;
-}
+};
 
 const getProxyNonces = async (apis, nUsers, testInfo) => {
   let newTestInfo = testInfo;
@@ -113,16 +113,16 @@ const getProxyNonces = async (apis, nUsers, testInfo) => {
       newTestInfo[i] = {
         ...newTestInfo[i],
         proxyNonceAfter: proxyNonce
-      }
+      };
     } else {
       newTestInfo[i] = {
         address: accounts[i].address,
         proxyNonceBefore: proxyNonce
-      }
+      };
     }
   }
   return newTestInfo;
-}
+};
 
 const prepareAndSendTransactions = async (apis, nUsers, nTxs, testInfo) => {
   let newTestInfo = testInfo;
@@ -140,7 +140,7 @@ const prepareAndSendTransactions = async (apis, nUsers, nTxs, testInfo) => {
   newTestInfo.failedTx = result.filter(r => r.status !== 'fulfilled');
   newTestInfo.completionTime = (Date.now() - start) / 1000;
   return newTestInfo;
-}
+};
 
 async function sendTransactions(api, nUsers, nTxs, hasPayer) {
   let testInfo = {
@@ -161,25 +161,25 @@ async function sendTransactions(api, nUsers, nTxs, hasPayer) {
 describe('Gateway multithreaded load test:', async () => {
   let api, results, pollResults, nUsers, nTxs, nonceCacheOptions, hasPayer;
   before(async () => {
-    nUsers = parseInt(prompt("How many users? "));
-    nTxs = parseInt(prompt("How many transactions per user? "));
-    hasPayer = prompt("Has payer? yes/no(default): ") === 'yes';
-    if(hasPayer) handleSplitFeeAccounts(nUsers);
+    nUsers = parseInt(prompt('How many users? '));
+    nTxs = parseInt(prompt('How many transactions per user? '));
+    hasPayer = prompt('Has payer? yes/no(default): ') === 'yes';
+    if (hasPayer) handleSplitFeeAccounts(nUsers);
 
-    const logLevel = prompt("Log level? debug/info(default): ") === 'debug' ? 'debug' : 'info';
-    const remoteCache = prompt("Local cache? yes/no(default): ") === 'yes';
+    const logLevel = prompt('Log level? debug/info(default): ') === 'debug' ? 'debug' : 'info';
+    const remoteCache = prompt('Local cache? yes/no(default): ') === 'yes';
     nonceCacheOptions = remoteCache ? handleRemoteCache() : undefined;
 
     console.log(`*** Payload: ${nUsers} users sending ${nTxs} transactions each. ***`);
     console.log(`*** RemoteCache: ${remoteCache} | logLevel: ${logLevel}. ***`);
 
     api = await helper.avnApi({
-      setupMode : SetupMode.MultiUser,
+      setupMode: SetupMode.MultiUser,
       signingMode: SigningMode.RemoteSigner,
       signer: signer,
       hasPayer: hasPayer,
       nonceCacheOptions,
-      defaultLogLevel: logLevel,
+      defaultLogLevel: logLevel
     });
   });
 
@@ -190,7 +190,9 @@ describe('Gateway multithreaded load test:', async () => {
 
     it('Proxy nonces are correctly updated', async () => {
       for (let i = 0; i < nUsers; i++) {
-        console.log(`Account: ${results[i].address} - Initial proxy nonce: ${results[i].proxyNonceBefore} - Final proxy nonce: ${results[i].proxyNonceAfter}`);
+        console.log(
+          `Account: ${results[i].address} - Initial proxy nonce: ${results[i].proxyNonceBefore} - Final proxy nonce: ${results[i].proxyNonceAfter}`
+        );
         assert.equal(results[i].proxyNonceBefore + (nTxs - 1), results[i].proxyNonceAfter);
       }
     });
@@ -200,7 +202,7 @@ describe('Gateway multithreaded load test:', async () => {
     });
 
     it('Zero failed transactions', async () => {
-      if(results.failedTx.length > 0) console.log(`Failed transactions: ${JSON.stringify(results.failedTx, null, 2)}`);
+      if (results.failedTx.length > 0) console.log(`Failed transactions: ${JSON.stringify(results.failedTx, null, 2)}`);
       assert.equal(results.failedTx.length, 0);
     });
   });
@@ -215,7 +217,7 @@ describe('Gateway multithreaded load test:', async () => {
     });
 
     it('Zero rejected transactions', async () => {
-      if(pollResults.failed.length > 0) console.log(`Rejected transactions: ${JSON.stringify(pollResults.failed, null, 2)}`);
+      if (pollResults.failed.length > 0) console.log(`Rejected transactions: ${JSON.stringify(pollResults.failed, null, 2)}`);
       assert.equal(Object.values(pollResults.failed).length, 0);
     });
   });

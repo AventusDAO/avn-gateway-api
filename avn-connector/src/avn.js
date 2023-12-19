@@ -415,7 +415,7 @@ async function init() {
 
 async function startSubscriptions() {
   // variable name for descriptive porpuses if we add more subscriptions
-  let selectedCandidatesSub = await api.query.parachainStaking.selectedCandidates((candidates) => {
+  let selectedCandidatesSub = await api.query.parachainStaking.selectedCandidates(candidates => {
     log.info(`Setting collators to nominate: ${candidates}`);
     redis.setCollatorsToNominate(candidates);
   });
@@ -578,7 +578,9 @@ async function payerHasFunds(payerAddress) {
   const minAvtBalance = toBn(config.minimumPayerBalance);
 
   if (payerAvtBalance.lt(minAvtBalance)) {
-    log.warn(`Insufficient payer balance: - Payer: ${payerAddress} - Current payer balance: ${payerAvtBalance.toString()} - Minimum payer balance: ${minAvtBalance.toString()}`);
+    log.warn(
+      `Insufficient payer balance: - Payer: ${payerAddress} - Current payer balance: ${payerAvtBalance.toString()} - Minimum payer balance: ${minAvtBalance.toString()}`
+    );
     return false;
   }
   return true;
@@ -593,7 +595,7 @@ async function getUnclaimedLowerProofs(latestClaimedLowerId) {
     const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
     return claimData.map(data => data.toHuman().encodedLowerData);
   } catch (error) {
-    log.error("Error in getUnclaimedLowerProofs:", error);
+    log.error('Error in getUnclaimedLowerProofs:', error);
     throw error;
   }
 }

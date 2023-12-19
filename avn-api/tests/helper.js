@@ -1,4 +1,4 @@
-const {AvnApi} = require('avn-api');
+const { AvnApi } = require('avn-api');
 const assert = require('chai').assert;
 const BN = require('bn.js');
 const yargs = require('yargs');
@@ -78,7 +78,9 @@ function randomEthTxHash() {
 
 async function remoteSigner(data, signerAddress, totalAccounts) {
   totalAccounts = totalAccounts || accounts;
-  const signerSuri = Object.keys(totalAccounts).flatMap(a => totalAccounts[a].address === signerAddress ? [totalAccounts[a].seed] : [])[0];
+  const signerSuri = Object.keys(totalAccounts).flatMap(a =>
+    totalAccounts[a].address === signerAddress ? [totalAccounts[a].seed] : []
+  )[0];
   const signer = keyring.addFromUri(signerSuri);
   return signer.sign(data);
 }

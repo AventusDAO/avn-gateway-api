@@ -1,4 +1,4 @@
-const {AvnApi} = require('avn-api');
+const { AvnApi } = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
@@ -25,7 +25,6 @@ describe('Utilities', async () => {
     });
   });
 
-
   describe('Utils', async () => {
     let nonInitialisedApi;
     before(async () => {
@@ -37,7 +36,7 @@ describe('Utilities', async () => {
 
     it('can generate a new account', async () => {
       const account = nonInitialisedApi.accountUtils.generateNewAccount();
-      assert(account.address)
+      assert(account.address);
     });
 
     it('can convert an address to a public key', async () => {
@@ -47,7 +46,7 @@ describe('Utilities', async () => {
 
     it('can still access utils after initialisation', async () => {
       const account = api.accountUtils.generateNewAccount();
-      assert(account.address)
+      assert(account.address);
     });
 
     describe('publicKeyToAddress', async () => {
@@ -60,6 +59,5 @@ describe('Utilities', async () => {
         assert.equal(address, accounts.otherUser.address);
       });
     });
-
   });
 });

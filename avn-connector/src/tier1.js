@@ -6,7 +6,7 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-const MAX_LIFT_AGE_IN_BLOCKS = 60 * 60 * 24 * 5 / 12; // ~5 days @ ~12 secs per block
+const MAX_LIFT_AGE_IN_BLOCKS = (60 * 60 * 24 * 5) / 12; // ~5 days @ ~12 secs per block
 const REQUIRED_CONFIRMATION_BLOCKS = 20;
 
 const EVENT_SIG = {
@@ -14,7 +14,7 @@ const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
   LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
-}
+};
 
 async function getLockedBalance(avnContract, tokenAddress) {
   let balance = 0;
@@ -35,7 +35,8 @@ async function getLockedBalance(avnContract, tokenAddress) {
 }
 
 async function getLiftEvents(avnContract) {
-  let fromBlock = 0, toBlock = 0;
+  let fromBlock = 0,
+    toBlock = 0;
   const liftEvents = [];
 
   try {
@@ -62,7 +63,7 @@ async function getLatestClaimedLowers(avnContract) {
     const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock });
     for await (const txHash of events.map(event => event.transactionHash)) {
       const txData = await provider.getTransaction(txHash);
-      const inputs = ethers.utils.defaultAbiCoder.decode(['bytes','bytes32[]'], ethers.utils.hexDataSlice(txData.data, 4));
+      const inputs = ethers.utils.defaultAbiCoder.decode(['bytes', 'bytes32[]'], ethers.utils.hexDataSlice(txData.data, 4));
       claimedLowers.push(ethers.utils.keccak256(inputs[0]));
     }
     if (events.length > 0) await redis.setClaimedLowersFromTier1Block(events[events.length - 1].blockNumber + 1);
@@ -132,5 +133,5 @@ module.exports = {
   getLatestPublishedRoots,
   getV2LowersClaimed,
   connectToBridge,
-  claimLowers,
+  claimLowers
 };

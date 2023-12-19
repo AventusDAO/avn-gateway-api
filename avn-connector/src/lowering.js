@@ -18,9 +18,9 @@ async function autolower() {
   const [lastBlockChecked, claimedLowerIds] = await tier1.getV2LowersClaimed(avnContract, fromBlock);
 
   claimedLowerIds.forEach(lowerId => {
-    delete unclaimedLowerProofs[lowerId]);
+    delete unclaimedLowerProofs[lowerId];
     latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
-  }
+  });
 
   const avnBridge = await tier1.connectToBridge(avnContract);
   await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
@@ -204,7 +204,6 @@ async function getLowerTransactions(fromBlock) {
 }
 
 async function getLowersFromIndexer(fromId, txLimit, avtContract) {
-
   try {
     const query = `query ConnectorLower { events( where: { name_in:[ "TokenManager.TokenLowered", "TokenManager.AvtLowered"], call: { id_gte: "${fromId}" } },
         limit: ${txLimit}, orderBy: id_ASC) { args extrinsic { hash id indexInBlock block { height } } } }`;

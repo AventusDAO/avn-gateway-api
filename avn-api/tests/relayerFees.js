@@ -98,7 +98,9 @@ describe('Relayer Fees:', async () => {
 
     it('Errors if relayer is not specified for a specific transaction type and user', async () => {
       const transactionType = 'proxyStakeAvt';
-      await expect(api.query.getRelayerFees(null, user.publicKey, transactionType)).to.be.rejectedWith(/Invalid empty address passed/);
+      await expect(api.query.getRelayerFees(null, user.publicKey, transactionType)).to.be.rejectedWith(
+        /Invalid empty address passed/
+      );
     });
 
     it('errors if relayer is not registered', async () => {

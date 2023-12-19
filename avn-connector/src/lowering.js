@@ -248,5 +248,6 @@ function lowerDataContainsAccount(lowerData, account) {
 }
 
 module.exports = {
+  autolower,
   getLowers
 };

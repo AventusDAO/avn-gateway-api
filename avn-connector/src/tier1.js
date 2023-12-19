@@ -121,7 +121,7 @@ async function claimLowers(avnBridge, lowerProofs) {
       log.info(`Claim lower ${id} tx confirmed: ${tx.hash}`);
     } catch (error) {
       log.info(`Claim lower ${id} failed: ${error.message.split('(action="estimateGas"')[0]}`);
-      await redis.addFailedLowerClaimId(id); // TODO - Retry these periodically
+      await redis.addAutolowerFailedClaimLowerId(id); // TODO - Retry these periodically
     }
   }
 }

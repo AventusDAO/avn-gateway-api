@@ -30,6 +30,7 @@ async function autolower() {
 }
 
 async function getLowers(account) {
+  return [];
   console.log(`\nProcessing lowers`);
   const { avnContract } = await avn.getChainInfo();
 

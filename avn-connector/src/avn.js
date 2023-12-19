@@ -486,31 +486,36 @@ async function getSummaries() {
     summaries = [],
     startKey;
 
-  do {
-    entries = await api.query.summary.roots.entriesPaged({ pageSize: 1000, args: [], startKey });
-    if (entries.length > 0) {
-      startKey = entries[entries.length - 1][0];
-      const formattedEntries = entries.map(
-        ([
-          {
-            args: [{ fromBlock, toBlock }]
-          },
-          { rootHash, isValidated }
-        ]) => ({
-          fromBlock: parseInt(fromBlock),
-          toBlock: parseInt(toBlock),
-          rootHash: rootHash.toString().toLowerCase(),
-          isValid: isValidated
-        })
-      );
-      const validEntries = formattedEntries
-        .filter(s => s.isValid == true)
-        .map(({ fromBlock, toBlock, rootHash }) => ({ fromBlock, toBlock, rootHash }));
-      summaries = summaries.concat(validEntries);
-    }
-  } while (entries.length > 0);
+  try {
+    do {
+      entries = await api.query.summary.roots.entriesPaged({ pageSize: 1000, args: [], startKey });
+      if (entries.length > 0) {
+        startKey = entries[entries.length - 1][0];
+        const formattedEntries = entries.map(
+          ([
+            {
+              args: [{ fromBlock, toBlock }]
+            },
+            { rootHash, isValidated }
+          ]) => ({
+            fromBlock: parseInt(fromBlock),
+            toBlock: parseInt(toBlock),
+            rootHash: rootHash.toString().toLowerCase(),
+            isValid: isValidated
+          })
+        );
+        const validEntries = formattedEntries
+          .filter(s => s.isValid == true)
+          .map(({ fromBlock, toBlock, rootHash }) => ({ fromBlock, toBlock, rootHash }));
+        summaries = summaries.concat(validEntries);
+      }
+    } while (entries.length > 0);
 
-  return summaries.sort((a, b) => (a.fromBlock < b.fromBlock ? -1 : 0));
+    return summaries.sort((a, b) => (a.fromBlock < b.fromBlock ? -1 : 0));
+  } catch (error) {
+    log.error({ message: 'Error getting summaries', err });
+    return [];
+  }
 }
 
 async function getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index) {

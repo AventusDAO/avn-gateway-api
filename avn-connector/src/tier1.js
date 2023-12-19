@@ -87,24 +87,24 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
-async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
-  const result = { checkedToBlock: fromBlock, ids: [] };
+async function getLowersClaimedSinceBlock(avnContract, lastBlockChecked) {
+  const claimedLowerIds = [];
   try {
-    const claimEvents = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock });
-    claimEvents.forEach(event => {
-      const lowerId = parseInt(event.topics[1]);
-      result.checkedToBlock = Math.max(event.blockNumber, result.checkedToBlock);
-      result.ids.push(lowerId);
+    const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock: lastBlockChecked });
+    claims.forEach(claim => {
+      const lowerId = parseInt(claim.topics[1]);
+      lastBlockChecked = Math.max(lastBlockChecked, claim.blockNumber);
+      claimedLowerIds.push(lowerId);
     });
   } catch (error) {
     log.error('Error getting claimed lowers:', error);
   }
-  
-  return result;
+
+  return [lastBlockChecked, claimedLowers];
 }
 
 async function claimLowers(avnContract, lowererPK, lowerProofs) {
-  if (Object.keys(lowerProofs).length === 0) return;
+  if (Object.keys(lowerProofs).length === 0) return [0, []];
 
   const signer = new ethers.Wallet(lowererPK, provider);
   const avnBridge = new ethers.Contract(avnContract, ['function claimLower(bytes calldata)'], signer);

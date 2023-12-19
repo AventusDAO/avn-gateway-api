@@ -34,7 +34,7 @@ const LIFTS_FROM_TIER1_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
-const LATEST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY = 'latestT1BlockCheckedForLowerClaims';
+const LAST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY = 'lastT1BlockCheckedForLowerClaims';
 const LATEST_CLAIMED_LOWER_ID_KEY = 'latestClaimedLowerId';
 const FAILED_CLAIM_LOWER_IDS_KEY = 'failedClaimLowerIds';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
@@ -336,12 +336,12 @@ async function getRetrieveLowersFromAvnBlock() {
   return blockNumber ? parseInt(blockNumber) : 0;
 }
 
-async function setLatestT1BlockCheckedForLowerClaims(blockNumber) {
-  await redisClient.set(LATEST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY, blockNumber);
+async function setLastT1BlockCheckedForLowerClaims(blockNumber) {
+  await redisClient.set(LAST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY, blockNumber);
 }
 
-async function getLatestT1BlockCheckedForLowerClaims() {
-  const blockNumber = await redisClient.get(LATEST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY);
+async function getLastT1BlockCheckedForLowerClaims() {
+  const blockNumber = await redisClient.get(LAST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY);
   return blockNumber ? parseInt(blockNumber) : 0;
 }
 
@@ -487,8 +487,8 @@ module.exports = {
   setTotalToken,
   setRetrieveLowersFromAvnBlock,
   getRetrieveLowersFromAvnBlock,
-  setLatestT1BlockCheckedForLowerClaims,
-  getLatestT1BlockCheckedForLowerClaims,
+  setLastT1BlockCheckedForLowerClaims,
+  getLastT1BlockCheckedForLowerClaims,
   setLatestClaimedLowerId,
   getLatestClaimedLowerId,
   setClaimedLowersFromTier1Block,

@@ -14,17 +14,18 @@ async function autoLower() {
   const { avnContract } = await avn.getChainInfo();
 
   let latestClaimedLowerId = await redis.getLatestClaimedLowerId();
-  const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
-  const latestBlockChecked = await redis.getLatestT1BlockCheckedForLowerClaims();
-  const claimedLowers = await tier1.getLowersClaimedSinceBlock(avnContract, latestBlockChecked);
+  let unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
+  let lastBlockChecked = await redis.getLastT1BlockCheckedForLowerClaims();
+  [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(avnContract, lastBlockChecked);
 
-  claimedLowers.lowerIds.forEach(id => {
-    delete unclaimedLowerProofs[id]);
-    latestClaimedLowerId = Math.max(latestClaimedLowerId, id);
+  await redis.setLastT1BlockCheckedForLowerClaims(lastBlockChecked);
+
+  claimedLowerIds.forEach(lowerId => {
+    delete unclaimedLowerProofs[lowerId]);
+    latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
   }
 
   await redis.setLatestClaimedLowerId(latestClaimedLowerId);
-  await redis.setLatestT1BlockCheckedForLowerClaims(claimedLowers.checkedToBlock);
 
   const lowererPK = await avn.getLowererPK();
   tier1.claimLowers(avnContract, lowererPK, unclaimedLowerProofs);

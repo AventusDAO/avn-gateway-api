@@ -378,8 +378,8 @@ async function getRelayerAccount(relayerAddress) {
   return relayers[relayerAddress];
 }
 
-async function getLowererPK() {
-  return await vault.getLowererPK();
+async function getLowerer() {
+  return await config.autoLowerPrivateKey();
 }
 
 async function getNftContractAddresses() {
@@ -604,7 +604,7 @@ function toBn(val) {
 module.exports = {
   addNewTransaction,
   getAccountInfo,
-  getLowererPK,
+  getLowerer,
   getUnclaimedLowerProofs,
   getCollatorsToNominate,
   getLowerDataFromRpc,

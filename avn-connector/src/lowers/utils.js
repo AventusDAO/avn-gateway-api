@@ -10,7 +10,7 @@ const lowerStates = {
     'TokenManager.AvtLowered': 1,
     'TokenManager.TokenLowered': 1,
 };
-lowerStates[utils.LOWER_REQUEST_EVENT_NAME] = 0;
+lowerStates[LOWER_REQUEST_EVENT_NAME] = 0;
 lowerStates[READY_TO_CLAIM_EVENT_NAME] = 2;
 
 async function getLowersFromIndexer(fromId, txLimit) {

@@ -23,10 +23,9 @@ async function autolower() {
   }
 
   const avnBridge = await tier1.connectToBridge(avnContract);
-  tier1.claimLowers(avnBridge, unclaimedLowerProofs);
   await redis.setLatestClaimedLowerId(latestClaimedLowerId);
   await redis.setLastT1BlockCheckedForLowerClaims(lastBlockChecked);
-
+  tier1.claimLowers(avnBridge, unclaimedLowerProofs); // Don't await, let these run in the background
   return `${Object.keys(unclaimedLowerProofs).length} lowers to claim`;
 }
 

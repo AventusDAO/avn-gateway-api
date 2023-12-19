@@ -87,10 +87,11 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
-async function getLowersClaimedSinceBlock(avnContract, lastBlockChecked) {
+async function getLowersClaimedSinceBlock(avnContract, blockToCheckFrom) {
   const claimedLowerIds = [];
+  const lastBlockChecked = blockToCheckFrom;
   try {
-    const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock: lastBlockChecked });
+    const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock: blockToCheckFrom });
     claims.forEach(claim => {
       const lowerId = parseInt(claim.topics[1]);
       lastBlockChecked = Math.max(lastBlockChecked, claim.blockNumber);

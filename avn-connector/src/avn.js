@@ -584,7 +584,7 @@ async function getUnclaimedLowerProofs(latestClaimedLowerId) {
     const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
     const unclaimedLowerIds = allLowerIds
       .map(({ args: [lowerId] }) => lowerId.toNumber())
-      .filter(lowerId => lowerId >= latestClaimedLowerId);
+      .filter(lowerId => lowerId > latestClaimedLowerId);
     const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
     return claimData.map(data => data.toHuman().encodedLowerData);
   } catch (error) {

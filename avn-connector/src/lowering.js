@@ -13,19 +13,20 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 async function autolower() {
   const { avnContract } = await avn.getChainInfo();
   let latestClaimedLowerId = await redis.getLatestClaimedLowerId();
-  let unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
-  let lastBlockChecked = await redis.getLastT1BlockCheckedForLowerClaims();
-  [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(avnContract, lastBlockChecked);
-  await redis.setLastT1BlockCheckedForLowerClaims(lastBlockChecked);
+  const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
+  const blockToCheckFrom = (await redis.getLastT1BlockCheckedForLowerClaims()) + 1;
+  const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(avnContract, blockToCheckFrom);
 
   claimedLowerIds.forEach(lowerId => {
     delete unclaimedLowerProofs[lowerId]);
     latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
   }
 
-  await redis.setLatestClaimedLowerId(latestClaimedLowerId);
   const avnBridge = await tier1.connectToBridge(avnContract);
   tier1.claimLowers(avnBridge, unclaimedLowerProofs);
+  await redis.setLatestClaimedLowerId(latestClaimedLowerId);
+  await redis.setLastT1BlockCheckedForLowerClaims(lastBlockChecked);
+
   return `${Object.keys(unclaimedLowerProofs).length} lowers to claim`;
 }
 

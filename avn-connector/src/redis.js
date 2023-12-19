@@ -342,7 +342,7 @@ async function setLastT1BlockCheckedForLowerClaims(blockNumber) {
 
 async function getLastT1BlockCheckedForLowerClaims() {
   const blockNumber = await redisClient.get(LAST_T1_BLOCK_CHECKED_FOR_LOWER_CLAIMS_KEY);
-  return blockNumber ? parseInt(blockNumber) : 0;
+  return blockNumber ? parseInt(blockNumber) : -1;
 }
 
 async function setLatestClaimedLowerId(lowerId) {
@@ -351,7 +351,7 @@ async function setLatestClaimedLowerId(lowerId) {
 
 async function getLatestClaimedLowerId() {
   const lowerId = await redisClient.get(LATEST_CLAIMED_LOWER_ID_KEY);
-  return lowerId ? parseInt(lowerId) : 0;
+  return lowerId ? parseInt(lowerId) : -1;
 }
 
 async function setClaimedLowersFromTier1Block(blockNumber) {

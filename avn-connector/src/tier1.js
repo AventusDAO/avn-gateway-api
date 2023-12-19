@@ -101,7 +101,7 @@ async function getLowersClaimedSinceBlock(avnContract, blockToCheckFrom) {
     log.error('Error getting claimed lowers:', error);
   }
 
-  return [lastBlockChecked, claimedLowers];
+  return [lastBlockChecked, claimedLowerIds];
 }
 
 async function connectToBridge(avnContract) {

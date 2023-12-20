@@ -41,10 +41,11 @@ const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
 const LOWER_DATA_KEY = 'lowerData';
 const SUMMARIES_KEY = 'summaries';
-const LAST_LOWER_BLOCK_FROM_AVN = 'lwr_lastAvnBlock';
-const LOWER_ID_PREFIX = 'lwr_id_';
-const LOWER_SENDER_PREFIX = 'lwr_sender_';
-const LOWER_RECIPIENT_PREFIX = 'lwr_recipient_';
+const LAST_LOWER_BLOCK_FROM_AVN = SLOT_PREFIX + 'lwr_lastAvnBlock';
+
+const LOWER_ID_PREFIX = SLOT_PREFIX + 'lwr_id_';
+const LOWER_SENDER_PREFIX = SLOT_PREFIX + 'lwr_sender_';
+const LOWER_RECIPIENT_PREFIX = SLOT_PREFIX + 'lwr_recipient_';
 const LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX = 'lwr_eth_last_claimed';
 
 const PENDING_TX_KEY = {

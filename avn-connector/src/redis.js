@@ -526,6 +526,7 @@ async function removeAutolowerFailedClaimLowerId(lowerId) {
 async function getAutolowerFailedClaimLowerIds() {
   const failed = await redisClient.smembers(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY);
   return failed || [];
+}
 
 module.exports = {
   connect,

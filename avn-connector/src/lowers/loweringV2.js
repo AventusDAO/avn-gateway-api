@@ -57,13 +57,9 @@ async function processLowerEvents(fromId, avtContract) {
             let canOverwriteEvent = utils.canOverwriteEvent(distinctLowers[lowerId], newEvent);
 
             if (canOverwriteEvent || currentEventMissingArgs) {
-                if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
-                    formattedEvent.claimData = await avn.getLowerProof(lowerId);
-                }
-
                 if (canOverwriteEvent) {
                     console.log(`Overwritting  ${distinctLowers[lowerId]?.name} with ${formattedEvent?.name}`)
-                    if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
+                    if (distinctLowers[lowerId] && formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
                         distinctLowers[lowerId].name = formattedEvent.name;
                         distinctLowers[lowerId].claimData = await avn.getLowerProof(lowerId);
                     } else {

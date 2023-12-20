@@ -13,7 +13,7 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
 
-  if (isNumber(account)) return;
+  if (isNumber(parseInt(account))) return;
 
   const { avnContract } = await avn.getChainInfo();
 

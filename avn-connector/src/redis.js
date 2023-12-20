@@ -438,10 +438,6 @@ async function getLowerData(txHash) {
   return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
-async function getAutolowerFailedClaimLowerIds() {
-  const failed = await redisClient.smembers(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY);
-  return failed || [];
-
 async function setLastLowerBlockFromAvn(blockNumber) {
   await redisClient.set(LAST_LOWER_BLOCK_FROM_AVN, blockNumber);
 }
@@ -526,6 +522,10 @@ async function addAutolowerFailedClaimLowerId(lowerId) {
 async function removeAutolowerFailedClaimLowerId(lowerId) {
   await redisClient.srem(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
 }
+
+async function getAutolowerFailedClaimLowerIds() {
+  const failed = await redisClient.smembers(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY);
+  return failed || [];
 
 module.exports = {
   connect,

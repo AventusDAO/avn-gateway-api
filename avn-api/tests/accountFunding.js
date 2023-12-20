@@ -18,7 +18,7 @@ describe('Account funding', async () => {
     process.env.AVN_SURI = accounts.bank.seed;
 
     const avnGateway = await helper.avnApi();
-    api = await avnGateway.apis()
+    api = await avnGateway.apis();
 
     relayer = accounts.relayer.address;
     user = accounts.user;

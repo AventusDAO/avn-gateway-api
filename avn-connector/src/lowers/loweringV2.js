@@ -113,9 +113,10 @@ async function getLowerByAddress(address) {
     for (id of lowerIds) {
         let lower = await redis.getLowerById(id);
         if (lower) {
+            console.log(`Lower data for id: ${id} = `, lower)
             lowerData.push(lower)
         } else {
-            log.error(`Lower Id ${id} for address: ${address} doesn't have any lower data associated.`);
+            log.error(`💔 Lower Id ${id} for address: ${address} doesn't have any lower data associated.`);
         }
     }
     return lowerData;

@@ -1,4 +1,4 @@
-const {SetupMode, AvnApi} = require('avn-api');
+const { SetupMode, AvnApi } = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 

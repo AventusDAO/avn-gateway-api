@@ -1,4 +1,4 @@
-const {SetupMode, SigningMode, NonceCacheType} = require('avn-api');
+const { SetupMode, SigningMode, NonceCacheType } = require('avn-api');
 const chai = require('chai');
 chai.use(require('chai-as-promised'));
 
@@ -9,7 +9,6 @@ const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 const bnEquals = helper.bnEquals;
 const ONE_AVT = new BN('1000000000000000000');
-
 
 class TestNonceCacheProvider {
   constructor() {}
@@ -38,7 +37,7 @@ describe('Access rights:', async () => {
 
   const signer = {
     sign: async (data, signerAddress) => {
-      return await helper.remoteSigner(data, signerAddress, accounts)
+      return await helper.remoteSigner(data, signerAddress, accounts);
     }
   };
 
@@ -113,7 +112,7 @@ describe('Access rights:', async () => {
         const options = {
           signer,
           setupMode: SetupMode.MultiUser,
-          signingMode: SigningMode.RemoteSigner,
+          signingMode: SigningMode.RemoteSigner
         };
 
         const avnGateway = await helper.avnApi(options);
@@ -146,11 +145,11 @@ describe('Access rights:', async () => {
         const newSigner = {
           sign: signer.sign,
           address: accounts.user.address
-        }
+        };
 
         const options = {
           signer: newSigner,
-          signingMode: SigningMode.RemoteSigner,
+          signingMode: SigningMode.RemoteSigner
         };
 
         const avnGateway = await helper.avnApi(options);
@@ -160,7 +159,7 @@ describe('Access rights:', async () => {
       it('can validate remote signer', async () => {
         const options = {
           suri: accounts.user.seed,
-          signingMode: SigningMode.RemoteSigner,
+          signingMode: SigningMode.RemoteSigner
         };
 
         await expect(helper.avnApi(options)).to.be.rejectedWith(`In remote signer mode, a suri must not be specified`);
@@ -169,7 +168,7 @@ describe('Access rights:', async () => {
       it('can set a suri based signer', async () => {
         const options = {
           suri: accounts.user.seed,
-          signingMode: SigningMode.SuriBased,
+          signingMode: SigningMode.SuriBased
         };
 
         const avnGateway = await helper.avnApi(options);
@@ -179,7 +178,7 @@ describe('Access rights:', async () => {
       it('can validate suri based signer', async () => {
         const options = {
           signer,
-          signingMode: SigningMode.SuriBased,
+          signingMode: SigningMode.SuriBased
         };
 
         await expect(helper.avnApi(options)).to.be.rejectedWith(`In suri mode, a remote signer must not be specified`);
@@ -188,7 +187,7 @@ describe('Access rights:', async () => {
       it('can validate signing mode', async () => {
         const options = {
           signer,
-          signingMode: 'foo',
+          signingMode: 'foo'
         };
 
         await expect(helper.avnApi(options)).to.be.rejectedWith(`Signing mode must be defined`);
@@ -201,7 +200,7 @@ describe('Access rights:', async () => {
           suri: accounts.user.seed,
           nonceCacheOptions: {
             nonceCacheType: NonceCacheType.Local
-          },
+          }
         };
 
         const avnGateway = await helper.avnApi(options);
@@ -209,13 +208,13 @@ describe('Access rights:', async () => {
       });
 
       it('can set a remote cache', async () => {
-        const testCacheProvider = new TestNonceCacheProvider()
+        const testCacheProvider = new TestNonceCacheProvider();
         const options = {
           suri: accounts.user.seed,
           nonceCacheOptions: {
             cacheProvider: testCacheProvider,
             nonceCacheType: NonceCacheType.Remote
-          },
+          }
         };
 
         const avnGateway = await helper.avnApi(options);
@@ -227,10 +226,12 @@ describe('Access rights:', async () => {
           suri: accounts.user.seed,
           nonceCacheOptions: {
             nonceCacheType: NonceCacheType.Remote
-          },
+          }
         };
 
-        await expect(helper.avnApi(options)).to.be.rejectedWith(`With a remote cache, you must specify a cache provider interface that implements an INonceCacheProvider`);
+        await expect(helper.avnApi(options)).to.be.rejectedWith(
+          `With a remote cache, you must specify a cache provider interface that implements an INonceCacheProvider`
+        );
       });
     });
 
@@ -238,7 +239,7 @@ describe('Access rights:', async () => {
       it('can set blank payer', async () => {
         const options = {
           suri: accounts.user.seed,
-          hasPayer: true,
+          hasPayer: true
         };
 
         const avnGateway = await helper.avnApi(options);
@@ -253,9 +254,11 @@ describe('Access rights:', async () => {
         };
 
         const avnGateway = await helper.avnApi(options);
-        const api = await avnGateway.apis()
+        const api = await avnGateway.apis();
 
-        await expect(api.send.transferAvt(accounts.otherUser.address, '1')).to.be.rejectedWith(`Request failed with status code 403`);
+        await expect(api.send.transferAvt(accounts.otherUser.address, '1')).to.be.rejectedWith(
+          `Request failed with status code 403`
+        );
       });
     });
   });

@@ -322,7 +322,8 @@ async function getStakerRewardsEarned(call, request) {
     try {
       const account = utils.convertToPublicKey(accountId);
       const eventsLimit = 500;
-      let events = [], sumRewards = new utils.BN(0);
+      let events = [],
+        sumRewards = new utils.BN(0);
 
       fromTimestamp = parseInt(fromTimestamp) > 0 ? new Date(parseInt(fromTimestamp) * 1000 - 1) : new Date(0);
       toTimestamp = parseInt(toTimestamp) > 0 ? new Date(parseInt(toTimestamp) * 1000) : new Date(32503679999000); // 31/12/2999
@@ -334,10 +335,13 @@ async function getStakerRewardsEarned(call, request) {
           args_jsonContains: ${JSON.stringify(JSON.stringify({ account }))},
           block: { timestamp_gt: "${fromTimestamp}", timestamp_lte: "${toTimestamp}"}},
           limit: ${eventsLimit}, orderBy: id_ASC) { args block { timestamp } } }`;
-        const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStakerRewardsEarned' });
+        const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, {
+          query,
+          operationName: 'GatewayApiStakerRewardsEarned'
+        });
         events = response.data.data.events;
         if (events.length > 0) {
-          events.forEach(event => sumRewards = sumRewards.add(new utils.BN(event.args.rewards)));
+          events.forEach(event => (sumRewards = sumRewards.add(new utils.BN(event.args.rewards))));
           fromTimestamp = events[events.length - 1].block.timestamp;
         }
       } while (events.length === eventsLimit);

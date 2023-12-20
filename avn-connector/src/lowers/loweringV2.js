@@ -73,7 +73,7 @@ async function processLowerEvents(fromId, avtContract) {
 
         for (key in distinctLowers) {
              // this will also take care of the sender/recipient mapping
-             console.log(`Storing key: ${key}, value: ${distinctLowers[key]}`)
+             console.log(`Storing key: ${key}, value: ${JSON.stringify(distinctLowers[key])}`)
              await redis.setLowerById(key, distinctLowers[key]);
         }
 

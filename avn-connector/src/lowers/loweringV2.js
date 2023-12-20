@@ -9,7 +9,7 @@ const log = log4js.getLogger();
 const TX_LIMIT = 50;
 
 async function getLowers(addressOrId) {
-    log.info(`\nGetting lower data for ${addressOrId}`);
+    log.info(`Getting lower data for ${addressOrId}`);
     const { avtContract } = await avn.getChainInfo();
 
     let lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
@@ -18,8 +18,10 @@ async function getLowers(addressOrId) {
     await deleteClaimedLowers(avtContract);
 
     if (isNumber(parseInt(addressOrId))) {
+        console.log("Is number: ", parseInt(addressOrId));
         return await redis.getLowerById(addressOrId);
     } else {
+        console.log("Not a number: ", parseInt(addressOrId));
         return await getLowerByAddress(addressOrId);
     }
 }

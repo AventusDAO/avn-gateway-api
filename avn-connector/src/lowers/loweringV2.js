@@ -49,43 +49,75 @@ async function processLowerEvents(fromId, avtContract) {
         let counter = 0;
         const distinctLowers = {};
 
-        for (const newEvent of lowersArray) {
-            const lowerId = newEvent?.args?.lowerId;
-            const formattedEvent = utils.formatLowerEvent(distinctLowers[lowerId], newEvent, avtContract);
+        for (const lowerData of lowersArray) {
+            [blockNumber, index] = utils.updateBlockNumberAndIndex(lowerData, blockNumber, index);
 
-            if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
-                formattedEvent.claimData = await avn.getLowerProof(lowerId);
+            const lowerId = lowerData?.args?.lowerId;
+            const currentEvent = distinctLowers[lowerId];
+            const newEvent = utils.formatLowerEvent(lowerData, avtContract);
+
+            if (newEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
+                newEvent.claimData = await avn.getLowerProof(lowerId);
             }
 
-            let currentEventMissingArgs = utils.currentEventMissingArgs(distinctLowers[lowerId])
-            let canOverwriteEvent = utils.canOverwriteEvent(distinctLowers[lowerId], newEvent);
+            if (!currentEvent) {
+                currentEvent = newEvent;
+                continue;
+            }
 
-            if (canOverwriteEvent || currentEventMissingArgs) {
-                if (canOverwriteEvent) {
-                    console.log(`Overwritting  ${distinctLowers[lowerId]?.name} with ${formattedEvent?.name}`)
-                    if (distinctLowers[lowerId] && formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
-                        distinctLowers[lowerId].name = formattedEvent.name;
-                        distinctLowers[lowerId].claimData = await avn.getLowerProof(lowerId);
-                    } else {
-                        distinctLowers[lowerId] = formattedEvent;
-                    }
+            if (utils.currentEventMissingArgs(currentEvent)) {
+                currentEvent = utils.updateEventArgs(currentEvent, newEvent);
+            }
 
-                    counter++;
-                } else if (currentEventMissingArgs) {
-                    distinctLowers[lowerId].from = formattedEvent.from;
-                    distinctLowers[lowerId].to = formattedEvent.to;
-                    distinctLowers[lowerId].amount = formattedEvent.amount;
-                } else if (distinctLowers[lowerId].name === utils.READY_TO_CLAIM_EVENT_NAME && !distinctLowers[lowerId].claimData) {
-                    distinctLowers[lowerId].claimData = await avn.getLowerProof(lowerId);
+            if (utils.canOverwriteEvent(currentEvent, newEvent)) {
+                currentEvent.name = newEvent.name;
+                currentEvent.claimData = newEvent.claimData;
+            } else {
+                // this is an edge case where the existiing entry in redis is corrupted somehow
+                if (currentEvent.name === utils.READY_TO_CLAIM_EVENT_NAME && !currentEvent.claimData) {
+                    currentEvent.claimData = await avn.getLowerProof(lowerId);
                 }
             }
 
-            if (!blockNumber || blockNumber < newEvent.block?.height) {
-                blockNumber = newEvent.block?.height;
-                index = newEvent.indexInBlock || 0;
-            } else if (blockNumber === newEvent.block?.height && index < newEvent.indexInBlock) {
-                index = newEvent.indexInBlock;
-            }
+            distinctLowers[lowerId] = currentEvent;
+
+            // const lowerId = newEvent?.args?.lowerId;
+            // const formattedEvent = utils.formatLowerEvent(distinctLowers[lowerId], newEvent, avtContract);
+
+            // if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
+            //     formattedEvent.claimData = await avn.getLowerProof(lowerId);
+            // }
+
+            // let currentEventMissingArgs = utils.currentEventMissingArgs(distinctLowers[lowerId])
+            // let canOverwriteEvent = utils.canOverwriteEvent(distinctLowers[lowerId], newEvent);
+
+            // if (canOverwriteEvent || currentEventMissingArgs) {
+            //     if (canOverwriteEvent) {
+            //         console.log(`Overwritting  ${distinctLowers[lowerId]?.name} with ${formattedEvent?.name}`)
+            //         if (distinctLowers[lowerId] && formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
+            //             distinctLowers[lowerId].name = formattedEvent.name;
+            //             distinctLowers[lowerId].claimData = await avn.getLowerProof(lowerId);
+            //         } else {
+            //             distinctLowers[lowerId] = formattedEvent;
+            //         }
+
+            //         counter++;
+            //     } else if (currentEventMissingArgs) {
+            //         distinctLowers[lowerId].from = formattedEvent.from;
+            //         distinctLowers[lowerId].to = formattedEvent.to;
+            //         distinctLowers[lowerId].amount = formattedEvent.amount;
+            //     } else if (distinctLowers[lowerId].name === utils.READY_TO_CLAIM_EVENT_NAME && !distinctLowers[lowerId].claimData) {
+            //         distinctLowers[lowerId].claimData = await avn.getLowerProof(lowerId);
+            //     }
+            // }
+
+
+            // if (!blockNumber || blockNumber < lowerData.block?.height) {
+            //     blockNumber = lowerData.block?.height;
+            //     index = lowerData.indexInBlock || 0;
+            // } else if (blockNumber === lowerData.block?.height && index < lowerData.indexInBlock) {
+            //     index = lowerData.indexInBlock;
+            // }
         };
 
         for (key in distinctLowers) {
@@ -95,7 +127,7 @@ async function processLowerEvents(fromId, avtContract) {
         }
 
         log.info(`Processed ${counter} lower(s) from id ${fromId} to block: ${blockNumber}, index: ${index}`);
-        return !!blockNumber && !!index ? { blockNumber, index } : null;
+        return { blockNumber, index };
       } catch (err) {
         log.error(`💔 Error processing lower events from ${fromId}. `, err);
         return null;

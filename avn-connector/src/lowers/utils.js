@@ -49,20 +49,14 @@ async function getLowersFromIndexer(fromId, txLimit) {
     }
 }
 
-function formatLowerEvent(currentEvent, newEvent, avtContract) {
-    let lowerEvent = newEvent;
-    if (currentEvent && newEvent.name == READY_TO_CLAIM_EVENT_NAME) {
-        lowerEvent = currentEvent;
-        lowerEvent.name = READY_TO_CLAIM_EVENT_NAME;
-    }
-
-    console.log(`Formatting - new event name ${newEvent?.name}, old event name: ${currentEvent?.name}, formattedName: ${lowerEvent?.name} `)
+function formatLowerEvent(lowerEvent, avtContract) {
     const lowerData = {
         lowerId: lowerEvent?.args?.lowerId,
         token: lowerEvent?.args?.tokenId || avtContract,
         to: lowerEvent?.args?.t1Recipient?.toLowerCase(),
         amount: isHex(lowerEvent?.args?.amount) ? hexToBn(lowerEvent?.args?.amount).toString() : lowerEvent?.args?.amount,
-        name: lowerEvent.name
+        name: lowerEvent?.name,
+        claimData: lowerEvent?.name
     };
 
     lowerData.from = lowerEvent?.name === LOWER_REQUEST_EVENT_NAME ? lowerEvent?.args?.from : lowerEvent?.args?.sender;
@@ -82,11 +76,39 @@ function currentEventMissingArgs(currentEvent) {
     return ['from', 'to', 'amount'].every(prop => currentEvent[prop] === null || currentEvent[prop] === undefined);
 }
 
+function updateEventArgs(currentEvent, newEvent) {
+    currentEvent.from = newEvent.from;
+    currentEvent.to = newEvent.to;
+    currentEvent.amount = newEvent.amount;
+    return currentEvent;
+}
+
+function updateBlockNumberAndIndex(lowerData, blockNumber, index) {
+    blockNumber = parseInt(blockNumber) || 0;
+    index = parseInt(index) || 0;
+
+    if (!lowerData || !lowerData.block) return [blockNumber, index];
+
+    const lowerBlockHeight = parseInt(lowerData.block.height) || 0;
+    const lowerIndexInBlock = parseInt(lowerData.indexInBlock) || 0;
+
+    if (blockNumber < lowerBlockHeight) {
+        blockNumber = lowerBlockHeight;
+        index = lowerIndexInBlock;
+    } else if (blockNumber === lowerBlockHeight && index < lowerIndexInBlock) {
+        index = lowerIndexInBlock;
+    }
+
+    return [blockNumber, index]
+}
+
 module.exports = {
     formatLowerEvent,
     getLowersFromIndexer,
     READY_TO_CLAIM_EVENT_NAME,
     lowerStates,
     canOverwriteEvent,
-    currentEventMissingArgs
+    currentEventMissingArgs,
+    updateEventArgs,
+    updateBlockNumberAndIndex
   };

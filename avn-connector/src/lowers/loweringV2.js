@@ -153,7 +153,6 @@ async function autolower() {
   return `${Object.keys(unclaimedLowerProofs).length} lowers to claim: ${Object.keys(unclaimedLowerProofs).join(',')}`;
 }
 
-
 module.exports = {
   autolower,
   getLowers

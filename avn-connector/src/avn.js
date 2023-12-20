@@ -608,7 +608,6 @@ async function getUnclaimedLowerProofs(latestClaimedLowerId) {
       acc[lowerId] = data.toHuman().encodedLowerData;
       return acc;
     }, {});
-
   } catch (error) {
     log.error('Error in getUnclaimedLowerProofs:', error);
     throw error;

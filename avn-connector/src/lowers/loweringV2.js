@@ -15,7 +15,7 @@ async function getLowers(addressOrId) {
     let lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
     let toBlock = await updateLowerData(lastAvnLowerBlock, avtContract);
     await redis.setLastLowerBlockFromAvn(toBlock);
-    //await deleteClaimedLowers(avtContract);
+    await deleteClaimedLowers(avtContract);
 
     if (isNumber(addressOrId)) {
         return await redis.getLowerById(addressOrId);
@@ -55,8 +55,10 @@ async function processLowerEvents(fromId, avtContract) {
 
             if (utils.canOverwriteEvent(distinctLowers[lowerId], newEvent)) {
                 if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
-                    formattedEvent.claimProof = await avn.getLowerProof(lowerId);
+                    formattedEvent.claimData = await avn.getLowerProof(lowerId);
                 }
+
+                console.log(`Overwritting  ${distinctLowers[lowerId]} with ${formattedEvent}`)
 
                 distinctLowers[lowerId] = formattedEvent;
                 counter++;
@@ -77,7 +79,7 @@ async function processLowerEvents(fromId, avtContract) {
         }
 
         log.info(`Processed ${counter} lower(s) from id ${fromId} to block: ${blockNumber}, index: ${index}`);
-        return blockNumber && index ? { blockNumber, index } : null;
+        return !!blockNumber && !!index ? { blockNumber, index } : null;
       } catch (err) {
         log.error(`💔 Error processing lower events from ${fromId}. `, err);
         return null;

@@ -49,7 +49,7 @@ async function processLowerEvents(fromId, avtContract) {
         let counter = 0;
         const distinctLowers = {};
 
-        for (const newEvent in lowersArray) {
+        for (const newEvent of lowersArray) {
             console.log("NEW EVENT: ", JSON.stringify(newEvent));
             const lowerId = newEvent?.args?.lowerId;
             const formattedEvent = utils.formatLowerEvent(distinctLowers[lowerId], newEvent, avtContract);
@@ -91,7 +91,7 @@ async function processLowerEvents(fromId, avtContract) {
 async function getLowerByAddress(address) {
     const lowerData = [];
     const lowerIds = await redis.getLowerIdsByAddress(address);
-    for (id in lowerIds) {
+    for (id of lowerIds) {
         let lower = await redis.getLowerById(id);
         if (lower) {
             lowerData.push(lower)
@@ -106,7 +106,7 @@ async function deleteClaimedLowers(avnContract) {
     const lastClaimedEthereumLowerBlock = await redis.getLastClaimedEthereumLowerBlock();
     let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(avnContract, lastClaimedEthereumLowerBlock);
 
-    for (lowerId in claimedLowerIdsOnEthereum) {
+    for (lowerId of claimedLowerIdsOnEthereum) {
         await redis.deleteLowerById(lowerId);
     }
 

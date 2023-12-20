@@ -1,7 +1,7 @@
 const utils = require('./utils');
 const avn = require('../avn');
 const redis = require('../redis');
-const tier1 = require('./tier1');
+const tier1 = require('../tier1');
 const { isNumber } = require('@polkadot/util');
 const log4js = require('log4js');
 const log = log4js.getLogger();

@@ -32,7 +32,11 @@ async function main() {
     transactionType: 'proxyTokenTransfer'
   });
   let payerPaymentNonce = await jsonRpcRequest('query', 'getNonce', { accountId: payer.address, nonceType: 'payment' });
-  let payerFeePaymentSignature = await payerGeneratedFeePaymentSignature(userProxySignature, relayerFeeForPayer, payerPaymentNonce);
+  let payerFeePaymentSignature = await payerGeneratedFeePaymentSignature(
+    userProxySignature,
+    relayerFeeForPayer,
+    payerPaymentNonce
+  );
 
   // No further signing required
   await api.setSURI(null);

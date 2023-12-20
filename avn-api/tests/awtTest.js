@@ -105,7 +105,7 @@ describe('AWT authorisation', async () => {
     it('generates a valid token for legacy (pre-splitFee) users', async () => {
       // If hasPayer is not specified, we assume it is a selfPay user
       let options = {
-        suri: accounts.user.seed,
+        suri: accounts.user.seed
       };
 
       apiWithOptions = await helper.avnApi(options);

@@ -116,9 +116,7 @@ describe('Split fees calls:', async () => {
       const apiWithOptions = await helper.avnApi(invalidOptions);
       const newApi = await apiWithOptions.apis();
 
-      await expect(newApi.send.transferAvt(recipient, amount)).to.be.rejectedWith(
-        /Request failed with status code 403/
-      );
+      await expect(newApi.send.transferAvt(recipient, amount)).to.be.rejectedWith(/Request failed with status code 403/);
     });
   });
 });

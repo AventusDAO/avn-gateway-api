@@ -13,15 +13,13 @@ async function getLowers(addressOrId) {
     const { avtContract } = await avn.getChainInfo();
 
     let lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
-    let toBlock = await updateLowerData(lastAvnLowerBlock, avtContract);
+    let toBlock = await updateLowerData(0 /*lastAvnLowerBlock*/, avtContract);
     await redis.setLastLowerBlockFromAvn(toBlock);
     await deleteClaimedLowers(avtContract);
 
     if (utils.isLowerId(addressOrId)) {
-        console.log("Is number: ", addressOrId);
         return await redis.getLowerById(addressOrId);
     } else {
-        console.log("Not a number: ", addressOrId);
         return await getLowerByAddress(addressOrId);
     }
 }
@@ -92,11 +90,11 @@ async function processLowerEvents(fromId, avtContract) {
             // This can happen if events are split across different batches (txLimits)
             let storedLower = await redis.getLowerById(key);
             let newLower = distinctLowers[key];
-            if (utils.canOverwriteEvent(storedLower, newLower)) {
+            //if (utils.canOverwriteEvent(storedLower, newLower)) {
                 log.trace(`Storing key: ${key}, value: ${JSON.stringify(newLower)}`)
                 // this will also take care of the sender/recipient mapping
                 await redis.setLowerById(key, newLower);
-            }
+            //}
             counter++;
         }
 
@@ -115,7 +113,6 @@ async function getLowerByAddress(address) {
     for (id of lowerIds) {
         let lower = await redis.getLowerById(id);
         if (lower) {
-            console.log(`Lower data for id: ${id} = `, lower)
             lowerData.push(lower)
         } else {
             log.error(`💔 Lower Id ${id} for address: ${address} doesn't have any lower data associated.`);
@@ -126,7 +123,7 @@ async function getLowerByAddress(address) {
 
 async function deleteClaimedLowers(avnContract) {
     const lastClaimedEthereumLowerBlock = await redis.getLastClaimedEthereumLowerBlock();
-    let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(avnContract, lastClaimedEthereumLowerBlock);
+    let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(avnContract, 0 /*lastClaimedEthereumLowerBlock*/);
 
     for (lowerId of claimedLowerIdsOnEthereum) {
         log.trace(`Deleting lower id ${lowerId}`)

@@ -32,11 +32,12 @@ async function updateLowerData(fromBlock, avtContract) {
 
     // Loop to retrieve lowers so as not to exceed the indexer limit:
     do {
-      toBlockInfo = await processLowerEvents(fromId, avtContract);
-      if (toBlockInfo) {
-        // Update the starting position (lowers are ordered so the last entry is always the most recent):
-        fromId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index) + 1);
-      }
+        toBlockInfo = await processLowerEvents(fromId, avtContract);
+        console.log(`Processing lowers from ${fromId}. Next batch: ${JSON.stringify(toBlockInfo || {})}`)
+        if (toBlockInfo) {
+            // Update the starting position (lowers are ordered so the last entry is always the most recent):
+            fromId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index) + 1);
+        }
     } while (toBlockInfo);
 }
 

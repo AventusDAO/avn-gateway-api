@@ -116,11 +116,11 @@ async function claimLowers(avnBridge, lowerProofs) {
   for (const [id, proof] of Object.entries(lowerProofs)) {
     try {
       const tx = await avnBridge.claimLower(proof);
-      log.info(`Claim lower ${id} tx sent: ${tx.hash}`);
+      log.info(`Claim lower tx sent. Lower ID: ${id}, tx hash: ${tx.hash}`);
       await tx.wait();
-      log.info(`Claim lower ${id} tx confirmed: ${tx.hash}`);
+      log.info(`Claim lower tx confirmed. Lower ID: ${id}, tx hash: ${tx.hash}`);
     } catch (error) {
-      log.info(`Claim lower ${id} failed: ${error.message.split('(action="estimateGas"')[0]}`);
+      log.info(`Claim lower tx failed. Lower ID: ${id}, error: ${error.message.split('(action="estimateGas"')[0]}`);
       await redis.addAutolowerFailedClaimLowerId(id); // TODO - Retry these periodically
     }
   }

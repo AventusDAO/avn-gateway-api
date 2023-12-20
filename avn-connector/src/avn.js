@@ -586,6 +586,15 @@ async function payerHasFunds(payerAddress) {
   return true;
 }
 
+function toBn(val) {
+  return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
+}
+
+async function getLowerProof(lowerId) {
+  let proof = await api.query.tokenManager.lowersReadyToClaim(lowerId);
+  return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
+}
+
 async function getUnclaimedLowerProofs(latestClaimedLowerId) {
   try {
     const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
@@ -606,14 +615,11 @@ async function getUnclaimedLowerProofs(latestClaimedLowerId) {
   }
 }
 
-function toBn(val) {
-  return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
-}
-
 module.exports = {
   addNewTransaction,
   getAccountInfo,
   getUnclaimedLowerProofs,
+  getLowerProof,
   getCollatorsToNominate,
   getLowerDataFromRpc,
   getStakingStats,

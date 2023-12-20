@@ -10,9 +10,9 @@ const MAX_LIFT_AGE_IN_BLOCKS = (60 * 60 * 24 * 5) / 12; // ~5 days @ ~12 secs pe
 const REQUIRED_CONFIRMATION_BLOCKS = 20;
 
 const EVENT_SIG = {
-  CLAIM: ethers.utils.id('LogLowerClaimed(uint32)'),
   LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
   LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
+  CLAIM: ethers.utils.id('LogLowerClaimed(uint32)'),
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
 };
 
@@ -88,8 +88,9 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
-async function getV2LowersClaimed(avnContract, fromBlock) {
+async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   const claimedLowerIds = [];
+
   try {
     const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock });
     claims.forEach(claim => {
@@ -131,7 +132,7 @@ module.exports = {
   getLiftEvents,
   getLockedBalance,
   getLatestPublishedRoots,
-  getV2LowersClaimed,
+  getLowersClaimedSinceBlock,
   connectToBridge,
   claimLowers
 };

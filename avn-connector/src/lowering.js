@@ -6,31 +6,16 @@ const tier1 = require('./tier1');
 const { hexToBn, isHex } = require('@polkadot/util');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
+const utils = require('./lowers/utils');
 const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
-async function autolower() {
-  const { avnContract } = await avn.getChainInfo();
-  let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
-  const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
-  const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
-  const [lastBlockChecked, claimedLowerIds] = await tier1.getV2LowersClaimed(avnContract, fromBlock);
-
-  claimedLowerIds.forEach(lowerId => {
-    delete unclaimedLowerProofs[lowerId];
-    latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
-  });
-
-  const avnBridge = await tier1.connectToBridge(avnContract);
-  await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
-  await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
-  tier1.claimLowers(avnBridge, unclaimedLowerProofs); // Don't await, let these run in the background
-  return `${Object.keys(unclaimedLowerProofs).length} lowers to claim: ${Object.keys(unclaimedLowerProofs).join(',')}`;
-}
-
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
+
+  if (utils.isLowerId(account)) return;
+
   const { avnContract } = await avn.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
@@ -247,6 +232,5 @@ function lowerDataContainsAccount(lowerData, account) {
 }
 
 module.exports = {
-  autolower,
   getLowers
 };

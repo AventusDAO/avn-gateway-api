@@ -3,6 +3,7 @@ const config = require('multiconfig').load();
 const avn = require('./avn');
 const rds = require('./db/index');
 const lowering = require('./lowering');
+const loweringV2 = require('./lowers/loweringV2');
 const redis = require('./redis');
 const mqConsumer = require('./mqConsumer');
 const lambda = require('./lambdas');
@@ -194,8 +195,17 @@ app.post('/avnNftContractAddresses', async (req, res, next) => {
 app.post('/lowers', async (req, res, next) => {
   try {
     log.trace({ lowerDataRequest: req.body });
-    const result = await lowering.getLowers(req.body.account);
-    res.send(result);
+    let oldLowers;
+
+    try {
+      oldLowers = await lowering.getLowers(req.body.account);
+    } catch (err) {
+      console.log(`Error fetching legacy lowers`, err);
+      oldLowers = [];
+    }
+
+    let newLowers = await loweringV2.getLowers(req.body.account);
+    res.send((oldLowers || []).concat(newLowers));
   } catch (err) {
     next(err);
   }
@@ -276,7 +286,7 @@ async function instantiateConnector() {
   await avn.init();
   await mqConsumer.connectToMQ();
   await rds.init();
-  lowering.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
+  loweringV2.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 
 (async () => {

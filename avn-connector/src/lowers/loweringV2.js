@@ -9,12 +9,12 @@ const TX_LIMIT = 50;
 
 async function getLowers(addressOrId) {
     log.info(`Getting lower data for ${addressOrId}`);
-    const { avtContract } = await avn.getChainInfo();
+    const { avnContract } = await avn.getChainInfo();
 
     let lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
-    let toBlock = await updateLowerData(lastAvnLowerBlock, avtContract);
+    let toBlock = await updateLowerData(lastAvnLowerBlock, avnContract);
     await redis.setLastLowerBlockFromAvn(toBlock);
-    await deleteClaimedLowers(avtContract);
+    await deleteClaimedLowers(avnContract);
 
     if (utils.isLowerId(addressOrId)) {
         return await redis.getLowerById(addressOrId);

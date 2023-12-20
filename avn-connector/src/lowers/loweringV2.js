@@ -13,7 +13,7 @@ async function getLowers(addressOrId) {
     const { avtContract } = await avn.getChainInfo();
 
     let lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
-    let toBlock = await updateLowerData(lastAvnLowerBlock, avtContract);
+    let toBlock = await updateLowerData(0 /*lastAvnLowerBlock*/, avtContract);
     await redis.setLastLowerBlockFromAvn(toBlock);
     await deleteClaimedLowers(avtContract);
 
@@ -90,11 +90,11 @@ async function processLowerEvents(fromId, avtContract) {
             // This can happen if events are split across different batches (txLimits)
             let storedLower = await redis.getLowerById(key);
             let newLower = distinctLowers[key];
-            if (utils.canOverwriteEvent(storedLower, newLower)) {
+            //if (utils.canOverwriteEvent(storedLower, newLower)) {
                 log.trace(`Storing key: ${key}, value: ${JSON.stringify(newLower)}`)
                 // this will also take care of the sender/recipient mapping
                 await redis.setLowerById(key, newLower);
-            }
+            //}
             counter++;
         }
 

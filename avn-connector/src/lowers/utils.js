@@ -102,6 +102,12 @@ function updateBlockNumberAndIndex(lowerData, blockNumber, index) {
     return [blockNumber, index]
 }
 
+// We can't use parseInt or isNumber because a hex input will be treated as a valid number
+function isLowerId(input) {
+    // Check if the input contains only decimal numbers
+    return /^[0-9]+$/.test(input);
+}
+
 module.exports = {
     formatLowerEvent,
     getLowersFromIndexer,
@@ -110,5 +116,6 @@ module.exports = {
     canOverwriteEvent,
     currentEventMissingArgs,
     updateEventArgs,
-    updateBlockNumberAndIndex
+    updateBlockNumberAndIndex,
+    isLowerId
   };

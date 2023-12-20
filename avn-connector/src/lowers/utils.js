@@ -56,7 +56,7 @@ function formatLowerEvent(lowerEvent, avtContract) {
         to: lowerEvent?.args?.t1Recipient?.toLowerCase(),
         amount: isHex(lowerEvent?.args?.amount) ? hexToBn(lowerEvent?.args?.amount).toString() : lowerEvent?.args?.amount,
         name: lowerEvent?.name,
-        claimData: lowerEvent?.name
+        claimData: lowerEvent?.claimData
     };
 
     lowerData.from = lowerEvent?.name === LOWER_REQUEST_EVENT_NAME ? lowerEvent?.args?.from : lowerEvent?.args?.sender;

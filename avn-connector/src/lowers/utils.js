@@ -42,7 +42,6 @@ async function getLowersFromIndexer(fromId, txLimit) {
             operationName: 'LowerQuery'
         });
 
-        console.log("Response from GrapghQL: ", JSON.stringify(response?.data?.data?.events, null, 2));
         return response?.data?.data?.events || [];
     } catch (error) {
         log.error('💔 Error fetching lower events:', error);

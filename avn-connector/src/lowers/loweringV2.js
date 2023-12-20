@@ -15,7 +15,7 @@ async function getLowers(addressOrId) {
     let lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
     let toBlock = await updateLowerData(lastAvnLowerBlock, avtContract);
     await redis.setLastLowerBlockFromAvn(toBlock);
-    await deleteClaimedLowers(avtContract);
+    //await deleteClaimedLowers(avtContract);
 
     if (isNumber(addressOrId)) {
         return await redis.getLowerById(addressOrId);
@@ -50,13 +50,10 @@ async function processLowerEvents(fromId, avtContract) {
         const distinctLowers = {};
 
         for (const newEvent of lowersArray) {
-            console.log("NEW EVENT: ", JSON.stringify(newEvent));
             const lowerId = newEvent?.args?.lowerId;
             const formattedEvent = utils.formatLowerEvent(distinctLowers[lowerId], newEvent, avtContract);
-            console.log("FORMATTED EVENT: ", JSON.stringify(formattedEvent));
 
             if (utils.canOverwriteEvent(distinctLowers[lowerId], newEvent)) {
-                console.log("OVERRIDING EVENT: ", lowerId, formattedEvent.name);
                 if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
                     formattedEvent.claimProof = await avn.getLowerProof(lowerId);
                 }
@@ -73,7 +70,6 @@ async function processLowerEvents(fromId, avtContract) {
             }
         };
 
-        console.log("DISTINCT LOWERS: ", JSON.stringify(distinctLowers, null, 2));
         for (key in distinctLowers) {
              // this will also take care of the sender/recipient mapping
              console.log(`Storing key: ${key}, value: ${JSON.stringify(distinctLowers[key])}`)
@@ -91,6 +87,7 @@ async function processLowerEvents(fromId, avtContract) {
 async function getLowerByAddress(address) {
     const lowerData = [];
     const lowerIds = await redis.getLowerIdsByAddress(address);
+    console.log(`Found ${JSON.stringify(lowerIds)} lowerId for address ${address}`)
     for (id of lowerIds) {
         let lower = await redis.getLowerById(id);
         if (lower) {

@@ -33,7 +33,7 @@ async function updateLowerData(fromBlock, avtContract) {
     // Loop to retrieve lowers so as not to exceed the indexer limit:
     do {
         toBlockInfo = await processLowerEvents(fromId, avtContract);
-        console.log(`Processing lowers from ${fromId}. Next batch: ${JSON.stringify(toBlockInfo || {})}`)
+        log.info(`Processing lowers from ${fromId}. Next batch: ${JSON.stringify(toBlockInfo || {})}`);
         if (toBlockInfo) {
             // Update the starting position (lowers are ordered so the last entry is always the most recent):
             fromId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index) + 1);
@@ -87,7 +87,7 @@ async function processLowerEvents(fromId, avtContract) {
 
         for (key in distinctLowers) {
              // this will also take care of the sender/recipient mapping
-             console.log(`Storing key: ${key}, value: ${JSON.stringify(distinctLowers[key])}`)
+             log.trace(`Storing key: ${key}, value: ${JSON.stringify(distinctLowers[key])}`)
              await redis.setLowerById(key, distinctLowers[key]);
         }
 
@@ -102,7 +102,7 @@ async function processLowerEvents(fromId, avtContract) {
 async function getLowerByAddress(address) {
     const lowerData = [];
     const lowerIds = await redis.getLowerIdsByAddress(address);
-    console.log(`Found ${JSON.stringify(lowerIds)} lowerId for address ${address}`)
+    log.trace(`LowerIds for address ${address}: ${JSON.stringify(lowerIds)}`);
     for (id of lowerIds) {
         let lower = await redis.getLowerById(id);
         if (lower) {

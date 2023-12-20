@@ -74,7 +74,7 @@ function canOverwriteEvent(currentEvent, newEvent) {
     if (!currentEvent) return true;
 
     let transitionIsValid = lowerStates[newEvent.name] > lowerStates[currentEvent.name];
-    let currentEventMissingArgs = ['token', 'to', 'amount'].every(prop => currentEvent[prop] === null || currentEvent[prop] === undefined);
+    let currentEventMissingArgs = ['to', 'amount'].every(prop => currentEvent[prop] === null || currentEvent[prop] === undefined);
     return transitionIsValid || currentEventMissingArgs;
 }
 

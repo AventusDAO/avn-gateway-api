@@ -1,8 +1,10 @@
 const axios = require('axios');
 const log4js = require('log4js');
 const log = log4js.getLogger();
+const config = require('multiconfig').load();
 const { hexToBn, isHex } = require('@polkadot/util');
 
+const AVN_EXPLORER_URL = config.avnExplorerUrl;
 const READY_TO_CLAIM_EVENT_NAME = 'TokenManager.LowerReadyToClaim';
 const LOWER_REQUEST_EVENT_NAME = 'TokenManager.LowerRequested';
 

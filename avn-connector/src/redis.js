@@ -461,6 +461,8 @@ async function getLowerById(lowerId) {
 
 async function deleteLowerById(lowerId) {
   const lowerData = await getLowerById(lowerId);
+  if (!lowerData) return;
+
   const senderKey = LOWER_SENDER_PREFIX + lowerData.sender;
   const recipienteKey = LOWER_RECIPIENT_PREFIX + lowerData.eth_recipient;
 

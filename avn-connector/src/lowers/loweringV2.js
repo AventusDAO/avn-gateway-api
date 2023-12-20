@@ -17,8 +17,6 @@ async function getLowers(addressOrId) {
     await redis.setLastLowerBlockFromAvn(toBlock);
     await deleteClaimedLowers(avtContract);
 
-    console.log(`IS NUMBER: `, isNumber(addressOrId), isNumber(parseInt(addressOrId), addressOrId));
-
     if (isNumber(parseInt(addressOrId))) {
         return await redis.getLowerById(addressOrId);
     } else {

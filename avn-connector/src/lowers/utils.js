@@ -67,7 +67,7 @@ function formatLowerEvent(lowerEvent, avtContract) {
 function canOverwriteEvent(currentEvent, newEvent) {
     if (!currentEvent) return true;
 
-    let transitionIsValid = lowerStates[newEvent.name] > lowerStates[currentEvent.name];
+    let transitionIsValid = lowerStates[newEvent?.name] > lowerStates[currentEvent?.name];
     return transitionIsValid;
 }
 

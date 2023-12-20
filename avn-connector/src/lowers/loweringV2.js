@@ -86,15 +86,22 @@ async function processLowerEvents(fromId, avtContract) {
         };
 
         for (key in distinctLowers) {
-             // this will also take care of the sender/recipient mapping
-             log.trace(`Storing key: ${key}, value: ${JSON.stringify(distinctLowers[key])}`)
-             await redis.setLowerById(key, distinctLowers[key]);
+            // One last check to make sure we don't overrite stored events.
+            // This can happen if events are split across different batches (txLimits)
+            let storedLower = await redis.getLowerById(key);
+            let newLower = distinctLowers[key];
+            if (utils.canOverwriteEvent(storedLower, newLower)) {
+                log.trace(`Storing key: ${key}, value: ${JSON.stringify(newLower)}`)
+                // this will also take care of the sender/recipient mapping
+                await redis.setLowerById(key, newLower);
+            }
+            counter++;
         }
 
         log.info(`Processed ${counter} lower(s) from id ${fromId} to block: ${blockNumber}, index: ${index}`);
         return { blockNumber, index };
       } catch (err) {
-        log.error(`💔 Error processing lower events from ${fromId}. `, err);
+        log.error(`💔 Error processing lower events. From: ${fromId}. `, err);
         return null;
       }
 }

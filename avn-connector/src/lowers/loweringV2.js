@@ -122,8 +122,7 @@ async function getLowerByAddress(address) {
 
 async function deleteClaimedLowers(avnContract) {
     const lastClaimedEthereumLowerBlock = await redis.getLastClaimedEthereumLowerBlock();
-    let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(avnContract, 0/*lastClaimedEthereumLowerBlock*/);
-    console.log("Claimed on eth: ", lastBlockChecked, JSON.stringify(claimedLowerIdsOnEthereum));
+    let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(avnContract, lastClaimedEthereumLowerBlock);
     for (lowerId of claimedLowerIdsOnEthereum) {
         log.trace(`Deleting lower id ${lowerId}`)
         await redis.deleteLowerById(lowerId);

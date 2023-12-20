@@ -478,9 +478,9 @@ async function deleteLowerById(lowerId) {
 async function getLowerIdsByAddress(address) {
   const senderKey = LOWER_SENDER_PREFIX + address;
   const recipienteKey = LOWER_RECIPIENT_PREFIX + address;
-  let lowerIds = await redisClient.lrange(senderKey, 0, -1);
+  let lowerIds = await redisClient.smembers(senderKey);
   if (!lowerIds) {
-    lowerIds = await redisClient.lrange(recipienteKey, 0, -1);
+    lowerIds = await redisClient.smembers(recipienteKey);
   }
   return lowerIds ? lowerIds : [];
 }

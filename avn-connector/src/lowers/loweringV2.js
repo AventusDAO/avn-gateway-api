@@ -53,7 +53,7 @@ async function processLowerEvents(fromId, avtContract) {
             [blockNumber, index] = utils.updateBlockNumberAndIndex(lowerData, blockNumber, index);
 
             const lowerId = lowerData?.args?.lowerId;
-            const currentEvent = distinctLowers[lowerId];
+            let currentEvent = distinctLowers[lowerId];
             const newEvent = utils.formatLowerEvent(lowerData, avtContract);
 
             if (newEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {

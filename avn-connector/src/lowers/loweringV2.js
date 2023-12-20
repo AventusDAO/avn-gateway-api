@@ -53,15 +53,25 @@ async function processLowerEvents(fromId, avtContract) {
             const lowerId = newEvent?.args?.lowerId;
             const formattedEvent = utils.formatLowerEvent(distinctLowers[lowerId], newEvent, avtContract);
 
-            if (utils.canOverwriteEvent(distinctLowers[lowerId], newEvent)) {
+            let currentEventMissingArgs = utils.currentEventMissingArgs(distinctLowers[lowerId])
+            let canOverwriteEvent = utils.canOverwriteEvent(distinctLowers[lowerId], newEvent);
+
+            if (canOverwriteEvent || currentEventMissingArgs) {
                 if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
                     formattedEvent.claimData = await avn.getLowerProof(lowerId);
                 }
 
-                console.log(`Overwritting  ${distinctLowers[lowerId]} with ${formattedEvent}`)
-
-                distinctLowers[lowerId] = formattedEvent;
-                counter++;
+                if (canOverwriteEvent) {
+                    console.log(`Overwritting  ${distinctLowers[lowerId].name} with ${formattedEvent.name}`)
+                    distinctLowers[lowerId] = formattedEvent;
+                    counter++;
+                } else if (currentEventMissingArgs) {
+                    distinctLowers[lowerId].from = formattedEvent.from;
+                    distinctLowers[lowerId].to = formattedEvent.to;
+                    distinctLowers[lowerId].amount = formattedEvent.amount;
+                } else if (distinctLowers[lowerId].name === utils.READY_TO_CLAIM_EVENT_NAME && !distinctLowers[lowerId].claimData) {
+                    distinctLowers[lowerId].claimData = await avn.getLowerProof(lowerId);
+                }
             }
 
             if (!blockNumber || blockNumber < newEvent.block?.height) {

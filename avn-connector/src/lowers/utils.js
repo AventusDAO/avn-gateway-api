@@ -74,8 +74,12 @@ function canOverwriteEvent(currentEvent, newEvent) {
     if (!currentEvent) return true;
 
     let transitionIsValid = lowerStates[newEvent.name] > lowerStates[currentEvent.name];
-    let currentEventMissingArgs = ['to', 'amount'].every(prop => currentEvent[prop] === null || currentEvent[prop] === undefined);
-    return transitionIsValid || currentEventMissingArgs;
+    return transitionIsValid;
+}
+
+function currentEventMissingArgs(currentEvent) {
+    if (!currentEvent) return false;
+    return ['from', 'to', 'amount'].every(prop => currentEvent[prop] === null || currentEvent[prop] === undefined);
 }
 
 module.exports = {
@@ -83,5 +87,6 @@ module.exports = {
     getLowersFromIndexer,
     READY_TO_CLAIM_EVENT_NAME,
     lowerStates,
-    canOverwriteEvent
+    canOverwriteEvent,
+    currentEventMissingArgs
   };

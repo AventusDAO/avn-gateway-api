@@ -50,8 +50,8 @@ async function processLowerEvents(fromId, avtContract) {
         const distinctLowers = {};
 
         for (const newEvent in lowersArray) {
+            const lowerId = newEvent?.args?.lowerId;
             const formattedEvent = utils.formatLowerEvent(distinctLowers[lowerId], newEvent, avtContract);
-            const lowerId = formattedEvent.lowerId;
 
             if (utils.canOverwriteEvent(distinctLowers[lowerId], newEvent)) {
 

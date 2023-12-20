@@ -61,7 +61,7 @@ async function processLowerEvents(fromId, avtContract) {
             }
 
             if (!currentEvent) {
-                currentEvent = newEvent;
+                distinctLowers[lowerId] = newEvent;
                 continue;
             }
 

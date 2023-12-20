@@ -2,7 +2,6 @@ const utils = require('./utils');
 const avn = require('../avn');
 const redis = require('../redis');
 const tier1 = require('../tier1');
-const { isNumber } = require('@polkadot/util');
 const log4js = require('log4js');
 const log = log4js.getLogger();
 
@@ -13,7 +12,7 @@ async function getLowers(addressOrId) {
     const { avtContract } = await avn.getChainInfo();
 
     let lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
-    let toBlock = await updateLowerData(0 /*lastAvnLowerBlock*/, avtContract);
+    let toBlock = await updateLowerData(lastAvnLowerBlock, avtContract);
     await redis.setLastLowerBlockFromAvn(toBlock);
     await deleteClaimedLowers(avtContract);
 
@@ -90,11 +89,11 @@ async function processLowerEvents(fromId, avtContract) {
             // This can happen if events are split across different batches (txLimits)
             let storedLower = await redis.getLowerById(key);
             let newLower = distinctLowers[key];
-            //if (utils.canOverwriteEvent(storedLower, newLower)) {
+            if (utils.canOverwriteEvent(storedLower, newLower)) {
                 log.trace(`Storing key: ${key}, value: ${JSON.stringify(newLower)}`)
                 // this will also take care of the sender/recipient mapping
                 await redis.setLowerById(key, newLower);
-            //}
+            }
             counter++;
         }
 
@@ -123,7 +122,7 @@ async function getLowerByAddress(address) {
 
 async function deleteClaimedLowers(avnContract) {
     const lastClaimedEthereumLowerBlock = await redis.getLastClaimedEthereumLowerBlock();
-    let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(avnContract, 0 /*lastClaimedEthereumLowerBlock*/);
+    let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(avnContract, lastClaimedEthereumLowerBlock);
 
     for (lowerId of claimedLowerIdsOnEthereum) {
         log.trace(`Deleting lower id ${lowerId}`)

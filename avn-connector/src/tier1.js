@@ -90,7 +90,7 @@ async function getLatestPublishedRoots(avnContract) {
 
 async function getLowersClaimedSinceBlock(avnContract, blockToCheckFrom) {
   const claimedLowerIds = [];
-  const lastBlockChecked = blockToCheckFrom;
+  let lastBlockChecked = blockToCheckFrom;
   try {
     const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock: blockToCheckFrom });
     claims.forEach(claim => {

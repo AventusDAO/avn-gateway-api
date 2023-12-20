@@ -26,11 +26,10 @@ async function autolower() {
   await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
   await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
   tier1.claimLowers(avnBridge, unclaimedLowerProofs); // Don't await, let these run in the background
-  return `${Object.keys(unclaimedLowerProofs).length} lowers to claim`;
+  return `${Object.keys(unclaimedLowerProofs).length} lowers to claim: ${Object.keys(unclaimedLowerProofs).join(',')}`;
 }
 
 async function getLowers(account) {
-  return [];
   console.log(`\nProcessing lowers`);
   const { avnContract } = await avn.getChainInfo();
 

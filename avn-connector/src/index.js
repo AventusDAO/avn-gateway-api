@@ -191,7 +191,7 @@ app.post('/lowers', async (req, res, next) => {
       oldLowers = await lowering.getLowers(req.body.account);
     } catch (err) {
       console.log(`Error fetching legacy lowers`, err);
-      return [];
+      oldLowers = [];
     }
 
     let newLowers = await loweringV2.getLowers(req.body.account);

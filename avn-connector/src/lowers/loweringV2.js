@@ -40,8 +40,7 @@ async function updateLowerData(fromBlock, avtContract) {
         }
     } while (toBlockInfo);
 
-    // Commenting this out to be able to retry for tests
-    //return fromId;
+    return fromId;
 }
 
 async function processLowerEvents(fromId, avtContract) {

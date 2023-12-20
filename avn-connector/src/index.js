@@ -185,7 +185,7 @@ app.post('/avnNftContractAddresses', async (req, res, next) => {
 app.post('/lowers', async (req, res, next) => {
   try {
     log.trace({ lowerDataRequest: req.body });
-    let oldLowers = await lowering.getLowers(req.body.account);
+    let oldLowers = [];//await lowering.getLowers(req.body.account);
     let newLowers = await loweringV2.getLowers(req.body.account);
     res.send((oldLowers || []).concat(newLowers));
   } catch (err) {

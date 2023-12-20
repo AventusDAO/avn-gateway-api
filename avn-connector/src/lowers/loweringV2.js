@@ -53,6 +53,10 @@ async function processLowerEvents(fromId, avtContract) {
             const lowerId = newEvent?.args?.lowerId;
             const formattedEvent = utils.formatLowerEvent(distinctLowers[lowerId], newEvent, avtContract);
 
+            if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
+                formattedEvent.claimData = await avn.getLowerProof(lowerId);
+            }
+
             let currentEventMissingArgs = utils.currentEventMissingArgs(distinctLowers[lowerId])
             let canOverwriteEvent = utils.canOverwriteEvent(distinctLowers[lowerId], newEvent);
 

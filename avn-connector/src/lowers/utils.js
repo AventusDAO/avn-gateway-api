@@ -67,6 +67,6 @@ function formatLowerEvent(lowerEvent, avtContract) {
 module.exports = {
     formatLowerEvent,
     getLowersFromIndexer,
-    LOWER_REQUEST_EVENT_NAME,
+    READY_TO_CLAIM_EVENT_NAME,
     lowerStates
   };

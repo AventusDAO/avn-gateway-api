@@ -55,7 +55,7 @@ async function processLowerEvents(fromId, avtContract) {
 
             if (!distinctLowers[lowerId] || utils.lowerStates[lower.name] > utils.lowerStates[distinctLowers[lowerId].name]) {
 
-                if (formattedEvent.name === READY_TO_CLAIM_EVENT_NAME) {
+                if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
                     formattedEvent.claimProof = avn.getLowerProof(lowerId);
                 }
 
@@ -100,10 +100,12 @@ async function getLowerByAddress(address) {
 
 async function deleteClaimedLowers(avnContract) {
     const lastClaimedEthereumLowerBlock = await redis.getLastClaimedEthereumLowerBlock();
-    let claimedLowerIdsOnEthereum = await tier1.getLowersClaimedSinceBlock(avnContract, lastClaimedEthereumLowerBlock);
+    let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(avnContract, lastClaimedEthereumLowerBlock);
+
     for (lowerId in claimedLowerIdsOnEthereum) {
         await redis.deleteLowerById(lowerId);
     }
+
     await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
 }
 

@@ -583,8 +583,8 @@ function toBn(val) {
   return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
 }
 
-function getLowerProof(lowerId) {
-  let proof = api.query.tokenManager.lowersReadyToClaim(lowerId);
+async function getLowerProof(lowerId) {
+  let proof = await api.query.tokenManager.lowersReadyToClaim(lowerId);
   return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
 }
 module.exports = {

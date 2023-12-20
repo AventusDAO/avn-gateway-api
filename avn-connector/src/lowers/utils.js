@@ -20,7 +20,7 @@ async function getLowersFromIndexer(fromId, txLimit) {
         query LowerQuery {
             events(
                 where: {
-                    name_in:["TokenManager.TokenLowered", "TokenManager.AvtLowered", "${LOWER_REQUEST_EVENT_NAME}", "TokenManager.LowerReadyToClaim"],
+                    name_in:["TokenManager.TokenLowered", "TokenManager.AvtLowered", "${LOWER_REQUEST_EVENT_NAME}", "${READY_TO_CLAIM_EVENT_NAME}"],
                     id_gte: "${fromId}"
                 },
                 limit: ${txLimit},
@@ -42,6 +42,7 @@ async function getLowersFromIndexer(fromId, txLimit) {
             operationName: 'LowerQuery'
         });
 
+        console.log("Response from GrapghQL: ", JSON.stringify(response, null, 2));
         return response?.data?.data?.events || [];
     } catch (error) {
         log.error('💔 Error fetching lower events:', error);
@@ -54,7 +55,7 @@ function formatLowerEvent(lowerEvent, avtContract) {
         lowerId: lowerEvent?.args?.lowerId,
         token: lowerEvent?.args?.tokenId || avtContract,
         to: lowerEvent?.args?.t1Recipient?.toLowerCase(),
-        amount: isHex(lowerEvent.amount) ? hexToBn(lowerEvent.amount).toString() : lowerEvent.amount,
+        amount: isHex(lowerEvent?.args?.amount) ? hexToBn(lowerEvent?.args?.amount).toString() : lowerEvent?.args?.amount,
         name: lowerEvent.name,
         claimData: lowerEvent.claimProof
     };

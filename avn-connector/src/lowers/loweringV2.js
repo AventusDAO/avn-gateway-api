@@ -49,14 +49,14 @@ async function processLowerEvents(fromId, avtContract) {
         let counter = 0;
         const distinctLowers = {};
 
-        lowersArray.forEach(lower => {
+        for (const lower in lowersArray) {
             const formattedEvent = utils.formatLowerEvent(lower, avtContract);
             const lowerId = formattedEvent.lowerId;
 
             if (!distinctLowers[lowerId] || utils.lowerStates[lower.name] > utils.lowerStates[distinctLowers[lowerId].name]) {
 
                 if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
-                    formattedEvent.claimProof = avn.getLowerProof(lowerId);
+                    formattedEvent.claimProof = await avn.getLowerProof(lowerId);
                 }
 
                 distinctLowers[lowerId] = formattedEvent;
@@ -69,7 +69,7 @@ async function processLowerEvents(fromId, avtContract) {
             } else if (blockNumber === lower.block?.height && index < lower.indexInBlock) {
                 index = lower.indexInBlock;
             }
-        });
+        };
 
         for (key in distinctLowers) {
              // this will also take care of the sender/recipient mapping

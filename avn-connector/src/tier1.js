@@ -93,6 +93,7 @@ async function getLowersClaimedSinceBlock(avnContract, blockToCheckFrom) {
   let lastBlockChecked = blockToCheckFrom;
   try {
     const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock: blockToCheckFrom });
+    console.log("Claims: ", JSON.stringify(claims));
     claims.forEach(claim => {
       const lowerId = parseInt(claim.topics[1]);
       lastBlockChecked = Math.max(lastBlockChecked, claim.blockNumber);

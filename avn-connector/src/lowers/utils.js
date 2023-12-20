@@ -50,14 +50,19 @@ async function getLowersFromIndexer(fromId, txLimit) {
     }
 }
 
-function formatLowerEvent(lowerEvent, avtContract) {
+function formatLowerEvent(currentEvent, newEvent, avtContract) {
+    let lowerEvent = newEvent;
+    if (currentEvent && newEvent.name == READY_TO_CLAIM_EVENT_NAME) {
+        lowerEvent = currentEvent;
+        lowerEvent.name = READY_TO_CLAIM_EVENT_NAME;
+    }
+
     const lowerData = {
         lowerId: lowerEvent?.args?.lowerId,
         token: lowerEvent?.args?.tokenId || avtContract,
         to: lowerEvent?.args?.t1Recipient?.toLowerCase(),
         amount: isHex(lowerEvent?.args?.amount) ? hexToBn(lowerEvent?.args?.amount).toString() : lowerEvent?.args?.amount,
-        name: lowerEvent.name,
-        claimData: lowerEvent.claimProof
+        name: lowerEvent.name
     };
 
     lowerData.from = lowerEvent?.name === LOWER_REQUEST_EVENT_NAME ? lowerEvent?.args?.from : lowerEvent?.args?.sender;
@@ -65,9 +70,16 @@ function formatLowerEvent(lowerEvent, avtContract) {
     return lowerData;
 }
 
+function canOverwriteEvent(currentEvent, newEvent) {
+    let transitionIsValid = lowerStates[newEvent.name] > lowerStates[currentEvent.name];
+    let currentEventMissingArgs = ['token', 'to', 'amount'].every(prop => currentEvent[prop] === null || currentEvent[prop] === undefined);
+    return !currentEvent || transitionIsValid || currentEventMissingArgs;
+}
+
 module.exports = {
     formatLowerEvent,
     getLowersFromIndexer,
     READY_TO_CLAIM_EVENT_NAME,
-    lowerStates
+    lowerStates,
+    canOverwriteEvent
   };

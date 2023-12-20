@@ -49,11 +49,11 @@ async function processLowerEvents(fromId, avtContract) {
         let counter = 0;
         const distinctLowers = {};
 
-        for (const lower in lowersArray) {
-            const formattedEvent = utils.formatLowerEvent(lower, avtContract);
+        for (const newEvent in lowersArray) {
+            const formattedEvent = utils.formatLowerEvent(distinctLowers[lowerId], newEvent, avtContract);
             const lowerId = formattedEvent.lowerId;
 
-            if (!distinctLowers[lowerId] || utils.lowerStates[lower.name] > utils.lowerStates[distinctLowers[lowerId].name]) {
+            if (utils.canOverwriteEvent(distinctLowers[lowerId], newEvent)) {
 
                 if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
                     formattedEvent.claimProof = await avn.getLowerProof(lowerId);
@@ -63,11 +63,11 @@ async function processLowerEvents(fromId, avtContract) {
                 counter++;
             }
 
-            if (!blockNumber || blockNumber < lower.block?.height) {
-                blockNumber = lower.block?.height;
-                index = lower.indexInBlock || 0;
-            } else if (blockNumber === lower.block?.height && index < lower.indexInBlock) {
-                index = lower.indexInBlock;
+            if (!blockNumber || blockNumber < newEvent.block?.height) {
+                blockNumber = newEvent.block?.height;
+                index = newEvent.indexInBlock || 0;
+            } else if (blockNumber === newEvent.block?.height && index < newEvent.indexInBlock) {
+                index = newEvent.indexInBlock;
             }
         };
 

@@ -126,6 +126,7 @@ async function deleteClaimedLowers(avnContract) {
     let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(avnContract, lastClaimedEthereumLowerBlock);
 
     for (lowerId of claimedLowerIdsOnEthereum) {
+        log.trace(`Delete lower id ${lowerId}`)
         await redis.deleteLowerById(lowerId);
     }
 

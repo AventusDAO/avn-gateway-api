@@ -56,7 +56,7 @@ function formatLowerEvent(currentEvent, newEvent, avtContract) {
         lowerEvent.name = READY_TO_CLAIM_EVENT_NAME;
     }
 
-    console.log(`Formatting - new event name ${newEvent.name}, old event name: ${currentEvent.name}, formattedName: ${lowerEvent.name} `)
+    console.log(`Formatting - new event name ${newEvent?.name}, old event name: ${currentEvent?.name}, formattedName: ${lowerEvent?.name} `)
     const lowerData = {
         lowerId: lowerEvent?.args?.lowerId,
         token: lowerEvent?.args?.tokenId || avtContract,

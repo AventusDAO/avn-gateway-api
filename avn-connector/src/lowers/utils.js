@@ -24,7 +24,7 @@ async function getLowersFromIndexer(fromId, txLimit) {
                     id_gte: "${fromId}"
                 },
                 limit: ${txLimit},
-                orderBy: id_DESC
+                orderBy: id_ASC
             ) {
                 args
                 block {

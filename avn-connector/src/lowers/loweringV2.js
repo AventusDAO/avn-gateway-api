@@ -39,6 +39,9 @@ async function updateLowerData(fromBlock, avtContract) {
             fromId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index) + 1);
         }
     } while (toBlockInfo);
+
+    // Commenting this out to be able to retry for tests
+    //return fromId;
 }
 
 async function processLowerEvents(fromId, avtContract) {
@@ -81,44 +84,6 @@ async function processLowerEvents(fromId, avtContract) {
             }
 
             distinctLowers[lowerId] = currentEvent;
-
-            // const lowerId = newEvent?.args?.lowerId;
-            // const formattedEvent = utils.formatLowerEvent(distinctLowers[lowerId], newEvent, avtContract);
-
-            // if (formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
-            //     formattedEvent.claimData = await avn.getLowerProof(lowerId);
-            // }
-
-            // let currentEventMissingArgs = utils.currentEventMissingArgs(distinctLowers[lowerId])
-            // let canOverwriteEvent = utils.canOverwriteEvent(distinctLowers[lowerId], newEvent);
-
-            // if (canOverwriteEvent || currentEventMissingArgs) {
-            //     if (canOverwriteEvent) {
-            //         console.log(`Overwritting  ${distinctLowers[lowerId]?.name} with ${formattedEvent?.name}`)
-            //         if (distinctLowers[lowerId] && formattedEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
-            //             distinctLowers[lowerId].name = formattedEvent.name;
-            //             distinctLowers[lowerId].claimData = await avn.getLowerProof(lowerId);
-            //         } else {
-            //             distinctLowers[lowerId] = formattedEvent;
-            //         }
-
-            //         counter++;
-            //     } else if (currentEventMissingArgs) {
-            //         distinctLowers[lowerId].from = formattedEvent.from;
-            //         distinctLowers[lowerId].to = formattedEvent.to;
-            //         distinctLowers[lowerId].amount = formattedEvent.amount;
-            //     } else if (distinctLowers[lowerId].name === utils.READY_TO_CLAIM_EVENT_NAME && !distinctLowers[lowerId].claimData) {
-            //         distinctLowers[lowerId].claimData = await avn.getLowerProof(lowerId);
-            //     }
-            // }
-
-
-            // if (!blockNumber || blockNumber < lowerData.block?.height) {
-            //     blockNumber = lowerData.block?.height;
-            //     index = lowerData.indexInBlock || 0;
-            // } else if (blockNumber === lowerData.block?.height && index < lowerData.indexInBlock) {
-            //     index = lowerData.indexInBlock;
-            // }
         };
 
         for (key in distinctLowers) {

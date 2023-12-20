@@ -11,8 +11,8 @@ async function getLowers(addressOrId) {
   log.info(`Getting lower data for ${addressOrId}`);
   const { avnContract } = await avn.getChainInfo();
 
-  let lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
-  let toBlock = await updateLowerData(lastAvnLowerBlock, avnContract);
+  const lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
+  const toBlock = await updateLowerData(lastAvnLowerBlock, avnContract);
   await redis.setLastLowerBlockFromAvn(toBlock);
   await deleteClaimedLowers(avnContract);
 

@@ -3,7 +3,7 @@ const axios = require('axios');
 const avn = require('./avn');
 const redis = require('./redis');
 const tier1 = require('./tier1');
-const { hexToBn, isHex } = require('@polkadot/util');
+const { hexToBn, isHex, isNumber } = require('@polkadot/util');
 const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
@@ -12,6 +12,9 @@ const AVN_EXPLORER_URL = config.avnExplorerUrl;
 
 async function getLowers(account) {
   console.log(`\nProcessing lowers`);
+
+  if (isNumber(account)) return;
+
   const { avnContract } = await avn.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);

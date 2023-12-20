@@ -41,6 +41,12 @@ const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
 const LOWER_DATA_KEY = 'lowerData';
 const SUMMARIES_KEY = 'summaries';
+const LAST_LOWER_BLOCK_FROM_AVN = SLOT_PREFIX + 'lwr_lastAvnBlock';
+
+const LOWER_ID_PREFIX = SLOT_PREFIX + 'lwr_id_';
+const LOWER_SENDER_PREFIX = SLOT_PREFIX + 'lwr_sender_';
+const LOWER_RECIPIENT_PREFIX = SLOT_PREFIX + 'lwr_recipient_';
+const LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX = 'lwr_eth_last_claimed';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -429,6 +435,65 @@ async function getLowerData(txHash) {
   return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
+async function setLastLowerBlockFromAvn(blockNumber) {
+  await redisClient.set(LAST_LOWER_BLOCK_FROM_AVN, blockNumber);
+}
+
+async function getLastLowerBlockFromAvn() {
+  const blockNumber = await redisClient.get(LAST_LOWER_BLOCK_FROM_AVN);
+  return blockNumber ? parseInt(blockNumber) : 0;
+}
+
+async function setLowerById(lowerId, lowerData) {
+  const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
+  const recipienteKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
+  await redisClient
+    .multi()
+    .set(LOWER_ID_PREFIX + lowerId, dataToJsonString(lowerData))
+    .sadd(senderKey, lowerId)
+    .sadd(recipienteKey, lowerId)
+    .exec();
+}
+
+async function getLowerById(lowerId) {
+  const lowerData = await redisClient.get(LOWER_ID_PREFIX + lowerId);
+  return lowerData ? JSON.parse(lowerData) : undefined;
+}
+
+async function deleteLowerById(lowerId) {
+  const lowerData = await getLowerById(lowerId);
+  if (!lowerData) return;
+
+  const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
+  const recipienteKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
+
+  await redisClient
+    .multi()
+    .del(LOWER_ID_PREFIX + lowerId)
+    .srem(senderKey, lowerId)
+    .srem(recipienteKey, lowerId)
+    .exec();
+}
+
+async function getLowerIdsByAddress(address) {
+  const senderKey = LOWER_SENDER_PREFIX + address;
+  const recipienteKey = LOWER_RECIPIENT_PREFIX + address;
+  let lowerIds = await redisClient.smembers(senderKey);
+  if (!lowerIds || lowerIds.length === 0) {
+    lowerIds = await redisClient.smembers(recipienteKey);
+  }
+  return lowerIds ? lowerIds : [];
+}
+
+async function getLastClaimedEthereumLowerBlock() {
+  const blockNumber = await redisClient.get(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX);
+  return blockNumber ? parseInt(blockNumber) : 0;
+}
+
+async function setLastClaimedEthereumLowerBlock(blockNumber) {
+  await redisClient.set(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX, blockNumber);
+}
+
 module.exports = {
   connect,
   addNewAvnTransaction,
@@ -475,5 +540,13 @@ module.exports = {
   deleteLowerData,
   getLowerData,
   transactionStatus,
-  updateTransactionStatusToPending
+  updateTransactionStatusToPending,
+  getLastLowerBlockFromAvn,
+  setLastLowerBlockFromAvn,
+  getLowerById,
+  setLowerById,
+  deleteLowerById,
+  getLowerIdsByAddress,
+  getLastClaimedEthereumLowerBlock,
+  setLastClaimedEthereumLowerBlock
 };

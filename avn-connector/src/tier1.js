@@ -12,6 +12,7 @@ const REQUIRED_CONFIRMATION_BLOCKS = 20;
 const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
   LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
+  CLAIM: ethers.utils.id('LogLowerClaimed(uint32)'),
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
 };
 
@@ -87,9 +88,27 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
+async function getLowersClaimedSinceBlock(avnContract, blockToCheckFrom) {
+  const claimedLowerIds = [];
+  let lastBlockChecked = blockToCheckFrom;
+  try {
+    const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock: blockToCheckFrom });
+    claims.forEach(claim => {
+      const lowerId = parseInt(claim.topics[1]);
+      lastBlockChecked = Math.max(lastBlockChecked, claim.blockNumber);
+      claimedLowerIds.push(lowerId);
+    });
+  } catch (error) {
+    log.error('Error getting claimed lowers:', error);
+  }
+
+  return [lastBlockChecked, claimedLowerIds];
+}
+
 module.exports = {
   getLatestClaimedLowers,
   getLiftEvents,
   getLockedBalance,
-  getLatestPublishedRoots
+  getLatestPublishedRoots,
+  getLowersClaimedSinceBlock
 };

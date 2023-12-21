@@ -135,6 +135,8 @@ async function deleteClaimedLowers(avnContract) {
 }
 
 async function autolower() {
+  if (tier1.hasAutolowerAccount() === false) return 'No autolower account set';
+
   const { avnContract } = await avn.getChainInfo();
 
   if (await redis.accquireAutolowerLock(avnContract)) {
@@ -157,7 +159,7 @@ async function autolower() {
     const resultString = `New lowers to claim: ${unclaimedKeys.length}`;
     return resultString + claimingString;
   } else {
-    return `Existing lower claims are still being processed`;
+    return 'Existing lower claims are still being processed';
   }
 }
 

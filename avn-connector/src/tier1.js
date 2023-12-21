@@ -105,6 +105,10 @@ async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   return [fromBlock, claimedLowerIds];
 }
 
+function hasAutolowerAccount() {
+  return ('autolower_pk' in config.tier1);
+}
+
 async function connectToBridge(avnContract) {
   const signer = new ethers.Wallet(config.tier1.autolower_pk, provider);
   const abiSnippet = ['function claimLower(bytes calldata)']; // Use only what we need for now
@@ -134,6 +138,7 @@ module.exports = {
   getLockedBalance,
   getLatestPublishedRoots,
   getLowersClaimedSinceBlock,
+  hasAutolowerAccount,
   connectToBridge,
   claimLowers
 };

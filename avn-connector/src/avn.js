@@ -304,7 +304,6 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   } catch (err) {
     result = err;
   }
-
   return result;
 }
 

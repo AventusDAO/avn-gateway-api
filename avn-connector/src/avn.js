@@ -15,6 +15,7 @@ const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
+const MAX_LIFT_BATCH_SIZE = 100;
 
 let api, vault;
 let relayers = {};
@@ -294,17 +295,36 @@ async function getUnprocessedLifts() {
 }
 
 async function processLifts(requestId, toBlock, unprocessedLifts) {
-  const liftEventType = 1;
-  const calls = unprocessedLifts.map(txHash => api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash));
-  const txn = api.tx.utility.batch(calls);
-  let result;
-  try {
-    result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
-    await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
-  } catch (err) {
-    result = err;
+  const callsBatches = batchCalls(unprocessedLifts);
+
+  for (const calls of callsBatches) {
+    const txn = api.tx.utility.batch(calls);
+    let result;
+    try {
+      result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
+      await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
+    } catch (err) {
+      result = err;
+    }
   }
+
   return result;
+}
+
+function batchCalls(unprocessedLifts) {
+  const liftEventType = 1;
+  const calls = unprocessedLifts.reduce((accumulator, txHash) => {
+      const lastArray = accumulator[accumulator.length - 1];
+      if (lastArray && lastArray.length < MAX_LIFT_BATCH_SIZE) {
+          // If the last array isn't full, push the txHash into it
+          lastArray.push(api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash));
+      } else {
+          // Otherwise, create a new array and push the txHash into it
+          accumulator.push([api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash)]);
+      }
+      return accumulator;
+  }, []);
+  return calls;
 }
 
 //This function can be called multiple times (3 by default) from mqConsumer, for the same transaction if it returns an error.

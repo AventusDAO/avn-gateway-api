@@ -530,8 +530,8 @@ async function getAutolowerFailedClaimLowerIds() {
   return failed || [];
 }
 
-async function accquireAutolowerLock(contract) {
-  const result = await redisClient.set(AUTOLOWER_LOCK_KEY, contract, 'NX', AUTOLOWER_MAX_LOCK_IN_SECONDS);
+async function accquireAutolowerLock(bridgeAddress) {
+  const result = await redisClient.setex(AUTOLOWER_LOCK_KEY, AUTOLOWER_MAX_LOCK_IN_SECONDS, bridgeAddress, { NX: true });
   return result === 'OK';
 }
 

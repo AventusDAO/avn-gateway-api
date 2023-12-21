@@ -37,7 +37,7 @@ jobs:
 
   ew-docker-connector:
     name: (EW) build docker connector
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/ew-main'
     uses: ./.github/workflows/docker-build.yaml
     with:
       runner: avn-runner

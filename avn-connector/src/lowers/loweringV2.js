@@ -134,6 +134,36 @@ async function deleteClaimedLowers(avnContract) {
   await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
 }
 
+async function autolower() {
+  if (tier1.hasAutolowerAccount() === false) return 'No autolower account set';
+
+  const { avnContract } = await avn.getChainInfo();
+
+  if (await redis.accquireAutolowerLock(avnContract)) {
+    let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
+    const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
+    const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
+    const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(avnContract, fromBlock);
+
+    claimedLowerIds.forEach(lowerId => {
+      delete unclaimedLowerProofs[lowerId];
+      latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
+    });
+
+    const avnBridge = await tier1.connectToBridge(avnContract);
+    await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
+    await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
+    tier1.claimLowers(avnBridge, unclaimedLowerProofs); // Don't await, let these run in the background
+    const unclaimedKeys = Object.keys(unclaimedLowerProofs);
+    const claimingString = unclaimedKeys.length > 0 ? ` Claiming: ${unclaimedKeys.join(', ')}` : '';
+    const resultString = `New lowers to claim: ${unclaimedKeys.length}`;
+    return resultString + claimingString;
+  } else {
+    return 'Existing lower claims are still being processed';
+  }
+}
+
 module.exports = {
+  autolower,
   getLowers
 };

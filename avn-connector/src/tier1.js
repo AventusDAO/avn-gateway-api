@@ -88,21 +88,48 @@ async function getLatestPublishedRoots(avnContract) {
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
-async function getLowersClaimedSinceBlock(avnContract, blockToCheckFrom) {
+async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   const claimedLowerIds = [];
-  let lastBlockChecked = blockToCheckFrom;
+
   try {
-    const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock: blockToCheckFrom });
+    const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock });
     claims.forEach(claim => {
       const lowerId = parseInt(claim.topics[1]);
-      lastBlockChecked = Math.max(lastBlockChecked, claim.blockNumber);
+      fromBlock = Math.max(fromBlock, claim.blockNumber);
       claimedLowerIds.push(lowerId);
     });
   } catch (error) {
     log.error('Error getting claimed lowers:', error);
   }
 
-  return [lastBlockChecked, claimedLowerIds];
+  return [fromBlock, claimedLowerIds];
+}
+
+function hasAutolowerAccount() {
+  return ('autolower_pk' in config.tier1);
+}
+
+async function connectToBridge(avnContract) {
+  const signer = new ethers.Wallet(config.tier1.autolower_pk, provider);
+  const abiSnippet = ['function claimLower(bytes calldata)']; // Use only what we need for now
+  return new ethers.Contract(avnContract, abiSnippet, signer);
+}
+
+async function claimLowers(avnBridge, lowerProofs) {
+  if (Object.keys(lowerProofs).length > 0) {
+    for (const [id, proof] of Object.entries(lowerProofs)) {
+      try {
+        const tx = await avnBridge.claimLower(proof);
+        log.info(`Claim lower tx sent. Lower ID: ${id}, tx hash: ${tx.hash}`);
+        await tx.wait();
+        log.info(`Claim lower tx confirmed. Lower ID: ${id}, tx hash: ${tx.hash}`);
+      } catch (error) {
+        log.info(`Claim lower tx failed. Lower ID: ${id}, error: ${error.message.split('(action="estimateGas"')[0]}`);
+        await redis.addAutolowerFailedClaimLowerId(id); // TODO - Retry these periodically
+      }
+    }
+  }
+  return await redis.releaseAutolowerLock(avnBridge.address);
 }
 
 module.exports = {
@@ -110,5 +137,8 @@ module.exports = {
   getLiftEvents,
   getLockedBalance,
   getLatestPublishedRoots,
-  getLowersClaimedSinceBlock
+  getLowersClaimedSinceBlock,
+  hasAutolowerAccount,
+  connectToBridge,
+  claimLowers
 };

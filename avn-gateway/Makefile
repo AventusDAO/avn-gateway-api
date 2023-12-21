@@ -21,6 +21,8 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	zip build/poll-handler/poll-handler-latest.zip poll-handler.js
 	mkdir -p build/authorisation-handler
 	zip build/authorisation-handler/authorisation-handler-latest.zip authorisation-handler.js
+	mkdir -p build/autolower-handler
+	zip build/autolower-handler/autolower-handler-latest.zip autolower-handler.js
 	mkdir -p build/tx-status-update-handler
 	zip build/tx-status-update-handler/tx-status-update-handler-latest.zip tx-status-update-handler.js
 	mkdir -p build/lift-processing-handler
@@ -41,6 +43,7 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	cp build/send-handler/send-handler-latest.zip build/send-handler/send-handler-$(version).zip
 	cp build/poll-handler/poll-handler-latest.zip build/poll-handler/poll-handler-$(version).zip
 	cp build/authorisation-handler/authorisation-handler-latest.zip build/authorisation-handler/authorisation-handler-$(version).zip
+	cp build/autolower-handler/autolower-handler-latest.zip build/autolower-handler/autolower-handler-$(version).zip
 	cp build/tx-status-update-handler/tx-status-update-handler-latest.zip build/tx-status-update-handler/tx-status-update-handler-$(version).zip
 	cp build/lift-processing-handler/lift-processing-handler-latest.zip build/lift-processing-handler/lift-processing-handler-$(version).zip
 	cp build/vote-handler/vote-handler-latest.zip build/vote-handler/vote-handler-$(version).zip

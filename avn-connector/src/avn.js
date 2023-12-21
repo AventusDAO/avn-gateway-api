@@ -496,12 +496,12 @@ async function getSummaries() {
             {
               args: [{ fromBlock, toBlock }]
             },
-            { rootHash, isValidated }
+            { rootHash, isValidated, txId }
           ]) => ({
             fromBlock: parseInt(fromBlock),
             toBlock: parseInt(toBlock),
             rootHash: rootHash.toString().toLowerCase(),
-            isValid: isValidated
+            isValid: !!isValidated || !!txId
           })
         );
         const validEntries = formattedEntries

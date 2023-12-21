@@ -152,7 +152,10 @@ async function autolower() {
     await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
     await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
     tier1.claimLowers(avnBridge, unclaimedLowerProofs); // Don't await, let these run in the background
-    return `${Object.keys(unclaimedLowerProofs).length} new lowers to claim: ${Object.keys(unclaimedLowerProofs).join(',')}`;
+    const unclaimedKeys = Object.keys(unclaimedLowerProofs);
+    const claimingString = unclaimedKeys.length > 0 ? ` Claiming: ${unclaimedKeys.join(', ')}` : '';
+    const resultString = `New lowers to claim: ${unclaimedKeys.length}`;
+    return resultString + claimingString;
   } else {
     return `Existing lower claims are still being processed`;
   }

@@ -23,6 +23,7 @@ defaults:
 jobs:
   avn-docker-connector:
     name: (AVN) build docker connector
+    if: github.ref != 'refs/heads/ew-main'
     uses: ./.github/workflows/docker-build.yaml
     with:
       aws_region: eu-west-2

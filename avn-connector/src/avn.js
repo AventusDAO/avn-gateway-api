@@ -15,7 +15,6 @@ const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
-const MAX_LIFT_BATCH_SIZE = 100;
 
 let api, vault;
 let relayers = {};

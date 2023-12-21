@@ -48,7 +48,6 @@ async function getLiftEvents(avnContract) {
     if (fromBlock <= toBlock) {
       const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LIFT], fromBlock, toBlock });
       events.forEach(event => {
-        // If the amount is > 10, include it
         if (event.topics[1]?.toLowerCase() === EVM_TOKEN && toBn(event.data).gte(MIN_LIFT_AMOUNT)) {
           liftEvents.push([EVENT_SIG.LIFT, event.transactionHash])
         } else {

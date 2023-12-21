@@ -5,6 +5,7 @@ const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provide
 const log4js = require('log4js');
 const log = log4js.getLogger();
 const BN = require('bn.js');
+const { isHex } = require('@polkadot/util');
 
 const MIN_LIFT_AMOUNT = toBn("10000000000000000000");
 const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
@@ -48,10 +49,11 @@ async function getLiftEvents(avnContract) {
     if (fromBlock <= toBlock) {
       const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LIFT], fromBlock, toBlock });
       events.forEach(event => {
-        if (event.topics[1]?.toLowerCase() === EVM_TOKEN && toBn(event.data).gte(MIN_LIFT_AMOUNT)) {
+        let token = ethers.utils.defaultAbiCoder.decode(['address'], event.topics[1]).toString();
+        if (token.toLowerCase() === EVM_TOKEN && toBn(event.data).gte(MIN_LIFT_AMOUNT)) {
           liftEvents.push([EVENT_SIG.LIFT, event.transactionHash])
         } else {
-          log.trace(`Ignoring lift for token: ${event.topics[1]}, amount: ${event.data}`);
+          log.trace(`Ignoring lift for token: ${token}, amount: ${toBn(event.data).toString()}, block: ${event.blockNumber}`);
         }
       });
     }

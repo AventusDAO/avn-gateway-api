@@ -112,19 +112,20 @@ async function connectToBridge(avnContract) {
 }
 
 async function claimLowers(avnBridge, lowerProofs) {
-  if (Object.keys(lowerProofs).length === 0) return;
-
-  for (const [id, proof] of Object.entries(lowerProofs)) {
-    try {
-      const tx = await avnBridge.claimLower(proof);
-      log.info(`Claim lower tx sent. Lower ID: ${id}, tx hash: ${tx.hash}`);
-      await tx.wait();
-      log.info(`Claim lower tx confirmed. Lower ID: ${id}, tx hash: ${tx.hash}`);
-    } catch (error) {
-      log.info(`Claim lower tx failed. Lower ID: ${id}, error: ${error.message.split('(action="estimateGas"')[0]}`);
-      await redis.addAutolowerFailedClaimLowerId(id); // TODO - Retry these periodically
+  if (Object.keys(lowerProofs).length > 0) {
+    for (const [id, proof] of Object.entries(lowerProofs)) {
+      try {
+        const tx = await avnBridge.claimLower(proof);
+        log.info(`Claim lower tx sent. Lower ID: ${id}, tx hash: ${tx.hash}`);
+        await tx.wait();
+        log.info(`Claim lower tx confirmed. Lower ID: ${id}, tx hash: ${tx.hash}`);
+      } catch (error) {
+        log.info(`Claim lower tx failed. Lower ID: ${id}, error: ${error.message.split('(action="estimateGas"')[0]}`);
+        await redis.addAutolowerFailedClaimLowerId(id); // TODO - Retry these periodically
+      }
     }
   }
+  return await redis.releaseAutolowerLock(avnBridge.address);
 }
 
 module.exports = {

@@ -136,21 +136,26 @@ async function deleteClaimedLowers(avnContract) {
 
 async function autolower() {
   const { avnContract } = await avn.getChainInfo();
-  let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
-  const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
-  const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
-  const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(avnContract, fromBlock);
 
-  claimedLowerIds.forEach(lowerId => {
-    delete unclaimedLowerProofs[lowerId];
-    latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
-  });
+  if (await redis.accquireAutolowerLock(avnContract)) {
+    let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
+    const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
+    const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
+    const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(avnContract, fromBlock);
 
-  const avnBridge = await tier1.connectToBridge(avnContract);
-  await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
-  await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
-  tier1.claimLowers(avnBridge, unclaimedLowerProofs); // Don't await, let these run in the background
-  return `${Object.keys(unclaimedLowerProofs).length} lowers to claim: ${Object.keys(unclaimedLowerProofs).join(',')}`;
+    claimedLowerIds.forEach(lowerId => {
+      delete unclaimedLowerProofs[lowerId];
+      latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
+    });
+
+    const avnBridge = await tier1.connectToBridge(avnContract);
+    await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
+    await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
+    tier1.claimLowers(avnBridge, unclaimedLowerProofs); // Don't await, let these run in the background
+    return `${Object.keys(unclaimedLowerProofs).length} new lowers to claim: ${Object.keys(unclaimedLowerProofs).join(',')}`;
+  } else {
+    return `Existing lower claims are still being processed`;
+  }
 }
 
 module.exports = {

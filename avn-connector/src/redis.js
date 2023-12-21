@@ -37,6 +37,7 @@ const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
 const AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY = 'autolowerLastT1BlockChecked';
 const AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY = 'autolowerLatestClaimedLowerId';
 const AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY = 'autolowerFailedClaimLowerIds';
+const AUTOLOWER_LOCK_KEY = 'autolowerLock';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
 const PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY = 'publishedRootsFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
@@ -60,10 +61,11 @@ const PENDING_TX_KEY = {
 const MAX_PENDING_TX_TO_CHECK = 250;
 const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 5;
 const NONCE_EXPIRY_IN_SECONDS = 120;
-const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //10 minutes
+const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //5 minutes
 const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
+const AUTOLOWER_MAX_LOCK_IN_SECONDS = 3600; // 1 hour
 
 let redisClient;
 
@@ -528,6 +530,21 @@ async function getAutolowerFailedClaimLowerIds() {
   return failed || [];
 }
 
+async function accquireAutolowerLock(contract) {
+  const result = await redisClient.set(AUTOLOWER_LOCK_KEY, contract, 'NX', AUTOLOWER_MAX_LOCK_IN_SECONDS);
+  return result === 'OK';
+}
+
+async function releaseAutolowerLock(contract) {
+  const script =
+  `if redis.call("get", KEYS[1]) == ARGV[1] then
+      return redis.call("del", KEYS[1])
+    else
+      return 0
+    end`;
+  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, contract);
+};
+
 module.exports = {
   connect,
   addNewAvnTransaction,
@@ -589,5 +606,7 @@ module.exports = {
   getAutolowerLatestClaimedLowerId,
   addAutolowerFailedClaimLowerId,
   removeAutolowerFailedClaimLowerId,
-  getAutolowerFailedClaimLowerIds
+  getAutolowerFailedClaimLowerIds,
+  accquireAutolowerLock,
+  releaseAutolowerLock
 };

@@ -440,13 +440,13 @@ async function getLowerData(txHash) {
   return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
-async function setLastLowerBlockFromAvn(blockNumber) {
+async function setLastLowerBlockIdFromAvn(blockNumber) {
   await redisClient.set(LAST_LOWER_BLOCK_FROM_AVN, blockNumber);
 }
 
-async function getLastLowerBlockFromAvn() {
+async function getLastLowerBlockIdFromAvn() {
   const blockNumber = await redisClient.get(LAST_LOWER_BLOCK_FROM_AVN);
-  return blockNumber ? parseInt(blockNumber) : 0;
+  return blockNumber;
 }
 
 async function setLowerById(lowerId, lowerData) {
@@ -591,8 +591,8 @@ module.exports = {
   getLowerData,
   transactionStatus,
   updateTransactionStatusToPending,
-  getLastLowerBlockFromAvn,
-  setLastLowerBlockFromAvn,
+  getLastLowerBlockIdFromAvn,
+  setLastLowerBlockIdFromAvn,
   getLowerById,
   setLowerById,
   deleteLowerById,

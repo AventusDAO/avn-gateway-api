@@ -113,6 +113,15 @@ function isLowerId(input) {
   return /^[0-9]+$/.test(input);
 }
 
+function parseBlockId(fromBlockId) {
+  if (!fromBlockId) {
+    return {blockNumber: 0, index: 0}
+  }
+
+  let blockInfo = fromBlockId.split("-");
+  return {blockNumber: blockInfo[0] || 0, index: blockInfo[1] || 0}
+}
+
 function sortLowerEventsByIdAsc(lowerEvents) {
   return lowerEvents.sort((a, b) => {
     if (a.id === b.id) {
@@ -134,5 +143,6 @@ module.exports = {
   currentEventMissingArgs,
   updateEventArgs,
   updateBlockNumberAndIndex,
-  isLowerId
+  isLowerId,
+  parseBlockId
 };

@@ -12,7 +12,9 @@ async function getLowers(addressOrId) {
   const { avnContract } = await avn.getChainInfo();
 
   const lastAvnLowerBlockId = await redis.getLastLowerBlockIdFromAvn();
-  const toBlock = await updateLowerData(lastAvnLowerBlockId, avnContract);
+  const parsedLastAvnLowerBlockId = utils.parseBlockId(lastAvnLowerBlockId);
+
+  const toBlock = await updateLowerData(parsedLastAvnLowerBlockId, avnContract);
   await redis.setLastLowerBlockIdFromAvn(toBlock);
   await deleteClaimedLowers(avnContract);
 
@@ -23,11 +25,11 @@ async function getLowers(addressOrId) {
   }
 }
 
-async function updateLowerData(fromBlockId, avtContract) {
+async function updateLowerData(lastAvnLowerBlockId, avtContract) {
   const generateId = (block, index) =>
     [block.toString().padStart(10, '0'), index.toString().padStart(6, '0'), '00000'].join('-');
 
-  if (fromBlockId === '') fromBlockId = generateId(0, 0);
+  let fromBlockId = generateId(lastAvnLowerBlockId.blockNumber, lastAvnLowerBlockId.index);
   let toBlockInfo;
 
   // Loop to retrieve lowers so as not to exceed the indexer limit:

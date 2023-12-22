@@ -23,13 +23,13 @@ async function getLowersFromIndexer(fromId, txLimit) {
                     name_in:["TokenManager.TokenLowered", "TokenManager.AvtLowered", "${LOWER_REQUEST_EVENT_NAME}", "${READY_TO_CLAIM_EVENT_NAME}"],
                     id_gte: "${fromId}"
                 },
-                limit: ${txLimit},
-                orderBy: id_ASC
+                limit: ${txLimit}
             ) {
                 args
                 block {
                     height
                 }
+                id
                 indexInBlock
                 name
             }
@@ -42,7 +42,12 @@ async function getLowersFromIndexer(fromId, txLimit) {
       operationName: 'LowerQuery'
     });
 
-    return response?.data?.data?.events || [];
+    let lowerEvents = response?.data?.data?.events;
+    if (lowerEvents) {
+      return sortLowerEventsByIdAsc(lowerEvents);
+    }
+
+    return [];
   } catch (error) {
     log.error('💔 Error fetching lower events:', error);
     return [];
@@ -106,6 +111,18 @@ function updateBlockNumberAndIndex(lowerData, blockNumber, index) {
 function isLowerId(input) {
   // Check if the input contains only decimal numbers
   return /^[0-9]+$/.test(input);
+}
+
+function sortLowerEventsByIdAsc(lowerEvents) {
+  return lowerEvents.sort((a, b) => {
+    if (a.id === b.id) {
+      return 0;
+    } else if (a.id < b.id) {
+      return -1;
+    } else {
+      return 1;
+    }
+  });
 }
 
 module.exports = {

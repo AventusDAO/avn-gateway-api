@@ -11,9 +11,11 @@ async function getLowers(addressOrId) {
   log.info(`Getting lower data for ${addressOrId}`);
   const { avnContract } = await avn.getChainInfo();
 
-  const lastAvnLowerBlock = await redis.getLastLowerBlockFromAvn();
-  const toBlock = await updateLowerData(lastAvnLowerBlock, avnContract);
-  await redis.setLastLowerBlockFromAvn(toBlock);
+  const lastAvnLowerBlockId = await redis.getLastLowerBlockIdFromAvn();
+  const parsedLastAvnLowerBlockId = utils.parseBlockId(lastAvnLowerBlockId);
+
+  const toBlock = await updateLowerData(parsedLastAvnLowerBlockId, avnContract);
+  await redis.setLastLowerBlockIdFromAvn(toBlock);
   await deleteClaimedLowers(avnContract);
 
   if (utils.isLowerId(addressOrId)) {
@@ -23,24 +25,24 @@ async function getLowers(addressOrId) {
   }
 }
 
-async function updateLowerData(fromBlock, avtContract) {
+async function updateLowerData(lastAvnLowerBlockId, avtContract) {
   const generateId = (block, index) =>
     [block.toString().padStart(10, '0'), index.toString().padStart(6, '0'), '00000'].join('-');
 
+  let fromBlockId = generateId(lastAvnLowerBlockId.blockNumber, lastAvnLowerBlockId.index);
   let toBlockInfo;
-  let fromId = generateId(fromBlock, 0);
 
   // Loop to retrieve lowers so as not to exceed the indexer limit:
   do {
-    toBlockInfo = await processLowerEvents(fromId, avtContract);
-    log.info(`Processing lowers from ${fromId}. Next batch: ${JSON.stringify(toBlockInfo || {})}`);
+    toBlockInfo = await processLowerEvents(fromBlockId, avtContract);
+    log.info(`Processing lowers from ${fromBlockId}. Next batch: ${JSON.stringify(toBlockInfo || {})}`);
     if (toBlockInfo) {
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
-      fromId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index) + 1);
+      fromBlockId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index) + 1);
     }
   } while (toBlockInfo);
 
-  return fromId;
+  return fromBlockId;
 }
 
 async function processLowerEvents(fromId, avtContract) {

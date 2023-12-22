@@ -45,7 +45,7 @@ const AWAITING_CLAIM_DATA_LOWERS_KEY = 'lowersAwaitingData';
 const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
 const LOWER_DATA_KEY = 'lowerData';
 const SUMMARIES_KEY = 'summaries';
-const LAST_LOWER_BLOCK_FROM_AVN = SLOT_PREFIX + 'lwr_lastAvnBlock';
+const LAST_LOWER_BLOCK_ID_FROM_AVN = SLOT_PREFIX + 'lwr_lastAvnBlock';
 
 const LOWER_ID_PREFIX = SLOT_PREFIX + 'lwr_id_';
 const LOWER_SENDER_PREFIX = SLOT_PREFIX + 'lwr_sender_';
@@ -440,13 +440,13 @@ async function getLowerData(txHash) {
   return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
-async function setLastLowerBlockFromAvn(blockNumber) {
-  await redisClient.set(LAST_LOWER_BLOCK_FROM_AVN, blockNumber);
+async function setLastLowerBlockIdFromAvn(blockId) {
+  await redisClient.set(LAST_LOWER_BLOCK_ID_FROM_AVN, blockId);
 }
 
-async function getLastLowerBlockFromAvn() {
-  const blockNumber = await redisClient.get(LAST_LOWER_BLOCK_FROM_AVN);
-  return blockNumber ? parseInt(blockNumber) : 0;
+async function getLastLowerBlockIdFromAvn() {
+  const blockId = await redisClient.get(LAST_LOWER_BLOCK_ID_FROM_AVN);
+  return blockId === null ? '' : blockId;
 }
 
 async function setLowerById(lowerId, lowerData) {
@@ -471,6 +471,7 @@ async function deleteLowerById(lowerId) {
 
   const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
   const recipienteKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
+  log.trace(`Deleting senderKey: ${senderKey} and recipienteKey: ${recipienteKey}`);
 
   await redisClient
     .multi()
@@ -591,8 +592,8 @@ module.exports = {
   getLowerData,
   transactionStatus,
   updateTransactionStatusToPending,
-  getLastLowerBlockFromAvn,
-  setLastLowerBlockFromAvn,
+  getLastLowerBlockIdFromAvn,
+  setLastLowerBlockIdFromAvn,
   getLowerById,
   setLowerById,
   deleteLowerById,

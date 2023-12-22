@@ -471,6 +471,7 @@ async function deleteLowerById(lowerId) {
 
   const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
   const recipienteKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
+  log.trace(`Deleting senderKey: ${senderKey} and recipienteKey: ${recipienteKey}`);
 
   await redisClient
     .multi()

@@ -23,24 +23,24 @@ async function getLowers(addressOrId) {
   }
 }
 
-async function updateLowerData(fromBlock, avtContract) {
+async function updateLowerData(fromBlockId, avtContract) {
   const generateId = (block, index) =>
     [block.toString().padStart(10, '0'), index.toString().padStart(6, '0'), '00000'].join('-');
 
+  if (fromBlockId === '') fromBlockId = generateId(0, 0);
   let toBlockInfo;
-  let fromId = generateId(fromBlock, 0);
 
   // Loop to retrieve lowers so as not to exceed the indexer limit:
   do {
-    toBlockInfo = await processLowerEvents(fromId, avtContract);
-    log.info(`Processing lowers from ${fromId}. Next batch: ${JSON.stringify(toBlockInfo || {})}`);
+    toBlockInfo = await processLowerEvents(fromBlockId, avtContract);
+    log.info(`Processing lowers from ${fromBlockId}. Next batch: ${JSON.stringify(toBlockInfo || {})}`);
     if (toBlockInfo) {
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
-      fromId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index) + 1);
+      fromBlockId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index) + 1);
     }
   } while (toBlockInfo);
 
-  return fromId;
+  return fromBlockId;
 }
 
 async function processLowerEvents(fromId, avtContract) {

@@ -10,7 +10,7 @@ const MAX_LIFT_AGE_IN_BLOCKS = (60 * 60 * 24 * 5) / 12; // ~5 days @ ~12 secs pe
 const REQUIRED_CONFIRMATION_BLOCKS = 20;
 
 const EVENT_SIG = {
-  LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
+  LIFT: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
   LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
   CLAIM: ethers.utils.id('LogLowerClaimed(uint32)'),
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
@@ -106,7 +106,7 @@ async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
 }
 
 function hasAutolowerAccount() {
-  return ('autolower_pk' in config.tier1 && config.tier1.autolower_pk !== '$ENV:AUTOLOWER_PK');
+  return 'autolower_pk' in config.tier1 && config.tier1.autolower_pk !== '$ENV:AUTOLOWER_PK';
 }
 
 async function connectToBridge(avnContract) {

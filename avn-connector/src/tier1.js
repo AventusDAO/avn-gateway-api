@@ -106,7 +106,7 @@ async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
 }
 
 function hasAutolowerAccount() {
-  return ('autolower_pk' in config.tier1);
+  return ('autolower_pk' in config.tier1 && config.tier1.autolower_pk !== '$ENV:AUTOLOWER_PK');
 }
 
 async function connectToBridge(avnContract) {

@@ -124,14 +124,14 @@ async function deleteClaimedLowers(avnContract) {
   const lastClaimedEthereumLowerBlock = await redis.getLastClaimedEthereumLowerBlock();
   let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(
     avnContract,
-    lastClaimedEthereumLowerBlock
+    parseInt(lastClaimedEthereumLowerBlock) + 1
   );
   for (lowerId of claimedLowerIdsOnEthereum) {
     log.trace(`Deleting lower id ${lowerId}`);
     await redis.deleteLowerById(lowerId);
   }
 
-  await redis.setLastClaimedEthereumLowerBlock(parseInt(lastBlockChecked) + 1);
+  await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
 }
 
 async function autolower() {

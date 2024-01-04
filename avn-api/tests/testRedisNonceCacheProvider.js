@@ -59,7 +59,7 @@ class TestRedisNonceCacheProvider {
         await this.saveNonceDataToRedis(signerAddress, nonceType, nonceData);
         return { lockAquired: true, data: nonceData };
       }
-      return { lockAquired: false, data: undefined };
+      return { lockAquired: false, data: nonceData };
     } finally {
       await lock.unlock();
     }

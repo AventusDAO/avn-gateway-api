@@ -167,7 +167,7 @@ describe('Gateway multithreaded load test:', async () => {
     if (hasPayer) handleSplitFeeAccounts(nUsers);
 
     const logLevel = prompt('Log level? debug/info(default): ') === 'debug' ? 'debug' : 'info';
-    const remoteCache = prompt('Local cache? yes/no(default): ') === 'yes';
+    const remoteCache = prompt('Remote cache? yes/no(default): ') === 'yes';
     nonceCacheOptions = remoteCache ? handleRemoteCache() : undefined;
 
     console.log(`*** Payload: ${nUsers} users sending ${nTxs} transactions each. ***`);

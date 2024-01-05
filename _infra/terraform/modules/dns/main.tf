@@ -1,15 +1,5 @@
 locals {
   # https://www.terraform.io/docs/language/functions/cidrhost.html
-  avn_connector_ips = [
-    cidrhost(data.aws_subnet.private["a"].cidr_block, 20),
-    cidrhost(data.aws_subnet.private["b"].cidr_block, 20),
-    cidrhost(data.aws_subnet.private["c"].cidr_block, 20)
-  ]
-  subnets = [
-    data.aws_subnet.private["a"].id,
-    data.aws_subnet.private["b"].id,
-    data.aws_subnet.private["c"].id
-  ]
   public_zone_name = "${var.environment}.gateway.aventus.io"
 }
 
@@ -18,26 +8,6 @@ provider "aws" {
 
 provider "aws" {
   alias = "aventus"
-}
-
-data "aws_subnet" "private" {
-  for_each = toset(["a", "b", "c"])
-  filter {
-    name   = "tag:Name"
-    values = ["${var.vpc_name}-private-${each.key}"]
-  }
-}
-
-resource "aws_route53_zone" "private" {
-  name = "${var.environment}.aventus.internal"
-
-  vpc {
-    vpc_id = var.vpc_id
-  }
-
-  vpc {
-    vpc_id = var.parachain_vpc_id
-  }
 }
 
 resource "aws_route53_zone" "public" {

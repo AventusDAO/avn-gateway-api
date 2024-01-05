@@ -4,10 +4,14 @@ const { ethers } = require('ethers');
 const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provider_url);
 const log4js = require('log4js');
 const log = log4js.getLogger();
+const BN = require('bn.js');
+const { isHex } = require('@polkadot/util');
 
+const MIN_LIFT_AMOUNT = toBn(config.tier1.minLiftAmount);
 const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 const MAX_LIFT_AGE_IN_BLOCKS = (60 * 60 * 24 * 5) / 12; // ~5 days @ ~12 secs per block
-const REQUIRED_CONFIRMATION_BLOCKS = 20;
+const REQUIRED_CONFIRMATION_BLOCKS = parseInt(config.tier1.requiredConfirmationBlocks);
+const MAX_LIFT_BLOCKS_TO_PROCESS = parseInt(config.tier1.maxLiftBlocksToProcess);
 
 const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
@@ -42,11 +46,17 @@ async function getLiftEvents(avnContract) {
   try {
     const currentBlock = await provider.getBlockNumber();
     fromBlock = (await redis.getLiftsFromTier1Block()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;
-    toBlock = currentBlock - REQUIRED_CONFIRMATION_BLOCKS;
+    toBlock = Math.min(fromBlock + MAX_LIFT_BLOCKS_TO_PROCESS, currentBlock - REQUIRED_CONFIRMATION_BLOCKS);
 
     if (fromBlock <= toBlock) {
       const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LIFT], fromBlock, toBlock });
-      events.forEach(event => liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]));
+      events.forEach(event => {
+        if (toBn(event.data).gte(MIN_LIFT_AMOUNT)) {
+          liftEvents.push([EVENT_SIG.LIFT, event.transactionHash])
+        } else {
+          log.trace(`Ignoring lift for token: ${token}, amount: ${toBn(event.data).toString()}, block: ${event.blockNumber}`);
+        }
+      });
     }
   } catch (error) {
     log.error('Error getting lift events:', error);
@@ -130,6 +140,10 @@ async function claimLowers(avnBridge, lowerProofs) {
     }
   }
   return await redis.releaseAutolowerLock(avnBridge.address);
+}
+
+function toBn(val) {
+  return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
 }
 
 module.exports = {

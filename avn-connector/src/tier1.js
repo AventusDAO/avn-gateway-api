@@ -9,7 +9,8 @@ const { isHex } = require('@polkadot/util');
 
 const MIN_LIFT_AMOUNT = toBn(config.tier1.minLiftAmount);
 const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-const MAX_LIFT_AGE_IN_BLOCKS = (60 * 60 * 24 * 5) / 12; // ~5 days @ ~12 secs per block
+//(60 * 60 * 24 * 5) / 12; ~5 days @ ~12 secs per block
+const MAX_LIFT_AGE_IN_BLOCKS = parseInt(config.tier1.maxLiftAgeInBlocks)
 const REQUIRED_CONFIRMATION_BLOCKS = parseInt(config.tier1.requiredConfirmationBlocks);
 const MAX_LIFT_BLOCKS_TO_PROCESS = parseInt(config.tier1.maxLiftBlocksToProcess);
 

@@ -30,7 +30,8 @@ class TestRedisNonceCacheProvider {
 
   async initUserNonceCache(signerAddress) {
     const signerKey = this.getSignerKey(signerAddress);
-    if ((await this.redisClient.get(signerKey)) !== true) {
+    const isUserSetup = await this.redisClient.get(signerKey);
+    if (isUserSetup !== 'true' && isUserSetup !== true) {
       // Set the signer
       await this.redisClient.set(this.getSignerKey(signerAddress), true);
 

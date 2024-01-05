@@ -6,7 +6,7 @@ pipeline {
 
   parameters {
     choice(name: 'environment', choices: ['cba', 'testnet', 'mainnet'], description: 'Chose the environment to deploy to.')
-    choice(name: 'terraform_target', choices: ['none', 'all', 'vpc', 'dns', 'redis', "bastion", "avn-vault"], description: 'Apply specific terraform module targets.')
+    choice(name: 'terraform_target', choices: ['none', 'all', 'vpc', 'dns', "bastion", "avn-vault"], description: 'Apply specific terraform module targets.')
     string(name: 'additional_terraform_args', defaultValue: '', description: 'Supply additional terraform arguments, The environment can be destroyed by supplying the arg -destroy', trim: true)
     choice(name: 'apply_third_party_charts', choices: ['false', 'true'], description: 'Apply third party helm charts to kubernetes')
     choice(name: 'new_environment', choices: ['false', 'true'], description: 'Apply a new environment, if true then the VPC will be built before the rest of the infrastructure.')
@@ -98,9 +98,6 @@ pipeline {
             sh "terraform init"
             script {
               private_hosted_zone_id = terraformOutput("private_hosted_zone_id")
-              redis_security_group_id = terraformOutput("redis_security_group_id")
-              redis_password = terraformOutput("redis_password")
-              redis_username = terraformOutput("redis_username")
             }
           }
         }
@@ -114,65 +111,6 @@ pipeline {
         }
       }
     }
-
-    stage("Deploy Redis cluster") {
-      when {
-        expression {
-          return env.new_environment == 'true';
-        }
-      }
-      steps {
-        withAWS(roleAccount:accountId(), role:'jenkins-access') {
-          sh "aws memorydb create-subnet-group --region ${env.region} --subnet-group-name redis --subnet-ids ${subnets(private_subnets)}";
-          sh "aws memorydb create-user --region ${env.region} --user-name ${redis_username} \
-            --authentication-mode Type=password,Passwords=\\\"${redis_password}\\\" \
-            --access-string on \
-            --access-string ~* \
-            --access-string \\&* \
-            --access-string +@all"
-          sh "aws memorydb create-acl --acl-name avn-connector --region ${env.region} --user-names ${redis_username}"
-          sh "aws memorydb create-cluster --cluster-name avn-connector --node-type db.r6g.large \
-            --subnet-group redis \
-            --security-group-ids ${redis_security_group_id} \
-            --no-tls-enabled \
-            --snapshot-retention-limit 30 \
-            --num-shards 1 --num-replicas-per-shard 2 \
-            --acl-name open-access \
-            --region ${env.region}"
-        }
-        withAWS(roleAccount:accountId(), role:'jenkins-access') {
-          script {
-            redis_address = redisAddress()
-            while (!redis_address?.trim()) {
-              echo "MemoryDB cluster is being created sleeping for 10 seconds . . ."
-              redis_address = redisAddress()
-              sh "sleep 10"
-            }
-          }
-        }
-        withAWS(roleAccount:accountId(), role:'jenkins-access') {
-          sh "aws route53 change-resource-record-sets \
-              --hosted-zone-id ${private_hosted_zone_id} \
-              --change-batch ' \
-              { \
-                \"Comment\": \"Redis record\", \
-                \"Changes\": [{ \
-                  \"Action\"              : \"UPSERT\", \
-                  \"ResourceRecordSet\"  : { \
-                    \"Name\"              : \"redis.${env.environment}.aventus.internal\", \
-                    \"Type\"             : \"CNAME\", \
-                    \"TTL\"              : 120, \
-                    \"ResourceRecords\"  : [{ \
-                        \"Value\"         : \"'${redis_address}'\" \
-                    }] \
-                  } \
-                }] \
-              } \
-              '"
-        }
-      }
-    }
-
     stage("Deploy third party helm charts") {
       when {
         expression {
@@ -305,11 +243,4 @@ def terraformOutput(String outputName) {
 
 def subnets(String subnetStringList) {
   return subnetStringList.replaceAll(",", " ")
-}
-
-def redisAddress() {
-  return sh(
-    script: "aws memorydb describe-clusters --region eu-west-1 | jq -r 'select(.Clusters[0].ClusterEndpoint.Address != null) | .Clusters[0].ClusterEndpoint.Address'",
-    returnStdout: true
-  ).trim()
 }

@@ -72,8 +72,8 @@ const fundAccounts = async (apis, nUsers, nTxs) => {
   let api = await apis.apis(accounts.user.address);
   // accounts.user.address has a reduced fee so don't use it
   const relayerFee = await api.query.getRelayerFees(relayer, accounts[0].address, 'proxyTokenTransfer');
-  let gatewayFeePlusTransfer = new BN(relayerFee).add(new BN(nTxs)) // we transfer 1 wei
-  let fundValue = (new BN(nTxs).mul(gatewayFeePlusTransfer).mul(new BN(2))).add(ONE_TX_VALUE);
+  let gatewayFeePlusTransfer = new BN(relayerFee).add(new BN(nTxs)); // we transfer 1 wei
+  let fundValue = new BN(nTxs).mul(gatewayFeePlusTransfer).mul(new BN(2)).add(ONE_TX_VALUE);
   for (let i = 0; i < nUsers; i++) {
     const requestId = await api.send.transferAvt(accounts[i].address, fundValue);
     await helper.confirmStatus(api.poll, requestId, 'Processed');
@@ -250,7 +250,7 @@ describe('Gateway multithreaded load test:', async () => {
         await gatewayApi.send.api.nonceCache.lockNonce(accounts[i].address, NonceType.Token, `TestRequestId-${i}`);
       }
 
-      testInfo = await sendTransactions(api, nUsers, nTxs)
+      testInfo = await sendTransactions(api, nUsers, nTxs);
 
       // Check if all transactions have been sent successfuly
       for (let i = 0; i < nUsers; i++) {
@@ -263,9 +263,13 @@ describe('Gateway multithreaded load test:', async () => {
       assert.equal(testInfo.successfulTx.length, nUsers * nTxs, `Some transactions failed to be sent successfully`);
 
       const pollResult = await pollTransactions(api, testInfo.successfulTx);
-      assert.equal(Object.values(pollResult.success).length, nUsers * nTxs, `Some transactions failed to be executed successfully (found ${Object.values(pollResult.success).length} txs)`);
+      assert.equal(
+        Object.values(pollResult.success).length,
+        nUsers * nTxs,
+        `Some transactions failed to be executed successfully (found ${Object.values(pollResult.success).length} txs)`
+      );
       if (pollResult.failed.length > 0) console.log(`Rejected transactions: ${JSON.stringify(pollResult.failed, null, 2)}`);
       assert.equal(Object.values(pollResult.failed).length, 0, `Some transactions failed to be executed successfully`);
-    })
+    });
   });
 });

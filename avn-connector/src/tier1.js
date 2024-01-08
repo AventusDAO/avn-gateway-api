@@ -6,10 +6,10 @@ const log4js = require('log4js');
 const log = log4js.getLogger();
 
 const MIN_LIFT_AMOUNT = toBn(config.tier1.minLiftAmount);
-const NATIVE_T1_TOKEN_ONLY = config.tier1.nativeT1TokenOnly === 'true' || config.tier1.nativeT1TokenOnly === true
+const NATIVE_T1_TOKEN_ONLY = config.tier1.nativeT1TokenOnly === 'true' || config.tier1.nativeT1TokenOnly === true;
 const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 //(60 * 60 * 24 * 5) / 12; ~5 days @ ~12 secs per block
-const MAX_LIFT_AGE_IN_BLOCKS = parseInt(config.tier1.maxLiftAgeInBlocks)
+const MAX_LIFT_AGE_IN_BLOCKS = parseInt(config.tier1.maxLiftAgeInBlocks);
 const REQUIRED_CONFIRMATION_BLOCKS = parseInt(config.tier1.requiredConfirmationBlocks);
 const MAX_LIFT_BLOCKS_TO_PROCESS = parseInt(config.tier1.maxLiftBlocksToProcess);
 
@@ -55,7 +55,7 @@ async function getLiftEvents(avnContract) {
         if (amount.gte(MIN_LIFT_AMOUNT)) {
           const token = ethers.utils.defaultAbiCoder.decode(['address'], event.topics[1]).toString().toLowerCase();
           if (!NATIVE_T1_TOKEN_ONLY || token === EVM_TOKEN.toLowerCase()) {
-              liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]);
+            liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]);
           } else {
             log.trace(`Ignoring lift for token: ${token}, amount: ${amount.toString()}, block: ${event.blockNumber}`);
           }

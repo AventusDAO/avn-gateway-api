@@ -53,23 +53,14 @@ async function getLiftEvents(avnContract) {
     if (fromBlock <= toBlock) {
       const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LIFT], fromBlock, toBlock });
       events.forEach(event => {
-        let eventProcessed = false;
-
-        if (toBn(event.data).gte(MIN_LIFT_AMOUNT)) {
-          if (NATIVE_T1_TOKEN_ONLY === true) {
-            let token = ethers.utils.defaultAbiCoder.decode(['address'], event.topics[1]).toString().toLowerCase();
-            if (token === EVM_TOKEN.toLowerCase()) {
-              liftEvents.push([EVENT_SIG.LIFT, event.transactionHash])
-              eventProcessed = true;
-            }
+        const amount = ethers.utils.defaultAbiCoder.decode(['uint256'], event.data)[0];
+        if (amount.gte(MIN_LIFT_AMOUNT)) {
+          const token = ethers.utils.defaultAbiCoder.decode(['address'], event.topics[1]).toString().toLowerCase();
+          if (!NATIVE_T1_TOKEN_ONLY || token === EVM_TOKEN) {
+            liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]);
           } else {
-            liftEvents.push([EVENT_SIG.LIFT, event.transactionHash])
-            eventProcessed = true;
+            log.trace(`Ignoring lift for token: ${token}, amount: ${amount.toString()}, block: ${event.blockNumber}`);
           }
-        }
-
-        if (eventProcessed === false) {
-          log.trace(`Ignoring lift for token: ${token}, amount: ${toBn(event.data).toString()}, block: ${event.blockNumber}`);
         }
       });
     }

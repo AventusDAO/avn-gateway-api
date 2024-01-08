@@ -166,7 +166,7 @@ async function sendTransactions(api, nUsers, nTxs) {
 }
 
 describe('Gateway multithreaded load test:', async () => {
-  let api, results, pollResults, nUsers, nTxs, nonceCacheOptions, hasPayer;
+  let api, results, pollResults, nUsers, nTxs, nonceCacheOptions, hasPayer, totalTimeToSendTransactionsInSec;
   before(async () => {
     nUsers = parseInt(prompt('How many users? '));
     nTxs = parseInt(prompt('How many transactions per user? '));
@@ -179,6 +179,10 @@ describe('Gateway multithreaded load test:', async () => {
 
     console.log(`\n*** Payload: ${nUsers} users sending ${nTxs} transactions each. ***`);
     console.log(`*** RemoteCache: ${remoteCache} | logLevel: ${logLevel}. ***\n`);
+
+    if (remoteCache) {
+      console.log(`\nℹ️  Make sure you are running a remote redis instance before running this test in RemoteCache mode.\n   To run redis in a container, run this command in a new terminal:\n\tdocker run -d --name some-redis -p 6379:6379 redis\n\n`)
+    }
 
     api = await helper.avnApi({
       setupMode: SetupMode.MultiUser,
@@ -195,7 +199,9 @@ describe('Gateway multithreaded load test:', async () => {
 
   describe('Sending transactions', async () => {
     before(async () => {
+      totalTimeToSendTransactionsInSec = Date.now()
       results = await sendTransactions(api, nUsers, nTxs);
+      totalTimeToSendTransactionsInSec = (Date.now() - totalTimeToSendTransactionsInSec) / 1000;
       pollResults = await pollTransactions(api, results.successfulTx);
     });
 
@@ -242,6 +248,7 @@ describe('Gateway multithreaded load test:', async () => {
     });
 
     it('Can recover if nonce is locked in remote cache database', async () => {
+      let timeToSend;
       const gatewayApi = await api.apis(accounts[0].address);
 
       // Lock the token nonce for all users
@@ -250,7 +257,9 @@ describe('Gateway multithreaded load test:', async () => {
         await gatewayApi.send.api.nonceCache.lockNonce(accounts[i].address, NonceType.Token, `TestRequestId-${i}`);
       }
 
+      timeToSend = Date.now();
       testInfo = await sendTransactions(api, nUsers, nTxs);
+      timeToSend = (Date.now() - timeToSend) / 1000;
 
       // Check if all transactions have been sent successfuly
       for (let i = 0; i < nUsers; i++) {
@@ -270,6 +279,9 @@ describe('Gateway multithreaded load test:', async () => {
       );
       if (pollResult.failed.length > 0) console.log(`Rejected transactions: ${JSON.stringify(pollResult.failed, null, 2)}`);
       assert.equal(Object.values(pollResult.failed).length, 0, `Some transactions failed to be executed successfully`);
-    });
+
+      // Finally show that it took longer to send due to the wait time for the lock to be freed
+      assert(timeToSend >= totalTimeToSendTransactionsInSec + 60);
+    })
   });
 });

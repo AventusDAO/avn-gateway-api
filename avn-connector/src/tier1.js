@@ -8,6 +8,7 @@ const BN = require('bn.js');
 const { isHex } = require('@polkadot/util');
 
 const MIN_LIFT_AMOUNT = toBn(config.tier1.minLiftAmount);
+const NATIVE_T1_TOKEN_ONLY = config.tier1.nativeT1TokenOnly === 'true' || config.tier1.nativeT1TokenOnly === true
 const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 //(60 * 60 * 24 * 5) / 12; ~5 days @ ~12 secs per block
 const MAX_LIFT_AGE_IN_BLOCKS = parseInt(config.tier1.maxLiftAgeInBlocks)
@@ -52,9 +53,22 @@ async function getLiftEvents(avnContract) {
     if (fromBlock <= toBlock) {
       const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LIFT], fromBlock, toBlock });
       events.forEach(event => {
+        let eventProcessed = false;
+
         if (toBn(event.data).gte(MIN_LIFT_AMOUNT)) {
-          liftEvents.push([EVENT_SIG.LIFT, event.transactionHash])
-        } else {
+          if (NATIVE_T1_TOKEN_ONLY === true) {
+            let token = ethers.utils.defaultAbiCoder.decode(['address'], event.topics[1]).toString().toLowerCase();
+            if (token === EVM_TOKEN.toLowerCase()) {
+              liftEvents.push([EVENT_SIG.LIFT, event.transactionHash])
+              eventProcessed = true;
+            }
+          } else {
+            liftEvents.push([EVENT_SIG.LIFT, event.transactionHash])
+            eventProcessed = true;
+          }
+        }
+
+        if (eventProcessed === false) {
           log.trace(`Ignoring lift for token: ${token}, amount: ${toBn(event.data).toString()}, block: ${event.blockNumber}`);
         }
       });

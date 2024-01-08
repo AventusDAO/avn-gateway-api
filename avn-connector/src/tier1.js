@@ -4,8 +4,6 @@ const { ethers } = require('ethers');
 const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provider_url);
 const log4js = require('log4js');
 const log = log4js.getLogger();
-const BN = require('bn.js');
-const { isHex } = require('@polkadot/util');
 
 const MIN_LIFT_AMOUNT = toBn(config.tier1.minLiftAmount);
 const NATIVE_T1_TOKEN_ONLY = config.tier1.nativeT1TokenOnly === 'true' || config.tier1.nativeT1TokenOnly === true
@@ -56,8 +54,8 @@ async function getLiftEvents(avnContract) {
         const amount = ethers.utils.defaultAbiCoder.decode(['uint256'], event.data)[0];
         if (amount.gte(MIN_LIFT_AMOUNT)) {
           const token = ethers.utils.defaultAbiCoder.decode(['address'], event.topics[1]).toString().toLowerCase();
-          if (!NATIVE_T1_TOKEN_ONLY || token === EVM_TOKEN) {
-            liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]);
+          if (!NATIVE_T1_TOKEN_ONLY || token === EVM_TOKEN.toLowerCase()) {
+              liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]);
           } else {
             log.trace(`Ignoring lift for token: ${token}, amount: ${amount.toString()}, block: ${event.blockNumber}`);
           }
@@ -149,7 +147,7 @@ async function claimLowers(avnBridge, lowerProofs) {
 }
 
 function toBn(val) {
-  return typeof val === 'number' || !isHex(val) ? new BN(val) : new BN(val.replace('0x', ''), 16);
+  return ethers.BigNumber.from(val);
 }
 
 module.exports = {

@@ -1,7 +1,3 @@
-data "aws_iam_user" "eks" {
-  user_name = "eks"
-}
-
 data "aws_caller_identity" "current" {}
 
 #

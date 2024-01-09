@@ -15,11 +15,3 @@ module "dns" {
     aws.aventus = aws.aventus
   }
 }
-
-module "redis" {
-  source = "../../../modules/redis"
-
-  vpc_id                   = data.terraform_remote_state.vpc.outputs.vpc_id
-  parachain_vpc_cidr_block = data.terraform_remote_state.parachain_testnet.outputs.vpc_cidr_block
-  ip_whitelist             = data.terraform_remote_state.vpc.outputs.private_subnet_ips
-}

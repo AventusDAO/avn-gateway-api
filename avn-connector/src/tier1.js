@@ -43,9 +43,6 @@ async function getLiftEvents(avnContract) {
     toBlock = 0;
   const liftEvents = [];
 
-  log.info(`MAX_LIFT_AGE_IN_BLOCKS: ${MAX_LIFT_AGE_IN_BLOCKS}\nMAX_LIFT_BLOCKS_TO_PROCESS: ${MAX_LIFT_BLOCKS_TO_PROCESS}\n`);
-  log.info(`REQUIRED_CONFIRMATION_BLOCKS: ${REQUIRED_CONFIRMATION_BLOCKS}\nMIN_LIFT_AMOUNT: ${MIN_LIFT_AMOUNT}\n`);
-  log.info(`NATIVE_T1_TOKEN_ONLY: ${NATIVE_T1_TOKEN_ONLY}`);
   try {
     const currentBlock = await provider.getBlockNumber();
     fromBlock = (await redis.getLiftsFromTier1Block()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;

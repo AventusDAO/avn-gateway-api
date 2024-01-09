@@ -1,4 +1,4 @@
-const { SetupMode, SigningMode, NonceCacheType } = require('avn-api');
+const { SetupMode, SigningMode, NonceCacheType, NonceType } = require('avn-api');
 const prompt = require('prompt-sync')({ sigint: true });
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
@@ -7,6 +7,7 @@ const { Keyring } = require('@polkadot/keyring');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
 const assert = require('chai').assert;
 
+const relayer = accounts.relayer.address;
 const ONE_TX_VALUE = new BN('100000000000000000');
 
 function getUserSeedFromAddress(userAddress) {
@@ -62,14 +63,18 @@ const createAccounts = (api, nUsers) => {
   for (let i = 0; i < nUsers; i++) {
     let newUserAccount = api.accountUtils.generateNewAccount();
     accounts[i] = newUserAccount;
-    console.log(`user account created: ${JSON.stringify(newUserAccount, null, 2)}`);
+    console.log(new Date(), ` - user account created: ${JSON.stringify(newUserAccount, null, 2)}`);
   }
 };
 
 const fundAccounts = async (apis, nUsers, nTxs) => {
-  let fundValue = new BN(nTxs).mul(ONE_TX_VALUE);
+  console.log(`\nFunding ${nUsers} account(s)\n`);
+  let api = await apis.apis(accounts.user.address);
+  // accounts.user.address has a reduced fee so don't use it
+  const relayerFee = await api.query.getRelayerFees(relayer, accounts[0].address, 'proxyTokenTransfer');
+  let gatewayFeePlusTransfer = new BN(relayerFee).add(new BN(nTxs)) // we transfer 1 wei
+  let fundValue = (new BN(nTxs).mul(gatewayFeePlusTransfer).mul(new BN(2))).add(ONE_TX_VALUE);
   for (let i = 0; i < nUsers; i++) {
-    let api = await apis.apis(accounts.user.address);
     const requestId = await api.send.transferAvt(accounts[i].address, fundValue);
     await helper.confirmStatus(api.poll, requestId, 'Processed');
   }
@@ -98,7 +103,7 @@ const pollTransactions = async (apis, transactionsToPoll) => {
     let requestId = transactionsToPoll[i].value;
     let pollResult = await customConfirmStatus(api.poll, requestId);
     requestResults[pollResult.status == 'Processed' ? 'success' : 'failed'][requestId] = pollResult;
-    console.log(`pollResult - Request: ${requestId} - ${JSON.stringify(pollResult.status)}`);
+    console.log(new Date(), `pollResult - Request: ${requestId} - ${JSON.stringify(pollResult.status)}`);
   }
   return requestResults;
 };
@@ -142,15 +147,17 @@ const prepareAndSendTransactions = async (apis, nUsers, nTxs, testInfo) => {
   return newTestInfo;
 };
 
-async function sendTransactions(api, nUsers, nTxs, hasPayer) {
+async function setupUserAccounts(api, nUsers, nTxs, hasPayer) {
+  if (!hasPayer) createAccounts(api, nUsers);
+  await fundAccounts(api, nUsers, nTxs);
+}
+
+async function sendTransactions(api, nUsers, nTxs) {
   let testInfo = {
     successfulTx: [],
     failedTx: [],
     completionTime: 0
   };
-
-  if (!hasPayer) createAccounts(api, nUsers);
-  await fundAccounts(api, nUsers, nTxs);
 
   testInfo = await getProxyNonces(api, nUsers, testInfo);
   testInfo = await prepareAndSendTransactions(api, nUsers, nTxs, testInfo);
@@ -159,7 +166,7 @@ async function sendTransactions(api, nUsers, nTxs, hasPayer) {
 }
 
 describe('Gateway multithreaded load test:', async () => {
-  let api, results, pollResults, nUsers, nTxs, nonceCacheOptions, hasPayer;
+  let api, results, pollResults, nUsers, nTxs, nonceCacheOptions, hasPayer, totalTimeToSendTransactionsInSec;
   before(async () => {
     nUsers = parseInt(prompt('How many users? '));
     nTxs = parseInt(prompt('How many transactions per user? '));
@@ -167,25 +174,35 @@ describe('Gateway multithreaded load test:', async () => {
     if (hasPayer) handleSplitFeeAccounts(nUsers);
 
     const logLevel = prompt('Log level? debug/info(default): ') === 'debug' ? 'debug' : 'info';
-    const remoteCache = prompt('Local cache? yes/no(default): ') === 'yes';
+    const remoteCache = prompt('Remote cache? yes/no(default): ') === 'yes';
     nonceCacheOptions = remoteCache ? handleRemoteCache() : undefined;
 
-    console.log(`*** Payload: ${nUsers} users sending ${nTxs} transactions each. ***`);
-    console.log(`*** RemoteCache: ${remoteCache} | logLevel: ${logLevel}. ***`);
+    console.log(`\n*** Payload: ${nUsers} users sending ${nTxs} transactions each. ***`);
+    console.log(`*** RemoteCache: ${remoteCache} | logLevel: ${logLevel}. ***\n`);
+
+    if (remoteCache) {
+      console.log(`\nℹ️  Make sure you are running a remote redis instance before running this test in RemoteCache mode.\n   To run redis in a container, run this command in a new terminal:\n\tdocker run -d --name some-redis -p 6379:6379 redis\n\n`)
+    }
 
     api = await helper.avnApi({
       setupMode: SetupMode.MultiUser,
       signingMode: SigningMode.RemoteSigner,
       signer: signer,
+      relayer,
       hasPayer: hasPayer,
       nonceCacheOptions,
       defaultLogLevel: logLevel
     });
+
+    await setupUserAccounts(api, nUsers, nTxs, hasPayer);
   });
 
   describe('Sending transactions', async () => {
     before(async () => {
-      results = await sendTransactions(api, nUsers, nTxs, hasPayer);
+      totalTimeToSendTransactionsInSec = Date.now()
+      results = await sendTransactions(api, nUsers, nTxs);
+      totalTimeToSendTransactionsInSec = (Date.now() - totalTimeToSendTransactionsInSec) / 1000;
+      pollResults = await pollTransactions(api, results.successfulTx);
     });
 
     it('Proxy nonces are correctly updated', async () => {
@@ -193,7 +210,7 @@ describe('Gateway multithreaded load test:', async () => {
         console.log(
           `Account: ${results[i].address} - Initial proxy nonce: ${results[i].proxyNonceBefore} - Final proxy nonce: ${results[i].proxyNonceAfter}`
         );
-        assert.equal(results[i].proxyNonceBefore + (nTxs - 1), results[i].proxyNonceAfter);
+        assert.equal(results[i].proxyNonceBefore + (nTxs - 1), results[i].proxyNonceAfter, `Proxy nonces do not match`);
       }
     });
 
@@ -205,12 +222,6 @@ describe('Gateway multithreaded load test:', async () => {
       if (results.failedTx.length > 0) console.log(`Failed transactions: ${JSON.stringify(results.failedTx, null, 2)}`);
       assert.equal(results.failedTx.length, 0);
     });
-  });
-
-  describe('Polling transactions', async () => {
-    before(async () => {
-      pollResults = await pollTransactions(api, results.successfulTx);
-    });
 
     it('All transactions were processed successfully', async () => {
       assert.equal(Object.values(pollResults.success).length, nUsers * nTxs);
@@ -220,5 +231,53 @@ describe('Gateway multithreaded load test:', async () => {
       if (pollResults.failed.length > 0) console.log(`Rejected transactions: ${JSON.stringify(pollResults.failed, null, 2)}`);
       assert.equal(Object.values(pollResults.failed).length, 0);
     });
+  });
+
+  describe('Nonce recovery', async () => {
+    let testInfo = {
+      successfulTx: [],
+      failedTx: [],
+      completionTime: 0
+    };
+
+    before(async () => {
+      if (!hasPayer && !accounts[0]) {
+        createAccounts(api, nUsers);
+        await fundAccounts(api, nUsers, nTxs);
+      }
+    });
+
+    it('Can recover if nonce is locked in remote cache database', async () => {
+      let timeToSend;
+      const gatewayApi = await api.apis(accounts[0].address);
+
+      // Lock the token nonce for all users
+      for (let i = 0; i < nUsers; i++) {
+        await gatewayApi.send.api.nonceCache.setNonceCacheForUserIfRequired(accounts[i].address);
+        await gatewayApi.send.api.nonceCache.lockNonce(accounts[i].address, NonceType.Token, `TestRequestId-${i}`);
+      }
+
+      timeToSend = Date.now();
+      testInfo = await sendTransactions(api, nUsers, nTxs)
+      timeToSend = (Date.now() - timeToSend) / 1000;
+
+      // Check if all transactions have been sent successfuly
+      for (let i = 0; i < nUsers; i++) {
+        console.log(
+          `Account: ${testInfo[i].address} - Initial proxy nonce: ${testInfo[i].proxyNonceBefore} - Final proxy nonce: ${testInfo[i].proxyNonceAfter}`
+        );
+        assert.equal(parseInt(testInfo[i].proxyNonceBefore) + nTxs, testInfo[i].proxyNonceAfter, `Proxy nonces must be equal`);
+      }
+
+      assert.equal(testInfo.successfulTx.length, nUsers * nTxs, `Some transactions failed to be sent successfully`);
+
+      const pollResult = await pollTransactions(api, testInfo.successfulTx);
+      assert.equal(Object.values(pollResult.success).length, nUsers * nTxs, `Some transactions failed to be executed successfully (found ${Object.values(pollResult.success).length} txs)`);
+      if (pollResult.failed.length > 0) console.log(`Rejected transactions: ${JSON.stringify(pollResult.failed, null, 2)}`);
+      assert.equal(Object.values(pollResult.failed).length, 0, `Some transactions failed to be executed successfully`);
+
+      // Finally show that it took longer to send due to the wait time for the lock to be freed
+      assert(timeToSend >= totalTimeToSendTransactionsInSec + 60)
+    })
   });
 });

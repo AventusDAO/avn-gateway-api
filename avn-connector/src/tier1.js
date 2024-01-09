@@ -5,9 +5,13 @@ const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provide
 const log4js = require('log4js');
 const log = log4js.getLogger();
 
+const MIN_LIFT_AMOUNT = toBn(config.tier1.minLiftAmount);
+const NATIVE_T1_TOKEN_ONLY = config.tier1.nativeT1TokenOnly === 'true' || config.tier1.nativeT1TokenOnly === true;
 const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-const MAX_LIFT_AGE_IN_BLOCKS = (60 * 60 * 24 * 5) / 12; // ~5 days @ ~12 secs per block
-const REQUIRED_CONFIRMATION_BLOCKS = 20;
+//(60 * 60 * 24 * 5) / 12; ~5 days @ ~12 secs per block
+const MAX_LIFT_AGE_IN_BLOCKS = parseInt(config.tier1.maxLiftAgeInBlocks);
+const REQUIRED_CONFIRMATION_BLOCKS = parseInt(config.tier1.requiredConfirmationBlocks);
+const MAX_LIFT_BLOCKS_TO_PROCESS = parseInt(config.tier1.maxLiftBlocksToProcess);
 
 const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
@@ -42,11 +46,21 @@ async function getLiftEvents(avnContract) {
   try {
     const currentBlock = await provider.getBlockNumber();
     fromBlock = (await redis.getLiftsFromTier1Block()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;
-    toBlock = currentBlock - REQUIRED_CONFIRMATION_BLOCKS;
+    toBlock = Math.min(fromBlock + MAX_LIFT_BLOCKS_TO_PROCESS, currentBlock - REQUIRED_CONFIRMATION_BLOCKS);
 
     if (fromBlock <= toBlock) {
       const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LIFT], fromBlock, toBlock });
-      events.forEach(event => liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]));
+      events.forEach(event => {
+        const amount = ethers.utils.defaultAbiCoder.decode(['uint256'], event.data)[0];
+        if (amount.gte(MIN_LIFT_AMOUNT)) {
+          const token = ethers.utils.defaultAbiCoder.decode(['address'], event.topics[1]).toString().toLowerCase();
+          if (!NATIVE_T1_TOKEN_ONLY || token === EVM_TOKEN.toLowerCase()) {
+            liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]);
+          } else {
+            log.trace(`Ignoring lift for token: ${token}, amount: ${amount.toString()}, block: ${event.blockNumber}`);
+          }
+        }
+      });
     }
   } catch (error) {
     log.error('Error getting lift events:', error);
@@ -130,6 +144,10 @@ async function claimLowers(avnBridge, lowerProofs) {
     }
   }
   return await redis.releaseAutolowerLock(avnBridge.address);
+}
+
+function toBn(val) {
+  return ethers.BigNumber.from(val);
 }
 
 module.exports = {

@@ -115,11 +115,11 @@ function isLowerId(input) {
 
 function parseBlockId(fromBlockId) {
   if (!fromBlockId) {
-    return {blockNumber: 0, index: 0}
+    return { blockNumber: 0, index: 0 };
   }
 
-  let blockInfo = fromBlockId.split("-");
-  return {blockNumber: blockInfo[0] || 0, index: blockInfo[1] || 0}
+  let blockInfo = fromBlockId.split('-');
+  return { blockNumber: blockInfo[0] || 0, index: blockInfo[1] || 0 };
 }
 
 function sortLowerEventsByIdAsc(lowerEvents) {

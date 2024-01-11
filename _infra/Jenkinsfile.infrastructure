@@ -1,16 +1,9 @@
 pipeline {
-  environment {
-    avn_connector_path = "avn-connector"
-    region             = "eu-west-1"
-  }
 
   parameters {
     choice(name: 'environment', choices: ['cba', 'testnet', 'mainnet'], description: 'Chose the environment to deploy to.')
-    choice(name: 'terraform_target', choices: ['none', 'all', 'vpc', 'dns', "bastion", "avn-vault"], description: 'Apply specific terraform module targets.')
+    choice(name: 'terraform_target', choices: ['all', 'vpc', 'dns', "avn-vault"], description: 'Apply specific terraform module targets.')
     string(name: 'additional_terraform_args', defaultValue: '', description: 'Supply additional terraform arguments, The environment can be destroyed by supplying the arg -destroy', trim: true)
-    choice(name: 'apply_third_party_charts', choices: ['false', 'true'], description: 'Apply third party helm charts to kubernetes')
-    choice(name: 'new_environment', choices: ['false', 'true'], description: 'Apply a new environment, if true then the VPC will be built before the rest of the infrastructure.')
-    choice(name: 'ephemeral', choices: ['false', 'true'], description: 'Ephemeral environments are cheaper environments with a reduced cost, Eg. Rabbit/redis deployed within Kubernetes')
   }
 
   agent any
@@ -19,7 +12,7 @@ pipeline {
     stage("Initialise VPC plan") {
       when {
         expression {
-            return env.new_environment == 'true' || env.terraform_target == 'vpc';
+            return env.terraform_target == 'vpc';
         }
       }
       steps {
@@ -36,7 +29,7 @@ pipeline {
       when {
         beforeInput true
         expression {
-            return env.new_environment == 'true' || env.terraform_target == 'vpc';
+            return env.terraform_target == 'vpc';
         }
       }
       input {
@@ -55,7 +48,7 @@ pipeline {
     stage("Gateway plan") {
       when {
         expression {
-            return env.terraform_target != 'none';
+            return env.terraform_target != 'vpc';
         }
       }
       steps {
@@ -71,7 +64,7 @@ pipeline {
       when {
         beforeInput true
         expression {
-            return env.terraform_target != 'none';
+            return env.terraform_target != 'vpc';
         }
       }
       input {
@@ -85,114 +78,12 @@ pipeline {
         }
       }
     }
-
-    stage("Get Terraform outputs") {
-      when {
-        expression {
-            return env.additional_terraform_args != '-destroy';
-        }
-      }
-      steps {
-        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
-          dir("_infra/terraform/environments/${env.environment}/gateway") {
-            sh "terraform init"
-            script {
-              private_hosted_zone_id = terraformOutput("private_hosted_zone_id")
-            }
-          }
-        }
-        sshagent(credentials: ['fb69386f-f549-4276-95d2-94f34fc063ad', 'aws-dev-ssh']) {
-          dir("_infra/terraform/environments/${env.environment}/vpc") {
-            sh "terraform init"
-            script {
-              private_subnets = terraformOutput("private_subnets_string")
-            }
-          }
-        }
-      }
-    }
-    stage("Deploy third party helm charts") {
-      when {
-        expression {
-            return env.apply_third_party_charts == 'true' && env.additional_terraform_args != '-destroy';
-        }
-      }
-      steps {
-        withAWS(roleAccount:accountId(), role:'jenkins-access') {
-          generateContext("avn-gateway", "kube-system")
-          helmInstallThirdParty("aws-lb-controller")
-          helmInstallThirdParty("external-secrets-manager")
-          helmInstallThirdParty("fluent-bit")
-          helmInstallThirdParty("external-dns",
-            "--set external-dns.txtOwnderId=${private_hosted_zone_id} \
-            --set domainFilters[0]=${env.environment}.aventus.internal")
-        }
-      }
-    }
-
-    stage("Deploy Minimal Nginx") {
-      when {
-        expression {
-            return env.apply_third_party_charts == 'true' && env.additional_terraform_args != '-destroy' && env.ephemeral == 'false';
-        }
-      }
-      steps {
-        withAWS(roleAccount:accountId(), role:'jenkins-access') {
-          sh "kubectl create ns nginx || true"
-          generateContext("avn-gateway", "nginx")
-          helmInstallThirdParty("nginx")
-        }
-      }
-    }
-
-    stage("Deploy Ephemeral helm charts") {
-      when {
-        expression {
-            return env.apply_third_party_charts == 'true' && env.additional_terraform_args != '-destroy' && env.ephemeral == 'true';
-        }
-      }
-      steps {
-        withAWS(roleAccount:accountId(), role:'jenkins-access') {
-          generateContext("avn-gateway", "dev")
-          helmInstallThirdParty("rabbit", "--set environment=${env.environment}")
-          helmInstallThirdParty("mongodb")
-          sh "kubectl create ns nginx || true"
-          generateContext("avn-gateway", "nginx")
-          helmInstallThirdParty("nginx", "--values values-ephemeral.yaml")
-        }
-      }
-    }
-
-    stage("Vault Setup & Init") {
-      when {
-        expression {
-          return env.new_environment == 'true';
-        }
-      }
-      steps {
-        build job: 'avn-gateway-vault-deployment', parameters:
-        [
-          string(name: 'gateway_environment', value: env.environment),
-          booleanParam(name: 'deploy', value: true),
-          booleanParam(name: 'vault_init', value: true),
-          booleanParam(name: 'setup_avn_vault', value: true),
-        ]
-      }
-    }
-
   }
   post {
     always {
       cleanWs()
     }
   }
-}
-
-def generateContext(String clusterName, String namespace) {
-  def id = accountId()
-  sh "aws eks --region eu-west-1 update-kubeconfig --name ${clusterName}"
-  sh "kubectl config set-context arn:aws:eks:eu-west-1:${id}:cluster/${clusterName} --namespace ${namespace}"
-  sh "kubectl config use-context arn:aws:eks:eu-west-1:${id}:cluster/${clusterName}"
 }
 
 def terraformPlan() {
@@ -218,29 +109,7 @@ def accountId() {
   def environmentMap = [
     cba: "602004642405",
     testnet: "189013141504",
-    mainnet: "503742778456",
-    pentest: "791662239430"
+    mainnet: "503742778456"
   ]
   return environmentMap[env.environment]
-}
-
-def helmInstallThirdParty(String application) {
-  sh "helm dep up _infra/cluster/${application}"
-  sh "helm upgrade --install ${application} _infra/cluster/${application} --wait"
-}
-
-def helmInstallThirdParty(String application, String set) {
-  sh "helm dep up _infra/cluster/${application}"
-  sh "helm upgrade --install ${application} _infra/cluster/${application} ${set} --wait"
-}
-
-def terraformOutput(String outputName) {
-  return sh(
-    script: "terraform output -raw ${outputName}",
-    returnStdout: true
-  ).trim()
-}
-
-def subnets(String subnetStringList) {
-  return subnetStringList.replaceAll(",", " ")
 }

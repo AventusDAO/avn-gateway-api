@@ -35,30 +35,3 @@ module "avn-vault" {
   avn-ingress-ports        = []
   ami_image_id             = "ami-0a8e758f5e873d1c1"
 }
-
-module "bastion" {
-  source           = "../../../modules/bastion"
-  vpc_id           = data.terraform_remote_state.vpc.outputs.vpc_id
-  ssh_key_name     = aws_key_pair.vault-ssh-key.key_name
-  public_subnet_id = data.terraform_remote_state.vpc.outputs.primary_public_subnet.id
-  ssh_allowed_ips  = local.ssh_allowed_ips
-  ami_image_id     = "ami-0a8e758f5e873d1c1"
-}
-
-resource "local_file" "avn-gateway-vault-instance-file" {
-  content  = <<-EOD
-[bastion]
-${module.bastion.public_ip} ansible_user=ubuntu
-
-[vault_server]
-${module.avn-vault.instance_ip_addr} ansible_user=ubuntu
-
-[vault_server:vars]
-ansible_ssh_common_args='-o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %h:%p -q ubuntu@${module.bastion.public_ip}"'
-api_addr_value='https://${module.avn-vault.fqdn}:8200'
-aws_region='${module.avn-vault.aws_region}'
-kms_key_id='${module.avn-vault.kms_key_id}'
-dynamodb_table='${module.avn-vault.dynamodb_table}'
-EOD
-  filename = "${path.module}/vault.inventory"
-}

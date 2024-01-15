@@ -1,6 +1,0 @@
----
-collections:
-  # Install a collection from Ansible Galaxy.
-  - name: git@github.com:Aventus-Network-Services/avn-vault-ansible-roles.git#aventus
-    version: 1.2.0
-    scm: git

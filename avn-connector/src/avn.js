@@ -307,7 +307,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   return result;
 }
 
-//This function can be called multiple times (3 by default) from mqConsumer, for the same transaction if it returns an error.
+//This function can be called multiple times (3 by default) from sqsConsumer, for the same transaction if it returns an error.
 async function signAndSend(requestId, relayerAddress, txn) {
   let transactionHash, nonce, relayerAccount;
   log.trace(`${requestId} - Sending transaction to the AvN`);

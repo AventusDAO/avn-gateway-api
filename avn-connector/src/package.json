@@ -12,9 +12,9 @@
     "@aws-sdk/client-secrets-manager": "^3.39.0",
     "@polkadot/api": "^9.4.3",
     "@polkadot/types": "^9.4.3",
-    "amqplib": "^0.8.0",
     "avn-types": "^1.2.2",
-    "axios": "^0.21.4",
+    "aws-sdk": "^2.1536.0",
+    "axios": "^1.6.5",
     "ethers": "^5.4.0",
     "express": "^4.17.1",
     "ioredis": "^5.0.4",
@@ -24,7 +24,7 @@
     "multiconfig": "^1.1.6",
     "pg": "^8.8.0",
     "reflect-metadata": "^0.1.13",
-    "typeorm": "0.3.11",
+    "typeorm": "^0.3.19",
     "yargs": "^16.2.0"
   },
   "devDependencies": {

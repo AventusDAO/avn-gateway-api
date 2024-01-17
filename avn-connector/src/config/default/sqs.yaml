@@ -1,4 +1,3 @@
-secretsManagerRegion: $ENV:SM_AWS_REGION
 queueUrl: $ENV:SQS_QUEUE_URL
 avnTxRetryCount: $ENV:AVN_TX_RETRY_COUNT
 avnTxRetryDelay: $ENV:AVN_TX_RESEND_DELAY

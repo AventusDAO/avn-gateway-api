@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.39.0",
-    "@aws-sdk/client-secrets-manager": "^3.39.0",
     "@polkadot/api": "^9.4.3",
     "@polkadot/types": "^9.4.3",
     "avn-types": "^1.2.2",

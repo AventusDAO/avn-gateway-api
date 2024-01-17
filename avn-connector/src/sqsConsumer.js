@@ -2,9 +2,8 @@ const AWS = require('aws-sdk');
 const avn = require('./avn');
 const config = require('multiconfig').load();
 const logger = require('log4js').configure(config.log4Js).getLogger();
-const SecretsManager = require('./secretsManager');
 
-AWS.config.update(config.aws);
+AWS.config.update({ region: config.aws.region });
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 async function connectToSQS() {
@@ -14,7 +13,6 @@ async function connectToSQS() {
 
 function SQSConsumer() {
   this.sqsQueueUrl = config.sqs.queueUrl;
-  this.secretsManager = new SecretsManager(config.sqs.secretsManagerRegion, logger);
 }
 
 async function processMessagesFromSQS(sqsConsumer) {

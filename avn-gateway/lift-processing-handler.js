@@ -1,7 +1,7 @@
 const utils = require('/opt/utils.js');
 const SQSSender = require('/opt/sqsSender.js');
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
-const sqsSender = new SQSSender(process.env.AVN_TX_QUEUE);
+const sqsSender = new SQSSender(process.env.AVN_TX_QUEUE_URL);
 
 exports.handler = async (_event, context) => {
   try {

@@ -12,7 +12,7 @@ async function connectToSQS() {
 }
 
 function SQSConsumer() {
-  this.sqsQueueUrl = config.sqs.avnTxQueue;
+  this.sqsQueueUrl = config.sqs.avnTxQueueUrl;
 }
 
 async function processMessagesFromSQS(sqsConsumer) {

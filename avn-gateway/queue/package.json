@@ -2,7 +2,7 @@
   "name": "send-handler",
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.39.0",
-    "@aws-sdk/client-sqs": "3.245.0",
-    "amqplib": "^0.8.0"
+    "@aws-sdk/client-sqs": "^3.490.0",
+    "aws-sdk": "^2.1536.0"
   }
 }

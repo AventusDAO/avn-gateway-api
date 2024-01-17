@@ -2,7 +2,7 @@ const utils = require('/opt/utils.js');
 const sqs = require('/opt/sqsUtils.js');
 const fees = require('/opt/paymentUtils.js');
 const SQSSender = require('/opt/sqsSender.js');
-const sqsSender = new SQSSender(process.env.SQS_AVN_TX_QUEUE);
+const sqsSender = new SQSSender(process.env.AVN_TX_QUEUE);
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event, context) => {

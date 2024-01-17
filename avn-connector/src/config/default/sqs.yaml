@@ -1,3 +1,3 @@
-queueUrl: $ENV:SQS_QUEUE_URL
+avnTxQueue: $ENV:AVN_TX_QUEUE
 avnTxRetryCount: $ENV:AVN_TX_RETRY_COUNT
 avnTxRetryDelay: $ENV:AVN_TX_RESEND_DELAY

@@ -31,6 +31,10 @@ module.exports = new EntitySchema({
     enabled: {
       type: 'boolean',
       default: true
+    },
+    vaultId: {
+      type: "uuid",
+      generated: "uuid"
     }
   },
   relations: {

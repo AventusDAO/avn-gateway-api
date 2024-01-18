@@ -52,7 +52,7 @@ module.exports = function (baseURL, roleId, secretId) {
   this.getToken = async function () {
     const now = Date.now();
     if (!this.loginToken.token || this.loginToken.validUntil < now) {
-      log.trace(`token ${this.loginToken.token} has expired on ${this.loginToken.validUntil}. Refreshing...`);
+      log.trace(`login token has expired on ${this.loginToken.validUntil}. Refreshing...`);
       const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
       this.loginToken.token = token;
       this.loginToken.validUntil = now + EXPIRY;
@@ -84,8 +84,6 @@ module.exports = function (baseURL, roleId, secretId) {
     const token = await this.getToken();
     const url = this.baseURL + 'avn-vault/user/' + userName;
     const relayer = await get(url, token);
-    log.info(`Vault relayer data: `, relayer)
-    log.info(`Vault relayer seed: `, relayer.seed)
     return relayer.seed;
   };
 

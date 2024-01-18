@@ -26,6 +26,7 @@ async function get(url, token) {
   try {
     return (await axios({ method: 'get', url: url, headers: headers })).data.data;
   } catch (err) {
+    log.trace(`vault error on GET: `, err);
     if (err.response) {
       if (err.response.status === 404 || err.response.data.errors[0].includes('Error reading user')) return '';
       else throw new Error('vault - ' + err.response.data.errors.toString());
@@ -83,8 +84,8 @@ module.exports = function (baseURL, roleId, secretId) {
     const token = await this.getToken();
     const url = this.baseURL + 'avn-vault/user/' + userName;
     const relayer = await get(url, token);
-    console.log(`Vault relayer data: `, relayer)
-    console.log(`Vault relayer data: `, JSON.stringify(relayer))
+    log.info(`Vault relayer data: `, relayer)
+    log.info(`Vault relayer seed: `, relayer.seed)
     return relayer.seed;
   };
 

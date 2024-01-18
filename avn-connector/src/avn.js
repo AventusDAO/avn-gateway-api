@@ -16,6 +16,7 @@ const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
+const RELAYER_VAULT_USERNAME_PREFIX = 'GatewayRelayer_';
 
 let api, vault;
 let relayers = {};
@@ -375,15 +376,15 @@ async function addNewTransaction(requestId) {
 
 async function getRelayerAccount(relayerAddress) {
   if (!relayers[relayerAddress]) {
-    const userName = await rds.getRelayerVaultId(relayerAddress);
+    const userName = RELAYER_VAULT_USERNAME_PREFIX + (await rds.getRelayerVaultId(relayerAddress));
     let relayerSuri = await vault.getRelayerSeed(userName);
+
     if (!relayerSuri) {
       log.warn(`Relayer with username: ${userName} not found in vault. Trying with address ${relayerAddress} as username`)
       relayerSuri = await vault.getRelayerSeed(relayerAddress)
-    }
-
-    if (!relayerSuri) {
-      throw new Error(`Relayer username: ${userName}, address: ${relayerAddress} not found in Vault.`)
+      if (!relayerSuri) {
+        throw new Error(`Relayer username: ${userName}, address: ${relayerAddress} not found in Vault.`)
+      }
     }
     relayers[relayerAddress] = createAccount(relayerSuri);
   }

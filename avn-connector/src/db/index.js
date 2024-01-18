@@ -127,6 +127,7 @@ async function getRelayer(relayerAddress) {
   if (!relayerAddress) return undefined;
 
   const relayerPk = getPublicKey(relayerAddress);
+  console.log(`Relayer public key: ${relayerPk}, address: ${relayerAddress}`);
   const relayerDataSource = await dataSource.getRepository(RELAYER_TABLE);
   return await relayerDataSource.findOne({ where: { publicKey: relayerPk, enabled: true } });
 }

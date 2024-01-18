@@ -316,7 +316,9 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace(`${requestId} - Relayer address: ${relayerAddress}`);
     relayerAccount = await getRelayerAccount(relayerAddress);
   } catch (err) {
-    log.error({ message: `${requestId} - Error getting relayer account for ${relayerAddress}`, err });
+    log.error({ message: `${requestId} - Error getting relayer account for ${relayerAddress}`});
+    log.error(err);
+
     throw err;
   }
 

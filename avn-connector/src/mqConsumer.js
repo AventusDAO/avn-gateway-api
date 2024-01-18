@@ -164,7 +164,7 @@ async function trySendAvnTx(message) {
         logger.warn(`sendAvnTx failed ${retries} time(s), retrying. Error: ${err.message}`);
         await new Promise(resolve => setTimeout(resolve, avnTxRetryDelay));
       } else {
-        logger.error('sendAvnTx err', err.message);
+        logger.error('sendAvnTx err', err);
         throw err;
       }
     }

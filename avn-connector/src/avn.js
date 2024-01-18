@@ -11,6 +11,7 @@ const tier1 = require('./tier1');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
 const fees = require('./paymentInfoHelper');
+const rds = require('./db/index');
 const BN = require('bn.js');
 
 const AVN_URL = config.avnUrl;
@@ -372,7 +373,12 @@ async function addNewTransaction(requestId) {
 
 async function getRelayerAccount(relayerAddress) {
   if (!relayers[relayerAddress]) {
-    const relayerSuri = await vault.getRelayerSeed(relayerAddress);
+    const userName = await rds.getRelayerVaultId(relayerAddress);
+    let relayerSuri = await vault.getRelayerSeed(userName);
+    if (!relayerSuri) {
+      log.warn(`Relayer with username: ${userName}, Address: ${relayerAddress} not found in vault. Trying with address as username`)
+      relayerSuri = await vault.getRelayerSeed(relayerAddress)
+    }
     relayers[relayerAddress] = createAccount(relayerSuri);
   }
   return relayers[relayerAddress];

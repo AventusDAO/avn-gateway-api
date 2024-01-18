@@ -185,6 +185,7 @@ async function getRelayerVaultId(relayerAddress) {
   if (!relayerAddress) throw new Error(`Invalid relayer address ${relayerAddress}`);
 
   const relayer = await getRelayer(relayerAddress);
+  log.info(`Relayer data from rds: `, JSON.stringify(relayer));
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
 
   return relayer.vaultId;

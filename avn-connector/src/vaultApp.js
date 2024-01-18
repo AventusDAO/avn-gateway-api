@@ -82,7 +82,10 @@ module.exports = function (baseURL, roleId, secretId) {
   this.getRelayerSeed = async function (userName) {
     const token = await this.getToken();
     const url = this.baseURL + 'avn-vault/user/' + userName;
-    return (await get(url, token)).seed;
+    const relayer = await get(url, token);
+    console.log(`Vault relayer data: `, relayer)
+    console.log(`Vault relayer data: `, JSON.stringify(relayer))
+    return relayer.seed;
   };
 
   this.payerSign = async function (message, username) {

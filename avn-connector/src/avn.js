@@ -378,8 +378,12 @@ async function getRelayerAccount(relayerAddress) {
     const userName = await rds.getRelayerVaultId(relayerAddress);
     let relayerSuri = await vault.getRelayerSeed(userName);
     if (!relayerSuri) {
-      log.warn(`Relayer with username: ${userName}, Address: ${relayerAddress} not found in vault. Trying with address as username`)
+      log.warn(`Relayer with username: ${userName} not found in vault. Trying with address ${relayerAddress} as username`)
       relayerSuri = await vault.getRelayerSeed(relayerAddress)
+    }
+
+    if (!relayerSuri) {
+      throw new Error(`Relayer username: ${userName}, address: ${relayerAddress} not found in Vault.`)
     }
     relayers[relayerAddress] = createAccount(relayerSuri);
   }

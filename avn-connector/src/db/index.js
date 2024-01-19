@@ -180,6 +180,15 @@ async function getAllFees(feeDataSource, relayer, userPk) {
   return buildFeesJson(fees, relayer.defaultFee);
 }
 
+async function getRelayerVaultId(relayerAddress) {
+  if (!relayerAddress) throw new Error(`Invalid relayer address ${relayerAddress}`);
+
+  const relayer = await getRelayer(relayerAddress);
+  if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
+
+  return relayer.vaultId;
+}
+
 function getPublicKey(account) {
   if (!account) throw new Error(`Address is NULL`);
   if (isHex(account) && account.length != 66) throw new Error(`Invalid hex encoded address ${account}`);
@@ -194,6 +203,7 @@ function getPublicKey(account) {
 module.exports = {
   getPayer,
   getFees,
+  getRelayerVaultId,
   init,
   isPayerTransaction
 };

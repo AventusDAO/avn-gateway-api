@@ -26,6 +26,7 @@ async function get(url, token) {
   try {
     return (await axios({ method: 'get', url: url, headers: headers })).data.data;
   } catch (err) {
+    log.trace(`vault error on GET: `, err);
     if (err.response) {
       if (err.response.status === 404 || err.response.data.errors[0].includes('Error reading user')) return '';
       else throw new Error('vault - ' + err.response.data.errors.toString());
@@ -51,7 +52,7 @@ module.exports = function (baseURL, roleId, secretId) {
   this.getToken = async function () {
     const now = Date.now();
     if (!this.loginToken.token || this.loginToken.validUntil < now) {
-      log.trace(`token ${this.loginToken.token} has expired on ${this.loginToken.validUntil}. Refreshing...`);
+      log.trace(`login token has expired on ${this.loginToken.validUntil}. Refreshing...`);
       const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
       this.loginToken.token = token;
       this.loginToken.validUntil = now + EXPIRY;
@@ -82,7 +83,8 @@ module.exports = function (baseURL, roleId, secretId) {
   this.getRelayerSeed = async function (userName) {
     const token = await this.getToken();
     const url = this.baseURL + 'avn-vault/user/' + userName;
-    return (await get(url, token)).seed;
+    const relayer = await get(url, token);
+    return relayer.seed;
   };
 
   this.payerSign = async function (message, username) {

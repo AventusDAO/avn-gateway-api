@@ -317,7 +317,7 @@ async function signAndSend(requestId, relayerAddress, txn) {
     log.trace(`${requestId} - Relayer address: ${relayerAddress}`);
     relayerAccount = await getRelayerAccount(relayerAddress);
   } catch (err) {
-    log.error({ message: `${requestId} - Error getting relayer account for ${relayerAddress}`});
+    log.error({ message: `${requestId} - Error getting relayer account for ${relayerAddress}` });
     log.error(err);
 
     throw err;
@@ -380,10 +380,10 @@ async function getRelayerAccount(relayerAddress) {
     let relayerSuri = await vault.getRelayerSeed(userName);
 
     if (!relayerSuri) {
-      log.warn(`Relayer with username: ${userName} not found in vault. Trying with address ${relayerAddress} as username`)
-      relayerSuri = await vault.getRelayerSeed(relayerAddress)
+      log.warn(`Relayer with username: ${userName} not found in vault. Trying with address ${relayerAddress} as username`);
+      relayerSuri = await vault.getRelayerSeed(relayerAddress);
       if (!relayerSuri) {
-        throw new Error(`Relayer username: ${userName}, address: ${relayerAddress} not found in Vault.`)
+        throw new Error(`Relayer username: ${userName}, address: ${relayerAddress} not found in Vault.`);
       }
     }
     relayers[relayerAddress] = createAccount(relayerSuri);

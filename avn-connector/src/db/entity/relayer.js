@@ -33,8 +33,8 @@ module.exports = new EntitySchema({
       default: true
     },
     vaultId: {
-      type: "uuid",
-      generated: "uuid"
+      type: 'uuid',
+      generated: 'uuid'
     }
   },
   relations: {

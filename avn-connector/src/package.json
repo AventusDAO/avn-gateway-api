@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.39.0",
+    "@aws-sdk/client-sqs": "^3.495.0",
     "@polkadot/api": "^9.4.3",
     "@polkadot/types": "^9.4.3",
     "avn-types": "^1.2.2",
-    "aws-sdk": "^2.1536.0",
     "axios": "^1.6.5",
     "ethers": "^5.4.0",
     "express": "^4.17.1",

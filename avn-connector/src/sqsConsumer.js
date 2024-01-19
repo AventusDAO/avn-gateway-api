@@ -1,76 +1,53 @@
-const AWS = require('aws-sdk');
+const { SQSClient, ReceiveMessageCommand, DeleteMessageCommand } = require('@aws-sdk/client-sqs');
 const avn = require('./avn');
 const config = require('multiconfig').load();
 const logger = require('log4js').configure(config.log4Js).getLogger();
+const sqsClient = new SQSClient({ region: config.aws.region });
+const AVN_TX_QUEUE_URL = config.sqs.avnTxQueueUrl;
+const AVN_TX_RETRY_COUNT = config.sqs.avnTxRetryCount;
+const AVN_TX_RETRY_DELAY = config.sqs.avnTxRetryDelay;
 
-AWS.config.update({ region: config.aws.region });
-const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
-
-async function connectToSQS() {
-  let sqsConsumer = new SQSConsumer();
-  await processMessagesFromSQS(sqsConsumer);
-}
-
-function SQSConsumer() {
-  this.sqsQueueUrl = config.sqs.avnTxQueueUrl;
-}
-
-async function processMessagesFromSQS(sqsConsumer) {
-  const params = {
-    QueueUrl: sqsConsumer.sqsQueueUrl,
+async function processMessages() {
+  const receiveParams = {
+    QueueUrl: AVN_TX_QUEUE_URL,
     MaxNumberOfMessages: 10,
     WaitTimeSeconds: 20
   };
 
-  sqs.receiveMessage(params, function (err, data) {
-    if (err) {
-      logger.error('Receive Error', err);
-    } else if (data.Messages) {
-      data.Messages.forEach(async message => {
-        try {
-          await processMessage(message);
-          const deleteParams = {
-            QueueUrl: sqsConsumer.sqsQueueUrl,
-            ReceiptHandle: message.ReceiptHandle
-          };
-          sqs.deleteMessage(deleteParams, function (deleteErr, deleteData) {
-            if (deleteErr) {
-              logger.error('Delete Error', deleteErr);
-            } else {
-              logger.info('Message Deleted', deleteData);
-            }
-          });
-        } catch (error) {
-          logger.error('Error processing message: ', error);
+  while (true) {
+    try {
+      const receivedMessages = await sqsClient.send(new ReceiveMessageCommand(receiveParams));
+      if (receivedMessages.Messages) {
+        for (const message of receivedMessages.Messages) {
+          const id = message.MessageId;
+          const txData = JSON.parse(message.Body);
+          logger.info(`Received message ID: ${id} - tx data: ${txData}`);
+          await trySendAvnTx(txData);
+          await sqsClient.send(new DeleteMessageCommand({ QueueUrl: AVN_TX_QUEUE_URL, ReceiptHandle: message.ReceiptHandle }));
+          logger.info(`Deleted message ID: ${id}`);
         }
-      });
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    } catch (error) {
+      logger.error({ message: 'Error processing messages:', error });
+      await new Promise(resolve => setTimeout(resolve, 20000));
     }
-  });
-}
-
-async function processMessage(sqsMessage) {
-  try {
-    const messageBody = JSON.parse(sqsMessage.Body);
-    await trySendAvnTx(messageBody);
-  } catch (err) {
-    logger.error('Error processing SQS message: ', err);
   }
 }
 
-async function trySendAvnTx(message) {
-  const avnTxRetryCount = config.sqs.avnTxRetryCount;
-  const avnTxRetryDelay = config.sqs.avnTxRetryDelay;
+async function trySendAvnTx(txData) {
   let retries = 0;
 
-  while (retries <= avnTxRetryCount) {
+  while (retries <= AVN_TX_RETRY_COUNT) {
     try {
-      return await sendAvnTx(JSON.parse(message.content.toString()));
+      return await sendAvnTx(txData);
     } catch (err) {
       retries++;
 
-      if (retries <= avnTxRetryCount) {
+      if (retries <= AVN_TX_RETRY_COUNT) {
         logger.warn(`sendAvnTx failed ${retries} time(s), retrying. Error: ${err.message}`);
-        await new Promise(resolve => setTimeout(resolve, avnTxRetryDelay));
+        await new Promise(resolve => setTimeout(resolve, AVN_TX_RETRY_DELAY));
       } else {
         logger.error('sendAvnTx err', err.message);
         throw err;
@@ -115,4 +92,4 @@ function isSplitFeeTransaction(request) {
   return !!request.params.splitFeePayerAddress;
 }
 
-module.exports = { connectToSQS };
+module.exports = { processMessages };

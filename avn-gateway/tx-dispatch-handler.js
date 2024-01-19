@@ -1,8 +1,8 @@
 const utils = require('/opt/utils.js');
-const sqs = require('/opt/sqsUtils.js');
 const fees = require('/opt/paymentUtils.js');
-const SQSSender = require('/opt/sqsSender.js');
-const sqsSender = new SQSSender(process.env.SQS_AVN_TX_QUEUE_URL);
+const sqs = require('/opt/sqsUtils.js');
+const sqsClient = new sqs.SQSClient({ region: process.env.AWS_REGION });
+const AVN_TX_SQS_URL = process.env.SQS_AVN_TX_QUEUE_URL;
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event, context) => {
@@ -642,9 +642,22 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 async function sendTx(call, request, requestId, palletName, method, params) {
   try {
     const txType = 'avnProxy';
-    const result = await sqsSender.sendMessageToSQS({ requestId, txType, palletName, method, params });
+    const result = await sendMessageToTxQueue({ requestId, txType, palletName, method, params });
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
     return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
   }
+}
+
+async function sendMessageToTxQueue(tx) {
+  const messageBody = JSON.stringify(tx);
+
+  const params = {
+    QueueUrl: AVN_TX_SQS_URL,
+    MessageGroupId: 'AVN_TX',
+    MessageDeduplicationId: utils.hashString(messageBody),
+    MessageBody: messageBody
+  };
+
+  return await sqsClient.send(new sqs.SendMessageCommand(params));
 }

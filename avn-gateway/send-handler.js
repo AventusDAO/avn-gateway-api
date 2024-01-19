@@ -1,8 +1,6 @@
 const utils = require('/opt/utils.js');
 const sqs = require('/opt/sqsUtils.js');
-
 const sqsClient = new sqs.SQSClient({ region: process.env.AWS_REGION });
-
 const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const PAYER_SQS_URL = process.env.SQS_PAYER_QUEUE_URL;
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;

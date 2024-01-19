@@ -642,22 +642,10 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
 async function sendTx(call, request, requestId, palletName, method, params) {
   try {
     const txType = 'avnProxy';
-    const result = await sendMessageToTxQueue({ requestId, txType, palletName, method, params });
+    const tx = { requestId, txType, palletName, method, params };
+    const result = await sqs.sendToQueue('AVN_TX', tx);
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
     return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
   }
-}
-
-async function sendMessageToTxQueue(tx) {
-  const messageBody = JSON.stringify(tx);
-
-  const params = {
-    QueueUrl: AVN_TX_SQS_URL,
-    MessageGroupId: 'AVN_TX',
-    MessageDeduplicationId: utils.hashString(messageBody),
-    MessageBody: messageBody
-  };
-
-  return await sqsClient.send(new sqs.SendMessageCommand(params));
 }

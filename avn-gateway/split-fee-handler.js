@@ -1,8 +1,7 @@
 const utils = require('/opt/utils.js');
 const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
-const sqsClient = new sqs.SQSClient({ region: process.env.AWS_REGION });
-const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
+
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 
 exports.handler = async (event, context) => {
@@ -81,7 +80,7 @@ async function processRequest(request) {
     tx.params.payer = tx.splitFeePayerAddress;
     tx.relayerFee = relayerFee;
 
-    const data = await sendMessageToDefaultQueue(tx);
+    const data = await sqs.sendToQueue('DEFAULT', tx);
     console.info(
       `Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`
     );
@@ -103,19 +102,6 @@ function validateTransaction(tx) {
   } catch (errParam) {
     throw new Error(`Invalid transaction data: ${errParam}`);
   }
-}
-
-async function sendMessageToDefaultQueue(message) {
-  const messageBody = JSON.stringify(message);
-
-  const params = {
-    QueueUrl: DEFAULT_SQS_URL,
-    MessageGroupId: 'DEFAULT',
-    MessageDeduplicationId: utils.hashString(messageBody),
-    MessageBody: messageBody
-  };
-
-  return await sqsClient.send(new sqs.SendMessageCommand(params));
 }
 
 async function payerCanPayForTransaction(payerAddress, transactionName) {

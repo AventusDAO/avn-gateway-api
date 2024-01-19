@@ -8,11 +8,8 @@ help: ## Show this help.
 
 package: ## - package the lambdas into a series of zips $ make package version=<version_no>
 	npm --prefix ./common i ./common
-	npm --prefix ./queue i ./queue
 	mkdir -p build/common
 	cd common && zip -r ../build/common/common-latest.zip ./*
-	mkdir -p build/queue
-	cd queue && zip -r ../build/queue/queue-latest.zip ./*
 	mkdir -p build/query-handler
 	zip build/query-handler/query-handler-latest.zip query-handler.js
 	mkdir -p build/send-handler
@@ -38,7 +35,6 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	mkdir -p build/invalid-transaction-handler
 	zip build/invalid-transaction-handler/invalid-transaction-handler-latest.zip invalid-transaction-handler.js
 	cp build/common/common-latest.zip build/common/common-$(version).zip
-	cp build/queue/queue-latest.zip build/queue/queue-$(version).zip
 	cp build/query-handler/query-handler-latest.zip build/query-handler/query-handler-$(version).zip
 	cp build/send-handler/send-handler-latest.zip build/send-handler/send-handler-$(version).zip
 	cp build/poll-handler/poll-handler-latest.zip build/poll-handler/poll-handler-$(version).zip

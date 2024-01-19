@@ -10,8 +10,8 @@ const AVN_TX_RETRY_DELAY = config.sqs.avnTxRetryDelay;
 async function processMessages() {
   const receiveParams = {
     QueueUrl: AVN_TX_QUEUE_URL,
-    MaxNumberOfMessages: 10,
-    WaitTimeSeconds: 20
+    MaxNumberOfMessages: 10, // 10 is the max possible
+    WaitTimeSeconds: 20 // how long to wait for messages upon each request
   };
 
   while (true) {
@@ -26,11 +26,10 @@ async function processMessages() {
           await sqsClient.send(new DeleteMessageCommand({ QueueUrl: AVN_TX_QUEUE_URL, ReceiptHandle: message.ReceiptHandle }));
           logger.info(`Deleted message ID: ${id}`);
         }
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 5000));
       }
     } catch (error) {
       logger.error({ message: 'Error processing messages:', error });
+      // 20 second delay to avoid a tight loop in case of any persistent error
       await new Promise(resolve => setTimeout(resolve, 20000));
     }
   }

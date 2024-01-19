@@ -49,7 +49,7 @@ async function trySendAvnTx(txData) {
         logger.warn(`sendAvnTx failed ${retries} time(s), retrying. Error: ${err.message}`);
         await new Promise(resolve => setTimeout(resolve, AVN_TX_RETRY_DELAY));
       } else {
-        logger.error('sendAvnTx err', err.message);
+        logger.error('sendAvnTx err', err);
         throw err;
       }
     }

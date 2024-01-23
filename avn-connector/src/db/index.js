@@ -52,7 +52,6 @@ async function init() {
   });
 
   await dataSource.initialize();
-  console.log('GLYN CHECK', dataSource)
 
   return dataSource;
 }

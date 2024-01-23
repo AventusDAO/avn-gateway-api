@@ -284,8 +284,8 @@ app.listen(port, () => {
 async function instantiateConnector() {
   await redis.connect();
   await avn.init();
-  await sqsConsumer.processMessages();
   await rds.init();
+  sqsConsumer.processMessages();
   loweringV2.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 

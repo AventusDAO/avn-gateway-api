@@ -92,8 +92,7 @@ async function deleteProcessedMessages(entries) {
     if (result.Successful !== undefined) deleted += result.Successful.length;
     if (result.Failed === undefined) break; // No failed deletions, exit
 
-    if (attempt === 1) {
-      // Retry
+    if (attempt === 0) {
       logger.error('[SQS tx] Failed to delete processed messages:', result.Failed);
       const deletedIds = new Set(result.Successful.map(s => s.Id));
       entries = entries.filter(entry => !deletedIds.has(entry.Id));

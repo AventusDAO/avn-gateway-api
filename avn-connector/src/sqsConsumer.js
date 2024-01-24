@@ -5,20 +5,27 @@ const logger = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
 
 const SQS_TX_QUEUE_URL = config.sqs.txQueueUrl;
+const PROCESSING_DELAY_MS = 20000;
 
 async function processTxQueue() {
   while (true) {
     try {
-      const messages = await receiveMessages();
-      if (messages.length > 0) {
-        const processed = await processMessages(messages);
-        if (processed.length > 0) await deleteProcessedMessages(processed);
-      }
+      await processQueue();
     } catch (error) {
       logger.error('[SQS tx] Error processing queue:', error);
-      await new Promise(resolve => setTimeout(resolve, 20000)); // 20-second delay to avoid a tight loop
+      await delay(PROCESSING_DELAY_MS);
     }
   }
+}
+
+async function processQueue() {
+  const messages = await receiveMessages();
+  if (messages.length === 0) return;
+
+  const processed = await processMessages(messages);
+  if (processed.length === 0) return;
+
+  await deleteMessages(processed);
 }
 
 async function receiveMessages() {
@@ -28,8 +35,9 @@ async function receiveMessages() {
     WaitTimeSeconds: 20 // wait max time for messages to arrive to minimize AWS costs
   };
   const received = await sqsClient.send(new ReceiveMessageCommand(receiveParams));
-  logger.info(`[SQS tx] Messages to process: ${received.Messages?.length || 0}`);
-  return received.Messages || [];
+  const messages = received.Messages || [];
+  logger.info(`[SQS tx] Messages to process: ${messages.length}`);
+  return messages;
 }
 
 async function processMessages(messages) {
@@ -37,10 +45,10 @@ async function processMessages(messages) {
   for (const message of messages) {
     try {
       await processMessage(message);
-      processed.push({ Id: message.MessageId, ReceiptHandle: message.ReceiptHandle });
+      processed.push(message);
     } catch (error) {
       logger.error(`[SQS tx] Error processing message ${message.MessageId}`, error);
-      break; // We stop processing on the first error to continue from the same point on any retry
+      break; // Stop processing on the first error to continue from the same point on retry
     }
   }
   return processed;
@@ -57,10 +65,9 @@ async function processMessage(message) {
       const { palletName, method, params } = txData;
 
       if (isSplitFeeTransaction(txData)) {
-        const paymentNonce = await avn.getPayerPaymentNonce(requestId, params.splitFeePayerAddress);
-        logger.trace(`[SQS tx] Request ID: ${requestId} - split fee payment nonce: ${paymentNonce}`);
-        params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, paymentNonce);
-        params.paymentNonce = paymentNonce;
+        params.paymentNonce = await avn.getPayerPaymentNonce(requestId, params.splitFeePayerAddress);
+        logger.trace(`[SQS tx] Request ID: ${requestId} - split fee payment nonce: ${params.paymentNonce}`);
+        params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, params.paymentNonce);
       }
 
       result = await avn.proxy(requestId, palletName, method, params);
@@ -75,31 +82,36 @@ async function processMessage(message) {
       break;
 
     default:
-      logger.error(`[SQS tx] Request ID: ${requestId} - Unsupported transaction type: "${txType}" - message removed`);
+      logger.error(`[SQS tx] Request ID: ${requestId} - Unsupported transaction type: "${txType}"`);
   }
+}
+
+async function deleteMessages(messages) {
+  const entries = messages.map(message => { Id: message.MessageId, ReceiptHandle: message.ReceiptHandle });
+  let numDeleted = 0;
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const result = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: SQS_TX_QUEUE_URL, Entries: entries }));
+    numDeleted += (result.Successful || []).length;
+    if (result.Failed === undefined) break; // No failures, exit
+
+    if (attempt === 1) {
+      const deletedMessages = new Set(result.Successful.map(messsage => messsage.Id));
+      entries = entries.filter(entry => !deletedMessages.has(entry.Id));
+    } else {
+      logger.error('[SQS tx] Failed to delete processed messages after retry:', result.Failed);
+    }
+  }
+
+  logger.info(`[SQS tx] Processed messages deleted successfully: ${numDeleted}`);
 }
 
 function isSplitFeeTransaction(params) {
   return !!params.splitFeePayerAddress;
 }
 
-async function deleteProcessedMessages(entries) {
-  let deleted = 0;
-
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    const result = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: SQS_TX_QUEUE_URL, Entries: entries }));
-    deleted += (result.Successful || []).length;
-    if (result.Failed === undefined) break; // No failed deletions, exit
-
-    if (attempt === 1) {
-      const deletedIds = new Set(result.Successful.map(s => s.Id));
-      entries = entries.filter(entry => !deletedIds.has(entry.Id));
-    } else {
-      logger.error('[SQS tx] Failed to delete processed messages after retry:', result.Failed);
-    }
-  }
-
-  logger.info(`[SQS tx] Processed messages deleted successfully: ${deleted}`);
+function delay(duration) {
+  return new Promise(resolve => setTimeout(resolve, duration));
 }
 
 module.exports = { processTxQueue };

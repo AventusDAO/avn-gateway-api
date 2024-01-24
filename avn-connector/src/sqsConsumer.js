@@ -3,6 +3,7 @@ const avn = require('./avn');
 const config = require('multiconfig').load();
 const logger = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
+
 const SQS_TX_QUEUE_URL = config.sqs.txQueueUrl;
 
 async function processTxQueue() {
@@ -15,7 +16,7 @@ async function processTxQueue() {
       }
     } catch (error) {
       logger.error('Error processing SQS TX queue:', error);
-      await new Promise(resolve => setTimeout(resolve, 10000)); // 10-second delay to avoid a tight loop
+      await new Promise(resolve => setTimeout(resolve, 20000)); // 20-second delay to avoid a tight loop
     }
   }
 }
@@ -24,7 +25,7 @@ async function receiveMessages() {
   const receiveParams = {
     QueueUrl: SQS_TX_QUEUE_URL,
     MaxNumberOfMessages: 10, // 10 is the max possible
-    WaitTimeSeconds: 20 // Long polling - use max wait for messages to arrive to minimize AWS costs
+    WaitTimeSeconds: 20 // wait max time for messages to arrive to minimize AWS costs
   };
   const received = await sqsClient.send(new ReceiveMessageCommand(receiveParams));
   logger.info(`Received ${received.Messages?.length || 0} SQS TX messages`);
@@ -74,7 +75,7 @@ async function processMessage(message) {
       break;
 
     default:
-      logger.error(`${requestId} - Transaction "${txType}" not supported`); // Don't throw so that the message gets deleted
+      logger.error(`${requestId} - Transaction "${txType}" not supported - will be deleted from SQS TX queue`);
   }
 }
 

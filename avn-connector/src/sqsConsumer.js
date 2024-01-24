@@ -20,12 +20,15 @@ async function processTxQueue() {
 
 async function processQueue() {
   const messages = await receiveMessages();
+  logger.info(`[SQS tx] Messages to process: ${messages.length}`);
   if (messages.length === 0) return;
 
   const processed = await processMessages(messages);
   if (processed.length === 0) return;
+  logger.info(`[SQS tx] Messages processed: ${processed.length}`);
 
-  await deleteMessages(processed);
+  const deleted = await deleteMessages(processed);
+  logger.info(`[SQS tx] Messages deleted: ${deleted}`);
 }
 
 async function receiveMessages() {
@@ -35,9 +38,7 @@ async function receiveMessages() {
     WaitTimeSeconds: 20 // wait max time for messages to arrive to minimize AWS costs
   };
   const received = await sqsClient.send(new ReceiveMessageCommand(receiveParams));
-  const messages = received.Messages || [];
-  logger.info(`[SQS tx] Messages to process: ${messages.length}`);
-  return messages;
+  return received.Messages || [];
 }
 
 async function processMessages(messages) {
@@ -93,7 +94,7 @@ async function deleteMessages(messages) {
   for (let attempt = 1; attempt <= 2; attempt++) {
     const result = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: SQS_TX_QUEUE_URL, Entries: entries }));
     numDeleted += (result.Successful || []).length;
-    if (result.Failed === undefined) break; // No failures, exit
+    if (result.Failed === undefined) break;
 
     if (attempt === 1) {
       const deletedMessages = new Set(result.Successful.map(messsage => messsage.Id));
@@ -103,7 +104,7 @@ async function deleteMessages(messages) {
     }
   }
 
-  logger.info(`[SQS tx] Messages processed successfully: ${numDeleted}`);
+  return numDeleted;
 }
 
 function isSplitFeeTransaction(params) {

@@ -103,7 +103,7 @@ async function deleteMessages(messages) {
     }
   }
 
-  logger.info(`[SQS tx] Processed messages deleted successfully: ${numDeleted}`);
+  logger.info(`[SQS tx] Messages processed successfully: ${numDeleted}`);
 }
 
 function isSplitFeeTransaction(params) {

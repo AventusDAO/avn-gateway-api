@@ -87,7 +87,7 @@ async function processMessage(message) {
 }
 
 async function deleteMessages(messages) {
-  const entries = messages.map(message => { Id: message.MessageId, ReceiptHandle: message.ReceiptHandle });
+  const entries = messages.map(message => ({ Id: message.MessageId, ReceiptHandle: message.ReceiptHandle }));
   let numDeleted = 0;
 
   for (let attempt = 1; attempt <= 2; attempt++) {

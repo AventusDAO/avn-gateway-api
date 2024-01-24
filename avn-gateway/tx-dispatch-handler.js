@@ -3,6 +3,7 @@ const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const SQS_TX_QUEUE_URL = process.env.SQS_TX_QUEUE_URL
 
 exports.handler = async (event, context) => {
   let processedMessagesCount = 0;
@@ -642,7 +643,7 @@ async function sendTx(call, request, requestId, palletName, method, params) {
   try {
     const txType = 'avnProxy';
     const tx = { requestId, txType, palletName, method, params };
-    const result = await sqs.sendToQueue('TX', tx);
+    const result = await sqs.sendToQueue(SQS_TX_QUEUE_URL, tx);
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
     return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);

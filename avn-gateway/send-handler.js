@@ -1,6 +1,8 @@
 const utils = require('/opt/utils.js');
 const sqs = require('/opt/sqsUtils.js');
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL
+const SQS_PAYER_QUEUE_URL = process.env.SQS_PAYER_QUEUE_URL
 
 exports.handler = async (event, context) => {
   let result;
@@ -60,7 +62,7 @@ async function processRequest(request, authoriserContext, awsRequestId) {
 
 async function sendMessageToDefaultQueue(tx, awsRequestId) {
   tx.awsRequestId = awsRequestId;
-  return await sqs.sendToQueue('DEFAULT', tx);
+  return await sqs.sendToQueue(SQS_DEFAULT_QUEUE_URL, tx);
 }
 
 async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext) {
@@ -69,7 +71,7 @@ async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserCont
   tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress;
   tx.splitFeePayerVaultId = authoriserContext.splitFeePayerVaultId;
   tx.awsRequestId = awsRequestId;
-  return await sqs.sendToQueue('PAYER', tx);
+  return await sqs.sendToQueue(SQS_PAYER_QUEUE_URL, tx);
 }
 
 function isSplitFeeTransaction(authoriserContext) {

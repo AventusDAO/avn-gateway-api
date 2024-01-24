@@ -1,6 +1,7 @@
 const utils = require('/opt/utils.js');
 const sqs = require('/opt/sqsUtils.js');
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const SQS_TX_QUEUE_URL = process.env.SQS_TX_QUEUE_URL
 
 exports.handler = async (_event, context) => {
   try {
@@ -17,6 +18,6 @@ async function processLifts(requestId) {
   } else {
     console.info(`Checked Ethereum blocks ${fromBlock} to ${toBlock} - found lifts to process: ${unprocessedLifts.join(', ')}`);
     const tx = { txType: 'avnProcessLifts', requestId, toBlock, unprocessedLifts };
-    await sqs.sendToQueue('TX', tx);
+    await sqs.sendToQueue(SQS_TX_QUEUE_URL, tx);
   }
 }

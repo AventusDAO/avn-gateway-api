@@ -3,6 +3,7 @@ const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL
 
 exports.handler = async (event, context) => {
   let processedMessagesCount = 0;
@@ -80,7 +81,7 @@ async function processRequest(request) {
     tx.params.payer = tx.splitFeePayerAddress;
     tx.relayerFee = relayerFee;
 
-    const data = await sqs.sendToQueue('DEFAULT', tx);
+    const data = await sqs.sendToQueue(SQS_DEFAULT_QUEUE_URL, tx);
     console.info(
       `Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`
     );

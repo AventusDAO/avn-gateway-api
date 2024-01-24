@@ -21,25 +21,22 @@ function getFailedMessagesForFifoQueue(records, successfulMessageCount) {
   return failedMessages;
 }
 
-async function sendToQueue(queue, data) {
-  if (!queues[queue]) {
-    throw new Error(`Queue "${queue}" is undefined`);
-  }
-
+async function sendToQueue(queueUrl, data) {
   const messageBody = JSON.stringify(data);
+  const queueName = queueUrl.split('/').pop().split('.')[0];
   const params = {
-    QueueUrl: queues[queue],
-    MessageGroupId: queue,
+    QueueUrl: queueUrl,
+    MessageGroupId: queueName,
     MessageDeduplicationId: hashString(messageBody),
     MessageBody: messageBody
   };
 
   try {
     const result = await sqsClient.send(new SendMessageCommand(params));
-    console.log(`Message sent to queue "${queue}"`, result);
+    console.log(`Message sent to queue "${queueName}"`, result);
     return result;
   } catch (error) {
-    console.error(`Failed to send message to queue "${queue}"`, error);
+    console.error(`Failed to send message to queue "${queueName}"`, error);
     throw error;
   }
 }

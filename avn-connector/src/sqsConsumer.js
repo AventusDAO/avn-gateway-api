@@ -28,7 +28,7 @@ async function receiveMessages() {
     WaitTimeSeconds: 20 // wait max time for messages to arrive to minimize AWS costs
   };
   const received = await sqsClient.send(new ReceiveMessageCommand(receiveParams));
-  logger.info(`[SQS tx] Received ${received.Messages?.length || 0} messages`);
+  logger.info(`[SQS tx] Messages to process: ${received.Messages?.length || 0}`);
   return received.Messages || [];
 }
 
@@ -52,29 +52,29 @@ async function processMessage(message) {
 
   switch (txType) {
     case 'avnProxy':
-      logger.trace(`[SQS tx] ${requestId} - Sending proxy transaction: ${JSON.stringify(txData)}`);
+      logger.trace(`[SQS tx] Request ID: ${requestId} - sending proxy transaction: ${JSON.stringify(txData)}`);
       const { palletName, method, params } = txData;
 
       if (isSplitFeeTransaction(txData)) {
         const paymentNonce = await avn.getPayerPaymentNonce(requestId, params.splitFeePayerAddress);
-        logger.trace(`[SQS tx] ${requestId} - Split fee transaction - payment nonce: ${paymentNonce}`);
+        logger.trace(`[SQS tx] Request ID: ${requestId} - split fee payment nonce: ${paymentNonce}`);
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, paymentNonce);
         params.paymentNonce = paymentNonce;
       }
 
       result = await avn.proxy(requestId, palletName, method, params);
-      logger.trace(`[SQS tx] ${requestId} - Proxy transaction sent: ${JSON.stringify(result)}`);
+      logger.trace(`[SQS tx] Request ID: ${requestId} - proxy transaction sent: ${JSON.stringify(result)}`);
       break;
 
     case 'avnProcessLifts':
-      logger.trace(`[SQS tx] ${requestId} - Sending lift transaction: ${JSON.stringify(txData)}`);
+      logger.trace(`[SQS tx] Request ID: ${requestId} - sending lift transaction: ${JSON.stringify(txData)}`);
       const { toBlock, unprocessedLifts } = txData;
       result = await avn.processLifts(requestId, toBlock, unprocessedLifts);
-      logger.trace(`[SQS tx] ${requestId} - Lift transaction sent: ${JSON.stringify(result)}`);
+      logger.trace(`[SQS tx] Request ID: ${requestId} - lift transaction sent: ${JSON.stringify(result)}`);
       break;
 
     default:
-      logger.error(`${requestId} - Transaction "${txType}" not supported - will be removed from queue`);
+      logger.error(`[SQS tx] Request ID: ${requestId} - Unsupported transaction type: "${txType}" - message removed`);
   }
 }
 
@@ -85,7 +85,7 @@ function isSplitFeeTransaction(params) {
 async function deleteProcessedMessages(entries) {
   if (entries.length > 0) {
     const result = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: SQS_TX_QUEUE_URL, Entries: entries }));
-    logger.info(`[SQS tx] Successfully processed ${result.Successful?.length || 0} messages`);
+    logger.info(`[SQS tx] Messages processed successfully: ${result.Successful?.length || 0}`);
     if (result.Failed !== undefined) {
       logger.error('[SQS tx] Failed to delete processed messages:', result.Failed);
     }

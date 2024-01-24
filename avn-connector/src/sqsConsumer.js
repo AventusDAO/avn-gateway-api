@@ -87,22 +87,18 @@ async function deleteProcessedMessages(entries) {
   let deleted = 0;
 
   for (let attempt = 0; attempt < 2; attempt++) {
-    if (entries.length > 0) {
-      const result = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: SQS_TX_QUEUE_URL, Entries: entries }));
+    if (entries.length === 0) break; // No entries, exit
+    const result = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: SQS_TX_QUEUE_URL, Entries: entries }));
+    if (result.Successful !== undefined) deleted += result.Successful.length;
+    if (result.Failed === undefined) break; // No failed deletions, exit
 
-      if (result.Successful !== undefined) {
-        deleted += result.Successful.length;
-      }
-
-      if (result.Failed !== undefined) {
-        if (attempt === 0) {
-          logger.error('[SQS tx] Failed to delete processed messages:', result.Failed);
-          const deletedIds = new Set(result.Successful.map(s => s.Id));
-          entries = entries.filter(entry => !deletedIds.has(entry.Id));
-        } else {
-          logger.error('[SQS tx] Failed to delete processed messages after retry:', result.Failed);
-        }
-      }
+    if (attempt === 1) {
+      // Retry
+      logger.error('[SQS tx] Failed to delete processed messages:', result.Failed);
+      const deletedIds = new Set(result.Successful.map(s => s.Id));
+      entries = entries.filter(entry => !deletedIds.has(entry.Id));
+    } else {
+      logger.error('[SQS tx] Failed to delete processed messages after retry:', result.Failed);
     }
   }
 

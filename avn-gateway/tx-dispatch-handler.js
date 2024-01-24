@@ -3,7 +3,7 @@ const fees = require('/opt/paymentUtils.js');
 const sqs = require('/opt/sqsUtils.js');
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
-const SQS_TX_QUEUE_URL = process.env.SQS_TX_QUEUE_URL
+const SQS_TX_QUEUE_URL = process.env.SQS_TX_QUEUE_URL;
 
 exports.handler = async (event, context) => {
   let processedMessagesCount = 0;

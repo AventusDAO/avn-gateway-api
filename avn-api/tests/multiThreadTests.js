@@ -181,7 +181,9 @@ describe('Gateway multithreaded load test:', async () => {
     console.log(`*** RemoteCache: ${remoteCache} | logLevel: ${logLevel}. ***\n`);
 
     if (remoteCache) {
-      console.log(`\nℹ️  Make sure you are running a remote redis instance before running this test in RemoteCache mode.\n   To run redis in a container, run this command in a new terminal:\n\tdocker run -d --name some-redis -p 6379:6379 redis\n\n`)
+      console.log(
+        `\nℹ️  Make sure you are running a remote redis instance before running this test in RemoteCache mode.\n   To run redis in a container, run this command in a new terminal:\n\tdocker run -d --name some-redis -p 6379:6379 redis\n\n`
+      );
     }
 
     api = await helper.avnApi({
@@ -199,7 +201,7 @@ describe('Gateway multithreaded load test:', async () => {
 
   describe('Sending transactions', async () => {
     before(async () => {
-      totalTimeToSendTransactionsInSec = Date.now()
+      totalTimeToSendTransactionsInSec = Date.now();
       results = await sendTransactions(api, nUsers, nTxs);
       totalTimeToSendTransactionsInSec = (Date.now() - totalTimeToSendTransactionsInSec) / 1000;
       pollResults = await pollTransactions(api, results.successfulTx);
@@ -282,6 +284,6 @@ describe('Gateway multithreaded load test:', async () => {
 
       // Finally show that it took longer to send due to the wait time for the lock to be freed
       assert(timeToSend >= totalTimeToSendTransactionsInSec + 60);
-    })
+    });
   });
 });

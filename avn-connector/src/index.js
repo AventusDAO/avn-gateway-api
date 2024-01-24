@@ -285,7 +285,7 @@ async function instantiateConnector() {
   await redis.connect();
   await avn.init();
   await rds.init();
-  sqsConsumer.processMessages();
+  sqsConsumer.processTxQueue(); // triggers infinite loop - don't await
   loweringV2.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 

@@ -28,7 +28,7 @@ async function receiveMessages() {
     WaitTimeSeconds: 20 // wait max time for messages to arrive to minimize AWS costs
   };
   const received = await sqsClient.send(new ReceiveMessageCommand(receiveParams));
-  logger.trace(`[SQS tx] Received ${received.Messages?.length || 0} messages`);
+  logger.info(`[SQS tx] Received ${received.Messages?.length || 0} messages`);
   return received.Messages || [];
 }
 
@@ -85,7 +85,7 @@ function isSplitFeeTransaction(params) {
 async function deleteProcessedMessages(entries) {
   if (entries.length > 0) {
     const result = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: SQS_TX_QUEUE_URL, Entries: entries }));
-    logger.trace(`[SQS tx] Successfully processed ${result.Successful?.length || 0} messages`);
+    logger.info(`[SQS tx] Successfully processed ${result.Successful?.length || 0} messages`);
     if (result.Failed !== undefined) {
       logger.error('[SQS tx] Failed to delete processed messages:', result.Failed);
     }

@@ -2,12 +2,6 @@ const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
 const { hashString } = require('/opt/utils.js');
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION });
 
-const queues = {
-  TX: process.env.SQS_TX_QUEUE_URL,
-  DEFAULT: process.env.SQS_DEFAULT_QUEUE_URL,
-  PAYER: process.env.SQS_PAYER_QUEUE_URL
-};
-
 function getFailedMessagesForFifoQueue(records, successfulMessageCount) {
   if (!records || records.length === 0) return;
 

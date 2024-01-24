@@ -14,7 +14,7 @@ async function processTxQueue() {
         await deleteProcessedMessages(processed);
       }
     } catch (error) {
-      logger.error('Error in processTxQueue:', error);
+      logger.error('Error processing SQS TX queue:', error);
       await new Promise(resolve => setTimeout(resolve, 10000)); // 10-second delay to avoid a tight loop
     }
   }
@@ -27,7 +27,7 @@ async function receiveMessages() {
     WaitTimeSeconds: 20 // Long polling - use max wait for messages to arrive to minimize AWS costs
   };
   const received = await sqsClient.send(new ReceiveMessageCommand(receiveParams));
-  logger.info(`Received ${received.Messages?.length || 0} messages`);
+  logger.info(`Received ${received.Messages?.length || 0} SQS TX messages`);
   return received.Messages || [];
 }
 
@@ -35,11 +35,11 @@ async function processMessages(messages) {
   const processed = [];
   for (const message of messages) {
     try {
-      logger.info(`Processing message ID: ${message.MessageId}`);
+      logger.info(`Processing SQS TX message: ${message.MessageId}`);
       await processMessage(message);
       processed.push({ Id: message.MessageId, ReceiptHandle: message.ReceiptHandle });
     } catch (error) {
-      logger.error(`Error processing message ID: ${message.MessageId}`, error);
+      logger.error(`Error processing SQS TX message: ${message.MessageId}`, error);
     }
   }
   return processed;
@@ -74,7 +74,7 @@ async function processMessage(message) {
       break;
 
     default:
-      logger.error(`Transaction type "${txType}" not supported`); // Don't throw so that the message gets removed from the queue
+      logger.error(`${requestId} - Transaction "${txType}" not supported`); // Don't throw so that the message gets deleted
   }
 }
 
@@ -85,9 +85,9 @@ function isSplitFeeTransaction(params) {
 async function deleteProcessedMessages(entries) {
   if (entries.length > 0) {
     const result = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: SQS_TX_QUEUE_URL, Entries: entries }));
-    logger.info(`Successfully deleted ${result.Successful?.length || 0} processed messages`);
+    logger.info(`Successfully deleted ${result.Successful?.length || 0} processed SQS TX messages`);
     if (result.Failed.length > 0) {
-      logger.error('Failed to delete these processed messages:', result.Failed);
+      logger.error('Failed to delete processed SQS TX messages:', result.Failed);
     }
   }
 }

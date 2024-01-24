@@ -642,7 +642,7 @@ async function sendTx(call, request, requestId, palletName, method, params) {
   try {
     const txType = 'avnProxy';
     const tx = { requestId, txType, palletName, method, params };
-    const result = await sqs.sendToQueue('AVN_TX', tx);
+    const result = await sqs.sendToQueue('TX', tx);
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
     return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);

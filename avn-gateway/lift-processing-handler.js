@@ -17,6 +17,6 @@ async function processLifts(requestId) {
   } else {
     console.info(`Checked Ethereum blocks ${fromBlock} to ${toBlock} - found lifts to process: ${unprocessedLifts.join(', ')}`);
     const tx = { txType: 'avnProcessLifts', requestId, toBlock, unprocessedLifts };
-    await sqs.sendToQueue('AVN_TX', tx);
+    await sqs.sendToQueue('TX', tx);
   }
 }

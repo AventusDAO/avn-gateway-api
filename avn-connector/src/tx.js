@@ -3,17 +3,17 @@ const avn = require('./avn');
 const config = require('multiconfig').load();
 const logger = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
-const AVN_TX_QUEUE_URL = config.sqs.avnTxQueueUrl;
-const AVN_TX_RETRY_COUNT = config.sqs.avnTxRetryCount;
-const AVN_TX_RETRY_DELAY = config.sqs.avnTxRetryDelay;
+const SQS_TX_QUEUE_URL = config.tx.sqsTxQueueUrl;
+const AVN_TX_RETRY_COUNT = config.tx.avnTxRetryCount;
+const AVN_TX_RETRY_DELAY = config.tx.avnTxRetryDelay;
 
-async function processMessages() {
-  const receiveParams = {
-    QueueUrl: AVN_TX_QUEUE_URL,
-    MaxNumberOfMessages: 10, // 10 is the max possible
-    WaitTimeSeconds: 20 // how long to wait for messages upon each request
-  };
+const receiveParams = {
+  QueueUrl: SQS_TX_QUEUE_URL,
+  MaxNumberOfMessages: 10, // 10 is the max possible
+  WaitTimeSeconds: 20 // Long polling - use 20 second max to wait for messages to arrive - minimizes AWS costs
+};
 
+async function processTxFromQueue() {
   while (true) {
     try {
       const receivedMessages = await sqsClient.send(new ReceiveMessageCommand(receiveParams));
@@ -23,12 +23,12 @@ async function processMessages() {
           const txData = JSON.parse(message.Body);
           logger.info(`Received message ID: ${id} - tx data: ${txData}`);
           await trySendAvnTx(txData);
-          await sqsClient.send(new DeleteMessageCommand({ QueueUrl: AVN_TX_QUEUE_URL, ReceiptHandle: message.ReceiptHandle }));
+          await sqsClient.send(new DeleteMessageCommand({ QueueUrl: SQS_TX_QUEUE_URL, ReceiptHandle: message.ReceiptHandle }));
           logger.info(`Deleted message ID: ${id}`);
         }
       }
     } catch (error) {
-      logger.error({ message: 'Error processing messages:', error });
+      logger.error('Error processing messages:', error);
       // 20 second delay to avoid a tight loop in case of any persistent error
       await new Promise(resolve => setTimeout(resolve, 20000));
     }
@@ -41,15 +41,14 @@ async function trySendAvnTx(txData) {
   while (retries <= AVN_TX_RETRY_COUNT) {
     try {
       return await sendAvnTx(txData);
-    } catch (err) {
+    } catch (error) {
       retries++;
 
       if (retries <= AVN_TX_RETRY_COUNT) {
-        logger.warn(`sendAvnTx failed ${retries} time(s), retrying. Error: ${err.message}`);
+        logger.warn(`sendAvnTx failed ${retries} time(s), retrying. Error: ${errror.message}`);
         await new Promise(resolve => setTimeout(resolve, AVN_TX_RETRY_DELAY));
       } else {
-        logger.error('sendAvnTx err', err);
-        throw err;
+        return logger.error(`Error sending tx - message ID: ${id}`, error);
       }
     }
   }
@@ -91,4 +90,4 @@ function isSplitFeeTransaction(request) {
   return !!request.params.splitFeePayerAddress;
 }
 
-module.exports = { processMessages };
+module.exports = { processTxFromQueue };

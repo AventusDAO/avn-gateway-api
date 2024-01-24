@@ -12,7 +12,7 @@ async function processTxQueue() {
       const messages = await receiveMessages();
       if (messages.length > 0) {
         const processed = await processMessages(messages);
-        await deleteProcessedMessages(processed);
+        if (processed.length > 0) await deleteProcessedMessages(processed);
       }
     } catch (error) {
       logger.error('[SQS tx] Error processing queue:', error);
@@ -86,13 +86,12 @@ function isSplitFeeTransaction(params) {
 async function deleteProcessedMessages(entries) {
   let deleted = 0;
 
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (entries.length === 0) break; // No entries, exit
+  for (let attempt = 1; attempt <= 2; attempt++) {
     const result = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: SQS_TX_QUEUE_URL, Entries: entries }));
-    if (result.Successful !== undefined) deleted += result.Successful.length;
+    deleted += (result.Successful || []).length;
     if (result.Failed === undefined) break; // No failed deletions, exit
 
-    if (attempt === 0) {
+    if (attempt === 1) {
       const deletedIds = new Set(result.Successful.map(s => s.Id));
       entries = entries.filter(entry => !deletedIds.has(entry.Id));
     } else {

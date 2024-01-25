@@ -1,11 +1,9 @@
 const utils = require('/opt/utils.js');
 const sqs = require('/opt/sqsUtils.js');
 
-const sqsClient = new sqs.SQSClient({ region: process.env.SECRET_MANAGER_REGION });
-
-const DEFAULT_SQS_URL = process.env.SQS_DEFAULT_QUEUE_URL;
-const PAYER_SQS_URL = process.env.SQS_PAYER_QUEUE_URL;
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL;
+const SQS_PAYER_QUEUE_URL = process.env.SQS_PAYER_QUEUE_URL;
 
 exports.handler = async (event, context) => {
   let result;
@@ -65,35 +63,16 @@ async function processRequest(request, authoriserContext, awsRequestId) {
 
 async function sendMessageToDefaultQueue(tx, awsRequestId) {
   tx.awsRequestId = awsRequestId;
-  const messageBody = JSON.stringify(tx);
-
-  const params = {
-    QueueUrl: DEFAULT_SQS_URL,
-    MessageGroupId: 'DEFAULT',
-    MessageDeduplicationId: utils.hashString(messageBody),
-    MessageBody: messageBody
-  };
-
-  return await sqsClient.send(new sqs.SendMessageCommand(params));
+  return await sqs.sendToQueue(SQS_DEFAULT_QUEUE_URL, tx);
 }
 
 async function sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext) {
+  if (tx.params.feePaymentSignature) throw new Error('split fee tx already contains payment info');
   tx.splitFeePayerId = authoriserContext.splitFeePayerId;
   tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress;
   tx.splitFeePayerVaultId = authoriserContext.splitFeePayerVaultId;
   tx.awsRequestId = awsRequestId;
-  const messageBody = JSON.stringify(tx);
-
-  const params = {
-    QueueUrl: PAYER_SQS_URL,
-    MessageGroupId: 'PAYER',
-    MessageDeduplicationId: utils.hashString(messageBody),
-    MessageBody: messageBody
-  };
-
-  if (tx.params.feePaymentSignature) throw new Error('split fee tx already contains payment info');
-
-  return await sqsClient.send(new sqs.SendMessageCommand(params));
+  return await sqs.sendToQueue(SQS_PAYER_QUEUE_URL, tx);
 }
 
 function isSplitFeeTransaction(authoriserContext) {

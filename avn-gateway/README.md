@@ -1,8 +1,4 @@
 ## Overview
-The setup of the authorisation, layers, lambdas and routes of a gateway is handled by the Makefile.
-
-Each environment has its own variables which can be set in the other `*.yml` files (eg: `cba-uat.yml`)
-
 Layers (code shared between lambdas) are contained in folders (eg: `common/`)
 
 Lambdas are contained in `*-handler.js` files (eg: `poll-handler.js`)

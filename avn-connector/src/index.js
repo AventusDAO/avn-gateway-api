@@ -5,7 +5,7 @@ const rds = require('./db/index');
 const lowering = require('./lowering');
 const loweringV2 = require('./lowers/loweringV2');
 const redis = require('./redis');
-const mqConsumer = require('./mqConsumer');
+const sqsConsumer = require('./sqsConsumer');
 const lambda = require('./lambdas');
 const express = require('express');
 const log4js = require('log4js');
@@ -284,8 +284,8 @@ app.listen(port, () => {
 async function instantiateConnector() {
   await redis.connect();
   await avn.init();
-  await mqConsumer.connectToMQ();
   await rds.init();
+  sqsConsumer.processTxQueue(); // triggers infinite loop - don't await
   loweringV2.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 

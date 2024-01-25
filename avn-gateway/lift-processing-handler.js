@@ -1,17 +1,10 @@
 const utils = require('/opt/utils.js');
-const MQSender = require('/opt/mqSender.js');
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
-const QUEUE = process.env.MQ_AVN_TX_QUEUE;
+const sqs = require('/opt/sqsUtils.js');
 
-let mqSender;
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const SQS_TX_QUEUE_URL = process.env.SQS_TX_QUEUE_URL;
 
 exports.handler = async (_event, context) => {
-  try {
-    await connectToMQ();
-  } catch (error) {
-    return console.error(`CONNECTING TO QUEUE: ${error}`);
-  }
-
   try {
     await processLifts(context.awsRequestId);
   } catch (error) {
@@ -19,22 +12,13 @@ exports.handler = async (_event, context) => {
   }
 };
 
-const connectToMQ = async () => {
-  if (!mqSender || !mqSender.amqpConnection || !mqSender.amqpConnected) {
-    mqSender = new MQSender(process.env.SECRET_MANAGER_REGION, process.env.MQ_SECRET_ARN, process.env.MQ_BROKER_AMQP_ENDPOINT);
-    await mqSender.connectToMessageBroker();
-  }
-};
-
 async function processLifts(requestId) {
   let { fromBlock, toBlock, unprocessedLifts } = (await utils.axios.get(AVN_CONNECTOR_ENDPOINT + 'unprocessedLifts')).data;
-
   if (!unprocessedLifts || unprocessedLifts.length === 0) {
-    return console.info(`Checked Ethereum blocks ${fromBlock} to ${toBlock} - no lifts to process`);
+    console.info(`Checked Ethereum blocks ${fromBlock} to ${toBlock} - no lifts to process`);
+  } else {
+    console.info(`Checked Ethereum blocks ${fromBlock} to ${toBlock} - found lifts to process: ${unprocessedLifts.join(', ')}`);
+    const tx = { txType: 'avnProcessLifts', requestId, toBlock, unprocessedLifts };
+    await sqs.sendToQueue(SQS_TX_QUEUE_URL, tx);
   }
-
-  console.info(`Checked Ethereum blocks ${fromBlock} to ${toBlock} - found lifts to process: ${unprocessedLifts.join(', ')}`);
-  const mqChannel = await mqSender.openChannel();
-  await mqSender.sendMessageToMQ(QUEUE, mqChannel, { txType: 'avnProcessLifts', requestId, toBlock, unprocessedLifts });
-  await mqChannel.close();
 }

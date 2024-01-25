@@ -1,5 +1,6 @@
 const utils = require('/opt/utils.js');
 const sqs = require('/opt/sqsUtils.js');
+
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const SQS_PAYER_QUEUE_URL = process.env.SQS_PAYER_QUEUE_URL;

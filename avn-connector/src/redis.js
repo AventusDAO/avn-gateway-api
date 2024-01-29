@@ -546,27 +546,27 @@ async function getAutolowerFailedClaimLowerIds() {
   return failedLowerIds;
 }
 
-async function accquireAutolowerLock(bridgeAddress) {
-  const result = await redisClient.set(AUTOLOWER_LOCK_KEY, bridgeAddress, 'NX', 'EX', AUTOLOWER_MAX_LOCK_IN_SECONDS);
+async function accquireAutolowerLock(contract) {
+  const result = await redisClient.set(AUTOLOWER_LOCK_KEY, contract, 'NX', 'EX', AUTOLOWER_MAX_LOCK_IN_SECONDS);
   return result === 'OK';
 }
 
-async function releaseAutolowerLock(bridgeAddress) {
+async function releaseAutolowerLock(contract) {
   const script = `if redis.call("get", KEYS[1]) == ARGV[1] then
       return redis.call("del", KEYS[1])
     else
       return 0
     end`;
-  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress);
+  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, contract);
 }
 
-async function refreshAutolowerLock(bridgeAddress) {
+async function refreshAutolowerLock(contract) {
   const script = `if redis.call("get", KEYS[1]) == ARGV[1] then
       return redis.call("expire", KEYS[1], ARGV[2])
     else
       return 0
     end`;
-  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress, AUTOLOWER_MAX_LOCK_IN_SECONDS);
+  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, contract, AUTOLOWER_MAX_LOCK_IN_SECONDS);
 }
 
 module.exports = {

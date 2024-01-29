@@ -522,12 +522,12 @@ async function getAutolowerLatestClaimedLowerId() {
 
 async function addAutolowerFailedClaimLowerId(lowerId) {
   await redisClient.sadd(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
-  await redisClient.setex(AUTOLOWER_RETRY_NAMESPACE + lowerId.toString(), AUTOLOWER_RETRY_EXPIRY_SECONDS, true);
+  await redisClient.setex(AUTOLOWER_RETRY_NAMESPACE + lowerId, AUTOLOWER_RETRY_EXPIRY_SECONDS, true);
 }
 
 async function removeAutolowerFailedClaimLowerId(lowerId) {
   await redisClient.srem(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
-  await redisClient.del(AUTOLOWER_RETRY_NAMESPACE + lowerId.toString());
+  await redisClient.del(AUTOLOWER_RETRY_NAMESPACE + lowerId);
 }
 
 async function getAutolowerFailedClaimLowerIds() {
@@ -535,7 +535,7 @@ async function getAutolowerFailedClaimLowerIds() {
   const failedLowerIds = [];
   if (failed && failed.length > 0) {
     for (const lowerId of failed) {
-      const exists = await redisClient.exists(AUTOLOWER_RETRY_NAMESPACE + lowerId.toString());
+      const exists = await redisClient.exists(AUTOLOWER_RETRY_NAMESPACE + lowerId);
       if (exists === 1) {
         failedLowerIds.push(lowerId);
       } else {

@@ -132,6 +132,7 @@ async function connectToBridge(avnContract) {
 async function claimLowers(avnBridge, lowerProofs) {
   if (Object.keys(lowerProofs).length > 0) {
     for (const [id, proof] of Object.entries(lowerProofs)) {
+      await redis.refreshAutolowerLock(avnBridge.address);
       try {
         const tx = await avnBridge.claimLower(proof);
         log.info(`Claim lower tx sent. Lower ID: ${id}, tx hash: ${tx.hash}`);
@@ -139,7 +140,7 @@ async function claimLowers(avnBridge, lowerProofs) {
         log.info(`Claim lower tx confirmed. Lower ID: ${id}, tx hash: ${tx.hash}`);
       } catch (error) {
         log.info(`Claim lower tx failed. Lower ID: ${id}, error: ${error.message.split('(action="estimateGas"')[0]}`);
-        await redis.addAutolowerFailedClaimLowerId(id); // TODO - Retry these periodically
+        await redis.addAutolowerFailedClaimLowerId(id);
       }
     }
   }

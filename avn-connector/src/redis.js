@@ -27,6 +27,7 @@ const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
 const PAYER_NONCE_NAMESPACE = 'pn.';
 const TOTAL_TOKEN_NAMESPACE = 't.';
+const AUTOLOWER_RETRY_NAMESPACE = 'a.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
@@ -66,6 +67,7 @@ const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 const AUTOLOWER_MAX_LOCK_IN_SECONDS = 3600; // 1 hour
+const AUTOLOWER_RETRY_EXPIRY_SECONDS = 1209600; // 14 days
 
 let redisClient;
 
@@ -520,15 +522,28 @@ async function getAutolowerLatestClaimedLowerId() {
 
 async function addAutolowerFailedClaimLowerId(lowerId) {
   await redisClient.sadd(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+  await redisClient.setex(AUTOLOWER_RETRY_NAMESPACE + lowerId.toString(), AUTOLOWER_RETRY_EXPIRY_SECONDS, true);
 }
 
 async function removeAutolowerFailedClaimLowerId(lowerId) {
   await redisClient.srem(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+  await redisClient.del(AUTOLOWER_RETRY_NAMESPACE + lowerId.toString());
 }
 
 async function getAutolowerFailedClaimLowerIds() {
   const failed = await redisClient.smembers(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY);
-  return failed || [];
+  const failedLowerIds = [];
+  if (failed && failed.length > 0) {
+    for (const lowerId of failed) {
+      const exists = await redisClient.exists(AUTOLOWER_RETRY_NAMESPACE + lowerId.toString());
+      if (exists === 1) {
+        failedLowerIds.push(lowerId);
+      } else {
+        await removeAutolowerFailedClaimLowerId(lowerId);
+      }
+    }
+  }
+  return failedLowerIds;
 }
 
 async function accquireAutolowerLock(bridgeAddress) {
@@ -536,13 +551,22 @@ async function accquireAutolowerLock(bridgeAddress) {
   return result === 'OK';
 }
 
-async function releaseAutolowerLock(contract) {
+async function releaseAutolowerLock(bridgeAddress) {
   const script = `if redis.call("get", KEYS[1]) == ARGV[1] then
       return redis.call("del", KEYS[1])
     else
       return 0
     end`;
-  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, contract);
+  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress);
+}
+
+async function refreshAutolowerLock(bridgeAddress) {
+  const script = `if redis.call("get", KEYS[1]) == ARGV[1] then
+      return redis.call("expire", KEYS[1], ARGV[2])
+    else
+      return 0
+    end`;
+  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress, AUTOLOWER_MAX_LOCK_IN_SECONDS);
 }
 
 module.exports = {
@@ -608,5 +632,6 @@ module.exports = {
   removeAutolowerFailedClaimLowerId,
   getAutolowerFailedClaimLowerIds,
   accquireAutolowerLock,
-  releaseAutolowerLock
+  releaseAutolowerLock,
+  refreshAutolowerLock
 };

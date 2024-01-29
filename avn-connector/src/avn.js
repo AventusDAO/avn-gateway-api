@@ -611,9 +611,10 @@ async function getLowerProof(lowerId) {
 async function getUnclaimedLowerProofs(latestClaimedLowerId) {
   try {
     const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
+    const failedClaimLowerIds = await redis.getAutolowerFailedClaimLowerIds();
     const unclaimedLowerIds = allLowerIds
       .map(({ args: [lowerId] }) => lowerId.toNumber())
-      .filter(lowerId => lowerId > latestClaimedLowerId);
+      .filter(lowerId => lowerId > latestClaimedLowerId || failedClaimLowerIds.includes(lowerId));
     const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
 
     return claimData.reduce((acc, data, index) => {

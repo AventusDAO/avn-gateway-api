@@ -524,7 +524,7 @@ async function getSummaries() {
       }
     } while (entries.length > 0);
 
-    return summaries.sort((a, b) => (a.fromBlock < b.fromBlock ? -1 : 0));
+    return summaries.sort((a, b) => a.fromBlock - b.fromBlock);
   } catch (error) {
     log.error({ message: 'Error getting summaries', err });
     return [];

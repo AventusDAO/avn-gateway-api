@@ -88,6 +88,20 @@ async function getLatestClaimedLowers(avnContract) {
   return claimedLowers;
 }
 
+async function getLatestPublishedRoots(avnContract) {
+  let events = [];
+
+  try {
+    const fromBlock = await redis.getPublishedRootsFromTier1Block();
+    events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock });
+    if (events.length > 0) await redis.setPublishedRootsFromTier1Block(events[events.length - 1].blockNumber + 1);
+  } catch (error) {
+    log.error('Error getting published roots:', error);
+  }
+
+  return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
+}
+
 async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   const claimedLowerIds = [];
 
@@ -103,20 +117,6 @@ async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   }
 
   return [fromBlock, claimedLowerIds];
-}
-
-async function getLatestPublishedRoots(avnContract) {
-  let events = [];
-
-  try {
-    const fromBlock = await redis.getPublishedRootsFromTier1Block();
-    events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock });
-    if (events.length > 0) await redis.setPublishedRootsFromTier1Block(events[events.length - 1].blockNumber + 1);
-  } catch (error) {
-    log.error('Error getting published roots:', error);
-  }
-
-  return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
 }
 
 function toBn(val) {

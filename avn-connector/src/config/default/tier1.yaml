@@ -1,5 +1,4 @@
 tier1_provider_url: $ENV:TIER1_PROVIDER_URL
-autolower_pk: $ENV:AUTOLOWER_PK
 maxLiftBlocksToProcess: $ENV:MAX_LIFT_BLOCKS_TO_PROCESS
 minLiftAmount: $ENV:MIN_LIFT_AMOUNT
 requiredConfirmationBlocks: $ENV:REQUIRED_CONFIRMATION_BLOCKS

@@ -37,7 +37,7 @@ const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
 const AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY = 'autolowerLastT1BlockChecked';
 const AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY = 'autolowerLatestClaimedLowerId';
-const AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY = 'autolowerFailedClaimLowerIds';
+const AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY = 'AutolowerToBeRetrieds';
 const AUTOLOWER_LOCK_KEY = 'autolowerLock';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
 const PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY = 'publishedRootsFromBlock';
@@ -520,17 +520,17 @@ async function getAutolowerLatestClaimedLowerId() {
   return lowerId ? parseInt(lowerId) : -1;
 }
 
-async function addAutolowerFailedClaimLowerId(lowerId) {
+async function addAutolowerToBeRetried(lowerId) {
   await redisClient.sadd(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
   await redisClient.setex(AUTOLOWER_RETRY_NAMESPACE + lowerId, AUTOLOWER_RETRY_EXPIRY_SECONDS, true);
 }
 
-async function removeAutolowerFailedClaimLowerId(lowerId) {
+async function removeAutolowerToBeRetried(lowerId) {
   await redisClient.srem(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
   await redisClient.del(AUTOLOWER_RETRY_NAMESPACE + lowerId);
 }
 
-async function getAutolowerFailedClaimLowerIds() {
+async function getAutolowersToBeRetried() {
   const failed = await redisClient.smembers(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY);
   const failedLowerIds = [];
   if (failed && failed.length > 0) {
@@ -539,7 +539,7 @@ async function getAutolowerFailedClaimLowerIds() {
       if (exists === 1) {
         failedLowerIds.push(lowerId);
       } else {
-        await removeAutolowerFailedClaimLowerId(lowerId);
+        await removeAutolowerToBeRetried(lowerId);
       }
     }
   }
@@ -628,9 +628,9 @@ module.exports = {
   getAutolowerLastT1BlockChecked,
   setAutolowerLatestClaimedLowerId,
   getAutolowerLatestClaimedLowerId,
-  addAutolowerFailedClaimLowerId,
-  removeAutolowerFailedClaimLowerId,
-  getAutolowerFailedClaimLowerIds,
+  addAutolowerToBeRetried,
+  removeAutolowerToBeRetried,
+  getAutolowersToBeRetried,
   accquireAutolowerLock,
   releaseAutolowerLock,
   refreshAutolowerLock

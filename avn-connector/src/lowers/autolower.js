@@ -13,37 +13,33 @@ const LOWERING_ABI = [
 const autolowerAccount = getAutolowerAccount();
 
 function getAutolowerAccount() {
-  const canAutolower =
-    config.autolower && config.autolower.autolower_pk && config.autolower.autolower_pk !== '$ENV:AUTOLOWER_PK';
-  return canAutolower ? config.autolower.autolower_pk : null;
+  return config.autolower?.pk !== '$ENV:AUTOLOWER_PK' ? config.autolower.pk : null;
 }
 
 async function processLowers() {
   if (!autolowerAccount) {
-    log.info('[Autolower] No autolower account set');
-    return;
+    return 'No autolower account set';
   }
 
   try {
-    const bridge = tier1.connectToBridge((await avn.getChainInfo()).avnContract, LOWERING_ABI, autolowerAccount);
-    if (!(await redis.accquireAutolowerLock(bridge.address))) {
-      log.info('[Autolower] Existing claims are still being processed');
-      return;
+    const avnContract = await avn.getChainInfo();
+    const bridge = tier1.connectToBridge(avnContract.avnContract, LOWERING_ABI, autolowerAccount);
+    if (await redis.accquireAutolowerLock(bridge.address)) {
+      return 'Existing claims are still being processed';
     }
-
-    await handleLowers(bridge);
+    await updateAndClaimLowers(bridge);
   } catch (error) {
-    log.error('[Autolower] Error in processLowers: ', error);
+    return `Error in processLowers: ${error}`;
   }
 }
 
-async function handleLowers(bridge) {
+async function updateAndClaimLowers(bridge) {
   let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
   const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
   const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
   const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, fromBlock);
-
   await updateClaimedLowers(claimedLowerIds, unclaimedLowerProofs, latestClaimedLowerId);
+
   claimLowers(bridge, unclaimedLowerProofs); // Don't await, let these run in the background
 
   const unclaimedKeys = Object.keys(unclaimedLowerProofs);
@@ -80,96 +76,105 @@ async function claimLowers(bridge, lowerProofs) {
 async function proofChecksPass(bridge, id, proof) {
   try {
     const check = await bridge.checkLower(proof);
-    return handleCheckResult(check, id, proof);
+    return await handleCheckResult(check, id, proof);
   } catch (error) {
-    logError('Cannot check proof', id, proof, error);
-    await redis.addAutolowerToRetry(id);
+    await retryLower('Cannot check proof', id, proof);
     return false;
   }
 }
 
 async function handleCheckResult(check, id, proof) {
-  let checksPassed = false;
-
   if (check.lowerIsClaimed) {
-    logFailed('Already claimed', id, proof);
-  } else if (!check.proofIsValid) {
-    const moreConfirmationsRequired = check.confirmationsRequired > check.confirmationsProvided;
-    const message = moreConfirmationsRequired ? 'Not enough confirmations' : 'Invalid proof';
-    logFailed(message, id, proof);
-    if (moreConfirmationsRequired) {
-      regenerateProofAndRetry(id);
-    }
-  } else {
-    checksPassed = true;
+    logLowerFailure('Already claimed', id, proof);
+    return false;
   }
 
-  return checksPassed;
+  if (!check.proofIsValid) {
+    if (check.confirmationsRequired > check.confirmationsProvided) {
+      await regenerateProofAndRetryLower('Not enough confirmations', id, proof);
+    } else {
+      logLowerFailure('Invalid proof', id, proof);
+    }
+    return false;
+  }
+
+  return true;
 }
 
 async function claimLower(bridge, id, proof) {
   try {
     const tx = await bridge.claimLower(proof);
-    return handleClaimTransaction(tx, id);
+    await handleClaimTransaction(tx, id);
   } catch (error) {
-    return handleClaimError(error, id, proof, bridge);
+    await handleClaimError(error, id, proof, bridge);
   }
 }
 
 async function handleClaimTransaction(tx, id) {
   const receipt = await tx.wait();
   if (receipt.status === 0) {
-    logFailed('Rejected by bridge', id, tx.hash);
+    logLowerFailure('Rejected by bridge', id, tx.hash);
   } else {
-    logSuccess(id, tx.hash);
+    logLowerSuccess(id, tx.hash);
   }
 }
+
 async function handleClaimError(error, id, proof, bridge) {
-  if (error.code && error.code === 'INSUFFICIENT_FUNDS') {
-    logFailed('Insufficient funds', id, proof);
-    await redis.addAutolowerToRetry(id);
-  } else if (error.code && error.code === 'UNPREDICTABLE_GAS_LIMIT') {
-    const check = await avnBridge.checkLower(proof);
-    if (check.lowerIsClaimed) {
-      logFailed('Already claimed', id, proof);
-    } else if (check.proofIsValid) {
-      logFailed('Network error', id, proof);
-      await redis.addAutolowerToRetry(id);
-    } else if (check.confirmationsRequired > check.confirmationsProvided) {
-      logFailed('Not enough confirmations', id, proof);
-      regenerateProofAndRetry(id);
-    } else {
-      logFailed('Invalid proof', id, proof);
-    }
-  } else if (error.code && error.code === 'INVALID_ARGUMENT') {
-    logFailed('Invalid proof', id, proof);
-  } else {
-    logError('Unknown error', id, proof, error);
-    await redis.addAutolowerToRetry(id);
+  // Consolidate error code checks and handle common cases
+  switch (error.code) {
+    case 'INSUFFICIENT_FUNDS':
+      await retryLower('Insufficient funds', id, proof);
+      break;
+    case 'INVALID_ARGUMENT':
+      logLowerFailure('Invalid proof', id, proof);
+      break;
+    case 'UNPREDICTABLE_GAS_LIMIT':
+      await recheckProofToResolve(id, proof, bridge);
+      break;
+    default:
+      await retryLower('Unknown error', id, proof);
   }
 }
 
-async function regenerateProofAndRetry(id) {
+async function recheckProofToResolve(id, proof, bridge) {
   try {
-    await avn.regenerateLowerProof(id);
-    await redis.addAutolowerToRetry(id);
+    const check = await bridge.checkLower(proof);
+
+    if (check.lowerIsClaimed) {
+      logLowerFailure('Already claimed', id, proof);
+    } else if (check.proofIsValid) {
+      await retryLower('Network error', id, proof);
+    } else if (check.confirmationsRequired > check.confirmationsProvided) {
+      await regenerateProofAndRetryLower('Not enough confirmations', id, proof);
+    } else {
+      logLowerFailure('Invalid proof', id, proof);
+    }
   } catch (error) {
-    logError('Proof regeneration error', id, '', error);
+    await retryLower('Proof recheck error', id, proof);
   }
 }
 
-function logFailed(message, id, info) {
+function logLowerFailure(message, id, info) {
   log.info(`[Autolower] FAILED - ${message}. Lower ID: ${id}, ${info}`);
 }
 
-function logSuccess(id, txHash) {
+function logLowerSuccess(id, txHash) {
   log.info(`[Autolower] SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`);
 }
 
-function logError(message, id, info, error) {
-  log.error(`[Autolower] ERROR - ${message}. Lower ID: ${id}, ${info}`, error);
+async function retryLower(message, id, proof) {
+  log.info(`[Autolower] RETRY - ${message}. Lower ID: ${id}, proof: ${proof}`);
+  await redis.addAutolowerToRetry(id);
 }
 
-module.exports = {
-  processLowers
-};
+async function regenerateProofAndRetryLower(message, id, proof) {
+  try {
+    log.info(`[Autolower] REGENERATE PROOF - ${message}. Lower ID: ${id}`);
+    await avn.regenerateLowerProof(id);
+    await redis.addAutolowerToRetry(id);
+  } catch (error) {
+    await retryLower('Proof regeneration error', id, proof);
+  }
+}
+
+module.exports = { processLowers };

@@ -533,7 +533,6 @@ async function removeAutolowerToRetry(lowerId) {
 async function getAutolowersToRetry() {
   const lowerIds = await redisClient.smembers(AUTOLOWERS_TO_RETRY);
   const result = [];
-
   for (const lowerId of lowerIds || []) {
     if (await redisClient.exists(AUTOLOWER_RETRY_NAMESPACE + lowerId)) {
       result.push(lowerId);
@@ -541,7 +540,6 @@ async function getAutolowersToRetry() {
       await removeAutolowerToRetry(lowerId);
     }
   }
-
   return result;
 }
 

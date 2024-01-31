@@ -32,9 +32,9 @@ async function processLowers() {
 
   try {
     const bridge = tier1.connectToBridge((await avn.getChainInfo()).avnContract, LOWERING_ABI, autolowerAccount);
-
     if (!(await redis.accquireAutolowerLock(bridge.address))) {
-      return '[Autolower] Existing claims are still being processed';
+      log.info('[Autolower] Existing claims are still being processed');
+      return;
     }
 
     await handleLowers(bridge);
@@ -75,7 +75,7 @@ async function claimLowers(bridge, lowerProofs) {
 
   for (const [id, proof] of Object.entries(lowerProofs)) {
     await redis.refreshAutolowerLock(bridge.address);
-    if (await checkLowerProof(bridge, id, proof)) {
+    if (await proofChecksPass(bridge, id, proof)) {
       await claimLower(bridge, id, proof);
     }
   }
@@ -83,50 +83,47 @@ async function claimLowers(bridge, lowerProofs) {
   await redis.releaseAutolowerLock(bridge.address);
 }
 
-async function checkLowerProof(bridge, id, proof) {
+async function proofChecksPass(bridge, id, proof) {
   try {
     const check = await bridge.checkLower(proof);
     return handleCheckResult(check, id, proof);
   } catch (error) {
-    return handleProofError(error, id, proof);
-  }
-}
-
-async function claimLower(bridge, id, proof) {
-  try {
-    const tx = await bridge.claimLower(proof);
-    return handleTransaction(tx, id);
-  } catch (error) {
-    return handleClaimError(error, id, proof, bridge);
+    logError('Cannot check proof', id, proof, error);
+    await redis.addAutolowerToBeRetried(id);
+    return false;
   }
 }
 
 async function handleCheckResult(check, id, proof) {
+  let checksPassed = false;
+
   if (check.lowerIsClaimed) {
     logFailed('Already claimed', id, proof);
-    return false;
-  }
-
-  if (!check.proofIsValid) {
+  } else if (!check.proofIsValid) {
     const moreConfirmationsRequired = check.confirmationsRequired > check.confirmationsProvided;
     const message = moreConfirmationsRequired ? 'Not enough confirmations' : 'Invalid proof';
     logFailed(message, id, proof);
     if (moreConfirmationsRequired) {
       await avn.regenerateLowerProof(id);
+      await redis.addAutolowerToBeRetried(id);
     }
-    return false;
+  } else {
+    checksPassed = true;
   }
 
-  return true;
+  return checksPassed;
 }
 
-async function handleProofError(error, id, proof) {
-  logError('Cannot check proof', id, proof, error);
-  await redis.addAutolowerToBeRetried(id);
-  return false;
+async function claimLower(bridge, id, proof) {
+  try {
+    const tx = await bridge.claimLower(proof);
+    return handleClaimTransaction(tx, id);
+  } catch (error) {
+    return handleClaimError(error, id, proof, bridge);
+  }
 }
 
-async function handleTransaction(tx, id) {
+async function handleClaimTransaction(tx, id) {
   const receipt = await tx.wait();
   if (receipt.status === 0) {
     logFailed('Rejected by bridge', id, tx.hash);

@@ -10,12 +10,6 @@ const LOWERING_ABI = [
   'function checkLower(bytes calldata) external view returns (address token, uint256 amount, address recipient, uint32 lowerId, uint256 confirmationsRequired, uint256 confirmationsProvided, bool proofIsValid, bool lowerIsClaimed)'
 ];
 
-const ERROR_CODES = {
-  INSUFFICIENT_FUNDS: 'Insufficient funds',
-  UNPREDICTABLE_GAS_LIMIT: 'Network error',
-  INVALID_ARGUMENT: 'Invalid proof'
-};
-
 const autolowerAccount = getAutolowerAccount();
 
 function getAutolowerAccount() {
@@ -89,7 +83,7 @@ async function proofChecksPass(bridge, id, proof) {
     return handleCheckResult(check, id, proof);
   } catch (error) {
     logError('Cannot check proof', id, proof, error);
-    await redis.addAutolowerToBeRetried(id);
+    await redis.addAutolowerToRetry(id);
     return false;
   }
 }
@@ -104,8 +98,7 @@ async function handleCheckResult(check, id, proof) {
     const message = moreConfirmationsRequired ? 'Not enough confirmations' : 'Invalid proof';
     logFailed(message, id, proof);
     if (moreConfirmationsRequired) {
-      await avn.regenerateLowerProof(id);
-      await redis.addAutolowerToBeRetried(id);
+      regenerateProofAndRetry(id);
     }
   } else {
     checksPassed = true;
@@ -131,25 +124,50 @@ async function handleClaimTransaction(tx, id) {
     logSuccess(id, tx.hash);
   }
 }
-
 async function handleClaimError(error, id, proof, bridge) {
-  const errorMessage = ERROR_CODES[error.code] || 'Unknown error';
-  logFailed(errorMessage, id, proof);
-  if (error.code !== 'INVALID_ARGUMENT') {
-    await redis.addAutolowerToBeRetried(id);
+  if (error.code && error.code === 'INSUFFICIENT_FUNDS') {
+    logFailed('Insufficient funds', id, proof);
+    await redis.addAutolowerToRetry(id);
+  } else if (error.code && error.code === 'UNPREDICTABLE_GAS_LIMIT') {
+    const check = await avnBridge.checkLower(proof);
+    if (check.lowerIsClaimed) {
+      logFailed('Already claimed', id, proof);
+    } else if (check.proofIsValid) {
+      logFailed('Network error', id, proof);
+      await redis.addAutolowerToRetry(id);
+    } else if (check.confirmationsRequired > check.confirmationsProvided) {
+      logFailed('Not enough confirmations', id, proof);
+      regenerateProofAndRetry(id);
+    } else {
+      logFailed('Invalid proof', id, proof);
+    }
+  } else if (error.code && error.code === 'INVALID_ARGUMENT') {
+    logFailed('Invalid proof', id, proof);
+  } else {
+    logError('Unknown error', id, proof, error);
+    await redis.addAutolowerToRetry(id);
   }
 }
 
-function logFailed(message, id, additionalInfo) {
-  log.info(`[Autolower] FAILED - ${message}. Lower ID: ${id}, ${additionalInfo}`);
+async function regenerateProofAndRetry(id) {
+  try {
+    await avn.regenerateLowerProof(id);
+    await redis.addAutolowerToRetry(id);
+  } catch (error) {
+    logError('Proof regeneration error', id, '', error);
+  }
+}
+
+function logFailed(message, id, info) {
+  log.info(`[Autolower] FAILED - ${message}. Lower ID: ${id}, ${info}`);
 }
 
 function logSuccess(id, txHash) {
   log.info(`[Autolower] SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`);
 }
 
-function logError(message, id, additionalInfo, error) {
-  log.error(`[Autolower] ERROR - ${message}. Lower ID: ${id}, ${additionalInfo}`, error);
+function logError(message, id, info, error) {
+  log.error(`[Autolower] ERROR - ${message}. Lower ID: ${id}, ${info}`, error);
 }
 
 module.exports = {

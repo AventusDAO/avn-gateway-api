@@ -37,7 +37,7 @@ const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
 const AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY = 'autolowerLastT1BlockChecked';
 const AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY = 'autolowerLatestClaimedLowerId';
-const AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY = 'AutolowerToBeRetrieds';
+const AUTOLOWERS_TO_RETRY = 'AutolowersToRetry';
 const AUTOLOWER_LOCK_KEY = 'autolowerLock';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
 const PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY = 'publishedRootsFromBlock';
@@ -520,30 +520,29 @@ async function getAutolowerLatestClaimedLowerId() {
   return lowerId ? parseInt(lowerId) : -1;
 }
 
-async function addAutolowerToBeRetried(lowerId) {
-  await redisClient.sadd(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+async function addAutolowerToRetry(lowerId) {
+  await redisClient.sadd(AUTOLOWERS_TO_RETRY, lowerId);
   await redisClient.setex(AUTOLOWER_RETRY_NAMESPACE + lowerId, AUTOLOWER_RETRY_EXPIRY_SECONDS, true);
 }
 
-async function removeAutolowerToBeRetried(lowerId) {
-  await redisClient.srem(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+async function removeAutolowerToRetry(lowerId) {
+  await redisClient.srem(AUTOLOWERS_TO_RETRY, lowerId);
   await redisClient.del(AUTOLOWER_RETRY_NAMESPACE + lowerId);
 }
 
-async function getAutolowersToBeRetried() {
-  const failed = await redisClient.smembers(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY);
-  const failedLowerIds = [];
-  if (failed && failed.length > 0) {
-    for (const lowerId of failed) {
-      const exists = await redisClient.exists(AUTOLOWER_RETRY_NAMESPACE + lowerId);
-      if (exists === 1) {
-        failedLowerIds.push(lowerId);
-      } else {
-        await removeAutolowerToBeRetried(lowerId);
-      }
+async function getAutolowersToRetry() {
+  const lowerIds = await redisClient.smembers(AUTOLOWERS_TO_RETRY);
+  const result = [];
+
+  for (const lowerId of lowerIds || []) {
+    if (await redisClient.exists(AUTOLOWER_RETRY_NAMESPACE + lowerId)) {
+      result.push(lowerId);
+    } else {
+      await removeAutolowerToRetry(lowerId);
     }
   }
-  return failedLowerIds;
+
+  return result;
 }
 
 async function accquireAutolowerLock(contract) {
@@ -628,9 +627,9 @@ module.exports = {
   getAutolowerLastT1BlockChecked,
   setAutolowerLatestClaimedLowerId,
   getAutolowerLatestClaimedLowerId,
-  addAutolowerToBeRetried,
-  removeAutolowerToBeRetried,
-  getAutolowersToBeRetried,
+  addAutolowerToRetry,
+  removeAutolowerToRetry,
+  getAutolowersToRetry,
   accquireAutolowerLock,
   releaseAutolowerLock,
   refreshAutolowerLock

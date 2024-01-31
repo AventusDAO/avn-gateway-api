@@ -628,6 +628,12 @@ async function getUnclaimedLowerProofs(latestClaimedLowerId) {
   }
 }
 
+async function regenerateLowerProof(lowerId) {
+  const txn = api.tx.tokenManager.regenerateLowerProof(lowerId);
+  const tag = 'regenerateLowerProof' + lowerId;
+  await signAndSend(tag, RELAYER_ADDRESS, txn);
+}
+
 module.exports = {
   addNewTransaction,
   getAccountInfo,
@@ -654,5 +660,6 @@ module.exports = {
   setSendingFailedStatus,
   getPayerPaymentNonce,
   generateSplitFeePaymentInfo,
-  payerHasFunds
+  payerHasFunds,
+  regenerateLowerProof
 };

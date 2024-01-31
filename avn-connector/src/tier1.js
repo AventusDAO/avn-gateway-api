@@ -119,6 +119,11 @@ async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   return [fromBlock, claimedLowerIds];
 }
 
+async function connectToBridge(contract, abi, account) {
+  const signer = new ethers.Wallet(account, provider);
+  return new ethers.Contract(contract, abi, signer);
+}
+
 function toBn(val) {
   return ethers.BigNumber.from(val);
 }
@@ -128,5 +133,6 @@ module.exports = {
   getLiftEvents,
   getLockedBalance,
   getLatestPublishedRoots,
-  getLowersClaimedSinceBlock
+  getLowersClaimedSinceBlock,
+  connectToBridge
 };

@@ -107,8 +107,8 @@ async function deleteMessages(messages) {
   return numDeleted;
 }
 
-function isSplitFeeTransaction(params) {
-  return !!params.splitFeePayerAddress;
+function isSplitFeeTransaction(request) {
+  return !!request.params.splitFeePayerAddress;
 }
 
 function delay(duration) {

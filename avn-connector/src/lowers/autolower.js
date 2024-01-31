@@ -19,7 +19,8 @@ const ERROR_CODES = {
 const autolowerAccount = getAutolowerAccount();
 
 function getAutolowerAccount() {
-  const canAutolower = config.autolower && config.autolower.autolower_pk && config.autolower.autolower_pk !== '$ENV:AUTOLOWER_PK';
+  const canAutolower =
+    config.autolower && config.autolower.autolower_pk && config.autolower.autolower_pk !== '$ENV:AUTOLOWER_PK';
   return canAutolower ? config.autolower.autolower_pk : null;
 }
 
@@ -36,28 +37,28 @@ async function processLowers() {
       return '[Autolower] Existing claims are still being processed';
     }
 
-    await handleLowers(avnBridge, bridge.address);
+    await handleLowers(bridge);
   } catch (error) {
     log.error('[Autolower] Error in processLowers: ', error);
   }
 }
 
-async function handleLowers(avnBridge, bridge.address) {
+async function handleLowers(bridge) {
   let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
   const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
   const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
   const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, fromBlock);
 
-  updateClaimedLowers(claimedLowerIds, unclaimedLowerProofs, latestClaimedLowerId);
-  await claimLowers(avnBridge, unclaimedLowerProofs);
+  await updateClaimedLowers(claimedLowerIds, unclaimedLowerProofs, latestClaimedLowerId);
+  claimLowers(bridge, unclaimedLowerProofs); // Don't await, let these run in the background
 
   const unclaimedKeys = Object.keys(unclaimedLowerProofs);
-  const claimingString = unclaimedKeys.length > 0 ? ` Claiming: ${unclaimedKeys.join(', ')}` : '';
-  const resultString = `[Autolower] New lowers to claim: ${unclaimedKeys.length}`;
-  return resultString + claimingString;
+  let resultString = `[Autolower] New lowers to claim: ${unclaimedKeys.length}`;
+  resultString += unclaimedKeys.length > 0 ? ` Claiming: ${unclaimedKeys.join(', ')}` : '';
+  return resultString;
 }
 
-function updateClaimedLowers(claimedLowerIds, unclaimedLowerProofs, latestClaimedLowerId) {
+async function updateClaimedLowers(claimedLowerIds, unclaimedLowerProofs, latestClaimedLowerId) {
   claimedLowerIds.forEach(lowerId => {
     delete unclaimedLowerProofs[lowerId];
     latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
@@ -67,36 +68,36 @@ function updateClaimedLowers(claimedLowerIds, unclaimedLowerProofs, latestClaime
   await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
 }
 
-async function claimLowers(avnBridge, lowerProofs) {
+async function claimLowers(bridge, lowerProofs) {
   if (Object.keys(lowerProofs).length === 0) {
-    return await redis.releaseAutolowerLock(avnBridge.address);
+    return await redis.releaseAutolowerLock(bridge.address);
   }
 
   for (const [id, proof] of Object.entries(lowerProofs)) {
-    await redis.refreshAutolowerLock(avnBridge.address);
-    if (await checkLowerProof(avnBridge, id, proof)) {
-      await claimLower(avnBridge, id, proof);
+    await redis.refreshAutolowerLock(bridge.address);
+    if (await checkLowerProof(bridge, id, proof)) {
+      await claimLower(bridge, id, proof);
     }
   }
 
-  await redis.releaseAutolowerLock(avnBridge.address);
+  await redis.releaseAutolowerLock(bridge.address);
 }
 
-async function checkLowerProof(avnBridge, id, proof) {
+async function checkLowerProof(bridge, id, proof) {
   try {
-    const check = await avnBridge.checkLower(proof);
+    const check = await bridge.checkLower(proof);
     return handleCheckResult(check, id, proof);
   } catch (error) {
     return handleProofError(error, id, proof);
   }
 }
 
-async function claimLower(avnBridge, id, proof) {
+async function claimLower(bridge, id, proof) {
   try {
-    const tx = await avnBridge.claimLower(proof);
+    const tx = await bridge.claimLower(proof);
     return handleTransaction(tx, id);
   } catch (error) {
-    return handleClaimError(error, id, proof, avnBridge);
+    return handleClaimError(error, id, proof, bridge);
   }
 }
 
@@ -107,10 +108,10 @@ async function handleCheckResult(check, id, proof) {
   }
 
   if (!check.proofIsValid) {
-    const message = check.confirmationsRequired > check.confirmationsProvided ?
-      'Not enough confirmations' : 'Invalid proof';
+    const moreConfirmationsRequired = check.confirmationsRequired > check.confirmationsProvided;
+    const message = moreConfirmationsRequired ? 'Not enough confirmations' : 'Invalid proof';
     logFailed(message, id, proof);
-    if (check.confirmationsRequired > check.confirmationsProvided) {
+    if (moreConfirmationsRequired) {
       await avn.regenerateLowerProof(id);
     }
     return false;
@@ -134,7 +135,7 @@ async function handleTransaction(tx, id) {
   }
 }
 
-async function handleClaimError(error, id, proof, avnBridge) {
+async function handleClaimError(error, id, proof, bridge) {
   const errorMessage = ERROR_CODES[error.code] || 'Unknown error';
   logFailed(errorMessage, id, proof);
   if (error.code !== 'INVALID_ARGUMENT') {

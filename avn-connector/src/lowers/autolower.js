@@ -24,16 +24,17 @@ async function processLowers() {
   try {
     const avnContract = await avn.getChainInfo();
     const bridge = tier1.connectToBridge(avnContract.avnContract, LOWERING_ABI, autolowerAccount);
-    if (await redis.accquireAutolowerLock(bridge.address)) {
-      return 'Existing claims are still being processed';
-    }
-    await updateAndClaimLowers(bridge);
+    return await updateAndClaimLowers(bridge);
   } catch (error) {
     return `Error in processLowers: ${error}`;
   }
 }
 
 async function updateAndClaimLowers(bridge) {
+  if (await redis.accquireAutolowerLock(bridge.address)) {
+    return 'Existing claims are still being processed';
+  }
+
   let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
   const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId);
   const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
@@ -43,7 +44,7 @@ async function updateAndClaimLowers(bridge) {
   claimLowers(bridge, unclaimedLowerProofs); // Don't await, let these run in the background
 
   const unclaimedKeys = Object.keys(unclaimedLowerProofs);
-  let resultString = `[Autolower] New lowers to claim: ${unclaimedKeys.length}`;
+  let resultString = `New lowers to claim: ${unclaimedKeys.length}`;
   resultString += unclaimedKeys.length > 0 ? ` Claiming: ${unclaimedKeys.join(', ')}` : '';
   return resultString;
 }

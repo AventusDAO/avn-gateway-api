@@ -37,7 +37,7 @@ function getAutolowerAccount() {
 
 async function autolower() {
   if (!autolowerAccount) {
-    return 'No autolower account set';
+    return '`[Autolower] STATUS - No account specified';
   }
 
   try {
@@ -45,22 +45,21 @@ async function autolower() {
     const bridge = await tier1.connectToBridge(avnContract, LOWERING_ABI, autolowerAccount);
     return await processLowers(bridge);
   } catch (error) {
-    logError(error);
-    return `Error in autolower: ${error}`;
+    await redis.releaseAutolowerLock(bridge.address);
+    return `[Autolower] ERROR - ${error}`;
   }
 }
 
 async function processLowers(bridge) {
-  if (await redis.accquireAutolowerLock(bridge.address)) {
-    return 'Existing claims are still being processed';
+  if (!(await redis.accquireAutolowerLock(bridge.address))) {
+    return '[Autolower] STATUS - Processing lowers...';
   }
 
   const lowerProofs = await getLowersToClaim(bridge);
   claimLowers(bridge, lowerProofs); // Don't await, let these run in the background
   const unclaimedKeys = Object.keys(lowerProofs);
-  let resultString = `Lowers to claim: ${unclaimedKeys.length}`;
-  resultString += unclaimedKeys.length > 0 ? ` Claiming: ${unclaimedKeys.join(', ')}` : '';
-  return resultString;
+  let resultString = `[Autolower] STATUS - ${unclaimedKeys.length} lowers found to process`;
+  return resultString += unclaimedKeys.length > 0 ? `IDs: ${unclaimedKeys.join(', ')}` : '';
 }
 
 async function getLowersToClaim(bridge) {
@@ -103,8 +102,7 @@ async function proofChecksPass(bridge, id, proof) {
     if (error.code && error.code === 'INVALID_ARGUMENT') {
       closeFailedClaim(FAILURE_REASON.InvalidProof, id, proof);
     } else {
-      logError(error);
-      await retryClaim(RETRY_REASON.ProofCheckFailed, id, proof);
+      await retryClaim(RETRY_REASON.ProofCheckFailed, id, proof, error);
     }
     return false;
   }
@@ -158,8 +156,7 @@ async function handleClaimError(error, id, proof, bridge) {
       await recheckProofToResolve(id, proof, bridge);
       break;
     default:
-      logError(error);
-      await retryClaim(RETRY_REASON.UnknownError, id, proof);
+      await retryClaim(RETRY_REASON.UnknownError, id, proof, error);
   }
 }
 
@@ -177,8 +174,7 @@ async function recheckProofToResolve(id, proof, bridge) {
       closeFailedClaim(FAILURE_REASON.InvalidProof, id, proof);
     }
   } catch (error) {
-    logError(error);
-    await retryClaim(RETRY_REASON.ProofcheckFailed, id, proof);
+    await retryClaim(RETRY_REASON.ProofcheckFailed, id, proof, error);
   }
 }
 
@@ -190,8 +186,8 @@ function closeSuccessfulClaim(id, txHash) {
   log.info(`[Autolower] SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`);
 }
 
-async function retryClaim(reason, id, proof) {
-  log.info(`[Autolower] RETRY - ${reason}. Lower ID: ${id}, proof: ${proof}`);
+async function retryClaim(reason, id, proof, error = '') {
+  log.info(`[Autolower] RETRY - ${reason}. Lower ID: ${id}, proof: ${proof} error: ${error}`);
   await redis.addAutolowerToRetry(id);
 }
 
@@ -201,13 +197,8 @@ async function regenerateProofAndRetryLower(reason, id, proof) {
     await avn.regenerateLowerProof(id);
     await redis.addAutolowerToRetry(id);
   } catch (error) {
-    logError(error);
-    await retryClaim(RETRY_REASON.ProofRegenerationError, id, proof);
+    await retryClaim(RETRY_REASON.ProofRegenerationError, id, proof, error);
   }
-}
-
-function logError(error) {
-  log.error('[Autolower] ERROR -', error);
 }
 
 module.exports = { autolower };

@@ -17,8 +17,8 @@ const FAILURE_REASON = {
 };
 
 const RETRY_REASON = {
-  CannotCheckProof: 'Cannot check proof',
   InsufficientFunds: 'Insufficient funds',
+  ProofCheckFailed: 'Proof check failed',
   NetworkError: 'Network error',
   ProofRegenerationError: 'Proof regeneration error',
   UnknownError: 'Unknown error'
@@ -45,6 +45,7 @@ async function autolower() {
     const bridge = tier1.connectToBridge(avnContract, LOWERING_ABI, autolowerAccount);
     return await processLowers(bridge);
   } catch (error) {
+    logError(error);
     return `Error in autolower: ${error}`;
   }
 }
@@ -100,7 +101,8 @@ async function proofChecksPass(bridge, id, proof) {
     if (error.code && error.code === 'INVALID_ARGUMENT') {
       closeFailedClaim(FAILURE_REASON.InvalidProof, id, proof);
     } else {
-      await retryClaim(RETRY_REASON.CannotCheckProof, id, proof);
+      logError(error);
+      await retryClaim(RETRY_REASON.ProofCheckFailed, id, proof);
     }
     return false;
   }
@@ -154,6 +156,7 @@ async function handleClaimError(error, id, proof, bridge) {
       await recheckProofToResolve(id, proof, bridge);
       break;
     default:
+      logError(error);
       await retryClaim(RETRY_REASON.UnknownError, id, proof);
   }
 }
@@ -172,7 +175,8 @@ async function recheckProofToResolve(id, proof, bridge) {
       closeFailedClaim(FAILURE_REASON.InvalidProof, id, proof);
     }
   } catch (error) {
-    await retryClaim(RETRY_REASON.CannotCheckProof, id, proof);
+    logError(error);
+    await retryClaim(RETRY_REASON.ProofcheckFailed, id, proof);
   }
 }
 
@@ -195,8 +199,13 @@ async function regenerateProofAndRetryLower(reason, id, proof) {
     await avn.regenerateLowerProof(id);
     await redis.addAutolowerToRetry(id);
   } catch (error) {
+    logError(error);
     await retryClaim(RETRY_REASON.ProofRegenerationError, id, proof);
   }
+}
+
+function logError(error) {
+  log.error('[Autolower] Error -', error);
 }
 
 module.exports = { autolower };

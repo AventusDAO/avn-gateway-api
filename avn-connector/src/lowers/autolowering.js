@@ -40,6 +40,8 @@ async function autolower() {
     return 'No autolower account set';
   }
 
+  console.log("XXXXXXXXXXXXX", autolowerAccount)
+
   try {
     const { avnContract } = await avn.getChainInfo();
     const bridge = await tier1.connectToBridge(avnContract, LOWERING_ABI, autolowerAccount);

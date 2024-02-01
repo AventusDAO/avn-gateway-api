@@ -179,21 +179,21 @@ async function recheckProofToResolve(id, proof, bridge) {
 }
 
 function closeFailedClaim(reason, id, info) {
-  log.info(`[Autolower] FAILED - ${reason}. Lower ID: ${id}, ${info}`);
+  log.info(`[Autolower] CLAIM FAILED - Lower ID: ${id}, reason: ${reason}. ${info}`);
 }
 
 function closeSuccessfulClaim(id, txHash) {
-  log.info(`[Autolower] SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`);
+  log.info(`[Autolower] CLAIM SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`);
 }
 
 async function retryClaim(reason, id, proof, error = '') {
-  log.info(`[Autolower] RETRY - ${reason}. Lower ID: ${id}, proof: ${proof} error: ${error}`);
+  log.info(`[Autolower] CLAIM TO RETRY - ${reason}. Lower ID: ${id}, proof: ${proof} error: ${error}`);
   await redis.addAutolowerToRetry(id);
 }
 
 async function regenerateProofAndRetryLower(reason, id, proof) {
   try {
-    log.info(`[Autolower] REGENERATE PROOF - ${reason}. Lower ID: ${id}`);
+    log.info(`[Autolower] CLAIM TO RETRY WITH NEW PROOF - Lower ID: ${id}, reason ${reason}`);
     await avn.regenerateLowerProof(id);
     await redis.addAutolowerToRetry(id);
   } catch (error) {

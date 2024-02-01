@@ -1,4 +1,3 @@
-const utils = require('./utils');
 const avn = require('../avn');
 const redis = require('../redis');
 const tier1 = require('../tier1');

@@ -1,6 +1,7 @@
 const avn = require('../avn');
 const redis = require('../redis');
 const tier1 = require('../tier1');
+const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
 

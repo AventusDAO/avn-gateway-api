@@ -36,7 +36,7 @@ const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
 const AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY = 'autolowerLastT1BlockChecked';
-const AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY = 'autolowerLatestClaimedLowerId';
+const AUTOLOWER_HIGHEST_CLAIMED_LOWER_ID_KEY = 'autolowerHighestClaimedLowerId';
 const AUTOLOWERS_TO_RETRY = 'autolowersToRetry';
 const AUTOLOWER_LOCK_KEY = 'autolowerLock';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
@@ -511,12 +511,12 @@ async function getAutolowerLastT1BlockChecked() {
   return blockNumber ? parseInt(blockNumber) : -1;
 }
 
-async function setAutolowerLatestClaimedLowerId(lowerId) {
-  await redisClient.set(AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY, lowerId);
+async function setAutolowerHighestClaimedLowerId(lowerId) {
+  await redisClient.set(AUTOLOWER_HIGHEST_CLAIMED_LOWER_ID_KEY, lowerId);
 }
 
-async function getAutolowerLatestClaimedLowerId() {
-  const lowerId = await redisClient.get(AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY);
+async function getAutolowerHighestClaimedLowerId() {
+  const lowerId = await redisClient.get(AUTOLOWER_HIGHEST_CLAIMED_LOWER_ID_KEY);
   return lowerId ? parseInt(lowerId) : -1;
 }
 
@@ -623,8 +623,8 @@ module.exports = {
   setLastClaimedEthereumLowerBlock,
   setAutolowerLastT1BlockChecked,
   getAutolowerLastT1BlockChecked,
-  setAutolowerLatestClaimedLowerId,
-  getAutolowerLatestClaimedLowerId,
+  setAutolowerHighestClaimedLowerId,
+  getAutolowerHighestClaimedLowerId,
   addAutolowerToRetry,
   removeAutolowerToRetry,
   getAutolowersToRetry,

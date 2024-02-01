@@ -608,21 +608,21 @@ async function getLowerProof(lowerId) {
   return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
 }
 
-async function getUnclaimedLowerProofs(latestClaimedLowerId, lowerIdsToRetry = []) {
+async function getLowerProofs(thresholdLowerId, lowersToInclude = []) {
   try {
     const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
-    const unclaimedLowerIds = allLowerIds
+    const selectedLowerIds = allLowerIds
       .map(({ args: [lowerId] }) => lowerId.toNumber())
-      .filter(lowerId => lowerId > latestClaimedLowerId || lowerIdsToRetry.includes(lowerId));
-    const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
+      .filter(lowerId => lowerId > thresholdLowerId || lowersToInclude.includes(lowerId));
+    const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(selectedLowerIds);
 
     return claimData.reduce((acc, data, index) => {
-      const lowerId = unclaimedLowerIds[index];
+      const lowerId = selectedLowerIds[index];
       acc[lowerId] = data.toHuman().encodedLowerData;
       return acc;
     }, {});
   } catch (error) {
-    log.error('Error in getUnclaimedLowerProofs:', error);
+    log.error('Error in getLowerProofs:', error);
     throw error;
   }
 }
@@ -636,7 +636,7 @@ async function regenerateLowerProof(lowerId) {
 module.exports = {
   addNewTransaction,
   getAccountInfo,
-  getUnclaimedLowerProofs,
+  getLowerProofs,
   getLowerProof,
   getCollatorsToNominate,
   getLowerDataFromRpc,

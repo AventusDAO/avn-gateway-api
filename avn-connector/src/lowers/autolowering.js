@@ -55,27 +55,29 @@ async function processLowers(bridge) {
     return 'Existing claims are still being processed';
   }
 
-  const unclaimedLowerProofs = await getUnclaimedLowers(bridge);
-  claimLowers(bridge, unclaimedLowerProofs); // Don't await, let these run in the background
-  const unclaimedKeys = Object.keys(unclaimedLowerProofs);
-  let resultString = `New lowers to claim: ${unclaimedKeys.length}`;
+  const lowerProofs = await getLowersToClaim(bridge);
+  claimLowers(bridge, lowerProofs); // Don't await, let these run in the background
+  const unclaimedKeys = Object.keys(lowerProofs);
+  let resultString = `Lowers to claim: ${unclaimedKeys.length}`;
   resultString += unclaimedKeys.length > 0 ? ` Claiming: ${unclaimedKeys.join(', ')}` : '';
   return resultString;
 }
 
-async function getUnclaimedLowers(bridge) {
-  let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
+async function getLowersToClaim(bridge) {
+  let highestClaimedLowerId = await redis.getAutolowerHighestClaimedLowerId();
   const lowerIdsToRetry = await redis.getAutolowersToRetry();
-  const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId, lowerIdsToRetry);
-  const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
-  const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, fromBlock);
-  claimedLowerIds.forEach(lowerId => {
-    delete unclaimedLowerProofs[lowerId];
-    latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
+  const lowerProofs = await avn.getLowerProofs(highestClaimedLowerId, lowerIdsToRetry);
+  const t1FromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
+  const [lastT1BlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, t1FromBlock);
+
+  claimedLowerIds.forEach(id => {
+    delete lowerProofs[id];
+    highestClaimedLowerId = Math.max(highestClaimedLowerId, id);
   });
-  await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
-  await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
-  return unclaimedLowerProofs;
+
+  await redis.setAutolowerHighestClaimedLowerId(highestClaimedLowerId);
+  await redis.setAutolowerLastT1BlockChecked(lastT1BlockChecked);
+  return lowerProofs;
 }
 
 async function claimLowers(bridge, lowerProofs) {

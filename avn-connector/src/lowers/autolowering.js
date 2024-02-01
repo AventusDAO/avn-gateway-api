@@ -31,8 +31,10 @@ const REGENERATE_PROOF_REASON = {
 const autolowerAccount = getAutolowerAccount();
 
 function getAutolowerAccount() {
-  return config.autolower?.pk !== '$ENV:AUTOLOWER_PK' ? config.autolower.pk : null;
+  const pk = config.autolower?.pk;
+  return (pk && pk !== '$ENV:AUTOLOWER_PK') ? pk : null;
 }
+
 
 async function autolower() {
   if (!autolowerAccount) {

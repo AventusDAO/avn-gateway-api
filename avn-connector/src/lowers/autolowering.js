@@ -59,17 +59,6 @@ async function processLowers(bridge) {
   const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId, lowerIdsToRetry);
   const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
   const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, fromBlock);
-  await updateClaimedLowers(claimedLowerIds, unclaimedLowerProofs, latestClaimedLowerId);
-
-  claimLowers(bridge, unclaimedLowerProofs); // Don't await, let these run in the background
-
-  const unclaimedKeys = Object.keys(unclaimedLowerProofs);
-  let resultString = `New lowers to claim: ${unclaimedKeys.length}`;
-  resultString += unclaimedKeys.length > 0 ? ` Claiming: ${unclaimedKeys.join(', ')}` : '';
-  return resultString;
-}
-
-async function updateClaimedLowers(claimedLowerIds, unclaimedLowerProofs, latestClaimedLowerId) {
   claimedLowerIds.forEach(lowerId => {
     delete unclaimedLowerProofs[lowerId];
     latestClaimedLowerId = Math.max(latestClaimedLowerId, lowerId);
@@ -77,6 +66,13 @@ async function updateClaimedLowers(claimedLowerIds, unclaimedLowerProofs, latest
 
   await redis.setAutolowerLatestClaimedLowerId(latestClaimedLowerId);
   await redis.setAutolowerLastT1BlockChecked(lastBlockChecked);
+
+  claimLowers(bridge, unclaimedLowerProofs); // Don't await, let these run in the background
+
+  const unclaimedKeys = Object.keys(unclaimedLowerProofs);
+  let resultString = `New lowers to claim: ${unclaimedKeys.length}`;
+  resultString += unclaimedKeys.length > 0 ? ` Claiming: ${unclaimedKeys.join(', ')}` : '';
+  return resultString;
 }
 
 async function claimLowers(bridge, lowerProofs) {

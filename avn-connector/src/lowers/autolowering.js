@@ -42,7 +42,7 @@ async function autolower() {
 
   try {
     const { avnContract } = await avn.getChainInfo();
-    const bridge = tier1.connectToBridge(avnContract, LOWERING_ABI, autolowerAccount);
+    const bridge = await tier1.connectToBridge(avnContract, LOWERING_ABI, autolowerAccount);
     return await processLowers(bridge);
   } catch (error) {
     logError(error);

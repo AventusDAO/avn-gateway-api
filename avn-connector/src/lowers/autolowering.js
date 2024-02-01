@@ -55,7 +55,7 @@ async function processLowers(bridge) {
   }
 
   let latestClaimedLowerId = await redis.getAutolowerLatestClaimedLowerId();
-  const lowerIdsToRetry = await redis.getAutolowerIdsToRetry();
+  const lowerIdsToRetry = await redis.getAutolowersToRetry();
   const unclaimedLowerProofs = await avn.getUnclaimedLowerProofs(latestClaimedLowerId, lowerIdsToRetry);
   const fromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
   const [lastBlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, fromBlock);

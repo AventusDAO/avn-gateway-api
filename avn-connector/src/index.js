@@ -157,6 +157,7 @@ app.get('/autolower', async (req, res, next) => {
   try {
     log.trace('autolower invoked');
     const result = await autolowering.autolower();
+    log.info(result);
     res.send(result);
   } catch (err) {
     next(err);

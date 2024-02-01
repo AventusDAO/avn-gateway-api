@@ -32,9 +32,8 @@ const autolowerAccount = getAutolowerAccount();
 
 function getAutolowerAccount() {
   const pk = config.autolower?.pk;
-  return (pk && pk !== '$ENV:AUTOLOWER_PK') ? pk : null;
+  return pk && pk !== '$ENV:AUTOLOWER_PK' ? pk : null;
 }
-
 
 async function autolower() {
   if (!autolowerAccount) {

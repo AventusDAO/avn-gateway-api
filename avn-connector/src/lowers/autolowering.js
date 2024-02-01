@@ -205,7 +205,7 @@ async function regenerateProofAndRetryLower(reason, id, proof) {
 }
 
 function logError(error) {
-  log.error('[Autolower] Error -', error);
+  log.error('[Autolower] ERROR -', error);
 }
 
 module.exports = { autolower };

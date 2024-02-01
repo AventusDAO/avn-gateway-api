@@ -121,7 +121,6 @@ async function handleClaimTransaction(tx, id) {
 }
 
 async function handleClaimError(error, id, proof, bridge) {
-  // Consolidate error code checks and handle common cases
   switch (error.code) {
     case 'INSUFFICIENT_FUNDS':
       await retryClaim('Insufficient funds', id, proof);

@@ -608,37 +608,29 @@ async function getLowerProof(lowerId) {
   return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
 }
 
-async function getLowerProofs(minLowerId, additionalLowerIds = []) {
+async function getUnclaimedLowerProofs(latestClaimedLowerId) {
   try {
     const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
-
-    const filteredLowerIds = allLowerIds
+    const unclaimedLowerIds = allLowerIds
       .map(({ args: [lowerId] }) => lowerId.toNumber())
-      .filter(lowerId => lowerId > minLowerId || additionalLowerIds.includes(lowerId));
+      .filter(lowerId => lowerId > latestClaimedLowerId);
+    const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
 
-    const lowerClaimData = await api.query.tokenManager.lowersReadyToClaim.multi(filteredLowerIds);
-
-    return lowerClaimData.reduce((acc, data, index) => {
-      const lowerId = filteredLowerIds[index];
+    return claimData.reduce((acc, data, index) => {
+      const lowerId = unclaimedLowerIds[index];
       acc[lowerId] = data.toHuman().encodedLowerData;
       return acc;
     }, {});
   } catch (error) {
-    log.error('Error in getLowerProofs function:', error);
+    log.error('Error in getUnclaimedLowerProofs:', error);
     throw error;
   }
-}
-
-async function regenerateLowerProof(lowerId) {
-  const txn = api.tx.tokenManager.regenerateLowerProof(lowerId);
-  const tag = 'regenerateLowerProof' + lowerId;
-  await signAndSend(tag, RELAYER_ADDRESS, txn);
 }
 
 module.exports = {
   addNewTransaction,
   getAccountInfo,
-  getLowerProofs,
+  getUnclaimedLowerProofs,
   getLowerProof,
   getCollatorsToNominate,
   getLowerDataFromRpc,
@@ -661,6 +653,5 @@ module.exports = {
   setSendingFailedStatus,
   getPayerPaymentNonce,
   generateSplitFeePaymentInfo,
-  payerHasFunds,
-  regenerateLowerProof
+  payerHasFunds
 };

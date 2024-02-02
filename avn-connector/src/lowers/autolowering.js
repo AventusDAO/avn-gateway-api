@@ -61,7 +61,7 @@ async function processLowers(bridge) {
   let lowerProofs;
 
   try {
-    const lowerProofs = await getOutstandingLowers(bridge);
+    lowerProofs = await getOutstandingLowers(bridge);
   } catch (error) {
     await redis.releaseAutolowerLock(bridge.address);
     return `[Autolower] ERROR - Error getting lowers - ${error}`;

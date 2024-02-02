@@ -37,7 +37,7 @@ function getAutolowerAccount() {
 
 async function autolower() {
   if (!autolowerAccount) {
-    return '`[Autolower] ERROR - No account specified';
+    return '[Autolower] ERROR - No account specified';
   }
 
   let bridge;

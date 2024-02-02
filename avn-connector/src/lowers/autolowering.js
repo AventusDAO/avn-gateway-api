@@ -19,7 +19,6 @@ const FAILURE_REASON = {
 const RETRY_REASON = {
   InsufficientFunds: 'Insufficient funds',
   ProofCheckFailed: 'Proof check failed',
-  NetworkError: 'Network error',
   ProofRegenerationError: 'Proof regeneration error',
   UnknownError: 'Unknown error'
 };
@@ -55,7 +54,7 @@ async function autolower() {
 async function processLowers(bridge) {
   const lockAccquired = await redis.accquireAutolowerLock(bridge.address);
   if (!lockAccquired) {
-    return '[Autolower] STATUS - Still processing existing lowers...';
+    return '[Autolower] STATUS - Still processing lowers...';
   }
 
   let lowerProofs;
@@ -67,11 +66,11 @@ async function processLowers(bridge) {
     return `[Autolower] ERROR - Error getting lowers - ${error}`;
   }
 
-  claimLowers(bridge, lowerProofs); // Don't await
+  attemptLowerClaims(bridge, lowerProofs); // Don't await
 
   const lowerIds = Object.keys(lowerProofs);
-  let resultString = `[Autolower] STATUS - ${lowerIds.length} lowers found to process`;
-  return (resultString += lowerIds.length > 0 ? `IDs: ${lowerIds.join(', ')}` : '');
+  let resultString = `[Autolower] STATUS - Found ${lowerIds.length} lowers to process`;
+  return (resultString += lowerIds.length > 0 ? `: ${lowerIds.join(', ')}` : '');
 }
 
 async function getOutstandingLowers(bridge) {
@@ -92,19 +91,21 @@ async function getOutstandingLowers(bridge) {
   return lowerProofs;
 }
 
-async function claimLowers(bridge, lowerProofs) {
-  if (Object.keys(lowerProofs).length === 0) {
+async function attemptLowerClaims(bridge, lowerProofs) {
+  const numLowers = Object.keys(lowerProofs).length;
+  if (numLowers === 0) {
     return await redis.releaseAutolowerLock(bridge.address);
   }
 
   for (const [id, proof] of Object.entries(lowerProofs)) {
     await redis.refreshAutolowerLock(bridge.address);
     if (await proofChecksPass(bridge, id, proof)) {
-      await claimLower(bridge, id, proof);
+      await attemptLowerClaim(bridge, id, proof);
     }
   }
 
   await redis.releaseAutolowerLock(bridge.address);
+  log.info(`[Autolower] STATUS - Finished processing ${numLowers} lowers`);
 }
 
 async function proofChecksPass(bridge, id, proof) {
@@ -139,7 +140,7 @@ async function handleProofCheckResult(check, id, proof) {
   return true;
 }
 
-async function claimLower(bridge, id, proof) {
+async function attemptLowerClaim(bridge, id, proof) {
   try {
     const tx = await bridge.claimLower(proof);
     await handleClaimTransaction(tx, id);
@@ -180,7 +181,7 @@ async function recheckProofToResolve(id, proof, bridge) {
     if (check.lowerIsClaimed) {
       closeFailedClaim(FAILURE_REASON.AlreadyClaimed, id, proof);
     } else if (check.proofIsValid) {
-      await retryClaim(RETRY_REASON.NetworkError, id, proof);
+      await retryClaim(RETRY_REASON.InsufficientFunds, id, proof);
     } else if (check.confirmationsRequired > check.confirmationsProvided) {
       await regenerateProofAndRetryLower(REGENERATE_REASON.NeedsMoreConfirmations, id, proof);
     } else {

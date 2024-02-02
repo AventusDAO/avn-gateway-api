@@ -24,8 +24,8 @@ const RETRY_REASON = {
   UnknownError: 'Unknown error'
 };
 
-const REGENERATE_PROOF_REASON = {
-  TooFewConfirmations: 'Too few confirmations'
+const REGENERATE_REASON = {
+  NeedsMoreConfirmations: 'Needs more confirmations'
 };
 
 const autolowerAccount = getAutolowerAccount();
@@ -43,31 +43,34 @@ async function autolower() {
   try {
     const { avnContract } = await avn.getChainInfo();
     const bridge = await tier1.connectToBridge(avnContract, LOWERING_ABI, autolowerAccount);
-    return await processLowers(bridge);
   } catch (error) {
-    await redis.releaseAutolowerLock(bridge.address);
-    return `[Autolower] ERROR - ${error}`;
+    return `[Autolower] STATUS - Cannot connect to bridge - ${error}`;
   }
+
+  return await processLowerClaims(bridge);
 }
 
-async function processLowers(bridge) {
-  if (!(await redis.accquireAutolowerLock(bridge.address))) {
-    return '[Autolower] STATUS - Processing lowers...';
+async function processLowerClaims(bridge) {
+  const lockAccquired = await redis.accquireAutolowerLock(bridge.address);
+  if (!lockAccquired) {
+    return '[Autolower] STATUS - Still processing existing lowers...';
   }
 
   const lowerProofs = await getLowersToClaim(bridge);
-  claimLowers(bridge, lowerProofs); // Don't await, let these run in the background
-  const unclaimedKeys = Object.keys(lowerProofs);
-  let resultString = `[Autolower] STATUS - ${unclaimedKeys.length} lowers found to process`;
-  return resultString += unclaimedKeys.length > 0 ? `IDs: ${unclaimedKeys.join(', ')}` : '';
+  claimLowersInBackground(bridge, lowerProofs);
+
+  const lowerIds = Object.keys(lowerProofs);
+  let resultString = `[Autolower] STATUS - ${lowerIds.length} lowers found to process`;
+  return resultString += lowerIds.length > 0 ? `IDs: ${lowerIds.join(', ')}` : '';
 }
 
 async function getLowersToClaim(bridge) {
   let highestClaimedLowerId = await redis.getAutolowerHighestClaimedLowerId();
   const lowerIdsToRetry = await redis.getAutolowersToRetry();
   const lowerProofs = await avn.getLowerProofs(highestClaimedLowerId, lowerIdsToRetry);
-  const t1FromBlock = (await redis.getAutolowerLastT1BlockChecked()) + 1;
-  const [lastT1BlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, t1FromBlock);
+
+  const lastT2BlockChecked = await redis.getAutolowerLastT1BlockChecked();
+  const [lastT1BlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, lastT2BlockChecked + 1);
 
   claimedLowerIds.forEach(id => {
     delete lowerProofs[id];
@@ -79,7 +82,11 @@ async function getLowersToClaim(bridge) {
   return lowerProofs;
 }
 
-async function claimLowers(bridge, lowerProofs) {
+function claimLowersInBackground(bridge, lowerProofs) {
+  claimLowers(bridge, lowerProofs);
+}
+
+async function claimLowersInBackground(bridge, lowerProofs) {
   if (Object.keys(lowerProofs).length === 0) {
     return await redis.releaseAutolowerLock(bridge.address);
   }
@@ -116,7 +123,7 @@ async function handleProofCheckResult(check, id, proof) {
 
   if (!check.proofIsValid) {
     if (check.confirmationsRequired > check.confirmationsProvided) {
-      await regenerateProofAndRetryLower(REGENERATE_PROOF_REASON.TooFewConfirmations, id, proof);
+      await regenerateProofAndRetryLower(REGENERATE_REASON.NeedsMoreConfirmations, id, proof);
     } else {
       closeFailedClaim(FAILURE_REASON.InvalidProof, id, proof);
     }
@@ -169,7 +176,7 @@ async function recheckProofToResolve(id, proof, bridge) {
     } else if (check.proofIsValid) {
       await retryClaim(RETRY_REASON.NetworkError, id, proof);
     } else if (check.confirmationsRequired > check.confirmationsProvided) {
-      await regenerateProofAndRetryLower(REGENERATE_PROOF_REASON.TooFewConfirmations, id, proof);
+      await regenerateProofAndRetryLower(REGENERATE_REASON.NeedsMoreConfirmations, id, proof);
     } else {
       closeFailedClaim(FAILURE_REASON.InvalidProof, id, proof);
     }

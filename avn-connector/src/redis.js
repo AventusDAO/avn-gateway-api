@@ -27,7 +27,7 @@ const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
 const PAYER_NONCE_NAMESPACE = 'pn.';
 const TOTAL_TOKEN_NAMESPACE = 't.';
-const AUTOLOWER_RETRY_NAMESPACE = 'a.';
+const AUTOLOWER_RETRY_NAMESPACE = 'A.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
@@ -35,10 +35,10 @@ const LIFTS_FROM_TIER1_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
-const AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY = 'autolowerLastT1BlockChecked';
-const AUTOLOWER_HIGHEST_CLAIMED_LOWER_ID_KEY = 'autolowerHighestClaimedLowerId';
-const AUTOLOWERS_TO_RETRY = 'autolowersToRetry';
-const AUTOLOWER_LOCK_KEY = 'autolowerLock';
+const AUTOLOWER_NEXT_T1_BLOCK_KEY = 'AutolowerNextT1Block';
+const AUTOLOWER_HIGHEST_CLAIMED_LOWER_ID_KEY = 'AutolowerHighestClaimedLowerId';
+const AUTOLOWERS_TO_RETRY = 'AutolowersToRetry';
+const AUTOLOWER_LOCK_KEY = 'AutolowerLock';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
 const PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY = 'publishedRootsFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
@@ -502,13 +502,13 @@ async function setLastClaimedEthereumLowerBlock(blockNumber) {
   await redisClient.set(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX, blockNumber);
 }
 
-async function setAutolowerLastT1BlockChecked(blockNumber) {
-  await redisClient.set(AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY, blockNumber);
+async function setAutolowerNextT1Block(blockNumber) {
+  await redisClient.set(AUTOLOWER_NEXT_T1_BLOCK_KEY, blockNumber);
 }
 
-async function getAutolowerLastT1BlockChecked() {
-  const blockNumber = await redisClient.get(AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY);
-  return blockNumber ? parseInt(blockNumber) : -1;
+async function getAutolowerNextT1Block() {
+  const blockNumber = await redisClient.get(AUTOLOWER_NEXT_T1_BLOCK_KEY);
+  return blockNumber ? parseInt(blockNumber) : 0;
 }
 
 async function setAutolowerHighestClaimedLowerId(lowerId) {
@@ -621,8 +621,8 @@ module.exports = {
   getLowerIdsByAddress,
   getLastClaimedEthereumLowerBlock,
   setLastClaimedEthereumLowerBlock,
-  setAutolowerLastT1BlockChecked,
-  getAutolowerLastT1BlockChecked,
+  setAutolowerNextT1Block,
+  getAutolowerNextT1Block,
   setAutolowerHighestClaimedLowerId,
   getAutolowerHighestClaimedLowerId,
   addAutolowerToRetry,

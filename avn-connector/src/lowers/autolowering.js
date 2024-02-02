@@ -79,8 +79,8 @@ async function getOutstandingLowers(bridge) {
   const lowerIdsToRetry = await redis.getAutolowersToRetry();
   const lowerProofs = await avn.getLowerProofs(highestClaimedLowerId, lowerIdsToRetry);
 
-  const lastT2BlockChecked = await redis.getAutolowerLastT1BlockChecked();
-  const [lastT1BlockChecked, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, lastT2BlockChecked + 1);
+  const checkFromT1Block = await redis.getAutolowerNextT1Block();
+  const [checkedToT1Block, claimedLowerIds] = await tier1.getLowersClaimedSinceBlock(bridge.address, checkFromT1Block);
 
   claimedLowerIds.forEach(id => {
     delete lowerProofs[id];
@@ -88,7 +88,7 @@ async function getOutstandingLowers(bridge) {
   });
 
   await redis.setAutolowerHighestClaimedLowerId(highestClaimedLowerId);
-  await redis.setAutolowerLastT1BlockChecked(lastT1BlockChecked);
+  await redis.setAutolowerNextT1Block(checkedToT1Block + 1);
   return lowerProofs;
 }
 

@@ -37,7 +37,7 @@ function getAutolowerAccount() {
 
 async function autolower() {
   if (!autolowerAccount) {
-    return '`[Autolower] STATUS - No account specified';
+    return '`[Autolower] ERROR - No account specified';
   }
 
   let bridge;
@@ -46,27 +46,35 @@ async function autolower() {
     const { avnContract } = await avn.getChainInfo();
     bridge = await tier1.connectToBridge(avnContract, LOWERING_ABI, autolowerAccount);
   } catch (error) {
-    return `[Autolower] STATUS - Cannot connect to bridge - ${error}`;
+    return `[Autolower] ERROR - Cannot connect to bridge - ${error}`;
   }
 
-  return await processLowerClaims(bridge);
+  return await processLowers(bridge);
 }
 
-async function processLowerClaims(bridge) {
+async function processLowers(bridge) {
   const lockAccquired = await redis.accquireAutolowerLock(bridge.address);
   if (!lockAccquired) {
     return '[Autolower] STATUS - Still processing existing lowers...';
   }
 
-  const lowerProofs = await getLowersToClaim(bridge);
-  claimLowersInBackground(bridge, lowerProofs);
+  let lowerProofs;
+
+  try {
+    const lowerProofs = await getOutstandingLowers(bridge);
+  } catch (error) {
+    await redis.releaseAutolowerLock(bridge.address);
+    return `[Autolower] ERROR - Error getting lowers - ${error}`;
+  }
+
+  claimLowers(bridge, lowerProofs); // Don't await
 
   const lowerIds = Object.keys(lowerProofs);
   let resultString = `[Autolower] STATUS - ${lowerIds.length} lowers found to process`;
-  return resultString += lowerIds.length > 0 ? `IDs: ${lowerIds.join(', ')}` : '';
+  return (resultString += lowerIds.length > 0 ? `IDs: ${lowerIds.join(', ')}` : '');
 }
 
-async function getLowersToClaim(bridge) {
+async function getOutstandingLowers(bridge) {
   let highestClaimedLowerId = await redis.getAutolowerHighestClaimedLowerId();
   const lowerIdsToRetry = await redis.getAutolowersToRetry();
   const lowerProofs = await avn.getLowerProofs(highestClaimedLowerId, lowerIdsToRetry);
@@ -84,11 +92,7 @@ async function getLowersToClaim(bridge) {
   return lowerProofs;
 }
 
-function claimLowersInBackground(bridge, lowerProofs) {
-  claimLowers(bridge, lowerProofs);
-}
-
-async function claimLowersInBackground(bridge, lowerProofs) {
+async function claimLowers(bridge, lowerProofs) {
   if (Object.keys(lowerProofs).length === 0) {
     return await redis.releaseAutolowerLock(bridge.address);
   }

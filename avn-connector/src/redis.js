@@ -548,7 +548,7 @@ async function getAutolowers() {
   return liveLowerIds;
 }
 
-async function accquireAutolowerLock(bridgeAddress) {
+async function acquireAutolowerLock(bridgeAddress) {
   const result = await redisClient.set(AUTOLOWER_LOCK_KEY, bridgeAddress, 'NX', 'EX', AUTOLOWER_MAX_LOCK_IN_SECONDS);
   return result === 'OK';
 }
@@ -633,7 +633,7 @@ module.exports = {
   addAutolower,
   removeAutolower,
   getAutolowers,
-  accquireAutolowerLock,
+  acquireAutolowerLock,
   releaseAutolowerLock,
   refreshAutolowerLock
 };

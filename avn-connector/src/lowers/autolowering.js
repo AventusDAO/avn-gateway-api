@@ -40,9 +40,11 @@ async function autolower() {
     return '`[Autolower] STATUS - No account specified';
   }
 
+  let bridge;
+
   try {
     const { avnContract } = await avn.getChainInfo();
-    const bridge = await tier1.connectToBridge(avnContract, LOWERING_ABI, autolowerAccount);
+    bridge = await tier1.connectToBridge(avnContract, LOWERING_ABI, autolowerAccount);
   } catch (error) {
     return `[Autolower] STATUS - Cannot connect to bridge - ${error}`;
   }

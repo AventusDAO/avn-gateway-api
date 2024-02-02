@@ -52,7 +52,7 @@ const LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX = 'lwr_eth_last_claimed';
 const AUTOLOWER_KEY = 'autoLower';
 const AUTOLOWER_LOCK_KEY = 'autoLowerLock';
 const AUTOLOWER_NEXT_T1_BLOCK_KEY = 'autoLowerNextT1Block';
-const AUTOLOWER_LATEST_ = 'autoLowerLatestId';
+const AUTOLOWER_LATEST_ID_KEY = 'autoLowerLatestId';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,

@@ -52,7 +52,7 @@ const LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX = 'lwr_eth_last_claimed';
 const AUTOLOWER_KEY = 'autoLower';
 const AUTOLOWER_LOCK_KEY = 'autoLowerLock';
 const AUTOLOWER_NEXT_T1_BLOCK_KEY = 'autoLowerNextT1Block';
-const AUTOLOWER_LATEST_ID_KEY = 'autoLowerLatestId';
+const AUTOLOWER_LATEST_ = 'autoLowerLatestId';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -513,11 +513,11 @@ async function getAutolowerNextT1Block() {
 }
 
 async function setLatestAutolowerId(lowerId) {
-  await redisClient.set(AUTOLOWER_LATEST_LOWER_ID_KEY, lowerId);
+  await redisClient.set(AUTOLOWER_LATEST_ID_KEY, lowerId);
 }
 
 async function getLatestAutolowerId() {
-  const lowerId = await redisClient.get(AUTOLOWER_LATEST_LOWER_ID_KEY);
+  const lowerId = await redisClient.get(AUTOLOWER_LATEST_ID_KEY);
   return lowerId ? parseInt(lowerId) : -1;
 }
 

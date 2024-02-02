@@ -608,12 +608,13 @@ async function getLowerProof(lowerId) {
   return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
 }
 
-async function getUnclaimedLowerProofs(latestClaimedLowerId) {
+async function getUnclaimedLowerProofs(minLowerId, additionalLowerIds = []) {
   try {
     const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
     const unclaimedLowerIds = allLowerIds
       .map(({ args: [lowerId] }) => lowerId.toNumber())
-      .filter(lowerId => lowerId > latestClaimedLowerId);
+      .filter(lowerId => lowerId > minLowerId || additionalLowerIds.includes(lowerId));
+
     const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
 
     return claimData.reduce((acc, data, index) => {
@@ -627,8 +628,14 @@ async function getUnclaimedLowerProofs(latestClaimedLowerId) {
   }
 }
 
+async function regenerateLowerProof(account, lowerId) {
+  const txn = api.tx.tokenManager.regenerateLowerProof(lowerId);
+  return await txn.signAndSend(account);
+}
+
 module.exports = {
   addNewTransaction,
+  createAccount,
   getAccountInfo,
   getUnclaimedLowerProofs,
   getLowerProof,
@@ -653,5 +660,6 @@ module.exports = {
   setSendingFailedStatus,
   getPayerPaymentNonce,
   generateSplitFeePaymentInfo,
-  payerHasFunds
+  payerHasFunds,
+  regenerateLowerProof
 };

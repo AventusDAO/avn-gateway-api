@@ -119,7 +119,7 @@ async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   return [fromBlock, claimedLowerIds];
 }
 
-async function connectToBridge(contract, abi, account) {
+function connectToBridge(contract, abi, account) {
   const signer = new ethers.Wallet(account, provider);
   return new ethers.Contract(contract, abi, signer);
 }

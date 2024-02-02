@@ -91,7 +91,8 @@ async function getLowersToProcess(bridge) {
 }
 
 async function attemptClaims(bridge, proofs) {
-  if (Object.keys(proofs).length === 0) {
+  const numClaimsToProcess = Object.keys(proofs).length;
+  if (numClaimsToProcess === 0) {
     return await redis.releaseAutolowerLock(bridge.address);
   }
 
@@ -103,7 +104,7 @@ async function attemptClaims(bridge, proofs) {
   }
 
   await redis.releaseAutolowerLock(bridge.address);
-  log.info(`[Autolower] STATUS - Finished processing ${numLowers} lowers`);
+  log.info(`[Autolower] STATUS - Finished processing ${numClaimsToProcess} lower claims`);
 }
 
 async function proofChecksPass(bridge, id, proof) {

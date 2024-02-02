@@ -27,7 +27,7 @@ const SLOT_PREFIX = '{gateway}:';
 const NONCE_NAMESPACE = 'n.';
 const PAYER_NONCE_NAMESPACE = 'pn.';
 const TOTAL_TOKEN_NAMESPACE = 't.';
-const AUTOLOWER_RETRY_LIFETIME_NAMESPACE = 'a.';
+const AUTOLOWER_RETRY_LIFETIME_NAMESPACE = 'al.';
 const COLLATORS_KEY = 'collators';
 const STAKING_STAT_KEY = 'stakingStats';
 const CHAIN_INFO_KEY = 'chainInfo';
@@ -49,10 +49,10 @@ const LOWER_SENDER_PREFIX = SLOT_PREFIX + 'lwr_sender_';
 const LOWER_RECIPIENT_PREFIX = SLOT_PREFIX + 'lwr_recipient_';
 const LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX = 'lwr_eth_last_claimed';
 
-const AUTOLOWER_KEY = 'autolowers';
-const AUTOLOWER_LOCK_KEY = 'autolowerLock';
-const AUTOLOWER_NEXT_T1_BLOCK_KEY = 'autolowerNextT1Block';
-const AUTOLOWER_LATEST_LOWER_ID_KEY = 'autolowerLatestId';
+const AUTOLOWER_KEY = 'autoLower';
+const AUTOLOWER_LOCK_KEY = 'autoLowerLock';
+const AUTOLOWER_NEXT_T1_BLOCK_KEY = 'autoLowerNextT1Block';
+const AUTOLOWER_LATEST_ID_KEY = 'autoLowerLatestId';
 
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
@@ -512,11 +512,11 @@ async function getAutolowerNextT1Block() {
   return blockNumber ? parseInt(blockNumber) : 0;
 }
 
-async function setAutolowerLatestId(lowerId) {
+async function setLatestAutolowerId(lowerId) {
   await redisClient.set(AUTOLOWER_LATEST_LOWER_ID_KEY, lowerId);
 }
 
-async function getAutolowerLatestId() {
+async function getLatestAutolowerId() {
   const lowerId = await redisClient.get(AUTOLOWER_LATEST_LOWER_ID_KEY);
   return lowerId ? parseInt(lowerId) : -1;
 }
@@ -628,8 +628,8 @@ module.exports = {
   setLastClaimedEthereumLowerBlock,
   setAutolowerNextT1Block,
   getAutolowerNextT1Block,
-  setAutolowerLatestId,
-  getAutolowerLatestId,
+  setLatestAutolowerId,
+  getLatestAutolowerId,
   addAutolower,
   removeAutolower,
   getAutolowers,

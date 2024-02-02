@@ -608,21 +608,23 @@ async function getLowerProof(lowerId) {
   return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
 }
 
-async function getLowerProofs(thresholdLowerId, lowersToInclude = []) {
+async function getLowerProofs(minLowerId, additionalLowerIds = []) {
   try {
     const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
-    const selectedLowerIds = allLowerIds
-      .map(({ args: [lowerId] }) => lowerId.toNumber())
-      .filter(lowerId => lowerId > thresholdLowerId || lowersToInclude.includes(lowerId));
-    const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(selectedLowerIds);
 
-    return claimData.reduce((acc, data, index) => {
-      const lowerId = selectedLowerIds[index];
+    const filteredLowerIds = allLowerIds
+      .map(({ args: [lowerId] }) => lowerId.toNumber())
+      .filter(lowerId => lowerId > minLowerId || additionalLowerIds.includes(lowerId));
+
+    const lowerClaimData = await api.query.tokenManager.lowersReadyToClaim.multi(filteredLowerIds);
+
+    return lowerClaimData.reduce((acc, data, index) => {
+      const lowerId = filteredLowerIds[index];
       acc[lowerId] = data.toHuman().encodedLowerData;
       return acc;
     }, {});
   } catch (error) {
-    log.error('Error in getLowerProofs:', error);
+    log.error('Error in getLowerProofs function:', error);
     throw error;
   }
 }

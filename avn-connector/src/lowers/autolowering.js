@@ -68,26 +68,24 @@ async function processLowers(bridge) {
 }
 
 async function getLowersToProcess(bridge) {
-  let latestLowerId = await redis.getAutolowerLatestId();
-  const existingAutolowers = await redis.getAutolowers();
-  const proofs = await avn.getLowerProofs(latestLowerId, existingAutolowers);
+  let latestLowerId = await redis.getLatestAutolowerId();
+  const existingLowers = await redis.getAutolowers();
+  const proofs = await avn.getLowerProofs(latestLowerId, existingLowers);
 
   const checkFromT1Block = await redis.getAutolowerNextT1Block();
-  const [checkedToT1Block, claimedLowers] = await tier1.getLowersClaimedSinceBlock(bridge.address, checkFromT1Block);
+  const [checkedToT1Block, recentClaims] = await tier1.getLowersClaimedSinceBlock(bridge.address, checkFromT1Block);
 
-  // Remove any recently claimed lowers
-  for (const lowerId of claimedLowers) {
-    delete proofs[lowerId];
+  for (const lowerId of recentClaims) {
     await redis.removeAutolower(lowerId);
+    delete proofs[lowerId];
     latestLowerId = Math.max(latestLowerId, lowerId);
   }
 
-  // Add any new lowers
   for (const lowerId of Object.keys(proofs)) {
     await redis.addAutolower(lowerId);
   }
 
-  await redis.setAutolowerLatestId(latestLowerId);
+  await redis.setLatestAutolowerId(latestLowerId);
   await redis.setAutolowerNextT1Block(checkedToT1Block + 1);
   return proofs;
 }

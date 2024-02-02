@@ -119,31 +119,9 @@ async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   return [fromBlock, claimedLowerIds];
 }
 
-function hasAutolowerAccount() {
-  return 'autolower_pk' in config.tier1 && config.tier1.autolower_pk !== '$ENV:AUTOLOWER_PK';
-}
-
-async function connectToBridge(avnContract) {
-  const signer = new ethers.Wallet(config.tier1.autolower_pk, provider);
-  const abiSnippet = ['function claimLower(bytes calldata)']; // Use only what we need for now
-  return new ethers.Contract(avnContract, abiSnippet, signer);
-}
-
-async function claimLowers(avnBridge, lowerProofs) {
-  if (Object.keys(lowerProofs).length > 0) {
-    for (const [id, proof] of Object.entries(lowerProofs)) {
-      try {
-        const tx = await avnBridge.claimLower(proof);
-        log.info(`Claim lower tx sent. Lower ID: ${id}, tx hash: ${tx.hash}`);
-        await tx.wait();
-        log.info(`Claim lower tx confirmed. Lower ID: ${id}, tx hash: ${tx.hash}`);
-      } catch (error) {
-        log.info(`Claim lower tx failed. Lower ID: ${id}, error: ${error.message.split('(action="estimateGas"')[0]}`);
-        await redis.addAutolowerFailedClaimLowerId(id); // TODO - Retry these periodically
-      }
-    }
-  }
-  return await redis.releaseAutolowerLock(avnBridge.address);
+async function connectToBridge(contract, abi, account) {
+  const signer = new ethers.Wallet(account, provider);
+  return new ethers.Contract(contract, abi, signer);
 }
 
 function toBn(val) {
@@ -156,7 +134,5 @@ module.exports = {
   getLockedBalance,
   getLatestPublishedRoots,
   getLowersClaimedSinceBlock,
-  hasAutolowerAccount,
-  connectToBridge,
-  claimLowers
+  connectToBridge
 };

@@ -1,2 +1,1 @@
 statusLambdaName: $ENV:STATUS_LAMBDA_NAME
-statusLambdaRegion: $ENV:STATUS_LAMBDA_REGION

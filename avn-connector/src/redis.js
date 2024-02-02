@@ -34,10 +34,6 @@ const LIFTS_FROM_TIER1_BLOCK_KEY = 'liftsFromBlock';
 const ERA_KEY = 'era';
 const LOWER_BLOCK_INDEX_KEY = 'lowerBlockIndex';
 const LOWERS_FROM_AVN_BLOCK_KEY = 'lowersFromBlock';
-const AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY = 'autolowerLastT1BlockChecked';
-const AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY = 'autolowerLatestClaimedLowerId';
-const AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY = 'autolowerFailedClaimLowerIds';
-const AUTOLOWER_LOCK_KEY = 'autolowerLock';
 const CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY = 'claimedLowersFromBlock';
 const PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY = 'publishedRootsFromBlock';
 const UNPUBLISHED_LOWERS_KEY = 'lowersUnpublished';
@@ -52,6 +48,15 @@ const LOWER_SENDER_PREFIX = SLOT_PREFIX + 'lwr_sender_';
 const LOWER_RECIPIENT_PREFIX = SLOT_PREFIX + 'lwr_recipient_';
 const LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX = 'lwr_eth_last_claimed';
 
+// Autolower
+const AUTOLOWER_RETRY_LIFETIME_NAMESPACE = 'al.';
+const AUTOLOWERS_KEY = 'autolowers';
+const AUTOLOWER_LOCK_KEY = 'autolowerLock';
+const NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY = 'nextT1BlockForAutolower';
+const LATEST_LOWER_ID_FOR_AUTOLOWER_KEY = 'latestLowerIdForAutolower';
+const AUTOLOWER_MAX_LOCK_IN_SECONDS = 600; // 10 minutes
+const AUTOLOWER_RETRY_LIFETIME_SECONDS = 1209600; // 14 days
+
 const PENDING_TX_KEY = {
   ALL: `${SLOT_PREFIX}aTx`,
   CHECKING: `${SLOT_PREFIX}cTx`,
@@ -65,7 +70,6 @@ const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; //5 minutes
 const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
-const AUTOLOWER_MAX_LOCK_IN_SECONDS = 3600; // 1 hour
 
 let redisClient;
 
@@ -500,49 +504,72 @@ async function setLastClaimedEthereumLowerBlock(blockNumber) {
   await redisClient.set(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX, blockNumber);
 }
 
-async function setAutolowerLastT1BlockChecked(blockNumber) {
-  await redisClient.set(AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY, blockNumber);
+async function setAutolowerNextT1Block(blockNumber) {
+  await redisClient.set(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY, blockNumber);
 }
 
-async function getAutolowerLastT1BlockChecked() {
-  const blockNumber = await redisClient.get(AUTOLOWER_LAST_T1_BLOCK_CHECKED_KEY);
-  return blockNumber ? parseInt(blockNumber) : -1;
+async function getAutolowerNextT1Block() {
+  const blockNumber = await redisClient.get(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY);
+  return blockNumber ? parseInt(blockNumber) : 0;
 }
 
-async function setAutolowerLatestClaimedLowerId(lowerId) {
-  await redisClient.set(AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY, lowerId);
+async function setLatestAutolowerId(lowerId) {
+  await redisClient.set(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY, lowerId);
 }
 
-async function getAutolowerLatestClaimedLowerId() {
-  const lowerId = await redisClient.get(AUTOLOWER_LATEST_CLAIMED_LOWER_ID_KEY);
+async function getLatestAutolowerId() {
+  const lowerId = await redisClient.get(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY);
   return lowerId ? parseInt(lowerId) : -1;
 }
 
-async function addAutolowerFailedClaimLowerId(lowerId) {
-  await redisClient.sadd(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+async function addAutolower(lowerId) {
+  const result = await redisClient.sadd(AUTOLOWERS_KEY, lowerId);
+  const newEntry = result === 1;
+  if (newEntry) {
+    await redisClient.setex(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId, AUTOLOWER_RETRY_LIFETIME_SECONDS, true);
+  }
 }
 
-async function removeAutolowerFailedClaimLowerId(lowerId) {
-  await redisClient.srem(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY, lowerId);
+async function removeAutolower(lowerId) {
+  await redisClient.srem(AUTOLOWERS_KEY, lowerId);
+  await redisClient.del(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId);
 }
 
-async function getAutolowerFailedClaimLowerIds() {
-  const failed = await redisClient.smembers(AUTOLOWER_FAILED_CLAIM_LOWER_IDS_KEY);
-  return failed || [];
+async function getAutolowers() {
+  const lowerIds = await redisClient.smembers(AUTOLOWERS_KEY);
+  const liveLowerIds = [];
+  for (const lowerId of lowerIds || []) {
+    const retry = await redisClient.exists(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId);
+    if (retry) {
+      liveLowerIds.push(lowerId);
+    } else {
+      await removeAutolower(lowerId);
+    }
+  }
+  return liveLowerIds;
 }
 
-async function accquireAutolowerLock(bridgeAddress) {
+async function acquireAutolowerLock(bridgeAddress) {
   const result = await redisClient.set(AUTOLOWER_LOCK_KEY, bridgeAddress, 'NX', 'EX', AUTOLOWER_MAX_LOCK_IN_SECONDS);
   return result === 'OK';
 }
 
-async function releaseAutolowerLock(contract) {
+async function releaseAutolowerLock(bridgeAddress) {
   const script = `if redis.call("get", KEYS[1]) == ARGV[1] then
       return redis.call("del", KEYS[1])
     else
       return 0
     end`;
-  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, contract);
+  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress);
+}
+
+async function refreshAutolowerLock(bridgeAddress) {
+  const script = `if redis.call("get", KEYS[1]) == ARGV[1] then
+      return redis.call("expire", KEYS[1], ARGV[2])
+    else
+      return 0
+    end`;
+  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress, AUTOLOWER_MAX_LOCK_IN_SECONDS);
 }
 
 module.exports = {
@@ -600,13 +627,14 @@ module.exports = {
   getLowerIdsByAddress,
   getLastClaimedEthereumLowerBlock,
   setLastClaimedEthereumLowerBlock,
-  setAutolowerLastT1BlockChecked,
-  getAutolowerLastT1BlockChecked,
-  setAutolowerLatestClaimedLowerId,
-  getAutolowerLatestClaimedLowerId,
-  addAutolowerFailedClaimLowerId,
-  removeAutolowerFailedClaimLowerId,
-  getAutolowerFailedClaimLowerIds,
-  accquireAutolowerLock,
-  releaseAutolowerLock
+  setAutolowerNextT1Block,
+  getAutolowerNextT1Block,
+  setLatestAutolowerId,
+  getLatestAutolowerId,
+  addAutolower,
+  removeAutolower,
+  getAutolowers,
+  acquireAutolowerLock,
+  releaseAutolowerLock,
+  refreshAutolowerLock
 };

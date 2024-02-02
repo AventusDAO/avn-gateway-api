@@ -4,6 +4,7 @@ const avn = require('./avn');
 const rds = require('./db/index');
 const lowering = require('./lowering');
 const loweringV2 = require('./lowers/loweringV2');
+const autolowering = require('./lowers/autolowering');
 const redis = require('./redis');
 const sqsConsumer = require('./sqsConsumer');
 const lambda = require('./lambdas');
@@ -155,7 +156,8 @@ app.get('/unprocessedLifts', async (req, res, next) => {
 app.get('/autolower', async (req, res, next) => {
   try {
     log.trace('autolower invoked');
-    const result = await loweringV2.autolower();
+    const result = await autolowering.autolower();
+    log.info(result);
     res.send(result);
   } catch (err) {
     next(err);

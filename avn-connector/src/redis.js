@@ -455,12 +455,12 @@ async function getLastLowerBlockIdFromAvn() {
 
 async function setLowerById(lowerId, lowerData) {
   const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
-  const recipienteKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
+  const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
   await redisClient
     .multi()
     .set(LOWER_ID_PREFIX + lowerId, dataToJsonString(lowerData))
     .sadd(senderKey, lowerId)
-    .sadd(recipienteKey, lowerId)
+    .sadd(recipientKey, lowerId)
     .exec();
 }
 
@@ -474,23 +474,23 @@ async function deleteLowerById(lowerId) {
   if (!lowerData) return;
 
   const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
-  const recipienteKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
-  log.trace(`Deleting senderKey: ${senderKey} and recipienteKey: ${recipienteKey}`);
+  const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
+  log.trace(`Deleting senderKey: ${senderKey} and recipientKey: ${recipientKey}`);
 
   await redisClient
     .multi()
     .del(LOWER_ID_PREFIX + lowerId)
     .srem(senderKey, lowerId)
-    .srem(recipienteKey, lowerId)
+    .srem(recipientKey, lowerId)
     .exec();
 }
 
 async function getLowerIdsByAddress(address) {
   const senderKey = LOWER_SENDER_PREFIX + address;
-  const recipienteKey = LOWER_RECIPIENT_PREFIX + address;
+  const recipientKey = LOWER_RECIPIENT_PREFIX + address;
   let lowerIds = await redisClient.smembers(senderKey);
   if (!lowerIds || lowerIds.length === 0) {
-    lowerIds = await redisClient.smembers(recipienteKey);
+    lowerIds = await redisClient.smembers(recipientKey);
   }
   return lowerIds ? lowerIds : [];
 }

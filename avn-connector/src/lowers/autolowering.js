@@ -31,6 +31,7 @@ async function autolower() {
 
   try {
     setupAccounts();
+    console.log('AUTOLOWERRRRRRRRRR', ACCOUNTS)
     const { avnContract } = await avn.getChainInfo();
     bridge = tier1.connectToBridge(avnContract, LOWERING_ABI, ACCOUNTS.T1);
   } catch (error) {
@@ -89,8 +90,8 @@ async function getLowersToClaim(bridge) {
 }
 
 async function attemptClaims(bridge, proofs) {
-  const numClaimsToProcess = Object.keys(proofs).length;
-  if (numClaimsToProcess === 0) {
+  const numClaims = Object.keys(proofs).length;
+  if (numClaims === 0) {
     return await redis.releaseAutolowerLock(bridge.address);
   }
 
@@ -102,7 +103,7 @@ async function attemptClaims(bridge, proofs) {
   }
 
   await redis.releaseAutolowerLock(bridge.address);
-  log.info(`[Autolower] STATUS - Finished processing ${numClaimsToProcess} lower claims`);
+  log.info(`[Autolower] STATUS - Finished processing ${numClaims} lowers`);
 }
 
 async function proofChecksPass(bridge, id, proof) {

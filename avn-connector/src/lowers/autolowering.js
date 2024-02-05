@@ -138,11 +138,15 @@ async function handleProofCheckResult(check, id, proof) {
 }
 
 async function attemptClaim(bridge, id, proof) {
-  try {
-    const tx = await bridge.claimLower(proof);
-    await handleClaimTransaction(tx, id);
-  } catch (error) {
-    await handleClaimError(error, id, proof, bridge);
+  if (id % 2 === 0) {
+    return await regenerateProofAndRetryClaim('testing proof regen', id, proof);
+  } else {
+    try {
+      const tx = await bridge.claimLower(proof);
+      await handleClaimTransaction(tx, id);
+    } catch (error) {
+      await handleClaimError(error, id, proof, bridge);
+    }
   }
 }
 
@@ -200,7 +204,7 @@ async function closeSuccessfulClaim(id, txHash) {
 }
 
 function retryClaim(reason, id, proof, error = '') {
-  log.info(`[Autolower] CLAIM WILL BE RETRIED - ${reason}. Lower ID: ${id}, proof: ${proof}, error: ${error}`);
+  log.info(`[Autolower] CLAIM WILL BE RETRIED - Lower ID: ${id}, reason: ${reason}, proof: ${proof}, error: ${error}`);
 }
 
 async function regenerateProofAndRetryClaim(reason, id, proof) {

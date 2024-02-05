@@ -610,18 +610,32 @@ async function getLowerProof(lowerId) {
 
 async function getUnclaimedLowerProofs(minLowerId, additionalLowerIds) {
   try {
-    const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
-    const unclaimedLowerIds = allLowerIds
-      .map(({ args: [lowerId] }) => lowerId.toNumber())
-      .filter(lowerId => lowerId > minLowerId || additionalLowerIds.includes(lowerId));
+    let entries = [],
+        startKey,
+        unclaimedLowerIds = [],
+        claimData = [];
 
-    const claimData = await api.query.tokenManager.lowersReadyToClaim.multi(unclaimedLowerIds);
+    do {
+      entries = await api.query.tokenManager.lowersReadyToClaim.keysPaged({ pageSize: 1000, startKey });
+      if (entries.length > 0) {
+        startKey = entries[entries.length - 1];
+        const filteredIds = entries
+          .map(({ args: [lowerId] }) => lowerId.toNumber())
+          .filter(lowerId => lowerId > minLowerId || additionalLowerIds.includes(lowerId));
+
+        unclaimedLowerIds = unclaimedLowerIds.concat(filteredIds);
+
+        const batchClaimData = await api.query.tokenManager.lowersReadyToClaim.multi(filteredIds);
+        claimData = claimData.concat(batchClaimData);
+      }
+    } while (entries.length > 0);
 
     return claimData.reduce((acc, data, index) => {
       const lowerId = unclaimedLowerIds[index];
       acc[lowerId] = data.toHuman().encodedLowerData;
       return acc;
     }, {});
+
   } catch (error) {
     log.error('Error in getUnclaimedLowerProofs:', error);
     throw error;

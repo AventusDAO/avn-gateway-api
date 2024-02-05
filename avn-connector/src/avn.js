@@ -616,7 +616,7 @@ async function getUnclaimedLowerProofs(minLowerId, additionalLowerIds) {
         claimData = [];
 
     do {
-      entries = await api.query.tokenManager.lowersReadyToClaim.keysPaged({ pageSize: 1000, startKey });
+      entries = await api.query.tokenManager.lowersReadyToClaim.keysPaged({ pageSize: 1000, args: [], startKey });
       if (entries.length > 0) {
         startKey = entries[entries.length - 1];
         const filteredIds = entries

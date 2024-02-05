@@ -608,7 +608,7 @@ async function getLowerProof(lowerId) {
   return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
 }
 
-async function getUnclaimedLowerProofs(minLowerId, additionalLowerIds = []) {
+async function getUnclaimedLowerProofs(minLowerId, additionalLowerIds) {
   try {
     const allLowerIds = await api.query.tokenManager.lowersReadyToClaim.keys();
     const unclaimedLowerIds = allLowerIds

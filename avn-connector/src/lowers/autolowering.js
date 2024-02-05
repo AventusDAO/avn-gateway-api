@@ -139,7 +139,6 @@ async function handleProofCheckResult(check, id, proof) {
 
 async function attemptClaim(bridge, id, proof) {
   try {
-    if (id % 5 === 0) return await regenerateProofAndRetryClaim('testing proof regen', id, proof)
     const tx = await bridge.claimLower(proof);
     await handleClaimTransaction(tx, id);
   } catch (error) {

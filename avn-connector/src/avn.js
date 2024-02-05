@@ -630,7 +630,7 @@ async function getUnclaimedLowerProofs(minLowerId, additionalLowerIds) {
 
 async function regenerateLowerProof(account, lowerId) {
   const txn = api.tx.tokenManager.regenerateLowerProof(lowerId);
-  return await txn.signAndSend(account);
+  return await txn.signAndSend(account, { nonce: -1 });
 }
 
 module.exports = {

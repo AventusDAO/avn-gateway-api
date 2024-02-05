@@ -68,9 +68,7 @@ async function processLowers(bridge) {
 async function getLowersToClaim(bridge) {
   let latestLowerId = await redis.getLatestAutolowerId();
   const unresolvedLowerIds = await redis.getAutolowers();
-  console.log("AUTOLOWER 1 - UNRESOLVED LOWER IDS", unresolvedLowerIds.join(','))
   const lowerProofs = await avn.getUnclaimedLowerProofs(latestLowerId, unresolvedLowerIds);
-  console.log("AUTOLOWER 2 - LOWERPROOFS FROM AVN", Object.keys(lowerProofs).join(','))
 
   const checkFromT1Block = await redis.getAutolowerNextT1Block();
   const [checkedToT1Block, recentClaims] = await tier1.getLowersClaimedSinceBlock(bridge.address, checkFromT1Block);
@@ -80,8 +78,6 @@ async function getLowersToClaim(bridge) {
     delete lowerProofs[lowerId];
     latestLowerId = Math.max(latestLowerId, lowerId);
   }
-
-  console.log("AUTOLOWER 3 - LOWERPROOFS AFTER T1", Object.keys(lowerProofs).join(','))
 
   for (const lowerId of Object.keys(lowerProofs)) {
     await redis.addAutolower(lowerId);
@@ -142,7 +138,6 @@ async function handleProofCheckResult(check, id, proof) {
 }
 
 async function attemptClaim(bridge, id, proof) {
-  if (id % 2 === 0) return await regenerateProofAndRetryClaim('testing proof regen', id, proof);
   try {
     const tx = await bridge.claimLower(proof);
     await handleClaimTransaction(tx, id);

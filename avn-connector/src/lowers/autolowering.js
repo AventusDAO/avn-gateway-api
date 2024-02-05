@@ -5,7 +5,7 @@ const config = require('multiconfig').load();
 const log4js = require('log4js');
 const log = log4js.getLogger();
 
-const T2_ACCOUNT = config.autolower.t2_pk === '$ENV:AUTOLOWER_T2_PK' ? null : avn.createAccount(config.autolower.t2_pk);
+const ACCOUNTS = {};
 
 const LOWERING_ABI = [
   'function claimLower(bytes calldata)',
@@ -22,7 +22,7 @@ const RETRY_REASON = {
   InsufficientFunds: 'Insufficient funds',
   ProofCheckFailed: 'Proof check failed',
   ProofRegenerationError: 'Proof regeneration error',
-  AdditionalConfirmationsRequired: 'Needs more confirmations',
+  AdditionalConfirmationsRequired: 'Additional confirmations required',
   UnknownError: 'Unknown error'
 };
 
@@ -30,14 +30,20 @@ async function autolower() {
   let bridge;
 
   try {
-    if (config.autolower.t1_pk === '$ENV:AUTOLOWER_T1_PK' || !T2_ACCOUNT) throw new Error('Payment keys not configured');
+    setupAccounts();
     const { avnContract } = await avn.getChainInfo();
-    bridge = tier1.connectToBridge(avnContract, LOWERING_ABI, config.autolower.t1_pk);
+    bridge = tier1.connectToBridge(avnContract, LOWERING_ABI, ACCOUNTS.T1);
   } catch (error) {
     return `[Autolower] ERROR - ${error}`;
   }
 
   return await processLowers(bridge);
+}
+
+function setupAccounts() {
+  ACCOUNTS.T1 = config.autolower.t1_pk === '$ENV:AUTOLOWER_T1_PK' ? null : config.autolower.t1_pk;
+  ACCOUNTS.T2 = config.autolower.t2_pk === '$ENV:AUTOLOWER_T2_PK' ? null : avn.createAccount(config.autolower.t2_pk);
+  if (!ACCOUNTS.T1 || !ACCOUNTS.T2) throw new Error('Account keys not configured');
 }
 
 async function processLowers(bridge) {
@@ -46,7 +52,7 @@ async function processLowers(bridge) {
 
   let proofs;
   try {
-    proofs = await getLowersToProcess(bridge);
+    proofs = await getLowersToClaim(bridge);
   } catch (error) {
     await redis.releaseAutolowerLock(bridge.address);
     return `[Autolower] ERROR - Error getting lowers - ${error}`;
@@ -59,7 +65,7 @@ async function processLowers(bridge) {
   return `[Autolower] STATUS - Found ${lowerIds.length} lowers to process${statusMessage}`;
 }
 
-async function getLowersToProcess(bridge) {
+async function getLowersToClaim(bridge) {
   let latestLowerId = await redis.getLatestAutolowerId();
   const unresolvedLowerIds = await redis.getAutolowers();
   const proofs = await avn.getUnclaimedLowerProofs(latestLowerId, unresolvedLowerIds);
@@ -199,7 +205,7 @@ function retryClaim(reason, id, proof, error = '') {
 
 async function regenerateProofAndRetryClaim(reason, id, proof) {
   try {
-    await avn.regenerateLowerProof(T2_ACCOUNT, id);
+    await avn.regenerateLowerProof(ACCOUNTS.T2, id);
     log.info(`[Autolower] CLAIM WILL BE RETRIED WITH NEW PROOF - Lower ID: ${id}, reason: ${reason}`);
   } catch (error) {
     retryClaim(RETRY_REASON.ProofRegenerationError, id, proof, error);

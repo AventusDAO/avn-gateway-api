@@ -542,7 +542,7 @@ async function getAutolowers() {
     const exists = await redisClient.exists(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId);
     const retry = exists === 1;
     if (retry) {
-      liveLowerIds.push(lowerId);
+      liveLowerIds.push(parseInt(lowerId));
     } else {
       await removeAutolower(lowerId);
     }

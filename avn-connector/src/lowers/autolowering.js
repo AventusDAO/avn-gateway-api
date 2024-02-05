@@ -50,17 +50,17 @@ async function processLowers(bridge) {
   const lockAcquired = await redis.acquireAutolowerLock(bridge.address);
   if (!lockAcquired) return '[Autolower] STATUS - Processing lowers...';
 
-  let proofs;
+  let lowerProofs;
   try {
-    proofs = await getLowersToClaim(bridge);
+    lowerProofs = await getLowersToClaim(bridge);
   } catch (error) {
     await redis.releaseAutolowerLock(bridge.address);
     return `[Autolower] ERROR - Error getting lowers - ${error}`;
   }
 
-  attemptClaims(bridge, proofs); // Don't await
+  attemptClaims(bridge, lowerProofs); // Don't await
 
-  const lowerIds = Object.keys(proofs);
+  const lowerIds = Object.keys(lowerProofs);
   const statusMessage = lowerIds.length ? `: ${lowerIds.join(', ')}` : '';
   return `[Autolower] STATUS - Found ${lowerIds.length} lowers to process${statusMessage}`;
 }
@@ -68,33 +68,33 @@ async function processLowers(bridge) {
 async function getLowersToClaim(bridge) {
   let latestLowerId = await redis.getLatestAutolowerId();
   const unresolvedLowerIds = await redis.getAutolowers();
-  const proofs = await avn.getUnclaimedLowerProofs(latestLowerId, unresolvedLowerIds);
+  const lowerProofs = await avn.getUnclaimedLowerProofs(latestLowerId, unresolvedLowerIds);
 
   const checkFromT1Block = await redis.getAutolowerNextT1Block();
   const [checkedToT1Block, recentClaims] = await tier1.getLowersClaimedSinceBlock(bridge.address, checkFromT1Block);
 
   for (const lowerId of recentClaims) {
     await redis.removeAutolower(lowerId);
-    delete proofs[lowerId];
+    delete lowerProofs[lowerId];
     latestLowerId = Math.max(latestLowerId, lowerId);
   }
 
-  for (const lowerId of Object.keys(proofs)) {
+  for (const lowerId of Object.keys(lowerProofs)) {
     await redis.addAutolower(lowerId);
   }
 
   await redis.setLatestAutolowerId(latestLowerId);
   await redis.setAutolowerNextT1Block(checkedToT1Block + 1);
-  return proofs;
+  return lowerProofs;
 }
 
-async function attemptClaims(bridge, proofs) {
-  const numLowers = Object.keys(proofs).length;
+async function attemptClaims(bridge, lowerProofs) {
+  const numLowers = Object.keys(lowerProofs).length;
   if (numLowers === 0) {
     return await redis.releaseAutolowerLock(bridge.address);
   }
 
-  for (const [id, proof] of Object.entries(proofs)) {
+  for (const [id, proof] of Object.entries(lowerProofs)) {
     await redis.refreshAutolowerLock(bridge.address);
     if (await proofChecksPass(bridge, id, proof)) {
       await attemptClaim(bridge, id, proof);

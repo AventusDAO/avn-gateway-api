@@ -45,7 +45,6 @@ async function getLiftEvents(avnContract) {
 
   try {
     const currentBlock = await provider.getBlockNumber();
-    throw new Error("DEBUG: Simulate a network error EW had")
     fromBlock = (await redis.getLiftsFromTier1Block()) || currentBlock - MAX_LIFT_AGE_IN_BLOCKS;
     toBlock = Math.min(fromBlock + MAX_LIFT_BLOCKS_TO_PROCESS, currentBlock - REQUIRED_CONFIRMATION_BLOCKS);
 

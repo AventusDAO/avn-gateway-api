@@ -291,7 +291,7 @@ async function getUnprocessedLifts() {
 
     if (unprocessedLifts.length === 0) {
       const lastT1BlockChecked = await redis.getLiftsFromTier1Block();
-      // extra safety to prevent reseting the last checked block
+      // extra safety to prevent resetting the last checked block
       if (toBlock >= lastT1BlockChecked) {
         await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
       }
@@ -313,7 +313,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   try {
     result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
     const lastT1BlockChecked = await redis.getLiftsFromTier1Block();
-    // extra safety to prevent reseting the last checked block
+    // extra safety to prevent resetting the last checked block
     if (toBlock >= lastT1BlockChecked) {
       await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
     }

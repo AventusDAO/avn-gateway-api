@@ -274,23 +274,33 @@ async function ethereumEventStatus(transactionHash) {
 
 async function getUnprocessedLifts() {
   let unprocessedLifts = [];
-  let { avnContract } = await getChainInfo();
-  let { fromBlock, toBlock, liftEvents } = await tier1.getLiftEvents(avnContract);
+  try {
+    let { avnContract } = await getChainInfo();
+    let { fromBlock, toBlock, liftEvents } = await tier1.getLiftEvents(avnContract);
 
-  if (liftEvents.length > 0) {
-    let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
-    for (let [i, isProcessed] of liftStatuses.entries()) {
-      if (isProcessed.isFalse) {
-        unprocessedLifts.push(liftEvents[i][1]);
+    if (liftEvents.length > 0) {
+      let liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
+      for (let [i, isProcessed] of liftStatuses.entries()) {
+        if (isProcessed.isFalse) {
+          unprocessedLifts.push(liftEvents[i][1]);
+        }
       }
     }
+
+    if (unprocessedLifts.length === 0) {
+      const lastT1BlockChecked = await redis.getLiftsFromTier1Block();
+      // extra safety to prevent resetting the last checked block
+      if (toBlock >= lastT1BlockChecked) {
+        await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
+      }
+    }
+
+    return { fromBlock, toBlock, unprocessedLifts };
+  } catch (error) {
+    console.error(`Error getting unprocessed lifts: `, error)
+    throw error
   }
 
-  if (unprocessedLifts.length === 0) {
-    await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
-  }
-
-  return { fromBlock, toBlock, unprocessedLifts };
 }
 
 async function processLifts(requestId, toBlock, unprocessedLifts) {
@@ -300,7 +310,11 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
   let result;
   try {
     result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
-    await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
+    const lastT1BlockChecked = await redis.getLiftsFromTier1Block();
+    // extra safety to prevent resetting the last checked block
+    if (toBlock >= lastT1BlockChecked) {
+      await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
+    }
   } catch (err) {
     result = err;
   }

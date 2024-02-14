@@ -61,12 +61,16 @@ async function getLiftEvents(avnContract) {
           }
         }
       });
+
+      return { fromBlock, toBlock, liftEvents };
     }
+
+    // return the same block for `from` and `to` with an empty `events`
+    return { fromBlock, toBlock: fromBlock, liftEvents };
   } catch (error) {
     log.error('Error getting lift events:', error);
+    throw error
   }
-
-  return { fromBlock, toBlock, liftEvents };
 }
 
 async function getLatestClaimedLowers(avnContract) {

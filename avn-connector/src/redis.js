@@ -19,7 +19,8 @@ const transactionStatus = {
   Rejected: 'Rejected',
   SendingFailed: 'SendingFailed',
   PayerRefused: 'PayerRefused',
-  AwaitingToSend: 'AwaitingToSend'
+  AwaitingToSend: 'AwaitingToSend',
+  Validating: 'Validating'
 };
 
 // This is required to avoid CROSSSLOT errors: https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-crossslot-keys-error-redis/
@@ -222,7 +223,7 @@ async function resolvePendingAvnTransactions(transactions) {
   for (const tx of transactions) {
     const transactionHashKey = getKey(tx.transactionHash);
 
-    if (![transactionStatus.Processed, transactionStatus.Rejected].includes(tx.status)) {
+    if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(tx.status)) {
       log.warn({ message: 'invalid status, ignoring request', transactionHashKey: transactionHashKey, txStatus: tx.status });
       continue;
     }

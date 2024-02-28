@@ -149,7 +149,7 @@ function getKey(key) {
 async function addNewAvnTransaction(requestId, requestIdHash) {
   const transactionHashKey = getKey(requestIdHash);
 
-  log.trace(`[redis][addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
+  log.trace(`[redis] [addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
 
   if (await redisClient.exists(transactionHashKey)) {
     log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
@@ -169,7 +169,7 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   const requestIdKey = getKey(requestId);
 
   log.trace(
-    `[redis][addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
+    `[redis] [addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
   );
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
@@ -192,7 +192,7 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
   const requestIdKey = getKey(requestId);
 
   log.trace(
-    `[redis][updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
+    `[redis] [updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
   );
 
   // Add new transactions to the queue, with the current time as their score. New transactions will be picked after
@@ -215,16 +215,16 @@ async function getAvnTransaction(txHashOrRequestId) {
 
 async function resolvePendingAvnTransactions(transactions) {
   if (!transactions) {
-    log.trace(`[redis]No transactions to update`);
+    log.trace(`[redis] No transactions to update`);
     return;
   }
 
-  log.trace(`[redis]Updating ${transactions.length} transactions`);
+  log.trace(`[redis] Updating ${transactions.length} transactions`);
   for (const tx of transactions) {
     const transactionHashKey = getKey(tx.transactionHash);
 
     if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(tx.status)) {
-      log.warn({ message: 'invalid status, ignoring request', transactionHashKey: transactionHashKey, txStatus: tx.status });
+      log.warn({ message: 'invalid status, ignoring request', transactionHash: tx.transactionHash, txStatus: tx.status });
       continue;
     }
 
@@ -234,13 +234,22 @@ async function resolvePendingAvnTransactions(transactions) {
     newValue[transactionObject.transactionIndex] = tx.index;
     newValue[transactionObject.eventArgs] = dataToJsonString(tx.eventArgs);
 
-    await redisClient
+    if (tx.status === transactionStatus.Validating) {
+      log.trace(`[redis] Updating tx status to validated: txHash: ${tx.transactionHash}`);
+      // make sure we don't accidentally overwrite an end state or re-write the same state
+      const tx = await redisClient.hgetall(transactionHashKey);
+      if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(tx.status)) {
+        await redisClient.hset(transactionHashKey, newValue)
+      }
+    } else {
+      await redisClient
       .multi()
       .hset(transactionHashKey, newValue)
       .zrem(PENDING_TX_KEY.ALL, tx.transactionHash)
       .zrem(PENDING_TX_KEY.CHECKING, tx.transactionHash)
       .zrem(PENDING_TX_KEY.NEXT, tx.transactionHash)
       .exec();
+    }
   }
 }
 
@@ -257,11 +266,11 @@ async function getNextTransactionsToCheck() {
     .exec();
 
   if (numUpdated[1] !== numExpired[1]) {
-    log.warn(`[redis]Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);
+    log.warn(`[redis] Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);
   }
-  log.trace(`[redis]Transactions with updated expiry: ${numUpdated[1]}\n`);
-  log.trace(`[redis]Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
-  log.trace(`[redis]Next transactions to check: ${txToCheckNext[1]}\n`);
+  log.trace(`[redis] Transactions with updated expiry: ${numUpdated[1]}\n`);
+  log.trace(`[redis] Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
+  log.trace(`[redis] Next transactions to check: ${txToCheckNext[1]}\n`);
   return txToCheckNext[1];
 }
 

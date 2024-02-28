@@ -237,8 +237,8 @@ async function resolvePendingAvnTransactions(transactions) {
     if (tx.status === transactionStatus.Validating) {
       log.trace(`[redis] Updating tx status to validated: txHash: ${tx.transactionHash}`);
       // make sure we don't accidentally overwrite an end state or re-write the same state
-      const tx = await redisClient.hgetall(transactionHashKey);
-      if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(tx.status)) {
+      const pendingTx = await redisClient.hgetall(transactionHashKey);
+      if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(pendingTx.status)) {
         await redisClient.hset(transactionHashKey, newValue)
       }
     } else {

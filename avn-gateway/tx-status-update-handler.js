@@ -72,23 +72,23 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
 
     // The same transaction can have multiple events returned for it. Here we reduce them
     // by having any failure events or events with args supplant success events:
-    const txStatusEvents = {};
+    const txEvents = {};
     const crossChainTransactions = {};
 
     events.forEach(event => {
       const txHash = event.extrinsic.hash;
-      if (failureFilter.concat(argsFilter).includes(event.name) || txHash in txStatusEvents === false) {
-        txStatusEvents[txHash] = event;
+      if (failureFilter.concat(argsFilter).includes(event.name) || txHash in txEvents === false) {
+        txEvents[txHash] = event;
       }
 
-      if (event.name in failureFilter === false && event.name === NEW_CROSS_CHAIN_EVENT) {
+      if (event.name === NEW_CROSS_CHAIN_EVENT) {
         // we have a successfull new cross chain transaction, set the status to validating
         crossChainTransactions[txHash] = event;
         crossChainTransactions[txHash].status = transactionStatus.Validating
       }
     });
 
-    log('All transactions - Received: ', Object.keys(txStatusEvents));
+    log('All transactions - Received: ', Object.keys(txEvents));
     log('Cross chain transactions - Received: ', Object.keys(crossChainTransactions));
 
     // Check the status of cross chain events, one at at time
@@ -102,25 +102,25 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
       }
     }
 
-    return Object.values(txStatusEvents).map(statusEvent => {
+    return Object.values(txEvents).map(txEvent => {
       let status;
 
-      if (failureFilter.includes(statusEvent.name)) {
+      if (failureFilter.includes(txEvent.name)) {
         status = transactionStatus.Rejected
       } else {
-        if (crossChainTransactions[statusEvent.extrinsic.hash]?.status) {
-          status = crossChainTransactions[statusEvent.extrinsic.hash].status
+        if (crossChainTransactions[txEvent.extrinsic.hash]?.status) {
+          status = crossChainTransactions[txEvent.extrinsic.hash].status
         } else {
           status = transactionStatus.Processed
         }
       }
 
       return {
-        transactionHash: statusEvent.extrinsic.hash,
+        transactionHash: txEvent.extrinsic.hash,
         status,
-        blockNumber: statusEvent.extrinsic.block.height,
-        index: statusEvent.extrinsic.indexInBlock,
-        eventArgs: argsFilter.includes(statusEvent.name) ? statusEvent.args : {}
+        blockNumber: txEvent.extrinsic.block.height,
+        index: txEvent.extrinsic.indexInBlock,
+        eventArgs: argsFilter.includes(txEvent.name) ? txEvent.args : {}
       };
     });
   } catch (error) {

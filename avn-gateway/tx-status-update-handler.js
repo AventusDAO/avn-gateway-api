@@ -68,7 +68,7 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
         { name args extrinsic { hash indexInBlock success block { height } } } }`;
 
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
-    const events = response.data.data.events;
+    const events = response?.data?.data?.events || [];
 
     // The same transaction can have multiple events returned for it. Here we reduce them
     // by having any failure events or events with args supplant success events:

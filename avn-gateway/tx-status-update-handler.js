@@ -91,8 +91,8 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     log('All transactions - Received: ', Object.keys(txEvents));
     log('Cross chain transactions - Received: ', Object.keys(crossChainTransactions));
 
-    // Check the status of cross chain events, one at at time
-    // TODO: check if there a performance issue here?
+    // Check the status of cross chain events, one at a time
+    // TODO: check if there a performance issue here or try to concatenate them with an OR in GQL
     for (const [txHash, tx] of Object.entries(crossChainTransactions)) {
       const status = await getCrossChainTransactionStatus(tx.args.ethEventId);
 
@@ -152,5 +152,3 @@ function log(state, txHashes) {
     console.info(`${state} 0 transaction statuses from graphQL`);
   }
 }
-
-

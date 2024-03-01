@@ -16,6 +16,18 @@ const NEW_CROSS_CHAIN_EVENT = 'EthereumEvents.EthereumEventAdded';
 const SUCCESS_CROSS_CHAIN_EVENT = 'EthereumEvents.EventAccepted';
 const FAILED_CROSS_CHAIN_EVENT = 'EthereumEvents.EventRejected';
 
+const crossChainFilter = [NEW_CROSS_CHAIN_EVENT];
+const successFilter = ['System.ExtrinsicSuccess'];
+const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
+
+// Any extrinsics for which we wish to capture event output can be added to the argsFilter:
+const argsFilter = [
+  'NftManager.SingleNftMinted',
+  'NftManager.BatchNftMinted',
+  'NftManager.BatchCreated',
+  'TokenManager.LowerRequested'
+];
+
 exports.handler = async _event => {
   try {
     const response = {
@@ -50,17 +62,6 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
   try {
     log('Requesting', transactionHashes);
 
-    const crossChainFilter = [NEW_CROSS_CHAIN_EVENT];
-    const successFilter = ['System.ExtrinsicSuccess'];
-    const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
-    // Any extrinsics for which we wish to capture event output can be added to the argsFilter:
-    const argsFilter = [
-      'NftManager.SingleNftMinted',
-      'NftManager.BatchNftMinted',
-      'NftManager.BatchCreated',
-      'TokenManager.LowerRequested'
-    ];
-
     const extrinsicFilter = successFilter.concat(failureFilter).concat(argsFilter).concat(crossChainFilter);
     const limit = Math.min(extrinsicFilter.length * transactionHashes.length, TX_LIMIT);
     const query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}},
@@ -91,33 +92,18 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
     log('All transactions - Received: ', Object.keys(txEvents));
     log('Cross chain transactions - Received: ', Object.keys(crossChainTransactions));
 
-    // Check the status of cross chain events, one at a time
-    // TODO: check if there a performance issue here or try to concatenate them with an OR in GQL
-    for (const [txHash, tx] of Object.entries(crossChainTransactions)) {
-      const status = await getCrossChainTransactionStatus(tx.args.ethEventId);
-
-      if (status) {
-        // We have a status so update it
-        crossChainTransactions[txHash].status = status
-      }
-    }
+    // Check the final status of cross chain events
+    const crossChainEventArgs = Object.values(crossChainTransactions).map(e => e.args.ethEventId);
+    const updatedCrossChainEvents = await getCrossChainTransactionFinalStatuses(crossChainEventArgs);
+    updatedCrossChainEvents.forEach(e => {
+      // We have a status so update it
+      crossChainTransactions[e.extrinsic.hash].status = failureFilter.includes(e.name) ? transactionStatus.Rejected : transactionStatus.Processed
+    })
 
     return Object.values(txEvents).map(txEvent => {
-      let status;
-
-      if (failureFilter.includes(txEvent.name)) {
-        status = transactionStatus.Rejected
-      } else {
-        if (crossChainTransactions[txEvent.extrinsic.hash]?.status) {
-          status = crossChainTransactions[txEvent.extrinsic.hash].status
-        } else {
-          status = transactionStatus.Processed
-        }
-      }
-
       return {
         transactionHash: txEvent.extrinsic.hash,
-        status,
+        status: calculateTransactionStatus(txEvent, failureFilter, crossChainTransactions),
         blockNumber: txEvent.extrinsic.block.height,
         index: txEvent.extrinsic.indexInBlock,
         eventArgs: argsFilter.includes(txEvent.name) ? txEvent.args : {}
@@ -128,19 +114,30 @@ async function getTransactionsStatusFromIndexer(transactionHashes) {
   }
 }
 
-async function getCrossChainTransactionStatus(txEvent) {
-  const query = `query CrossChainTransactions { events(where: {
-    name_in: ["${SUCCESS_CROSS_CHAIN_EVENT}", "${FAILED_CROSS_CHAIN_EVENT}"],
-    args_jsonContains: "{\\"ethEventId\\": {\\"signature\\":\\"${txEvent.signature}\\",\\"transactionHash\\":\\"${txEvent.transactionHash}\\"}}"
-    },
-  limit: 1) {id}}`
-
-  const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
-  if (response?.data?.data?.events && response?.data?.data?.events.length > 0) {
-    return response?.data?.data?.events[0].name === SUCCESS_CROSS_CHAIN_EVENT ? transactionStatus.Processed : transactionStatus.Rejected
+function calculateTransactionStatus(txEvent, failureEvents, crossChainTransactions) {
+  if (failureEvents.includes(txEvent.name)) {
+    return transactionStatus.Rejected
   }
 
-  return transactionStatus.Validating
+  if (crossChainTransactions[txEvent.extrinsic.hash]?.status) {
+      return crossChainTransactions[txEvent.extrinsic.hash].status
+  }
+
+  return transactionStatus.Processed
+}
+
+async function getCrossChainTransactionFinalStatuses(txEvents) {
+  const query = `query CrossChainTransactions { events(where: {
+    name_in: ["${SUCCESS_CROSS_CHAIN_EVENT}", "${FAILED_CROSS_CHAIN_EVENT}"],
+    AND: [
+      { OR: [
+      	${txEvents.map(txEvent => `{args_jsonContains: "{\\"ethEventId\\": {\\"signature\\":\\"${txEvent.signature}\\",\\"transactionHash\\":\\"${txEvent.transactionHash}\\"}}"},`).join('\n')}
+      ]}
+    ]},
+    limit: ${txEvents.length}) {name extrinsic { hash }}}`
+
+  const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
+  return response?.data?.data?.events || []
 }
 
 function log(state, txHashes) {

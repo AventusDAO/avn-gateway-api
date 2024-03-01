@@ -7,7 +7,7 @@ const {
   UnsubscribeCommand
 } = require('@aws-sdk/client-sns');
 
-const snsClient = new SNSClient({ region: config.aws.region });
+const snsClient = new SNSClient({ region: process.env.AWS_REGION });
 
 async function createOrRetrieveTopic(topicName) {
   try {

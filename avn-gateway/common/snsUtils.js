@@ -33,17 +33,22 @@ async function deleteTopic(topicArn) {
 }
 
 async function getTopicArn(topicName) {
-  const paginator = paginateListTopics({ client: snsClient }, {});
-  for await (const page of paginator) {
-    const foundTopic = page.Topics.find(topic => topic.TopicArn.includes(topicName));
-    if (foundTopic) {
-      return foundTopic.TopicArn;
+  try {
+    const paginator = paginateListTopics({ client: snsClient }, {});
+    for await (const page of paginator) {
+      const foundTopic = page.Topics.find(topic => topic.TopicArn.includes(topicName));
+      if (foundTopic) {
+        return foundTopic.TopicArn;
+      }
     }
+    return undefined;
+  } catch (error) {
+    console.error('Error getting SNS topic:', error);
+    throw error;
   }
-  return undefined;
 }
 
-async function subscribeToTopic(topicArn, filter, endpoint) {
+async function subscribeToTopic(topicArn, endpoint, filterPolicy) {
   try {
     const command = new SubscribeCommand({
       TopicArn: topicArn,
@@ -51,7 +56,7 @@ async function subscribeToTopic(topicArn, filter, endpoint) {
       Endpoint: endpoint,
       Attributes: {
         FilterPolicyScope: 'MessageAttributes',
-        FilterPolicy: JSON.stringify(filter)
+        FilterPolicy: JSON.stringify(filterPolicy)
       }
     });
     await snsClient.send(command);

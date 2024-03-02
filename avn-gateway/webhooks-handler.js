@@ -17,7 +17,7 @@ exports.handler = async event => {
         response = await deregister(body.account, body.webhook);
         break;
       default:
-        throw new Error('Invalid webhook operation');
+        throw new Error('Invalid operation');
     }
 
     return {
@@ -35,12 +35,12 @@ exports.handler = async event => {
 async function register(account, eventTypes, endpoint) {
   try {
     let topicArn = await processAccount(account);
-    if (!topicArn) topicArn = await sns.createTopic(account);
-    const filter = { account: account, eventType: eventTypes };
-    await sns.subscribeToTopic(topicArn, filter, endpoint);
-    const data = { account, eventTypes, endpoint };
-    console.log(`Webhook registered: ${JSON.stringify(data)}`);
-    return { message: 'Webhook registered pending endpoint confirmation', data };
+    if (!topicArn) {
+      topicArn = await sns.createTopic(account);
+    }
+    const filterPolicy = { account: account, eventType: eventTypes };
+    await sns.subscribeToTopic(topicArn, endpoint, filterPolicy);
+    return processResult('Webhook registered', { account, eventTypes, endpoint });
   } catch (error) {
     console.error('Error registering webhook:', error);
     throw error;
@@ -50,12 +50,12 @@ async function register(account, eventTypes, endpoint) {
 async function confirm(account, token) {
   try {
     const topicArn = await processAccount(account);
-    if (!topicArn) throw new Error('Registration required first');
+    if (!topicArn) {
+      throw new Error('Register first');
+    }
     const subscriptionArn = await sns.confirmTopicSubscription(topicArn, token);
     const webhook = subscriptionArn.split(':').pop();
-    const data = { account, webhook };
-    console.log(`Webhook confirmed: ${JSON.stringify(data)}`);
-    return { message: 'Webhook registration complete', data };
+    return processResult('Webhook confirmed', { account, webhook });
   } catch (error) {
     console.error('Error confirming webhook:', error);
     throw error;
@@ -65,14 +65,16 @@ async function confirm(account, token) {
 async function deregister(account, webhook) {
   try {
     const topicArn = await processAccount(account);
-    if (!topicArn) throw new Error('Registration does not exist');
+    if (!topicArn) {
+      throw new Error('Registration does not exist');
+    }
     const subscriptionArn = [topicArn, webhook].join(':');
     await sns.unsubscribeFromTopic(subscriptionArn);
     const subscribers = await sns.getTopicSubscribers(topicArn);
-    if (subscribers.length === 0) await sns.deleteTopic(topicArn);
-    const data = { account, webhook };
-    console.log(`Webhook deregistered: ${JSON.stringify(data)}`);
-    return { message: 'Webhook deregistered successfully', data };
+    if (subscribers.length === 0) {
+      await sns.deleteTopic(topicArn);
+    }
+    return processResult('Webhook deregistered', { account, webhook });
   } catch (error) {
     console.error('Error deregistering webhook:', error);
     throw error;
@@ -80,6 +82,11 @@ async function deregister(account, webhook) {
 }
 
 async function processAccount(account) {
-  if (!utils.isValidAccountId(account)) throw new Error('Invalid webhook account');
+  if (!utils.isValidAccountId(account)) throw new Error('Invalid account');
   return await sns.getTopicArn(utils.convertToAddress(account));
+}
+
+function processResult(message, data) {
+  console.log(`${message}: ${JSON.stringify(data)}`);
+  return { message, data };
 }

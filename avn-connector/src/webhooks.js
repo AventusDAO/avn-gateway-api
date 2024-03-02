@@ -4,9 +4,9 @@ const config = require('multiconfig').load();
 const log = require('log4js').configure(config.log4Js).getLogger();
 const snsClient = new SNSClient({ region: config.aws.region });
 
-const ACCOUNTS_REFRESH_PERIOD = 60 * 1000; // 1 minute
 const trackedAccounts = new Map();
-let accountsLastRefreshed = Date.now();
+const REFRESH_PERIOD = 60 * 1000; // 1 minute
+let lastRefresh = 0;
 
 // TODO: Get these from the database
 const Events = {
@@ -29,8 +29,8 @@ async function publishEvent(category, state, account, requestId, eventData) {
   await refreshTrackedAccountsIfRequired(eventTime);
 
   if (!trackedAccounts.has(account)) return;
-  if (!Events[category]) throw new Error('Invalid event category');
-  if (!Events[category][state]) throw new Error('Invalid event state');
+  if (!Events[category]) throw new Error('Invalid webhook event category');
+  if (!Events[category][state]) throw new Error('Invalid webhook event state');
   const eventType = Events[category][state];
 
   try {
@@ -58,21 +58,17 @@ async function publishEvent(category, state, account, requestId, eventData) {
 }
 
 async function refreshTrackedAccountsIfRequired(timeNow) {
-  if (timeNow - accountsLastRefreshed > ACCOUNTS_REFRESH_PERIOD) {
-    accountsLastRefreshed = timeNow;
-    await updateAccountTracking();
-  }
-}
-
-async function updateAccountTracking() {
-  try {
-    const paginator = paginateListTopics({ snsClient }, {});
-    trackedAccounts.clear();
-    for await (const page of paginator) {
-      page.forEach(topic => trackedAccounts.set(page.topic, page.topic.TopicArn));
+  if (timeNow - lastRefresh > REFRESH_PERIOD) {
+    lastRefresh = timeNow;
+    try {
+      const paginator = paginateListTopics({ snsClient }, {});
+      trackedAccounts.clear();
+      for await (const page of paginator) {
+        page.forEach(topic => trackedAccounts.set(page.topic, page.topic.TopicArn));
+      }
+    } catch (err) {
+      log.error('Error refreshing webhook account tracking', err);
     }
-  } catch (err) {
-    log.error('Error updating webhook account tracking', err);
   }
 }
 

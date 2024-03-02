@@ -18,7 +18,7 @@ async function createTopic(topicName) {
     const response = await snsClient.send(command);
     return response.TopicArn;
   } catch (error) {
-    console.error('Error creating or retrieving topic', error);
+    console.error('Error creating SNS topic', error);
     throw error;
   }
 }
@@ -28,7 +28,7 @@ async function deleteTopic(topicArn) {
     const command = new DeleteTopicCommand({ TopicArn: topicArn });
     await snsClient.send(command);
   } catch (error) {
-    console.error('Error deleting topic', error);
+    console.error('Error deleting SNS topic', error);
     throw error;
   }
 }
@@ -57,7 +57,7 @@ async function subscribeToTopic(topicArn, filter, endpoint) {
     });
     await snsClient.send(command);
   } catch (error) {
-    console.error('Error subscribing to topic:', error);
+    console.error('Error subscribing to SNS topic:', error);
     throw error;
   }
 }
@@ -72,7 +72,7 @@ async function confirmTopicSubscription(topicArn, token) {
     const response = await snsClient.send(command);
     return response.SubscriptionArn;
   } catch (error) {
-    console.error('Error confirming topic subscription:', error);
+    console.error('Error confirming SNS topic subscription:', error);
     throw error;
   }
 }
@@ -82,7 +82,7 @@ async function unsubscribeFromTopic(subscriptionArn) {
     const command = new UnsubscribeCommand({ SubscriptionArn: subscriptionArn });
     await snsClient.send(command);
   } catch (error) {
-    console.error('Error unsubscribing from topic:', error);
+    console.error('Error unsubscribing from SNS topic:', error);
     throw error;
   }
 }
@@ -93,7 +93,7 @@ async function getTopicSubscribers(topicArn) {
     const response = await snsClient.send(command);
     return response.Subscriptions;
   } catch (error) {
-    console.error('Error getting subscribers', error);
+    console.error('Error getting SNS topic subscribers', error);
     throw error;
   }
 }

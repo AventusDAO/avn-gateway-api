@@ -17,7 +17,7 @@ exports.handler = async event => {
         response = await deregister(body.account, body.webhook);
         break;
       default:
-        throw new Error('Invalid operation');
+        throw new Error('Invalid webhook operation');
     }
 
     return {
@@ -38,7 +38,7 @@ async function register(account, eventTypes, endpoint) {
     if (!topicArn) topicArn = await sns.createTopic(account);
     const filter = { account: account, eventType: eventTypes };
     await sns.subscribeToTopic(topicArn, filter, endpoint);
-    const data = { account, eventTypes, endpoint, topicArn };
+    const data = { account, eventTypes, endpoint };
     console.log(`Webhook registered: ${JSON.stringify(data)}`);
     return { message: 'Webhook registered pending endpoint confirmation', data };
   } catch (error) {
@@ -80,6 +80,6 @@ async function deregister(account, webhook) {
 }
 
 async function processAccount(account) {
-  if (!utils.isValidAccountId(account)) throw new Error('Invalid account');
+  if (!utils.isValidAccountId(account)) throw new Error('Invalid webhook account');
   return await sns.getTopicArn(utils.convertToAddress(account));
 }

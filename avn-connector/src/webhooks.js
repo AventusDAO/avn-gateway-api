@@ -26,7 +26,9 @@ const Events = {
 
 async function publishEvent(category, state, account, requestId, eventData) {
   const eventTime = Date.now();
-  await refreshTrackedAccountsIfRequired(eventTime);
+  if (eventTime - lastRefresh > REFRESH_PERIOD) {
+    await refreshAccountTracking(eventTime);
+  }
 
   if (!trackedAccounts.has(account)) return;
   if (!Events[category]) throw new Error('Invalid webhook event category');
@@ -57,18 +59,16 @@ async function publishEvent(category, state, account, requestId, eventData) {
   }
 }
 
-async function refreshTrackedAccountsIfRequired(timeNow) {
-  if (timeNow - lastRefresh > REFRESH_PERIOD) {
-    lastRefresh = timeNow;
-    try {
-      const paginator = paginateListTopics({ snsClient }, {});
-      trackedAccounts.clear();
-      for await (const page of paginator) {
-        page.forEach(topic => trackedAccounts.set(page.topic, page.topic.TopicArn));
-      }
-    } catch (err) {
-      log.error('Error refreshing webhook account tracking', err);
+async function refreshAccountTracking(timeNow) {
+  lastRefresh = timeNow;
+  try {
+    const paginator = paginateListTopics({ snsClient }, {});
+    trackedAccounts.clear();
+    for await (const page of paginator) {
+      page.forEach(topic => trackedAccounts.set(page.topic, page.topic.TopicArn));
     }
+  } catch (err) {
+    log.error('Error refreshing webhook account tracking', err);
   }
 }
 

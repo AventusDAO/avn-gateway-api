@@ -1,15 +1,18 @@
 const {
   SNSClient,
+  ConfirmSubscriptionCommand,
   CreateTopicCommand,
   DeleteTopicCommand,
   ListSubscriptionsByTopicCommand,
+  paginateListTopics,
   SubscribeCommand,
   UnsubscribeCommand
 } = require('@aws-sdk/client-sns');
 
-const snsClient = new SNSClient({ region: process.env.AWS_REGION });
+const awsRegion = process.env.AWS_REGION;
+const snsClient = new SNSClient({ region: awsRegion });
 
-async function createOrRetrieveTopic(topicName) {
+async function createTopic(topicName) {
   try {
     const command = new CreateTopicCommand({ Name: topicName, Attributes: { FifoTopic: true } });
     const response = await snsClient.send(command);
@@ -18,6 +21,27 @@ async function createOrRetrieveTopic(topicName) {
     console.error('Error creating or retrieving topic', error);
     throw error;
   }
+}
+
+async function deleteTopic(topicArn) {
+  try {
+    const command = new DeleteTopicCommand({ TopicArn: topicArn });
+    await snsClient.send(command);
+  } catch (error) {
+    console.error('Error deleting topic', error);
+    throw error;
+  }
+}
+
+async function getTopicArn(topicName) {
+  const paginator = paginateListTopics({ client: snsClient }, {});
+  for await (const page of paginator) {
+    const foundTopic = page.Topics.find(topic => topic.TopicArn.includes(topicName));
+    if (foundTopic) {
+      return foundTopic.TopicArn;
+    }
+  }
+  return undefined;
 }
 
 async function subscribeToTopic(topicArn, filter, endpoint) {
@@ -31,10 +55,24 @@ async function subscribeToTopic(topicArn, filter, endpoint) {
         FilterPolicy: JSON.stringify(filter)
       }
     });
+    await snsClient.send(command);
+  } catch (error) {
+    console.error('Error subscribing to topic:', error);
+    throw error;
+  }
+}
+
+async function confirmTopicSubscription(topicArn, token) {
+  try {
+    const command = new ConfirmSubscriptionCommand({
+      TopicArn: topicArn,
+      Token: token,
+      AuthenticateOnUnsubscribe: true
+    });
     const response = await snsClient.send(command);
     return response.SubscriptionArn;
   } catch (error) {
-    console.error('Error subscribing to topic:', error);
+    console.error('Error confirming topic subscription:', error);
     throw error;
   }
 }
@@ -60,25 +98,12 @@ async function getTopicSubscribers(topicArn) {
   }
 }
 
-function getTopicArn(subscriptionArn) {
-  return subscriptionArn.substring(0, subscriptionArn.lastIndexOf(':'));
-}
-
-async function deleteTopic(topicArn) {
-  try {
-    const command = new DeleteTopicCommand({ TopicArn: topicArn });
-    await snsClient.send(command);
-  } catch (error) {
-    console.error('Error deleting topic', error);
-    throw error;
-  }
-}
-
 module.exports = {
-  createOrRetrieveTopic,
-  subscribeToTopic,
-  unsubscribeFromTopic,
-  getTopicSubscribers,
+  confirmTopicSubscription,
+  createTopic,
+  deleteTopic,
   getTopicArn,
-  deleteTopic
+  getTopicSubscribers,
+  subscribeToTopic,
+  unsubscribeFromTopic
 };

@@ -69,14 +69,10 @@ function refreshTrackedAccountsIfRequired(timeNow) {
 
 async function updateAccountTracking() {
   try {
-    const paginatedTopics = await paginateListTopics({ snsClient }, {});
+    const paginator = paginateListTopics({ snsClient }, {});
     trackedAccounts.clear();
-
-    for (const page of paginatedTopics) {
-      for (const topic of page) {
-        const account = page.topic;
-        trackedAccounts.set(account, page.topic.TopicArn);
-      }
+    for await (const page of paginator) {
+      page.forEach(topic => trackedAccounts.set(page.topic, page.topic.TopicArn));
     }
   } catch (err) {
     log.error('Error updating webhook account tracking', err);

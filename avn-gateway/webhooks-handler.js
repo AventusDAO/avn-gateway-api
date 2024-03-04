@@ -21,8 +21,8 @@ exports.handler = async event => {
   }
 };
 
-// Registers a webhook to listen for specific tx events for an account.
-// The https listener endpoint requires confirmation before it can start receiving these events.
+// Registers an https listener endpoint to receive specific tx events for an account.
+// The endpoint requires confirmation before it can start receiving these events.
 async function register(account, eventTypes, endpoint) {
   const topicArn = (await processAccount(account)) || (await sns.createTopic(account));
   const filterPolicy = { account, eventType: eventTypes };

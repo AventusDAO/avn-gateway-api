@@ -30,7 +30,7 @@ async function register(account, eventTypes, endpoint) {
   return processResult('Webhook registered', { account, eventTypes, endpoint });
 }
 
-// Enables a registered endpoint to start receiving events by confirming the token it should have been sent during registration.
+// Enables a registered endpoint to start receiving events by confirming the token it should have received upon registration.
 async function confirm(account, token) {
   const topicArn = await getValidatedTopicArn(account);
   const subscriptionArn = await sns.confirmTopicSubscription(topicArn, token);

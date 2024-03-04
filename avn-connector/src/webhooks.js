@@ -31,8 +31,8 @@ async function publishEvent(category, state, account, requestId, eventData) {
   }
 
   if (!trackedAccounts.has(account)) return;
-  if (!Events[category]) throw new Error('Invalid webhook event category');
-  if (!Events[category][state]) throw new Error('Invalid webhook event state');
+  if (!Events[category]) throw new Error('[Webhook] ERROR - Invalid event category');
+  if (!Events[category][state]) throw new Error('[Webhook] ERROR - Invalid event state');
   const eventType = Events[category][state];
 
   try {

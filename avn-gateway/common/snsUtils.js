@@ -5,6 +5,7 @@ const {
   DeleteTopicCommand,
   ListSubscriptionsByTopicCommand,
   paginateListTopics,
+  SetSubscriptionAttributesCommand,
   SubscribeCommand,
   UnsubscribeCommand
 } = require('@aws-sdk/client-sns');
@@ -98,6 +99,21 @@ async function getTopicSubscribers(topicArn) {
     return response.Subscriptions;
   } catch (error) {
     console.error('Error getting SNS topic subscribers', error);
+    throw error;
+  }
+}
+
+async function updateSubscriptionFilterPolicy(subscriptionArn, newFilterPolicy) {
+  try {
+    const command = new SetSubscriptionAttributesCommand({
+      SubscriptionArn: subscriptionArn,
+      AttributeName: 'FilterPolicy',
+      AttributeValue: JSON.stringify(newFilterPolicy)
+    });
+    const response = await snsClient.send(command);
+    return response.SubscriptionArn;
+  } catch (error) {
+    console.error('Error updating filter policy for SNS topic subscription:', error);
     throw error;
   }
 }

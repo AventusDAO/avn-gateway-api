@@ -55,7 +55,7 @@ async function publishEvent(category, state, account, requestId, eventData) {
 
     await snsClient.send(new PublishCommand(eventData));
   } catch (err) {
-    log.error(`Error publishing webhook event: ${JSON.stringify({ account, eventType, eventData, requestId })}`, err);
+    log.error(`[Webhook] ERROR - Error publishing event: ${JSON.stringify({ account, eventType, eventData, requestId })}`, err);
   }
 }
 
@@ -68,7 +68,7 @@ async function refreshAccountTracking(timeNow) {
       page.forEach(topic => trackedAccounts.set(page.topic, page.topic.TopicArn));
     }
   } catch (err) {
-    log.error('Error refreshing webhook account tracking', err);
+    log.error('[Webhook] ERROR - Error refreshing account tracking', err);
   }
 }
 

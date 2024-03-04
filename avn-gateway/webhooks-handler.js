@@ -21,6 +21,8 @@ exports.handler = async event => {
   }
 };
 
+// Registers a webhook to listen for specific events on a particular account.
+// The https listener endpoint requires confirmation before it can start receiving events.
 async function register(account, eventTypes, endpoint) {
   const topicArn = (await processAccount(account)) || (await sns.createTopic(account));
   const filterPolicy = { account, eventType: eventTypes };
@@ -28,6 +30,7 @@ async function register(account, eventTypes, endpoint) {
   return processResult('Webhook registered', { account, eventTypes, endpoint });
 }
 
+// Enables a registered endpoint to start receiving events by confirming the token it should have been sent during registration.
 async function confirm(account, token) {
   const topicArn = await getValidatedTopicArn(account);
   const subscriptionArn = await sns.confirmTopicSubscription(topicArn, token);
@@ -35,6 +38,7 @@ async function confirm(account, token) {
   return processResult('Webhook confirmed', { account, webhook });
 }
 
+// Updates the set of events that an existing webook on an account will receive.
 async function update(account, eventTypes, webhook) {
   const topicArn = await getValidatedTopicArn(account);
   const newFilterPolicy = { account, eventType: eventTypes };
@@ -43,6 +47,7 @@ async function update(account, eventTypes, webhook) {
   return processResult('Webhook updated', { account, eventTypes, webhook });
 }
 
+// Deregisters a webhook, removing listening to that account's tx entirely if no other webhooks remain attached.
 async function deregister(account, webhook) {
   const topicArn = await getValidatedTopicArn(account);
   const subscriptionArn = [topicArn, webhook].join(':');

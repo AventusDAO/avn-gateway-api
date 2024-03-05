@@ -42,7 +42,7 @@ async function confirm(account, token) {
 async function update(account, eventTypes, webhook) {
   const topicArn = await getValidatedTopicArn(account);
   const newFilterPolicy = { account, eventType: eventTypes };
-  const subscriptionArn = [topicArn, webhook].join(':');
+  const subscriptionArn = `${topicArn}:${webhook}`;
   await sns.updateSubscriptionFilterPolicy(subscriptionArn, newFilterPolicy);
   return processResult('Webhook updated', { account, eventTypes, webhook });
 }

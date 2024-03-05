@@ -91,10 +91,10 @@ async function callSwitch(call, request, requestId) {
     case 'proxyTokenTransfer':
       return await processProxyTransfer(call, request, requestId);
     case 'proxyConfirmTokenLift':
-    case 'proxyConfirmNftMint':
-    case 'proxyConfirmNftTransfer':
-    case 'ProxyConfirmNftCancelListing':
-    case 'ProxyConfirmNftEndBatchListing':
+    case 'proxyMintEthereumBatchNft':
+    case 'proxyTransferEthereumNft':
+    case 'proxyCancelEthereumNftSale':
+    case 'proxyEndEthereumBatchSale':
       return await processProxyAddEthereumLog(call, request, requestId);
     case 'proxyTokenLower':
       return await processProxyTokenLower(call, request, requestId);
@@ -105,8 +105,10 @@ async function callSwitch(call, request, requestId) {
     case 'proxyEndNftBatchSale':
       return await processProxyEndNftBatchSale(call, request, requestId);
     case 'proxyListNftOpenForSale':
+    case 'proxyListEthereumNftForSale':
       return await processProxyListNftOpenForSale(call, request, requestId);
     case 'proxyListNftBatchForSale':
+    case 'proxyListEthereumNftBatchForSale':
       return await processProxyListNftBatchForSale(call, request, requestId);
     case 'proxyMintSingleNft':
       return await processProxyMintSingleNft(call, request, requestId);

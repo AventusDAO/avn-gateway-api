@@ -8,27 +8,7 @@ const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
 const RELAYER_TABLE = 'relayer';
 const PAYER_TRANSACTION_TABLE = 'payerTransaction';
-
-const transactionTypes = {
-  proxyAvtTransfer: 'proxyAvtTransfer',
-  proxyTokenTransfer: 'proxyTokenTransfer',
-  proxyConfirmTokenLift: 'proxyConfirmTokenLift',
-  proxyTokenLower: 'proxyTokenLower',
-  proxyCreateNftBatch: 'proxyCreateNftBatch',
-  proxyMintSingleNft: 'proxyMintSingleNft',
-  proxyMintBatchNft: 'proxyMintBatchNft',
-  proxyListNftOpenForSale: 'proxyListNftOpenForSale',
-  proxyListNftBatchForSale: 'proxyListNftBatchForSale',
-  proxyTransferFiatNft: 'proxyTransferFiatNft',
-  proxyCancelListFiatNft: 'proxyCancelListFiatNft',
-  proxyEndNftBatchSale: 'proxyEndNftBatchSale',
-  proxyStakeAvt: 'proxyStakeAvt',
-  proxyIncreaseStake: 'proxyIncreaseStake',
-  proxyUnstake: 'proxyUnstake',
-  proxyWithdrawUnlocked: 'proxyWithdrawUnlocked',
-  proxyScheduleLeaveNominators: 'proxyScheduleLeaveNominators',
-  proxyExecuteLeaveNominators: 'proxyExecuteLeaveNominators'
-};
+const TRANSACTION_TABLE = 'transaction';
 
 let dataSource;
 
@@ -132,7 +112,7 @@ async function getRelayer(relayerAddress) {
 }
 
 // This function expects that each relayer has at least one default fee or a fee for each transaction type.
-function buildFeesJson(dbResult, relayerDefaultFee) {
+function buildFeesJson(dbResult, relayerDefaultFee, transactionTypes) {
   let defaultFee;
   let relayerFees = {};
 
@@ -150,9 +130,19 @@ function buildFeesJson(dbResult, relayerDefaultFee) {
   });
 
   defaultFee = defaultFee ?? relayerDefaultFee;
-  Object.values(transactionTypes).forEach(v => (relayerFees[v] = relayerFees[v] ?? defaultFee));
+  transactionTypes.forEach(tx => (relayerFees[tx.name] = relayerFees[tx.name] ?? defaultFee));
 
   return relayerFees;
+}
+
+async function getTransactions() {
+  const transactionDataSource = await dataSource.getRepository(TRANSACTION_TABLE);
+
+  return await transactionDataSource.find({
+    where: {
+      enabled: true
+    }
+  });
 }
 
 async function getSingleFee(feeDataSource, relayer, userPk, transactionName) {
@@ -177,7 +167,9 @@ async function getAllFees(feeDataSource, relayer, userPk) {
     }
   });
 
-  return buildFeesJson(fees, relayer.defaultFee);
+  const transactionTypes = await getTransactions()
+
+  return buildFeesJson(fees, relayer.defaultFee, transactionTypes);
 }
 
 async function getRelayerVaultId(relayerAddress) {

@@ -113,7 +113,7 @@ async function updateSubscription(subscriptionArn, newFilterPolicy) {
     const response = await snsClient.send(command);
     return response.SubscriptionArn;
   } catch (error) {
-    console.error('Error updating filter policy for SNS topic subscription:', error);
+    console.error('Error updating SNS topic subscription:', error);
     throw error;
   }
 }

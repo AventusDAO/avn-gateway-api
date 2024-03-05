@@ -1,17 +1,20 @@
 const utils = require('/opt/utils.js');
 const sns = require('/opt/snsUtils.js');
 
-const OPERATIONS = { register, confirm, update, deregister };
-
 exports.handler = async event => {
   try {
+    const actions = {
+      register: async () => await register(account, eventTypes, endpoint),
+      confirm: async () => await confirm(account, token),
+      update: async () => await update(account, eventTypes, webhook),
+      deregister: async () => await deregister(account, webhook)
+    };
     const body = JSON.parse(event.body);
-    const { account, eventTypes, endpoint, token, webhook } = body;
-    if (!OPERATIONS[body.operation]) throw new Error('Invalid operation');
-    const response = await OPERATIONS[body.operation](account, eventTypes || token, endpoint || webhook);
+    const { account, action, eventTypes, endpoint, token, webhook } = body;
+    if (!actions[action]) throw new Error('Invalid action');
     return {
       statusCode: 200,
-      body: JSON.stringify(response)
+      body: JSON.stringify(await actions[action]())
     };
   } catch (error) {
     return {
@@ -24,7 +27,7 @@ exports.handler = async event => {
 // Registers an https listener endpoint to receive specific tx events for an account
 // The endpoint requires confirmation before it can start receiving these events
 async function register(account, eventTypes, endpoint) {
-  const topicArn = (await processAccount(account)) || (await sns.createTopic(account));
+  const topicArn = (await getTopicArnIfAvailable(account)) || (await sns.createTopic(account));
   const filterPolicy = { account, eventType: eventTypes };
   await sns.subscribeToTopic(topicArn, endpoint, filterPolicy);
   return processResult('Webhook registered', { account, eventTypes, endpoint });
@@ -56,13 +59,13 @@ async function deregister(account, webhook) {
   return processResult('Webhook deregistered', { account, webhook });
 }
 
-async function processAccount(account) {
+async function getTopicArnIfAvailable(account) {
   if (!utils.isValidAccountId(account)) throw new Error('Invalid account ID');
   return sns.getTopicArn(utils.convertToAddress(account));
 }
 
 async function getValidatedTopicArn(account) {
-  const topicArn = await processAccount(account);
+  const topicArn = await getTopicArnIfAvailable(account);
   if (!topicArn) throw new Error('Registration not found');
   return topicArn;
 }

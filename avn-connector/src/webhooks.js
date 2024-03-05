@@ -5,7 +5,7 @@ const log = require('log4js').configure(config.log4Js).getLogger();
 const snsClient = new SNSClient({ region: config.aws.region });
 
 const trackedAccounts = new Map();
-const REFRESH_PERIOD = 60 * 1000; // 1 minute
+const REFRESH_PERIOD = config.webhooks.account_tracking_refresh_period_ms;
 let lastRefresh = 0;
 
 // TODO: Get these from the database

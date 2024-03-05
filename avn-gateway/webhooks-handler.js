@@ -25,6 +25,7 @@ exports.handler = async event => {
 };
 
 // Registers an https listener endpoint to receive specific tx events for an account
+// Event types are validated by the sender
 // The endpoint requires confirmation before it can start receiving these events
 async function register(account, eventTypes, endpoint) {
   const topic = await getOrCreateTopic(account);
@@ -46,7 +47,7 @@ async function update(account, eventTypes, webhook) {
   return processResult('Webhook updated', { account, eventTypes, webhook });
 }
 
-// Deregisters a webhook (removing listening to the associated account's activity entirely if no other webhooks remain attached)
+// Deregisters a webhook (and removes the tracked account's SNS topic if no other webhooks remain)
 async function deregister(account, webhook) {
   const topic = await getTopic(account);
   await sns.unsubscribeFromTopic(`${topic}:${webhook}`);

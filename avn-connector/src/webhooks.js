@@ -3,9 +3,9 @@ const crypto = require('crypto');
 const config = require('multiconfig').load();
 const log = require('log4js').configure(config.log4Js).getLogger();
 const snsClient = new SNSClient({ region: config.aws.region });
-
-const trackedAccounts = new Map();
 const REFRESH_PERIOD = config.webhooks.refresh_period_ms;
+const WEBHOOK_SNS_TOPIC_PREFIX = 'gateway_webhook_';
+const trackedAccounts = new Map();
 let lastRefresh = 0;
 
 // TODO: Get these from the database
@@ -62,13 +62,20 @@ async function publishEvent(category, state, account, requestId, eventData) {
 async function refreshAccountTracking(timeNow) {
   lastRefresh = timeNow;
   try {
-    const paginator = paginateListTopics({ snsClient }, {});
+    const paginator = paginateListTopics({ client: snsClient }, {});
     trackedAccounts.clear();
     for await (const page of paginator) {
-      page.forEach(topic => trackedAccounts.set(page.topic, page.topic.TopicArn));
+      page.Topics.forEach(topic => {
+        if (topic.TopicArn.includes(WEBHOOK_SNS_TOPIC_PREFIX)) {
+          const topicArn = topic.TopicArn;
+          const topicName = topicArn.split(':').pop();
+          const account = topicName.replace(WEBHOOK_SNS_TOPIC_PREFIX, '');
+          trackedAccounts.set(account, topicArn);
+        }
+      });
     }
-  } catch (err) {
-    log.error('[Webhook] ERROR - Error refreshing account tracking', err);
+  } catch (error) {
+    console.error('Error processing SNS topics:', error);
   }
 }
 

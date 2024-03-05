@@ -12,9 +12,9 @@ const {
 
 const snsClient = new SNSClient({ region: process.env.AWS_REGION });
 
-async function createTopic(topicName) {
+async function createTopic(name) {
   try {
-    const command = new CreateTopicCommand({ Name: topicName, Attributes: { FifoTopic: true } });
+    const command = new CreateTopicCommand({ Name: name, Attributes: { FifoTopic: true } });
     const response = await snsClient.send(command);
     return response.TopicArn;
   } catch (error) {
@@ -33,11 +33,11 @@ async function deleteTopic(topicArn) {
   }
 }
 
-async function getTopicArn(topicName) {
+async function getTopic(name) {
   try {
     const paginator = paginateListTopics({ client: snsClient }, {});
     for await (const page of paginator) {
-      const foundTopic = page.Topics.find(topic => topic.TopicArn.includes(topicName));
+      const foundTopic = page.Topics.find(topic => topic.TopicArn.includes(name));
       if (foundTopic) {
         return foundTopic.TopicArn;
       }
@@ -122,7 +122,7 @@ module.exports = {
   confirmTopicSubscription,
   createTopic,
   deleteTopic,
-  getTopicArn,
+  getTopic,
   getTopicSubscribers,
   subscribeToTopic,
   unsubscribeFromTopic

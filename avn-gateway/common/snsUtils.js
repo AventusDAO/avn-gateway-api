@@ -103,7 +103,7 @@ async function getTopicSubscribers(topicArn) {
   }
 }
 
-async function updateSubscriptionFilterPolicy(subscriptionArn, newFilterPolicy) {
+async function updateSubscription(subscriptionArn, newFilterPolicy) {
   try {
     const command = new SetSubscriptionAttributesCommand({
       SubscriptionArn: subscriptionArn,
@@ -125,5 +125,6 @@ module.exports = {
   getTopic,
   getTopicSubscribers,
   subscribeToTopic,
+  updateSubscription,
   unsubscribeFromTopic
 };

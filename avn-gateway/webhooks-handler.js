@@ -42,7 +42,7 @@ async function confirm(account, token) {
 // Updates the set of events an existing webook will receive for an account
 async function update(account, eventTypes, webhook) {
   const topic = await getTopic(account);
-  await sns.updateSubscriptionFilterPolicy(`${topic}:${webhook}`, { account, eventType: eventTypes });
+  await sns.updateSubscription(`${topic}:${webhook}`, { account, eventType: eventTypes });
   return processResult('Webhook updated', { account, eventTypes, webhook });
 }
 

@@ -38,7 +38,7 @@ async function publishEvent(category, state, account, requestId, eventData) {
   try {
     const eventData = {
       TopicArn: trackedAccounts.get(account),
-      Message: JSON.stringify({ eventData, eventTime, eventType, requestId }),
+      Message: JSON.stringify({ eventTime, eventType, requestId, eventData }),
       MessageAttributes: {
         eventType: {
           DataType: 'String',

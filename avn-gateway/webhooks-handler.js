@@ -2,6 +2,7 @@ const utils = require('/opt/utils.js');
 const sns = require('/opt/snsUtils.js');
 
 const WEBHOOK_SNS_TOPIC_PREFIX = 'gateway_webhook_';
+const WEBHOOK_SNS_TOPIC_SUFFIX = '.fifo';
 
 exports.handler = async event => {
   try {
@@ -62,7 +63,7 @@ async function getOrCreateTopic(account) {
 
 function getTopicName(account) {
   if (!utils.isValidAccountId(account)) throw new Error('Invalid account ID');
-  return WEBHOOK_SNS_TOPIC_PREFIX + utils.convertToAddress(account);
+  return WEBHOOK_SNS_TOPIC_PREFIX + utils.convertToAddress(account) + WEBHOOK_SNS_TOPIC_SUFFIX;
 }
 
 async function getTopic(account) {

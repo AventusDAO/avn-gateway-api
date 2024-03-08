@@ -40,19 +40,19 @@ class WebhooksUpdater {
   }
 }
 
-async function publishEvent(trackedAddress, eventType, requestId, eventData) {
+async function publishEvent(address, eventType, requestId, eventData) {
   if (!webhooks.EventTypes[eventType]) throw new Error('[Webhooks] ERROR - Invalid event type');
 
   const timestamp = Date.now();
-  const { endpoint, eventFilter } = webhooks.active[trackedAddress];
+  const { endpoint, eventFilter } = webhooks.active[address];
   if (!endpoint || !eventFilter.includes(eventType)) return;
-  const messageBody = JSON.stringify({ trackedAddress, endpoint, event: { timestamp, requestId, eventType, eventData } });
+  const messageBody = JSON.stringify({ address, endpoint, event: { timestamp, requestId, eventType, eventData } });
 
   try {
     const params = {
       QueueUrl: config.webhooks.queue_url,
       MessageBody: messageBody,
-      MessageGroupId: trackedAddress,
+      MessageGroupId: address,
       MessageDeduplicationId: hash(messageBody)
     };
     await sqsClient.send(new SendMessageCommand(params));

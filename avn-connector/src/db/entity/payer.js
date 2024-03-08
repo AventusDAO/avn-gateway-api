@@ -41,7 +41,7 @@ module.exports = new EntitySchema({
       type: 'varchar',
       nullable: true
     },
-    webhookSelectedEvents: {
+    webhookSelectedEventTypes: {
       type: 'text',
       array: true,
       nullable: true

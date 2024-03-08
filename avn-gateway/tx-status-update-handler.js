@@ -12,11 +12,10 @@ const transactionStatus = {
 };
 
 // any cross chain transactions such as lifting will emit this event
-const NEW_CROSS_CHAIN_EVENT = 'EthereumEvents.EthereumEventAdded';
+const NEW_CROSS_CHAIN_EVENTS = ['EthereumEvents.EthereumEventAdded', 'EthereumEvents.NftEthereumEventAdded'];
 const SUCCESS_CROSS_CHAIN_EVENT = 'EthereumEvents.EventAccepted';
 const FAILED_CROSS_CHAIN_EVENT = 'EthereumEvents.EventRejected';
 
-const crossChainFilter = [NEW_CROSS_CHAIN_EVENT];
 const successFilter = ['System.ExtrinsicSuccess'];
 const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
 
@@ -87,7 +86,7 @@ async function getTransactionEventsFromIndexer(transactionHashes) {
   try {
     log('Requesting', transactionHashes);
 
-    const extrinsicFilter = successFilter.concat(failureFilter).concat(argsFilter).concat(crossChainFilter);
+    const extrinsicFilter = successFilter.concat(failureFilter).concat(argsFilter).concat(NEW_CROSS_CHAIN_EVENTS);
     const limit = Math.min(extrinsicFilter.length * transactionHashes.length, TX_LIMIT);
 
     query = `query GatewayApiStatus { events(where: {extrinsic: {hash_in: ${JSON.stringify(transactionHashes)}},
@@ -114,7 +113,7 @@ function processTransactionsEvents(transactionEvents) {
       txEvents[txHash] = event;
     }
 
-    if (event.name === NEW_CROSS_CHAIN_EVENT) {
+    if (NEW_CROSS_CHAIN_EVENTS.includes(event.name)) {
       // we have a successfull new cross chain transaction, set the status to validating and have 2 keys in the map
       crossChainTxMap.set(txHash, {...event.args.ethEventId, status: transactionStatus.Validating});
       crossChainTxMap.set(JSON.stringify(event.args.ethEventId), txHash);

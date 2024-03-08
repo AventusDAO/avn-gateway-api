@@ -49,7 +49,7 @@ async function publishEvent(event) {
     const eventDescription = selectedEventTypes[eventType];
     if (!endpoint || !eventDescription) return;
     const eventData = { timestamp: Date.now(), event: eventDescription, address: payerAddress, requestId, data };
-    const payerSignedEventData = await signEventData(payerVaultId, eventData);
+    const payerSignedEventData = await signEventData(eventData, payerVaultId);
     const eventMessage = JSON.stringify({ endpoint, eventData, payerSignedEventData });
     await sendToQueue(payerAddress, eventMessage);
   } catch (error) {
@@ -72,7 +72,7 @@ function checkEvent(event) {
   return { eventType, requestId, payerAddress, data };
 }
 
-async function signEventData(payerVaultId, eventData) {
+async function signEventData(eventData, payerVaultId) {
   const eventMessage = 'AvnGatewayWebhookEvent' + JSON.stringify(eventData);
   return await avn.signWebhookEvent(eventMessage, payerVaultId);
 }

@@ -69,7 +69,7 @@ async function getLiftEvents(avnContract) {
     return { fromBlock, toBlock: fromBlock, liftEvents };
   } catch (error) {
     log.error('Error getting lift events:', error);
-    throw error
+    throw error;
   }
 }
 

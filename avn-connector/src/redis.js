@@ -239,16 +239,16 @@ async function resolvePendingAvnTransactions(transactions) {
       // make sure we don't accidentally overwrite an end state or re-write the same state
       const pendingTx = await redisClient.hgetall(transactionHashKey);
       if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(pendingTx.status)) {
-        await redisClient.hset(transactionHashKey, newValue)
+        await redisClient.hset(transactionHashKey, newValue);
       }
     } else {
       await redisClient
-      .multi()
-      .hset(transactionHashKey, newValue)
-      .zrem(PENDING_TX_KEY.ALL, tx.transactionHash)
-      .zrem(PENDING_TX_KEY.CHECKING, tx.transactionHash)
-      .zrem(PENDING_TX_KEY.NEXT, tx.transactionHash)
-      .exec();
+        .multi()
+        .hset(transactionHashKey, newValue)
+        .zrem(PENDING_TX_KEY.ALL, tx.transactionHash)
+        .zrem(PENDING_TX_KEY.CHECKING, tx.transactionHash)
+        .zrem(PENDING_TX_KEY.NEXT, tx.transactionHash)
+        .exec();
     }
   }
 }

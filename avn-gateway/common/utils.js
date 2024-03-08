@@ -36,7 +36,7 @@ const TX_TYPES = [
   'proxyCancelEthereumNftSale',
   'proxyEndEthereumBatchSale',
   'proxyListEthereumNftForSale',
-  'proxyListEthereumNftBatchForSale',
+  'proxyListEthereumNftBatchForSale'
 ];
 
 const NONCE_INFO = {

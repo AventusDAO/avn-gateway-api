@@ -56,9 +56,9 @@ async function processRequest() {
   let transactions;
 
   try {
-    const events = await getTransactionEventsFromIndexer(pendingTransactionHashes)
+    const events = await getTransactionEventsFromIndexer(pendingTransactionHashes);
     let { txEvents, crossChainTxMap } = processTransactionsEvents(events);
-    crossChainTxMap = await updateCrossChainTxStatuses(crossChainTxMap)
+    crossChainTxMap = await updateCrossChainTxStatuses(crossChainTxMap);
 
     // For cross chain transactions, the block number and index relate to the initial extrinsic
     // NOT the one that finally processes the request.
@@ -73,7 +73,7 @@ async function processRequest() {
       };
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     throw new Error(`Error calculating transaction statuses: ${error}`);
   }
 
@@ -96,7 +96,7 @@ async function getTransactionEventsFromIndexer(transactionHashes) {
     const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
     return response?.data?.data?.events || [];
   } catch (error) {
-    console.error(error)
+    console.error(error);
     throw new Error(`Error getting transaction events from graphQL.\nQuery: ${query}\nError: ${error}`);
   }
 }
@@ -115,7 +115,7 @@ function processTransactionsEvents(transactionEvents) {
 
     if (NEW_CROSS_CHAIN_EVENTS.includes(event.name)) {
       // we have a successfull new cross chain transaction, set the status to validating and have 2 keys in the map
-      crossChainTxMap.set(txHash, {...event.args.ethEventId, status: transactionStatus.Validating});
+      crossChainTxMap.set(txHash, { ...event.args.ethEventId, status: transactionStatus.Validating });
       crossChainTxMap.set(JSON.stringify(event.args.ethEventId), txHash);
     }
   });
@@ -129,13 +129,13 @@ async function updateCrossChainTxStatuses(crossChainTxMap) {
   const crossChainTxFinalStatuses = await getCrossChainTxFinalStatuses(Array.from(crossChainTxMap.values()));
 
   crossChainTxFinalStatuses.forEach(event => {
-    const txHash = crossChainTxMap.get(JSON.stringify(event.args.ethEventId))
-    const currentTxStatus = crossChainTxMap.get(txHash)
-    currentTxStatus.status = failureFilter.includes(event.name) ? transactionStatus.Rejected : transactionStatus.Processed
-    crossChainTxMap.set(txHash ,currentTxStatus)
-  })
+    const txHash = crossChainTxMap.get(JSON.stringify(event.args.ethEventId));
+    const currentTxStatus = crossChainTxMap.get(txHash);
+    currentTxStatus.status = failureFilter.includes(event.name) ? transactionStatus.Rejected : transactionStatus.Processed;
+    crossChainTxMap.set(txHash, currentTxStatus);
+  });
 
-  return crossChainTxMap
+  return crossChainTxMap;
 }
 
 async function getCrossChainTxFinalStatuses(txEvents) {
@@ -143,30 +143,37 @@ async function getCrossChainTxFinalStatuses(txEvents) {
     name_in: ["${SUCCESS_CROSS_CHAIN_EVENT}", "${FAILED_CROSS_CHAIN_EVENT}"],
     AND: [
       { OR: [
-      	${txEvents.map(txEvent => `{args_jsonContains: "{\\"ethEventId\\": {\\"signature\\":\\"${txEvent.signature}\\",\\"transactionHash\\":\\"${txEvent.transactionHash}\\"}}"},`).join('\n')}
+      	${txEvents
+          .map(
+            txEvent =>
+              `{args_jsonContains: "{\\"ethEventId\\": {\\"signature\\":\\"${txEvent.signature}\\",\\"transactionHash\\":\\"${txEvent.transactionHash}\\"}}"},`
+          )
+          .join('\n')}
       ]}
     ]},
-    limit: ${txEvents.length}) {name args}}`
+    limit: ${txEvents.length}) {name args}}`;
 
   const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
-  return response?.data?.data?.events || []
+  return response?.data?.data?.events || [];
 }
 
 function calculateTransactionStatus(txEvent, failureEvents, crossChainTxMap) {
   if (failureEvents.includes(txEvent.name)) {
-    return transactionStatus.Rejected
+    return transactionStatus.Rejected;
   }
 
   if (crossChainTxMap.has(txEvent.extrinsic.hash)) {
-      return crossChainTxMap.get(txEvent.extrinsic.hash).status
+    return crossChainTxMap.get(txEvent.extrinsic.hash).status;
   }
 
-  return transactionStatus.Processed
+  return transactionStatus.Processed;
 }
 
 function log(state, txHashes, crossChainCount) {
   if (txHashes.length > 0) {
-    console.info(`${state} ${txHashes.length} transaction statuses from graphQL ${crossChainCount ? "(" + crossChainCount + " cross chain)" : ""}}
+    console.info(`${state} ${txHashes.length} transaction statuses from graphQL ${
+      crossChainCount ? '(' + crossChainCount + ' cross chain)' : ''
+    }}
       - start tx: ${txHashes[0]}
       - end tx: ${txHashes[txHashes.length - 1]}`);
   } else {

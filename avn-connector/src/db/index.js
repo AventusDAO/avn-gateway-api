@@ -167,7 +167,7 @@ async function getAllFees(feeDataSource, relayer, userPk) {
     }
   });
 
-  const transactionTypes = await getTransactions()
+  const transactionTypes = await getTransactions();
 
   return buildFeesJson(fees, relayer.defaultFee, transactionTypes);
 }

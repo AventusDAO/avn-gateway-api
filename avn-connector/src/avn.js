@@ -299,10 +299,9 @@ async function getUnprocessedLifts() {
 
     return { fromBlock, toBlock, unprocessedLifts };
   } catch (error) {
-    console.error(`Error getting unprocessed lifts: `, error)
-    throw error
+    console.error(`Error getting unprocessed lifts: `, error);
+    throw error;
   }
-
 }
 
 async function processLifts(requestId, toBlock, unprocessedLifts) {
@@ -625,9 +624,9 @@ async function getLowerProof(lowerId) {
 async function getUnclaimedLowerProofs(minLowerId, additionalLowerIds) {
   try {
     let entries = [],
-        startKey,
-        unclaimedLowerIds = [],
-        claimData = [];
+      startKey,
+      unclaimedLowerIds = [],
+      claimData = [];
 
     do {
       entries = await api.query.tokenManager.lowersReadyToClaim.keysPaged({ pageSize: 1000, args: [], startKey });
@@ -649,7 +648,6 @@ async function getUnclaimedLowerProofs(minLowerId, additionalLowerIds) {
       acc[lowerId] = data.toHuman().encodedLowerData;
       return acc;
     }, {});
-
   } catch (error) {
     log.error('Error in getUnclaimedLowerProofs:', error);
     throw error;

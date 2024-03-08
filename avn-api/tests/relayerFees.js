@@ -34,7 +34,7 @@ describe('Relayer Fees:', async () => {
     proxyCancelEthereumNftSale: '23800000000000000',
     proxyEndEthereumBatchSale: '23800000000000000',
     proxyListEthereumNftForSale: '23800000000000000',
-    proxyListEthereumNftBatchForSale: '23800000000000000',
+    proxyListEthereumNftBatchForSale: '23800000000000000'
   };
 
   const expectedUserFees = {
@@ -61,7 +61,7 @@ describe('Relayer Fees:', async () => {
     proxyCancelEthereumNftSale: '23800000000000000',
     proxyEndEthereumBatchSale: '23800000000000000',
     proxyListEthereumNftForSale: '23800000000000000',
-    proxyListEthereumNftBatchForSale: '23800000000000000',
+    proxyListEthereumNftBatchForSale: '23800000000000000'
   };
 
   before(async () => {

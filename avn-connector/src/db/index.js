@@ -208,7 +208,7 @@ async function getActiveWebhooks() {
       const payerAddress = encodeAddress(payer.publicKey, 42);
       activeWebhooks[payerAddress] = {
         endpoint: payer.webhookEndpoint,
-        selectedEvents: payer.webhookSelectedEventTypes
+        selectedEventTypes: payer.webhookSelectedEventTypes
       };
     });
     return activeWebhooks;

@@ -42,8 +42,8 @@ class WebhooksUpdater {
 
 async function publishEvent(event) {
   const { eventType, address, requestId, data } = checkEvent(event);
-  const { endpoint, selectedEvents } = webhooks.active[address];
-  if (!endpoint || !selectedEvents.includes(eventType)) return;
+  const { endpoint, selectedEventTypes } = webhooks.active[address];
+  if (!endpoint || !selectedEventTypes.includes(eventType)) return;
   const timestamp = Date.now();
   const body = JSON.stringify({ endpoint, data: { timestamp, address, requestId, eventType, data } });
 

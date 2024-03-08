@@ -46,8 +46,9 @@ async function publishEvent(event) {
   try {
     const { eventType, payerAddress, requestId, data } = checkEvent(event);
     const { endpoint, selectedEventTypes, payerVaultId } = webhooks.active[payerAddress];
-    if (!endpoint || !selectedEventTypes.includes(eventType)) return;
-    const eventData = { timestamp: Date.now(), payerAddress, requestId, eventType, data };
+    const eventDescription = selectedEventTypes[eventType];
+    if (!endpoint || !eventDescription) return;
+    const eventData = { timestamp: Date.now(), event: eventDescription, address: payerAddress, requestId, data };
     const payerSignedEventData = await signEventData(payerVaultId, eventData);
     const eventMessage = JSON.stringify({ endpoint, eventData, payerSignedEventData });
     await sendToQueue(payerAddress, eventMessage);

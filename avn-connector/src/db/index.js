@@ -197,6 +197,8 @@ function getPublicKey(account) {
 
 async function getActiveWebhooks() {
   try {
+    const webhookEventTypes = await getWebhookEventTypes();
+
     const payerDataSource = dataSource.getRepository(PAYER_TABLE);
     const payers = await payerDataSource.find({
       where: {
@@ -205,18 +207,27 @@ async function getActiveWebhooks() {
         enabled: true
       }
     });
+
     const activeWebhooks = {};
     payers.forEach(payer => {
       const payerAddress = encodeAddress(payer.publicKey, 42);
+      const selectedEventTypes = payer.selectedWebhookEventTypes.reduce((obj, eventType) => {
+       if (webhookEventTypes[eventType]) {
+         obj[eventType] = webhookEventTypes[eventType];
+       }
+       return obj;
+     }, {});
+
       activeWebhooks[payerAddress] = {
         payerVaultId: payer.vaultId,
         endpoint: payer.webhookEndpoint,
-        selectedEventTypes: payer.selectedWebhookEventTypes
+        selectedEventTypes
       };
     });
+
     return activeWebhooks;
   } catch (error) {
-    throw new Error('Failed to get active webhooks:', error);
+    throw new Error(`Failed to get active webhooks: ${error.message}`);
   }
 }
 

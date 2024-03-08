@@ -212,11 +212,11 @@ async function getActiveWebhooks() {
     payers.forEach(payer => {
       const payerAddress = encodeAddress(payer.publicKey, 42);
       const selectedEventTypes = payer.selectedWebhookEventTypes.reduce((obj, eventType) => {
-       if (webhookEventTypes[eventType]) {
-         obj[eventType] = webhookEventTypes[eventType];
-       }
-       return obj;
-     }, {});
+        if (webhookEventTypes[eventType]) {
+          obj[eventType] = webhookEventTypes[eventType];
+        }
+        return obj;
+      }, {});
 
       activeWebhooks[payerAddress] = {
         payerVaultId: payer.vaultId,

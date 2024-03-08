@@ -41,8 +41,7 @@ class WebhooksUpdater {
 }
 
 async function publishEvent(event) {
-  checkEvent(event);
-  const { eventType, address, requestId, data } = event;
+  const { eventType, address, requestId, data } = checkEvent(event);
   const { endpoint, selectedEvents } = webhooks.active[address];
   if (!endpoint || !selectedEvents.includes(eventType)) return;
   const timestamp = Date.now();
@@ -63,15 +62,16 @@ async function publishEvent(event) {
 
 function checkEvent(event) {
   const { eventType, requestId, address, data } = event;
-  const missingParams = Object.entries(params)
+  const missingParams = Object.entries(event)
     .filter(([, value]) => !value)
     .map(([key]) => key);
   if (missingParams.length > 0) {
-    throw new Error(`[Webhooks] ERROR - Missing params: ${missingParams.join(', ')}`);
+    throw new Error(`[Webhooks] ERROR - Missing event params: ${missingParams.join(', ')}`);
   }
   if (!webhooks.EventTypes[eventType]) {
     throw new Error('[Webhooks] ERROR - Invalid event type');
   }
+  return { eventType, requestId, address, data };
 }
 
 function hash(message) {

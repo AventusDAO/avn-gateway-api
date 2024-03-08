@@ -192,9 +192,15 @@ function getPublicKey(account) {
   }
 }
 
+async function getActiveWebhooks() {}
+
+async function getWebhookEventTypes() {}
+
 module.exports = {
   getPayer,
   getFees,
+  getActiveWebhooks,
+  getWebhookEventTypes,
   getRelayerVaultId,
   init,
   isPayerTransaction

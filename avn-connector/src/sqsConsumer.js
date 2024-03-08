@@ -1,5 +1,6 @@
 const { SQSClient, ReceiveMessageCommand, DeleteMessageBatchCommand } = require('@aws-sdk/client-sqs');
 const avn = require('./avn');
+const webhooks = require('./webhooks');
 const config = require('multiconfig').load();
 const logger = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
@@ -66,6 +67,7 @@ async function processMessage(message) {
       const { palletName, method, params } = txData;
 
       if (isSplitFeeTransaction(txData)) {
+        await webhooks.publishEvent('transaction', 'sending', params.splitFeePayerAddress, requestId, txData);
         params.paymentNonce = await avn.getPayerPaymentNonce(requestId, params.splitFeePayerAddress);
         logger.trace(`[SQS tx] Request ID: ${requestId} - split fee payment nonce: ${params.paymentNonce}`);
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, params.paymentNonce);

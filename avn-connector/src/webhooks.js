@@ -42,9 +42,11 @@ class WebhooksUpdater {
 
 async function publishEvent(event) {
   checkEvent(event);
+  const { eventType, address, requestId, data } = event;
   const { endpoint, selectedEvents } = webhooks.active[address];
-  if (!endpoint || !selectedEvents.includes(event.type)) return;
-  const body = JSON.stringify({ endpoint, data: { address, timestamp: Date.now(), event.requestId, event.type, event.data } });
+  if (!endpoint || !selectedEvents.includes(eventType)) return;
+  const timestamp = Date.now();
+  const body = JSON.stringify({ endpoint, data: { timestamp, address, requestId, eventType, data } });
 
   try {
     const params = {
@@ -60,12 +62,14 @@ async function publishEvent(event) {
 }
 
 function checkEvent(event) {
-  const { type, requestId, address, data } = event;
-  const missingParams = Object.entries(params).filter(([, value]) => !value).map(([key]) => key);
+  const { eventType, requestId, address, data } = event;
+  const missingParams = Object.entries(params)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
   if (missingParams.length > 0) {
     throw new Error(`[Webhooks] ERROR - Missing params: ${missingParams.join(', ')}`);
   }
-  if (!webhooks.EventTypes[type]) {
+  if (!webhooks.EventTypes[eventType]) {
     throw new Error('[Webhooks] ERROR - Invalid event type');
   }
 }

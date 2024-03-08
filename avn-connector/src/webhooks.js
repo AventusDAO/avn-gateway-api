@@ -47,21 +47,12 @@ async function publishEvent(event) {
     const { eventType, payerAddress, requestId, data } = checkEvent(event);
     const { endpoint, selectedEventTypes, payerVaultId } = webhooks.active[payerAddress];
     if (!endpoint || !selectedEventTypes.includes(eventType)) return;
-    const timestamp = Date.now();
-    const eventData = { timestamp, payerAddress, requestId, eventType, data };
-    const messageToSign = 'webhook event' + JSON.stringify(eventData);
-    const signature = await avn.signWebhookEvent(messageToSign, payerVaultId);
-    const messageBody = JSON.stringify({ endpoint, eventData, signature });
-
-    const params = {
-      QueueUrl: config.webhooks.queue_url,
-      MessageBody: messageBody,
-      MessageGroupId: payerAddress,
-      MessageDeduplicationId: hash(messageBody)
-    };
-    await sqsClient.send(new SendMessageCommand(params));
+    const eventData = { timestamp: Date.now(), payerAddress, requestId, eventType, data };
+    const signature = await signEvent(eventData);
+    const eventMessage = JSON.stringify({ endpoint, eventData, signature });
+    await sendToQueue(payerAddress, eventMessage);
   } catch (error) {
-    log.error(`[Webhooks] ERROR - Error publishing event: ${messageBody}}`, error);
+    log.error(`[Webhooks] ERROR - Error publishing event: ${error}`, error);
     throw error;
   }
 }
@@ -78,6 +69,26 @@ function checkEvent(event) {
     throw new Error(`[Webhooks] ERROR - Invalid event type: ${eventType}`);
   }
   return { eventType, requestId, payerAddress, data };
+}
+
+async function signEvent(eventData, payerVaultId) {
+  const eventMessage = 'webhook event' + JSON.stringify(eventData);
+  return await avn.signWebhookEvent(eventMessage, payerVaultId);
+}
+
+async function sendToQueue(payerAddress, message) {
+  try {
+    const params = {
+      QueueUrl: config.webhooks.queue_url,
+      MessageBody: message,
+      MessageGroupId: payerAddress,
+      MessageDeduplicationId: hash(message)
+    };
+    await sqsClient.send(new SendMessageCommand(params));
+  } catch (error) {
+    log.error(`[Webhooks] ERROR - Error in sendToQueue: ${error}`, error);
+    throw error;
+  }
 }
 
 function hash(message) {

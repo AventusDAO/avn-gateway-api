@@ -40,22 +40,33 @@ class WebhooksUpdater {
   }
 }
 
-async function publishEvent(eventType, requestId, address, eventData) {
-  if (!webhooks.EventTypes[eventType]) throw new Error('[Webhooks] ERROR - Invalid event type');
-  const { endpoint, eventFilter } = webhooks.active[address];
-  if (!endpoint || !eventFilter.includes(eventType)) return;
-  const messageBody = JSON.stringify({ endpoint, data: { address, timestamp: Date.now(), requestId, eventType, eventData } });
+async function publishEvent(event) {
+  checkEvent(event);
+  const { endpoint, selectedEvents } = webhooks.active[address];
+  if (!endpoint || !selectedEvents.includes(event.type)) return;
+  const body = JSON.stringify({ endpoint, data: { address, timestamp: Date.now(), event.requestId, event.type, event.data } });
 
   try {
     const params = {
       QueueUrl: config.webhooks.queue_url,
-      MessageBody: messageBody,
+      MessageBody: body,
       MessageGroupId: address,
       MessageDeduplicationId: hash(messageBody)
     };
     await sqsClient.send(new SendMessageCommand(params));
   } catch (error) {
-    log.error(`[Webhooks] ERROR - Error publishing event: ${messageBody}}`, error);
+    log.error(`[Webhooks] ERROR - Error publishing event: ${body}}`, error);
+  }
+}
+
+function checkEvent(event) {
+  const { type, requestId, address, data } = event;
+  const missingParams = Object.entries(params).filter(([, value]) => !value).map(([key]) => key);
+  if (missingParams.length > 0) {
+    throw new Error(`[Webhooks] ERROR - Missing params: ${missingParams.join(', ')}`);
+  }
+  if (!webhooks.EventTypes[type]) {
+    throw new Error('[Webhooks] ERROR - Invalid event type');
   }
 }
 

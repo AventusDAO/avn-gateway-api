@@ -435,7 +435,7 @@ async function signPaymentInfo(message, payerVaultId) {
 
 async function signWebhookEvent(message, payerVaultId) {
   const payerUsername = fees.getPayerVaultUsername(payerVaultId);
-  if (!message || !message.startsWith('webhook event')) throw new Error('Invalid data to sign.');
+  if (!message || !message.startsWith('AvnGatewayWebhookEvent')) throw new Error('Invalid data to sign.');
   return await vault.payerSign(message, payerUsername);
 }
 

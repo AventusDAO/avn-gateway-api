@@ -73,7 +73,7 @@ function checkEvent(event) {
 }
 
 async function signEventData(payerVaultId, eventData) {
-  const eventMessage = 'webhook event' + JSON.stringify(eventData);
+  const eventMessage = 'AvnGatewayWebhookEvent' + JSON.stringify(eventData);
   return await avn.signWebhookEvent(eventMessage, payerVaultId);
 }
 

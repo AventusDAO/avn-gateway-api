@@ -209,6 +209,7 @@ async function getActiveWebhooks() {
     payers.forEach(payer => {
       const payerAddress = encodeAddress(payer.publicKey, 42);
       activeWebhooks[payerAddress] = {
+        payerVaultId: payer.vaultId,
         endpoint: payer.webhookEndpoint,
         selectedEventTypes: payer.selectedWebhookEventTypes
       };

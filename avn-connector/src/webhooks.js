@@ -1,4 +1,5 @@
 const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
+const avn = require('./avn');
 const rds = require('./db/index');
 const crypto = require('crypto');
 const config = require('multiconfig').load();
@@ -42,28 +43,31 @@ class WebhooksUpdater {
 }
 
 async function publishEvent(event) {
-  const { eventType, address, requestId, data } = checkEvent(event);
-  const { endpoint, selectedEventTypes } = webhooks.active[address];
-  if (!endpoint || !selectedEventTypes.includes(eventType)) return;
-  const timestamp = Date.now();
-  const body = JSON.stringify({ endpoint, data: { timestamp, address, requestId, eventType, data } });
-
   try {
+    const { eventType, payerAddress, requestId, data } = checkEvent(event);
+    const { endpoint, selectedEventTypes, payerVaultId } = webhooks.active[payerAddress];
+    if (!endpoint || !selectedEventTypes.includes(eventType)) return;
+    const timestamp = Date.now();
+    const eventData = { timestamp, payerAddress, requestId, eventType, data };
+    const messageToSign = 'webhook event' + JSON.stringify(eventData);
+    const signature = await avn.signWebhookEvent(messageToSign, payerVaultId);
+    const messageBody = JSON.stringify({ endpoint, eventData, signature });
+
     const params = {
       QueueUrl: config.webhooks.queue_url,
-      MessageBody: body,
-      MessageGroupId: address,
+      MessageBody: messageBody,
+      MessageGroupId: payerAddress,
       MessageDeduplicationId: hash(messageBody)
     };
     await sqsClient.send(new SendMessageCommand(params));
   } catch (error) {
-    log.error(`[Webhooks] ERROR - Error publishing event: ${body}}`, error);
+    log.error(`[Webhooks] ERROR - Error publishing event: ${messageBody}}`, error);
     throw error;
   }
 }
 
 function checkEvent(event) {
-  const { eventType, requestId, address, data } = event;
+  const { eventType, requestId, payerAddress, data } = event;
   const missingParams = Object.entries(event)
     .filter(([, value]) => !value)
     .map(([key]) => key);
@@ -73,7 +77,7 @@ function checkEvent(event) {
   if (!webhooks.EventTypes[eventType]) {
     throw new Error(`[Webhooks] ERROR - Invalid event type: ${eventType}`);
   }
-  return { eventType, requestId, address, data };
+  return { eventType, requestId, payerAddress, data };
 }
 
 function hash(message) {

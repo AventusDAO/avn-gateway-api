@@ -423,12 +423,19 @@ async function getGatewayUserInfo(account) {
   };
 }
 
-async function signPaymentInfo(message, payerUsername) {
+async function signPaymentInfo(message, payerVaultId) {
+  const payerUsername = fees.getPayerVaultUsername(payerVaultId);
   const paymentInfoContext = stringToHex('authorization for proxy payment');
   const messageWithoutPrefix = '0x' + message.slice(4);
 
   // Important: we only want to sign correctly formatted payment data.
   if (!message || !messageWithoutPrefix.startsWith(paymentInfoContext)) throw new Error('Invalid data to sign.');
+  return await vault.payerSign(message, payerUsername);
+}
+
+async function signWebhookEvent(message, payerVaultId) {
+  const payerUsername = fees.getPayerVaultUsername(payerVaultId);
+  if (!message || !message.startsWith('webhook event')) throw new Error('Invalid data to sign.');
   return await vault.payerSign(message, payerUsername);
 }
 
@@ -585,8 +592,7 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
     transaction.splitFeeProxyProof
   );
 
-  const payerUserName = fees.getPayerVaultUsername(transaction.splitFeePayerVaultId);
-  const signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
+  const signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), transaction.splitFeePayerVaultId);
 
   return {
     payer: transaction.splitFeePayerAddress,
@@ -683,6 +689,7 @@ module.exports = {
   query,
   RELAYER_ADDRESS,
   signPaymentInfo,
+  signWebhookEvent,
   setSendingFailedStatus,
   getPayerPaymentNonce,
   generateSplitFeePaymentInfo,

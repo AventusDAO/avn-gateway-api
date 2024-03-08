@@ -29,7 +29,8 @@ async function init() {
       require('./entity/transaction'),
       require('./entity/payerTransaction'),
       require('./entity/fee'),
-      require('./entity/relayer')
+      require('./entity/relayer'),
+      require('./entity/webhookEventType')
     ]
   });
 
@@ -200,6 +201,7 @@ async function getActiveWebhooks() {
     const payers = await payerDataSource.find({
       where: {
         webhookEndpoint: Not(IsNull()),
+        selectedWebhookEventTypes: Not(IsNull()),
         enabled: true
       }
     });

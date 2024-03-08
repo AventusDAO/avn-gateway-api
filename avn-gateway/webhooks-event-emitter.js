@@ -2,9 +2,9 @@ const utils = require('/opt/utils.js');
 
 exports.handler = async event => {
   for (const record of event.Records) {
-    const { endpoint, eventData, signature } = JSON.parse(record.body);
+    const { endpoint, eventData, payerSignedEventData } = JSON.parse(record.body);
     try {
-      const headers = { 'Content-Type': 'application/json', 'Payer-Confirmation': signature };
+      const headers = { 'Content-Type': 'application/json', 'Payer-Confirmation': payerSignedEventData };
       const response = await utils.axios.post(endpoint, eventData, headers);
       if (response.status >= 200 && response.status < 300) {
         console.log(`Event sent successfully to ${endpoint}. Event data: ${JSON.stringify(eventData)}`);

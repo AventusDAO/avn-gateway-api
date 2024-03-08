@@ -48,8 +48,8 @@ async function publishEvent(event) {
     const { endpoint, selectedEventTypes, payerVaultId } = webhooks.active[payerAddress];
     if (!endpoint || !selectedEventTypes.includes(eventType)) return;
     const eventData = { timestamp: Date.now(), payerAddress, requestId, eventType, data };
-    const signature = await signEvent(eventData);
-    const eventMessage = JSON.stringify({ endpoint, eventData, signature });
+    const payerSignedEventData = await signEventData(payerVaultId, eventData);
+    const eventMessage = JSON.stringify({ endpoint, eventData, payerSignedEventData });
     await sendToQueue(payerAddress, eventMessage);
   } catch (error) {
     log.error(`[Webhooks] ERROR - Error publishing event: ${error}`, error);
@@ -71,7 +71,7 @@ function checkEvent(event) {
   return { eventType, requestId, payerAddress, data };
 }
 
-async function signEvent(eventData, payerVaultId) {
+async function signEventData(payerVaultId, eventData) {
   const eventMessage = 'webhook event' + JSON.stringify(eventData);
   return await avn.signWebhookEvent(eventMessage, payerVaultId);
 }

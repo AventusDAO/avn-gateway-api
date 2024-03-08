@@ -58,6 +58,7 @@ async function publishEvent(event) {
     await sqsClient.send(new SendMessageCommand(params));
   } catch (error) {
     log.error(`[Webhooks] ERROR - Error publishing event: ${body}}`, error);
+    throw error;
   }
 }
 
@@ -70,7 +71,7 @@ function checkEvent(event) {
     throw new Error(`[Webhooks] ERROR - Missing event params: ${missingParams.join(', ')}`);
   }
   if (!webhooks.EventTypes[eventType]) {
-    throw new Error('[Webhooks] ERROR - Invalid event type');
+    throw new Error(`[Webhooks] ERROR - Invalid event type: ${eventType}`);
   }
   return { eventType, requestId, address, data };
 }

@@ -7,6 +7,7 @@ const loweringV2 = require('./lowers/loweringV2');
 const autolowering = require('./lowers/autolowering');
 const redis = require('./redis');
 const sqsConsumer = require('./sqsConsumer');
+const webhooks = require('./webhooks');
 const lambda = require('./lambdas');
 const express = require('express');
 const log4js = require('log4js');
@@ -268,6 +269,16 @@ app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
   try {
     log.trace({ setTransactionFailedToBeSentStatus: JSON.stringify(req.body) });
     await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
+    res.status(200).send({});
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/publishEvent', async (req, res, next) => {
+  try {
+    log.trace({ publishEventRequest: req.body });
+    await webhooks.publishEvent(req.body);
     res.status(200).send({});
   } catch (err) {
     next(err);

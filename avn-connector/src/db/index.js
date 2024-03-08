@@ -1,6 +1,6 @@
 const config = require('multiconfig').load();
 const typeorm = require('typeorm');
-const { IsNull } = require('typeorm');
+const { IsNull, Not } = require('typeorm');
 const { isHex, u8aToHex } = require('@polkadot/util');
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 
@@ -9,6 +9,8 @@ const FEE_TABLE = 'fee';
 const RELAYER_TABLE = 'relayer';
 const PAYER_TRANSACTION_TABLE = 'payerTransaction';
 const TRANSACTION_TABLE = 'transaction';
+const PAYER_TABLE = 'payer';
+const WEBHOOK_EVENT_TYPE_TABLE = 'webhookEventType';
 
 let dataSource;
 
@@ -192,9 +194,41 @@ function getPublicKey(account) {
   }
 }
 
-async function getActiveWebhooks() {}
+async function getActiveWebhooks() {
+  try {
+    const payerDataSource = dataSource.getRepository(PAYER_TABLE);
+    const payers = await payerDataSource.find({
+      where: {
+        webhookEndpoint: Not(IsNull()),
+        enabled: true
+      }
+    });
+    const activeWebhooks = {};
+    payers.forEach(payer => {
+      const payerAddress = encodeAddress(payer.publicKey, 42);
+      activeWebhooks[payerAddress] = {
+        endpoint: payer.webhookEndpoint,
+        eventTypes: payer.webhookEventTypes
+      };
+    });
+    return activeWebhooks;
+  } catch (error) {
+    throw new Error('Failed to get active webhooks:', error);
+  }
+}
 
-async function getWebhookEventTypes() {}
+async function getWebhookEventTypes() {
+  try {
+    const webhookEventTypesDataSource = await dataSource.getRepository(WEBHOOK_EVENT_TYPE_TABLE);
+    const webhookEventTypes = await webhookEventTypesDataSource.find();
+    return webhookEventTypes.reduce((eventTypes, { eventType, eventDescription }) => {
+      eventTypes[eventType] = eventDescription;
+      return eventTypes;
+    }, {});
+  } catch (error) {
+    throw new Error('Failed to get webhook event types:', error);
+  }
+}
 
 module.exports = {
   getPayer,

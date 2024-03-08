@@ -36,6 +36,15 @@ module.exports = new EntitySchema({
     enabled: {
       type: 'boolean',
       default: true
+    },
+    webhookEndpoint: {
+      type: 'varchar',
+      nullable: true
+    },
+    webhookEventTypes: {
+      type: 'text',
+      array: true,
+      nullable: true
     }
   },
   relations: {

@@ -40,7 +40,7 @@ class WebhooksUpdater {
   }
 }
 
-async function publishEvent(address, eventType, requestId, eventData) {
+async function publishEvent(eventType, requestId, address, eventData) {
   if (!webhooks.EventTypes[eventType]) throw new Error('[Webhooks] ERROR - Invalid event type');
 
   const timestamp = Date.now();

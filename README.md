@@ -700,6 +700,12 @@ Returns fees for a particular relayer, optionally by user and/or transaction typ
   "proxyIncreaseStake"
   "proxyUnstake"
   "proxyWithdrawUnlocked"
+  "proxyMintEthereumBatchNft"
+  "proxyTransferEthereumNft"
+  "proxyCancelEthereumNftSale"
+  "proxyEndEthereumBatchSale"
+  "proxyListEthereumNftBatchForSale"
+  "proxyListEthereumNftForSale"
 ```
 
 **EXAMPLE**
@@ -748,6 +754,12 @@ OR
     "proxyIncreaseStake": "7000000000000000",
     "proxyUnstake": "7000000000000000",
     "proxyWithdrawUnlocked": "7000000000000000",
+    "proxyMintEthereumBatchNft": '7000000000000000',
+    "proxyTransferEthereumNft": '7000000000000000',
+    "proxyCancelEthereumNftSale": '7000000000000000',
+    "proxyEndEthereumBatchSale": '7000000000000000',
+    "proxyListEthereumNftForSale": '7000000000000000',
+    "proxyListEthereumNftBatchForSale": '7000000000000000',
   }
 }
 ```
@@ -1034,6 +1046,26 @@ curl https://AVN-API-URL/send \
   "result": "8f7f76c8-a06e-11ec-b909-0242ac120002"
 }
 ```
+
+### proxyMintEthereumBatchNft
+Trigger the AvN confirmation of a batch NFT sale operation that has previously occurred on Ethereum
+
+_Request, headers and example is similar to `proxyConfirmTokenLift`_
+
+### proxyTransferEthereumNft
+Trigger the AvN confirmation of a single NFT sale operation that has previously occurred on Ethereum
+
+_Request, headers and example is similar to `proxyConfirmTokenLift`_
+
+### proxyCancelEthereumNftSale
+Trigger the AvN confirmation of an Ethereum single NFT listing cancelation operation that has previously occurred on Ethereum
+
+_Request, headers and example is similar to `proxyConfirmTokenLift`_
+
+### proxyEndEthereumBatchSale
+Trigger the AvN confirmation of an Ethereum batch NFT ending operation that has previously occurred on Ethereum
+
+_Request, headers and example is similar to `proxyConfirmTokenLift`_
 
 #### proxyTokenLower
 Triggers a "lower" of an amount of ETH (0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) or any available ERC20 or ERC777 token, deducting the amount from the user's AvN account.\

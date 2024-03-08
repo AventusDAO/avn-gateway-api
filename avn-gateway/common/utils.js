@@ -13,6 +13,7 @@ const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const NUM_TYPES = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
+//TODO: replace this with the values from the rds database
 const TX_TYPES = [
   'proxyAvtTransfer',
   'proxyTokenTransfer',
@@ -29,7 +30,13 @@ const TX_TYPES = [
   'proxyIncreaseStake',
   'proxyUnstake',
   'proxyWithdrawUnlocked',
-  'proxyStakeAvt'
+  'proxyStakeAvt',
+  'proxyMintEthereumBatchNft',
+  'proxyTransferEthereumNft',
+  'proxyCancelEthereumNftSale',
+  'proxyEndEthereumBatchSale',
+  'proxyListEthereumNftForSale',
+  'proxyListEthereumNftBatchForSale',
 ];
 
 const NONCE_INFO = {

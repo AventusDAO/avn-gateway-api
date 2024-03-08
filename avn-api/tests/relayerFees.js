@@ -28,7 +28,13 @@ describe('Relayer Fees:', async () => {
     proxyUnstake: '23800000000000000',
     proxyWithdrawUnlocked: '23800000000000000',
     proxyScheduleLeaveNominators: '23800000000000000',
-    proxyExecuteLeaveNominators: '23800000000000000'
+    proxyExecuteLeaveNominators: '23800000000000000',
+    proxyMintEthereumBatchNft: '23800000000000000',
+    proxyTransferEthereumNft: '23800000000000000',
+    proxyCancelEthereumNftSale: '23800000000000000',
+    proxyEndEthereumBatchSale: '23800000000000000',
+    proxyListEthereumNftForSale: '23800000000000000',
+    proxyListEthereumNftBatchForSale: '23800000000000000',
   };
 
   const expectedUserFees = {
@@ -49,7 +55,13 @@ describe('Relayer Fees:', async () => {
     proxyUnstake: '23800000000000000',
     proxyWithdrawUnlocked: '23800000000000000',
     proxyScheduleLeaveNominators: '23800000000000000',
-    proxyExecuteLeaveNominators: '23800000000000000'
+    proxyExecuteLeaveNominators: '23800000000000000',
+    proxyMintEthereumBatchNft: '23800000000000000',
+    proxyTransferEthereumNft: '23800000000000000',
+    proxyCancelEthereumNftSale: '23800000000000000',
+    proxyEndEthereumBatchSale: '23800000000000000',
+    proxyListEthereumNftForSale: '23800000000000000',
+    proxyListEthereumNftBatchForSale: '23800000000000000',
   };
 
   before(async () => {

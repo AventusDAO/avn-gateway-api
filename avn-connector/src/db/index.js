@@ -1,16 +1,17 @@
 const config = require('multiconfig').load();
 const typeorm = require('typeorm');
-const { IsNull, Not } = require('typeorm');
+const { IsNull } = require('typeorm');
 const { isHex, u8aToHex } = require('@polkadot/util');
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 
-const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
-const RELAYER_TABLE = 'relayer';
-const PAYER_TRANSACTION_TABLE = 'payerTransaction';
-const TRANSACTION_TABLE = 'transaction';
 const PAYER_TABLE = 'payer';
-const WEBHOOK_EVENT_TYPE_TABLE = 'webhookEventType';
+const PAYER_TRANSACTION_TABLE = 'payerTransaction';
+const PAYER_WEBHOOK_EVENT_TABLE = 'payerWebhookEvent';
+const RELAYER_TABLE = 'relayer';
+const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
+const TRANSACTION_TABLE = 'transaction';
+const WEBHOOK_EVENT_TABLE = 'webhookEvent';
 
 let dataSource;
 
@@ -24,13 +25,14 @@ async function init() {
     database: config.postgres.database,
     synchronize: config.postgres.synchronize === 'true',
     entities: [
+      require('./entity/fee'),
       require('./entity/payer'),
+      require('./entity/payerTransaction'),
+      require('./entity/payerWebhookEvent'),
+      require('./entity/relayer'),
       require('./entity/splitFeeUser'),
       require('./entity/transaction'),
-      require('./entity/payerTransaction'),
-      require('./entity/fee'),
-      require('./entity/relayer'),
-      require('./entity/webhookEventType')
+      require('./entity/webhookEvent')
     ]
   });
 
@@ -197,32 +199,25 @@ function getPublicKey(account) {
 
 async function getActiveWebhooks() {
   try {
-    const webhookEventTypes = await getWebhookEventTypes();
-
-    const payerDataSource = dataSource.getRepository(PAYER_TABLE);
-    const payers = await payerDataSource.find({
-      where: {
-        webhookEndpoint: Not(IsNull()),
-        selectedWebhookEventTypes: Not(IsNull()),
-        enabled: true
-      }
-    });
+    const payerWebhookEventSource = dataSource.getRepository(PAYER_WEBHOOK_EVENT_TABLE);
+    const activeWebhooksData = await payerWebhookEventSource
+      .createQueryBuilder('active')
+      .innerJoinAndSelect('active.payer', 'payer', 'payer.webhookEndpoint IS NOT NULL AND payer.enabled = true')
+      .innerJoinAndSelect('active.webhookEvent', 'webhookEvent')
+      .getMany();
 
     const activeWebhooks = {};
-    payers.forEach(payer => {
+    activeWebhooksData.forEach(({ payer, webhookEvent }) => {
       const payerAddress = encodeAddress(payer.publicKey, 42);
-      const selectedEventTypes = payer.selectedWebhookEventTypes.reduce((obj, eventType) => {
-        if (webhookEventTypes[eventType]) {
-          obj[eventType] = webhookEventTypes[eventType];
-        }
-        return obj;
-      }, {});
+      if (!activeWebhooks[payerAddress]) {
+        activeWebhooks[payerAddress] = {
+          payerVaultId: payer.vaultId,
+          endpoint: payer.webhookEndpoint,
+          eventTypes: {}
+        };
+      }
 
-      activeWebhooks[payerAddress] = {
-        payerVaultId: payer.vaultId,
-        endpoint: payer.webhookEndpoint,
-        selectedEventTypes
-      };
+      activeWebhooks[payerAddress].eventTypes[webhookEvent.type] = webhookEvent.description;
     });
 
     return activeWebhooks;
@@ -233,14 +228,13 @@ async function getActiveWebhooks() {
 
 async function getWebhookEventTypes() {
   try {
-    const webhookEventTypesDataSource = await dataSource.getRepository(WEBHOOK_EVENT_TYPE_TABLE);
-    const webhookEventTypes = await webhookEventTypesDataSource.find();
-    return webhookEventTypes.reduce((eventTypes, { eventType, eventDescription }) => {
-      eventTypes[eventType] = eventDescription;
-      return eventTypes;
+    const webhookEventDataSource = await dataSource.getRepository(WEBHOOK_EVENT_TABLE);
+    return (await webhookEventDataSource.find()).reduce((webhookEvents, { type, description }) => {
+      webhookEvents[type] = description;
+      return webhookEvents;
     }, {});
   } catch (error) {
-    throw new Error('Failed to get webhook event types:', error);
+    throw new Error(`Failed to get webhook event types: ${error.message}`);
   }
 }
 

@@ -40,14 +40,14 @@ module.exports = new EntitySchema({
     webhookEndpoint: {
       type: 'varchar',
       nullable: true
-    },
-    selectedWebhookEventTypes: {
-      type: 'text',
-      array: true,
-      nullable: true
     }
   },
   relations: {
+    payerWebhookEvent: {
+      target: 'payerWebhookEvent',
+      type: 'one-to-many',
+      inverseSide: 'payer'
+    },
     splitFeeUsers: {
       target: 'splitFeeUser',
       type: 'one-to-many',

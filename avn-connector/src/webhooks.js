@@ -45,10 +45,10 @@ class WebhooksUpdater {
 async function publishEvent(event) {
   try {
     const { eventType, payerAddress, requestId, data } = checkEvent(event);
-    const { endpoint, selectedEventTypes, payerVaultId } = webhooks.active[payerAddress];
-    const eventDescription = selectedEventTypes[eventType];
-    if (!endpoint || !eventDescription) return;
-    const eventData = { timestamp: Date.now(), event: eventDescription, address: payerAddress, requestId, data };
+    const { endpoint, eventTypes, payerVaultId } = webhooks.active[payerAddress];
+    const description = eventTypes[eventType];
+    if (!endpoint || !description) return;
+    const eventData = { timestamp: Date.now(), event: description, address: payerAddress, requestId, data };
     const payerSignedEventData = await signEventData(eventData, payerVaultId);
     const eventMessage = JSON.stringify({ endpoint, eventData, payerSignedEventData });
     await sendToQueue(payerAddress, eventMessage);

@@ -1,18 +1,18 @@
 var EntitySchema = require('typeorm').EntitySchema;
 
 module.exports = new EntitySchema({
-  name: 'webhookEventType',
+  name: 'webhookEvent',
   columns: {
     id: {
       primary: true,
       type: 'int',
       generated: true
     },
-    eventType: {
+    type: {
       type: 'varchar',
       unique: true
     },
-    eventDescription: {
+    description: {
       type: 'varchar',
       unique: true
     },
@@ -23,6 +23,13 @@ module.exports = new EntitySchema({
     updatedAt: {
       type: 'timestamptz',
       updateDate: true
+    }
+  },
+  relations: {
+    payerWebhookEvent: {
+      target: 'payerWebhookEvent',
+      type: 'one-to-many',
+      inverseSide: 'webhookEvent'
     }
   }
 });

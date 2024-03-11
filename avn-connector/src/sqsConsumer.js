@@ -68,10 +68,11 @@ async function processMessage(message) {
 
       if (isSplitFeeTransaction(txData)) {
         const payerAddress = params.splitFeePayerAddress;
-        await webhooks.publishEvent({ eventType: 'tx_sending', requestId, payerAddress, data: txData });
         params.paymentNonce = await avn.getPayerPaymentNonce(requestId, payerAddress);
         logger.trace(`[SQS tx] Request ID: ${requestId} - split fee payment nonce: ${params.paymentNonce}`);
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, params.paymentNonce);
+        const eventData = { tx: txData, payment: params.paymentInfo };
+        await webhooks.publishEvent({ eventType: 'tx_payment_generated', requestId, payerAddress, data: eventData });
       }
 
       result = await avn.proxy(requestId, palletName, method, params);

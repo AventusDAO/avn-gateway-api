@@ -60,7 +60,7 @@ async function proxy(requestId, palletName, method, params) {
     if (params[0].params.splitFeePayerAddress) {
       const payerAddress = params[0].params.splitFeePayerAddress;
       await webhooks.publishEvent({ eventType: 'tx_sent', requestId, payerAddress, data: result });
-      await setNextPayerNonce(requestId, params[0].params.splitFeePayerAddress, parseInt(params[0].params.paymentNonce) + 1);
+      await setNextPayerNonce(requestId, payerAddress, parseInt(params[0].params.paymentNonce) + 1);
     }
 
     return result;
@@ -74,7 +74,7 @@ async function proxy(requestId, palletName, method, params) {
     if (params.splitFeePayerAddress) {
       const payerAddress = params.splitFeePayerAddress;
       await webhooks.publishEvent({ eventType: 'tx_sent', requestId, payerAddress, data: result });
-      await setNextPayerNonce(requestId, params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
+      await setNextPayerNonce(requestId, payerAddress, parseInt(params.paymentNonce) + 1);
     }
 
     return result;

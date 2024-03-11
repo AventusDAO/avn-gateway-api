@@ -275,9 +275,9 @@ app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
   }
 });
 
-app.post('/publishWebhookEvent', async (req, res, next) => {
+app.post('/publishEvent', async (req, res, next) => {
   try {
-    log.trace({ publishWebhookEventRequest: req.body });
+    log.trace({ publishEventRequest: req.body });
     await webhooks.publishEvent(req.body);
     res.status(200).send({});
   } catch (err) {

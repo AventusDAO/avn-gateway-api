@@ -41,7 +41,7 @@ async function processRequest(request, authoriserContext, awsRequestId) {
     await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', { requestId: awsRequestId });
 
     if (isSplitFeeTransaction(authoriserContext) === true) {
-      await utils.publishWebhookEvent(
+      await utils.publishEvent(
         AVN_CONNECTOR_ENDPOINT,
         'tx_received',
         awsRequestId,

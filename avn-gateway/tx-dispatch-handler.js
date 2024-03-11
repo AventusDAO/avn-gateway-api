@@ -628,7 +628,7 @@ async function processProxyMethod(call, request, requestId, pallet, method, meth
     params.splitFeePayerVaultId = call.splitFeePayerVaultId;
     params.relayerFees = call.relayerFee;
     params.splitFeeProxyProof = proxyProof;
-    await utils.publishWebhookEvent(AVN_CONNECTOR_ENDPOINT, 'tx_sending', requestId, params.splitFeePayerAddress, {
+    await utils.publishEvent(AVN_CONNECTOR_ENDPOINT, 'tx_sending', requestId, params.splitFeePayerAddress, {
       relayer,
       user,
       proxySignature,

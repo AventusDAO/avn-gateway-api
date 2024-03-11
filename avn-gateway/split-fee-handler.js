@@ -73,7 +73,7 @@ async function processRequest(request) {
 
     if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method)) === false) {
       // transaction has been rejected by payer, inform user
-      await utils.publishWebhookEvent(AVN_CONNECTOR_ENDPOINT, 'tx_payer_rejected', requestId, tx.splitFeePayerAddress, tx);
+      await utils.publishEvent(AVN_CONNECTOR_ENDPOINT, 'tx_payer_rejected', requestId, tx.splitFeePayerAddress, tx);
       await updateTransactionStatusToRejected(requestId);
       return;
     }
@@ -83,7 +83,7 @@ async function processRequest(request) {
     tx.relayerFee = relayerFee;
 
     const data = await sqs.sendToQueue(SQS_DEFAULT_QUEUE_URL, tx);
-    await utils.publishWebhookEvent(AVN_CONNECTOR_ENDPOINT, 'tx_queued', requestId, tx.splitFeePayerAddress, tx);
+    await utils.publishEvent(AVN_CONNECTOR_ENDPOINT, 'tx_queued', requestId, tx.splitFeePayerAddress, tx);
     console.info(
       `Sent updated transaction to default SQS. txID: ${tx.id}, awsRequestId: ${tx.awsRequestId}, sqsMessageId: ${data.MessageId}`
     );

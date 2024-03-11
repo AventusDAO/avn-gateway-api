@@ -10,6 +10,7 @@ const redis = require('./redis');
 const tier1 = require('./tier1');
 const Vault = require('./vaultApp');
 const stakingHelper = require('./stakingHelper');
+const webhooks = require('./webhooks');
 const fees = require('./paymentInfoHelper');
 const rds = require('./db/index');
 const BN = require('bn.js');
@@ -57,6 +58,8 @@ async function proxy(requestId, palletName, method, params) {
     const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
 
     if (params[0].params.splitFeePayerAddress) {
+      const payerAddress = params[0].params.splitFeePayerAddress;
+      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, payerAddress, data: result });
       await setNextPayerNonce(requestId, params[0].params.splitFeePayerAddress, parseInt(params[0].params.paymentNonce) + 1);
     }
 
@@ -69,6 +72,8 @@ async function proxy(requestId, palletName, method, params) {
     const result = await signAndSend(requestId, params.relayerAddress, txn);
 
     if (params.splitFeePayerAddress) {
+      const payerAddress = params.splitFeePayerAddress;
+      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, payerAddress, data: result });
       await setNextPayerNonce(requestId, params.splitFeePayerAddress, parseInt(params.paymentNonce) + 1);
     }
 

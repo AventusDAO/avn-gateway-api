@@ -62,7 +62,7 @@ async function confirmStatus(pollApi, requestId, expectedStatus, optionalTimeout
     response = await pollApi.requestState(requestId);
     status = response.status;
     // TODO: Remove " && status !== undefined" once dev env is reset
-    if (status !== 'Pending' && status !== 'AwaitingToSend' && status !== 'Transaction not found' && status !== undefined) {
+    if (status !== 'Pending' && status !== 'AwaitingToSend' && status !== 'Validating' && status !== 'Transaction not found' && status !== undefined) {
       assert.equal(status, expectedStatus);
       console.log('   - Finished in ', i * WAIT_INTERVAL_IN_SECS, ' sec');
       return response;

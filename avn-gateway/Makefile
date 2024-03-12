@@ -34,8 +34,8 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	zip build/tx-dispatch-handler/tx-dispatch-handler-latest.zip tx-dispatch-handler.js
 	mkdir -p build/invalid-transaction-handler
 	zip build/invalid-transaction-handler/invalid-transaction-handler-latest.zip invalid-transaction-handler.js
-	mkdir -p build/webhooks-event-emitter
-	zip build/webhooks-event-emitter/webhooks-event-emitter-latest.zip webhooks-event-emitter.js
+	mkdir -p build/webhooks-event-emitter-handler
+	zip build/webhooks-event-emitter-handler/webhooks-event-emitter-handler-latest.zip webhooks-event-emitter-handler.js
 	cp build/common/common-latest.zip build/common/common-$(version).zip
 	cp build/query-handler/query-handler-latest.zip build/query-handler/query-handler-$(version).zip
 	cp build/send-handler/send-handler-latest.zip build/send-handler/send-handler-$(version).zip
@@ -49,7 +49,7 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	cp build/split-fee-handler/split-fee-handler-latest.zip build/split-fee-handler/split-fee-handler-$(version).zip
 	cp build/tx-dispatch-handler/tx-dispatch-handler-latest.zip build/tx-dispatch-handler/tx-dispatch-handler-$(version).zip
 	cp build/invalid-transaction-handler/invalid-transaction-handler-latest.zip build/invalid-transaction-handler/invalid-transaction-handler-$(version).zip
-	cp build/webhooks-event-emitter/webhooks-event-emitter-latest.zip build/webhooks-event-emitter/webhooks-event-emitter-$(version).zip
+	cp build/webhooks-event-emitter-handler/webhooks-event-emitter-handler-latest.zip build/webhooks-event-emitter-handler/webhooks-event-emitter-handler-$(version).zip
 
 clean: ## destroys the build folder
 	rm -rf ./build/

@@ -70,19 +70,8 @@ async function processLowerEvents(fromId, avtContract) {
         continue;
       }
 
-      if (utils.currentEventMissingArgs(currentEvent)) {
-        currentEvent = utils.updateEventArgs(currentEvent, newEvent);
-      }
-
-      if (utils.canOverwriteEvent(currentEvent, newEvent)) {
-        currentEvent.name = newEvent.name;
-        currentEvent.claimData = newEvent.claimData;
-      } else {
-        // this is an edge case where the existiing entry in redis is corrupted somehow
-        if (currentEvent.name === utils.READY_TO_CLAIM_EVENT_NAME && !currentEvent.claimData) {
-          currentEvent.claimData = await avn.getLowerProof(lowerId);
-        }
-      }
+      // handle multiple events for the same lowerId
+      currentEvent = await utils.overwriteEventIfRequired(currentEvent, newEvent)
 
       distinctLowers[lowerId] = currentEvent;
     }
@@ -92,11 +81,19 @@ async function processLowerEvents(fromId, avtContract) {
       // This can happen if events are split across different batches (txLimits)
       let storedLower = await redis.getLowerById(key);
       let newLower = distinctLowers[key];
-      if (utils.canOverwriteEvent(storedLower, newLower)) {
+
+      if (!storedLower) {
+        // there is nothing saved already so add the new event
+
         log.trace(`Storing key: ${key}, value: ${JSON.stringify(newLower)}`);
-        // this will also take care of the sender/recipient mapping
         await redis.setLowerById(key, newLower);
+      } else {
+        storedLower = await utils.overwriteEventIfRequired(storedLower, newLower)
+
+        log.trace(`Storing key: ${key}, value: ${JSON.stringify(storedLower)}`);
+        await redis.setLowerById(key, storedLower);
       }
+
       counter++;
     }
 

@@ -86,7 +86,7 @@ const customConfirmStatus = async (pollApi, requestId) => {
     await helper.sleep(1000);
     response = await pollApi.requestState(requestId);
     status = response.status;
-    if (status !== 'Pending' && status !== 'AwaitingToSend' && status !== 'Transaction not found' && status !== undefined) {
+    if (!['Pending', 'AwaitingToSend', 'Validating', 'Transaction not found', undefined].includes(status)) {
       return response;
     }
   }

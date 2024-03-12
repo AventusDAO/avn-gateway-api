@@ -29,13 +29,6 @@ module.exports = new EntitySchema({
       joinColumn: true,
       cascade: true,
       inverseSide: 'payerWebhookEvent'
-    },
-    indices: [
-      {
-        name: 'UQ_payerId_webhookEventId',
-        unique: true,
-        columns: ['payerId', 'webhookEventId']
-      }
-    ]
+    }
   }
 });

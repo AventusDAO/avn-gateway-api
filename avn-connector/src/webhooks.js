@@ -5,7 +5,6 @@ const crypto = require('crypto');
 const config = require('multiconfig').load();
 const log = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
-const webhooks = new WebhooksUpdater(config.webhooks.refresh_interval_ms);
 
 // Initializes the permitted event types and any currently active webhooks
 // Webhooks are kept up-to-date via periodic DB resyncs that run in the background
@@ -41,6 +40,8 @@ class WebhooksUpdater {
     }, this.refreshInterval);
   }
 }
+
+const webhooks = new WebhooksUpdater(config.webhooks.refresh_interval_ms);
 
 async function publishEvent(event) {
   try {

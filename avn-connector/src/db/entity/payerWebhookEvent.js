@@ -30,9 +30,10 @@ module.exports = new EntitySchema({
       cascade: true,
       inverseSide: 'payerWebhookEvent'
     },
-    uniques: [
+    indices: [
       {
         name: 'UQ_payerId_webhookEventId',
+        unique: true,
         columns: ['payerId', 'webhookEventId']
       }
     ]

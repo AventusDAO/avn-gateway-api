@@ -102,5 +102,6 @@ function hash(message) {
 }
 
 module.exports = {
+  init,
   publishEvent
 };

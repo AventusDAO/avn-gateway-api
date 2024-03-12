@@ -73,7 +73,7 @@ async function processRequest(request) {
 
     if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method)) === false) {
       // transaction has been rejected by payer, inform user
-      await utils.publishEvent(AVN_CONNECTOR_ENDPOINT, 'tx_payer_rejected', requestId, tx.splitFeePayerAddress, tx);
+      await utils.publishEvent(AVN_CONNECTOR_ENDPOINT, 'tx_payer_refused', requestId, tx.splitFeePayerAddress, tx);
       await updateTransactionStatusToRejected(requestId);
       return;
     }

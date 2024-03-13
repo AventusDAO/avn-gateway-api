@@ -13,7 +13,7 @@ module.exports = new EntitySchema({
       unique: true
     },
     webhookEndpoint: {
-      type: 'varchar',
+      type: 'varchar'
     },
     createdAt: {
       type: 'timestamptz',

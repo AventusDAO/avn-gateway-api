@@ -50,20 +50,14 @@ async function init() {
 }
 
 async function publishEvent(event) {
-  log.info(`[Webhooks] Publish Event A: ${JSON.stringify(event)}`);
   try {
     const { eventType, payerAddress, requestId, data } = checkEvent(event);
-    log.info(`[Webhooks] Publish Event B: ${eventType}, ${payerAddress}, ${requestId}, ${data}`);
     if (!webhooks.active.hasOwnProperty(payerAddress)) return;
     const { endpoint, eventTypes, payerVaultId } = webhooks.active[payerAddress];
-    log.info(`[Webhooks] Publish Event C: ${endpoint}, ${eventTypes}, ${payerVaultId}`);
     const description = eventTypes[eventType];
     if (!endpoint || !description) return;
-    log.info(`[Webhooks] Publish Event D: ${description}`);
     const eventData = { timestamp: Date.now(), event: description, address: payerAddress, requestId, data };
-    log.info(`[Webhooks] Publish Event E: ${JSON.stringify(eventData)}`);
-    const eventMessage = JSON.stringify({ endpoint, eventData });
-    await sendToQueue(payerAddress, eventMessage);
+    await sendToQueue(JSON.stringify({ endpoint, eventData }), payerAddress);
   } catch (error) {
     log.error(`[Webhooks] ERROR - Error publishing event: ${error}`);
     throw error;
@@ -84,15 +78,16 @@ function checkEvent(event) {
   return { eventType, requestId, payerAddress, data };
 }
 
-async function sendToQueue(payerAddress, message) {
+async function sendToQueue(message, messageGroup) {
   try {
     const params = {
       QueueUrl: config.webhooks.queue_url,
       MessageBody: message,
-      MessageGroupId: payerAddress,
+      MessageGroupId: messageGroup,
       MessageDeduplicationId: hash(message)
     };
-    await sqsClient.send(new SendMessageCommand(params));
+    const result = await sqsClient.send(new SendMessageCommand(params));
+    log.info(`[Webhooks] - SENT TO QUEUE: ${params}      ${result}`);
   } catch (error) {
     log.error(`[Webhooks] ERROR - Error in sendToQueue: ${error}`);
     throw error;

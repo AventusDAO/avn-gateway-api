@@ -28,9 +28,7 @@ class WebhooksUpdater {
 
   async updateWebhooks() {
     try {
-      log.info(`[Webhooks] Updating webhooks before: ${JSON.stringify(this.active)}`);
       this.active = await rds.getActiveWebhooks();
-      log.info(`[Webhooks] Updating webhooks after: ${JSON.stringify(this.active)}`);
     } catch (error) {
       console.error('[Webhooks] ERROR - Failed to update webhooks', error);
     }
@@ -87,7 +85,7 @@ async function sendToQueue(message, messageGroup) {
       MessageDeduplicationId: hash(message)
     };
     const result = await sqsClient.send(new SendMessageCommand(params));
-    log.info(`[Webhooks] - SENT TO QUEUE: ${params}      ${result}`);
+    log.info(`[Webhooks] - SENT TO QUEUE: ${JSON.stringify(params)}      ${JSON.stringify(result)}`);
   } catch (error) {
     log.error(`[Webhooks] ERROR - Error in sendToQueue: ${error}`);
     throw error;

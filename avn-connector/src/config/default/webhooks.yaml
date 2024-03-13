@@ -1,2 +1,1 @@
 queue_url: $ENV:SQS_WEBHOOKS_QUEUE_URL
-refresh_interval_ms: $ENV:WEBHOOKS_REFRESH_INTERVAL_MS

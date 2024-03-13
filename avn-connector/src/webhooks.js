@@ -13,8 +13,10 @@ class WebhooksUpdater {
     this.active = {};
     this.EventTypes = {};
     this.refreshInterval = refreshInterval;
-    this.lastUpdateTime = null;
-    this.lastCount = 0;
+    this.lastEventsUpdate = new Date(Date.now()).toISOString();
+    this.lastEventsCount = 0;
+    this.lastEndpointsUpdate = new Date(Date.now()).toISOString();
+    this.lastEndpointsCount = 0;
     this.initialize();
   }
 
@@ -22,8 +24,10 @@ class WebhooksUpdater {
     try {
       this.EventTypes = await rds.getWebhookEventTypes();
       this.active = await rds.getActiveWebhooks();
-      this.lastUpdateTime = await rds.getWebhooksLastUpdateTime();
-      this.lastCount = await rds.getWebhooksPayerEventsCount();
+      this.lastEventsUpdate = await rds.getPayerWebhookEventsLastUpdate();
+      this.lastEventsCount = await rds.getPayerWebhookEventsCount();
+      this.lastEndpointsUpdate = await rds.getpayerWebhookEndpointsLastUpdate();
+      this.lastEndpointsCount = await rds.getpayerWebhookEndpointsCount();
       this.refreshWebhooks();
     } catch (error) {
       log.error('[Webhooks] ERROR - Failed to initialize webhooks:', error);
@@ -32,12 +36,20 @@ class WebhooksUpdater {
 
   async updateWebhooks() {
     try {
-      const latestUpdateTime = await rds.getWebhooksLastUpdateTime();
-      const latestCount = await rds.getWebhooksPayerEventsCount();
-      if (!this.lastUpdateTime || this.lastUpdateTime < latestUpdateTime || latestCount != this.lastCount) {
+      const latestEventsUpdate = await rds.getPayerWebhookEventsLastUpdate();
+      const latestEventsCount = await rds.getPayerWebhookEventsCount();
+      const latestEndpointsUpdate = await rds.getpayerWebhookEndpointsLastUpdate();
+      const latestEndpointsCount = await rds.getpayerWebhookEndpointsCount();
+      const eventsUpdated = this.lastEventsUpdate < latestEventsUpdate || this.lastEventsCount != latestEventsCount;
+      const endpointsUpdated =
+        this.lastEndpointsUpdate < latestEndpointsUpdate || this.lastEndpointsCount != latestEndpointsCount;
+
+      if (eventsUpdated || endpointsUpdated) {
         this.active = await rds.getActiveWebhooks();
-        this.lastUpdateTime = latestUpdateTime;
-        this.lastCount = latestCount;
+        this.lastEventsUpdate = latestEventsUpdate;
+        this.lastEventsCount = latestEventsCount;
+        this.lastEndpointsUpdate = latestEndpointsUpdate;
+        this.lastEndpointsCount = latestEndpointsCount;
         log.info(`[Webhooks] Webhooks updated, ${Object.keys(this.active).length} webhooks active`);
       }
     } catch (error) {
@@ -65,11 +77,11 @@ async function publishEvent(event) {
   try {
     const { eventType, payerAddress, requestId, data } = checkEvent(event);
     if (!webhooks.active.hasOwnProperty(payerAddress)) return;
-    const { endpoint, eventTypes, payerVaultId } = webhooks.active[payerAddress];
+    const { endpoints, eventTypes, payerVaultId } = webhooks.active[payerAddress];
     const description = eventTypes[eventType];
-    if (!endpoint || !description) return;
+    if (!endpoints || !description) return;
     const eventData = { timestamp: Date.now(), event: description, address: payerAddress, requestId, data };
-    await sendToQueue(JSON.stringify({ endpoint, eventData }), payerAddress);
+    await sendToQueue(JSON.stringify({ endpoints, eventData }), payerAddress);
   } catch (error) {
     log.error('[Webhooks] ERROR - Error publishing event', error);
     throw error;

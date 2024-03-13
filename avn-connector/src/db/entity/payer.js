@@ -44,8 +44,8 @@ module.exports = new EntitySchema({
       type: 'one-to-many',
       inverseSide: 'payer'
     },
-    payerWebhookEndpoint: {
-      target: 'payerWebhookEndpoint',
+    payerWebhookEndpoints: {
+      target: 'payerWebhookEndpoints',
       type: 'one-to-one',
       inverseSide: 'payer',
       joinColumn: true

@@ -7,7 +7,7 @@ const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const FEE_TABLE = 'fee';
 const PAYER_TABLE = 'payer';
 const PAYER_TRANSACTION_TABLE = 'payerTransaction';
-const PAYER_WEBHOOK_ENDPOINT_TABLE = 'payerWebhookEndpoint';
+const PAYER_WEBHOOK_ENDPOINTS_TABLE = 'payerWebhookEndpoints';
 const PAYER_WEBHOOK_EVENTS_TABLE = 'payerWebhookEvents';
 const RELAYER_TABLE = 'relayer';
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
@@ -241,7 +241,21 @@ async function getWebhookEventTypes() {
   }
 }
 
-async function getWebhooksLastUpdateTime() {
+async function getPayerWebhookEndpointsLastUpdate() {
+  const result = await dataSource
+    .getRepository(PAYER_WEBHOOK_ENDPOINTS_TABLE)
+    .createQueryBuilder('endpoint')
+    .select('MAX(endpoint.updatedAt)', 'last_update_time')
+    .getRawOne();
+
+  return result.last_update_time;
+}
+
+async function getPayerWebhookEndpointsCount() {
+  return await dataSource.getRepository(PAYER_WEBHOOK_ENDPOINTS_TABLE).count();
+}
+
+async function getPayerWebhookEventsLastUpdate() {
   const result = await dataSource
     .getRepository(PAYER_WEBHOOK_EVENTS_TABLE)
     .createQueryBuilder('event')
@@ -251,7 +265,7 @@ async function getWebhooksLastUpdateTime() {
   return result.last_update_time;
 }
 
-async function getWebhooksPayerEventsCount() {
+async function getPayerWebhookEventsCount() {
   return await dataSource.getRepository(PAYER_WEBHOOK_EVENTS_TABLE).count();
 }
 
@@ -260,8 +274,10 @@ module.exports = {
   getFees,
   getActiveWebhooks,
   getWebhookEventTypes,
-  getWebhooksLastUpdateTime,
-  getWebhooksPayerEventsCount,
+  getPayerWebhookEndpointsLastUpdate,
+  getPayerWebhookEndpointsCount,
+  getPayerWebhookEventsLastUpdate,
+  getPayerWebhookEventsCount,
   getRelayerVaultId,
   init,
   isPayerTransaction

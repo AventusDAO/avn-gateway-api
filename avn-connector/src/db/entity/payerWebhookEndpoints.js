@@ -1,7 +1,7 @@
 var EntitySchema = require('typeorm').EntitySchema;
 
 module.exports = new EntitySchema({
-  name: 'payerWebhookEndpoint',
+  name: 'payerWebhookEndpoints',
   columns: {
     id: {
       primary: true,
@@ -26,7 +26,7 @@ module.exports = new EntitySchema({
   },
   indices: [
     {
-      name: 'IDX_payerWebhookEndpoint_updatedAt',
+      name: 'IDX_payerWebhookEndpoints_updatedAt',
       columns: ['updatedAt']
     }
   ],
@@ -36,7 +36,7 @@ module.exports = new EntitySchema({
       type: 'one-to-one',
       joinColumn: true,
       cascade: true,
-      inverseSide: 'payerWebhookEndpoint'
+      inverseSide: 'payerWebhookEndpoints'
     }
   }
 });

@@ -28,6 +28,7 @@ class WebhooksUpdater {
 
   async updateWebhooks() {
     try {
+      log.info(`[Webhooks] Updating webhooks: ${JSON.stringify(this.active)}`);
       this.active = await rds.getActiveWebhooks();
     } catch (error) {
       console.error('[Webhooks] ERROR - Failed to update webhooks', error);
@@ -48,6 +49,7 @@ async function init() {
 }
 
 async function publishEvent(event) {
+  log.info(`[Webhooks] Publish Event Request: ${event}`);
   try {
     const { eventType, payerAddress, requestId, data } = checkEvent(event);
     const { endpoint, eventTypes, payerVaultId } = webhooks.active[payerAddress];
@@ -58,7 +60,7 @@ async function publishEvent(event) {
     const eventMessage = JSON.stringify({ endpoint, eventData, payerSignedEventData });
     await sendToQueue(payerAddress, eventMessage);
   } catch (error) {
-    log.error(`[Webhooks] ERROR - Error publishing event: ${error}`, error);
+    log.error(`[Webhooks] ERROR - Error publishing event: ${error}`);
     throw error;
   }
 }
@@ -92,7 +94,7 @@ async function sendToQueue(payerAddress, message) {
     };
     await sqsClient.send(new SendMessageCommand(params));
   } catch (error) {
-    log.error(`[Webhooks] ERROR - Error in sendToQueue: ${error}`, error);
+    log.error(`[Webhooks] ERROR - Error in sendToQueue: ${error}`);
     throw error;
   }
 }

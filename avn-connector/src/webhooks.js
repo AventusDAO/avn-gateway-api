@@ -26,8 +26,8 @@ class WebhooksUpdater {
       this.active = await rds.getActiveWebhooks();
       this.lastEventsUpdate = await rds.getPayerWebhookEventsLastUpdate();
       this.lastEventsCount = await rds.getPayerWebhookEventsCount();
-      this.lastEndpointsUpdate = await rds.getpayerWebhookEndpointsLastUpdate();
-      this.lastEndpointsCount = await rds.getpayerWebhookEndpointsCount();
+      this.lastEndpointsUpdate = await rds.getPayerWebhookEndpointsLastUpdate();
+      this.lastEndpointsCount = await rds.getPayerWebhookEndpointsCount();
       this.refreshWebhooks();
     } catch (error) {
       log.error('[Webhooks] ERROR - Failed to initialize webhooks:', error);
@@ -38,8 +38,8 @@ class WebhooksUpdater {
     try {
       const latestEventsUpdate = await rds.getPayerWebhookEventsLastUpdate();
       const latestEventsCount = await rds.getPayerWebhookEventsCount();
-      const latestEndpointsUpdate = await rds.getpayerWebhookEndpointsLastUpdate();
-      const latestEndpointsCount = await rds.getpayerWebhookEndpointsCount();
+      const latestEndpointsUpdate = await rds.getPayerWebhookEndpointsLastUpdate();
+      const latestEndpointsCount = await rds.getPayerWebhookEndpointsCount();
       const eventsUpdated = this.lastEventsUpdate < latestEventsUpdate || this.lastEventsCount != latestEventsCount;
       const endpointsUpdated =
         this.lastEndpointsUpdate < latestEndpointsUpdate || this.lastEndpointsCount != latestEndpointsCount;

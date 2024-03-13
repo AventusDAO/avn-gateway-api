@@ -26,7 +26,7 @@ module.exports = new EntitySchema({
   },
   indices: [
     {
-      name: 'IDX_updatedAt',
+      name: 'IDX_payerWebhookEndpoint_updatedAt',
       columns: ['updatedAt']
     }
   ],

@@ -13,7 +13,8 @@ module.exports = new EntitySchema({
       unique: true
     },
     webhookEndpoint: {
-      type: 'varchar'
+      type: 'varchar',
+      nullable: false
     },
     createdAt: {
       type: 'timestamptz',
@@ -33,10 +34,10 @@ module.exports = new EntitySchema({
   relations: {
     payer: {
       target: 'payer',
-      type: 'one-to-one',
-      joinColumn: true,
-      cascade: true,
-      inverseSide: 'payerWebhookEndpoints'
+      type: 'many-to-one',
+      joinColumn: { name: 'payerId', referencedColumnName: 'id' },
+      inverseSide: 'payerWebhookEndpoints',
+      cascade: true
     }
   }
 });

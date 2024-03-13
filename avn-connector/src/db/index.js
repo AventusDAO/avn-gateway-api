@@ -201,21 +201,21 @@ function getPublicKey(account) {
 
 async function getActiveWebhooks() {
   try {
-    const payerWebhookEventsSource = dataSource.getRepository(PAYER_WEBHOOK_EVENTS_TABLE);
-    const activeWebhooksData = await payerWebhookEventsSource
-      .createQueryBuilder('active')
-      .innerJoinAndSelect('active.payer', 'payer', 'payer.enabled = true')
-      .innerJoinAndSelect('payer.payerWebhookEndpoint', 'endpoint')
-      .innerJoinAndSelect('active.webhookEvent', 'webhookEvent')
+    const activeWebhooksData = await dataSource
+      .getRepository(PAYER_WEBHOOK_EVENTS_TABLE)
+      .createQueryBuilder('event')
+      .innerJoinAndSelect('event.endpoint', 'endpoint')
+      .innerJoinAndSelect('event.webhookEvent', 'webhookEvent')
+      .innerJoinAndSelect('endpoint.payer', 'payer', 'payer.enabled = true')
       .getMany();
 
     const activeWebhooks = {};
-    activeWebhooksData.forEach(({ payer, webhookEvent }) => {
-      const payerAddress = encodeAddress(payer.publicKey, 42);
+    activeWebhooksData.forEach(({ endpoint, webhookEvent }) => {
+      const payerAddress = encodeAddress(endpoint.payer.publicKey, 42);
       if (!activeWebhooks[payerAddress]) {
         activeWebhooks[payerAddress] = {
-          payerVaultId: payer.vaultId,
-          endpoint: payer.payerWebhookEndpoint.endpoint,
+          payerVaultId: endpoint.payer.vaultId,
+          endpoint: endpoint.webhookEndpoint,
           eventTypes: {}
         };
       }

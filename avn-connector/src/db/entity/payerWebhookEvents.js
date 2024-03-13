@@ -8,7 +8,7 @@ module.exports = new EntitySchema({
       type: 'int',
       generated: true
     },
-    payerId: {
+    endpointId: {
       type: 'int'
     },
     webhookEventId: {
@@ -21,8 +21,8 @@ module.exports = new EntitySchema({
   },
   uniques: [
     {
-      name: 'UQ_payerId_webhookEventId',
-      columns: ['payerId', 'webhookEventId']
+      name: 'UQ_endpointId_webhookEventId',
+      columns: ['endpointId', 'webhookEventId']
     }
   ],
   indices: [
@@ -32,19 +32,18 @@ module.exports = new EntitySchema({
     }
   ],
   relations: {
-    payer: {
-      target: 'payer',
+    endpoint: {
+      target: 'payerWebhookEndpoints',
       type: 'many-to-one',
-      joinColumn: true,
-      cascade: true,
-      inverseSide: 'payerWebhookEvents'
+      joinColumn: { name: 'endpointId', referencedColumnName: 'id' },
+      inverseSide: 'payerWebhookEvents',
+      onDelete: 'CASCADE'
     },
     webhookEvent: {
       target: 'webhookEvent',
       type: 'many-to-one',
-      joinColumn: true,
-      cascade: true,
-      inverseSide: 'payerWebhookEvents'
+      joinColumn: { name: 'webhookEventId', referencedColumnName: 'id' },
+      cascade: true
     }
   }
 });

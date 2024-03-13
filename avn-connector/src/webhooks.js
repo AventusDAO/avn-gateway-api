@@ -49,15 +49,19 @@ async function init() {
 }
 
 async function publishEvent(event) {
-  log.info(`[Webhooks] Publish Event Request: ${event}`);
+  log.info(`[Webhooks] Publish Event A: ${JSON.stringify(event)}`);
   try {
     const { eventType, payerAddress, requestId, data } = checkEvent(event);
+    log.info(`[Webhooks] Publish Event B: ${eventType}, ${payerAddress}, ${requestId}, ${data}`);
+    if (!webhooks.active.hasOwnProperty(payerAddress)) return;
     const { endpoint, eventTypes, payerVaultId } = webhooks.active[payerAddress];
+    log.info(`[Webhooks] Publish Event C: ${endpoint}, ${eventTypes}, ${payerVaultId}`);
     const description = eventTypes[eventType];
     if (!endpoint || !description) return;
+    log.info(`[Webhooks] Publish Event D: ${description}`);
     const eventData = { timestamp: Date.now(), event: description, address: payerAddress, requestId, data };
-    const payerSignedEventData = await signEventData(eventData, payerVaultId);
-    const eventMessage = JSON.stringify({ endpoint, eventData, payerSignedEventData });
+    log.info(`[Webhooks] Publish Event E: ${JSON.stringify(eventData)}`);
+    const eventMessage = JSON.stringify({ endpoint, eventData });
     await sendToQueue(payerAddress, eventMessage);
   } catch (error) {
     log.error(`[Webhooks] ERROR - Error publishing event: ${error}`);
@@ -77,11 +81,6 @@ function checkEvent(event) {
     throw new Error(`[Webhooks] ERROR - Invalid event type: ${eventType}`);
   }
   return { eventType, requestId, payerAddress, data };
-}
-
-async function signEventData(eventData, payerVaultId) {
-  const eventMessage = 'AvnGatewayWebhookEvent' + JSON.stringify(eventData);
-  return await avn.signWebhookEvent(eventMessage, payerVaultId);
 }
 
 async function sendToQueue(payerAddress, message) {

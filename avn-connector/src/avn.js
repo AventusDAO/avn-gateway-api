@@ -440,12 +440,6 @@ async function signPaymentInfo(message, payerVaultId) {
   return await vault.payerSign(message, payerUsername);
 }
 
-async function signWebhookEvent(message, payerVaultId) {
-  const payerUsername = fees.getPayerVaultUsername(payerVaultId);
-  if (!message || !message.startsWith('AvnGatewayWebhookEvent')) throw new Error('Invalid data to sign.');
-  return await vault.payerSign(message, payerUsername);
-}
-
 async function init() {
   vault = new Vault(config.vault.vault_url, config.vault.app_role_id, config.vault.app_secret_id);
   await connectToAvN();
@@ -696,7 +690,6 @@ module.exports = {
   query,
   RELAYER_ADDRESS,
   signPaymentInfo,
-  signWebhookEvent,
   setSendingFailedStatus,
   getPayerPaymentNonce,
   generateSplitFeePaymentInfo,

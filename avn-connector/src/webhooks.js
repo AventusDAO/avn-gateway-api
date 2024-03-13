@@ -14,6 +14,7 @@ class WebhooksUpdater {
     this.EventTypes = {};
     this.refreshInterval = refreshInterval;
     this.lastUpdateTime = null;
+    this.lastCount = 0;
     this.initialize();
   }
 
@@ -22,6 +23,7 @@ class WebhooksUpdater {
       this.EventTypes = await rds.getWebhookEventTypes();
       this.active = await rds.getActiveWebhooks();
       this.lastUpdateTime = await rds.getWebhooksLastUpdateTime();
+      this.lastCount = await rds.getWebhooksPayerEventsCount();
       this.refreshWebhooks();
     } catch (error) {
       log.error('[Webhooks] ERROR - Failed to initialize webhooks:', error);
@@ -31,9 +33,11 @@ class WebhooksUpdater {
   async updateWebhooks() {
     try {
       const latestUpdateTime = await rds.getWebhooksLastUpdateTime();
-      if (!this.lastUpdateTime || this.lastUpdateTime < latestUpdateTime) {
+      const latestCount = await rds.getWebhooksPayerEventsCount();
+      if (!this.lastUpdateTime || this.lastUpdateTime < latestUpdateTime || latestCount != this.lastCount) {
         this.active = await rds.getActiveWebhooks();
         this.lastUpdateTime = latestUpdateTime;
+        this.lastCount = latestCount;
         log.info(`[Webhooks] Webhooks updated, ${Object.keys(this.active).length} webhooks active`);
       }
     } catch (error) {
@@ -42,9 +46,11 @@ class WebhooksUpdater {
   }
 
   refreshWebhooks() {
-    setInterval(() => {
-      this.updateWebhooks();
-    }, this.refreshInterval);
+    const refresh = async () => {
+      await this.updateWebhooks();
+      setTimeout(refresh, this.refreshInterval);
+    };
+    refresh();
   }
 }
 

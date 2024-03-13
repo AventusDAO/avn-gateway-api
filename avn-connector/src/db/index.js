@@ -248,12 +248,17 @@ async function getWebhooksLastUpdateTime() {
   return result.last_update_time;
 }
 
+async function getWebhooksPayerEventsCount() {
+  return await dataSource.getRepository(PAYER_WEBHOOK_EVENT_TABLE).count();
+}
+
 module.exports = {
   getPayer,
   getFees,
   getActiveWebhooks,
   getWebhookEventTypes,
   getWebhooksLastUpdateTime,
+  getWebhooksPayerEventsCount,
   getRelayerVaultId,
   init,
   isPayerTransaction

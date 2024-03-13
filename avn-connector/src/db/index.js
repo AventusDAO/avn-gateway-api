@@ -29,7 +29,7 @@ async function init() {
       require('./entity/fee'),
       require('./entity/payer'),
       require('./entity/payerTransaction'),
-      require('./entity/payerWebhookEndpoint'),
+      require('./entity/payerWebhookEndpoints'),
       require('./entity/payerWebhookEvents'),
       require('./entity/relayer'),
       require('./entity/splitFeeUser'),

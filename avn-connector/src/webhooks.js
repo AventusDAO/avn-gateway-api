@@ -84,9 +84,9 @@ async function sendToQueue(message, messageGroup) {
       MessageGroupId: messageGroup,
       MessageDeduplicationId: hash(message)
     };
-    const result = await sqsClient.send(new SendMessageCommand(params));
+    await sqsClient.send(new SendMessageCommand(params));
   } catch (error) {
-    log.error(`[Webhooks] ERROR - Error in sendToQueue: ${error}`);
+    log.error(`[Webhooks] ERROR - Error sending to queue: ${error}`);
     throw error;
   }
 }

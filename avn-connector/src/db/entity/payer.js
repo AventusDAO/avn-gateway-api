@@ -36,17 +36,19 @@ module.exports = new EntitySchema({
     enabled: {
       type: 'boolean',
       default: true
-    },
-    webhookEndpoint: {
-      type: 'varchar',
-      nullable: true
     }
   },
   relations: {
-    payerWebhookEvent: {
-      target: 'payerWebhookEvent',
+    payerWebhookEvents: {
+      target: 'payerWebhookEvents',
       type: 'one-to-many',
       inverseSide: 'payer'
+    },
+    payerWebhookEndpoint: {
+      target: 'payerWebhookEndpoint',
+      type: 'one-to-one',
+      inverseSide: 'payer',
+      joinColumn: true
     },
     splitFeeUsers: {
       target: 'splitFeeUser',

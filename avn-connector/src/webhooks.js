@@ -28,8 +28,9 @@ class WebhooksUpdater {
 
   async updateWebhooks() {
     try {
-      log.info(`[Webhooks] Updating webhooks: ${JSON.stringify(this.active)}`);
+      log.info(`[Webhooks] Updating webhooks before: ${JSON.stringify(this.active)}`);
       this.active = await rds.getActiveWebhooks();
+      log.info(`[Webhooks] Updating webhooks after: ${JSON.stringify(this.active)}`);
     } catch (error) {
       console.error('[Webhooks] ERROR - Failed to update webhooks', error);
     }

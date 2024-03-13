@@ -430,8 +430,7 @@ async function getGatewayUserInfo(account) {
   };
 }
 
-async function signPaymentInfo(message, payerVaultId) {
-  const payerUsername = fees.getPayerVaultUsername(payerVaultId);
+async function signPaymentInfo(message, payerUsername) {
   const paymentInfoContext = stringToHex('authorization for proxy payment');
   const messageWithoutPrefix = '0x' + message.slice(4);
 
@@ -593,7 +592,8 @@ async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce)
     transaction.splitFeeProxyProof
   );
 
-  const signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), transaction.splitFeePayerVaultId);
+  const payerUserName = fees.getPayerVaultUsername(transaction.splitFeePayerVaultId);
+  const signedData = await signPaymentInfo(u8aToHex(encodedPaymentParams), payerUserName);
 
   return {
     payer: transaction.splitFeePayerAddress,

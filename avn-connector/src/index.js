@@ -276,7 +276,6 @@ app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
 });
 
 app.post('/publishEvent', async (req, res, next) => {
-  log.info(`[Webhooks] Publish Event hit : ${req.body}`);
   try {
     log.trace({ publishEventRequest: req.body });
     await webhooks.publishEvent(req.body);

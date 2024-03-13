@@ -15,6 +15,12 @@ module.exports = new EntitySchema({
       type: 'int'
     }
   },
+  uniques: [
+    {
+      name: 'UQ_payerId_webhookEventId',
+      columns: ['payerId', 'webhookEventId']
+    }
+  ],
   relations: {
     payer: {
       target: 'payer',

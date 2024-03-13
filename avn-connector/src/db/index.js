@@ -238,11 +238,22 @@ async function getWebhookEventTypes() {
   }
 }
 
+async function getWebhooksLastUpdateTime() {
+  const result = await dataSource
+    .getRepository(PAYER_WEBHOOK_EVENT_TABLE)
+    .createQueryBuilder('event')
+    .select('MAX(event.updatedAt)', 'last_update_time')
+    .getRawOne();
+
+  return result.last_update_time;
+}
+
 module.exports = {
   getPayer,
   getFees,
   getActiveWebhooks,
   getWebhookEventTypes,
+  getWebhooksLastUpdateTime,
   getRelayerVaultId,
   init,
   isPayerTransaction

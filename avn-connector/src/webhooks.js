@@ -13,6 +13,7 @@ class WebhooksUpdater {
     this.active = {};
     this.EventTypes = {};
     this.refreshInterval = refreshInterval;
+    this.lastUpdateTime = null;
     this.initialize();
   }
 
@@ -20,17 +21,23 @@ class WebhooksUpdater {
     try {
       this.EventTypes = await rds.getWebhookEventTypes();
       this.active = await rds.getActiveWebhooks();
+      this.lastUpdateTime = await rds.getWebhooksLastUpdateTime();
       this.refreshWebhooks();
     } catch (error) {
-      console.error('[Webhooks] ERROR - Failed to initialize webhooks:', error);
+      log.error('[Webhooks] ERROR - Failed to initialize webhooks:', error);
     }
   }
 
   async updateWebhooks() {
     try {
-      this.active = await rds.getActiveWebhooks();
+      const latestUpdateTime = await rds.getWebhooksLastUpdateTime();
+      if (!this.lastUpdateTime || this.lastUpdateTime < latestUpdateTime) {
+        this.active = await rds.getActiveWebhooks();
+        this.lastUpdateTime = latestUpdateTime;
+        log.info(`[Webhooks] Webhooks updated, ${Object.keys(this.active).length} webhooks active`);
+      }
     } catch (error) {
-      console.error('[Webhooks] ERROR - Failed to update webhooks', error);
+      log.error('[Webhooks] ERROR - Failed to update webhooks', error);
     }
   }
 
@@ -42,9 +49,10 @@ class WebhooksUpdater {
 }
 
 let webhooks;
+const REFRESH_INTERVAL_MS = 20000;
 
 async function init() {
-  webhooks = new WebhooksUpdater(config.webhooks.refresh_interval_ms);
+  webhooks = new WebhooksUpdater(REFRESH_INTERVAL_MS);
 }
 
 async function publishEvent(event) {
@@ -57,7 +65,7 @@ async function publishEvent(event) {
     const eventData = { timestamp: Date.now(), event: description, address: payerAddress, requestId, data };
     await sendToQueue(JSON.stringify({ endpoint, eventData }), payerAddress);
   } catch (error) {
-    log.error(`[Webhooks] ERROR - Error publishing event: ${error}`);
+    log.error('[Webhooks] ERROR - Error publishing event', error);
     throw error;
   }
 }
@@ -86,7 +94,7 @@ async function sendToQueue(message, messageGroup) {
     };
     await sqsClient.send(new SendMessageCommand(params));
   } catch (error) {
-    log.error(`[Webhooks] ERROR - Error sending to queue: ${error}`);
+    log.error('[Webhooks] ERROR - Error sending to queue', error);
     throw error;
   }
 }

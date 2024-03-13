@@ -13,12 +13,22 @@ module.exports = new EntitySchema({
     },
     webhookEventId: {
       type: 'int'
+    },
+    updatedAt: {
+      type: 'timestamptz',
+      updateDate: true
     }
   },
   uniques: [
     {
       name: 'UQ_payerId_webhookEventId',
       columns: ['payerId', 'webhookEventId']
+    }
+  ],
+  indices: [
+    {
+      name: 'IDX_updatedAt',
+      columns: ['updatedAt']
     }
   ],
   relations: {

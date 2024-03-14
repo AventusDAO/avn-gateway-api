@@ -203,21 +203,20 @@ async function getActiveWebhooks() {
     const webhooksData = await dataSource
       .getRepository(WEBHOOKS_TABLE)
       .createQueryBuilder('webhooks')
-      .innerJoinAndSelect('webhooks.endpoint', 'webhook')
-      .innerJoinAndSelect('webhooks.webhookEvent', 'event')
-      .innerJoinAndSelect('webhook.payers', 'payers')
-      .where('payers.enabled = :enabled', { enabled: true })
+      .select(['webhook.endpoint', 'event.type', 'event.description', 'payer.publicKey'])
+      .innerJoin('webhooks.endpoint', 'webhook')
+      .innerJoin('webhooks.webhookEvent', 'event')
+      .innerJoin('webhook.payers', 'payer', 'payer.enabled = :enabled', { enabled: true })
       .getMany();
-console.log(`[Webhooks] - DATA ${JSON.stringify(webhooksData, null, 2)}`);
+
+    console.log('[WEBHOOKS DATA]', webhooksData);
     const activeWebhooks = {};
-    // webhooksData.forEach(({ webhook, event, payers }) => {
-    //   payers.forEach(payer => {
-    //     if (!activeWebhooks[payer.publicKey]) {
-    //       activeWebhooks[payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };
-    //     }
-    //     activeWebhooks[payer.publicKey].eventTypes[event.type] = event.description;
-    //   });
-    // });
+    webhooksData.forEach(({ webhook, event, payer }) => {
+      if (!activeWebhooks[payer.publicKey]) {
+        activeWebhooks[payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };
+      }
+      activeWebhooks[payer.publicKey].eventTypes[event.type] = event.description;
+    });
 
     return activeWebhooks;
   } catch (error) {

@@ -205,16 +205,18 @@ async function getActiveWebhooks() {
       .createQueryBuilder('webhooks')
       .innerJoinAndSelect('webhooks.endpoint', 'webhook')
       .innerJoinAndSelect('webhooks.webhookEvent', 'event')
-      .innerJoinAndSelect('webhook.payer', 'payer')
-      .where('payer.enabled = :enabled', { enabled: true })
+      .innerJoinAndSelect('webhook.payers', 'payers')
+      .where('payers.enabled = :enabled', { enabled: true })
       .getMany();
 
     const activeWebhooks = {};
-    webhooksData.forEach(({ webhook, event }) => {
-      if (!activeWebhooks[webhook.payer.publicKey]) {
-        activeWebhooks[webhook.payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };
-      }
-      activeWebhooks[webhook.payer.publicKey].eventTypes[event.type] = event.description;
+    webhooksData.forEach(({ webhook, event, payers }) => {
+      payers.forEach(payer => {
+        if (!activeWebhooks[payer.publicKey]) {
+          activeWebhooks[payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };
+        }
+        activeWebhooks[payer.publicKey].eventTypes[event.type] = event.description;
+      });
     });
 
     return activeWebhooks;

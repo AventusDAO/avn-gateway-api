@@ -4,15 +4,15 @@ const { IsNull } = require('typeorm');
 const { isHex, u8aToHex } = require('@polkadot/util');
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 
+const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
+const RELAYER_TABLE = 'relayer';
 const PAYER_TABLE = 'payer';
 const PAYER_TRANSACTION_TABLE = 'payerTransaction';
-const WEBHOOKS_TABLE = 'webhooks';
-const RELAYER_TABLE = 'relayer';
-const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const TRANSACTION_TABLE = 'transaction';
 const WEBHOOK_ENDPOINT_TABLE = 'webhookEndpoint';
 const WEBHOOK_EVENT_TABLE = 'webhookEvent';
+const WEBHOOKS_TABLE = 'webhooks';
 
 let dataSource;
 
@@ -26,15 +26,15 @@ async function init() {
     database: config.postgres.database,
     synchronize: config.postgres.synchronize === 'true',
     entities: [
-      require('./entity/fee'),
       require('./entity/payer'),
-      require('./entity/payerTransaction'),
-      require('./entity/webhooks'),
-      require('./entity/relayer'),
       require('./entity/splitFeeUser'),
       require('./entity/transaction'),
+      require('./entity/payerTransaction'),
+      require('./entity/fee'),
+      require('./entity/relayer'),
       require('./entity/webhookEndpoint'),
-      require('./entity/webhookEvent')
+      require('./entity/webhookEvent'),
+      require('./entity/webhooks')
     ]
   });
 
@@ -199,7 +199,7 @@ function getPublicKey(account) {
   }
 }
 
-async function getWebhooks() {
+async function getActiveWebhooks() {
   try {
     const webhooksData = await dataSource
       .getRepository(WEBHOOKS_TABLE)
@@ -210,7 +210,7 @@ async function getWebhooks() {
       .getMany();
 
     const activeWebhooks = {};
-    webhooksData.forEach(({ webhook, event }) => {
+    activeWebhooksData.forEach(({ webhook, event }) => {
       const webhook.payer.publicKey = encodeAddress(webhook.payer.publicKey, 42);
       if (!activeWebhooks[webhook.payer.publicKey]) {
         activeWebhooks[webhook.payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };
@@ -236,6 +236,10 @@ async function getWebhookEventTypes() {
   }
 }
 
+async function getWebhookEndpointCount() {
+  return await dataSource.getRepository(WEBHOOK_ENDPOINT_TABLE).count();
+}
+
 async function getWebhookEndpointLastUpdated() {
   const result = await dataSource
     .getRepository(WEBHOOK_ENDPOINT_TABLE)
@@ -246,8 +250,8 @@ async function getWebhookEndpointLastUpdated() {
   return result.last_update_time;
 }
 
-async function getWebhookEndpointCount() {
-  return await dataSource.getRepository(WEBHOOK_ENDPOINT_TABLE).count();
+async function getWebhooksCount() {
+  return await dataSource.getRepository(WEBHOOKS_TABLE).count();
 }
 
 async function getWebhooksLastUpdated() {
@@ -260,21 +264,17 @@ async function getWebhooksLastUpdated() {
   return result.last_update_time;
 }
 
-async function getWebhooksCount() {
-  return await dataSource.getRepository(WEBHOOKS_TABLE).count();
-}
-
 module.exports = {
   getPayer,
   getFees,
   getPublicKey,
   getRelayerVaultId,
-  getWebhooks,
-  getWebhookEventTypes,
+  getActiveWebhooks,
   getWebhookEndpointLastUpdated,
   getWebhookEndpointCount,
-  getWebhooksLastUpdated,
+  getWebhookEventTypes,
   getWebhooksCount,
+  getWebhooksLastUpdated,
   init,
   isPayerTransaction
 };

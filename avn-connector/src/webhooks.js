@@ -71,7 +71,6 @@ async function init() {
 }
 
 async function publishEvent(event) {
-  return;
   try {
     const { eventType, publicKey, requestId, data } = checkEvent(event);
     if (!webhooks.active.hasOwnProperty(publicKey)) return;

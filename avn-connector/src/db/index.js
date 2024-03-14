@@ -208,7 +208,7 @@ async function getActiveWebhooks() {
       .innerJoinAndSelect('webhook.payers', 'payers')
       .where('payers.enabled = :enabled', { enabled: true })
       .getMany();
-log.info(`[Webhooks] - DATA ${JSON.stringify(webhooksData, null, 2)}`);
+console.log(`[Webhooks] - DATA ${JSON.stringify(webhooksData, null, 2)}`);
     const activeWebhooks = {};
     // webhooksData.forEach(({ webhook, event, payers }) => {
     //   payers.forEach(payer => {

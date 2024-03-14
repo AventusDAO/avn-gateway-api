@@ -55,12 +55,10 @@ async function proxy(requestId, palletName, method, params) {
     });
 
     const txn = api.tx.utility.batchAll(innerCalls);
-    const result = await signAndSend(requestId, params[0].params.relayerAddress, txn);
+    const payerAddress = params[0].params && params[0].params.splitFeePayerAddress;
+    const result = await signAndSend(requestId, params[0].params.relayerAddress, txn, payerAddress);
 
-    if (params[0].params.splitFeePayerAddress) {
-      const payerAddress = params[0].params.splitFeePayerAddress;
-      const eventData = { transactionHash: result.transactionHash };
-      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, payerAddress, data: eventData });
+    if (payerAddress) {
       await setNextPayerNonce(requestId, payerAddress, parseInt(params[0].params.paymentNonce) + 1);
     }
 
@@ -70,12 +68,10 @@ async function proxy(requestId, palletName, method, params) {
 
     const innerCall = api.tx[palletName][method](...params.proxyParams);
     const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
-    const result = await signAndSend(requestId, params.relayerAddress, txn);
+    const payerAddress = params && params.splitFeePayerAddress;
+    const result = await signAndSend(requestId, params.relayerAddress, txn, payerAddress);
 
-    if (params.splitFeePayerAddress) {
-      const payerAddress = params.splitFeePayerAddress;
-      const eventData = { transactionHash: result.transactionHash };
-      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, payerAddress, data: eventData });
+    if (payerAddress) {
       await setNextPayerNonce(requestId, payerAddress, parseInt(params.paymentNonce) + 1);
     }
 
@@ -330,7 +326,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
 }
 
 //This function can be called multiple times (3 by default) from sqsConsumer, for the same transaction if it returns an error.
-async function signAndSend(requestId, relayerAddress, txn) {
+async function signAndSend(requestId, relayerAddress, txn, optionalPayer) {
   let transactionHash, nonce, relayerAccount;
   log.trace(`${requestId} - Sending transaction to the AvN`);
   try {
@@ -339,6 +335,8 @@ async function signAndSend(requestId, relayerAddress, txn) {
   } catch (err) {
     log.error({ message: `${requestId} - Error getting relayer account for ${relayerAddress}` });
     log.error(err);
+    const eventData = { transactionHash: result.transactionHash };
+    await webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, payerAddress: optionalPayer, data: eventData });
 
     throw err;
   }
@@ -362,6 +360,10 @@ async function signAndSend(requestId, relayerAddress, txn) {
       message: `${requestId} - Failed sending transaction using relayer nonce: ${nonce}, transaction hash: ${transactionHash}`,
       err
     });
+
+    if (optionalPayer) {
+      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, payerAddress, data: eventData });
+    }
 
     await redis.addFailedAvnTransaction(
       requestId,

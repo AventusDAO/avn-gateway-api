@@ -26,8 +26,8 @@ module.exports = new EntitySchema({
     }
   },
   relations: {
-    payerWebhookEvents: {
-      target: 'payerWebhookEvents',
+    payerWebhooks: {
+      target: 'payerWebhooks',
       type: 'one-to-many',
       inverseSide: 'webhookEvent'
     }

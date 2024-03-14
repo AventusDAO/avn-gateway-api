@@ -7,11 +7,11 @@ const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const FEE_TABLE = 'fee';
 const PAYER_TABLE = 'payer';
 const PAYER_TRANSACTION_TABLE = 'payerTransaction';
-const PAYER_WEBHOOK_ENDPOINTS_TABLE = 'payerWebhookEndpoints';
-const PAYER_WEBHOOK_EVENTS_TABLE = 'payerWebhookEvents';
+const PAYER_WEBHOOKS_TABLE = 'payerWebhooks';
 const RELAYER_TABLE = 'relayer';
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const TRANSACTION_TABLE = 'transaction';
+const WEBHOOK_ENDPOINT_TABLE = 'webhookEndpoint';
 const WEBHOOK_EVENT_TABLE = 'webhookEvent';
 
 let dataSource;
@@ -29,11 +29,11 @@ async function init() {
       require('./entity/fee'),
       require('./entity/payer'),
       require('./entity/payerTransaction'),
-      require('./entity/payerWebhookEndpoints'),
-      require('./entity/payerWebhookEvents'),
+      require('./entity/payerWebhooks'),
       require('./entity/relayer'),
       require('./entity/splitFeeUser'),
       require('./entity/transaction'),
+      require('./entity/webhookEndpoint'),
       require('./entity/webhookEvent')
     ]
   });
@@ -201,26 +201,21 @@ function getPublicKey(account) {
 
 async function getActiveWebhooks() {
   try {
-    const activeWebhooksData = await dataSource
-      .getRepository(PAYER_WEBHOOK_EVENTS_TABLE)
-      .createQueryBuilder('event')
-      .innerJoinAndSelect('event.endpoint', 'endpoint')
-      .innerJoinAndSelect('event.webhookEvent', 'webhookEvent')
-      .innerJoinAndSelect('endpoint.payer', 'payer', 'payer.enabled = true')
+    const webhooksData = await dataSource
+      .getRepository(PAYER_WEBHOOKS_TABLE)
+      .createQueryBuilder('webhooks')
+      .innerJoinAndSelect('webhooks.endpoint', 'webhook')
+      .innerJoinAndSelect('webhooks.webhookEvent', 'event')
+      .innerJoinAndSelect('webhook.payer', 'payer', 'payer.enabled = true')
       .getMany();
 
     const activeWebhooks = {};
-    activeWebhooksData.forEach(({ endpoint, webhookEvent }) => {
-      const payerAddress = encodeAddress(endpoint.payer.publicKey, 42);
+    webhooksData.forEach(({ webhook, event }) => {
+      const payerAddress = encodeAddress(webhook.payer.publicKey, 42);
       if (!activeWebhooks[payerAddress]) {
-        activeWebhooks[payerAddress] = {
-          payerVaultId: endpoint.payer.vaultId,
-          endpoint: endpoint.webhookEndpoint,
-          eventTypes: {}
-        };
+        activeWebhooks[payerAddress] = { endpoint: webhook.endpoint, eventTypes: {} };
       }
-
-      activeWebhooks[payerAddress].eventTypes[webhookEvent.type] = webhookEvent.description;
+      activeWebhooks[payerAddress].eventTypes[event.type] = event.description;
     });
 
     return activeWebhooks;
@@ -241,9 +236,9 @@ async function getWebhookEventTypes() {
   }
 }
 
-async function getPayerWebhookEndpointsLastUpdate() {
+async function getWebhookEndpointLastUpdated() {
   const result = await dataSource
-    .getRepository(PAYER_WEBHOOK_ENDPOINTS_TABLE)
+    .getRepository(WEBHOOK_ENDPOINT_TABLE)
     .createQueryBuilder('endpoint')
     .select('MAX(endpoint.updatedAt)', 'last_update_time')
     .getRawOne();
@@ -251,13 +246,13 @@ async function getPayerWebhookEndpointsLastUpdate() {
   return result.last_update_time;
 }
 
-async function getPayerWebhookEndpointsCount() {
-  return await dataSource.getRepository(PAYER_WEBHOOK_ENDPOINTS_TABLE).count();
+async function getWebhookEndpointCount() {
+  return await dataSource.getRepository(WEBHOOK_ENDPOINT_TABLE).count();
 }
 
-async function getPayerWebhookEventsLastUpdate() {
+async function getPayerWebhooksLastUpdated() {
   const result = await dataSource
-    .getRepository(PAYER_WEBHOOK_EVENTS_TABLE)
+    .getRepository(PAYER_WEBHOOKS_TABLE)
     .createQueryBuilder('event')
     .select('MAX(event.updatedAt)', 'last_update_time')
     .getRawOne();
@@ -265,8 +260,8 @@ async function getPayerWebhookEventsLastUpdate() {
   return result.last_update_time;
 }
 
-async function getPayerWebhookEventsCount() {
-  return await dataSource.getRepository(PAYER_WEBHOOK_EVENTS_TABLE).count();
+async function getPayerWebhooksCount() {
+  return await dataSource.getRepository(PAYER_WEBHOOKS_TABLE).count();
 }
 
 module.exports = {
@@ -274,10 +269,10 @@ module.exports = {
   getFees,
   getActiveWebhooks,
   getWebhookEventTypes,
-  getPayerWebhookEndpointsLastUpdate,
-  getPayerWebhookEndpointsCount,
-  getPayerWebhookEventsLastUpdate,
-  getPayerWebhookEventsCount,
+  getWebhookEndpointLastUpdated,
+  getWebhookEndpointCount,
+  getPayerWebhooksLastUpdated,
+  getPayerWebhooksCount,
   getRelayerVaultId,
   init,
   isPayerTransaction

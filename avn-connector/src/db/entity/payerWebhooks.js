@@ -1,42 +1,33 @@
 var EntitySchema = require('typeorm').EntitySchema;
 
 module.exports = new EntitySchema({
-  name: 'payerWebhookEvents',
+  name: 'payerWebhooks',
   columns: {
-    id: {
-      primary: true,
+    webhookEndpointId: {
       type: 'int',
-      generated: true
-    },
-    endpointId: {
-      type: 'int'
+      primary: true
     },
     webhookEventId: {
-      type: 'int'
+      type: 'int',
+      primary: true
     },
     updatedAt: {
       type: 'timestamptz',
       updateDate: true
     }
   },
-  uniques: [
-    {
-      name: 'UQ_endpointId_webhookEventId',
-      columns: ['endpointId', 'webhookEventId']
-    }
-  ],
   indices: [
     {
-      name: 'IDX_payerWebhookEvents_updatedAt',
+      name: 'IDX_payerWebhooks_updatedAt',
       columns: ['updatedAt']
     }
   ],
   relations: {
     endpoint: {
-      target: 'payerWebhookEndpoints',
+      target: 'webhookEndpoint',
       type: 'many-to-one',
-      joinColumn: { name: 'endpointId', referencedColumnName: 'id' },
-      inverseSide: 'payerWebhookEvents',
+      joinColumn: { name: 'webhookEndpointId', referencedColumnName: 'id' },
+      inverseSide: 'payerWebhooks',
       onDelete: 'CASCADE'
     },
     webhookEvent: {

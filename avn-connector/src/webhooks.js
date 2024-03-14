@@ -24,10 +24,10 @@ class WebhooksUpdater {
     try {
       this.EventTypes = await rds.getWebhookEventTypes();
       this.active = await rds.getActiveWebhooks();
-      this.lastEventsUpdate = await rds.getPayerWebhookEventsLastUpdate();
-      this.lastEventsCount = await rds.getPayerWebhookEventsCount();
-      this.lastEndpointsUpdate = await rds.getPayerWebhookEndpointsLastUpdate();
-      this.lastEndpointsCount = await rds.getPayerWebhookEndpointsCount();
+      this.lastEventsUpdate = await rds.getPayerWebhooksLastUpdated();
+      this.lastEventsCount = await rds.getPayerWebhooksCount();
+      this.lastEndpointsUpdate = await rds.getWebhookEndpointLastUpdated();
+      this.lastEndpointsCount = await rds.getWebhookEndpointCount();
       this.refreshWebhooks();
     } catch (error) {
       log.error('[Webhooks] ERROR - Failed to initialize webhooks:', error);
@@ -36,10 +36,10 @@ class WebhooksUpdater {
 
   async updateWebhooks() {
     try {
-      const latestEventsUpdate = await rds.getPayerWebhookEventsLastUpdate();
-      const latestEventsCount = await rds.getPayerWebhookEventsCount();
-      const latestEndpointsUpdate = await rds.getPayerWebhookEndpointsLastUpdate();
-      const latestEndpointsCount = await rds.getPayerWebhookEndpointsCount();
+      const latestEventsUpdate = await rds.getPayerWebhooksLastUpdated();
+      const latestEventsCount = await rds.getPayerWebhooksCount();
+      const latestEndpointsUpdate = await rds.getWebhookEndpointLastUpdated();
+      const latestEndpointsCount = await rds.getWebhookEndpointCount();
       const eventsUpdated = this.lastEventsUpdate < latestEventsUpdate || this.lastEventsCount != latestEventsCount;
       const endpointsUpdated =
         this.lastEndpointsUpdate < latestEndpointsUpdate || this.lastEndpointsCount != latestEndpointsCount;
@@ -77,11 +77,10 @@ async function publishEvent(event) {
   try {
     const { eventType, payerAddress, requestId, data } = checkEvent(event);
     if (!webhooks.active.hasOwnProperty(payerAddress)) return;
-    const { endpoints, eventTypes, payerVaultId } = webhooks.active[payerAddress];
-    const description = eventTypes[eventType];
-    if (!endpoints || !description) return;
-    const eventData = { timestamp: Date.now(), event: description, address: payerAddress, requestId, data };
-    await sendToQueue(JSON.stringify({ endpoints, eventData }), payerAddress);
+    const { endpoint, eventTypes } = webhooks.active[payerAddress];
+    if (!eventTypes.hasOwnProperty(eventType)) return;
+    const eventData = { timestamp: Date.now(), event: eventTypes[eventType], address: payerAddress, requestId, data };
+    await sendToQueue(JSON.stringify({ endpoint, eventData }), payerAddress);
   } catch (error) {
     log.error('[Webhooks] ERROR - Error publishing event', error);
     throw error;

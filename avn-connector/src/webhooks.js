@@ -67,7 +67,9 @@ let webhooks;
 
 async function init() {
   const REFRESH_INTERVAL_MS = 20000;
+  log.info('[Webhooks] INITIALISING')
   webhooks = await Webhooks.init(REFRESH_INTERVAL_MS);
+  log.info(`[Webhooks] INITIALISED - ${JSON.stringify(webhooks)}`);
 }
 
 async function publishEvent(event) {

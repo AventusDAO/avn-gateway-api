@@ -60,6 +60,7 @@ async function proxy(requestId, palletName, method, params) {
 
     if (payerAddress) {
       await setNextPayerNonce(requestId, payerAddress, parseInt(params[0].params.paymentNonce) + 1);
+      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, accountId: payerAddress, data: result });
     }
 
     return result;
@@ -73,6 +74,7 @@ async function proxy(requestId, palletName, method, params) {
 
     if (payerAddress) {
       await setNextPayerNonce(requestId, payerAddress, parseInt(params.paymentNonce) + 1);
+      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, accountId: payerAddress, data: result });
     }
 
     return result;

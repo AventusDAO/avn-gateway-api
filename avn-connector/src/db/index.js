@@ -201,15 +201,21 @@ function getPublicKey(account) {
 
 async function getActiveWebhooks() {
   try {
-    const webhooksData = await dataSource.getRepository(PAYER_TABLE)
-    .createQueryBuilder('p')
-    .innerJoinAndSelect('p.webhookEndpoint', 'we')
-    .innerJoinAndSelect('we.webhooks', 'w')
-    .innerJoinAndSelect('w.webhookEvent', 'wev')
-    .select(['p.publicKey','we.endpoint','wev.type','wev.description'])
-    .where('p.enabled = :enabled', { enabled: true })
-    .andWhere('p.webhookEndpointId IS NOT NULL')
-    .getMany();
+    const webhooksData = await dataSource.getRepository(PAYER_TABLE).find({
+      where: {
+        webhookEndpointId: Not(IsNull()),
+        enabled: true
+      },
+      relations: ['webhookEndpoint', 'webhookEndpoint.webhooks', 'webhookEndpoint.webhooks.webhookEvent']
+    });
+    // .createQueryBuilder('p')
+    // .innerJoinAndSelect('p.webhookEndpoint', 'we')
+    // .innerJoinAndSelect('we.webhooks', 'w')
+    // .innerJoinAndSelect('w.webhookEvent', 'wev')
+    // .select(['p.publicKey','we.endpoint','wev.type','wev.description'])
+    // .where('p.enabled = :enabled', { enabled: true })
+    // .andWhere('p.webhookEndpointId IS NOT NULL')
+    // .getMany();
 
     console.log(webhooksData);
     const activeWebhooks = {};

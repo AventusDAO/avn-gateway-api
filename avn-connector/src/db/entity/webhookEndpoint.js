@@ -35,9 +35,9 @@ module.exports = new EntitySchema({
       inverseSide: 'webhookEndpoint'
     },
     webhooks: {
-       target: 'webhooks',
-       type: 'one-to-many',
-       inverseSide: 'webhookEndpoint',
-     }
+      target: 'webhooks',
+      type: 'one-to-many',
+      inverseSide: 'webhookEndpoint'
+    }
   }
 });

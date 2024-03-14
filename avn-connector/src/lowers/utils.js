@@ -69,8 +69,8 @@ function formatLowerEvent(lowerEvent, avtContract) {
   return lowerData;
 }
 
-function canOverwriteEvent(currentEvent, newEvent) {
-  if (!currentEvent) return true;
+function canUpdateEventStatus(currentEvent, newEvent) {
+  if (!currentEvent || Object.keys(currentEvent).length === 0) return true;
 
   let transitionIsValid = lowerStates[newEvent?.name] > lowerStates[currentEvent?.name];
   return transitionIsValid;
@@ -134,15 +134,36 @@ function sortLowerEventsByIdAsc(lowerEvents) {
   });
 }
 
+async function updateEventStatusIfRequired(currentEvent, newEvent) {
+  if (!newEvent || !currentEvent) return currentEvent
+
+  if (currentEventMissingArgs(currentEvent)) {
+    currentEvent = updateEventArgs(currentEvent, newEvent);
+  }
+
+  if (canUpdateEventStatus(currentEvent, newEvent)) {
+    currentEvent.name = newEvent.name;
+    currentEvent.claimData = newEvent.claimData;
+  } else {
+    // this is an edge case where the existiing entry in redis is corrupted somehow
+    if (currentEvent.name === READY_TO_CLAIM_EVENT_NAME && !currentEvent.claimData) {
+      currentEvent.claimData = await avn.getLowerProof(newEvent.lowerId);
+    }
+  }
+
+  return currentEvent
+}
+
 module.exports = {
   formatLowerEvent,
   getLowersFromIndexer,
   READY_TO_CLAIM_EVENT_NAME,
   lowerStates,
-  canOverwriteEvent,
+  canUpdateEventStatus,
   currentEventMissingArgs,
   updateEventArgs,
   updateBlockNumberAndIndex,
   isLowerId,
-  parseBlockId
+  parseBlockId,
+  updateEventStatusIfRequired
 };

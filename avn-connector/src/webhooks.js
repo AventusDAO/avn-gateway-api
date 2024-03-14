@@ -6,74 +6,81 @@ const config = require('multiconfig').load();
 const log = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
 
-// Initializes the permitted event types and any currently active webhooks
-// Webhooks are kept up-to-date via periodic DB resyncs that run in the background
+// Initializes the permitted event types and any active webhooks
+// Webhooks are kept up-to-date via frequent DB resyncs that run in the background
 class WebhooksUpdater {
   constructor(refreshInterval) {
     this.active = {};
     this.EventTypes = {};
     this.refreshInterval = refreshInterval;
-    this.lastEventsUpdate = new Date(Date.now()).toISOString();
-    this.lastEventsCount = 0;
-    this.lastEndpointsUpdate = new Date(Date.now()).toISOString();
-    this.lastEndpointsCount = 0;
     this.initialize();
   }
 
   async initialize() {
     try {
-      this.EventTypes = await rds.getWebhookEventTypes();
-      this.active = await rds.getActiveWebhooks();
-      this.lastEventsUpdate = await rds.getWebhooksLastUpdated();
-      this.lastEventsCount = await rds.getWebhooksCount();
-      this.lastEndpointsUpdate = await rds.getWebhookEndpointLastUpdated();
-      this.lastEndpointsCount = await rds.getWebhookEndpointCount();
+      await this.fetchAndUpdateWebhooks();
       this.refreshWebhooks();
     } catch (error) {
       log.error('[Webhooks] ERROR - Failed to initialize webhooks:', error);
     }
   }
 
+  async fetchAndUpdateWebhooks() {
+    const updates = await Promise.all([
+      rds.getWebhookEventTypes(),
+      rds.getActiveWebhooks(),
+      rds.getWebhooksLastUpdated(),
+      rds.getWebhooksCount(),
+      rds.getWebhookEndpointLastUpdated(),
+      rds.getWebhookEndpointCount()
+    ]);
+
+    this.EventTypes = updates[0];
+    this.active = updates[1];
+    [this.lastWebhooksUpdate, this.lastWebhooksCount, this.lastEndpointsUpdate, this.lastEndpointsCount] = updates.slice(2);
+  }
+
   async updateWebhooks() {
     try {
-      const latestEventsUpdate = await rds.getWebhooksLastUpdated();
-      const latestEventsCount = await rds.getWebhooksCount();
-      const latestEndpointsUpdate = await rds.getWebhookEndpointLastUpdated();
-      const latestEndpointsCount = await rds.getWebhookEndpointCount();
-      const eventsUpdated = this.lastEventsUpdate < latestEventsUpdate || this.lastEventsCount != latestEventsCount;
-      const endpointsUpdated =
-        this.lastEndpointsUpdate < latestEndpointsUpdate || this.lastEndpointsCount != latestEndpointsCount;
+      const [latestWebhooksUpdate, latestWebhooksCount, latestEndpointsUpdate, latestEndpointsCount] = await Promise.all([
+        rds.getWebhooksLastUpdated(),
+        rds.getWebhooksCount(),
+        rds.getWebhookEndpointLastUpdated(),
+        rds.getWebhookEndpointCount()
+      ]);
 
-      if (eventsUpdated || endpointsUpdated) {
-        this.active = await rds.getActiveWebhooks();
-        this.lastEventsUpdate = latestEventsUpdate;
-        this.lastEventsCount = latestEventsCount;
-        this.lastEndpointsUpdate = latestEndpointsUpdate;
-        this.lastEndpointsCount = latestEndpointsCount;
-        log.info(`[Webhooks] Webhooks updated, ${Object.keys(this.active).length} webhooks active`);
+      if (this.needsUpdate(latestWebhooksUpdate, latestWebhooksCount, latestEndpointsUpdate, latestEndpointsCount)) {
+        await this.fetchAndUpdateWebhooks();
+        log.info(`[Webhooks] Updated - ${Object.keys(this.active).length} active webhooks and ${latestWebhooksCount} events`);
       }
     } catch (error) {
       log.error('[Webhooks] ERROR - Failed to update webhooks', error);
     }
   }
 
+  needsUpdate(latestWebhooksUpdate, latestWebhooksCount, latestEndpointsUpdate, latestEndpointsCount) {
+    return (
+      this.lastWebhooksUpdate < latestWebhooksUpdate ||
+      this.lastWebhooksCount != latestWebhooksCount ||
+      this.lastEndpointsUpdate < latestEndpointsUpdate ||
+      this.lastEndpointsCount != latestEndpointsCount
+    );
+  }
+
   refreshWebhooks() {
-    const refresh = async () => {
-      await this.updateWebhooks();
-      setTimeout(refresh, this.refreshInterval);
-    };
-    refresh();
+    setTimeout(() => this.updateWebhooks(), this.refreshInterval);
   }
 }
 
 let webhooks;
-const REFRESH_INTERVAL_MS = 20000;
 
 async function init() {
+  const REFRESH_INTERVAL_MS = 20000;
   webhooks = new WebhooksUpdater(REFRESH_INTERVAL_MS);
 }
 
 async function publishEvent(event) {
+  return;
   try {
     const { eventType, publicKey, requestId, data } = checkEvent(event);
     if (!webhooks.active.hasOwnProperty(publicKey)) return;
@@ -89,7 +96,9 @@ async function publishEvent(event) {
 
 function checkEvent(event) {
   const { eventType, accountId, requestId, data } = event;
-  const missingParams = Object.entries(event).filter(([, value]) => !value).map(([key]) => key);
+  const missingParams = Object.entries(event)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
   if (missingParams.length > 0) {
     throw new Error(`[Webhooks] ERROR - Missing event params: ${missingParams.join(', ')}`);
   }

@@ -7,7 +7,6 @@ const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
 const RELAYER_TABLE = 'relayer';
-const PAYER_TABLE = 'payer';
 const PAYER_TRANSACTION_TABLE = 'payerTransaction';
 const TRANSACTION_TABLE = 'transaction';
 const WEBHOOK_ENDPOINT_TABLE = 'webhookEndpoint';
@@ -210,7 +209,7 @@ async function getActiveWebhooks() {
       .getMany();
 
     const activeWebhooks = {};
-    activeWebhooksData.forEach(({ webhook, event }) => {
+    activeWebhooksData.forEach({ webhook, event } => {
       const webhook.payer.publicKey = encodeAddress(webhook.payer.publicKey, 42);
       if (!activeWebhooks[webhook.payer.publicKey]) {
         activeWebhooks[webhook.payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };

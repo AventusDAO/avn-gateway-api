@@ -8,67 +8,58 @@ const sqsClient = new SQSClient({ region: config.aws.region });
 
 // Initializes the permitted event types and any active webhooks
 // Webhooks are kept up-to-date via frequent DB resyncs that run in the background
-class WebhooksUpdater {
+class Webhooks {
   constructor(refreshInterval) {
-    this.active = {};
-    this.EventTypes = {};
     this.refreshInterval = refreshInterval;
-    this.initialize();
+  }
+
+  static async init(refreshInterval) {
+    const instance = new Webhooks(refreshInterval);
+    await instance.initialize();
+    return instance;
   }
 
   async initialize() {
-    try {
-      await this.fetchAndUpdateWebhooks();
-      this.refreshWebhooks();
-    } catch (error) {
-      log.error('[Webhooks] ERROR - Failed to initialize webhooks:', error);
-    }
-  }
-
-  async fetchAndUpdateWebhooks() {
-    const updates = await Promise.all([
+    [this.eventTypes, this.active, this.counts, this.updated] = await Promise.all([
       rds.getWebhookEventTypes(),
       rds.getActiveWebhooks(),
-      rds.getWebhooksLastUpdated(),
-      rds.getWebhooksCount(),
-      rds.getWebhookEndpointLastUpdated(),
-      rds.getWebhookEndpointCount()
+      this.getCounts(),
+      this.getLastUpdated()
     ]);
-
-    this.EventTypes = updates[0];
-    this.active = updates[1];
-    [this.lastWebhooksUpdate, this.lastWebhooksCount, this.lastEndpointsUpdate, this.lastEndpointsCount] = updates.slice(2);
+    this.refreshWebhooks();
   }
 
-  async updateWebhooks() {
-    try {
-      const [latestWebhooksUpdate, latestWebhooksCount, latestEndpointsUpdate, latestEndpointsCount] = await Promise.all([
-        rds.getWebhooksLastUpdated(),
-        rds.getWebhooksCount(),
-        rds.getWebhookEndpointLastUpdated(),
-        rds.getWebhookEndpointCount()
-      ]);
+  async getCounts() {
+    return Promise.all([rds.getWebhooksCount(), rds.getWebhookEndpointCount()]).then(([webhooks, endpoint]) => ({
+      webhooks,
+      endpoint
+    }));
+  }
 
-      if (this.needsUpdate(latestWebhooksUpdate, latestWebhooksCount, latestEndpointsUpdate, latestEndpointsCount)) {
-        await this.fetchAndUpdateWebhooks();
-        log.info(`[Webhooks] Updated - ${Object.keys(this.active).length} active webhooks and ${latestWebhooksCount} events`);
+  async getLastUpdated() {
+    return Promise.all([rds.getWebhooksLastUpdated(), rds.getWebhookEndpointLastUpdated()]).then(([webhooks, endpoint]) => ({
+      webhooks,
+      endpoint
+    }));
+  }
+
+  async refreshWebhooks() {
+    try {
+      const [counts, updated] = await Promise.all([this.getCounts(), this.getLastUpdated()]);
+      const entriesAddedOrRemoved = JSON.stringify(this.counts) !== JSON.stringify(counts);
+      const entriesUpdated = JSON.stringify(this.updated) !== JSON.stringify(updated);
+
+      if (entriesAddedOrRemoved || entriesUpdated) {
+        this.counts = counts;
+        this.updated = updated;
+        this.active = await rds.getActiveWebhooks();
+        log.info(`[Webhooks] Refreshed - ${Object.keys(this.active).length} active webhooks + ${this.counts.webhooks} events`);
       }
     } catch (error) {
-      log.error('[Webhooks] ERROR - Failed to update webhooks', error);
+      log.error('[Webhooks] ERROR - Failed to refresh webhooks:', error);
+    } finally {
+      setTimeout(() => this.refreshWebhooks(), this.refreshInterval);
     }
-  }
-
-  needsUpdate(latestWebhooksUpdate, latestWebhooksCount, latestEndpointsUpdate, latestEndpointsCount) {
-    return (
-      this.lastWebhooksUpdate < latestWebhooksUpdate ||
-      this.lastWebhooksCount != latestWebhooksCount ||
-      this.lastEndpointsUpdate < latestEndpointsUpdate ||
-      this.lastEndpointsCount != latestEndpointsCount
-    );
-  }
-
-  refreshWebhooks() {
-    setTimeout(() => this.updateWebhooks(), this.refreshInterval);
   }
 }
 
@@ -76,7 +67,7 @@ let webhooks;
 
 async function init() {
   const REFRESH_INTERVAL_MS = 20000;
-  webhooks = new WebhooksUpdater(REFRESH_INTERVAL_MS);
+  webhooks = await Webhooks.init(REFRESH_INTERVAL_MS);
 }
 
 async function publishEvent(event) {
@@ -102,7 +93,7 @@ function checkEvent(event) {
   if (missingParams.length > 0) {
     throw new Error(`[Webhooks] ERROR - Missing event params: ${missingParams.join(', ')}`);
   }
-  if (!webhooks.EventTypes[eventType]) {
+  if (!webhooks.eventTypes[eventType]) {
     throw new Error(`[Webhooks] ERROR - Invalid event type: ${eventType}`);
   }
   const publicKey = rds.getPublicKey(accountId);

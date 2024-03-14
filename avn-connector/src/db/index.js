@@ -1,6 +1,6 @@
 const config = require('multiconfig').load();
 const typeorm = require('typeorm');
-const { IsNull } = require('typeorm');
+const { IsNull, Not } = require('typeorm');
 const { isHex, u8aToHex } = require('@polkadot/util');
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 
@@ -202,15 +202,13 @@ function getPublicKey(account) {
 async function getActiveWebhooks() {
   try {
     const webhooksData = await dataSource
-      .getRepository(PAYER_TABLE)
-      .createQueryBuilder('p')
-      .select(['p.publicKey', 'we.endpoint', 'wev.type', 'wev.description'])
-      .innerJoin('p.webhookEndpoint', 'we')
-      .innerJoin('we.webhooks', 'w')
-      .innerJoin('w.webhookEvent', 'wev')
-      .where('p.enabled = true')
-      .andWhere('p.webhookEndpointId IS NOT NULL')
-      .getMany();
+      .getRepository(PAYER_TABLE).find({
+    where: {
+      enabled: true,
+      webhookEndpointId: Not(IsNull()),
+    },
+    relations: ['webhookEndpoint', 'webhookEndpoint.webhooks', 'webhookEndpoint.webhooks.webhookEvent'],
+  });
 
     console.log(webhooksData);
     const activeWebhooks = {};

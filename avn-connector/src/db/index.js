@@ -201,14 +201,13 @@ function getPublicKey(account) {
 
 async function getActiveWebhooks() {
   try {
-    const webhooksData = await dataSource
-      .getRepository(PAYER_TABLE).find({
-    where: {
-      enabled: true,
-      webhookEndpointId: Not(IsNull()),
-    },
-    relations: ['webhookEndpoint', 'webhookEndpoint.webhooks', 'webhookEndpoint.webhooks.webhookEvent'],
-  });
+    const webhooksData = await dataSource.getRepository(PAYER_TABLE).find({
+      where: {
+        enabled: true,
+        webhookEndpointId: Not(IsNull())
+      },
+      relations: ['webhookEndpoint', 'webhooks.endpoint', 'webhooks.webhookEvent']
+    });
 
     console.log(webhooksData);
     const activeWebhooks = {};

@@ -67,7 +67,9 @@ app.get('/pendingTransactions', async (req, res, next) => {
 app.post('/resolvePendingTransactions', async (req, res, next) => {
   try {
     log.trace({ resolvePendingTransactions: Object.keys(req.body) });
-    const result = await redis.resolvePendingAvnTransactions(req.body.transactions);
+    const transactions = req.body.transactions;
+    await webhooks.publishTransactionEvents(transactions);
+    const result = await redis.resolvePendingAvnTransactions(transactions);
     res.send(result);
   } catch (err) {
     next(err);

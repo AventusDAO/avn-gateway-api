@@ -85,6 +85,18 @@ async function publishEvent(event) {
   }
 }
 
+async function publishTransactionEvents(transactions) {
+  for (const tx of transactions) {
+    if (tx.status === 'Processed') {
+      log.info(`[Webhooks] TX PROCESSED EVENT - ${JSON.stringify(tx)}`);
+    } else if (tx.status === 'Rejected') {
+      log.info(`[Webhooks] TX REJECTED EVENT - ${JSON.stringify(tx)}`);
+    } else {
+      log.info(`[Webhooks] TX OTHER EVENT - ${JSON.stringify(tx)}`);
+    }
+  }
+}
+
 function checkEvent(event) {
   const { eventType, accountId, requestId, data } = event;
   const missingParams = Object.entries(event)
@@ -121,5 +133,6 @@ function hash(message) {
 
 module.exports = {
   init,
-  publishEvent
+  publishEvent,
+  publishTransactionEvents
 };

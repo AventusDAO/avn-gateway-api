@@ -23,7 +23,7 @@ module.exports = new EntitySchema({
     }
   ],
   relations: {
-    endpoint: {
+    webhookEndpoint: {
       target: 'webhookEndpoint',
       type: 'many-to-one',
       joinColumn: { name: 'webhookEndpointId', referencedColumnName: 'id' },

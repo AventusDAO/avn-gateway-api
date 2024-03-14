@@ -33,6 +33,11 @@ module.exports = new EntitySchema({
       target: 'payer',
       type: 'one-to-many',
       inverseSide: 'webhookEndpoint'
-    }
+    },
+    webhooks: {
+       target: 'webhooks',
+       type: 'one-to-many',
+       inverseSide: 'webhookEndpoint',
+     }
   }
 });

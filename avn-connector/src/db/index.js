@@ -201,29 +201,37 @@ function getPublicKey(account) {
 
 async function getActiveWebhooks() {
   try {
-    const webhooksData = await dataSource.getRepository(PAYER_TABLE).find({
-      where: {
-        webhookEndpointId: Not(IsNull()),
-        enabled: true
-      },
-      relations: ['webhookEndpoint', 'webhookEndpoint.webhooks', 'webhookEndpoint.webhooks.webhookEvent']
-    });
-    // .createQueryBuilder('p')
-    // .innerJoinAndSelect('p.webhookEndpoint', 'we')
-    // .innerJoinAndSelect('we.webhooks', 'w')
-    // .innerJoinAndSelect('w.webhookEvent', 'wev')
-    // .select(['p.publicKey','we.endpoint','wev.type','wev.description'])
-    // .where('p.enabled = :enabled', { enabled: true })
-    // .andWhere('p.webhookEndpointId IS NOT NULL')
-    // .getMany();
+    const webhooksData = await dataSource
+      .getRepository(PAYER_TABLE)
+      // .find({
+      //   where: {
+      //     webhookEndpointId: Not(IsNull()),
+      //     enabled: true
+      //   },
+      //   relations: ['webhookEndpoint', 'webhookEndpoint.webhooks', 'webhookEndpoint.webhooks.webhookEvent']
+      // });
+
+      .createQueryBuilder('p')
+      .select('p.publicKey', 'publicKey')
+      .addSelect('we.endpoint', 'endpoint')
+      .leftJoin('p.webhookEndpoint', 'we')
+      .leftJoin('we.webhooks', 'w')
+      .leftJoin('w.webhookEvent', 'wev')
+      .addSelect('wev.type', 'eventType')
+      .addSelect('wev.description', 'eventDescription')
+      .where('p.enabled = :enabled', { enabled: true })
+      .andWhere('p.webhookEndpointId IS NOT NULL')
+      .getRawMany();
 
     console.log(webhooksData);
+
     const activeWebhooks = {};
-    webhooksData.forEach(webhook => {
-      const { publicKey, endpoint, type, description } = webhook;
-      if (!activeWebhooks[publicKey]) activeWebhooks[publicKey] = { endpoint, eventTypes: {} };
-      activeWebhooks[publicKey].eventTypes[type] = description;
-    });
+    // webhooksData.forEach(payer => {
+    //   const { publicKey, webhookEndpoint } = payer;
+    //   if (!activeWebhooks[publicKey]) activeWebhooks[publicKey] = { endpoint: webhookEndpoint.endpoint, eventTypes: {} };
+    //   webhookEndpoint.endpoint.webhooks.forEach()
+    //   activeWebhooks[publicKey].eventTypes[type] = description;
+    // });
 
     return activeWebhooks;
   } catch (error) {

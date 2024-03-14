@@ -10,7 +10,8 @@ module.exports = new EntitySchema({
     },
     endpoint: {
       type: 'varchar',
-      nullable: false
+      nullable: false,
+      unique: true
     },
     createdAt: {
       type: 'timestamptz',
@@ -28,11 +29,10 @@ module.exports = new EntitySchema({
     }
   ],
   relations: {
-    payer: {
-     target: 'payer',
-     type: 'one-to-one',
-     inverseSide: 'webhookEndpoint',
-     nullable: true
-   }
+    payers: {
+      target: 'payer',
+      type: 'one-to-many',
+      inverseSide: 'webhookEndpoint'
+    }
   }
 });

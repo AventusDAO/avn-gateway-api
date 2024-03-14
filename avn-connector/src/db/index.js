@@ -223,7 +223,6 @@ async function getActiveWebhooks() {
   }
 }
 
-
 async function getWebhookEventTypes() {
   try {
     const webhookEventDataSource = await dataSource.getRepository(WEBHOOK_EVENT_TABLE);

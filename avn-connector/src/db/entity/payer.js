@@ -45,7 +45,7 @@ module.exports = new EntitySchema({
   relations: {
     webhookEndpoint: {
       target: 'webhookEndpoint',
-      type: 'one-to-one',
+      type: 'many-to-one',
       inverseSide: 'payer',
       joinColumn: {
         name: 'webhookEndpointId',

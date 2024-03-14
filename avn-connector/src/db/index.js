@@ -201,16 +201,8 @@ function getPublicKey(account) {
 
 async function getActiveWebhooks() {
   try {
-    const webhooksData = await dataSource
+    const webhooks = await dataSource
       .getRepository(PAYER_TABLE)
-      // .find({
-      //   where: {
-      //     webhookEndpointId: Not(IsNull()),
-      //     enabled: true
-      //   },
-      //   relations: ['webhookEndpoint', 'webhookEndpoint.webhooks', 'webhookEndpoint.webhooks.webhookEvent']
-      // });
-
       .createQueryBuilder('p')
       .select('p.publicKey', 'publicKey')
       .addSelect('we.endpoint', 'endpoint')
@@ -223,17 +215,11 @@ async function getActiveWebhooks() {
       .andWhere('p.webhookEndpointId IS NOT NULL')
       .getRawMany();
 
-    console.log(webhooksData);
-
-    const activeWebhooks = {};
-    // webhooksData.forEach(payer => {
-    //   const { publicKey, webhookEndpoint } = payer;
-    //   if (!activeWebhooks[publicKey]) activeWebhooks[publicKey] = { endpoint: webhookEndpoint.endpoint, eventTypes: {} };
-    //   webhookEndpoint.endpoint.webhooks.forEach()
-    //   activeWebhooks[publicKey].eventTypes[type] = description;
-    // });
-
-    return activeWebhooks;
+    return webhooks.reduce((active, { publicKey, endpoint, eventType, eventDescription }) => {
+      if (!active[publicKey]) active[publicKey] = { endpoint, eventTypes: {} };
+      active[publicKey].eventTypes[eventType] = eventDescription;
+      return active;
+    }, {});
   } catch (error) {
     throw new Error(`Failed to get active webhooks: ${error.message}`);
   }

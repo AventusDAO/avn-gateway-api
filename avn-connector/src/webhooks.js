@@ -107,8 +107,12 @@ function checkEvent(event) {
   if (!webhooks.eventTypes[eventType]) {
     throw new Error(`[Webhooks] ERROR - Invalid event type: ${eventType}`);
   }
-  const publicKey = rds.getPublicKey(accountId);
-  return { eventType, requestId, publicKey, data };
+  try {
+    const publicKey = rds.getPublicKey(accountId);
+    return { eventType, requestId, publicKey, data };
+  } catch (error) {
+    throw new Error(`[Webhooks] ERROR - Invalid accountId: ${accountId} - ${error}`);
+  }
 }
 
 async function sendToQueue(message, messageGroup) {

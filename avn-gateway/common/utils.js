@@ -273,13 +273,13 @@ async function getRelayerFee(connectorUrl, relayer, user, transactionType) {
   }
 }
 
-async function publishEvent(connectorUrl, eventType, requestId, payerAddress, data) {
+async function publishEvent(connectorUrl, eventType, requestId, accountId, data) {
   try {
     if (isValidString(eventType) === false) throw 'missing eventType';
     if (isValidRequestId(requestId) === false) throw 'missing requestId';
-    if (isValidAccountId(payerAddress) === false) throw 'missing payerAddress';
+    if (isValidAccountId(accountId) === false) throw 'missing accountId';
     if (typeof data !== 'object' || data === null) throw 'missing data';
-    const avnResponse = await axios.post(connectorUrl + 'publishEvent', { eventType, requestId, payerAddress, data });
+    const avnResponse = await axios.post(connectorUrl + 'publishEvent', { eventType, requestId, accountId, data });
   } catch (error) {
     throw new Error(`Error publishing webhook event: ${error.toString()}`);
   }

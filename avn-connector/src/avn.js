@@ -326,7 +326,7 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
 }
 
 //This function can be called multiple times (3 by default) from sqsConsumer, for the same transaction if it returns an error.
-async function signAndSend(requestId, relayerAddress, txn, optionalPayer) {
+async function signAndSend(requestId, relayerAddress, txn, optionalAccountId) {
   let transactionHash, nonce, relayerAccount;
   log.trace(`${requestId} - Sending transaction to the AvN`);
   try {
@@ -335,8 +335,11 @@ async function signAndSend(requestId, relayerAddress, txn, optionalPayer) {
   } catch (err) {
     log.error({ message: `${requestId} - Error getting relayer account for ${relayerAddress}` });
     log.error(err);
-    const eventData = { transactionHash: result.transactionHash };
-    await webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, payerAddress: optionalPayer, data: eventData });
+
+    if (optionalAccountId) {
+      const data = { status: 'failed', reason: `invalid relayer: ${relayerAddress}` };
+      await webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, accountId: optionalAccountId, data });
+    }
 
     throw err;
   }
@@ -361,8 +364,9 @@ async function signAndSend(requestId, relayerAddress, txn, optionalPayer) {
       err
     });
 
-    if (optionalPayer) {
-      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, payerAddress, data: eventData });
+    if (optionalAccountId) {
+      const data = { status: 'failed', reason: `invalid relayer: ${relayerAddress}` };
+      await webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, accountId: optionalAccountId, data });
     }
 
     await redis.addFailedAvnTransaction(

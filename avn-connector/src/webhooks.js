@@ -24,8 +24,8 @@ class WebhooksUpdater {
     try {
       this.EventTypes = await rds.getWebhookEventTypes();
       this.active = await rds.getActiveWebhooks();
-      this.lastEventsUpdate = await rds.getPayerWebhooksLastUpdated();
-      this.lastEventsCount = await rds.getPayerWebhooksCount();
+      this.lastEventsUpdate = await rds.getWebhooksLastUpdated();
+      this.lastEventsCount = await rds.getWebhooksCount();
       this.lastEndpointsUpdate = await rds.getWebhookEndpointLastUpdated();
       this.lastEndpointsCount = await rds.getWebhookEndpointCount();
       this.refreshWebhooks();
@@ -36,8 +36,8 @@ class WebhooksUpdater {
 
   async updateWebhooks() {
     try {
-      const latestEventsUpdate = await rds.getPayerWebhooksLastUpdated();
-      const latestEventsCount = await rds.getPayerWebhooksCount();
+      const latestEventsUpdate = await rds.getWebhooksLastUpdated();
+      const latestEventsCount = await rds.getWebhooksCount();
       const latestEndpointsUpdate = await rds.getWebhookEndpointLastUpdated();
       const latestEndpointsCount = await rds.getWebhookEndpointCount();
       const eventsUpdated = this.lastEventsUpdate < latestEventsUpdate || this.lastEventsCount != latestEventsCount;
@@ -75,12 +75,12 @@ async function init() {
 
 async function publishEvent(event) {
   try {
-    const { eventType, payerAddress, requestId, data } = checkEvent(event);
-    if (!webhooks.active.hasOwnProperty(payerAddress)) return;
-    const { endpoint, eventTypes } = webhooks.active[payerAddress];
+    const { eventType, publicKey, requestId, data } = checkEvent(event);
+    if (!webhooks.active.hasOwnProperty(publicKey)) return;
+    const { endpoint, eventTypes } = webhooks.active[publicKey];
     if (!eventTypes.hasOwnProperty(eventType)) return;
-    const eventData = { timestamp: Date.now(), event: eventTypes[eventType], address: payerAddress, requestId, data };
-    await sendToQueue(JSON.stringify({ endpoint, eventData }), payerAddress);
+    const eventData = { timestamp: Date.now(), event: eventTypes[eventType], publicKey, requestId, data };
+    await sendToQueue(JSON.stringify({ endpoint, eventData }), publicKey);
   } catch (error) {
     log.error('[Webhooks] ERROR - Error publishing event', error);
     throw error;
@@ -88,17 +88,16 @@ async function publishEvent(event) {
 }
 
 function checkEvent(event) {
-  const { eventType, requestId, payerAddress, data } = event;
-  const missingParams = Object.entries(event)
-    .filter(([, value]) => !value)
-    .map(([key]) => key);
+  const { eventType, accountId, requestId, data } = event;
+  const missingParams = Object.entries(event).filter(([, value]) => !value).map(([key]) => key);
   if (missingParams.length > 0) {
     throw new Error(`[Webhooks] ERROR - Missing event params: ${missingParams.join(', ')}`);
   }
   if (!webhooks.EventTypes[eventType]) {
     throw new Error(`[Webhooks] ERROR - Invalid event type: ${eventType}`);
   }
-  return { eventType, requestId, payerAddress, data };
+  const publicKey = rds.getPublicKey(accountId);
+  return { eventType, requestId, publicKey, data };
 }
 
 async function sendToQueue(message, messageGroup) {

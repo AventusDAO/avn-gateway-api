@@ -1,7 +1,7 @@
 var EntitySchema = require('typeorm').EntitySchema;
 
 module.exports = new EntitySchema({
-  name: 'payerWebhooks',
+  name: 'webhooks',
   columns: {
     webhookEndpointId: {
       type: 'int',
@@ -18,7 +18,7 @@ module.exports = new EntitySchema({
   },
   indices: [
     {
-      name: 'IDX_payerWebhooks_updatedAt',
+      name: 'IDX_webhooks_updatedAt',
       columns: ['updatedAt']
     }
   ],
@@ -27,7 +27,7 @@ module.exports = new EntitySchema({
       target: 'webhookEndpoint',
       type: 'many-to-one',
       joinColumn: { name: 'webhookEndpointId', referencedColumnName: 'id' },
-      inverseSide: 'payerWebhooks',
+      inverseSide: 'webhooks',
       onDelete: 'CASCADE'
     },
     webhookEvent: {

@@ -201,21 +201,21 @@ function getPublicKey(account) {
 
 async function getActiveWebhooks() {
   try {
-    const webhooksData = await dataSource.getRepository(PAYER_TABLE).find({
-      where: {
-        enabled: true,
-        webhookEndpointId: Not(IsNull())
-      },
-      relations: ['webhookEndpoint', 'webhooks.endpoint', 'webhooks.webhookEvent']
-    });
+    const webhooksData = await dataSource.getRepository(PAYER_TABLE)
+    .createQueryBuilder('p')
+    .innerJoinAndSelect('p.webhookEndpoint', 'we')
+    .innerJoinAndSelect('we.webhooks', 'w')
+    .innerJoinAndSelect('w.webhookEvent', 'wev')
+    .select(['p.publicKey','we.endpoint','wev.type','wev.description'])
+    .where('p.enabled = :enabled', { enabled: true })
+    .andWhere('p.webhookEndpointId IS NOT NULL')
+    .getMany();
 
     console.log(webhooksData);
     const activeWebhooks = {};
     webhooksData.forEach(webhook => {
       const { publicKey, endpoint, type, description } = webhook;
-      if (!activeWebhooks[publicKey]) {
-        activeWebhooks[publicKey] = { endpoint: endpoint, eventTypes: {} };
-      }
+      if (!activeWebhooks[publicKey]) activeWebhooks[publicKey] = { endpoint, eventTypes: {} };
       activeWebhooks[publicKey].eventTypes[type] = description;
     });
 

@@ -53,7 +53,7 @@ class Webhooks {
         this.counts = counts;
         this.updated = updated;
         this.active = await rds.getActiveWebhooks();
-        log.info(`[Webhooks] Refreshed - ${Object.keys(this.active).length} active webhooks + ${this.counts.webhooks} events`);
+        log.info(`[Webhooks] REFRESHED - ${Object.keys(this.active).length} active webhooks + ${this.counts.webhooks} events`);
       }
     } catch (error) {
       log.error('[Webhooks] ERROR - Failed to refresh webhooks:', error);
@@ -67,9 +67,8 @@ let webhooks;
 
 async function init() {
   const REFRESH_INTERVAL_MS = 20000;
-  log.info('[Webhooks] INITIALISING')
   webhooks = await Webhooks.init(REFRESH_INTERVAL_MS);
-  log.info(`[Webhooks] INITIALISED - ${JSON.stringify(webhooks)}`);
+  log.info('[Webhooks] INITIALISED');
 }
 
 async function publishEvent(event) {

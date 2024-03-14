@@ -205,7 +205,8 @@ async function getActiveWebhooks() {
       .createQueryBuilder('webhooks')
       .innerJoinAndSelect('webhooks.endpoint', 'webhook')
       .innerJoinAndSelect('webhooks.webhookEvent', 'event')
-      .innerJoinAndSelect('webhook.payer', 'payer', 'payer.enabled = true')
+      .innerJoinAndSelect('webhook.payer', 'payer')
+      .where('payer.enabled = :enabled', { enabled: true })
       .getMany();
 
     const activeWebhooks = {};
@@ -221,6 +222,7 @@ async function getActiveWebhooks() {
     throw new Error(`Failed to get active webhooks: ${error.message}`);
   }
 }
+
 
 async function getWebhookEventTypes() {
   try {

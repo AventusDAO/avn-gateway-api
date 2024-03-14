@@ -29,11 +29,10 @@ module.exports = new EntitySchema({
   ],
   relations: {
     payer: {
-      target: 'payer',
-      type: 'one-to-one',
-      inverseSide: 'webhookEndpoint',
-      joinColumn: { name: 'webhookEndpointId', referencedColumnName: 'id' },
-      nullable: true
-    }
+     target: 'payer',
+     type: 'one-to-one',
+     inverseSide: 'webhookEndpoint',
+     nullable: true
+   }
   }
 });

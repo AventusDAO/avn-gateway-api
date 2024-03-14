@@ -209,8 +209,7 @@ async function getActiveWebhooks() {
       .getMany();
 
     const activeWebhooks = {};
-    activeWebhooksData.forEach({ webhook, event } => {
-      const webhook.payer.publicKey = encodeAddress(webhook.payer.publicKey, 42);
+    activeWebhooksData.forEach(({ webhook, event }) => {
       if (!activeWebhooks[webhook.payer.publicKey]) {
         activeWebhooks[webhook.payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };
       }

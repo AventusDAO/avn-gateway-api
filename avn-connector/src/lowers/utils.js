@@ -69,7 +69,7 @@ function formatLowerEvent(lowerEvent, avtContract) {
   return lowerData;
 }
 
-function canOverwriteEvent(currentEvent, newEvent) {
+function canUpdateEventStatus(currentEvent, newEvent) {
   if (!currentEvent || Object.keys(currentEvent).length === 0) return true;
 
   let transitionIsValid = lowerStates[newEvent?.name] > lowerStates[currentEvent?.name];
@@ -134,14 +134,14 @@ function sortLowerEventsByIdAsc(lowerEvents) {
   });
 }
 
-async function overwriteEventIfRequired(currentEvent, newEvent) {
+async function updateEventStatusIfRequired(currentEvent, newEvent) {
   if (!newEvent || !currentEvent) return currentEvent
 
   if (currentEventMissingArgs(currentEvent)) {
     currentEvent = updateEventArgs(currentEvent, newEvent);
   }
 
-  if (canOverwriteEvent(currentEvent, newEvent)) {
+  if (canUpdateEventStatus(currentEvent, newEvent)) {
     currentEvent.name = newEvent.name;
     currentEvent.claimData = newEvent.claimData;
   } else {
@@ -159,11 +159,11 @@ module.exports = {
   getLowersFromIndexer,
   READY_TO_CLAIM_EVENT_NAME,
   lowerStates,
-  canOverwriteEvent,
+  canUpdateEventStatus,
   currentEventMissingArgs,
   updateEventArgs,
   updateBlockNumberAndIndex,
   isLowerId,
   parseBlockId,
-  overwriteEventIfRequired
+  updateEventStatusIfRequired
 };

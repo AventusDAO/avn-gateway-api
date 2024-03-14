@@ -71,7 +71,7 @@ async function processLowerEvents(fromId, avtContract) {
       }
 
       // handle multiple events for the same lowerId
-      currentEvent = await utils.overwriteEventIfRequired(currentEvent, newEvent)
+      currentEvent = await utils.updateEventStatusIfRequired(currentEvent, newEvent)
 
       distinctLowers[lowerId] = currentEvent;
     }
@@ -88,7 +88,7 @@ async function processLowerEvents(fromId, avtContract) {
         log.trace(`Storing key: ${key}, value: ${JSON.stringify(newLower)}`);
         await redis.setLowerById(key, newLower);
       } else {
-        storedLower = await utils.overwriteEventIfRequired(storedLower, newLower)
+        storedLower = await utils.updateEventStatusIfRequired(storedLower, newLower)
 
         log.trace(`Storing key: ${key}, value: ${JSON.stringify(storedLower)}`);
         await redis.setLowerById(key, storedLower);

@@ -203,19 +203,24 @@ async function getActiveWebhooks() {
     const webhooksData = await dataSource
       .getRepository(WEBHOOKS_TABLE)
       .createQueryBuilder('webhooks')
-      .select(['webhook.endpoint', 'event.type', 'event.description', 'payer.publicKey'])
       .innerJoin('webhooks.endpoint', 'webhook')
+      .addSelect(['webhook.endpoint', 'webhook.id'])
       .innerJoin('webhooks.webhookEvent', 'event')
-      .innerJoin('webhook.payers', 'payer', 'payer.enabled = :enabled', { enabled: true })
+      .addSelect(['event.type', 'event.description', 'event.id'])
+      .innerJoin('webhook.payers', 'payer')
+      .addSelect('payer.publicKey')
+      .where('payer.enabled = :enabled', { enabled: true })
       .getMany();
 
     console.log('[WEBHOOKS DATA]', webhooksData);
     const activeWebhooks = {};
-    webhooksData.forEach(({ webhook, event, payer }) => {
-      if (!activeWebhooks[payer.publicKey]) {
-        activeWebhooks[payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };
-      }
-      activeWebhooks[payer.publicKey].eventTypes[event.type] = event.description;
+    webhooksData.forEach(webhookData => {
+      webhookData.webhook.payers.forEach(payer => {
+        if (!activeWebhooks[payer.publicKey]) {
+          activeWebhooks[payer.publicKey] = { endpoint: webhookData.webhook.endpoint, eventTypes: {} };
+        }
+        activeWebhooks[payer.publicKey].eventTypes[webhookData.event.type] = webhookData.event.description;
+      });
     });
 
     return activeWebhooks;

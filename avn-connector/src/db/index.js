@@ -208,16 +208,16 @@ async function getActiveWebhooks() {
       .innerJoinAndSelect('webhook.payers', 'payers')
       .where('payers.enabled = :enabled', { enabled: true })
       .getMany();
-
+log.info(`[Webhooks] - DATA ${JSON.stringify(webhooksData, null, 2)}`);
     const activeWebhooks = {};
-    webhooksData.forEach(({ webhook, event, payers }) => {
-      payers.forEach(payer => {
-        if (!activeWebhooks[payer.publicKey]) {
-          activeWebhooks[payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };
-        }
-        activeWebhooks[payer.publicKey].eventTypes[event.type] = event.description;
-      });
-    });
+    // webhooksData.forEach(({ webhook, event, payers }) => {
+    //   payers.forEach(payer => {
+    //     if (!activeWebhooks[payer.publicKey]) {
+    //       activeWebhooks[payer.publicKey] = { endpoint: webhook.endpoint, eventTypes: {} };
+    //     }
+    //     activeWebhooks[payer.publicKey].eventTypes[event.type] = event.description;
+    //   });
+    // });
 
     return activeWebhooks;
   } catch (error) {

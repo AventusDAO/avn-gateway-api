@@ -1,6 +1,7 @@
 const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
 const avn = require('./avn');
 const rds = require('./db/index');
+const redis = require('./redis');
 const crypto = require('crypto');
 const config = require('multiconfig').load();
 const log = require('log4js').configure(config.log4Js).getLogger();
@@ -75,8 +76,14 @@ async function publishEvent(event) {
   try {
     const { eventType, publicKey, requestId, data } = checkEvent(event);
     if (!webhooks.active.hasOwnProperty(publicKey)) return;
+
     const { endpoint, eventTypes } = webhooks.active[publicKey];
     if (!eventTypes.hasOwnProperty(eventType)) return;
+
+    if (eventType === 'tx_sent') {
+      await redis.setSentTxDetails(data.transactionHash, { requestId, accoundId: publicKey });
+    }
+
     const eventData = { timestamp: Date.now(), event: eventTypes[eventType], publicKey, requestId, data };
     await sendToQueue(JSON.stringify({ endpoint, eventData }), publicKey);
   } catch (error) {
@@ -87,12 +94,17 @@ async function publishEvent(event) {
 
 async function publishTransactionEvents(transactions) {
   for (const tx of transactions) {
-    if (tx.status === 'Processed') {
-      log.info(`[Webhooks] TX PROCESSED EVENT - ${JSON.stringify(tx)}`);
-    } else if (tx.status === 'Rejected') {
-      log.info(`[Webhooks] TX REJECTED EVENT - ${JSON.stringify(tx)}`);
-    } else {
-      log.info(`[Webhooks] TX OTHER EVENT - ${JSON.stringify(tx)}`);
+    try {
+      const { requestId, accountId } = await redis.getSentTxDetails(tx.transactionHash);
+      if (!requestId) return;
+      if (tx.status === 'Processed') {
+        await publishEvent({ eventType: 'tx_succeeded', requestId, accountId, data: tx });
+      } else if (tx.status === 'Rejected') {
+        await publishEvent({ eventType: 'tx_succeeded', requestId, accountId, data: tx });
+      }
+      redis.deleteSentTxDetails(tx.transactionHash);
+    } catch (error) {
+      log.error('[Webhooks] ERROR - Error publishing transaction events', error);
     }
   }
 }

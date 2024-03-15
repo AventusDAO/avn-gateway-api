@@ -1,5 +1,5 @@
+const crypto = require('crypto');
 const { KMSClient, GetPublicKeyCommand, SignCommand } = require('@aws-sdk/client-kms');
-const { hashString } = require('/opt/utils.js');
 const kmsClient = new KMSClient({ region: process.env.AWS_REGION });
 
 async function getVerificationKey(keyId) {
@@ -9,7 +9,7 @@ async function getVerificationKey(keyId) {
 }
 
 async function signMessage(keyId, message) {
-  const messageDigest = hashString(message);
+  const messageDigest = crypto.createHash('sha256').update(string).digest();
 
   const signCommand = new SignCommand({
     KeyId: keyId,

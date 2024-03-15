@@ -585,15 +585,18 @@ async function refreshAutolowerLock(bridgeAddress) {
 }
 
 async function setSentTxDetails(txHash, details) {
+  console.info(` ------------XXXXXXXXXX---------- SETTING - ${txHash} ${JSON.stringify(details)}`)
   await redisClient.set(WEBHOOKS_SENT_TX_KEY + txHash, dataToJsonString(details));
 }
 
 async function getSentTxDetails(txHash) {
   const details = await redisClient.get(WEBHOOKS_SENT_TX_KEY + txHash);
+  console.info(` ------------XXXXXXXXXX---------- GETTING - ${txHash} ${details}`)
   return details ? JSON.parse(details) : {};
 }
 
 async function deleteSentTxDetails(txHash) {
+  console.info(` ------------XXXXXXXXXX---------- DELETING - ${txHash}`)
   await redisClient.del(WEBHOOKS_SENT_TX_KEY + txHash);
 }
 

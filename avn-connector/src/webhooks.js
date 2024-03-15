@@ -81,7 +81,7 @@ async function publishEvent(event) {
     if (!eventTypes.hasOwnProperty(eventType)) return;
 
     if (eventType === 'tx_sent') {
-      await redis.setSentTxDetails(data.transactionHash, { requestId, accoundId: publicKey });
+      await redis.setSentTxDetails(data.transactionHash, { requestId, accountId: publicKey });
     }
 
     const eventData = { timestamp: Date.now(), event: eventTypes[eventType], publicKey, requestId, data };

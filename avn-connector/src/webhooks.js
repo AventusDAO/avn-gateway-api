@@ -3,12 +3,14 @@ const avn = require('./avn');
 const rds = require('./db/index');
 const redis = require('./redis');
 const crypto = require('crypto');
+const lambda = require('./lambdas');
 const util = require('util');
 const config = require('multiconfig').load();
 const setTimeoutPromise = util.promisify(setTimeout);
 const log = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
 
+const TRIGGER_TX_STATUS_UPDATE_DELAY_MS = 25000;
 const WEBHOOKS_REFRESH_INTERVAL_MS = 20000;
 const PUBLISH_EVENT_RETRY_DELAY_MS = 1000;
 const MAX_PUBLISH_EVENT_RETRIES = 3;
@@ -122,6 +124,11 @@ async function attemptToPublishEvent(event) {
 
   if (eventType === 'tx_sent') {
     await redis.setSentTxDetails(data.transactionHash, { requestId, accountId: publicKey });
+    setTimeout(() => {
+      lambda.resolvePendingTransactionsState().catch(error => {
+        log.error('[Webhooks] Error - Failed to trigger tx status update', error);
+      });
+    }, TRIGGER_TX_STATUS_UPDATE_DELAY_MS);
   }
 
   const eventData = { timestamp: Date.now(), event: eventTypes[eventType], publicKey, requestId, data };

@@ -7,12 +7,12 @@ const verificationKeyURL = (process.argv[2] || 'https://uat.gateway.aventus.io')
 const app = express();
 app.use(express.json());
 
-let verificationKey;
+let publicKeyPEM;
 
 app.listen(4443, async () => {
   console.log('Listening...');
   try {
-    verificationKey = await getVerificationKey();
+    publicKeyPEM = await axios.get(verificationKeyURL);
   } catch (error) {
     console.error('Error fetching verification key');
   }
@@ -29,12 +29,6 @@ app.post('/listen', (req, res) => {
   res.status(200).send();
 });
 
-async function getVerificationKey() {
-  const response = await axios.get(verificationKeyURL);
-  const base64Key = response.data.verificationKey;
-  return `-----BEGIN PUBLIC KEY-----\n${base64Key.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----\n`;
-}
-
 function decodeEvent(req) {
   const eventData = req.body;
   const eventId = req.headers['x-avn-event-id'];
@@ -48,5 +42,5 @@ function verifyEvent(eventData, eventId, eventSignature) {
   const message = JSON.stringify({ eventId, eventData });
   const messageDigest = crypto.createHash('sha256').update(message).digest();
   const signature = Buffer.from(eventSignature, 'base64');
-  return crypto.verify('sha256', messageDigest, verificationKey, signature);
+  return crypto.verify('sha256', messageDigest, publicKeyPEM, signature);
 }

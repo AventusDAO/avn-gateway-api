@@ -6,8 +6,10 @@ async function getPublicKeyPEM(keyId) {
   const getPublicKeyCommand = new GetPublicKeyCommand({ KeyId: keyId });
   const { PublicKey, PublicKeyEncoding } = await kmsClient.send(getPublicKeyCommand);
   if (PublicKeyEncoding === 'PEM') {
+    console.log('XXXXX____IS PEM');
     return PublicKey.toString();
   } else {
+    console.log('XXXXX_____IS NOT PEM');
     const base64Key = Buffer.from(PublicKey).toString('base64');
     return `-----BEGIN PUBLIC KEY-----\n${base64Key.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----\n`;
   }

@@ -77,23 +77,29 @@ async function init() {
   log.info(`[Webhooks] Initialised - ${Object.keys(webhooks.active).length} webhooks + ${webhooks.counts.webhooks} events`);
 }
 
+async function publishTransactionEvents(transactions) {
+  for (const tx of transactions) {
+    try {
+      const { requestId, accountId } = await redis.getSentTxDetails(tx.transactionHash);
+      if (!requestId) continue;
+
+      const eventType = tx.status === 'Processed' ? 'tx_succeeded' : tx.status === 'Rejected' ? 'tx_execution_failed' : null;
+      if (!eventType) continue;
+
+      await publishEvent({ eventType, requestId, accountId, data: tx });
+      redis.deleteSentTxDetails(tx.transactionHash);
+    } catch (error) {
+      log.error('[Webhooks] Error - Error publishing transaction events', error);
+    }
+  }
+}
+
 async function publishEvent(event) {
   let attempt = 0;
 
   while (attempt < MAX_PUBLISH_EVENT_RETRIES) {
     try {
-      const { eventType, publicKey, requestId, data } = checkEvent(event);
-      if (!webhooks.active.hasOwnProperty(publicKey)) return;
-
-      const { endpoint, eventTypes } = webhooks.active[publicKey];
-      if (!eventTypes.hasOwnProperty(eventType)) return;
-
-      if (eventType === 'tx_sent') {
-        await redis.setSentTxDetails(data.transactionHash, { requestId, accountId: publicKey });
-      }
-
-      const eventData = { timestamp: Date.now(), event: eventTypes[eventType], publicKey, requestId, data };
-      await sendToQueue(JSON.stringify({ endpoint, eventData }), publicKey);
+      await attemptToPublishEvent(event);
       return;
     } catch (error) {
       attempt++;
@@ -107,21 +113,19 @@ async function publishEvent(event) {
   }
 }
 
-async function publishTransactionEvents(transactions) {
-  for (const tx of transactions) {
-    try {
-      const { requestId, accountId } = await redis.getSentTxDetails(tx.transactionHash);
-      if (!requestId) return;
-      if (tx.status === 'Processed') {
-        await publishEvent({ eventType: 'tx_succeeded', requestId, accountId, data: tx });
-      } else if (tx.status === 'Rejected') {
-        await publishEvent({ eventType: 'tx_succeeded', requestId, accountId, data: tx });
-      }
-      redis.deleteSentTxDetails(tx.transactionHash);
-    } catch (error) {
-      log.error('[Webhooks] Error - Error publishing transaction events', error);
-    }
+async function attemptToPublishEvent(event) {
+  const { eventType, publicKey, requestId, data } = checkEvent(event);
+  if (!webhooks.active.hasOwnProperty(publicKey)) return;
+
+  const { endpoint, eventTypes } = webhooks.active[publicKey];
+  if (!eventTypes.hasOwnProperty(eventType)) return;
+
+  if (eventType === 'tx_sent') {
+    await redis.setSentTxDetails(data.transactionHash, { requestId, accountId: publicKey });
   }
+
+  const eventData = { timestamp: Date.now(), event: eventTypes[eventType], publicKey, requestId, data };
+  await sendToQueue(JSON.stringify({ endpoint, eventData }), publicKey);
 }
 
 function checkEvent(event) {
@@ -129,33 +133,32 @@ function checkEvent(event) {
   const missingParams = Object.entries(event)
     .filter(([, value]) => !value)
     .map(([key]) => key);
+
   if (missingParams.length > 0) {
-    throw new Error(`[Webhooks] Error - Missing event params: ${missingParams.join(', ')}`);
+    throw new Error(`[Webhooks] Internal Error - Missing event params: ${missingParams.join(', ')}`);
   }
+
   if (!webhooks.eventTypes[eventType]) {
-    throw new Error(`[Webhooks] Error - Invalid event type: ${eventType}`);
+    throw new Error(`[Webhooks] Internal Error - Invalid event type: ${eventType}`);
   }
+
   try {
     const publicKey = rds.getPublicKey(accountId);
     return { eventType, requestId, publicKey, data };
   } catch (error) {
-    throw new Error(`[Webhooks] Error - Invalid accountId: ${accountId} - ${error}`);
+    throw new Error(`[Webhooks] Internal Error - Invalid accountId: ${accountId} - ${error}`);
   }
 }
 
 async function sendToQueue(message, messageGroup) {
-  try {
-    const params = {
-      QueueUrl: config.webhooks.queue_url,
-      MessageBody: message,
-      MessageGroupId: messageGroup,
-      MessageDeduplicationId: hash(message)
-    };
-    await sqsClient.send(new SendMessageCommand(params));
-  } catch (error) {
-    log.error('[Webhooks] Error - Error sending to queue', error);
-    throw error;
-  }
+  const params = {
+    QueueUrl: config.webhooks.queue_url,
+    MessageBody: message,
+    MessageGroupId: messageGroup,
+    MessageDeduplicationId: hash(message)
+  };
+
+  await sqsClient.send(new SendMessageCommand(params));
 }
 
 function hash(message) {

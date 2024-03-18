@@ -68,7 +68,7 @@ app.post('/resolvePendingTransactions', async (req, res, next) => {
   try {
     log.trace({ resolvePendingTransactions: Object.keys(req.body) });
     const transactions = req.body.transactions;
-    await webhooks.publishTransactionEvents(transactions);
+    webhooks.publishTransactionEvents(transactions);
     const result = await redis.resolvePendingAvnTransactions(transactions);
     res.send(result);
   } catch (err) {
@@ -280,7 +280,7 @@ app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
 app.post('/publishEvent', async (req, res, next) => {
   try {
     log.trace({ publishEventRequest: req.body });
-    await webhooks.publishEvent(req.body);
+    webhooks.publishEvent(req.body);
     res.status(200).send({});
   } catch (err) {
     next(err);

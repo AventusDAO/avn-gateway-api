@@ -3,9 +3,15 @@ const avn = require('./avn');
 const rds = require('./db/index');
 const redis = require('./redis');
 const crypto = require('crypto');
+const util = require('util');
 const config = require('multiconfig').load();
+const setTimeoutPromise = util.promisify(setTimeout);
 const log = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
+
+const WEBHOOKS_REFRESH_INTERVAL_MS = 20000;
+const PUBLISH_EVENT_RETRY_DELAY_MS = 1000;
+const MAX_PUBLISH_EVENT_RETRIES = 3;
 
 // Initializes the permitted event types and any active webhooks
 // Webhooks are kept up-to-date via frequent DB resyncs that run in the background
@@ -67,28 +73,37 @@ class Webhooks {
 let webhooks;
 
 async function init() {
-  const REFRESH_INTERVAL_MS = 20000;
-  webhooks = await Webhooks.init(REFRESH_INTERVAL_MS);
+  webhooks = await Webhooks.init(WEBHOOKS_REFRESH_INTERVAL_MS);
   log.info('[Webhooks] INITIALISED');
 }
 
 async function publishEvent(event) {
-  try {
-    const { eventType, publicKey, requestId, data } = checkEvent(event);
-    if (!webhooks.active.hasOwnProperty(publicKey)) return;
+  let attempt = 0;
 
-    const { endpoint, eventTypes } = webhooks.active[publicKey];
-    if (!eventTypes.hasOwnProperty(eventType)) return;
+  while (attempt < MAX_PUBLISH_EVENT_RETRIES) {
+    try {
+      const { eventType, publicKey, requestId, data } = checkEvent(event);
+      if (!webhooks.active.hasOwnProperty(publicKey)) return;
 
-    if (eventType === 'tx_sent') {
-      await redis.setSentTxDetails(data.transactionHash, { requestId, accountId: publicKey });
+      const { endpoint, eventTypes } = webhooks.active[publicKey];
+      if (!eventTypes.hasOwnProperty(eventType)) return;
+
+      if (eventType === 'tx_sent') {
+        await redis.setSentTxDetails(data.transactionHash, { requestId, accountId: publicKey });
+      }
+
+      const eventData = { timestamp: Date.now(), event: eventTypes[eventType], publicKey, requestId, data };
+      await sendToQueue(JSON.stringify({ endpoint, eventData }), publicKey);
+      return;
+    } catch (error) {
+      attempt++;
+      log.error(`[Webhooks] ERROR - Attempt ${attempt}: Error publishing event`, error);
+      if (attempt >= MAX_PUBLISH_EVENT_RETRIES) {
+        log.error('[Webhooks] ERROR - Maximum retry attempts reached. Event not published.', error);
+        return;
+      }
+      await setTimeoutPromise(PUBLISH_EVENT_RETRY_DELAY_MS);
     }
-
-    const eventData = { timestamp: Date.now(), event: eventTypes[eventType], publicKey, requestId, data };
-    await sendToQueue(JSON.stringify({ endpoint, eventData }), publicKey);
-  } catch (error) {
-    log.error('[Webhooks] ERROR - Error publishing event', error);
-    throw error;
   }
 }
 

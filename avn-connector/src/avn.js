@@ -60,7 +60,7 @@ async function proxy(requestId, palletName, method, params) {
 
     if (payerAddress) {
       await setNextPayerNonce(requestId, payerAddress, parseInt(params[0].params.paymentNonce) + 1);
-      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, accountId: payerAddress, data: result });
+      webhooks.publishEvent({ eventType: 'tx_sent', requestId, accountId: payerAddress, data: result });
     }
 
     return result;
@@ -74,7 +74,7 @@ async function proxy(requestId, palletName, method, params) {
 
     if (payerAddress) {
       await setNextPayerNonce(requestId, payerAddress, parseInt(params.paymentNonce) + 1);
-      await webhooks.publishEvent({ eventType: 'tx_sent', requestId, accountId: payerAddress, data: result });
+      webhooks.publishEvent({ eventType: 'tx_sent', requestId, accountId: payerAddress, data: result });
     }
 
     return result;
@@ -340,7 +340,7 @@ async function signAndSend(requestId, relayerAddress, txn, optionalAccountForWeb
 
     if (optionalAccountForWebhook) {
       const data = { status: 'failed', reason: `invalid relayer: ${relayerAddress}` };
-      await webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, accountId: optionalAccountForWebhook, data });
+      webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, accountId: optionalAccountForWebhook, data });
     }
 
     throw err;
@@ -368,7 +368,7 @@ async function signAndSend(requestId, relayerAddress, txn, optionalAccountForWeb
 
     if (optionalAccountForWebhook) {
       const data = { status: 'failed', reason: `invalid relayer: ${relayerAddress}` };
-      await webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, accountId: optionalAccountForWebhook, data });
+      webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, accountId: optionalAccountForWebhook, data });
     }
 
     await redis.addFailedAvnTransaction(

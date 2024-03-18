@@ -9,7 +9,7 @@ async function getVerificationKey(keyId) {
 }
 
 async function signMessage(keyId, message) {
-  const messageDigest = crypto.createHash('sha256').update(string).digest();
+  const messageDigest = crypto.createHash('sha256').update(message).digest();
 
   const signCommand = new SignCommand({
     KeyId: keyId,

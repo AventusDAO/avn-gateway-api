@@ -30,7 +30,7 @@ app.post('/listen', (req, res) => {
 });
 
 async function getVerificationKey() {
-  const response = await axios.get('https://uat.gateway.aventus.io/webhook-verification-key');
+  const response = await axios.get(verificationKeyURL);
   const base64Key = response.data.verificationKey;
   return `-----BEGIN PUBLIC KEY-----\n${base64Key.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----\n`;
 }

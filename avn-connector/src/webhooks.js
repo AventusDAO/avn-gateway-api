@@ -74,7 +74,7 @@ let webhooks;
 
 async function init() {
   webhooks = await Webhooks.init(WEBHOOKS_REFRESH_INTERVAL_MS);
-  log.info(`[Webhooks] Initialised - ${Object.keys(this.active).length} active webhooks + ${this.counts.webhooks} events`);
+  log.info(`[Webhooks] Initialised - ${Object.keys(webhooks.active).length} webhooks + ${webhooks.counts.webhooks} events`);
 }
 
 async function publishEvent(event) {

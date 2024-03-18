@@ -10,7 +10,7 @@ const setTimeoutPromise = util.promisify(setTimeout);
 const log = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
 
-const TRIGGER_TX_STATUS_UPDATE_DELAY_MS = 25000;
+const TRIGGER_TX_STATUS_UPDATE_DELAY_MS = 35000;
 const WEBHOOKS_REFRESH_INTERVAL_MS = 20000;
 const PUBLISH_EVENT_RETRY_DELAY_MS = 1000;
 const MAX_PUBLISH_EVENT_RETRIES = 3;

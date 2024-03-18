@@ -21,11 +21,10 @@ exports.handler = async event => {
       };
 
       await axios.post(endpoint, data, { headers });
-      console.log(`Event ID ${id} sent to ${endpoint}: ${JSON.stringify(data)}`);
+      console.log(`Event ${id} sent to ${endpoint}: ${JSON.stringify(data)}`);
     } catch (error) {
-      console.error(
-        `Error sending event ID ${id} to ${endpoint}: ${error.response ? error.response.statusText : error.message}`
-      );
+      console.error(`Failed sending event ${id} to ${endpoint}: ${error.response ? error.response.statusText : error.message}`);
+      throw error;
     }
   }
 };

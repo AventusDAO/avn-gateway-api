@@ -60,10 +60,10 @@ class Webhooks {
         this.counts = counts;
         this.updated = updated;
         this.active = await rds.getActiveWebhooks();
-        log.info(`[Webhooks] REFRESHED - ${Object.keys(this.active).length} active webhooks + ${this.counts.webhooks} events`);
+        log.info(`[Webhooks] Refreshed - ${Object.keys(this.active).length} active webhooks + ${this.counts.webhooks} events`);
       }
     } catch (error) {
-      log.error('[Webhooks] ERROR - Failed to refresh webhooks:', error);
+      log.error('[Webhooks] Error - Failed to refresh webhooks:', error);
     } finally {
       setTimeout(() => this.refreshWebhooks(), this.refreshInterval);
     }
@@ -74,7 +74,7 @@ let webhooks;
 
 async function init() {
   webhooks = await Webhooks.init(WEBHOOKS_REFRESH_INTERVAL_MS);
-  log.info('[Webhooks] INITIALISED');
+  log.info(`[Webhooks] Initialised - ${Object.keys(this.active).length} active webhooks + ${this.counts.webhooks} events`);
 }
 
 async function publishEvent(event) {
@@ -97,9 +97,9 @@ async function publishEvent(event) {
       return;
     } catch (error) {
       attempt++;
-      log.error(`[Webhooks] ERROR - Attempt ${attempt}: Error publishing event`, error);
+      log.error(`[Webhooks] Error - Attempt ${attempt}: Error publishing event`, error);
       if (attempt >= MAX_PUBLISH_EVENT_RETRIES) {
-        log.error('[Webhooks] ERROR - Maximum retry attempts reached. Event not published.', error);
+        log.error('[Webhooks] Error - Maximum retry attempts reached. Event not published.', error);
         return;
       }
       await setTimeoutPromise(PUBLISH_EVENT_RETRY_DELAY_MS);
@@ -119,7 +119,7 @@ async function publishTransactionEvents(transactions) {
       }
       redis.deleteSentTxDetails(tx.transactionHash);
     } catch (error) {
-      log.error('[Webhooks] ERROR - Error publishing transaction events', error);
+      log.error('[Webhooks] Error - Error publishing transaction events', error);
     }
   }
 }
@@ -130,16 +130,16 @@ function checkEvent(event) {
     .filter(([, value]) => !value)
     .map(([key]) => key);
   if (missingParams.length > 0) {
-    throw new Error(`[Webhooks] ERROR - Missing event params: ${missingParams.join(', ')}`);
+    throw new Error(`[Webhooks] Error - Missing event params: ${missingParams.join(', ')}`);
   }
   if (!webhooks.eventTypes[eventType]) {
-    throw new Error(`[Webhooks] ERROR - Invalid event type: ${eventType}`);
+    throw new Error(`[Webhooks] Error - Invalid event type: ${eventType}`);
   }
   try {
     const publicKey = rds.getPublicKey(accountId);
     return { eventType, requestId, publicKey, data };
   } catch (error) {
-    throw new Error(`[Webhooks] ERROR - Invalid accountId: ${accountId} - ${error}`);
+    throw new Error(`[Webhooks] Error - Invalid accountId: ${accountId} - ${error}`);
   }
 }
 
@@ -153,7 +153,7 @@ async function sendToQueue(message, messageGroup) {
     };
     await sqsClient.send(new SendMessageCommand(params));
   } catch (error) {
-    log.error('[Webhooks] ERROR - Error sending to queue', error);
+    log.error('[Webhooks] Error - Error sending to queue', error);
     throw error;
   }
 }

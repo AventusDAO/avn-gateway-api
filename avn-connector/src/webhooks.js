@@ -29,46 +29,43 @@ class Webhooks {
   }
 
   async initialize() {
-    [this.eventTypes, this.active, this.counts, this.updated] = await Promise.all([
-      rds.getWebhookEventTypes(),
-      rds.getActiveWebhooks(),
-      this.getCounts(),
-      this.getLastUpdated()
-    ]);
-    this.refreshWebhooks();
-  }
-
-  async getCounts() {
-    return Promise.all([rds.getWebhooksCount(), rds.getWebhookEndpointCount()]).then(([webhooks, endpoint]) => ({
-      webhooks,
-      endpoint
-    }));
-  }
-
-  async getLastUpdated() {
-    return Promise.all([rds.getWebhooksLastUpdated(), rds.getWebhookEndpointLastUpdated()]).then(([webhooks, endpoint]) => ({
-      webhooks,
-      endpoint
-    }));
-  }
-
-  async refreshWebhooks() {
     try {
-      const [counts, updated] = await Promise.all([this.getCounts(), this.getLastUpdated()]);
-      const entriesAddedOrRemoved = JSON.stringify(this.counts) !== JSON.stringify(counts);
-      const entriesUpdated = JSON.stringify(this.updated) !== JSON.stringify(updated);
+      [this.eventTypes, this.active, this.webhooksState, this.eventTypesState] = await Promise.all([
+        rds.getWebhookEventTypes(),
+        rds.getActiveWebhooks(),
+        rds.getWebhooksState(),
+        rds.getWebhookEventTypesState()
+      ]);
+      this.scheduleNextRefresh();
+    } catch (error) {
+      log.error('[Webhooks] Initialization error:', error);
+    }
+  }
 
-      if (entriesAddedOrRemoved || entriesUpdated) {
-        this.counts = counts;
-        this.updated = updated;
+  async refresh() {
+    try {
+      const [eventTypesState, webhooksState] = await Promise.all([rds.getWebhookEventTypesState(), rds.getWebhooksState()]);
+
+      if (this.eventTypesState !== eventTypesState) {
+        this.eventTypesState = eventTypesState;
+        this.eventTypes = await rds.getWebhookEventTypes();
+        log.info(`[Webhooks] Refreshed event types - ${Object.keys(this.eventTypes).length} event types`);
+      }
+
+      if (this.webhooksState !== webhooksState) {
+        this.webhooksState = webhooksState;
         this.active = await rds.getActiveWebhooks();
-        log.info(`[Webhooks] Refreshed - ${Object.keys(this.active).length} active webhooks + ${this.counts.webhooks} events`);
+        log.info(`[Webhooks] Refreshed active webhooks - ${Object.keys(this.active).length} active webhooks`);
       }
     } catch (error) {
       log.error('[Webhooks] Error - Failed to refresh webhooks:', error);
     } finally {
-      setTimeout(() => this.refreshWebhooks(), this.refreshInterval);
+      this.scheduleNextRefresh();
     }
+  }
+
+  scheduleNextRefresh() {
+    setTimeout(() => this.refresh(), this.refreshInterval);
   }
 }
 
@@ -76,7 +73,7 @@ let webhooks;
 
 async function init() {
   webhooks = await Webhooks.init(WEBHOOKS_REFRESH_INTERVAL_MS);
-  log.info(`[Webhooks] Initialised - ${Object.keys(webhooks.active).length} webhooks + ${webhooks.counts.webhooks} events`);
+  log.info(`[Webhooks] Initialised - ${Object.keys(webhooks.active).length} webhooks`);
 }
 
 async function publishTransactionEvents(transactions) {

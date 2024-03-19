@@ -20,6 +20,10 @@ module.exports = new EntitySchema({
     updatedAt: {
       type: 'timestamptz',
       updateDate: true
+    },
+    enabled: {
+      type: 'boolean',
+      default: true
     }
   },
   indices: [

@@ -3,6 +3,7 @@ const typeorm = require('typeorm');
 const { IsNull, Not } = require('typeorm');
 const { isHex, u8aToHex } = require('@polkadot/util');
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
+const crypto = require('crypto');
 
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
@@ -203,7 +204,6 @@ async function getActiveWebhooks() {
   try {
     const webhooks = await dataSource
       .getRepository(PAYER_TABLE)
-      .createQueryBuilder('p')
       .select('p.publicKey', 'publicKey')
       .addSelect('we.endpoint', 'endpoint')
       .leftJoin('p.webhookEndpoint', 'we')
@@ -212,11 +212,16 @@ async function getActiveWebhooks() {
       .addSelect('wev.type', 'eventType')
       .addSelect('wev.description', 'eventDescription')
       .where('p.enabled = :enabled', { enabled: true })
+      .andWhere('we.enabled = :webhookEndpointEnabled', { webhookEndpointEnabled: true })
+      .andWhere('wev.enabled = :webhookEventEnabled', { webhookEventEnabled: true })
       .andWhere('p.webhookEndpointId IS NOT NULL')
       .getRawMany();
 
     return webhooks.reduce((active, { publicKey, endpoint, eventType, eventDescription }) => {
-      if (!active[publicKey]) active[publicKey] = { endpoint, eventTypes: {} };
+      if (!active[publicKey]) {
+        active[publicKey] = { endpoint, eventTypes: {} };
+      }
+
       active[publicKey].eventTypes[eventType] = eventDescription;
       return active;
     }, {});
@@ -237,32 +242,37 @@ async function getWebhookEventTypes() {
   }
 }
 
-async function getWebhookEndpointCount() {
-  return await dataSource.getRepository(WEBHOOK_ENDPOINT_TABLE).count();
-}
-
-async function getWebhookEndpointLastUpdated() {
-  const result = await dataSource
-    .getRepository(WEBHOOK_ENDPOINT_TABLE)
-    .createQueryBuilder('endpoint')
-    .select('MAX(endpoint.updatedAt)', 'last_update_time')
-    .getRawOne();
-
-  return result.last_update_time;
-}
-
-async function getWebhooksCount() {
-  return await dataSource.getRepository(WEBHOOKS_TABLE).count();
-}
-
-async function getWebhooksLastUpdated() {
-  const result = await dataSource
-    .getRepository(WEBHOOKS_TABLE)
+async function getWebhookEventTypesState() {
+  const stats = await dataSource
+    .getRepository(WEBHOOK_EVENT_TABLE)
     .createQueryBuilder('event')
-    .select('MAX(event.updatedAt)', 'last_update_time')
+    .select('COUNT(event.id)', 'count')
+    .addSelect('MAX(event.updatedAt)', 'lastUpdate')
     .getRawOne();
 
-  return result.last_update_time;
+  return crypto.createHash('sha256').update(JSON.stringify(stats)).digest('hex');
+}
+
+async function getWebhooksState() {
+  const [endpointStats, webhooksStats] = await Promise.all([
+    dataSource
+      .getRepository(WEBHOOK_ENDPOINT_TABLE)
+      .createQueryBuilder('endpoint')
+      .select('COUNT(endpoint.id)', 'endpointCount')
+      .addSelect('MAX(endpoint.updatedAt)', 'endpointLastUpdate')
+      .getRawOne(),
+    dataSource
+      .getRepository(WEBHOOKS_TABLE)
+      .createQueryBuilder('event')
+      .select('COUNT(event.webhookEndpointId)', 'webhooksCount')
+      .addSelect('MAX(event.updatedAt)', 'webhooksLastUpdate')
+      .getRawOne()
+  ]);
+
+  const hash = crypto.createHash('sha256');
+  hash.update(JSON.stringify(endpointStats));
+  hash.update(JSON.stringify(webhooksStats));
+  return hash.digest('hex');
 }
 
 module.exports = {
@@ -270,12 +280,10 @@ module.exports = {
   getFees,
   getPublicKey,
   getRelayerVaultId,
-  getActiveWebhooks,
-  getWebhookEndpointLastUpdated,
-  getWebhookEndpointCount,
-  getWebhookEventTypes,
-  getWebhooksCount,
-  getWebhooksLastUpdated,
   init,
-  isPayerTransaction
+  isPayerTransaction,
+  getActiveWebhooks,
+  getWebhookEventTypes,
+  getWebhookEventTypesState,
+  getWebhooksState
 };

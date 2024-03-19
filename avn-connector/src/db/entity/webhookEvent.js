@@ -10,11 +10,13 @@ module.exports = new EntitySchema({
     },
     type: {
       type: 'varchar',
-      unique: true
+      unique: true,
+      nullable: false
     },
     description: {
       type: 'varchar',
-      unique: true
+      unique: true,
+      nullable: false
     },
     createdAt: {
       type: 'timestamptz',
@@ -23,6 +25,10 @@ module.exports = new EntitySchema({
     updatedAt: {
       type: 'timestamptz',
       updateDate: true
+    },
+    enabled: {
+      type: 'boolean',
+      default: true
     }
   },
   relations: {

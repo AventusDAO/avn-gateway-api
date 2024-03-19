@@ -43,6 +43,7 @@ const UNCLAIMED_LOWERS_KEY = 'lowersUnclaimed';
 const LOWER_DATA_KEY = 'lowerData';
 const SUMMARIES_KEY = 'summaries';
 const LAST_LOWER_BLOCK_ID_FROM_AVN = SLOT_PREFIX + 'lwr_lastAvnBlock';
+const WEBHOOKS_SENT_TX_KEY = 'txSent';
 
 const LOWER_ID_PREFIX = SLOT_PREFIX + 'lwr_id_';
 const LOWER_SENDER_PREFIX = SLOT_PREFIX + 'lwr_sender_';
@@ -583,6 +584,19 @@ async function refreshAutolowerLock(bridgeAddress) {
   await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress, AUTOLOWER_MAX_LOCK_IN_SECONDS);
 }
 
+async function setSentTxDetails(txHash, details) {
+  await redisClient.set(WEBHOOKS_SENT_TX_KEY + txHash, dataToJsonString(details));
+}
+
+async function getSentTxDetails(txHash) {
+  const details = await redisClient.get(WEBHOOKS_SENT_TX_KEY + txHash);
+  return details ? JSON.parse(details) : {};
+}
+
+async function deleteSentTxDetails(txHash) {
+  await redisClient.del(WEBHOOKS_SENT_TX_KEY + txHash);
+}
+
 module.exports = {
   connect,
   addNewAvnTransaction,
@@ -647,5 +661,8 @@ module.exports = {
   getAutolowers,
   acquireAutolowerLock,
   releaseAutolowerLock,
-  refreshAutolowerLock
+  refreshAutolowerLock,
+  setSentTxDetails,
+  getSentTxDetails,
+  deleteSentTxDetails
 };

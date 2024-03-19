@@ -7,7 +7,6 @@ exports.handler = async event => {
 
     try {
       const freshness = new Date().toISOString();
-      const message = JSON.stringify({ id, freshness, data });
 
       const headers = {
         'content-type': 'application/json',

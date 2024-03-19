@@ -1,6 +1,6 @@
 ## Webhooks Endpoint
 
-Simple HTTPS server to test the receiving and logging of avn-gateway webhook events.
+Simple HTTPS server to test the receiving, verifying, and logging of avn-gateway webhook events.
 
 Uses [localtunnel](https://theboroer.github.io/localtunnel-www/) to expose your chosen endpoint (e.g: `https://my_test_endpoint_name.loca.lt`) to the internet.
 
@@ -20,9 +20,9 @@ Uses [localtunnel](https://theboroer.github.io/localtunnel-www/) to expose your 
 
 ### Running
 
-1. Start the server by running the following command:
+1. Start the server by running the following command (defaults to Dev if no `gateway_url` is specified):
 
-    `node index.js`
+    `node index.js [gateway_url]`
 
 2. Open a separate terminal window and run:
 

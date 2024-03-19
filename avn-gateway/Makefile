@@ -53,4 +53,3 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 
 clean: ## destroys the build folder
 	rm -rf ./build/
-	

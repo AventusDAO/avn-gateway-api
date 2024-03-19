@@ -67,9 +67,7 @@ app.get('/pendingTransactions', async (req, res, next) => {
 app.post('/resolvePendingTransactions', async (req, res, next) => {
   try {
     log.trace({ resolvePendingTransactions: Object.keys(req.body) });
-    const transactions = req.body.transactions;
-    webhooks.publishTransactionEvents(transactions);
-    const result = await redis.resolvePendingAvnTransactions(transactions);
+    const result = await redis.resolvePendingAvnTransactions(req.body.transactions);
     res.send(result);
   } catch (err) {
     next(err);
@@ -271,16 +269,6 @@ app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
   try {
     log.trace({ setTransactionFailedToBeSentStatus: JSON.stringify(req.body) });
     await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
-    res.status(200).send({});
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/publishEvent', async (req, res, next) => {
-  try {
-    log.trace({ publishEventRequest: req.body });
-    webhooks.publishEvent(req.body);
     res.status(200).send({});
   } catch (err) {
     next(err);

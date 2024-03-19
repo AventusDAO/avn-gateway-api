@@ -1,6 +1,6 @@
 ## Webhooks Endpoint
 
-Simple HTTPS server to test the receiving, verifying, and logging of avn-gateway webhook events.
+Simple HTTPS server to test the receiving and logging of avn-gateway webhook events.
 
 Uses [localtunnel](https://theboroer.github.io/localtunnel-www/) to expose your chosen endpoint (e.g: `https://my_test_endpoint_name.loca.lt`) to the internet.
 

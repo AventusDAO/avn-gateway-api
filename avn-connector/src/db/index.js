@@ -224,8 +224,7 @@ async function getActiveWebhooks() {
       return active;
     }, {});
   } catch (error) {
-    console.error(`Failed to get active webhooks: ${error.message}`);
-    return {};
+    throw new Error(`Failed to get active webhooks: ${error.message}`);
   }
 }
 
@@ -237,8 +236,7 @@ async function getWebhookEventTypes() {
       return webhookEvents;
     }, {});
   } catch (error) {
-    console.error(`Failed to get webhook event types: ${error.message}`);
-    return {};
+    throw new Error(`Failed to get webhook event types: ${error.message}`);
   }
 }
 

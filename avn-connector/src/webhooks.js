@@ -19,6 +19,8 @@ const MAX_PUBLISH_EVENT_RETRIES = 3;
 // Webhooks are kept up-to-date via frequent DB resyncs that run in the background
 class Webhooks {
   constructor(refreshInterval) {
+    this.eventTypes = {};
+    this.active = {};
     this.refreshInterval = refreshInterval;
   }
 

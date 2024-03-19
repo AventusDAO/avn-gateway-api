@@ -275,6 +275,16 @@ app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
   }
 });
 
+app.post('/publishEvent', async (req, res, next) => {
+  try {
+    log.trace({ publishEventRequest: req.body });
+    webhooks.publishEvent(req.body);
+    res.status(200).send({});
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use(function (err, req, res, _next) {
   log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });

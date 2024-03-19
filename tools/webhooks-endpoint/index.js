@@ -6,12 +6,6 @@ app.use(express.json());
 
 app.listen(4443, async () => {
   console.log('Listening...');
-  try {
-    await verifier.init(process.argv[2]);
-  } catch (error) {
-    console.error('Error fetching verification key');
-    process.exit(1);
-  }
 });
 
 app.get('/ping', (req, res) => {

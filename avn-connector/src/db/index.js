@@ -237,7 +237,8 @@ async function getWebhookEventTypes() {
       return webhookEvents;
     }, {});
   } catch (error) {
-    throw new Error(`Failed to get webhook event types: ${error.message}`);
+    console.error(`Failed to get webhook event types: ${error.message}`);
+    return {};
   }
 }
 

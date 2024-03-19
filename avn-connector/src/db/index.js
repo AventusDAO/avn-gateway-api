@@ -1,14 +1,19 @@
 const config = require('multiconfig').load();
 const typeorm = require('typeorm');
-const { IsNull } = require('typeorm');
+const { IsNull, Not } = require('typeorm');
 const { isHex, u8aToHex } = require('@polkadot/util');
 const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
+const crypto = require('crypto');
 
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
 const RELAYER_TABLE = 'relayer';
+const PAYER_TABLE = 'payer';
 const PAYER_TRANSACTION_TABLE = 'payerTransaction';
 const TRANSACTION_TABLE = 'transaction';
+const WEBHOOK_ENDPOINT_TABLE = 'webhookEndpoint';
+const WEBHOOK_EVENT_TABLE = 'webhookEvent';
+const WEBHOOKS_TABLE = 'webhooks';
 
 let dataSource;
 
@@ -27,7 +32,10 @@ async function init() {
       require('./entity/transaction'),
       require('./entity/payerTransaction'),
       require('./entity/fee'),
-      require('./entity/relayer')
+      require('./entity/relayer'),
+      require('./entity/webhookEndpoint'),
+      require('./entity/webhookEvent'),
+      require('./entity/webhooks')
     ]
   });
 
@@ -192,10 +200,88 @@ function getPublicKey(account) {
   }
 }
 
+async function getActiveWebhooks() {
+  try {
+    const webhooks = await dataSource
+      .getRepository(PAYER_TABLE)
+      .createQueryBuilder('p')
+      .select('p.publicKey', 'publicKey')
+      .addSelect('we.endpoint', 'endpoint')
+      .leftJoin('p.webhookEndpoint', 'we')
+      .leftJoin('we.webhooks', 'w')
+      .leftJoin('w.webhookEvent', 'wev')
+      .addSelect('wev.type', 'eventType')
+      .addSelect('wev.description', 'eventDescription')
+      .where('p.enabled = :enabled', { enabled: true })
+      .andWhere('we.enabled = :webhookEndpointEnabled', { webhookEndpointEnabled: true })
+      .andWhere('wev.enabled = :webhookEventEnabled', { webhookEventEnabled: true })
+      .andWhere('p.webhookEndpointId IS NOT NULL')
+      .getRawMany();
+
+    return webhooks.reduce((active, { publicKey, endpoint, eventType, eventDescription }) => {
+      if (!active[publicKey]) active[publicKey] = { endpoint, eventTypes: {} };
+      active[publicKey].eventTypes[eventType] = eventDescription;
+      return active;
+    }, {});
+  } catch (error) {
+    throw new Error(`Failed to get active webhooks: ${error.message}`);
+  }
+}
+
+async function getWebhookEventTypes() {
+  try {
+    const webhookEventDataSource = await dataSource.getRepository(WEBHOOK_EVENT_TABLE);
+    return (await webhookEventDataSource.find()).reduce((webhookEvents, { type, description }) => {
+      webhookEvents[type] = description;
+      return webhookEvents;
+    }, {});
+  } catch (error) {
+    throw new Error(`Failed to get webhook event types: ${error.message}`);
+  }
+}
+
+async function getWebhookEventTypesState() {
+  const stats = await dataSource
+    .getRepository(WEBHOOK_EVENT_TABLE)
+    .createQueryBuilder('event')
+    .select('COUNT(event.id)', 'count')
+    .addSelect('MAX(event.updatedAt)', 'lastUpdate')
+    .getRawOne();
+
+  return crypto.createHash('sha256').update(JSON.stringify(stats)).digest('hex');
+}
+
+async function getWebhooksState() {
+  const [endpointStats, webhooksStats] = await Promise.all([
+    dataSource
+      .getRepository(WEBHOOK_ENDPOINT_TABLE)
+      .createQueryBuilder('endpoint')
+      .select('COUNT(endpoint.id)', 'endpointCount')
+      .addSelect('MAX(endpoint.updatedAt)', 'endpointLastUpdate')
+      .getRawOne(),
+    dataSource
+      .getRepository(WEBHOOKS_TABLE)
+      .createQueryBuilder('event')
+      .select('COUNT(event.webhookEndpointId)', 'webhooksCount')
+      .addSelect('MAX(event.updatedAt)', 'webhooksLastUpdate')
+      .getRawOne()
+  ]);
+
+  const hash = crypto.createHash('sha256');
+  hash.update(JSON.stringify(endpointStats));
+  hash.update(JSON.stringify(webhooksStats));
+  return hash.digest('hex');
+}
+
 module.exports = {
   getPayer,
   getFees,
+  getPublicKey,
   getRelayerVaultId,
   init,
-  isPayerTransaction
+  isPayerTransaction,
+  getActiveWebhooks,
+  getWebhookEventTypes,
+  getWebhookEventTypesState,
+  getWebhooksState
 };

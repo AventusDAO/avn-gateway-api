@@ -20,9 +20,9 @@ Uses [localtunnel](https://theboroer.github.io/localtunnel-www/) to expose your 
 
 ### Running
 
-1. Start the server by running the following command (defaults to Dev if no `gateway_url` is specified):
+1. Start the server by running the following command:
 
-    `node index.js [gateway_url]`
+    `node index.js`
 
 2. Open a separate terminal window and run:
 

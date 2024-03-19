@@ -55,7 +55,7 @@ class Webhooks {
       if (this.webhooksState !== webhooksState) {
         this.webhooksState = webhooksState;
         this.active = await rds.getActiveWebhooks();
-        log.info(`[Webhooks] Refreshed active webhooks - ${Object.keys(this.active).length} active webhooks`);
+        log.info(`[Webhooks] Refreshed webhooks - ${Object.keys(this.active).length} webhooks`);
       }
     } catch (error) {
       log.error('[Webhooks] Error - Failed to refresh webhooks:', error);
@@ -73,7 +73,7 @@ let webhooks;
 
 async function init() {
   webhooks = await Webhooks.init(WEBHOOKS_REFRESH_INTERVAL_MS);
-  log.info(`[Webhooks] Initialised - ${Object.keys(webhooks.active).length} webhooks`);
+  log.info(`[Webhooks] Init - ${Object.keys(webhooks.active).length} hooks ${Object.keys(this.eventTypes).length} event types`);
 }
 
 async function publishTransactionEvents(transactions) {

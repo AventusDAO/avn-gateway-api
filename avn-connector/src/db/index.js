@@ -204,6 +204,7 @@ async function getActiveWebhooks() {
   try {
     const webhooks = await dataSource
       .getRepository(PAYER_TABLE)
+      .createQueryBuilder('p')
       .select('p.publicKey', 'publicKey')
       .addSelect('we.endpoint', 'endpoint')
       .leftJoin('p.webhookEndpoint', 'we')
@@ -218,15 +219,13 @@ async function getActiveWebhooks() {
       .getRawMany();
 
     return webhooks.reduce((active, { publicKey, endpoint, eventType, eventDescription }) => {
-      if (!active[publicKey]) {
-        active[publicKey] = { endpoint, eventTypes: {} };
-      }
-
+      if (!active[publicKey]) active[publicKey] = { endpoint, eventTypes: {} };
       active[publicKey].eventTypes[eventType] = eventDescription;
       return active;
     }, {});
   } catch (error) {
-    throw new Error(`Failed to get active webhooks: ${error.message}`);
+    console.error(`Failed to get active webhooks: ${error.message}`);
+    return {};
   }
 }
 

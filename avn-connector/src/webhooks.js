@@ -85,6 +85,7 @@ async function init() {
     log.info(`[Webhooks] Init - ${Object.keys(webhooks.active).length} hooks ${Object.keys(webhooks.eventTypes).length} types`);
   } catch (error) {
     log.error('[Webhooks] Init error:', error);
+    throw error;
   }
 }
 

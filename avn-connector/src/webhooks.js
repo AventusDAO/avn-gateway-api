@@ -22,15 +22,11 @@ class Webhooks {
     this.eventTypes = {};
     this.active = {};
     this.refreshInterval = refreshInterval;
+    this.eventTypesState = null;
+    this.webhooksState = null;
   }
 
-  static async init(refreshInterval) {
-    const instance = new Webhooks(refreshInterval);
-    await instance.initialize();
-    return instance;
-  }
-
-  async initialize() {
+  async init() {
     try {
       [this.eventTypes, this.active, this.webhooksState, this.eventTypesState] = await Promise.all([
         rds.getWebhookEventTypes(),
@@ -39,6 +35,7 @@ class Webhooks {
         rds.getWebhookEventTypesState()
       ]);
       this.scheduleNextRefresh();
+      log.info(`[Webhooks] Init - ${Object.keys(this.active).length} hooks ${Object.keys(this.eventTypes).length} event types`);
     } catch (error) {
       log.error('[Webhooks] Initialization error:', error);
     }
@@ -74,8 +71,8 @@ class Webhooks {
 let webhooks;
 
 async function init() {
-  webhooks = await Webhooks.init(WEBHOOKS_REFRESH_INTERVAL_MS);
-  log.info(`[Webhooks] Init - ${Object.keys(webhooks.active).length} hooks ${Object.keys(webhooks.eventTypes).length} types`);
+  webhooks = new Webhooks(WEBHOOKS_REFRESH_INTERVAL_MS);
+  await webhooks.init();
 }
 
 async function publishTransactionEvents(transactions) {

@@ -370,7 +370,7 @@ async function signAndSend(requestId, relayerAddress, txn, optionalAccountForWeb
     });
 
     if (optionalAccountForWebhook) {
-      const data = { status: 'failed', reason: `invalid relayer: ${relayerAddress}` };
+      const data = { status: 'failed', reason: `nonce`, transactionHash };
       const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_send_failed;
       webhooks.publishEvent({ eventType, requestId, accountId: optionalAccountForWebhook, data });
     }

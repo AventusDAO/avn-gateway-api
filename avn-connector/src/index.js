@@ -7,6 +7,7 @@ const loweringV2 = require('./lowers/loweringV2');
 const autolowering = require('./lowers/autolowering');
 const redis = require('./redis');
 const sqsConsumer = require('./sqsConsumer');
+const webhooks = require('./webhooks');
 const lambda = require('./lambdas');
 const express = require('express');
 const log4js = require('log4js');
@@ -276,6 +277,16 @@ app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
   }
 });
 
+app.post('/publishEvent', async (req, res, next) => {
+  try {
+    log.trace({ publishEventRequest: req.body });
+    webhooks.publishEvent(req.body);
+    res.status(200).send({});
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use(function (err, req, res, _next) {
   log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });
@@ -289,6 +300,7 @@ async function instantiateConnector() {
   await redis.connect();
   await avn.init();
   await rds.init();
+  await webhooks.init();
   sqsConsumer.processTxQueue(); // triggers infinite loop - don't await
   loweringV2.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }

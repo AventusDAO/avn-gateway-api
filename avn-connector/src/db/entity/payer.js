@@ -25,6 +25,10 @@ module.exports = new EntitySchema({
       type: 'varchar',
       nullable: true
     },
+    webhookEndpointId: {
+      type: 'int',
+      nullable: true
+    },
     createdAt: {
       type: 'timestamptz',
       createDate: true
@@ -39,6 +43,17 @@ module.exports = new EntitySchema({
     }
   },
   relations: {
+    webhookEndpoint: {
+      target: 'webhookEndpoint',
+      type: 'many-to-one',
+      inverseSide: 'payer',
+      joinColumn: {
+        name: 'webhookEndpointId',
+        referencedColumnName: 'id',
+        nullable: true,
+        onDelete: 'SET NULL'
+      }
+    },
     splitFeeUsers: {
       target: 'splitFeeUser',
       type: 'one-to-many',

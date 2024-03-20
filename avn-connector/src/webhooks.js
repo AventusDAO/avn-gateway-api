@@ -31,7 +31,7 @@ class Webhooks {
   }
 
   async initialize() {
-    console.log('WEBHOOK EVENT TYPES 1', JSON.stringify(await rds.getWebhookEventTypes1(), null, 2));
+    console.log('WEBHOOK EVENT TYPES 1', JSON.stringify(await rds.getWebhookEventTypes(), null, 2));
     console.log('WEBHOOK EVENT TYPES 2', JSON.stringify(await rds.getWebhookEventTypes2(), null, 2));
     try {
       [this.eventTypes, this.active, this.webhooksState, this.eventTypesState] = await Promise.all([

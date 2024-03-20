@@ -82,7 +82,7 @@ async function init() {
     webhooks = new Webhooks(WEBHOOKS_REFRESH_INTERVAL_MS);
     await webhooks.initialize();
     confirmExpectedEventTypes();
-    log.info(`[Webhooks] Init - ${Object.keys(this.active).length} hooks, ${Object.keys(this.eventTypes).length} event types`);
+    log.info(`[Webhooks] Init - ${Object.keys(webhooks.active).length} hooks ${Object.keys(webhooks.eventTypes).length} types`);
   } catch (error) {
     log.error('[Webhooks] Init error:', error);
   }

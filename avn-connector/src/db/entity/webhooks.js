@@ -10,18 +10,8 @@ module.exports = new EntitySchema({
     webhookEventId: {
       type: 'int',
       primary: true
-    },
-    updatedAt: {
-      type: 'timestamptz',
-      updateDate: true
     }
   },
-  indices: [
-    {
-      name: 'IDX_webhooks_updatedAt',
-      columns: ['updatedAt']
-    }
-  ],
   relations: {
     webhookEndpoint: {
       target: 'webhookEndpoint',

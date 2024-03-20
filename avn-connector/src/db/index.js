@@ -261,9 +261,8 @@ async function getWebhooksState() {
       .getRawOne(),
     dataSource
       .getRepository(WEBHOOKS_TABLE)
-      .createQueryBuilder('event')
-      .select('COUNT(event.webhookEndpointId)', 'webhooksCount')
-      .addSelect('MAX(event.updatedAt)', 'webhooksLastUpdate')
+      .createQueryBuilder('webhooks')
+      .select('COUNT(webhooks.webhookEndpointId)', 'webhooksCount')
       .getRawOne()
   ]);
 

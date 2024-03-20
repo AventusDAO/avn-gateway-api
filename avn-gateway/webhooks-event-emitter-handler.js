@@ -1,11 +1,19 @@
 const { axios } = require('/opt/utils.js');
 const { signMessage } = require('/opt/kmsUtils.js');
+const { deleteMessagesFromQueue } = require('/opt/sqsUtils.js');
 
+const SQS_WEBHOOKS_QUEUE_URL = process.env.SQS_WEBHOOKS_QUEUE_URL;
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID;
 
-exports.handler = async event => {
+exports.handler = async (event, context) => {
+  const sentMessages = [];
+
   for (const record of event.Records) {
-    const { endpoint, eventData: data } = JSON.parse(record.body); // eventData: { timestamp, event, publicKey, requestId, data };
+    if (context.getRemainingTimeInMillis() < utils.ONE_SECOND) {
+      throw new Error('Execution time limit reached');
+    }
+
+    const { endpoint, eventData: data } = JSON.parse(record.body);
     const id = record.messageId;
 
     try {
@@ -22,8 +30,12 @@ exports.handler = async event => {
 
       await axios.post(endpoint, data, { headers });
       console.log(`Event ${id} sent to ${endpoint}: ${JSON.stringify(data)}`);
+      sentMessages.push({ Id: id, ReceiptHandle: record.receiptHandle });
     } catch (error) {
       console.error(`Failed sending event ${id} to ${endpoint}: ${error.response ? error.response.statusText : error.message}`);
+      if (sentMessages.length > 0) {
+        await deleteMessagesFromQueue(SQS_WEBHOOKS_QUEUE_URL, sentMessages);
+      }
       throw error;
     }
   }

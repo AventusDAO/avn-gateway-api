@@ -1,4 +1,4 @@
-const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
+const { SQSClient, SendMessageCommand, DeleteMessageBatchCommand } = require('@aws-sdk/client-sqs');
 const { hashString } = require('/opt/utils.js');
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION });
 
@@ -34,7 +34,18 @@ async function sendToQueue(queueUrl, data) {
   }
 }
 
+async function deleteMessagesFromQueue(queueUrl, entries) {
+  try {
+    await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: queueUrl, Entries: entries }));
+    console.log(`Deleted ${entries.length} messages from ${queueUrl}`);
+  } catch (error) {
+    console.error(`Failed to delete ${JSON.stringify(entries)} from ${queueUrl}`);
+    throw error;
+  }
+}
+
 module.exports = {
+  deleteMessagesFromQueue,
   getFailedMessagesForFifoQueue,
   sendToQueue
 };

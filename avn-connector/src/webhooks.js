@@ -15,6 +15,18 @@ const WEBHOOKS_REFRESH_INTERVAL_MS = 20000;
 const PUBLISH_EVENT_RETRY_DELAY_MS = 1000;
 const MAX_PUBLISH_EVENT_RETRIES = 3;
 
+const WEBHOOK_EVENT_TYPES = {
+  tx_received: 'tx_received',
+  tx_payer_accepted: 'tx_payer_accepted',
+  tx_queued: 'tx_queued',
+  tx_ready: 'tx_ready',
+  tx_sent: 'tx_sent',
+  tx_payer_refused: 'tx_payer_refused',
+  tx_send_failed: 'tx_send_failed',
+  tx_execution_failed: 'tx_execution_failed',
+  tx_succeeded: 'tx_succeeded'
+};
+
 // Initializes the permitted event types and any active webhooks
 // Webhooks are kept up-to-date via frequent DB resyncs that run in the background
 class Webhooks {
@@ -26,19 +38,14 @@ class Webhooks {
     this.webhooksState = null;
   }
 
-  async init() {
-    try {
-      [this.eventTypes, this.active, this.webhooksState, this.eventTypesState] = await Promise.all([
-        rds.getWebhookEventTypes(),
-        rds.getActiveWebhooks(),
-        rds.getWebhooksState(),
-        rds.getWebhookEventTypesState()
-      ]);
-      this.scheduleNextRefresh();
-      log.info(`[Webhooks] Init - ${Object.keys(this.active).length} hooks ${Object.keys(this.eventTypes).length} event types`);
-    } catch (error) {
-      log.error('[Webhooks] Initialization error:', error);
-    }
+  async initialize() {
+    [this.eventTypes, this.active, this.webhooksState, this.eventTypesState] = await Promise.all([
+      rds.getWebhookEventTypes(),
+      rds.getActiveWebhooks(),
+      rds.getWebhooksState(),
+      rds.getWebhookEventTypesState()
+    ]);
+    this.scheduleNextRefresh();
   }
 
   async refresh() {
@@ -71,8 +78,33 @@ class Webhooks {
 let webhooks;
 
 async function init() {
-  webhooks = new Webhooks(WEBHOOKS_REFRESH_INTERVAL_MS);
-  await webhooks.init();
+  try {
+    webhooks = new Webhooks(WEBHOOKS_REFRESH_INTERVAL_MS);
+    await webhooks.initialize();
+    confirmExpectedEventTypes();
+    log.info(`[Webhooks] Init - ${Object.keys(this.active).length} hooks, ${Object.keys(this.eventTypes).length} event types`);
+  } catch (error) {
+    log.error('[Webhooks] Init error:', error);
+  }
+}
+
+function confirmExpectedEventTypes() {
+  const dbTypes = Object.keys(webhooks.eventTypes);
+
+  if (dbTypes.length === 0) {
+    log.info('[Webhooks] Webhook Event table not populated - skipping expected types check');
+  }
+
+  const connectorTypes = Object.keys(WEBHOOK_EVENT_TYPES);
+  const dbMissing = connectorTypes.filter(type => !dbTypes.includes(type));
+  const connectorMissing = dbTypes.filter(type => !connectorTypes.includes(type));
+
+  if (dbMissing.length > 0 || connectorMissing.length > 0) {
+    const errorParts = [];
+    if (dbMissing.length > 0) errorParts.push(`DB missing types: ${dbMissing.join(', ')}`);
+    if (connectorMissing.length > 0) errorParts.push(`Connector missing types: ${connectorMissing.join(', ')}`);
+    throw new Error(`Event types mismatch: ${errorParts.join(' | ')}`);
+  }
 }
 
 async function publishTransactionEvents(transactions) {
@@ -81,7 +113,14 @@ async function publishTransactionEvents(transactions) {
       const { requestId, accountId } = await redis.getSentTxDetails(tx.transactionHash);
       if (!requestId) continue;
 
-      const eventType = tx.status === 'Processed' ? 'tx_succeeded' : tx.status === 'Rejected' ? 'tx_execution_failed' : null;
+      let eventType = null;
+
+      if (tx.status === 'Processed') {
+        eventType = WEBHOOK_EVENT_TYPES.tx_succeeded;
+      } else if (tx.status === 'Rejected') {
+        eventType = WEBHOOK_EVENT_TYPES.tx_execution_failed;
+      }
+
       if (!eventType) continue;
 
       await publishEvent({ eventType, requestId, accountId, data: tx });
@@ -171,5 +210,6 @@ function hash(message) {
 module.exports = {
   init,
   publishEvent,
-  publishTransactionEvents
+  publishTransactionEvents,
+  WEBHOOK_EVENT_TYPES
 };

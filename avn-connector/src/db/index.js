@@ -240,14 +240,6 @@ async function getWebhookEventTypes() {
   }
 }
 
-async function getWebhookEventTypes2() {
-  try {
-    return await dataSource.getRepository(WEBHOOK_EVENT_TABLE).find();
-  } catch (error) {
-    throw new Error(`Failed to get webhook event types: ${error.message}`);
-  }
-}
-
 async function getWebhookEventTypesState() {
   const stats = await dataSource
     .getRepository(WEBHOOK_EVENT_TABLE)
@@ -290,7 +282,6 @@ module.exports = {
   isPayerTransaction,
   getActiveWebhooks,
   getWebhookEventTypes,
-  getWebhookEventTypes2,
   getWebhookEventTypesState,
   getWebhooksState
 };

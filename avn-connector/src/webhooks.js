@@ -35,7 +35,7 @@ class Webhooks {
         rds.getWebhookEventTypesState()
       ]);
       this.scheduleNextRefresh();
-      log.info(`[Webhooks] Init - ${Object.keys(this.active).length} hooks ${Object.keys(this.eventTypes).length} types`);
+      log.info(`[Webhooks] Init - ${Object.keys(this.active).length} hooks ${Object.keys(this.eventTypes).length} event types`);
     } catch (error) {
       log.error('[Webhooks] Initialization error:', error);
     }

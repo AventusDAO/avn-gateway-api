@@ -4,12 +4,13 @@ const { deleteMessagesFromQueue } = require('/opt/sqsUtils.js');
 
 const SQS_WEBHOOKS_QUEUE_URL = process.env.SQS_WEBHOOKS_QUEUE_URL;
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID;
+const CLEANUP_TIME_MS = 1500;
 
 exports.handler = async (event, context) => {
   const sentMessages = [];
 
   for (const record of event.Records) {
-    if (context.getRemainingTimeInMillis() < utils.ONE_SECOND) {
+    if (context.getRemainingTimeInMillis() < CLEANUP_TIME_MS) {
       throw new Error('Execution time limit reached');
     }
 

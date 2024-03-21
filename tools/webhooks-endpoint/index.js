@@ -16,7 +16,6 @@ async function openTunnel(subdomain = 'avnwebhookstest') {
 }
 
 app.listen(4443, async () => {
-  console.log(`Establishing local tunnel...`);
   try {
     await openTunnel(process.argv[2]);
     await verifier.init(process.argv[3]);

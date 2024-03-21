@@ -83,6 +83,8 @@ async function callSwitch(call, request) {
       return await getChainInfo(call, request);
     case 'getEthereumEventStatus':
       return await getEthereumEventStatus(call, request);
+    case 'getNftInfo':
+      return await getNftInfo(call, request);
 
     default:
       return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -165,6 +167,18 @@ async function getNftNonce(call, request) {
   } else {
     const { palletName, storageName } = utils.NONCE_INFO.nft;
     return await queryChain(call, request, palletName, storageName, [nftId], formatNftNonceAsString);
+  }
+}
+
+async function getNftInfo(call, request) {
+  const { nftId } = call.params;
+
+  if (utils.isValidNftId(nftId) === false) {
+    return utils.buildErrorBody('params', 'invalid nft id', nftId, request, call.id);
+  } else {
+    const method = 'getNftInfo';
+    const params = { callId: call.id, nftId };
+    return await query(call, request, method, params);
   }
 }
 

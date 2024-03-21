@@ -135,7 +135,7 @@ function sortLowerEventsByIdAsc(lowerEvents) {
 }
 
 async function updateEventStatusIfRequired(currentEvent, newEvent) {
-  if (!newEvent || !currentEvent) return currentEvent;
+  if (!newEvent || !currentEvent) return currentEvent
 
   if (currentEventMissingArgs(currentEvent)) {
     currentEvent = updateEventArgs(currentEvent, newEvent);
@@ -151,7 +151,7 @@ async function updateEventStatusIfRequired(currentEvent, newEvent) {
     }
   }
 
-  return currentEvent;
+  return currentEvent
 }
 
 module.exports = {

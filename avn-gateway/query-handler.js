@@ -85,6 +85,10 @@ async function callSwitch(call, request) {
       return await getEthereumEventStatus(call, request);
     case 'getNftInfo':
       return await getNftInfo(call, request);
+    case 'getNftListingStatus':
+      return await getNftListingStatus(call, request);
+    case 'getBatchListingStatus':
+      return await getBatchListingStatus(call, request);
 
     default:
       return utils.buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -179,6 +183,27 @@ async function getNftInfo(call, request) {
     const method = 'getNftInfo';
     const params = { callId: call.id, nftId };
     return await query(call, request, method, params);
+  }
+}
+
+async function getNftListingStatus(call, request) {
+  const { nftId } = call.params;
+
+  if (utils.isValidNftId(nftId) === false) {
+    return utils.buildErrorBody('params', 'invalid nft id', nftId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'nftManager', 'nftOpenForSale', [nftId], formatListingAsString);
+  }
+}
+
+async function getBatchListingStatus(call, request) {
+  const { batchId } = call.params;
+
+  // NftIs and BatchId have the same format
+  if (utils.isValidNftId(batchId) === false) {
+    return utils.buildErrorBody('params', 'invalid batch id', batchId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'nftManager', 'batchOpenForSale', [batchId], formatListingAsString);
   }
 }
 
@@ -418,3 +443,11 @@ const filterNftOwner = data => (data ? data.owner : null);
 const filterAvnContract = data => (data ? data.avnContract : null);
 
 const filterAvtContract = data => (data ? data.avtContract : null);
+
+const formatListingAsString = data => {
+  if (!data || data.toString() === 'Unknown') {
+    return 'Not listed'
+  }
+
+  return data.toString()
+}

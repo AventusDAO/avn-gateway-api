@@ -41,7 +41,8 @@ async function processRequest(request, authoriserContext, awsRequestId) {
     await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', { requestId: awsRequestId });
 
     if (isSplitFeeTransaction(authoriserContext) === true) {
-      await utils.publishEvent(AVN_CONNECTOR_ENDPOINT, 'tx_received', awsRequestId, authoriserContext.splitFeePayerAddress, tx);
+      const eventType = utils.WEBHOOK_EVENT_TYPES.tx_received;
+      await utils.publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, awsRequestId, authoriserContext.splitFeePayerAddress, tx);
       const data = await sendMessageToPayerQueue(tx, request, awsRequestId, authoriserContext);
       console.info(
         `Sent split fee transaction to SQS. txID: ${tx.id}, awsRequestId: ${awsRequestId}, sqsMessageId: ${data.MessageId}`

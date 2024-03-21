@@ -71,8 +71,9 @@ async function processMessage(message) {
         params.paymentNonce = await avn.getPayerPaymentNonce(requestId, payerAddress);
         logger.trace(`[SQS tx] Request ID: ${requestId} - split fee payment nonce: ${params.paymentNonce}`);
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, params.paymentNonce);
+        const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_payer_accepted;
         const eventData = { tx: txData, payment: params.paymentInfo };
-        webhooks.publishEvent({ eventType: 'tx_payer_accepted', requestId, accountId: payerAddress, data: eventData });
+        webhooks.publishEvent({ eventType, requestId, accountId: payerAddress, data: eventData });
       }
 
       result = await avn.proxy(requestId, palletName, method, params);

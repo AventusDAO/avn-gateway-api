@@ -12,13 +12,14 @@ async function openTunnel(subdomain = 'avnwebhookstest') {
   if (tunnel.url.match(/\/\/(.*?)\./)?.[1] !== subdomain) {
     throw new Error(`Local tunnel cannot provide "${subdomain}", wait and retry or specify a different subdomain`);
   }
-  console.log(`Server listening at ${tunnel.url}...`);
+  return tunnel.url;
 }
 
 app.listen(4443, async () => {
   try {
-    await openTunnel(process.argv[2]);
+    const url = await openTunnel(process.argv[2]);
     await verifier.init(process.argv[3]);
+    console.log(`Server listening at ${url}...`);
   } catch (error) {
     console.error(error);
     process.exit(1);

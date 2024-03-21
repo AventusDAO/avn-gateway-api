@@ -8,7 +8,7 @@ class Verifier {
 
   async init(freshnessWindow = 5000, gatewayURL = 'https://uat.gateway.aventus.io') {
     this.freshnessWindow = freshnessWindow;
-    const verificationKeyURL = `${gatewayURL}/webhook-verification-key`;
+    const verificationKeyURL = `${gatewayURL}/verification/webhooks/signer-sha256-public`;
     try {
       const response = await axios.get(verificationKeyURL);
       this.publicKeyPEM = response.data.publicKeyPEM;

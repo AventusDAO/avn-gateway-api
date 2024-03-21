@@ -34,12 +34,15 @@ async function sendToQueue(queueUrl, data) {
   }
 }
 
-async function deleteMessagesFromQueue(queueUrl, entries) {
+async function deleteMessagesFromQueue(queueUrl, messages) {
   try {
-    await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: queueUrl, Entries: entries }));
-    console.log(`Deleted ${entries.length} messages from ${queueUrl}`);
+    const response = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: queueUrl, Entries: messages }));
+    console.log(`Deleted ${response.Successful.length} of ${messages.length} messages from ${queueUrl}`);
+    if (response.Failed.length > 0) {
+      console.error(`Failed deletions: ${JSON.stringify(response.Failed)}`);
+    }
   } catch (error) {
-    console.error(`Failed to delete ${JSON.stringify(entries)} from ${queueUrl}`);
+    console.error(`Exception deleting ${JSON.stringify(messages)} from ${queueUrl}: ${error}`);
     throw error;
   }
 }

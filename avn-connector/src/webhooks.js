@@ -94,6 +94,7 @@ function confirmExpectedEventTypes() {
 
   if (dbTypes.length === 0) {
     log.info('[Webhooks] Webhook Event table not populated - skipping expected types check');
+    return;
   }
 
   const connectorTypes = Object.keys(WEBHOOK_EVENT_TYPES);

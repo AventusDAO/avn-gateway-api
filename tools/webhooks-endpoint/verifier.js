@@ -6,7 +6,7 @@ class Verifier {
     this.publicKeyPEM = null;
   }
 
-  async init(freshnessWindow = 5000, gatewayURL = 'https://uat.gateway.aventus.io') {
+  async init(freshnessWindow = 10000, gatewayURL = 'https://uat.gateway.aventus.io') {
     this.freshnessWindow = freshnessWindow;
     const verificationKeyURL = `${gatewayURL}/webhook-verification-key`;
     try {

@@ -1,17 +1,27 @@
 const express = require('express');
 const { format } = require('date-fns');
+const localtunnel = require('localtunnel');
 const Verifier = require('./verifier.js');
 
 const verifier = new Verifier();
 const app = express();
 app.use(express.json());
 
+async function openTunnel(subdomain = 'avnwebhookstest') {
+  const tunnel = await localtunnel({ port: 4443, subdomain });
+  if (tunnel.url.match(/\/\/(.*?)\./)?.[1] !== subdomain) {
+    throw new Error(`Local tunnel cannot provide "${subdomain}", wait and retry or specify a different subdomain`);
+  }
+  return tunnel.url;
+}
+
 app.listen(4443, async () => {
-  console.log('Listening...');
   try {
-    await verifier.init(process.argv[2]);
+    const url = await openTunnel(process.argv[2]);
+    await verifier.init(process.argv[3]);
+    console.log(`Server listening at ${url}...`);
   } catch (error) {
-    console.error('Error fetching verification key');
+    console.error(error);
     process.exit(1);
   }
 });

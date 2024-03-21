@@ -60,7 +60,8 @@ async function proxy(requestId, palletName, method, params) {
 
     if (payerAddress) {
       await setNextPayerNonce(requestId, payerAddress, parseInt(params[0].params.paymentNonce) + 1);
-      webhooks.publishEvent({ eventType: 'tx_sent', requestId, accountId: payerAddress, data: result });
+      const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_sent;
+      webhooks.publishEvent({ eventType, requestId, accountId: payerAddress, data: result });
     }
 
     return result;
@@ -74,7 +75,8 @@ async function proxy(requestId, palletName, method, params) {
 
     if (payerAddress) {
       await setNextPayerNonce(requestId, payerAddress, parseInt(params.paymentNonce) + 1);
-      webhooks.publishEvent({ eventType: 'tx_sent', requestId, accountId: payerAddress, data: result });
+      const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_sent;
+      webhooks.publishEvent({ eventType, requestId, accountId: payerAddress, data: result });
     }
 
     return result;
@@ -340,7 +342,8 @@ async function signAndSend(requestId, relayerAddress, txn, optionalAccountForWeb
 
     if (optionalAccountForWebhook) {
       const data = { status: 'failed', reason: `invalid relayer: ${relayerAddress}` };
-      webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, accountId: optionalAccountForWebhook, data });
+      const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_send_failed;
+      webhooks.publishEvent({ eventType, requestId, accountId: optionalAccountForWebhook, data });
     }
 
     throw err;
@@ -367,8 +370,9 @@ async function signAndSend(requestId, relayerAddress, txn, optionalAccountForWeb
     });
 
     if (optionalAccountForWebhook) {
-      const data = { status: 'failed', reason: `invalid relayer: ${relayerAddress}` };
-      webhooks.publishEvent({ eventType: 'tx_send_failed', requestId, accountId: optionalAccountForWebhook, data });
+      const data = { status: 'failed', reason: `nonce`, transactionHash };
+      const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_send_failed;
+      webhooks.publishEvent({ eventType, requestId, accountId: optionalAccountForWebhook, data });
     }
 
     await redis.addFailedAvnTransaction(

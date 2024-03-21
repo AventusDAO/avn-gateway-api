@@ -39,6 +39,18 @@ const TX_TYPES = [
   'proxyListEthereumNftBatchForSale'
 ];
 
+const WEBHOOK_EVENT_TYPES = {
+  tx_received: 'tx_received',
+  tx_payer_accepted: 'tx_payer_accepted',
+  tx_queued: 'tx_queued',
+  tx_ready: 'tx_ready',
+  tx_sent: 'tx_sent',
+  tx_payer_refused: 'tx_payer_refused',
+  tx_send_failed: 'tx_send_failed',
+  tx_execution_failed: 'tx_execution_failed',
+  tx_succeeded: 'tx_succeeded'
+};
+
 const NONCE_INFO = {
   batch: { palletName: 'nftManager', storageName: 'batchNonces' },
   confirmation: { palletName: 'ethereumEvents', storageName: 'proxyNonces' },
@@ -340,6 +352,7 @@ module.exports = {
   buildSuccessResponse,
   buildErrorResponse,
   callWithTimeout,
+  WEBHOOK_EVENT_TYPES,
   getPayerVaultUsername,
   getProxyProof,
   getRelayerFee,

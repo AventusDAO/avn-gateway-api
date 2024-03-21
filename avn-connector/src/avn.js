@@ -678,6 +678,23 @@ async function regenerateLowerProof(account, lowerId) {
   return await txn.signAndSend(account, { nonce: -1 });
 }
 
+async function getNftInfo(nftId) {
+  try {
+    let nft = (await api.query.nftManager.nfts(nftId)).toJSON();
+    let nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON();
+    return {
+      ownerAddress: nft.owner,
+      nonce: nft.nonce,
+      infoId: nft.infoId,
+      uniqueExternalRef: nft.uniqueExternalRef,
+      royalties: nftInfo.royalties
+    }
+  } catch (err) {
+    log.error(`Error getting nft info for nftId: ${nftId}: `, err);
+    throw err;
+  }
+}
+
 module.exports = {
   addNewTransaction,
   createAccount,
@@ -706,5 +723,6 @@ module.exports = {
   getPayerPaymentNonce,
   generateSplitFeePaymentInfo,
   payerHasFunds,
-  regenerateLowerProof
+  regenerateLowerProof,
+  getNftInfo
 };

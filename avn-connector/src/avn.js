@@ -698,8 +698,8 @@ async function getNftInfo(nftId) {
 
 async function getBatchInfo(batchId) {
   try {
-    let info_id = await api.query.nftManager.batchInfoId(batchId);
-    let batchInfo = (await api.query.nftManager.nftInfos(info_id)).toJSON();
+    const infoId = await api.query.nftManager.batchInfoId(batchId);
+    const batchInfo = (await api.query.nftManager.nftInfos(infoId)).toJSON();
     return {
       ownerAddress: batchInfo.creator,
       infoId: batchInfo.infoId,

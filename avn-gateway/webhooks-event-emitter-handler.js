@@ -1,4 +1,4 @@
-const { axios, callWithTimeout, ONE_SECOND } = require('/opt/utils.js');
+const { axios, executeInTimeOrThrow } = require('/opt/utils.js');
 const { signMessage } = require('/opt/kmsUtils.js');
 const { getFailedMessagesForFifoQueue } = require('/opt/sqsUtils.js');
 
@@ -9,13 +9,8 @@ exports.handler = async (event, context) => {
 
   try {
     for (const record of event.Records) {
-      const timeoutMs = context.getRemainingTimeInMillis() - ONE_SECOND;
-      if (timeoutMs > 0) {
-        await callWithTimeout(timeoutMs, emitEvent, [record]);
-        acknowledgedEventsCount++;
-      } else {
-        throw new Error('Lambda execution exceeded allowed time');
-      }
+      await executeInTimeOrThrow(context, emitEvent, [record]);
+      acknowledgedEventsCount++;
     }
   } catch (error) {
     console.error('Error emitting events', error);
@@ -25,8 +20,8 @@ exports.handler = async (event, context) => {
 };
 
 async function emitEvent(record) {
-  const { body, messageId: id, receiptHandle } = record;
-  const { endpoint, eventData: data } = JSON.parse(body);
+  const id = record.messageId;
+  const { endpoint, eventData: data } = JSON.parse(record.body);
   const freshness = new Date().toISOString();
   const message = JSON.stringify({ id, freshness, data });
 
@@ -39,7 +34,6 @@ async function emitEvent(record) {
     };
 
     await axios.post(endpoint, data, { headers });
-    return { Id: id, ReceiptHandle: receiptHandle };
   } catch (error) {
     throw new Error(`Failed sending event ${id} to ${endpoint}: ${error.response ? error.response.statusText : error.message}`);
   }

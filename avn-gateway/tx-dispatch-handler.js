@@ -20,14 +20,7 @@ exports.handler = async (event, context) => {
     console.log(`Processing ${event.Records.length} message(s) from queue`);
 
     for (let record of event.Records) {
-      let result;
-      const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
-      if (timeoutMs > 0) {
-        result = await utils.callWithTimeout(timeoutMs, processRequest, [record.body]);
-      } else {
-        throw new Error('Lambda execution exceeded allowed time');
-      }
-
+      const result = await utils.executeInTimeOrThrow(context, processRequest, [record.body]);
       if (utils.requestFailed(result) === true) {
         // Stop on the first failure because this is a FIFO queue
         break;

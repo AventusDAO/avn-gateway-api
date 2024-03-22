@@ -34,21 +34,21 @@ async function sendToQueue(queueUrl, data) {
   }
 }
 
-async function deleteMessagesFromQueue(queueUrl, messages) {
+async function removeFromQueue(queueUrl, entries) {
+  const result = { succeeded: [], failed: [] };
   try {
-    const response = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: queueUrl, Entries: messages }));
-    console.log(`Deleted ${response.Successful.length} of ${messages.length} messages from ${queueUrl}`);
-    if (response.Failed.length > 0) {
-      console.error(`Failed deletions: ${JSON.stringify(response.Failed)}`);
-    }
+    const response = await sqsClient.send(new DeleteMessageBatchCommand({ QueueUrl: queueUrl, Entries: entries }));
+    result.succeeded = response.Successful?.map(entry => entry.Id) || [];
+    result.failed = response.Failed?.map(entry => entry.Id) || [];
   } catch (error) {
-    console.error(`Exception deleting ${JSON.stringify(messages)} from ${queueUrl}: ${error}`);
-    throw error;
+    console.error(`Error removing entries from queue "${queueUrl}"`, error);
+  } finally {
+    return result;
   }
 }
 
 module.exports = {
-  deleteMessagesFromQueue,
+  removeFromQueue,
   getFailedMessagesForFifoQueue,
   sendToQueue
 };

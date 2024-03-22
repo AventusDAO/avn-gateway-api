@@ -708,6 +708,7 @@ async function getNftInfo(nftId) {
 async function getBatchInfo(batchId) {
   try {
     const infoId = await api.query.nftManager.batchInfoId(batchId);
+    console.log(`InfoId for batchId: ${batchId} = ${infoId}.`)
     if (infoId <= 0) {
       return
     }

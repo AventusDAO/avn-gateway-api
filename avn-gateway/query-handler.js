@@ -446,8 +446,8 @@ const filterAvtContract = data => (data ? data.avtContract : null);
 
 const formatListingAsString = data => {
   if (!data || data.toString() === 'Unknown') {
-    return 'Not listed'
+    return 'Not listed';
   }
 
-  return data.toString()
-}
+  return data.toString();
+};

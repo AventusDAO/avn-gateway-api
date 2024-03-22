@@ -4,7 +4,7 @@ const localtunnel = require('localtunnel');
 const minimist = require('minimist');
 const Verifier = require('./verifier.js');
 
-const args = minimist(process.argv.slice(2), { default: { env: 'uat', sub: 'avnwebhookstest':, age: 300000 }});
+const args = minimist(process.argv.slice(2), { default: { env: 'uat', sub: 'avnwebhookstest', age: 300000 } });
 const verifier = new Verifier();
 const app = express();
 app.use(express.json());

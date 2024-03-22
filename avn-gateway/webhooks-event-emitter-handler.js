@@ -48,5 +48,5 @@ async function emitEvent(record) {
 async function acknowledgeProcessedEvents(processedEvents) {
   if (processedEvents.length === 0) return;
   const result = await removeFromQueue(SQS_WEBHOOKS_QUEUE_URL, processedEvents);
-  console.log(`Acknowledged processed events: ${JSON.stringify(result, null, 2 )}`);
+  console.log(`Acknowledged processed events: ${JSON.stringify(result, null, 2)}`);
 }

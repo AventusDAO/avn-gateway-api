@@ -1,26 +1,26 @@
 const { axios, callWithTimeout, ONE_SECOND } = require('/opt/utils.js');
 const { signMessage } = require('/opt/kmsUtils.js');
-const { removeFromQueue } = require('/opt/sqsUtils.js');
+const { getFailedMessagesForFifoQueue } = require('/opt/sqsUtils.js');
 
-const SQS_WEBHOOKS_QUEUE_URL = process.env.SQS_WEBHOOKS_QUEUE_URL;
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID;
 
 exports.handler = async (event, context) => {
-  const processedEvents = [];
+  let acknowledgedEventsCount = 0;
 
-  for (const record of event.Records) {
-    try {
+  try {
+    for (const record of event.Records) {
       const timeoutMs = context.getRemainingTimeInMillis() - ONE_SECOND;
       if (timeoutMs > 0) {
-        const receipt = await callWithTimeout(timeoutMs, emitEvent, [record]);
-        processedEvents.push(receipt);
+        await callWithTimeout(timeoutMs, emitEvent, [record]);
+        acknowledgedEventsCount++;
       } else {
         throw new Error('Lambda execution exceeded allowed time');
       }
-    } catch (error) {
-      await acknowledgeProcessedEvents(processedEvents);
-      throw error;
     }
+  } catch (error) {
+    console.error('Error emitting events', error);
+    if (acknowledgedEventsCount === 0) throw error;
+    else return { batchItemFailures: getFailedMessagesForFifoQueue(event.Records, acknowledgedEventsCount) };
   }
 };
 
@@ -43,10 +43,4 @@ async function emitEvent(record) {
   } catch (error) {
     throw new Error(`Failed sending event ${id} to ${endpoint}: ${error.response ? error.response.statusText : error.message}`);
   }
-}
-
-async function acknowledgeProcessedEvents(processedEvents) {
-  if (processedEvents.length === 0) return;
-  const result = await removeFromQueue(SQS_WEBHOOKS_QUEUE_URL, processedEvents);
-  console.log(`Acknowledged processed events: ${JSON.stringify(result, null, 2)}`);
 }

@@ -85,6 +85,8 @@ async function callSwitch(call, request) {
       return await getEthereumEventStatus(call, request);
     case 'getNftInfo':
       return await getNftInfo(call, request);
+    case 'getBatchInfo':
+      return await getBatchInfo(call, request);
     case 'getNftListingStatus':
       return await getNftListingStatus(call, request);
     case 'getBatchListingStatus':
@@ -182,6 +184,18 @@ async function getNftInfo(call, request) {
   } else {
     const method = 'getNftInfo';
     const params = { callId: call.id, nftId };
+    return await query(call, request, method, params);
+  }
+}
+
+async function getBatchInfo(call, request) {
+  const { batchId } = call.params;
+
+  if (utils.isValidNftId(batchId) === false) {
+    return utils.buildErrorBody('params', 'invalid batch id', batchId, request, call.id);
+  } else {
+    const method = 'getBatchInfo';
+    const params = { callId: call.id, batchId };
     return await query(call, request, method, params);
   }
 }

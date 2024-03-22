@@ -687,10 +687,28 @@ async function getNftInfo(nftId) {
       nonce: nft.nonce,
       infoId: nft.infoId,
       uniqueExternalRef: nft.uniqueExternalRef,
-      royalties: nftInfo.royalties
+      royalties: nftInfo.royalties,
+      marketpalceId: nftInfo.t1Authority
     }
   } catch (err) {
     log.error(`Error getting nft info for nftId: ${nftId}: `, err);
+    throw err;
+  }
+}
+
+async function getBatchInfo(batchId) {
+  try {
+    let info_id = await api.query.nftManager.batchInfoId(batchId);
+    let batchInfo = (await api.query.nftManager.nftInfos(info_id)).toJSON();
+    return {
+      ownerAddress: batchInfo.creator,
+      infoId: batchInfo.infoId,
+      totalSupply: batchInfo.totalSupply,
+      royalties: batchInfo.royalties,
+      marketpalceId: batchInfo.t1Authority
+    }
+  } catch (err) {
+    log.error(`Error getting batch info for batchId: ${batchId}: `, err);
     throw err;
   }
 }
@@ -724,5 +742,6 @@ module.exports = {
   generateSplitFeePaymentInfo,
   payerHasFunds,
   regenerateLowerProof,
-  getNftInfo
+  getNftInfo,
+  getBatchInfo
 };

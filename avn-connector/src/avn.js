@@ -688,7 +688,7 @@ async function getNftInfo(nftId) {
       infoId: nft.infoId,
       uniqueExternalRef: nft.uniqueExternalRef,
       royalties: nftInfo.royalties,
-      marketpalceId: nftInfo.t1Authority
+      marketplaceId: nftInfo.t1Authority
     }
   } catch (err) {
     log.error(`Error getting nft info for nftId: ${nftId}: `, err);

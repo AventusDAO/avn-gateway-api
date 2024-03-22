@@ -39,7 +39,7 @@ app.post('/listen', (req, res) => {
     console.log(`${format(new Date(timestamp), 'HH:mm:ss.SSS')} - ${requestId} - ${publicKey} - ${event}`);
     res.status(200).send();
   } catch (error) {
-    console.log(error);
+    console.error(error.message);
     res.status(400).send('Verification failed');
   }
 });

@@ -324,22 +324,24 @@ function encodeRoyalties(royalties) {
   return encodedResult.toU8a(false);
 }
 
-async function executeInTimeOrThrow(context, fn, params) {
-  const timeoutMs = context.getRemainingTimeInMillis() - CLEANUP_BUFFER_MS;
-  if (timeoutMs <= 0) {
-    throw new Error('Insufficient execution time remaining');
-  }
+function executionGuard(timeRemaining) {
+  let stop;
+  const start = new Promise((_, reject) => {
+    const timer = setTimeout(() => reject(new Error('Execution time limit reached')), timeRemaining);
+    stop = () => clearTimeout(timer);
+  });
 
-  let timeout;
+  return { start, stop };
+}
+
+async function executeInTimeOrThrow(context, fn, args) {
+  const timeRemaining = context.getRemainingTimeInMillis() - CLEANUP_BUFFER_MS;
+  if (timeRemaining <= 0) throw new Error('Execution time limit exceeded');
+  const guard = executionGuard(timeRemaining);
   try {
-    return Promise.race([
-      new Promise((resolve, reject) => {
-        timeout = setTimeout(() => reject(new Error('Function timed out')), timeoutMs);
-      }),
-      fn(...params)
-    ]);
+    return await Promise.race([guard.start, fn(...args)]);
   } finally {
-    clearTimeout(timeout);
+    guard.stop();
   }
 }
 

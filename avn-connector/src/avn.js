@@ -705,7 +705,7 @@ async function getBatchInfo(batchId) {
       infoId: batchInfo.infoId,
       totalSupply: batchInfo.totalSupply,
       royalties: batchInfo.royalties,
-      marketpalceId: batchInfo.t1Authority
+      marketplaceId: batchInfo.t1Authority
     }
   } catch (err) {
     log.error(`Error getting batch info for batchId: ${batchId}: `, err);

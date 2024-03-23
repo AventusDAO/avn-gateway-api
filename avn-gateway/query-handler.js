@@ -184,7 +184,7 @@ async function getNftInfo(call, request) {
   } else {
     const method = 'getNftInfo';
     const params = { callId: call.id, nftId };
-    return await query(call, request, method, params);
+    return await query(call, request, method, params, formatAsNull);
   }
 }
 
@@ -196,7 +196,7 @@ async function getBatchInfo(call, request) {
   } else {
     const method = 'getBatchInfo';
     const params = { callId: call.id, batchId };
-    return await query(call, request, method, params);
+    return await query(call, request, method, params, formatAsNull);
   }
 }
 
@@ -465,3 +465,5 @@ const formatListingAsString = data => {
 
   return data.toString()
 }
+
+const formatAsNull = data => (data || null)

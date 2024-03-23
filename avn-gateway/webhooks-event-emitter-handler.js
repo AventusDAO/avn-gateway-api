@@ -9,7 +9,7 @@ exports.handler = async (event, context) => {
 
   try {
     for (const record of event.Records) {
-      await executeInTimeOrThrow(context, emitEvent, [record]);
+      await callWithTimeout(context.getRemainingTimeInMillis(), emitEvent, [record]);
       acknowledgedEventsCount++;
     }
   } catch (error) {

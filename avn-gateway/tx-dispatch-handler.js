@@ -20,7 +20,7 @@ exports.handler = async (event, context) => {
     console.log(`Processing ${event.Records.length} message(s) from queue`);
 
     for (let record of event.Records) {
-      const result = await utils.executeInTimeOrThrow(context, processRequest, [record.body]);
+      const result = await utils.callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [record.body]);
       if (utils.requestFailed(result) === true) {
         // Stop on the first failure because this is a FIFO queue
         break;

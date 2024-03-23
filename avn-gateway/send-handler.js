@@ -6,7 +6,7 @@ const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const SQS_PAYER_QUEUE_URL = process.env.SQS_PAYER_QUEUE_URL;
 
 exports.handler = async (event, context) => {
-  const result = await utils.executeInTimeOrThrow(context, processRequest, [
+  const result = await utils.callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [
     event.body,
     event.requestContext.authorizer.lambda,
     context.awsRequestId

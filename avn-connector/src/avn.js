@@ -682,7 +682,7 @@ async function getNftInfo(nftId) {
   try {
     let nft = (await api.query.nftManager.nfts(nftId)).toJSON();
     if (!nft) {
-      return
+      return null
     }
 
     let nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON();
@@ -709,7 +709,7 @@ async function getBatchInfo(batchId) {
   try {
     const infoId = await api.query.nftManager.batchInfoId(batchId);
     if (infoId <= 0) {
-      return
+      return null
     }
 
     const batchInfo = (await api.query.nftManager.nftInfos(infoId)).toJSON();

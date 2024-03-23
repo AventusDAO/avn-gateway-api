@@ -7,7 +7,7 @@ const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = requi
 const BN = require('bn.js');
 const { validate: uuidValidate } = require('uuid');
 
-const CLEANUP_BUFFER_MS = 1000;
+const EXECUTION_MARGIN = 1000;
 const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
@@ -324,24 +324,15 @@ function encodeRoyalties(royalties) {
   return encodedResult.toU8a(false);
 }
 
-function executionGuard(timeRemaining) {
-  let stop;
-  const start = new Promise((_, reject) => {
-    const timer = setTimeout(() => reject(new Error('Execution time limit reached')), timeRemaining);
-    stop = () => clearTimeout(timer);
-  });
-
-  return { start, stop };
-}
-
-async function executeInTimeOrThrow(context, fn, args) {
-  const timeRemaining = context.getRemainingTimeInMillis() - CLEANUP_BUFFER_MS;
-  if (timeRemaining <= 0) throw new Error('Execution time limit exceeded');
-  const guard = executionGuard(timeRemaining);
+async function callWithTimeout(timeRemaining, fn, args) {
+  let timeout;
   try {
-    return await Promise.race([guard.start, fn(...args)]);
+    return await Promise.race([
+      fn(...args),
+      new Promise((_, reject) => (timeout = setTimeout(() => reject(new Error('Timed out')), timeRemaining - EXECUTION_MARGIN)))
+    ]);
   } finally {
-    guard.stop();
+    clearTimeout(timeout);
   }
 }
 
@@ -352,7 +343,7 @@ module.exports = {
   encodeProxyProof,
   buildSuccessResponse,
   buildErrorResponse,
-  executeInTimeOrThrow,
+  callWithTimeout,
   WEBHOOK_EVENT_TYPES,
   getPayerVaultUsername,
   getProxyProof,

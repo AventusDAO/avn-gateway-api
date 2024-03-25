@@ -207,6 +207,16 @@ app.post('/getNftInfo', async (req, res, next) => {
   }
 });
 
+app.post('/getBatchInfo', async (req, res, next) => {
+  try {
+    log.trace({ getBatchInfo: req.body });
+    const result = await avn.getBatchInfo(req.body.batchId);
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/lowers', async (req, res, next) => {
   try {
     log.trace({ lowerDataRequest: req.body });

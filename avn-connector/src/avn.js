@@ -681,16 +681,52 @@ async function regenerateLowerProof(account, lowerId) {
 async function getNftInfo(nftId) {
   try {
     let nft = (await api.query.nftManager.nfts(nftId)).toJSON();
+    if (!nft) {
+      return null
+    }
+
     let nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON();
     return {
       ownerAddress: nft.owner,
       nonce: nft.nonce,
       infoId: nft.infoId,
       uniqueExternalRef: nft.uniqueExternalRef,
-      royalties: nftInfo.royalties
-    };
+      royalties: nftInfo.royalties.map((r) => {
+        return {
+          recipient_t1_address: r.recipientT1Address,
+          rate: { parts_per_million: r.rate.partsPerMillion }
+        }
+      }),
+      marketplaceId: nftInfo.t1Authority
+    }
   } catch (err) {
     log.error(`Error getting nft info for nftId: ${nftId}: `, err);
+    throw err;
+  }
+}
+
+async function getBatchInfo(batchId) {
+  try {
+    const infoId = await api.query.nftManager.batchInfoId(batchId);
+    if (infoId <= 0) {
+      return null
+    }
+
+    const batchInfo = (await api.query.nftManager.nftInfos(infoId)).toJSON();
+    return {
+      ownerAddress: batchInfo.creator,
+      infoId: batchInfo.infoId,
+      totalSupply: batchInfo.totalSupply,
+      royalties: batchInfo.royalties.map((r) => {
+        return {
+          recipient_t1_address: r.recipientT1Address,
+          rate: { parts_per_million: r.rate.partsPerMillion }
+        }
+      }),
+      marketplaceId: batchInfo.t1Authority
+    }
+  } catch (err) {
+    log.error(`Error getting batch info for batchId: ${batchId}: `, err);
     throw err;
   }
 }
@@ -724,5 +760,6 @@ module.exports = {
   generateSplitFeePaymentInfo,
   payerHasFunds,
   regenerateLowerProof,
-  getNftInfo
+  getNftInfo,
+  getBatchInfo
 };

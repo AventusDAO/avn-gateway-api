@@ -256,6 +256,7 @@ async function getWebhooksState() {
     dataSource
       .getRepository(PAYER_TABLE)
       .createQueryBuilder('payer')
+      .select('COUNT(payer.id)', 'payerCount')
       .addSelect('MAX(payer.updatedAt)', 'payerLastUpdate')
       .getRawOne(),
     dataSource

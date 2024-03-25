@@ -6,17 +6,7 @@ const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const SQS_PAYER_QUEUE_URL = process.env.SQS_PAYER_QUEUE_URL;
 
 exports.handler = async (event, context) => {
-  let result;
-  const timeoutMs = context.getRemainingTimeInMillis() - utils.ONE_SECOND;
-  if (timeoutMs > 0) {
-    result = await utils.callWithTimeout(timeoutMs, processRequest, [
-      event.body,
-      event.requestContext.authorizer.lambda,
-      context.awsRequestId
-    ]);
-  } else {
-    throw new Error('Lambda execution exceeded allowed time');
-  }
+  const result = await utils.callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [event, context]);
 
   if (utils.requestFailed(result) === true) {
     return utils.buildErrorResponse(500, result.error.data, JSON.stringify(result));
@@ -25,7 +15,10 @@ exports.handler = async (event, context) => {
   return utils.buildSuccessResponse(JSON.stringify(result));
 };
 
-async function processRequest(request, authoriserContext, awsRequestId) {
+async function processRequest(event, context) {
+  let authoriserContext = event.requestContext.authorizer.lambda;
+  let awsRequestId = context.awsRequestId;
+  let request = event.body;
   let tx;
 
   try {

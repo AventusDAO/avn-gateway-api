@@ -7,7 +7,7 @@ const { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } = requi
 const BN = require('bn.js');
 const { validate: uuidValidate } = require('uuid');
 
-const ONE_SECOND = 1000;
+const EXECUTION_MARGIN = 1000;
 const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
@@ -324,24 +324,16 @@ function encodeRoyalties(royalties) {
   return encodedResult.toU8a(false);
 }
 
-async function callWithTimeout(timeoutMs, fn, params) {
-  return await new Promise((resolve, reject) => {
-    (async () => {
-      // Set a timeout for the function to complete
-      const timeout = setTimeout(() => {
-        reject(new Error('Function timed out'));
-      }, timeoutMs);
-
-      try {
-        const result = await fn(...params);
-
-        clearTimeout(timeout);
-        resolve(result);
-      } catch (err) {
-        reject(err);
-      }
-    })();
-  });
+async function callWithTimeout(timeRemaining, fn, args) {
+  let timeout;
+  try {
+    return await Promise.race([
+      fn(...args),
+      new Promise((_, reject) => (timeout = setTimeout(() => reject(new Error('Timed out')), timeRemaining - EXECUTION_MARGIN)))
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 // Keep alphabetical
@@ -380,7 +372,6 @@ module.exports = {
   isValidTransactionType,
   isValidProxySignature,
   NONCE_INFO,
-  ONE_SECOND,
   publishEvent,
   requestFailed,
   signatureVerify,

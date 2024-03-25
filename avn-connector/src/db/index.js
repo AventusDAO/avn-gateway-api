@@ -252,7 +252,12 @@ async function getWebhookEventTypesState() {
 }
 
 async function getWebhooksState() {
-  const [endpointStats, webhooksStats] = await Promise.all([
+  const [payerStats, endpointStats, webhooksStats] = await Promise.all([
+    dataSource
+      .getRepository(PAYER_TABLE)
+      .createQueryBuilder('payer')
+      .addSelect('MAX(payer.updatedAt)', 'payerLastUpdate')
+      .getRawOne(),
     dataSource
       .getRepository(WEBHOOK_ENDPOINT_TABLE)
       .createQueryBuilder('endpoint')
@@ -267,6 +272,7 @@ async function getWebhooksState() {
   ]);
 
   const hash = crypto.createHash('sha256');
+  hash.update(JSON.stringify(payerStats));
   hash.update(JSON.stringify(endpointStats));
   hash.update(JSON.stringify(webhooksStats));
   return hash.digest('hex');

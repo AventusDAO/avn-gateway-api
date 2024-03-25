@@ -252,7 +252,7 @@ async function getWebhookEventTypesState() {
 }
 
 async function getWebhooksState() {
-  const [payerStats, endpointStats, webhooksStats] = await Promise.all([
+  const stats = await Promise.all([
     dataSource
       .getRepository(PAYER_TABLE)
       .createQueryBuilder('payer')
@@ -272,11 +272,7 @@ async function getWebhooksState() {
       .getRawOne()
   ]);
 
-  const hash = crypto.createHash('sha256');
-  hash.update(JSON.stringify(payerStats));
-  hash.update(JSON.stringify(endpointStats));
-  hash.update(JSON.stringify(webhooksStats));
-  return hash.digest('hex');
+  return crypto.createHash('sha256').update(JSON.stringify(stats)).digest('hex');
 }
 
 module.exports = {

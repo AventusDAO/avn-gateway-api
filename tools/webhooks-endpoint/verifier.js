@@ -6,9 +6,9 @@ class Verifier {
     this.publicKeyPEM = null;
   }
 
-  async init(freshnessWindow = 10000, gatewayURL = 'https://uat.gateway.aventus.io') {
-    this.freshnessWindow = freshnessWindow;
+  async init(gatewayURL, freshness) {
     const verificationKeyURL = `${gatewayURL}/verification/webhooks/signer-sha256-public`;
+    this.freshness = freshness;
     try {
       const response = await axios.get(verificationKeyURL);
       this.publicKeyPEM = response.data.publicKeyPEM;
@@ -23,7 +23,7 @@ class Verifier {
     const signature = headers['x-avn-event-signature'];
     const freshness = headers['x-avn-event-freshness'] || 0;
 
-    if (Date.now() > new Date(freshness).getTime() + this.freshnessWindow) {
+    if (Date.now() > new Date(freshness).getTime() + this.freshness) {
       throw new Error(`Reason: Freshness, Request ID: ${data.requestId}, event: ${data.event}`);
     }
 

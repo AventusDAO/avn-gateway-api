@@ -1,43 +1,54 @@
-const { axios } = require('/opt/utils.js');
+const { axios, callWithTimeout } = require('/opt/utils.js');
 const { signMessage } = require('/opt/kmsUtils.js');
-const { deleteMessagesFromQueue } = require('/opt/sqsUtils.js');
+const { getFailedMessagesForFifoQueue } = require('/opt/sqsUtils.js');
 
-const SQS_WEBHOOKS_QUEUE_URL = process.env.SQS_WEBHOOKS_QUEUE_URL;
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID;
-const CLEANUP_TIME_MS = 1500;
 
 exports.handler = async (event, context) => {
-  const sentMessages = [];
+  let acknowledgedEvents = 0;
 
-  for (const record of event.Records) {
-    if (context.getRemainingTimeInMillis() < CLEANUP_TIME_MS) {
-      throw new Error('Execution time limit reached');
+  try {
+    for (const record of event.Records) {
+      await callWithTimeout(context.getRemainingTimeInMillis(), processRecordAndEmitEvent, [record]);
+      acknowledgedEvents++;
     }
-
-    const { endpoint, eventData: data } = JSON.parse(record.body);
-    const id = record.messageId;
-
-    try {
-      const freshness = new Date().toISOString();
-      const message = JSON.stringify({ id, freshness, data });
-      const signature = await signMessage(KMS_KEY_ID, message);
-
-      const headers = {
-        'content-type': 'application/json',
-        'x-avn-event-id': id,
-        'x-avn-event-signature': signature,
-        'x-avn-event-freshness': freshness
-      };
-
-      await axios.post(endpoint, data, { headers });
-      console.log(`Event ${id} sent to ${endpoint}: ${JSON.stringify(data)}`);
-      sentMessages.push({ Id: id, ReceiptHandle: record.receiptHandle });
-    } catch (error) {
-      console.error(`Failed sending event ${id} to ${endpoint}: ${error.response ? error.response.statusText : error.message}`);
-      if (sentMessages.length > 0) {
-        await deleteMessagesFromQueue(SQS_WEBHOOKS_QUEUE_URL, sentMessages);
-      }
-      throw error;
-    }
+  } catch (error) {
+    console.error('Error emitting events', error);
+    if (acknowledgedEvents === 0) throw error;
+    else return { batchItemFailures: getFailedMessagesForFifoQueue(event.Records, acknowledgedEvents) };
   }
 };
+
+async function processRecordAndEmitEvent(record) {
+  const event = await processRecord(record);
+  await emitEvent(event);
+}
+
+async function processRecord(record) {
+  try {
+    const id = record.messageId;
+    const { endpoint, eventData: data } = JSON.parse(record.body);
+    const freshness = new Date().toISOString();
+    const message = JSON.stringify({ id, freshness, data });
+    const signature = await signMessage(KMS_KEY_ID, message);
+    return { id, freshness, signature, endpoint, data };
+  } catch (error) {
+    throw new Error(`Error processing record: ${error.message}`);
+  }
+}
+
+async function emitEvent(event) {
+  const { id, freshness, signature, endpoint, data } = event;
+  const headers = {
+    'content-type': 'application/json',
+    'x-avn-event-id': id,
+    'x-avn-event-freshness': freshness,
+    'x-avn-event-signature': signature
+  };
+
+  try {
+    await axios.post(endpoint, data, { headers });
+  } catch (error) {
+    throw new Error(`Error emitting event ${id} for ${endpoint} ${error.response ? error.response.statusText : error.message}`);
+  }
+}

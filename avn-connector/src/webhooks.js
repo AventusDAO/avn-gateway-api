@@ -73,6 +73,10 @@ class Webhooks {
   scheduleNextRefresh() {
     setTimeout(() => this.refresh(), this.refreshInterval);
   }
+
+  hasEventTypes() {
+    return Object.keys(this.eventTypes).length > 0;
+  }
 }
 
 let webhooks;
@@ -90,13 +94,12 @@ async function init() {
 }
 
 function confirmExpectedEventTypes() {
-  const dbTypes = Object.keys(webhooks.eventTypes);
-
-  if (dbTypes.length === 0) {
+  if (!webhooks.hasEventTypes()) {
     log.info('[Webhooks] Webhook Event table not populated - skipping expected types check');
     return;
   }
 
+  const dbTypes = Object.keys(webhooks.eventTypes);
   const connectorTypes = Object.keys(WEBHOOK_EVENT_TYPES);
   const dbMissing = connectorTypes.filter(type => !dbTypes.includes(type));
   const connectorMissing = dbTypes.filter(type => !connectorTypes.includes(type));
@@ -110,6 +113,10 @@ function confirmExpectedEventTypes() {
 }
 
 async function publishTransactionEvents(transactions) {
+  if (!webhooks.hasEventTypes()) {
+    return;
+  }
+
   for (const tx of transactions) {
     try {
       const { requestId, accountId } = await redis.getSentTxDetails(tx.transactionHash);
@@ -134,6 +141,10 @@ async function publishTransactionEvents(transactions) {
 }
 
 async function publishEvent(event) {
+  if (!webhooks.hasEventTypes()) {
+    return;
+  }
+
   let attempt = 0;
 
   while (attempt < MAX_PUBLISH_EVENT_RETRIES) {

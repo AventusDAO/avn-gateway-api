@@ -185,7 +185,7 @@ async function weightVote(voterIntention, proposalData) {
     const voterBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.free);
     const voterStakedBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.feeFrozen);
     const voterUnstakedBalanceAtBlock = voterBalanceAtBlock - voterStakedBalanceAtBlock;
-    return voterStakedBalanceAtBlock * 2 + voterUnstakedBalanceAtBlock;
+    return voterStakedBalanceAtBlock + voterUnstakedBalanceAtBlock;
   } catch (err) {
     console.error(err);
     return null;

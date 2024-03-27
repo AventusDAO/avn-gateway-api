@@ -31,7 +31,6 @@ jobs:
           node-version: '18'
 
       - name: Package Function release
-        if: startsWith(github.event.ref, 'refs/tags/v')
         run: make package version=${GITHUB_REF#refs/*/}
 
       - name: Upload lambdas to cache

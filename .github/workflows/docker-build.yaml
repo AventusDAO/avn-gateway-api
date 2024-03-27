@@ -56,7 +56,7 @@ jobs:
           aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
 
       - name: Create tag for PR
-        if: github.event.ref != 'refs/tags/v'
+        if: ${{ !startsWith(github.event.ref, 'refs/tags/v') }}
         run: echo "DOCKER_TAG=${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/${{ inputs.ecr_repository_prefix }}/${{ inputs.short_image_name }}:pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Create tag for merge

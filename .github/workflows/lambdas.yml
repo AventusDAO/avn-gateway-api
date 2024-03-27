@@ -22,8 +22,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Package Function PR
-        if: github.event.ref != 'refs/tags/v'
+      - name: Package Function manual build
+        if: ${{ !startsWith(github.event.ref, 'refs/tags/v') }}
         run: make package version=${GITHUB_SHA::7}
 
       - name: Package Function release

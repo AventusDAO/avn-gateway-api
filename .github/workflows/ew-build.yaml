@@ -1,17 +1,25 @@
-name: avn-gateway
+name: Build and Deploy Energy Web
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - '**'
 
 defaults:
   run:
     shell: bash
-    working-directory: avn-gateway
 
 jobs:
+  docker-connector:
+    name: build docker connector
+    uses: ./.github/workflows/docker-build.yaml
+    with:
+      runner: avn-runner
+      config_creds: false
+      aws_region: us-east-1
+      aws_account_id: 541507968610
+      context: avn-connector
+      short_image_name: connector
+      ecr_repository_prefix: gateway
+  
   package:
     runs-on: ubuntu-latest
     name: package lambda functions
@@ -21,10 +29,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '18'
-
-      - name: Package Function PR
-        if: github.event.ref != 'refs/tags/v'
-        run: make package version=${GITHUB_SHA::7}
 
       - name: Package Function release
         if: startsWith(github.event.ref, 'refs/tags/v')
@@ -36,10 +40,10 @@ jobs:
           name: avn-gateway
           path: avn-gateway/build/
 
-  upload-internal-tools:
+  upload:
+    name: Upload lambdas to EW s3 bucket
     runs-on: avn-runner
-    needs:  [ package ]
-    name: Upload lambdas to AVN internal-tools s3 bucket
+    needs:  [package]
     steps:
     - uses: actions/download-artifact@v3
       with:
@@ -48,13 +52,14 @@ jobs:
 
     - name: Upload to S3
       run: |
-        aws s3 sync build/. s3://aventus-internal-artefact/gateway-lambdas --acl bucket-owner-full-control
+        aws s3 sync build/. s3://ewx-internal-artefact/gateway-lambdas --acl bucket-owner-full-control
 
   cleanup-artifacts:
     runs-on: ubuntu-latest
-    needs:  [ upload-internal-tools ]
+    needs:  [upload]
     if: always()
     steps:
       - uses: geekyeggo/delete-artifact@v2
         with:
           name: avn-gateway
+        

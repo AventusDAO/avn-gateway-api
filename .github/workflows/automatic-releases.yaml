@@ -1,0 +1,14 @@
+name: Automatic Infra-scripts Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  github-release:
+    uses: Aventus-Network-Services/Infra-scripts/.github/workflows/automatic-releases.yaml@v5.0.0
+    with:
+      default_bump: patch
+    secrets:
+      envPat: ${{ secrets.VERENFT_CI_AGENT_TOKEN }}

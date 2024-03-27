@@ -11,10 +11,8 @@ on:
     paths:
       - 'avn-connector/**'
   push:
-    branches:
-      - main
-    paths:
-      - 'avn-connector/**'
+    tags:
+      - '**'
 
 defaults:
   run:
@@ -23,7 +21,6 @@ defaults:
 jobs:
   avn-docker-connector:
     name: (AVN) build docker connector
-    if: github.ref != 'refs/heads/ew-main'
     uses: ./.github/workflows/docker-build.yaml
     with:
       aws_region: eu-west-2
@@ -34,17 +31,3 @@ jobs:
     secrets:
       aws_access_key: ${{ secrets.TESTNET_AWS_ACCESS_KEY_ID }}
       aws_secret_key: ${{ secrets.TESTNET_AWS_SECRET_ACCESS_KEY }}
-
-
-  ew-docker-connector:
-    name: (EW) build docker connector
-    if: github.ref == 'refs/heads/ew-main'
-    uses: ./.github/workflows/docker-build.yaml
-    with:
-      runner: avn-runner
-      config_creds: false
-      aws_region: us-east-1
-      aws_account_id: 541507968610
-      context: avn-connector
-      short_image_name: connector
-      ecr_repository_prefix: gateway

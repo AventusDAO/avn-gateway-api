@@ -183,7 +183,7 @@ async function weightVote(voterIntention, proposalData) {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
     // TODO - use metadata calls to calculate the actual staked amount over relying on it simply not being free AVT
     const voterBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.free);
-    const voterStakedBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.feeFrozen);
+    const voterStakedBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.frozen);
     const voterUnstakedBalanceAtBlock = voterBalanceAtBlock - voterStakedBalanceAtBlock;
     return voterStakedBalanceAtBlock + voterUnstakedBalanceAtBlock;
   } catch (err) {

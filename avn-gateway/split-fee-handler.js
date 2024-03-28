@@ -6,6 +6,7 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 
 exports.handler = async (event, context) => {
+  await utils.init();
   let processedMessagesCount = 0;
 
   try {

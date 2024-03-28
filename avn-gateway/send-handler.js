@@ -6,6 +6,7 @@ const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL;
 const SQS_PAYER_QUEUE_URL = process.env.SQS_PAYER_QUEUE_URL;
 
 exports.handler = async (event, context) => {
+  await utils.init();
   const result = await utils.callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [event, context]);
 
   if (utils.requestFailed(result) === true) {

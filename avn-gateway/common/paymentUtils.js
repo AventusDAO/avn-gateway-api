@@ -26,6 +26,7 @@ async function tryGetPaymentInfo(
   proxyProof
 ) {
   const relayerFee = await utils.getRelayerFee(connectorUrl, relayerAddress, payerAddress, transactionType);
+  console.log("Relayer fee: ", relayerFee)
   const isVerified = verifyFeePaymentSignature(
     payerAddress,
     relayerAddress,
@@ -41,7 +42,9 @@ async function tryGetPaymentInfo(
 }
 
 function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+  console.log(`PaymentInfo raw data: \n${payer}, \n${relayer}, \n${relayerFee}, \n${JSON.stringify(proxyProof)}, \n${feePaymentSignature}, \n${paymentNonce}`)
   const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof);
+  console.log(`Encoded data: `, u8aToHex(encodedData))
   return utils.verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
 }
 

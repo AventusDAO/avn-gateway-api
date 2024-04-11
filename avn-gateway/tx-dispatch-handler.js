@@ -6,6 +6,7 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 const SQS_TX_QUEUE_URL = process.env.SQS_TX_QUEUE_URL;
 
 exports.handler = async (event, context) => {
+  await utils.init();
   let processedMessagesCount = 0;
 
   try {
@@ -132,7 +133,7 @@ async function processProxyTransfer(call, request, requestId) {
   let { user, recipient, token, amount, relayer, nonce, proxySignature } = call.params;
   const methodParams = [user, recipient, token, amount];
 
-  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.token, user);
+  nonce = nonce ?? await queryNonce(requestId, utils.NONCE_INFO.token, user);
 
   const signData = [
     { Text: 'authorization for transfer operation' },
@@ -538,7 +539,7 @@ async function processProxyScheduleLeaveNominators(call, request, requestId) {
   let { relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [];
 
-  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.staking, user);
+  nonce = nonce ?? await queryNonce(requestId, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for scheduling leaving nominators operation' },
@@ -561,7 +562,7 @@ async function processProxyExecuteLeaveNominators(call, request, requestId) {
   let { relayer, nonce, proxySignature, user } = call.params;
   const methodParams = [user];
 
-  if (!nonce) nonce = await queryNonce(requestId, utils.NONCE_INFO.staking, user);
+  nonce = nonce ?? await queryNonce(requestId, utils.NONCE_INFO.staking, user);
 
   const signData = [
     { Text: 'parachain authorization for executing leave nominators operation' },

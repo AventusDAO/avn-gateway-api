@@ -4,6 +4,7 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL;
 
 exports.handler = async event => {
+  await utils.init();
   return {
     statusCode: 200,
     body: JSON.stringify(await processRequest(event.body))

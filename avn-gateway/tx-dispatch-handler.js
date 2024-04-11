@@ -57,7 +57,6 @@ async function processRequest(request) {
   try {
     call = JSON.parse(request);
     requestId = call.awsRequestId;
-    console.log("Received transaction: ", JSON.stringify(call, null, 2));
   } catch (err) {
     console.error(`Failed to parse message as JSON: `, err);
     return utils.buildErrorBody('parse', 'Failed to parse message as JSON', err.toString(), request, null);

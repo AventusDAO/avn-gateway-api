@@ -1,4 +1,5 @@
 import utils from '/opt/common/utils.js';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 const axios = utils.axios.default;
 
@@ -27,7 +28,7 @@ interface ValidResponse {
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 
-export const handler = async event => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   await utils.init();
   return {
     statusCode: 200,

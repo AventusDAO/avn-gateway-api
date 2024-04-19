@@ -1,4 +1,4 @@
-import utils from '/opt/common/utils.js';
+import utils from '/opt/utils.js';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 const axios = utils.axios.default;

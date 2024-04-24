@@ -11,6 +11,7 @@ _infra/ansible/*inventory*
 Chart.lock
 .serverless/
 build/
+dist/
 
 # Config file for AWS MQ
 tests/demo/demo-accounts.json

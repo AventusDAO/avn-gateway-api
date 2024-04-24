@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "rootDir": ".",
+        "outDir": "./dist",
+        "baseUrl": ".",
+        "paths": {
+            "/opt/common/*": [
+                "./common/*"
+              ]
+        }
+    }
+}

@@ -1,7 +1,13 @@
-const { getPublicKeyPEM } = require('/opt/kmsUtils.js');
-const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID;
+import { getPublicKeyPEM } from '/opt/kmsUtils.js';
+import { Handler } from 'aws-lambda';
+const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID!;
 
-exports.handler = async () => {
+export interface responseFormat {
+  statusCode: number,
+  body: string,
+}
+
+export const handler: Handler = async (): Promise<responseFormat> => {
   try {
     return { statusCode: 200, body: JSON.stringify({ publicKeyPEM: await getPublicKeyPEM(KMS_KEY_ID) }) };
   } catch (error) {

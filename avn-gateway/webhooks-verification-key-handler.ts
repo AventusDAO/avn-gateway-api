@@ -2,12 +2,12 @@ import { getPublicKeyPEM } from '/opt/kmsUtils.js';
 import { Handler } from 'aws-lambda';
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID!;
 
-export interface responseFormat {
+export interface ResponseFormat {
   statusCode: number,
   body: string,
 }
 
-export const handler: Handler = async (): Promise<responseFormat> => {
+export const handler: Handler = async (): Promise<ResponseFormat> => {
   try {
     return { statusCode: 200, body: JSON.stringify({ publicKeyPEM: await getPublicKeyPEM(KMS_KEY_ID) }) };
   } catch (error) {

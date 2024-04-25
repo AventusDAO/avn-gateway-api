@@ -1,7 +1,7 @@
 import { axios, callWithTimeout } from '/opt/utils';
 import { signMessage } from '/opt/kmsUtils.js';
 import { getFailedMessagesForFifoQueue } from '/opt/sqsUtils.js';
-import { SQSEvent, Context } from 'aws-lambda';
+import { Handler, SQSEvent, Context } from 'aws-lambda';
 
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID!;
 
@@ -29,7 +29,7 @@ export interface Event {
     data: string
 }
 
-export const handler = async (event: SQSEvent, context: Context): Promise<void | ErrorResponse> => {
+export const handler: Handler = async (event: SQSEvent, context: Context): Promise<void | ErrorResponse> => {
   let acknowledgedEvents = 0;
 
   try {

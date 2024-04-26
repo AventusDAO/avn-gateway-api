@@ -18,14 +18,12 @@ export interface RPCError {
   message: string;
 }
 
-
 export interface ValidError {
   jsonrpc: '2.0';
   id: string;
   error: RPCError & { data: any };
   body?: any;
 }
-
 
 enum StatusCode {
   OK = 200,
@@ -36,6 +34,22 @@ enum StatusCode {
 export interface ResponseFormat {
   statusCode: StatusCode,
   body: string,
+}
+
+export interface Transaction {
+  id: string,
+  awsRequestId: string,
+  splitFeePayerId: string,
+  splitFeePayerVaultId: string,
+  splitFeePayerAddress: string,
+  method: string,
+  relayerFee: number,
+  params: {
+    user: string,
+    relayer: string,
+    payer: string,
+    proxySignature: string
+  }
 }
 
 export const handler: Handler = async (event: SQSEvent, context: Context): Promise<ResponseFormat> => {
@@ -52,7 +66,6 @@ export const handler: Handler = async (event: SQSEvent, context: Context): Promi
     }
 
     console.log(`Processing ${event.Records.length} message(s) from queue`);
-    let result;
     for (let record of event.Records) {
       const result = await utils.callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [record.body]);
       if (utils.requestFailed(result) === true) {
@@ -86,8 +99,8 @@ export const handler: Handler = async (event: SQSEvent, context: Context): Promi
 };
 
 async function processRequest(request: string): Promise<ValidResponse | ValidError> {
-  let tx;
-  let requestId;
+  let tx: Transaction;
+  let requestId: string;
 
   try {
     tx = JSON.parse(request);
@@ -126,7 +139,7 @@ async function processRequest(request: string): Promise<ValidResponse | ValidErr
   }
 }
 
-function validateTransaction(tx): void {
+function validateTransaction(tx: Transaction): void {
   try {
     if (utils.isValidAccountId(tx.params.relayer) === false) throw 'relayer';
     if (utils.isValidAccountId(tx.params.user) === false) throw 'user';

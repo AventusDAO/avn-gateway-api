@@ -1,10 +1,35 @@
-const { axios, callWithTimeout } = require('/opt/utils.js');
-const { signMessage } = require('/opt/kmsUtils.js');
-const { getFailedMessagesForFifoQueue } = require('/opt/sqsUtils.js');
+import { axios, callWithTimeout } from '/opt/utils';
+import { signMessage } from '/opt/kmsUtils.js';
+import { getFailedMessagesForFifoQueue } from '/opt/sqsUtils.js';
+import { Handler, SQSEvent, Context } from 'aws-lambda';
 
-const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID;
+const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID!;
 
-exports.handler = async (event, context) => {
+enum StatusCode {
+    OK = 200,
+    MultiStatus = 207,
+    InternalServerError = 500
+}
+
+export interface ErrorResponse {
+    statusCode: StatusCode;
+    body: string;
+}
+
+export interface EventRecord {
+    messageId: string,
+    body: string,
+}
+
+export interface Event {
+    id: string,
+    freshness: string,
+    signature: string,
+    endpoint: string,
+    data: string
+}
+
+export const handler: Handler = async (event: SQSEvent, context: Context): Promise<void | ErrorResponse> => {
   let acknowledgedEvents = 0;
 
   try {
@@ -15,16 +40,19 @@ exports.handler = async (event, context) => {
   } catch (error) {
     console.error('Error emitting events', error);
     if (acknowledgedEvents === 0) throw error;
-    else return { batchItemFailures: getFailedMessagesForFifoQueue(event.Records, acknowledgedEvents) };
+    else return {
+        statusCode: StatusCode.MultiStatus,
+        body: getFailedMessagesForFifoQueue(event.Records, acknowledgedEvents)
+    };
   }
 };
 
-async function processRecordAndEmitEvent(record) {
+async function processRecordAndEmitEvent(record: EventRecord): Promise<void> {
   const event = await processRecord(record);
   await emitEvent(event);
 }
 
-async function processRecord(record) {
+async function processRecord(record: EventRecord): Promise<Event> {
   try {
     const id = record.messageId;
     const { endpoint, eventData: data } = JSON.parse(record.body);
@@ -37,7 +65,7 @@ async function processRecord(record) {
   }
 }
 
-async function emitEvent(event) {
+async function emitEvent(event: Event): Promise<void> {
   const { id, freshness, signature, endpoint, data } = event;
   const headers = {
     'content-type': 'application/json',

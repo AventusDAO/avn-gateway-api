@@ -1,11 +1,44 @@
-const utils = require('/opt/utils.js');
-const fees = require('/opt/paymentUtils.js');
-const sqs = require('/opt/sqsUtils.js');
+import * as utils from '/opt/utils.js';
+import * as fees from '/opt/paymentUtils.js';
+import * as sqs from '/opt/sqsUtils.js';
+import { Handler, SQSEvent, Context } from 'aws-lambda';
 
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
-const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL;
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
+const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL!;
 
-exports.handler = async (event, context) => {
+export interface ValidResponse {
+  jsonrpc: '2.0';
+  id: string;
+  result: any;
+  body?: any;
+}
+
+export interface RPCError {
+  code: number;
+  message: string;
+}
+
+
+export interface ValidError {
+  jsonrpc: '2.0';
+  id: string;
+  error: RPCError & { data: any };
+  body?: any;
+}
+
+
+enum StatusCode {
+  OK = 200,
+  MultiStatus = 207,
+  InternalServerError = 500
+}
+
+export interface ResponseFormat {
+  statusCode: StatusCode,
+  body: string,
+}
+
+export const handler: Handler = async (event: SQSEvent, context: Context): Promise<ResponseFormat> => {
   await utils.init();
   let processedMessagesCount = 0;
 
@@ -13,7 +46,7 @@ exports.handler = async (event, context) => {
     if (!event.Records) {
       console.log(`No messages to process.`);
       return {
-        statusCode: 200,
+        statusCode: StatusCode.OK,
         body: `No messages to process`
       };
     }
@@ -33,24 +66,26 @@ exports.handler = async (event, context) => {
     if (processedMessagesCount < event.Records.length) {
       console.warn(`Processed ${processedMessagesCount} out of ${event.Records.length} message(s) successfully.`);
       return {
-        batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
-      };
+        statusCode: StatusCode.MultiStatus,
+        body: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
+      }
     }
 
     return {
-      statusCode: 200,
+      statusCode: StatusCode.OK,
       body: `${event.Records.length} message(s) processed successfully.`
     };
   } catch (err) {
     console.error(`Failed to process messages from payer queue: `, err);
 
     return {
-      batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
+      statusCode: StatusCode.MultiStatus,
+      body: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
     };
   }
 };
 
-async function processRequest(request) {
+async function processRequest(request: string): Promise<ValidResponse | ValidError> {
   let tx;
   let requestId;
 
@@ -91,7 +126,7 @@ async function processRequest(request) {
   }
 }
 
-function validateTransaction(tx) {
+function validateTransaction(tx): void {
   try {
     if (utils.isValidAccountId(tx.params.relayer) === false) throw 'relayer';
     if (utils.isValidAccountId(tx.params.user) === false) throw 'user';
@@ -104,7 +139,7 @@ function validateTransaction(tx) {
   }
 }
 
-async function payerCanPayForTransaction(payerAddress, transactionName) {
+async function payerCanPayForTransaction(payerAddress: string, transactionName: string): Promise<Boolean> {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'isPayerTransaction', {
       payer: payerAddress,
@@ -118,7 +153,7 @@ async function payerCanPayForTransaction(payerAddress, transactionName) {
   }
 }
 
-async function updateTransactionStatusToRejected(requestId) {
+async function updateTransactionStatusToRejected(requestId: string): Promise<void> {
   try {
     await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionRefusedByPayerStatus', { requestId: requestId });
   } catch (err) {

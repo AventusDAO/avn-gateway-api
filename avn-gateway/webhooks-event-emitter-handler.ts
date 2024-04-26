@@ -16,7 +16,7 @@ export interface ErrorResponse {
     body: string;
 }
 
-export interface Record {
+export interface EventRecord {
     messageId: string,
     body: string,
 }
@@ -47,12 +47,12 @@ export const handler: Handler = async (event: SQSEvent, context: Context): Promi
   }
 };
 
-async function processRecordAndEmitEvent(record: Record): Promise<void> {
+async function processRecordAndEmitEvent(record: EventRecord): Promise<void> {
   const event = await processRecord(record);
   await emitEvent(event);
 }
 
-async function processRecord(record: Record): Promise<Event> {
+async function processRecord(record: EventRecord): Promise<Event> {
   try {
     const id = record.messageId;
     const { endpoint, eventData: data } = JSON.parse(record.body);

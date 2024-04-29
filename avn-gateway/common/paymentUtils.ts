@@ -1,11 +1,12 @@
-const { TypeRegistry } = require('@polkadot/types');
-const registry = new TypeRegistry();
-const { u8aConcat, u8aToHex, isHex } = require('@polkadot/util');
-const utils = require('/opt/utils.js');
+import { TypeRegistry } from '@polkadot/types';
+import { u8aConcat, u8aToHex, isHex } from '@polkadot/util';
+import { getRelayerFee, verifySignatureWithOrWithoutWrapping, encodeProxyProof } from '/opt/utils';
+import { PaymentInfo, ProxyProof } from './types';
 
+const registry = new TypeRegistry();
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 
-function getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSignature) {
+function getPaymentInfo(payerAddress: string, relayerAddress: string, relayerFee: string, feePaymentSignature: string): PaymentInfo {
   return {
     payer: payerAddress,
     recipient: relayerAddress,
@@ -17,15 +18,15 @@ function getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSign
 }
 
 async function tryGetPaymentInfo(
-  connectorUrl,
-  payerAddress,
-  relayerAddress,
-  feePaymentSignature,
-  transactionType,
-  paymentNonce,
-  proxyProof
-) {
-  const relayerFee = await utils.getRelayerFee(connectorUrl, relayerAddress, payerAddress, transactionType);
+  connectorUrl: string,
+  payerAddress: string,
+  relayerAddress: string,
+  feePaymentSignature: string,
+  transactionType: string,
+  paymentNonce: string,
+  proxyProof: ProxyProof
+): Promise<PaymentInfo> {
+  const relayerFee = await getRelayerFee(connectorUrl, relayerAddress, payerAddress, transactionType);
   const isVerified = verifyFeePaymentSignature(
     payerAddress,
     relayerAddress,
@@ -40,14 +41,21 @@ async function tryGetPaymentInfo(
   return getPaymentInfo(payerAddress, relayerAddress, relayerFee, feePaymentSignature);
 }
 
-function verifyFeePaymentSignature(payer, relayer, relayerFee, proxyProof, feePaymentSignature, paymentNonce) {
+function verifyFeePaymentSignature(
+  payer: string,
+  relayer: string,
+  relayerFee: string,
+  proxyProof: ProxyProof,
+  feePaymentSignature: string,
+  paymentNonce: string
+): boolean {
   const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof);
-  return utils.verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
+  return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
 }
 
-function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
+function encodePaymentParams(relayer:string, relayerFee:string, paymentNonce:string, proxyProof:ProxyProof):Uint8Array {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
-  const encodedProxyProof = utils.encodeProxyProof(proxyProof);
+  const encodedProxyProof:Uint8Array = encodeProxyProof(proxyProof);
   const encodedRelayer = registry.createType('AccountId', relayer);
   const encodedRelayerFee = registry.createType('Balance', relayerFee);
   const encodedPaymentNonce = registry.createType('u64', paymentNonce);
@@ -62,7 +70,7 @@ function encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof) {
 }
 
 // Keep alphabetical
-module.exports = {
+export {
   encodePaymentParams,
   getPaymentInfo,
   tryGetPaymentInfo,

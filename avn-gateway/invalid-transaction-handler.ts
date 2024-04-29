@@ -57,9 +57,6 @@ export const handler: Handler = async (event: SQSEvent): Promise<ResponseFormat>
   } catch (err) {
     console.error(`Failed to process messages from dead letter queue: `, err);
 
-    // return {
-    //   batchItemFailures: failedMessages
-    // };
     return {
       statusCode: StatusCode.MultiStatus,
       body: failedMessages

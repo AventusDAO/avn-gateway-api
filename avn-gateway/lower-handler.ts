@@ -1,6 +1,7 @@
 import * as utils from '/opt/utils.js';
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 import { Handler, APIGatewayProxyEvent } from 'aws-lambda';
+
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 
 enum StatusCode {
   OK = 200,

@@ -1,8 +1,23 @@
-const utils = require('/opt/utils.js');
+import * as utils from '/opt/utils.js';
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
+import { Handler, SQSEvent } from 'aws-lambda';
 
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+enum StatusCode {
+  OK = 200,
+  MultiStatus = 207,
+  InternalServerError = 500
+}
 
-exports.handler = async event => {
+export interface ResponseFormat {
+  statusCode: StatusCode,
+  body: any,
+}
+
+export interface ErrorResponse {
+  error: string
+}
+
+export const handler: Handler = async (event: SQSEvent): Promise<ResponseFormat> => {
   let processedMessagesCount = 0;
   let failedMessages = [];
 
@@ -10,7 +25,7 @@ exports.handler = async event => {
     if (!event.Records) {
       console.log(`No messages to process.`);
       return {
-        statusCode: 200,
+        statusCode: StatusCode.OK,
         body: `No messages to process`
       };
     }
@@ -30,7 +45,8 @@ exports.handler = async event => {
     if (processedMessagesCount < event.Records.length) {
       console.warn(`Processed ${processedMessagesCount} out of ${event.Records.length} message(s) successfully.`);
       return {
-        batchItemFailures: failedMessages
+        statusCode: StatusCode.MultiStatus,
+        body: failedMessages
       };
     }
 
@@ -41,13 +57,17 @@ exports.handler = async event => {
   } catch (err) {
     console.error(`Failed to process messages from dead letter queue: `, err);
 
+    // return {
+    //   batchItemFailures: failedMessages
+    // };
     return {
-      batchItemFailures: failedMessages
+      statusCode: StatusCode.MultiStatus,
+      body: failedMessages
     };
   }
 };
 
-async function processFailedMessage(message) {
+async function processFailedMessage(message: string): Promise<ErrorResponse> {
   let tx;
   let requestId;
 

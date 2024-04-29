@@ -9,13 +9,16 @@ enum StatusCode {
   InternalServerError = 500
 }
 
-export interface Headers {
-  'Access-Control-Allow-Origin': string
+enum LowerStatus {
+  Success = 'success',
+  Error = 'error'
 }
 
-export interface ResponseFormat {
+export interface LowerResult {
   statusCode: StatusCode,
-  headers: Headers,
+  headers: {
+    [name: string]: string
+  },
   body: string,
 }
 
@@ -23,12 +26,12 @@ export interface QueryStringParam {
   account?: string
 }
 
-export interface LowerFormat {
+export interface Lower {
   lowerData: [],
-  status: string,
+  status: LowerStatus,
 }
 
-export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<ResponseFormat> => {
+export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<LowerResult> => {
   return {
     statusCode: StatusCode.OK,
     headers: { 'Access-Control-Allow-Origin': '*' },
@@ -36,8 +39,8 @@ export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<Res
   };
 };
 
-async function getLowers(qsParam: QueryStringParam): Promise<LowerFormat> {
-  const result: LowerFormat = { lowerData: [], status: 'success' };
+async function getLowers(qsParam: QueryStringParam): Promise<Lower> {
+  const result: Lower = { lowerData: [], status: LowerStatus.Success };
   console.log('Processing lowers from account: ', qsParam.account);
 
   try {
@@ -45,7 +48,7 @@ async function getLowers(qsParam: QueryStringParam): Promise<LowerFormat> {
     result.lowerData = response.data;
   } catch (err) {
     console.log(err);
-    result.status = 'error';
+    result.status = LowerStatus.Error;
   }
 
   return result;

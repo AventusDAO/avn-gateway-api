@@ -1,8 +1,26 @@
-const utils = require('/opt/utils.js');
+import * as utils from '/opt/utils.js';
+import { SQSEvent, Handler, SQSBatchResponse } from 'aws-lambda';
 
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 
-exports.handler = async event => {
+type InvalidTransactionHandler = Handler<SQSEvent, (SQSBatchResponse|InvalidTransactionHandlerResponse) | void>
+
+enum StatusCode {
+  OK = 200,
+  MultiStatus = 207,
+  InternalServerError = 500
+}
+
+export interface ErrorResponse {
+  error: string
+}
+
+export interface InvalidTransactionHandlerResponse {
+  statusCode: StatusCode;
+  body: string;
+}
+
+export const handler: InvalidTransactionHandler = async (event: SQSEvent): Promise<SQSBatchResponse|InvalidTransactionHandlerResponse> => {
   let processedMessagesCount = 0;
   let failedMessages = [];
 
@@ -10,7 +28,7 @@ exports.handler = async event => {
     if (!event.Records) {
       console.log(`No messages to process.`);
       return {
-        statusCode: 200,
+        statusCode: StatusCode.OK,
         body: `No messages to process`
       };
     }
@@ -47,7 +65,7 @@ exports.handler = async event => {
   }
 };
 
-async function processFailedMessage(message) {
+async function processFailedMessage(message: string): Promise<ErrorResponse> {
   let tx;
   let requestId;
 

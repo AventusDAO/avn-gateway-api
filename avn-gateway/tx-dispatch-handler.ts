@@ -108,7 +108,7 @@ async function processProxyCall(callType: string, call: Transaction, request: st
   const signData = buildSignData({ ...call.params, nonce });
 
   try {
-    validateSignData(signData, call.pallet);
+    validateSignData(signData, config.pallet);
 
     if (!utils.isValidProxySignature(call.params.proxySignature, call.params.user, signData)) {
       throw 'proxySignature';

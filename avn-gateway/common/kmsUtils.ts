@@ -1,15 +1,16 @@
-const crypto = require('crypto');
-const { KMSClient, GetPublicKeyCommand, SignCommand } = require('@aws-sdk/client-kms');
+import crypto from 'crypto';
+import { KMSClient, GetPublicKeyCommand, SignCommand } from '@aws-sdk/client-kms';
+
 const kmsClient = new KMSClient({ region: process.env.AWS_REGION });
 
-async function getPublicKeyPEM(keyId) {
+async function getPublicKeyPEM(keyId:string):Promise<string> {
   const getPublicKeyCommand = new GetPublicKeyCommand({ KeyId: keyId });
   const { PublicKey } = await kmsClient.send(getPublicKeyCommand);
   const base64Key = Buffer.from(PublicKey).toString('base64');
   return `-----BEGIN PUBLIC KEY-----\n${base64Key.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----\n`;
 }
 
-async function signMessage(keyId, message) {
+async function signMessage(keyId:string, message:string):Promise<string> {
   const messageDigest = crypto.createHash('sha256').update(message).digest();
 
   const signCommand = new SignCommand({
@@ -23,7 +24,4 @@ async function signMessage(keyId, message) {
   return Buffer.from(Signature).toString('base64');
 }
 
-module.exports = {
-  getPublicKeyPEM,
-  signMessage
-};
+export { getPublicKeyPEM, signMessage };

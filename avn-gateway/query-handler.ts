@@ -1,9 +1,48 @@
-const utils = require('/opt/utils.js');
+import { APIGatewayProxyHandler } from 'aws-lambda';
+import * as utils from '/opt/utils';
 
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
-const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL;
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT as string;
+const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL as string;
 
-exports.handler = async event => {
+interface Call {
+  id?: string | null;
+  method: string;
+  params: {
+    accountId?: string;
+    nonceType?: string;
+    externalRef?: string;
+    nftId?: string;
+    batchId?: string;
+    relayer?: string;
+    user?: string;
+    transactionType?: string;
+    token?: string;
+    fromTimestamp?: string;
+    toTimestamp?: string;
+  };
+}
+
+interface ErrorResponse {
+  jsonrpc: string;
+  id: string;
+  error: {
+    code: number;
+    message: string;
+    data?: any;
+  };
+  data?: any;
+}
+
+interface SuccessResponse {
+  jsonrpc: string;
+  id: string;
+  result: any;
+  data?: any;
+}
+
+
+
+export const handler: APIGatewayProxyHandler = async event => {
   await utils.init();
   return {
     statusCode: 200,
@@ -11,8 +50,9 @@ exports.handler = async event => {
   };
 };
 
-async function processRequest(request) {
-  let call;
+
+async function processRequest(request: string): Promise<any> {
+  let call: Call;
 
   try {
     call = JSON.parse(request);
@@ -30,7 +70,7 @@ async function processRequest(request) {
 }
 
 // Keep alphabetical
-async function callSwitch(call, request) {
+async function callSwitch(call: Call, request: string): Promise<any> {
   console.info(`Processing call: ${JSON.stringify(call)}`);
 
   switch (call.method) {
@@ -98,52 +138,52 @@ async function callSwitch(call, request) {
   }
 }
 
-async function getNonce(call, request) {
+async function getNonce(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { accountId, nonceType } = call.params;
 
-  if (utils.isValidAccountId(accountId) === false) {
-    return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
+  if (!accountId || !utils.isValidAccountId(accountId)) {
+    return utils.buildErrorBody('params', 'invalid account ID', accountId ?? 'undefined', request, call.id);
   }
 
-  if (nonceType in utils.NONCE_INFO === false) {
-    return utils.buildErrorBody('params', 'invalid nonce type', nonceType, request, call.id);
+  if (!nonceType || !(nonceType in utils.NONCE_INFO)) {
+    return utils.buildErrorBody('params', 'invalid nonce type', nonceType ?? 'undefined', request, call.id);
   }
 
   const { palletName, storageName } = utils.NONCE_INFO[nonceType];
 
-  return await queryChain(call, request, palletName, storageName, [accountId], formatNumAsString);
+  return await queryChain(call, request, palletName, storageName, [accountId], utils.formatNumAsString);
 }
 
-async function getAvtBalance(call, request) {
+async function getAvtBalance(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { accountId } = call.params;
 
-  if (utils.isValidAccountId(accountId) === false) {
+  if (!utils.isValidAccountId(accountId)) {
     return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
     return await queryChain(call, request, 'system', 'account', [accountId], formatBalanceAsString);
   }
 }
 
-async function getAvtContractAddress(call, request) {
+async function getAvtContractAddress(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   return await getChainInfo(call, request, filterAvtContract);
 }
 
-async function getAvnContractAddress(call, request) {
+async function getAvnContractAddress(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   return await getChainInfo(call, request, filterAvnContract);
 }
 
-async function getDefaultRelayer(call, request) {
+async function getDefaultRelayer(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const method = 'getDefaultRelayer';
   const params = { callId: call.id };
   return await query(call, request, method, params);
 }
 
-async function getNftContractAddress(call, request) {
+async function getNftContractAddress(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const method = 'avnNftContractAddresses';
   return await query(call, request, method, {});
 }
 
-async function getNftId(call, request) {
+async function getNftId(call: Call, request: string) {
   const { externalRef } = call.params;
 
   if (utils.isValidString(externalRef) === false) {
@@ -172,7 +212,7 @@ async function getNftId(call, request) {
   }
 }
 
-async function getNftNonce(call, request) {
+async function getNftNonce(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
@@ -183,7 +223,7 @@ async function getNftNonce(call, request) {
   }
 }
 
-async function getNftInfo(call, request) {
+async function getNftInfo(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
@@ -195,7 +235,7 @@ async function getNftInfo(call, request) {
   }
 }
 
-async function getBatchInfo(call, request) {
+async function getBatchInfo(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { batchId } = call.params;
 
   if (utils.isValidNftId(batchId) === false) {
@@ -207,7 +247,7 @@ async function getBatchInfo(call, request) {
   }
 }
 
-async function getNftListingStatus(call, request) {
+async function getNftListingStatus(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
@@ -217,7 +257,7 @@ async function getNftListingStatus(call, request) {
   }
 }
 
-async function getBatchListingStatus(call, request) {
+async function getBatchListingStatus(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { batchId } = call.params;
 
   // NftIs and BatchId have the same format
@@ -228,7 +268,7 @@ async function getBatchListingStatus(call, request) {
   }
 }
 
-async function getNftOwner(call, request) {
+async function getNftOwner(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
@@ -238,7 +278,7 @@ async function getNftOwner(call, request) {
   }
 }
 
-async function getRelayerFees(call, request) {
+async function getRelayerFees(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   let { relayer, user, transactionType } = call.params;
 
   try {
@@ -262,7 +302,7 @@ async function getRelayerFees(call, request) {
   }
 }
 
-async function getTokenBalance(call, request) {
+async function getTokenBalance(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { accountId, token } = call.params;
 
   try {
@@ -302,15 +342,15 @@ async function getAccountInfo(call, request) {
   }
 }
 
-async function queryActiveEra(call, request) {
+async function queryActiveEra(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   return await queryChain(call, request, 'parachainStaking', 'era', [], formatEraAsString);
 }
 
-async function queryStakingDelay(call, request) {
-  return await queryChain(call, request, 'parachainStaking', 'delay', []);
+async function queryStakingDelay(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
+  return await queryChain(call, request, 'parachainStaking', 'delay');
 }
 
-async function queryChain(call, request, palletName, storageName, params, responseFormatter) {
+async function queryChain(call: Call, request: string, palletName: string, storageName: string, params: any[] = [], responseFormatter?: (data: any) => string): Promise<any> {
   const method = 'avnQuery';
   const requestParams = { callId: call.id, palletName, storageName, params };
 
@@ -327,14 +367,14 @@ async function getStakingStatus(call, request) {
   }
 }
 
-async function queryAccountInfoFromChain(call, request, accountId) {
+async function queryAccountInfoFromChain(call: Call, request: string, accountId: string) {
   const method = 'avnAccountInfo';
   const params = { callId: call.id, accountId };
 
   return await query(call, request, method, params);
 }
 
-async function getEthereumEventStatus(call, request) {
+async function getEthereumEventStatus(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const method = 'ethereumEventStatus';
   let { liftStatus } = (await query(call, request, method)).data;
 
@@ -343,18 +383,18 @@ async function getEthereumEventStatus(call, request) {
   return liftStatus;
 }
 
-async function queryValidatorsToNominateFromChain(call, request) {
+async function queryValidatorsToNominateFromChain(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const method = 'avnValidatorsToNominate';
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
 }
 
-async function getMinTotalNominatorStake(call, request) {
+async function getMinTotalNominatorStake(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   return await queryChain(call, request, 'parachainStaking', 'minTotalNominatorStake', [], formatNumAsString);
 }
 
-async function getOwnedNfts(call, request) {
+async function getOwnedNfts(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const { accountId } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
@@ -366,17 +406,17 @@ async function getOwnedNfts(call, request) {
   }
 }
 
-async function getStakingStats(call, request) {
+async function getStakingStats(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const method = 'avnStakingStats';
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
 }
 
-async function getStakerRewardsEarned(call, request) {
+async function getStakerRewardsEarned(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   let { accountId, fromTimestamp, toTimestamp } = call.params;
 
-  if (utils.isValidAccountId(accountId) === false) {
+  if (!utils.isValidAccountId(accountId)) {
     return utils.buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
     try {
@@ -385,15 +425,15 @@ async function getStakerRewardsEarned(call, request) {
       let events = [],
         sumRewards = new utils.BN(0);
 
-      fromTimestamp = parseInt(fromTimestamp) > 0 ? new Date(parseInt(fromTimestamp) * 1000 - 1) : new Date(0);
-      toTimestamp = parseInt(toTimestamp) > 0 ? new Date(parseInt(toTimestamp) * 1000) : new Date(32503679999000); // 31/12/2999
-      fromTimestamp = fromTimestamp.toISOString();
-      toTimestamp = toTimestamp.toISOString();
+      let fromTimestampDate = parseInt(fromTimestamp ?? '0') > 0 ? new Date(parseInt(fromTimestamp) * 1000 - 1) : new Date(0);
+      let toTimestampDate = parseInt(toTimestamp ?? '0') > 0 ? new Date(parseInt(toTimestamp) * 1000) : new Date(32503679999000); // 31/12/2999
+      let formattedFromTimestamp = fromTimestampDate.toISOString();
+      let formattedToTimestamp = toTimestampDate.toISOString();
 
       do {
         const query = `query GatewayApiStakerRewardsEarned { events (where: { name_eq: "ParachainStaking.Rewarded",
           args_jsonContains: ${JSON.stringify(JSON.stringify({ account }))},
-          block: { timestamp_gt: "${fromTimestamp}", timestamp_lte: "${toTimestamp}"}},
+          block: { timestamp_gt: "${formattedFromTimestamp}", timestamp_lte: "${formattedToTimestamp}"}},
           limit: ${eventsLimit}, orderBy: id_ASC) { args block { timestamp } } }`;
         const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, {
           query,
@@ -402,7 +442,7 @@ async function getStakerRewardsEarned(call, request) {
         events = response.data.data.events;
         if (events.length > 0) {
           events.forEach(event => (sumRewards = sumRewards.add(new utils.BN(event.args.rewards))));
-          fromTimestamp = events[events.length - 1].block.timestamp;
+          formattedFromTimestamp = events[events.length - 1].block.timestamp;
         }
       } while (events.length === eventsLimit);
 
@@ -413,32 +453,31 @@ async function getStakerRewardsEarned(call, request) {
   }
 }
 
-async function getCurrentBlock(call, request) {
+async function getCurrentBlock(call: Call, request: string): Promise<SuccessResponse | ErrorResponse> {
   const method = 'avnCurrentBlock';
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
 }
 
-async function getChainInfo(call, request, filter) {
+async function getChainInfo(call: Call, request: string, filter?: (data: any) => any): Promise<SuccessResponse | ErrorResponse> {
   const method = 'avnChainInfo';
   const params = { callId: call.id };
 
   return await query(call, request, method, params, filter);
 }
 
-async function query(call, request, method, params, responseFormatter) {
+
+async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any) {
   try {
-    const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + method, params);
-    const result =
-      (avnResponse.data && avnResponse.data.error) ||
-      (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
+    const avnResponse = await utils.axios.post(`${AVN_CONNECTOR_ENDPOINT}${method}`, params);
+    const result = avnResponse.data.error || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return utils.buildValidResponseBody(call.id, result);
-  } catch (err) {
+  } catch (err: any) {
     return utils.buildErrorBody(
       'internal',
       `failed to invoke ${method} when querying the chain`,
-      err.toString(),
+      err,
       request,
       call.id
     );
@@ -446,8 +485,6 @@ async function query(call, request, method, params, responseFormatter) {
 }
 
 const formatTotal = data => data.total;
-
-const formatAsString = data => data.toString();
 
 const formatNumAsString = data => utils.toBnString(data);
 

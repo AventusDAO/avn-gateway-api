@@ -1,12 +1,21 @@
 {
     "compilerOptions": {
+        "baseUrl": ".", // This sets the base directory for relative paths in the "paths" field
+        "paths": {
+            "/opt/*": [
+                "./common/*"
+            ] // Maps all imports from "/opt/" to "./common/"
+        },
+        "moduleResolution": "node", // Ensures that module resolution follows Node.js-style resolution
+        "esModuleInterop": true,
         "rootDir": ".",
         "outDir": "./dist",
-        "baseUrl": ".",
-        "paths": {
-            "/opt/common/*": [
-                "./common/*"
-              ]
-        }
-    }
+        "skipLibCheck": true
+    },
+    "include": [
+        "./**/*"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
 }

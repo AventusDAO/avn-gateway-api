@@ -1,6 +1,7 @@
 import * as utils from '/opt/utils';
 import * as sqs from '/opt/sqsUtils';
-import { APIGatewayProxyEvent, Context } from 'aws-lambda';
+import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from 'aws-lambda';
+import { ValidRequestContext, Transaction } from './types';
 
 const axios = utils.axios.default;
 
@@ -8,26 +9,7 @@ const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_END
 const SQS_DEFAULT_QUEUE_URL: string | undefined = process.env.SQS_DEFAULT_QUEUE_URL;
 const SQS_PAYER_QUEUE_URL: string | undefined = process.env.SQS_PAYER_QUEUE_URL;
 
-interface LambdaContext {
-  splitFeePayerAddress?: string;
-  splitFeePayerId?: string;
-  splitFeePayerVaultId?: string;
-  isSplitFeeUser?: boolean;
-}
-
-interface Transaction {
-  id: string;
-  params?: {
-    feePaymentSignature?: string;
-  };
-  awsRequestId?: string;
-  splitFeePayerId?: string;
-  splitFeePayerAddress?: string;
-  splitFeePayerVaultId?: string;
-}
-
-
-export const handler = async (event: APIGatewayProxyEvent, context: Context) => {
+export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
   await utils.init();
   const result = await utils.callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [event, context]);
 
@@ -39,7 +21,7 @@ export const handler = async (event: APIGatewayProxyEvent, context: Context) => 
 };
 
 async function processRequest(event: APIGatewayProxyEvent, context: Context): Promise<any> {
-  const authoriserContext: LambdaContext = event.requestContext.authorizer.lambda;
+  const authoriserContext: ValidRequestContext = event.requestContext.authorizer.lambda;
   const awsRequestId: string = context.awsRequestId;
   let request: string = event.body || '';
   let tx: Transaction;
@@ -49,7 +31,6 @@ async function processRequest(event: APIGatewayProxyEvent, context: Context): Pr
   } catch (err) {
     return utils.buildErrorBody('parse', 'Failed to parse JSON', err.toString(), request, null);
   }
-
 
   try {
     console.info('TX_ID <-> AWS_REQUESTID:', tx.id + ' : ' + awsRequestId);
@@ -81,7 +62,7 @@ async function sendMessageToDefaultQueue(tx: Transaction, awsRequestId: string):
   return await sqs.sendToQueue(SQS_DEFAULT_QUEUE_URL, tx);
 }
 
-async function sendMessageToPayerQueue(tx: Transaction, request: string, awsRequestId: string, authoriserContext: LambdaContext): Promise<any> {
+async function sendMessageToPayerQueue(tx: Transaction, request: string, awsRequestId: string, authoriserContext: ValidRequestContext): Promise<any> {
   if (tx.params && tx.params.feePaymentSignature) throw new Error('Split fee transaction already contains payment info');
   tx.splitFeePayerId = authoriserContext.splitFeePayerId!;
   tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress!;
@@ -90,7 +71,7 @@ async function sendMessageToPayerQueue(tx: Transaction, request: string, awsRequ
   return sqs.sendToQueue(SQS_PAYER_QUEUE_URL, tx);
 }
 
-function isSplitFeeTransaction(authoriserContext: LambdaContext): boolean {
+function isSplitFeeTransaction(authoriserContext: ValidRequestContext): boolean {
   if (!authoriserContext.splitFeePayerAddress) return false;
   return authoriserContext.isSplitFeeUser === true && utils.isValidAccountId(authoriserContext.splitFeePayerAddress);
 }

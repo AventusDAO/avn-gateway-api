@@ -1,35 +1,12 @@
 import { axios, callWithTimeout } from '/opt/utils';
 import { signMessage } from '/opt/kmsUtils.js';
 import { getFailedMessagesForFifoQueue } from '/opt/sqsUtils.js';
-import { Handler, SQSEvent, Context } from 'aws-lambda';
+import { SQSBatchResponse, SQSEvent, Context } from 'aws-lambda';
+import { CustomSQSHandler, EventRecord, Event } from './types';
 
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID!;
 
-enum StatusCode {
-    OK = 200,
-    MultiStatus = 207,
-    InternalServerError = 500
-}
-
-export interface ErrorResponse {
-    statusCode: StatusCode;
-    body: string;
-}
-
-export interface EventRecord {
-    messageId: string,
-    body: string,
-}
-
-export interface Event {
-    id: string,
-    freshness: string,
-    signature: string,
-    endpoint: string,
-    data: string
-}
-
-export const handler: Handler = async (event: SQSEvent, context: Context): Promise<void | ErrorResponse> => {
+export const handler: CustomSQSHandler = async (event: SQSEvent, context: Context): Promise<void|SQSBatchResponse> => {
   let acknowledgedEvents = 0;
 
   try {
@@ -40,10 +17,7 @@ export const handler: Handler = async (event: SQSEvent, context: Context): Promi
   } catch (error) {
     console.error('Error emitting events', error);
     if (acknowledgedEvents === 0) throw error;
-    else return {
-        statusCode: StatusCode.MultiStatus,
-        body: getFailedMessagesForFifoQueue(event.Records, acknowledgedEvents)
-    };
+    else return { batchItemFailures: getFailedMessagesForFifoQueue(event.Records, acknowledgedEvents) };
   }
 };
 

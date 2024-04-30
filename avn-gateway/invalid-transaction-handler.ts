@@ -1,26 +1,10 @@
 import * as utils from '/opt/utils.js';
-import { SQSEvent, Handler, SQSBatchResponse } from 'aws-lambda';
+import { SQSEvent, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
+import { StatusCode, ErrorResponse, CustomSQSHandler } from './types';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 
-type InvalidTransactionHandler = Handler<SQSEvent, (SQSBatchResponse|InvalidTransactionHandlerResponse) | void>
-
-enum StatusCode {
-  OK = 200,
-  MultiStatus = 207,
-  InternalServerError = 500
-}
-
-export interface ErrorResponse {
-  error: string
-}
-
-export interface InvalidTransactionHandlerResponse {
-  statusCode: StatusCode;
-  body: string;
-}
-
-export const handler: InvalidTransactionHandler = async (event: SQSEvent): Promise<SQSBatchResponse|InvalidTransactionHandlerResponse> => {
+export const handler: CustomSQSHandler = async (event: SQSEvent): Promise<SQSBatchResponse|APIGatewayProxyResult> => {
   let processedMessagesCount = 0;
   let failedMessages = [];
 

@@ -1,35 +1,8 @@
 import * as utils from '/opt/utils.js';
 import { Handler, APIGatewayProxyEvent } from 'aws-lambda';
+import { StatusCode, LowerStatus, LowerResult, Lower, QueryStringParam } from './types';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
-
-enum StatusCode {
-  OK = 200,
-  MultiStatus = 207,
-  InternalServerError = 500
-}
-
-enum LowerStatus {
-  Success = 'success',
-  Error = 'error'
-}
-
-export interface LowerResult {
-  statusCode: StatusCode,
-  headers: {
-    [name: string]: string
-  },
-  body: string,
-}
-
-export interface QueryStringParam {
-  account?: string
-}
-
-export interface Lower {
-  lowerData: [],
-  status: LowerStatus,
-}
 
 export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<LowerResult> => {
   return {

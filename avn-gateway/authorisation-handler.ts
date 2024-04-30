@@ -1,6 +1,7 @@
 import utils from '/opt/utils.js';
 import { APIGatewayRequestAuthorizerEvent, APIGatewaySimpleAuthorizerWithContextResult,APIGatewayAuthorizerResultContext } from 'aws-lambda';
 import { AxiosResponse } from 'axios';
+import { UserInfo, PayerData, AWTToken, ValidRequestContext } from './types';
 
 const axios = utils.axios.default;
 
@@ -10,32 +11,6 @@ const CLOCK_JITTER_MSEC: number = -15000;
 const MIN_AVT_BALANCE = new utils.BN(process.env.MIN_AVT_BALANCE ?? 0);
 const AUTH_PREFIX = 'Bearer ';
 const InvalidRequestResponse: APIGatewaySimpleAuthorizerWithContextResult<APIGatewayAuthorizerResultContext> = { isAuthorized: false, context: {} };
-
-interface AWTToken {
-  pk: string;
-  iat: string;
-  sig: string;
-  hasPayer: boolean;
-  payer?: string;
-}
-
-interface ValidRequestContext {
-  isSplitFeeUser?: boolean;
-  splitFeePayerId?: string;
-  splitFeePayerVaultId?: string;
-  splitFeePayerAddress?: string;
-}
-
-interface UserInfo {
-  freeBalance: string;
-  paymentNonce: string;
-}
-
-interface PayerData {
-  payerId: string;
-  payerAddress: string;
-  vaultId: string;
-}
 
 type AuthorizationResponse = APIGatewaySimpleAuthorizerWithContextResult<ValidRequestContext>
 

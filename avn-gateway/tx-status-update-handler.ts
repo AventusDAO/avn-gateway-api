@@ -1,5 +1,6 @@
 import * as utils from '/opt/utils';
 import { APIGatewayProxyResultV2, Handler } from 'aws-lambda';
+import { TransactionEvent, BlockchainEvent, TransactionResponse, CrossChainTxStatus, TransactionStatus, TxEventsMap, CrossChainTxMap } from './types';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL!;
@@ -27,44 +28,6 @@ const argsFilter = [
   'NftManager.BatchCreated',
   'TokenManager.LowerRequested'
 ];
-
-interface TransactionEvent {
-  name: string;
-  args: any;
-  extrinsic: {
-    hash: string;
-    indexInBlock: number;
-    success: boolean;
-    block: {
-      height: number;
-    };
-  };
-}
-
-interface BlockchainEvent {
-  name: string;
-  args: any;
-}
-
-interface TransactionResponse {
-  transactionHash: string;
-  status: string;
-  blockNumber: number;
-  index: number;
-  eventArgs: any;
-}
-
-interface CrossChainTxStatus {
-  status: TransactionStatus;
-  ethEventId?: string;
-  signature: string;
-  transactionHash: string;
-}
-
-type TransactionStatus = 'Validating' | 'Processed' | 'Rejected';
-type TxEventsMap = Record<string, TransactionEvent>;
-type CrossChainTxMap = Map<string, CrossChainTxStatus | string>;
-
 
 export const handler: Handler = async (_event: unknown): Promise<APIGatewayProxyResultV2> => {
   try {

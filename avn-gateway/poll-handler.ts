@@ -1,30 +1,8 @@
 import utils from '/opt/utils.js';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { ValidError, Call } from './types';
 
 const axios = utils.axios.default;
-
-interface Call {
-  id: string | null;
-  method: string;
-  params?: {
-    requestId: string;
-  };
-}
-
-interface ErrorResponse {
-  jsonrpc: string;
-  id: string | null;
-  error?: {
-    code: number;
-    message: string;
-    data?: any;
-  }
-}
-
-interface ValidResponse {
-  statusCode: number;
-  body: string;
-}
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 
@@ -36,7 +14,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   };
 };
 
-async function processRequest(request: string): Promise<ErrorResponse | ValidResponse> {
+async function processRequest(request: string): Promise<ValidError | APIGatewayProxyResult> {
   let call: Call;
 
   try {
@@ -54,7 +32,7 @@ async function processRequest(request: string): Promise<ErrorResponse | ValidRes
   }
 }
 
-async function makeCall(call: Call, request: string): Promise<ErrorResponse | ValidResponse> {
+async function makeCall(call: Call, request: string): Promise<ValidError | APIGatewayProxyResult> {
   console.info(`Processing call: ${JSON.stringify(call)}`);
 
   if (call.method !== 'requestState') {
@@ -70,7 +48,7 @@ async function makeCall(call: Call, request: string): Promise<ErrorResponse | Va
   return await poll(call, request, requestId);
 }
 
-async function poll(call: Call, request: string, requestId?: string): Promise<ErrorResponse | ValidResponse> {
+async function poll(call: Call, request: string, requestId?: string): Promise<ValidError | APIGatewayProxyResult> {
   try {
     const callId = call.id;
     const avnResponse = await axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId });

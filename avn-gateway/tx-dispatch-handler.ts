@@ -1,60 +1,15 @@
 import * as utils from '/opt/utils';
 import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
-import {Text, GenericEthereumLookupSource, Vec, u8,u64,u128, U256} from '@polkadot/types'
-import { H256,AccountId,H160, BalanceOf,  } from "@polkadot/types/interfaces"
-import { SQSEvent, Context, SQSBatchResponse, Handler } from 'aws-lambda';
-
-export type SignDataItem = | { Text: string }
-  | { AccountId: AccountId }
-  | { SkipEncode: string[] }
-  | { 'Vec<u8>': Vec<u8>; }
-  | { 'Vec<LookupSource>': Vec<GenericEthereumLookupSource>[]; }
-  | { H256: H256; }
-  | { U256: U256 }
-  | { u8: u8; }
-  | { u64: u64 }
-  | { u128: u128 }
-  | { BalanceOf: BalanceOf }
-  | { H160: H160 };
+import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
+import { StatusCode, CustomSQSHandler, ValidResponse, ValidError,
+  ProxyParams, ProxyProof, QueryParams, PublishEventData, NonceInfo,
+  CallConfig, SignDataItem, ProxyTransaction, Transaction } from './types';
 
 const AVN_CONNECTOR_ENDPOINT: string = process.env.AVN_CONNECTOR_ENDPOINT || '';
 const SQS_TX_QUEUE_URL: string = process.env.SQS_TX_QUEUE_URL || '';
 
-export interface ValidResponse {
-  jsonrpc: '2.0';
-  id: string;
-  result: any;
-  body?: any;
-}
-
-
-export interface RPCError {
-  code: number;
-  message: string;
-}
-
-export interface ValidError {
-  jsonrpc: '2.0';
-  id: string;
-  error: RPCError & { data: any };
-  body?: any;
-}
-
-enum StatusCode {
-  OK = 200,
-  MultiStatus = 207,
-  InternalServerError = 500
-}
-
-export interface TxDispatchHandlerResponse {
-  statusCode: StatusCode;
-  body: string;
-}
-
-type TxDispatchHandler = Handler<SQSEvent, (SQSBatchResponse|TxDispatchHandlerResponse) | void>
-
-export const handler: TxDispatchHandler = async (event: SQSEvent, context: Context): Promise<TxDispatchHandlerResponse | SQSBatchResponse> => {
+export const handler: CustomSQSHandler = async (event: SQSEvent, context: Context): Promise<APIGatewayProxyResult | SQSBatchResponse> => {
   await utils.init();
   let processedMessagesCount = 0;
 
@@ -97,7 +52,7 @@ export const handler: TxDispatchHandler = async (event: SQSEvent, context: Conte
 };
 
 async function processRequest(request: string): Promise<ValidResponse | ValidError> {
-  let call: Call;
+  let call: Transaction;
 
   try {
     call = JSON.parse(request);
@@ -114,7 +69,7 @@ async function processRequest(request: string): Promise<ValidResponse | ValidErr
   return validateAndProcessCall(call, request, requestId);
 }
 
-function validateAndProcessCall(call: Call, request: string, requestId: string): Promise<ValidResponse | ValidError> {
+function validateAndProcessCall(call: Transaction, request: string, requestId: string): Promise<ValidResponse | ValidError> {
   if (typeof call.method !== 'string') {
     console.error(`Invalid method type: Expected string, received ${typeof call.method}`);
     return utils.buildErrorBody('request', 'Method type must be string', call.method, request, call.id);
@@ -128,7 +83,7 @@ function validateAndProcessCall(call: Call, request: string, requestId: string):
   }
 }
 
-async function callSwitch(call: Call, request: string, requestId: string): Promise<ValidResponse | ValidError> {
+async function callSwitch(call: Transaction, request: string, requestId: string): Promise<ValidResponse | ValidError> {
   console.info(`${requestId} - Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
 
 
@@ -139,7 +94,7 @@ async function callSwitch(call: Call, request: string, requestId: string): Promi
   }
 }
 
-async function processProxyCall(callType: string, call: Call, request: string, requestId: string): Promise<ValidResponse | ValidError> {
+async function processProxyCall(callType: string, call: Transaction, request: string, requestId: string): Promise<ValidResponse | ValidError> {
   const config = callConfigs[callType];
   if (!config) {
     throw new Error(`No configuration found for call type ${callType}`);
@@ -178,7 +133,7 @@ async function queryNonce(requestId: string, nonceInfo: NonceInfo, nonceKey: str
 }
 
 async function processProxyMethod(
-  call: Call,
+  call: Transaction,
   request: string,
   requestId: string,
   pallet: string,
@@ -240,7 +195,7 @@ async function processProxyMethod(
 }
 
 async function sendTx(
-  call: Call,
+  call: Transaction,
   request: string,
   requestId: string,
   palletName: string,
@@ -249,91 +204,13 @@ async function sendTx(
 ): Promise<ValidResponse | ValidError> {
   try {
     const txType = 'avnProxy';
-    const tx: Transaction = { requestId, txType, palletName, method, params };
+    const tx:  ProxyTransaction = { requestId, txType, palletName, method, params };
     const result = await sqs.sendToQueue(SQS_TX_QUEUE_URL, tx);
     return utils.buildValidResponseBody(call.id, result);
   } catch (err) {
     return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
   }
 }
-
-export interface CallParams {
-  relayer: string;
-  user: string;
-  payer: string;
-  proxySignature: string;
-  nonce?: string;
-  feePaymentSignature?: string;
-  paymentNonce?: string;
-}
-
-export interface Call {
-  id: string;
-  params: CallParams;
-  method: string;
-  splitFeePayerAddress?: string;
-  splitFeePayerVaultId?: string;
-  relayerFee?: string;
-  awsRequestId?: string;
-}
-
-export interface NonceInfo {
-  palletName: string;
-  storageName: string;
-}
-
-export interface Transaction {
-  requestId: string;
-  txType: string;
-  palletName: string;
-  method: string;
-  params: ProxyParams
-}
-
-
-export interface ProxyParams {
-  proxyParams: any[];
-  relayerAddress: string;
-  splitFeePayerAddress?: string;
-  splitFeePayerVaultId?: string;
-  relayerFees?: string;
-  splitFeeProxyProof?: any;
-  paymentInfo?: PaymentInfo;
-}
-
-export interface PaymentInfo {
-  payer: string;
-  recipient: string;
-  amount: string;
-  signature: {
-    Sr25519: string;
-  };
-}
-
-export interface ProxyProof {
-  signer: string;
-  relayer: string;
-  signature: {
-    Sr25519: string;
-  };
-}
-
-export interface QueryParams {
-  requestId: string;
-  palletName: string;
-  storageName: string;
-  params: string[];
-}
-
-export interface PublishEventData {
-  relayer: string;
-  user: string;
-  proxySignature: string;
-  pallet: string;
-  method: string;
-  methodParams: any[];
-}
-
 
 const typeValidationMap = {
   AccountId: utils.isValidAccountId,
@@ -353,14 +230,6 @@ const typeValidationMap = {
   'Vec<u8>': utils.isValidString,
   'Vec<LookupSource>': utils.isValidArray
 };
-
-export interface CallConfig {
-  pallet: string;
-  method: string;
-  nonceType?: string;
-  buildMethodParams: (params: any) => any[];
-  buildSignData: (params: any) => SignDataItem[];
-}
 
 const callConfigs: { [key: string]: CallConfig } = {
   'proxyAvtTransfer': {

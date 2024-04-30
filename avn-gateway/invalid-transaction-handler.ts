@@ -1,6 +1,9 @@
 import * as utils from '/opt/utils.js';
+import { SQSEvent, Handler, SQSBatchResponse } from 'aws-lambda';
+
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
-import { Handler, SQSEvent } from 'aws-lambda';
+
+type InvalidTransactionHandler = Handler<SQSEvent, (SQSBatchResponse|InvalidTransactionHandlerResponse) | void>
 
 enum StatusCode {
   OK = 200,
@@ -8,16 +11,16 @@ enum StatusCode {
   InternalServerError = 500
 }
 
-export interface ResponseFormat {
-  statusCode: StatusCode,
-  body: any,
-}
-
 export interface ErrorResponse {
   error: string
 }
 
-export const handler: Handler = async (event: SQSEvent): Promise<ResponseFormat> => {
+export interface InvalidTransactionHandlerResponse {
+  statusCode: StatusCode;
+  body: string;
+}
+
+export const handler: InvalidTransactionHandler = async (event: SQSEvent): Promise<SQSBatchResponse|InvalidTransactionHandlerResponse> => {
   let processedMessagesCount = 0;
   let failedMessages = [];
 
@@ -45,8 +48,7 @@ export const handler: Handler = async (event: SQSEvent): Promise<ResponseFormat>
     if (processedMessagesCount < event.Records.length) {
       console.warn(`Processed ${processedMessagesCount} out of ${event.Records.length} message(s) successfully.`);
       return {
-        statusCode: StatusCode.MultiStatus,
-        body: failedMessages
+        batchItemFailures: failedMessages
       };
     }
 
@@ -58,8 +60,7 @@ export const handler: Handler = async (event: SQSEvent): Promise<ResponseFormat>
     console.error(`Failed to process messages from dead letter queue: `, err);
 
     return {
-      statusCode: StatusCode.MultiStatus,
-      body: failedMessages
+      batchItemFailures: failedMessages
     };
   }
 };

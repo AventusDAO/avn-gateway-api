@@ -1,16 +1,17 @@
 import * as utils from '/opt/utils.js';
 import * as fees from '/opt/paymentUtils.js';
 import * as sqs from '/opt/sqsUtils.js';
-import { Handler, SQSEvent, Context } from 'aws-lambda';
+import { Handler, SQSEvent, Context, SQSBatchResponse } from 'aws-lambda';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL!;
 
+type InvalidTransactionHandler = Handler<SQSEvent, (SQSBatchResponse|SplitFeeHandlerResponse) | void>
+
 export interface ValidResponse {
   jsonrpc: '2.0';
   id: string;
-  result: any;
-  body?: any;
+  result: string;
 }
 
 export interface RPCError {
@@ -21,8 +22,10 @@ export interface RPCError {
 export interface ValidError {
   jsonrpc: '2.0';
   id: string;
-  error: RPCError & { data: any };
-  body?: any;
+  error: RPCError & { data: {
+    gatewayError: string,
+    request: string,
+  } };
 }
 
 enum StatusCode {
@@ -52,7 +55,12 @@ export interface Transaction {
   }
 }
 
-export const handler: Handler = async (event: SQSEvent, context: Context): Promise<ResponseFormat> => {
+export interface SplitFeeHandlerResponse {
+  statusCode: StatusCode;
+  body: string;
+}
+
+export const handler: InvalidTransactionHandler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse|SplitFeeHandlerResponse> => {
   await utils.init();
   let processedMessagesCount = 0;
 
@@ -79,9 +87,8 @@ export const handler: Handler = async (event: SQSEvent, context: Context): Promi
     if (processedMessagesCount < event.Records.length) {
       console.warn(`Processed ${processedMessagesCount} out of ${event.Records.length} message(s) successfully.`);
       return {
-        statusCode: StatusCode.MultiStatus,
-        body: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
-      }
+        batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
+      };
     }
 
     return {
@@ -92,8 +99,7 @@ export const handler: Handler = async (event: SQSEvent, context: Context): Promi
     console.error(`Failed to process messages from payer queue: `, err);
 
     return {
-      statusCode: StatusCode.MultiStatus,
-      body: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
+      batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
     };
   }
 };

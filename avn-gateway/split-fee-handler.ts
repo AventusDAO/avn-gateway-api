@@ -1,11 +1,66 @@
-const utils = require('/opt/utils.js');
-const fees = require('/opt/paymentUtils.js');
-const sqs = require('/opt/sqsUtils.js');
+import * as utils from '/opt/utils.js';
+import * as fees from '/opt/paymentUtils.js';
+import * as sqs from '/opt/sqsUtils.js';
+import { Handler, SQSEvent, Context, SQSBatchResponse } from 'aws-lambda';
 
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
-const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL;
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
+const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL!;
 
-exports.handler = async (event, context) => {
+type InvalidTransactionHandler = Handler<SQSEvent, (SQSBatchResponse|SplitFeeHandlerResponse) | void>
+
+export interface ValidResponse {
+  jsonrpc: '2.0';
+  id: string;
+  result: string;
+}
+
+export interface RPCError {
+  code: number;
+  message: string;
+}
+
+export interface ValidError {
+  jsonrpc: '2.0';
+  id: string;
+  error: RPCError & { data: {
+    gatewayError: string,
+    request: string,
+  } };
+}
+
+enum StatusCode {
+  OK = 200,
+  MultiStatus = 207,
+  InternalServerError = 500
+}
+
+export interface ResponseFormat {
+  statusCode: StatusCode,
+  body: string,
+}
+
+export interface Transaction {
+  id: string,
+  awsRequestId: string,
+  splitFeePayerId: string,
+  splitFeePayerVaultId: string,
+  splitFeePayerAddress: string,
+  method: string,
+  relayerFee: number,
+  params: {
+    user: string,
+    relayer: string,
+    payer: string,
+    proxySignature: string
+  }
+}
+
+export interface SplitFeeHandlerResponse {
+  statusCode: StatusCode;
+  body: string;
+}
+
+export const handler: InvalidTransactionHandler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse|SplitFeeHandlerResponse> => {
   await utils.init();
   let processedMessagesCount = 0;
 
@@ -13,13 +68,12 @@ exports.handler = async (event, context) => {
     if (!event.Records) {
       console.log(`No messages to process.`);
       return {
-        statusCode: 200,
+        statusCode: StatusCode.OK,
         body: `No messages to process`
       };
     }
 
     console.log(`Processing ${event.Records.length} message(s) from queue`);
-    let result;
     for (let record of event.Records) {
       const result = await utils.callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [record.body]);
       if (utils.requestFailed(result) === true) {
@@ -38,7 +92,7 @@ exports.handler = async (event, context) => {
     }
 
     return {
-      statusCode: 200,
+      statusCode: StatusCode.OK,
       body: `${event.Records.length} message(s) processed successfully.`
     };
   } catch (err) {
@@ -50,9 +104,9 @@ exports.handler = async (event, context) => {
   }
 };
 
-async function processRequest(request) {
-  let tx;
-  let requestId;
+async function processRequest(request: string): Promise<ValidResponse | ValidError> {
+  let tx: Transaction;
+  let requestId: string;
 
   try {
     tx = JSON.parse(request);
@@ -91,7 +145,7 @@ async function processRequest(request) {
   }
 }
 
-function validateTransaction(tx) {
+function validateTransaction(tx: Transaction): void {
   try {
     if (utils.isValidAccountId(tx.params.relayer) === false) throw 'relayer';
     if (utils.isValidAccountId(tx.params.user) === false) throw 'user';
@@ -104,7 +158,7 @@ function validateTransaction(tx) {
   }
 }
 
-async function payerCanPayForTransaction(payerAddress, transactionName) {
+async function payerCanPayForTransaction(payerAddress: string, transactionName: string): Promise<Boolean> {
   try {
     const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'isPayerTransaction', {
       payer: payerAddress,
@@ -118,7 +172,7 @@ async function payerCanPayForTransaction(payerAddress, transactionName) {
   }
 }
 
-async function updateTransactionStatusToRejected(requestId) {
+async function updateTransactionStatusToRejected(requestId: string): Promise<void> {
   try {
     await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionRefusedByPayerStatus', { requestId: requestId });
   } catch (err) {

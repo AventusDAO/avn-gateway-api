@@ -1,5 +1,6 @@
 // @ts-ignore
 import { S3Client, GetObjectCommand, ListObjectsV2Command, PutObjectCommand } from '@aws-sdk/client-s3';
+// @ts-ignore
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import * as utils from '/opt/utils';
 import { Readable } from 'stream';

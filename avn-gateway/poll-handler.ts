@@ -1,7 +1,8 @@
 import * as utils from '/opt/utils.js';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ValidError, Call } from './types';
 import { ErrorBody } from './common/types';
+// @ts-ignore
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 

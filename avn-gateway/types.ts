@@ -1,24 +1,12 @@
 import { SQSEvent, Handler, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
-import { GenericEthereumLookupSource, Vec, u8, u64, u128, U256 } from '@polkadot/types'
-import { H256, AccountId, H160, BalanceOf } from "@polkadot/types/interfaces"
-import { Response, TransactionType } from './common/types';
+
+import { Response, SignDataItem, TransactionType } from './common/types';
 
 export type CustomSQSHandler = Handler<SQSEvent, (SQSBatchResponse | APIGatewayProxyResult) | void>
 export type TransactionStatus = 'Validating' | 'Processed' | 'Rejected';
 export type TxEventsMap = Record<string, TransactionEvent>;
 export type CrossChainTxMap = Map<string, CrossChainTxStatus | string>;
-export type SignDataItem = | { Text: string }
-    | { AccountId: string }
-    | { SkipEncode: Uint8Array }
-    | { 'Vec<u8>': Vec<u8>; }
-    | { 'Vec<LookupSource>': Vec<GenericEthereumLookupSource>[]; }
-    | { H256: H256; }
-    | { U256: U256 }
-    | { u8: u8; }
-    | { u64: u64 }
-    | { u128: u128 }
-    | { BalanceOf: BalanceOf }
-    | { H160: H160 };
+
 
 export enum LowerStatus {
     Success = 'success',

@@ -1,6 +1,8 @@
 import * as utils from '/opt/utils';
-import { APIGatewayProxyResultV2, Handler } from 'aws-lambda';
 import { TransactionEvent, BlockchainEvent, TransactionResponse, CrossChainTxStatus, TransactionStatus, TxEventsMap, CrossChainTxMap } from './types';
+
+// @ts-ignore
+import { APIGatewayProxyResultV2, Handler } from 'aws-lambda';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL!;

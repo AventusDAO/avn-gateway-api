@@ -1,7 +1,8 @@
-import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import * as utils from '/opt/utils';
 import { Call, ValidError, ValidResponse } from './types';
 import { ErrorBody } from './common/types';
+// @ts-ignore
+import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT as string;
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL as string;

@@ -1,7 +1,8 @@
 import * as utils from '/opt/utils';
 import * as sqs from '/opt/sqsUtils';
-import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from 'aws-lambda';
 import { ValidRequestContext, Transaction } from './types';
+// @ts-ignore
+import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from 'aws-lambda';
 
 const axios = utils.axios;
 

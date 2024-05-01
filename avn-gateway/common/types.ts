@@ -1,3 +1,4 @@
+import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
 export interface NonceInfo {
@@ -55,6 +56,7 @@ export interface ErrorBody {
     jsonrpc: string;
     id: string;
     error?: CustomError;
+    data?:any
 }
 
 export interface Response {
@@ -70,7 +72,7 @@ export type RPCResponse<T> = {
 };
 
 export interface Token {
-    payer?: string[];
+    payer?: string;
     hasPayer: boolean;
 }
 
@@ -112,3 +114,5 @@ export interface DataItem {
 export type ExtendedInterfaceTypes = keyof InterfaceTypes | 'SkipEncode';
 
 export interface Royalty { recipient_t1_address: string; rate: { parts_per_million: number } }
+
+export type SendTxResult = RPCResponse<SendMessageCommandOutput>

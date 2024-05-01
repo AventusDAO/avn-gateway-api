@@ -262,7 +262,7 @@ function verifySignatureWithOrWithoutWrapping(encodedData: Uint8Array, signature
   );
 }
 
-function encodeProxyProof(params: ProofParams): Uint8Array {
+function encodeProxyProof(params: ProxyProof): Uint8Array {
   const user = registry.createType('AccountId', params.signer);
   const relayer = registry.createType('AccountId', params.relayer);
   const signature = registry.createType('MultiSignature', params.signature);

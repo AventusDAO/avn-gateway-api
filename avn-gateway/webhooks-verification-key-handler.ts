@@ -1,6 +1,7 @@
 import { getPublicKeyPEM } from '/opt/kmsUtils.js';
-import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { StatusCode } from './types';
+// @ts-ignore
+import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID!;
 

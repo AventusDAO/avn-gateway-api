@@ -1,9 +1,10 @@
 import * as utils from '/opt/utils.js';
 import * as fees from '/opt/paymentUtils.js';
 import * as sqs from '/opt/sqsUtils.js';
-import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
-import { StatusCode, CustomSQSHandler, ValidResponse, ValidError, Transaction } from './types';
+import { StatusCode, CustomSQSHandler, ValidResponse, Transaction } from './types';
 import { ErrorBody } from './common/types';
+// @ts-ignore
+import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL!;

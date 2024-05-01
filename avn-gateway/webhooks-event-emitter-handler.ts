@@ -1,8 +1,9 @@
 import { axios, callWithTimeout } from '/opt/utils';
 import { signMessage } from '/opt/kmsUtils.js';
 import { getFailedMessagesForFifoQueue } from '/opt/sqsUtils.js';
-import { SQSBatchResponse, SQSEvent, Context } from 'aws-lambda';
 import { CustomSQSHandler, EventRecord, Event } from './types';
+// @ts-ignore
+import { SQSBatchResponse, SQSEvent, Context } from 'aws-lambda';
 
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID!;
 

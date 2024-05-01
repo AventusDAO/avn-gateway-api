@@ -1,6 +1,22 @@
 import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
+import { GenericEthereumLookupSource, Vec, u8, u64, u128, U256 } from '@polkadot/types'
+import { H256, H160, BalanceOf } from "@polkadot/types/interfaces"
+
+export type SignDataItem = | { Text: string }
+    | { AccountId: string }
+    | { SkipEncode: Uint8Array }
+    | { 'Vec<u8>': Vec<u8>; }
+    | { 'Vec<LookupSource>': Vec<GenericEthereumLookupSource>[]; }
+    | { H256: H256; }
+    | { U256: U256 }
+    | { u8: u8; }
+    | { u64: u64 }
+    | { u128: u128 }
+    | { BalanceOf: BalanceOf }
+    | { H160: H160 };
+
 export interface NonceInfo {
     batch: { palletName: string; storageName: string };
     confirmation: { palletName: string; storageName: string };

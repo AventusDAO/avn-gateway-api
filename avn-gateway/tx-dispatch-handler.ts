@@ -4,7 +4,7 @@ import * as sqs from '/opt/sqsUtils';
 import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 import { StatusCode, CustomSQSHandler, ValidResponse, ValidError,
   ProxyParams, ProxyProof, QueryParams, PublishEventData, NonceInfo,
-  CallConfig, SignDataItem, ProxyTransaction, Transaction } from './types';
+  CallConfig, SignDataItem, ProxyTransaction, ProxyCall } from './types';
 
 const AVN_CONNECTOR_ENDPOINT: string = process.env.AVN_CONNECTOR_ENDPOINT || '';
 const SQS_TX_QUEUE_URL: string = process.env.SQS_TX_QUEUE_URL || '';
@@ -52,7 +52,7 @@ export const handler: CustomSQSHandler = async (event: SQSEvent, context: Contex
 };
 
 async function processRequest(request: string): Promise<ValidResponse | ValidError> {
-  let call: Transaction;
+  let call: ProxyCall;
 
   try {
     call = JSON.parse(request);
@@ -69,7 +69,7 @@ async function processRequest(request: string): Promise<ValidResponse | ValidErr
   return validateAndProcessCall(call, request, requestId);
 }
 
-function validateAndProcessCall(call: Transaction, request: string, requestId: string): Promise<ValidResponse | ValidError> {
+function validateAndProcessCall(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ValidError> {
   if (typeof call.method !== 'string') {
     console.error(`Invalid method type: Expected string, received ${typeof call.method}`);
     return utils.buildErrorBody('request', 'Method type must be string', call.method, request, call.id);
@@ -83,7 +83,7 @@ function validateAndProcessCall(call: Transaction, request: string, requestId: s
   }
 }
 
-async function callSwitch(call: Transaction, request: string, requestId: string): Promise<ValidResponse | ValidError> {
+async function callSwitch(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ValidError> {
   console.info(`${requestId} - Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
 
 
@@ -94,7 +94,7 @@ async function callSwitch(call: Transaction, request: string, requestId: string)
   }
 }
 
-async function processProxyCall(callType: string, call: Transaction, request: string, requestId: string): Promise<ValidResponse | ValidError> {
+async function processProxyCall(callType: string, call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ValidError> {
   const config = callConfigs[callType];
   if (!config) {
     throw new Error(`No configuration found for call type ${callType}`);
@@ -133,7 +133,7 @@ async function queryNonce(requestId: string, nonceInfo: NonceInfo, nonceKey: str
 }
 
 async function processProxyMethod(
-  call: Transaction,
+  call: ProxyCall,
   request: string,
   requestId: string,
   pallet: string,
@@ -195,7 +195,7 @@ async function processProxyMethod(
 }
 
 async function sendTx(
-  call: Transaction,
+  call: ProxyCall,
   request: string,
   requestId: string,
   palletName: string,

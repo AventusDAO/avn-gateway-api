@@ -1,4 +1,5 @@
 import * as utils from '/opt/utils.js';
+// @ts-ignore
 import { SQSEvent, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 import { StatusCode, CustomSQSHandler } from './types';
 import { Response } from './common/types';

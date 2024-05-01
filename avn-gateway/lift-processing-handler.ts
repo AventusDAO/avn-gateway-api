@@ -1,5 +1,6 @@
 import * as utils from '/opt/utils.js';
 import * as sqs from '/opt/sqsUtils.js';
+// @ts-ignore
 import { Handler, Context } from 'aws-lambda';
 import { LiftData, LiftTransaction } from './types';
 

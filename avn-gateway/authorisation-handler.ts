@@ -1,4 +1,5 @@
 import * as utils from '/opt/utils.js';
+// @ts-ignore
 import { APIGatewayRequestAuthorizerEvent, APIGatewaySimpleAuthorizerWithContextResult,APIGatewayAuthorizerResultContext } from 'aws-lambda';
 import { UserInfo, PayerData, AWTToken, ValidRequestContext } from './types';
 

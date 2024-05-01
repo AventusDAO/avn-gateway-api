@@ -7,7 +7,9 @@ help: ## Show this help.
 	@sed -ne '/@sed/!s/## //p' $(MAKEFILE_LIST)
 
 package: ## - package the lambdas into a series of zips $ make package version=<version_no>
+	npm i -g --force typescript
 	npm --prefix ./common i ./common
+	npx tsc
 	mkdir -p build/common
 	cd common && zip -r ../build/common/common-latest.zip ./*
 	mkdir -p build/query-handler

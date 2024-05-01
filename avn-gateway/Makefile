@@ -10,6 +10,8 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	npm i -g --force typescript
 	npm --prefix ./common i ./common
 	npx tsc
+	cp ./common/package.json ./dist/common/
+	cp ./common/package-lock.json ./dist/common/
 	mkdir -p build/common
 	cd common && zip -r ../build/common/common-latest.zip ./*
 	mkdir -p build/query-handler

@@ -1,14 +1,15 @@
 import { SQSEvent, Handler, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 import { GenericEthereumLookupSource, Vec, u8, u64, u128, U256 } from '@polkadot/types'
 import { H256, AccountId, H160, BalanceOf } from "@polkadot/types/interfaces"
+import { Response, TransactionType } from './common/types';
 
 export type CustomSQSHandler = Handler<SQSEvent, (SQSBatchResponse | APIGatewayProxyResult) | void>
 export type TransactionStatus = 'Validating' | 'Processed' | 'Rejected';
 export type TxEventsMap = Record<string, TransactionEvent>;
 export type CrossChainTxMap = Map<string, CrossChainTxStatus | string>;
 export type SignDataItem = | { Text: string }
-    | { AccountId: AccountId }
-    | { SkipEncode: string[] }
+    | { AccountId: string }
+    | { SkipEncode: Uint8Array }
     | { 'Vec<u8>': Vec<u8>; }
     | { 'Vec<LookupSource>': Vec<GenericEthereumLookupSource>[]; }
     | { H256: H256; }
@@ -109,9 +110,9 @@ export interface CrossChainTxStatus {
     transactionHash: string;
 }
 
-export interface ErrorResponse {
-    error: string
-}
+// export interface ErrorResponse {
+//     error: string
+// }
 
 export interface LowerResult {
     statusCode: StatusCode,
@@ -130,10 +131,11 @@ export interface QueryStringParam {
     account?: string
 }
 
-export interface ValidResponse {
+export interface ValidResponse extends Response{
     jsonrpc: '2.0';
     id: string;
     result: string;
+    data?:any
 }
 
 export interface RPCError {
@@ -198,23 +200,25 @@ export interface Event {
     data: string
 }
 
+export interface CallParams  {
+    requestId?: string;
+    accountId?: string;
+    nonceType?: string;
+    externalRef?: string;
+    nftId?: string;
+    batchId?: string;
+    relayer?: string;
+    user?: string;
+    transactionType?: TransactionType;
+    token?: string;
+    fromTimestamp?: string;
+    toTimestamp?: string;
+};
+
 export interface Call {
     id: string | null,
     method: string,
-    params?: {
-        requestId?: string;
-        accountId?: string;
-        nonceType?: string;
-        externalRef?: string;
-        nftId?: string;
-        batchId?: string;
-        relayer?: string;
-        user?: string;
-        transactionType?: string;
-        token?: string;
-        fromTimestamp?: string;
-        toTimestamp?: string;
-    };
+    params?:CallParams
 }
 
 export interface ProxyCall {
@@ -252,7 +256,7 @@ export interface ProxyParams {
     relayerAddress: string;
     splitFeePayerAddress?: string;
     splitFeePayerVaultId?: string;
-    relayerFees?: number;
+    relayerFees?: string;
     splitFeeProxyProof?: any;
     paymentInfo?: PaymentInfo;
 }
@@ -263,8 +267,8 @@ export interface Transaction {
     splitFeePayerId?: string,
     splitFeePayerVaultId?: string,
     splitFeePayerAddress?: string,
-    method?: string,
-    relayerFee?: number,
+    method?: TransactionType,
+    relayerFee?: string,
     params?: TransactionParams,
     pallet?: string,
 }

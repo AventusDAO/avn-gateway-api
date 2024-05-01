@@ -1,7 +1,7 @@
 import { TypeRegistry } from '@polkadot/types';
 import { u8aConcat, u8aToHex, isHex } from '@polkadot/util';
 import { getRelayerFee, verifySignatureWithOrWithoutWrapping, encodeProxyProof } from '/opt/utils';
-import { PaymentInfo, ProxyProof } from './types';
+import { PaymentInfo, ProxyProof, TransactionType } from './types';
 
 const registry = new TypeRegistry();
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
@@ -22,7 +22,7 @@ async function tryGetPaymentInfo(
   payerAddress: string,
   relayerAddress: string,
   feePaymentSignature: string,
-  transactionType: string,
+  transactionType: TransactionType,
   paymentNonce: string,
   proxyProof: ProxyProof
 ): Promise<PaymentInfo> {

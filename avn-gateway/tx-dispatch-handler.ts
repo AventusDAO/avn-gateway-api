@@ -2,9 +2,10 @@ import * as utils from '/opt/utils';
 import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
 import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
-import { StatusCode, CustomSQSHandler, ValidResponse, ValidError,
+import { StatusCode, CustomSQSHandler, ValidResponse,
   ProxyParams, ProxyProof, QueryParams, PublishEventData, NonceInfo,
   CallConfig, SignDataItem, ProxyTransaction, ProxyCall } from './types';
+  import { ErrorBody, SendTxResult } from './common/types';
 
 const AVN_CONNECTOR_ENDPOINT: string = process.env.AVN_CONNECTOR_ENDPOINT || '';
 const SQS_TX_QUEUE_URL: string = process.env.SQS_TX_QUEUE_URL || '';
@@ -139,7 +140,7 @@ async function processProxyMethod(
   pallet: string,
   method: string,
   methodParams: any[]
-): Promise<ValidResponse | ValidError> {
+): Promise<ValidResponse | ErrorBody> {
   const { relayer, user, payer, proxySignature } = call.params;
 
   try {
@@ -201,7 +202,7 @@ async function sendTx(
   palletName: string,
   method: string,
   params: ProxyParams
-): Promise<ValidResponse | ValidError> {
+): Promise<SendTxResult | ErrorBody> {
   try {
     const txType = 'avnProxy';
     const tx:  ProxyTransaction = { requestId, txType, palletName, method, params };

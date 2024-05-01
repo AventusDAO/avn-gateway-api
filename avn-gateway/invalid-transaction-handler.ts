@@ -1,6 +1,7 @@
 import * as utils from '/opt/utils.js';
 import { SQSEvent, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
-import { StatusCode, ErrorResponse, CustomSQSHandler } from './types';
+import { StatusCode, CustomSQSHandler } from './types';
+import { Response } from './common/types';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 
@@ -49,7 +50,7 @@ export const handler: CustomSQSHandler = async (event: SQSEvent): Promise<SQSBat
   }
 };
 
-async function processFailedMessage(message: string): Promise<ErrorResponse> {
+async function processFailedMessage(message: string): Promise<Response> {
   let tx;
   let requestId;
 
@@ -72,7 +73,7 @@ async function processFailedMessage(message: string): Promise<ErrorResponse> {
     console.error(errorMessage);
 
     return {
-      error: errorMessage
+      error: {message: errorMessage}
     };
   }
 }

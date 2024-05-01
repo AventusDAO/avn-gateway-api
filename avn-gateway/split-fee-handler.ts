@@ -3,6 +3,7 @@ import * as fees from '/opt/paymentUtils.js';
 import * as sqs from '/opt/sqsUtils.js';
 import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 import { StatusCode, CustomSQSHandler, ValidResponse, ValidError, Transaction } from './types';
+import { ErrorBody } from './common/types';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL!;
@@ -51,7 +52,7 @@ export const handler: CustomSQSHandler = async (event: SQSEvent, context: Contex
   }
 };
 
-async function processRequest(request: string): Promise<ValidResponse | ValidError> {
+async function processRequest(request: string): Promise<ValidResponse | ErrorBody> {
   let tx: Transaction;
   let requestId: string;
 

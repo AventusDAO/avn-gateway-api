@@ -3,7 +3,7 @@ import * as sqs from '/opt/sqsUtils';
 import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from 'aws-lambda';
 import { ValidRequestContext, Transaction } from './types';
 
-const axios = utils.axios.default;
+const axios = utils.axios;
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 const SQS_DEFAULT_QUEUE_URL: string | undefined = process.env.SQS_DEFAULT_QUEUE_URL;

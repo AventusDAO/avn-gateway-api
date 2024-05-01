@@ -1,9 +1,7 @@
-import utils from '/opt/utils.js';
+import * as utils from '/opt/utils.js';
 import { APIGatewayRequestAuthorizerEvent, APIGatewaySimpleAuthorizerWithContextResult,APIGatewayAuthorizerResultContext } from 'aws-lambda';
-import { AxiosResponse } from 'axios';
 import { UserInfo, PayerData, AWTToken, ValidRequestContext } from './types';
 
-const axios = utils.axios.default;
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 const MAX_TOKEN_AGE_MSEC = parseInt(process.env.MAX_TOKEN_AGE_MSEC as string);
@@ -103,7 +101,7 @@ async function isValidSelfPayUser(awtToken: AWTToken): Promise<boolean> {
 
 async function tryGetPayerAddressForUser(awtToken: AWTToken): Promise<PayerData | undefined> {
   try {
-    const avnResponse: AxiosResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}getPayer`, {
+    const avnResponse = await utils.axios.post(`${AVN_CONNECTOR_ENDPOINT}getPayer`, {
       user: awtToken.pk,
       payer: awtToken.payer
     });
@@ -117,7 +115,7 @@ async function tryGetPayerAddressForUser(awtToken: AWTToken): Promise<PayerData 
 
 async function tryGetUserInfo(awtToken: AWTToken): Promise<UserInfo | undefined> {
   try {
-    const avnResponse: AxiosResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}gatewayUserInfo`, {
+    const avnResponse = await utils.axios.post(`${AVN_CONNECTOR_ENDPOINT}gatewayUserInfo`, {
       account: awtToken.pk
     });
 

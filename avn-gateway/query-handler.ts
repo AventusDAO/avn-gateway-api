@@ -1,6 +1,7 @@
 import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import * as utils from '/opt/utils';
 import { Call, ValidError, ValidResponse } from './types';
+import { ErrorBody } from './common/types';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT as string;
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL as string;
@@ -32,7 +33,7 @@ async function processRequest(request: string): Promise<any> {
 }
 
 // Keep alphabetical
-async function callSwitch(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function callSwitch(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   console.info(`Processing call: ${JSON.stringify(call)}`);
 
   switch (call.method) {
@@ -100,7 +101,7 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
   }
 }
 
-async function getNonce(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { accountId, nonceType } = call.params;
 
   if (!accountId || !utils.isValidAccountId(accountId)) {
@@ -113,10 +114,10 @@ async function getNonce(call: Call, request: string): Promise<ValidResponse | Va
 
   const { palletName, storageName } = utils.NONCE_INFO[nonceType];
 
-  return await queryChain(call, request, palletName, storageName, [accountId], utils.formatNumAsString);
+  return await queryChain(call, request, palletName, storageName, [accountId], formatNumAsString);
 }
 
-async function getAvtBalance(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getAvtBalance(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { accountId } = call.params;
 
   if (!utils.isValidAccountId(accountId)) {
@@ -126,21 +127,21 @@ async function getAvtBalance(call: Call, request: string): Promise<ValidResponse
   }
 }
 
-async function getAvtContractAddress(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getAvtContractAddress(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   return await getChainInfo(call, request, filterAvtContract);
 }
 
-async function getAvnContractAddress(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getAvnContractAddress(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   return await getChainInfo(call, request, filterAvnContract);
 }
 
-async function getDefaultRelayer(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getDefaultRelayer(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'getDefaultRelayer';
   const params = { callId: call.id };
   return await query(call, request, method, params);
 }
 
-async function getNftContractAddress(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getNftContractAddress(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'avnNftContractAddresses';
   return await query(call, request, method, {});
 }
@@ -168,7 +169,7 @@ async function getNftId(call: Call, request: string) {
   }
 }
 
-async function getNftNonce(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getNftNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
@@ -179,7 +180,7 @@ async function getNftNonce(call: Call, request: string): Promise<ValidResponse |
   }
 }
 
-async function getNftInfo(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getNftInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
@@ -191,7 +192,7 @@ async function getNftInfo(call: Call, request: string): Promise<ValidResponse | 
   }
 }
 
-async function getBatchInfo(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getBatchInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { batchId } = call.params;
 
   if (utils.isValidNftId(batchId) === false) {
@@ -203,7 +204,7 @@ async function getBatchInfo(call: Call, request: string): Promise<ValidResponse 
   }
 }
 
-async function getNftListingStatus(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getNftListingStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
@@ -213,7 +214,7 @@ async function getNftListingStatus(call: Call, request: string): Promise<ValidRe
   }
 }
 
-async function getBatchListingStatus(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getBatchListingStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { batchId } = call.params;
 
   // NftIs and BatchId have the same format
@@ -224,7 +225,7 @@ async function getBatchListingStatus(call: Call, request: string): Promise<Valid
   }
 }
 
-async function getNftOwner(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getNftOwner(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { nftId } = call.params;
 
   if (utils.isValidNftId(nftId) === false) {
@@ -234,7 +235,7 @@ async function getNftOwner(call: Call, request: string): Promise<ValidResponse |
   }
 }
 
-async function getRelayerFees(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getRelayerFees(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   let { relayer, user, transactionType } = call.params;
 
   try {
@@ -258,7 +259,7 @@ async function getRelayerFees(call: Call, request: string): Promise<ValidRespons
   }
 }
 
-async function getTokenBalance(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getTokenBalance(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { accountId, token } = call.params;
 
   try {
@@ -330,7 +331,7 @@ async function queryAccountInfoFromChain(call: Call, request: string, accountId:
   return await query(call, request, method, params);
 }
 
-async function getEthereumEventStatus(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getEthereumEventStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'ethereumEventStatus';
   let { liftStatus } = (await query(call, request, method)).data;
 
@@ -339,18 +340,18 @@ async function getEthereumEventStatus(call: Call, request: string): Promise<Vali
   return liftStatus;
 }
 
-async function queryValidatorsToNominateFromChain(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function queryValidatorsToNominateFromChain(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'avnValidatorsToNominate';
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
 }
 
-async function getMinTotalNominatorStake(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getMinTotalNominatorStake(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   return await queryChain(call, request, 'parachainStaking', 'minTotalNominatorStake', [], formatNumAsString);
 }
 
-async function getOwnedNfts(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getOwnedNfts(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { accountId } = call.params;
 
   if (utils.isValidAccountId(accountId) === false) {
@@ -362,14 +363,14 @@ async function getOwnedNfts(call: Call, request: string): Promise<ValidResponse 
   }
 }
 
-async function getStakingStats(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getStakingStats(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'avnStakingStats';
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
 }
 
-async function getStakerRewardsEarned(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getStakerRewardsEarned(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   let { accountId, fromTimestamp, toTimestamp } = call.params;
 
   if (!utils.isValidAccountId(accountId)) {
@@ -409,14 +410,14 @@ async function getStakerRewardsEarned(call: Call, request: string): Promise<Vali
   }
 }
 
-async function getCurrentBlock(call: Call, request: string): Promise<ValidResponse | ValidError> {
+async function getCurrentBlock(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'avnCurrentBlock';
   const params = { callId: call.id };
 
   return await query(call, request, method, params);
 }
 
-async function getChainInfo(call: Call, request: string, filter?: (data: any) => any): Promise<ValidResponse | ValidError> {
+async function getChainInfo(call: Call, request: string, filter?: (data: any) => any): Promise<ValidResponse | ErrorBody> {
   const method = 'avnChainInfo';
   const params = { callId: call.id };
 
@@ -424,7 +425,7 @@ async function getChainInfo(call: Call, request: string, filter?: (data: any) =>
 }
 
 
-async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any) {
+async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any):Promise<ValidResponse|ErrorBody> {
   try {
     const avnResponse = await utils.axios.post(`${AVN_CONNECTOR_ENDPOINT}${method}`, params);
     const result = avnResponse.data.error || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);

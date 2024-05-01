@@ -1,19 +1,10 @@
 import { getPublicKeyPEM } from '/opt/kmsUtils.js';
-import { Handler } from 'aws-lambda';
+import { Handler, APIGatewayProxyResult } from 'aws-lambda';
+import { StatusCode } from './types';
+
 const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID!;
 
-enum StatusCode {
-  OK = 200,
-  MultiStatus = 207,
-  InternalServerError = 500
-}
-
-export interface ResponseFormat {
-  statusCode: StatusCode,
-  body: string,
-}
-
-export const handler: Handler = async (): Promise<ResponseFormat> => {
+export const handler: Handler = async (): Promise<APIGatewayProxyResult> => {
   try {
     return { statusCode: StatusCode.OK, body: JSON.stringify({ publicKeyPEM: await getPublicKeyPEM(KMS_KEY_ID) }) };
   } catch (error) {

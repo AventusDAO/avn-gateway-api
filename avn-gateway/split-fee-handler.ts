@@ -1,66 +1,14 @@
 import * as utils from '/opt/utils.js';
 import * as fees from '/opt/paymentUtils.js';
 import * as sqs from '/opt/sqsUtils.js';
-import { Handler, SQSEvent, Context, SQSBatchResponse } from 'aws-lambda';
+import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
+import { StatusCode, CustomSQSHandler, ValidResponse, ValidError, Transaction } from './types';
+import { ErrorBody } from './common/types';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 const SQS_DEFAULT_QUEUE_URL = process.env.SQS_DEFAULT_QUEUE_URL!;
 
-type InvalidTransactionHandler = Handler<SQSEvent, (SQSBatchResponse|SplitFeeHandlerResponse) | void>
-
-export interface ValidResponse {
-  jsonrpc: '2.0';
-  id: string;
-  result: string;
-}
-
-export interface RPCError {
-  code: number;
-  message: string;
-}
-
-export interface ValidError {
-  jsonrpc: '2.0';
-  id: string;
-  error: RPCError & { data: {
-    gatewayError: string,
-    request: string,
-  } };
-}
-
-enum StatusCode {
-  OK = 200,
-  MultiStatus = 207,
-  InternalServerError = 500
-}
-
-export interface ResponseFormat {
-  statusCode: StatusCode,
-  body: string,
-}
-
-export interface Transaction {
-  id: string,
-  awsRequestId: string,
-  splitFeePayerId: string,
-  splitFeePayerVaultId: string,
-  splitFeePayerAddress: string,
-  method: string,
-  relayerFee: number,
-  params: {
-    user: string,
-    relayer: string,
-    payer: string,
-    proxySignature: string
-  }
-}
-
-export interface SplitFeeHandlerResponse {
-  statusCode: StatusCode;
-  body: string;
-}
-
-export const handler: InvalidTransactionHandler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse|SplitFeeHandlerResponse> => {
+export const handler: CustomSQSHandler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse|APIGatewayProxyResult> => {
   await utils.init();
   let processedMessagesCount = 0;
 
@@ -104,7 +52,7 @@ export const handler: InvalidTransactionHandler = async (event: SQSEvent, contex
   }
 };
 
-async function processRequest(request: string): Promise<ValidResponse | ValidError> {
+async function processRequest(request: string): Promise<ValidResponse | ErrorBody> {
   let tx: Transaction;
   let requestId: string;
 

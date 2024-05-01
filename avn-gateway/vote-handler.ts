@@ -1,52 +1,14 @@
+// @ts-ignore
 import { S3Client, GetObjectCommand, ListObjectsV2Command, PutObjectCommand } from '@aws-sdk/client-s3';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import * as utils from '/opt/utils';
 import { Readable } from 'stream';
+import { VoterIntention, ProposalData, FormattedVote, FormattedProposal } from './types';
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 const AVN_VOTES_BUCKET: string | undefined = process.env.AVN_VOTES_BUCKET;
 
 const s3 = new S3Client();
-
-interface VoterIntention {
-  proposal: string;
-  vote: boolean;
-  publicKey: string;
-  address: string;
-  signature: string;
-}
-
-interface ProposalData {
-  votes?: Record<string, number>;
-  scores: number[];
-  votingChoice: number[];
-  title: string;
-  description: string;
-  start: number;
-  end: number;
-  blockNumber: number;
-}
-
-interface FormattedVote {
-  address: string;
-  voteSway: number;
-  avtWeight: number;
-}
-
-interface FormattedProposal {
-  title: string;
-  description: string;
-  start: number;
-  end: number;
-  proposal: string;
-  status: string;
-  blockNumber: number;
-  numVotes: number;
-  scores: number[];
-  votingChoice: number[];
-  votes?: FormattedVote[];  
-}
-
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   await utils.init();

@@ -227,8 +227,8 @@ export interface ProxyCall {
     splitFeePayerId?: string,
     splitFeePayerVaultId?: string,
     splitFeePayerAddress?: string,
-    method?: string,
-    relayerFee?: number,
+    method?: TransactionType,
+    relayerFee?: string,
     params?: ProxyCallParams,
     pallet?: string,
 }

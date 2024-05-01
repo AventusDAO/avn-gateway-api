@@ -52,7 +52,7 @@ export const handler: CustomSQSHandler = async (event: SQSEvent, context: Contex
   }
 };
 
-async function processRequest(request: string): Promise<ValidResponse | ValidError> {
+async function processRequest(request: string): Promise<ValidResponse | ErrorBody> {
   let call: ProxyCall;
 
   try {
@@ -70,7 +70,7 @@ async function processRequest(request: string): Promise<ValidResponse | ValidErr
   return validateAndProcessCall(call, request, requestId);
 }
 
-function validateAndProcessCall(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ValidError> {
+async function validateAndProcessCall(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
   if (typeof call.method !== 'string') {
     console.error(`Invalid method type: Expected string, received ${typeof call.method}`);
     return utils.buildErrorBody('request', 'Method type must be string', call.method, request, call.id);
@@ -84,7 +84,7 @@ function validateAndProcessCall(call: ProxyCall, request: string, requestId: str
   }
 }
 
-async function callSwitch(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ValidError> {
+async function callSwitch(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
   console.info(`${requestId} - Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
 
 
@@ -95,7 +95,7 @@ async function callSwitch(call: ProxyCall, request: string, requestId: string): 
   }
 }
 
-async function processProxyCall(callType: string, call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ValidError> {
+async function processProxyCall(callType: string, call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
   const config = callConfigs[callType];
   if (!config) {
     throw new Error(`No configuration found for call type ${callType}`);

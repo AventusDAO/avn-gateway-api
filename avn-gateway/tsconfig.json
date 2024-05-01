@@ -6,11 +6,13 @@
                 "./common/*"
             ] // Maps all imports from "/opt/" to "./common/"
         },
-        "moduleResolution": "node", // Ensures that module resolution follows Node.js-style resolution
+        // "moduleResolution": "node", // Ensures that module resolution follows Node.js-style resolution
         "esModuleInterop": true,
         "rootDir": ".",
         "outDir": "./dist",
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "module": "node16",
+        "target": "es2020",
     },
     "include": [
         "./**/*"

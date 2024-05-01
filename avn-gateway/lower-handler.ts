@@ -1,4 +1,5 @@
 import * as utils from '/opt/utils.js';
+// @ts-ignore
 import { Handler, APIGatewayProxyEvent } from 'aws-lambda';
 import { StatusCode, LowerStatus, LowerResult, Lower, QueryStringParam } from './types';
 

@@ -1,4 +1,5 @@
 import * as utils from '/opt/utils'
+// @ts-ignore
 import { Handler } from 'aws-lambda'
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;

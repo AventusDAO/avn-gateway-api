@@ -1,3 +1,4 @@
+// @ts-ignore
 import { SQSEvent, Handler, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 
 import { Response, SignDataItem, TransactionType } from './common/types';

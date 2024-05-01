@@ -12,6 +12,7 @@ package: ## - package the lambdas into a series of zips $ make package version=<
 	npx tsc
 	cp ./common/package.json ./dist/common/
 	cp ./common/package-lock.json ./dist/common/
+	cp -r ./common/node_modules/ ./dist/common/
 	mkdir -p build/common
 	cd ./dist/common && zip -r ../../build/common/common-latest.zip ./*
 	mkdir -p build/query-handler

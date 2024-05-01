@@ -217,6 +217,28 @@ export interface Call {
     };
 }
 
+export interface ProxyCall {
+    id: string,
+    awsRequestId?: string,
+    splitFeePayerId?: string,
+    splitFeePayerVaultId?: string,
+    splitFeePayerAddress?: string,
+    method?: string,
+    relayerFee?: number,
+    params?: ProxyCallParams,
+    pallet?: string,
+}
+
+export interface ProxyCallParams {
+    user?: string,
+    relayer?: string,
+    payer?: string,
+    proxySignature?: string
+    feePaymentSignature?: string;
+    paymentNonce?: string;
+    nonce?: string;
+}
+
 export interface ProxyTransaction {
     requestId: string;
     txType: string;

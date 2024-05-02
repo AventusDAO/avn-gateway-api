@@ -1,10 +1,10 @@
 // @ts-ignore
 import { SQSEvent, Handler, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 
-import { Response, SignDataItem, TransactionType } from './common/types';
+import { Response, SignDataItem, TransactionType } from './types';
 
 export type CustomSQSHandler = Handler<SQSEvent, (SQSBatchResponse | APIGatewayProxyResult) | void>
-export type TransactionStatus = 'Validating' | 'Processed' | 'Rejected';
+export type TransactionStatus = 'Validating' | 'Processed' | 'Rejected' | 'AwaitingToSend' | 'Pending' | 'SendingFailed'|'PayerRefused';
 export type TxEventsMap = Record<string, TransactionEvent>;
 export type CrossChainTxMap = Map<string, CrossChainTxStatus | string>;
 
@@ -120,11 +120,11 @@ export interface QueryStringParam {
     account?: string
 }
 
-export interface ValidResponse extends Response{
+export interface ValidResponse extends Response {
     jsonrpc: '2.0';
     id: string;
     result: string;
-    data?:any
+    data?: any
 }
 
 export interface RPCError {
@@ -189,7 +189,7 @@ export interface Event {
     data: string
 }
 
-export interface CallParams  {
+export interface CallParams {
     requestId?: string;
     accountId?: string;
     nonceType?: string;
@@ -207,7 +207,7 @@ export interface CallParams  {
 export interface Call {
     id: string | null,
     method: string,
-    params?:CallParams
+    params?: CallParams
 }
 
 export interface ProxyCall {

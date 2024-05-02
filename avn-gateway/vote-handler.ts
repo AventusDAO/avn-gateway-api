@@ -4,7 +4,7 @@ import { S3Client, GetObjectCommand, ListObjectsV2Command, PutObjectCommand } fr
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import * as utils from '/opt/utils';
 import { Readable } from 'stream';
-import { VoterIntention, ProposalData, FormattedVote, FormattedProposal } from './types';
+import { VoterIntention, ProposalData, FormattedVote, FormattedProposal } from '/opt/handler-types';
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 const AVN_VOTES_BUCKET: string | undefined = process.env.AVN_VOTES_BUCKET;

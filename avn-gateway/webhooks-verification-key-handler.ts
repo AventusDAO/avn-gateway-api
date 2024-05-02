@@ -1,5 +1,5 @@
 import { getPublicKeyPEM } from '/opt/kmsUtils.js';
-import { StatusCode } from './types';
+import { StatusCode } from '/opt/handler-types';
 // @ts-ignore
 import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 

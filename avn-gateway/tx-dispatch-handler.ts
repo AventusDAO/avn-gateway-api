@@ -3,8 +3,8 @@ import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
 import { StatusCode, CustomSQSHandler, ValidResponse,
   ProxyParams, ProxyProof, QueryParams, PublishEventData, NonceInfo,
-  CallConfig, ProxyTransaction, ProxyCall } from './types';
-  import { ErrorBody, SendTxResult,SignDataItem } from './common/types';
+  CallConfig, ProxyTransaction, ProxyCall } from '/opt/handler-types';
+  import { ErrorBody, SendTxResult,SignDataItem } from '/opt/types';
 
   // @ts-ignore
 import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';

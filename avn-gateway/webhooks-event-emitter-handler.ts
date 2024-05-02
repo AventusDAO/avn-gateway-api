@@ -1,7 +1,7 @@
 import { axios, callWithTimeout } from '/opt/utils';
 import { signMessage } from '/opt/kmsUtils.js';
 import { getFailedMessagesForFifoQueue } from '/opt/sqsUtils.js';
-import { CustomSQSHandler, EventRecord, Event } from './types';
+import { CustomSQSHandler, EventRecord, Event } from '/opt/handler-types';
 // @ts-ignore
 import { SQSBatchResponse, SQSEvent, Context } from 'aws-lambda';
 

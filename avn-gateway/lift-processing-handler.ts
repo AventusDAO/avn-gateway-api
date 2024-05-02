@@ -2,7 +2,7 @@ import * as utils from '/opt/utils.js';
 import * as sqs from '/opt/sqsUtils.js';
 // @ts-ignore
 import { Handler, Context } from 'aws-lambda';
-import { LiftData, LiftTransaction } from './types';
+import { LiftData, LiftTransaction } from '/opt/handler-types';
 
 const AVN_CONNECTOR_ENDPOINT: string = process.env.AVN_CONNECTOR_ENDPOINT!;
 const SQS_TX_QUEUE_URL: string = process.env.SQS_TX_QUEUE_URL!;

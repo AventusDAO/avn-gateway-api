@@ -1,7 +1,7 @@
 import * as utils from '/opt/utils.js';
 // @ts-ignore
 import { APIGatewayRequestAuthorizerEvent, APIGatewaySimpleAuthorizerWithContextResult,APIGatewayAuthorizerResultContext } from 'aws-lambda';
-import { UserInfo, PayerData, AWTToken, ValidRequestContext } from './types';
+import { UserInfo, PayerData, AWTToken, ValidRequestContext } from '/opt/handler-types';
 
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;

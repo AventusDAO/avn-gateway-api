@@ -5,40 +5,15 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
-      - main
-      - parachain_main
-      - feature/*
-    paths:
-      - 'avn-connector/**'
-  push:
-    branches:
-      - main
-    paths:
-      - 'avn-connector/**'
+      - ew-main-hotfix-b830ec7
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  avn-docker-connector:
-    name: (AVN) build docker connector
-    if: github.ref != 'refs/heads/ew-main'
-    uses: ./.github/workflows/docker-build.yaml
-    with:
-      aws_region: eu-west-2
-      aws_account_id: 189013141504
-      context: avn-connector
-      short_image_name: avn-connector
-      ecr_repository_prefix: gateway-api
-    secrets:
-      aws_access_key: ${{ secrets.TESTNET_AWS_ACCESS_KEY_ID }}
-      aws_secret_key: ${{ secrets.TESTNET_AWS_SECRET_ACCESS_KEY }}
-
-
   ew-docker-connector:
     name: (EW) build docker connector
-    if: github.ref == 'refs/heads/ew-main'
     uses: ./.github/workflows/docker-build.yaml
     with:
       runner: avn-runner

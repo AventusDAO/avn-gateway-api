@@ -506,7 +506,7 @@ async function getSummaries() {
           fromBlock: parseInt(fromBlock),
           toBlock: parseInt(toBlock),
           rootHash: rootHash.toString().toLowerCase(),
-          isValid: isValidated
+          isValid: !!isValidated || !!txId
         })
       );
       const validEntries = formattedEntries

@@ -14,7 +14,7 @@ const REQUIRED_CONFIRMATION_BLOCKS = 20;
 const MAX_LIFT_BLOCKS_TO_PROCESS = 100;
 
 const EVENT_SIG = {
-  LIFT: ethers.utils.id('LogLifted(address,address,bytes32,uint256)'),
+  LIFT: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
   LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
 }

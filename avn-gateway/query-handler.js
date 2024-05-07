@@ -120,7 +120,7 @@ async function getAvtContractAddress(call, request) {
 }
 
 async function getAvnContractAddress(call, request) {
-  return await queryChain(call, request, 'ethereumEvents', 'liftingContractAddress', [], formatAsString);
+  return await queryChain(call, request, 'avn', 'avnBridgeContractAddress', [], formatAsString);
 }
 
 async function getDefaultRelayer(call, request) {

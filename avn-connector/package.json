@@ -6,7 +6,7 @@
   "description": "Connects to the AVN and keeps connection in memory",
   "scripts": {
     "start": "node index.js",
-    "build": "npx tsc",
+    "build": "tsc .",
     "pretty": "prettier --config ./.prettierrc.yml --check \"**/*.{js,ts,json}\"",
     "pretty:fix": "prettier --config ./.prettierrc.yml --write \"**/*.{js,ts,json}\"",
     "lint:check": "eslint '*/**/*.{js,ts,tsx}'"

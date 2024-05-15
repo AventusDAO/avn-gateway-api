@@ -1,0 +1,32 @@
+root: true
+
+parser: '@typescript-eslint/parser'
+
+# Parse all files with TypeScript.
+extends:
+  - 'standard-with-typescript'
+  - 'eslint:recommended'
+  - 'prettier'
+
+parserOptions:
+  project: './tsconfig.json'
+  createDefaultProgram: true
+
+plugins:
+  - prettier
+  - '@typescript-eslint'
+
+rules:
+  '@typescript-eslint/no-unnecessary-type-assertion': off
+  '@typescript-eslint/consistent-type-definitions': off
+  '@typescript-eslint/no-empty-interface': off
+  '@typescript-eslint/strict-boolean-expressions': off
+  '@typescript-eslint/explicit-function-return-type': warn
+  '@typescript-eslint/restrict-template-expressions': warn
+  '@typescript-eslint/no-var-requires': warn
+
+  no-unused-vars: off
+  '@typescript-eslint/no-unused-vars':
+    - warn
+    - varsIgnorePattern: _
+      argsIgnorePattern: _

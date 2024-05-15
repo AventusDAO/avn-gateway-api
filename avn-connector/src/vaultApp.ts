@@ -1,6 +1,5 @@
 const axios = require('axios');
-const log4js = require('log4js');
-const log = log4js.getLogger();
+const logger = require("./logger");
 
 async function post(url, data, token) {
   const tokenReq = typeof token === 'undefined';
@@ -26,7 +25,7 @@ async function get(url, token) {
   try {
     return (await axios({ method: 'get', url: url, headers: headers })).data.data;
   } catch (err) {
-    log.trace(`vault error on GET: `, err);
+    logger.info(`vault error on GET: `, err);
     if (err.response) {
       if (err.response.status === 404 || err.response.data.errors[0].includes('Error reading user')) return '';
       else throw new Error('vault - ' + err.response.data.errors.toString());
@@ -52,7 +51,7 @@ module.exports = function (baseURL, roleId, secretId) {
   this.getToken = async function () {
     const now = Date.now();
     if (!this.loginToken.token || this.loginToken.validUntil < now) {
-      log.trace(`login token has expired on ${this.loginToken.validUntil}. Refreshing...`);
+      logger.info(`login token has expired on ${this.loginToken.validUntil}. Refreshing...`);
       const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
       this.loginToken.token = token;
       this.loginToken.validUntil = now + EXPIRY;

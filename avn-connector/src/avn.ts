@@ -3,8 +3,6 @@ const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
 const { isHex, stringToHex, u8aToHex } = require('@polkadot/util');
 const { keccakAsHex } = require('@polkadot/util-crypto');
 const config = require('multiconfig').load();
-const log4js = require('log4js');
-const log = log4js.getLogger();
 const avnTypes = require('avn-types');
 const redis = require('./redis');
 const tier1 = require('./tier1');
@@ -14,6 +12,7 @@ const webhooks = require('./webhooks');
 const fees = require('./paymentInfoHelper');
 const rds = require('./db/index');
 const BN = require('bn.js');
+const logger = require('./logger');
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -38,13 +37,13 @@ async function query(palletName, storageName, params) {
     result = result.toJSON();
   }
 
-  log.trace(`Encoded query response: ${JSON.stringify(result)}`);
+  logger.trace(`Encoded query response: ${JSON.stringify(result)}`);
   return JSON.stringify(result);
 }
 
 async function proxy(requestId, palletName, method, params) {
   if (palletName === 'utility' && method === 'batchAll') {
-    log.trace({
+    logger.trace({
       message: `${requestId} - Creating batch transactions.`,
       extrinsic: params.map(p => `api.tx.${p.palletName}.proxy`).join(', ')
     });
@@ -66,7 +65,7 @@ async function proxy(requestId, palletName, method, params) {
 
     return result;
   } else {
-    log.trace(`${requestId} - Creating inner call from extrinsic api.tx.${palletName}.${method}`);
+    logger.trace(`${requestId} - Creating inner call from extrinsic api.tx.${palletName}.${method}`);
 
     const innerCall = api.tx[palletName][method](...params.proxyParams);
     const txn = api.tx.avnProxy.proxy(innerCall, params.paymentInfo);
@@ -84,18 +83,18 @@ async function proxy(requestId, palletName, method, params) {
 }
 
 async function setNextPayerNonce(requestId, payerAddress, nonce) {
-  log.trace(`${requestId} - Updating payment nonce for ${payerAddress} to ${nonce}`);
+  logger.trace(`${requestId} - Updating payment nonce for ${payerAddress} to ${nonce}`);
   try {
     await redis.setNextPayerNonce(payerAddress, nonce);
-    log.trace(`${requestId} - Payment nonce updated`);
+    logger.trace(`${requestId} - Payment nonce updated`);
   } catch (err) {
-    log.error({ message: `${requestId} - Error updating payment nonce`, err });
+    logger.error({ message: `${requestId} - Error updating payment nonce`, err });
   }
 }
 
 async function poll(requestId) {
   if (!requestId) {
-    log.error(`Unknown request: ${requestId}`);
+    logger.error(`Unknown request: ${requestId}`);
     return { error: 'Bad request' };
   }
 
@@ -104,7 +103,7 @@ async function poll(requestId) {
     let tx = await redis.getAvnTransaction(txHash);
 
     if (!tx) {
-      log.warn(`${requestId} - No transaction found.`);
+      logger.warn(`${requestId} - No transaction found.`);
       return { status: `Transaction not found` };
     }
 
@@ -119,7 +118,7 @@ async function poll(requestId) {
       eventArgs
     };
   } catch (err) {
-    log.error({ message: `${requestId} - Error getting transaction status`, err });
+    logger.error({ message: `${requestId} - Error getting transaction status`, err });
     throw new Error(`Unable to get transaction status for requestId: ${requestId}`);
   }
 }
@@ -332,13 +331,13 @@ async function processLifts(requestId, toBlock, unprocessedLifts) {
 //This function can be called multiple times (3 by default) from sqsConsumer, for the same transaction if it returns an error.
 async function signAndSend(requestId, relayerAddress, txn, optionalAccountForWebhook) {
   let transactionHash, nonce, relayerAccount;
-  log.trace(`${requestId} - Sending transaction to the AvN`);
+  logger.trace(`${requestId} - Sending transaction to the AvN`);
   try {
-    log.trace(`${requestId} - Relayer address: ${relayerAddress}`);
+    logger.trace(`${requestId} - Relayer address: ${relayerAddress}`);
     relayerAccount = await getRelayerAccount(relayerAddress);
   } catch (err) {
-    log.error({ message: `${requestId} - Error getting relayer account for ${relayerAddress}` });
-    log.error(err);
+    logger.error({ message: `${requestId} - Error getting relayer account for ${relayerAddress}` });
+    logger.error(err);
 
     if (optionalAccountForWebhook) {
       const data = { status: 'failed', reason: `invalid relayer: ${relayerAddress}` };
@@ -349,7 +348,7 @@ async function signAndSend(requestId, relayerAddress, txn, optionalAccountForWeb
     throw err;
   }
 
-  log.trace(`${requestId} - encodedTransaction: ${txn.toString()}`);
+  logger.trace(`${requestId} - encodedTransaction: ${txn.toString()}`);
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);
@@ -361,10 +360,10 @@ async function signAndSend(requestId, relayerAddress, txn, optionalAccountForWeb
     transactionHash = receipt.toString();
     await redis.updateTransactionStatusToPending(requestId, transactionHash, relayerAddress, nonce.toString());
 
-    log.trace(`${requestId} - Transaction sent using relayer nonce: ${nonce}, transaction hash: ${transactionHash}`);
+    logger.trace(`${requestId} - Transaction sent using relayer nonce: ${nonce}, transaction hash: ${transactionHash}`);
   } catch (err) {
     transactionHash = keccakAsHex(requestId);
-    log.error({
+    logger.error({
       message: `${requestId} - Failed sending transaction using relayer nonce: ${nonce}, transaction hash: ${transactionHash}`,
       err
     });
@@ -402,7 +401,7 @@ async function addNewTransaction(requestId) {
   if (!requestId) throw new Error('addNewTransaction - RequestId is mandatory');
   const requestIdHash = keccakAsHex(requestId);
 
-  log.trace(`${requestId} - Adding a new transaction. txHash: ${requestIdHash}`);
+  logger.trace(`${requestId} - Adding a new transaction. txHash: ${requestIdHash}`);
   await redis.addNewAvnTransaction(requestId, requestIdHash);
 }
 
@@ -412,7 +411,7 @@ async function getRelayerAccount(relayerAddress) {
     let relayerSuri = await vault.getRelayerSeed(userName);
 
     if (!relayerSuri) {
-      log.warn(`Relayer with username: ${userName} not found in vault. Trying with address ${relayerAddress} as username`);
+      logger.warn(`Relayer with username: ${userName} not found in vault. Trying with address ${relayerAddress} as username`);
       relayerSuri = await vault.getRelayerSeed(relayerAddress);
       if (!relayerSuri) {
         throw new Error(`Relayer username: ${userName}, address: ${relayerAddress} not found in Vault.`);
@@ -461,7 +460,7 @@ async function init() {
 async function startSubscriptions() {
   // variable name for descriptive porpuses if we add more subscriptions
   let selectedCandidatesSub = await api.query.parachainStaking.selectedCandidates(candidates => {
-    log.info(`Setting collators to nominate: ${candidates}`);
+    logger.info(`Setting collators to nominate: ${candidates}`);
     redis.setCollatorsToNominate(candidates);
   });
 }
@@ -484,7 +483,7 @@ async function setChainInfo() {
 }
 
 async function connectToAvN() {
-  log.info(`Creating a connection to the AVN on: ${AVN_URL}`);
+  logger.info(`Creating a connection to the AVN on: ${AVN_URL}`);
 
   let provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({
@@ -523,7 +522,7 @@ async function connectToAvN() {
     api.rpc.system.version()
   ]);
 
-  log.info(`You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`);
+  logger.info(`You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`);
 }
 
 async function getSummaries() {
@@ -558,7 +557,7 @@ async function getSummaries() {
 
     return summaries.sort((a, b) => a.fromBlock - b.fromBlock);
   } catch (error) {
-    log.error({ message: 'Error getting summaries', err });
+    logger.error({ message: 'Error getting summaries', err });
     return [];
   }
 }
@@ -581,19 +580,19 @@ async function getPayerPaymentNonce(requestId, payerAddress) {
     let nonce = await redis.getNextPayerNonce(payerAddress);
     if (!nonce) {
       nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
-      log.trace(`${requestId} - Nonce expired, refreshing from chain. New nonce: ${nonce}`);
+      logger.trace(`${requestId} - Nonce expired, refreshing from chain. New nonce: ${nonce}`);
     }
-    log.trace(`${requestId} - Payer ${payerAddress}, payment nonce: ${nonce}`);
+    logger.trace(`${requestId} - Payer ${payerAddress}, payment nonce: ${nonce}`);
     return nonce;
   } catch (err) {
-    log.error({ message: `${requestId} - Error getting payer (${payerAddress}) payment nonce`, err });
+    logger.error({ message: `${requestId} - Error getting payer (${payerAddress}) payment nonce`, err });
 
     throw err;
   }
 }
 
 async function generateSplitFeePaymentInfo(requestId, transaction, paymentNonce) {
-  log.trace(
+  logger.trace(
     `${requestId} - Generating payment info. Payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`
   );
 
@@ -623,7 +622,7 @@ async function payerHasFunds(payerAddress) {
   const minAvtBalance = toBn(config.minimumPayerBalance);
 
   if (payerAvtBalance.lt(minAvtBalance)) {
-    log.warn(
+    logger.warn(
       `Insufficient payer balance: - Payer: ${payerAddress} - Current payer balance: ${payerAvtBalance.toString()} - Minimum payer balance: ${minAvtBalance.toString()}`
     );
     return false;
@@ -668,7 +667,7 @@ async function getUnclaimedLowerProofs(minLowerId, additionalLowerIds) {
       return acc;
     }, {});
   } catch (error) {
-    log.error('Error in getUnclaimedLowerProofs:', error);
+    logger.error('Error in getUnclaimedLowerProofs:', error);
     throw error;
   }
 }
@@ -700,7 +699,7 @@ async function getNftInfo(nftId) {
       marketplaceId: nftInfo.t1Authority
     }
   } catch (err) {
-    log.error(`Error getting nft info for nftId: ${nftId}: `, err);
+    logger.error(`Error getting nft info for nftId: ${nftId}: `, err);
     throw err;
   }
 }
@@ -726,7 +725,7 @@ async function getBatchInfo(batchId) {
       marketplaceId: batchInfo.t1Authority
     }
   } catch (err) {
-    log.error(`Error getting batch info for batchId: ${batchId}: `, err);
+    logger.error(`Error getting batch info for batchId: ${batchId}: `, err);
     throw err;
   }
 }

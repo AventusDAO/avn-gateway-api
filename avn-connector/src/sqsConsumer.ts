@@ -1,6 +1,6 @@
 import { SQSClient, ReceiveMessageCommand, DeleteMessageBatchCommand, Message } from '@aws-sdk/client-sqs';
-import * as avn from './avn';
-import * as webhooks from './webhooks';
+import avn from './avn';
+import webhooks from './webhooks';
 const config = require('multiconfig').load();
 import log4js from 'log4js';
 const logger = log4js.configure(config.log4Js).getLogger();

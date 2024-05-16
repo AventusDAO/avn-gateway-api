@@ -729,7 +729,7 @@ async function getBatchInfo(batchId: number): Promise<any> {
   }
 }
 
-export {
+const avn = {
   addNewTransaction,
   createAccount,
   getAccountInfo,
@@ -761,3 +761,4 @@ export {
   getNftInfo,
   getBatchInfo,
 };
+export default avn;

@@ -22,4 +22,5 @@ async function resolvePendingTransactionsState(): Promise<void> {
   }
 }
 
-export { resolvePendingTransactionsState };
+const lambda = { resolvePendingTransactionsState };
+export default lambda;

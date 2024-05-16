@@ -2,7 +2,7 @@ import axios from 'axios';
 import log4js from 'log4js';
 const config = require('multiconfig').load();
 import { hexToBn, isHex } from '@polkadot/util';
-import * as avn from '../avn';
+import avn from '../avn';
 
 const log = log4js.getLogger();
 
@@ -181,7 +181,7 @@ async function updateEventStatusIfRequired(currentEvent: LowerData, newEvent: Lo
   return currentEvent;
 }
 
-export {
+const utils = {
   formatLowerEvent,
   getLowersFromIndexer,
   READY_TO_CLAIM_EVENT_NAME,
@@ -194,3 +194,4 @@ export {
   parseBlockId,
   updateEventStatusIfRequired
 };
+export default utils;

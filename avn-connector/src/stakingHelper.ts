@@ -91,7 +91,8 @@ function getRequestedAmount(requestAction: RequestAction): BN {
   return BN_ZERO;
 }
 
-export {
+const stakingHelper = {
   calculateCollatorStakingBalances,
   calculateNominatorStakingBalances
 };
+export default stakingHelper;

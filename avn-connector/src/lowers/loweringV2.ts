@@ -1,7 +1,7 @@
-import * as utils from './utils';
-import * as avn from '../avn';
-import * as redis from '../redis';
-import * as tier1 from '../tier1';
+import utils from './utils';
+import avn from '../avn';
+import redis from '../redis';
+import tier1 from '../tier1';
 import log4js from 'log4js';
 
 const log = log4js.getLogger();
@@ -79,7 +79,7 @@ async function processLowerEvents(fromId: string, avtContract: string): Promise<
         distinctLowers[lowerId] = newEvent;
         continue;
       }
-    
+
       // handle multiple events for the same lowerId
       currentEvent = await utils.updateEventStatusIfRequired(currentEvent, newEvent);
 
@@ -143,6 +143,7 @@ async function deleteClaimedLowers(avnContract: string): Promise<void> {
   await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
 }
 
-export {
+const loweringV2 = {
   getLowers
 };
+export default loweringV2;

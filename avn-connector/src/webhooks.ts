@@ -1,9 +1,9 @@
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import * as avn from './avn';
-import * as rds from './db/index';
-import * as redis from './redis';
+import avn from './avn';
+import rds from './db/index';
+import redis from './redis';
 import * as crypto from 'crypto';
-import * as lambda from './lambdas';
+import lambda from './lambdas';
 import * as util from 'util';
 const config = require('multiconfig').load();
 import log4js from 'log4js';
@@ -102,14 +102,14 @@ class Webhooks {
   }
 }
 
-let webhooks: Webhooks;
+let _webhooks: Webhooks;
 
 async function init() {
   try {
-    webhooks = new Webhooks(WEBHOOKS_REFRESH_INTERVAL_MS);
-    await webhooks.initialize();
+    _webhooks = new Webhooks(WEBHOOKS_REFRESH_INTERVAL_MS);
+    await _webhooks.initialize();
     confirmExpectedEventTypes();
-    log.info(`[Webhooks] Init - ${Object.keys(webhooks.active).length} hooks ${Object.keys(webhooks.eventTypes).length} types`);
+    log.info(`[Webhooks] Init - ${Object.keys(_webhooks.active).length} hooks ${Object.keys(_webhooks.eventTypes).length} types`);
   } catch (error) {
     log.error('[Webhooks] Init error:', error);
     throw error;
@@ -117,12 +117,12 @@ async function init() {
 }
 
 function confirmExpectedEventTypes() {
-  if (!webhooks.hasEventTypes()) {
+  if (!_webhooks.hasEventTypes()) {
     log.info('[Webhooks] Webhook Event table not populated - skipping expected types check');
     return;
   }
 
-  const dbTypes = Object.keys(webhooks.eventTypes);
+  const dbTypes = Object.keys(_webhooks.eventTypes);
   const connectorTypes = Object.keys(WEBHOOK_EVENT_TYPES);
   const dbMissing = connectorTypes.filter(type => !dbTypes.includes(type));
   const connectorMissing = dbTypes.filter(type => !connectorTypes.includes(type));
@@ -136,7 +136,7 @@ function confirmExpectedEventTypes() {
 }
 
 async function publishTransactionEvents(transactions: Transaction[]) {
-  if (!webhooks.hasEventTypes()) {
+  if (!_webhooks.hasEventTypes()) {
     return;
   }
 
@@ -164,7 +164,7 @@ async function publishTransactionEvents(transactions: Transaction[]) {
 }
 
 async function publishEvent(event: Event) {
-  if (!webhooks.hasEventTypes()) {
+  if (!_webhooks.hasEventTypes()) {
     return;
   }
 
@@ -188,9 +188,9 @@ async function publishEvent(event: Event) {
 
 async function attemptToPublishEvent(event: Event) {
   const { eventType, publicKey, requestId, data } = checkEvent(event);
-  if (!webhooks.active.hasOwnProperty(publicKey)) return;
+  if (!_webhooks.active.hasOwnProperty(publicKey)) return;
 
-  const { endpoint, eventTypes } = webhooks.active[publicKey];
+  const { endpoint, eventTypes } = _webhooks.active[publicKey];
   if (!eventTypes.hasOwnProperty(eventType)) return;
 
   if (eventType === 'tx_sent') {
@@ -216,7 +216,7 @@ function checkEvent(event: Event) {
     throw new Error(`[Webhooks] Internal Error - Missing event params: ${missingParams.join(', ')}`);
   }
 
-  if (!webhooks.eventTypes[eventType]) {
+  if (!_webhooks.eventTypes[eventType]) {
     throw new Error(`[Webhooks] Internal Error - Invalid event type: ${eventType}`);
   }
 
@@ -243,9 +243,10 @@ function hash(message: string): string {
   return crypto.createHash('sha256').update(message).digest('hex');
 }
 
-export {
+const webhooks = {
   init,
   publishEvent,
   publishTransactionEvents,
   WEBHOOK_EVENT_TYPES,
 };
+export default webhooks;

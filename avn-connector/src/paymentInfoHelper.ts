@@ -42,7 +42,8 @@ function getPayerVaultUsername(payerVaultId: string): string {
   return `${VAULT_PAYER_USERNAME_PREFIX}${payerVaultId}`;
 }
 
-export {
+const paymentInfoHelper = {
   encodePaymentParams,
   getPayerVaultUsername
 };
+export default paymentInfoHelper;

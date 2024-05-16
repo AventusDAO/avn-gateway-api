@@ -1,6 +1,6 @@
-import * as avn from '../avn';
-import * as redis from '../redis';
-import * as tier1 from '../tier1';
+import avn from '../avn';
+import redis from '../redis';
+import tier1 from '../tier1';
 const config = require('multiconfig').load();
 import log4js from 'log4js';
 import { Contract, ethers } from 'ethers';
@@ -215,4 +215,5 @@ async function regenerateProofAndRetryClaim(reason: string, id: string, proof: a
   }
 }
 
-export { autolower };
+const autolowering = { autolower };
+export default autolowering;

@@ -618,7 +618,7 @@ async function deleteSentTxDetails(txHash: string): Promise<void> {
   await redisClient.del(WEBHOOKS_SENT_TX_KEY + txHash);
 }
 
-export {
+const redis = {
   connect,
   addNewAvnTransaction,
   addFailedAvnTransaction,
@@ -687,3 +687,4 @@ export {
   getSentTxDetails,
   deleteSentTxDetails
 };
+export default redis;

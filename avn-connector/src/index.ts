@@ -1,16 +1,16 @@
 'use strict';
 const config = require('multiconfig').load();
 import { load } from 'multiconfig';
-import * as avn from './avn';
-import * as rds from './db/index';
-import * as lowering from './lowering';
-import * as loweringV2 from './lowers/loweringV2';
-import * as autolowering from './lowers/autolowering';
-import * as redis from './redis';
-import * as sqsConsumer from './sqsConsumer';
-import * as webhooks from './webhooks';
-import * as lambda from './lambdas';
-import { Request, Response, NextFunction } from 'express';
+import avn from './avn';
+import rds from './db/index';
+import lowering from './lowering';
+import loweringV2 from './lowers/loweringV2';
+import autolowering from './lowers/autolowering';
+import redis from './redis';
+import { processTxQueue } from './sqsConsumer';
+import webhooks from './webhooks';
+import lambda from './lambdas';
+import express, { Request, Response, NextFunction } from 'express';
 import log4js from 'log4js';
 import jsonLayout from 'log4js-json-layout';
 
@@ -18,7 +18,7 @@ log4js.addLayout('json', jsonLayout);
 log4js.configure(config.log4Js);
 const log = log4js.getLogger();
 
-const app = express();
+const app: Express = express();
 const port: number = config.serverPort;
 
 app.use(express.urlencoded({ extended: true }));
@@ -321,7 +321,7 @@ async function instantiateConnector() {
   await avn.init();
   await rds.init();
   await webhooks.init();
-  sqsConsumer.processTxQueue(); // triggers infinite loop - don't await
+  processTxQueue(); // triggers infinite loop - don't await
   loweringV2.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 

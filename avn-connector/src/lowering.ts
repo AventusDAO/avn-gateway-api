@@ -1,8 +1,8 @@
 import { keccakAsHex } from '@polkadot/util-crypto';
 import axios from 'axios';
-import * as avn from './avn';
-import * as redis from './redis';
-import * as tier1 from './tier1';
+import avn from './avn';
+import redis from './redis';
+import tier1 from './tier1';
 import { hexToBn, isHex } from '@polkadot/util';
 const config = require('multiconfig').load();
 import log4js from 'log4js';
@@ -247,6 +247,7 @@ function lowerDataContainsAccount(lowerData: any, account: string): boolean {
   return lowerData.from.toLowerCase() === account.toLowerCase() || lowerData.to.toLowerCase() === account.toLowerCase();
 }
 
-export {
+const lowering = {
   getLowers
 };
+export default lowering;

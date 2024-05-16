@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 const config = require('multiconfig').load();
 import log4js from 'log4js';
-import * as redis from './redis';
+import redis from './redis';
 const log = log4js.getLogger();
 
 const MIN_LIFT_AMOUNT = toBn(config.tier1.minLiftAmount);
@@ -131,7 +131,7 @@ function toBn(val: any): ethers.BigNumber {
   return ethers.BigNumber.from(val);
 }
 
-export {
+const tier1 = {
   getLatestClaimedLowers,
   getLiftEvents,
   getLockedBalance,
@@ -139,3 +139,4 @@ export {
   getLowersClaimedSinceBlock,
   connectToBridge
 };
+export default tier1;

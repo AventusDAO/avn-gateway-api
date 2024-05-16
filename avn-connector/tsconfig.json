@@ -27,7 +27,6 @@
   "exclude": [
     "node_modules",
     "src/avn.ts",
-    "src/index.ts",
     "src/lambdas.ts",
     "src/lowering.ts",
     "src/paymentInfoHelper.ts",

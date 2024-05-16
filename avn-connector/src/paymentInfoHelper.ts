@@ -1,9 +1,7 @@
 'use strict';
 
 const { TypeRegistry } = require('@polkadot/types');
-const { u8aConcat, u8aToHex, stringToHex } = require('@polkadot/util');
-const log4js = require('log4js');
-const log = log4js.getLogger();
+const { u8aConcat } = require('@polkadot/util');
 
 const registry = new TypeRegistry();
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';

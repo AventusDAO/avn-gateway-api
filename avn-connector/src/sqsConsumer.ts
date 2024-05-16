@@ -2,8 +2,8 @@ const { SQSClient, ReceiveMessageCommand, DeleteMessageBatchCommand } = require(
 const avn = require('./avn');
 const webhooks = require('./webhooks');
 const config = require('multiconfig').load();
-const logger = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
+const logger = require("./logger");
 
 const SQS_TX_QUEUE_URL = config.sqs.txQueueUrl;
 const PROCESSING_DELAY_MS = 20000;

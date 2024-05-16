@@ -1,7 +1,8 @@
 const BN = require('bn.js');
 const BN_ZERO = new BN(0);
 const lambda = require('./lambdas');
-const { u8aConcat, u8aToHex, hexToBn } = require('@polkadot/util');
+const { hexToBn } = require('@polkadot/util');
+const logger = require("./logger");
 
 function calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex) {
   let stakedBalance = BN_ZERO,
@@ -58,7 +59,7 @@ function getRequestedAmount(requestAction) {
     return hexToBn(requestAction.toJSON().revoke);
   }
 
-  console.log(`Warning: Scheduled request action (${requestAction}) is not recognised. Unable to return amount`);
+  logger.info(`Warning: Scheduled request action (${requestAction}) is not recognised. Unable to return amount`);
   return BN_ZERO;
 }
 

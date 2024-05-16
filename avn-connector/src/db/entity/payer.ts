@@ -1,65 +1,43 @@
-var EntitySchema = require('typeorm').EntitySchema;
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { WebhookEndpoint } from './webhookEndpoint';
+import { SplitFeeUser } from './splitFeeUser';
+import { PayerTransaction } from './payerTransaction';
 
-module.exports = new EntitySchema({
-  name: 'payer',
-  columns: {
-    id: {
-      primary: true,
-      type: 'int',
-      generated: true
-    },
-    publicKey: {
-      type: 'varchar',
-      unique: true,
-      length: 66
-    },
-    cognitoId: {
-      type: 'varchar',
-      unique: true
-    },
-    vaultId: {
-      type: 'uuid',
-      generated: 'uuid'
-    },
-    description: {
-      type: 'varchar',
-      nullable: true
-    },
-    webhookEndpointId: {
-      type: 'int',
-      nullable: true
-    },
-    createdAt: {
-      type: 'timestamptz',
-      createDate: true
-    },
-    updatedAt: {
-      type: 'timestamptz',
-      updateDate: true
-    },
-    enabled: {
-      type: 'boolean',
-      default: true
-    }
-  },
-  relations: {
-    webhookEndpoint: {
-      target: 'webhookEndpoint',
-      type: 'many-to-one',
-      inverseSide: 'payer',
-      joinColumn: {
-        name: 'webhookEndpointId',
-        referencedColumnName: 'id',
-        nullable: true,
-        onDelete: 'SET NULL'
-      }
-    },
-    splitFeeUsers: {
-      target: 'splitFeeUser',
-      type: 'one-to-many',
-      joinTable: true,
-      inverseSide: 'payer',
-      cascade: true
-    }
-  }
-});
+@Entity('payer')
+export class Payer {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ type: 'varchar', length: 66, unique: true })
+    publicKey: string;
+
+    @Column({ type: 'varchar', unique: true })
+    cognitoId: string;
+
+    @Column({ type: 'uuid', generated: 'uuid' })
+    vaultId: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    description: string;
+
+    @Column({ type: 'int', nullable: true })
+    webhookEndpointId: number;
+
+    @CreateDateColumn({ type: 'timestamptz' })
+    createdAt: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz' })
+    updatedAt: Date;
+
+    @Column({ type: 'boolean', default: true })
+    enabled: boolean;
+
+    @ManyToOne(() => WebhookEndpoint, webhookEndpoint => webhookEndpoint.payers, { nullable: true, onDelete: 'SET NULL' })
+    webhookEndpoint: WebhookEndpoint;
+
+    @OneToMany(() => SplitFeeUser, splitFeeUser => splitFeeUser.payer, { cascade: true })
+    splitFeeUsers: SplitFeeUser[];
+
+    @OneToMany(() => PayerTransaction, payerTransaction => payerTransaction.payer)
+    payerTransactions: PayerTransaction[];
+}

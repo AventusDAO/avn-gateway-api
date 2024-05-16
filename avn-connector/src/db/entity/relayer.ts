@@ -1,49 +1,32 @@
-var EntitySchema = require('typeorm').EntitySchema;
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Fee } from './fee';
 
-module.exports = new EntitySchema({
-  name: 'relayer',
-  columns: {
-    id: {
-      primary: true,
-      type: 'int',
-      generated: true
-    },
-    publicKey: {
-      type: 'varchar',
-      unique: true,
-      length: 66
-    },
-    defaultFee: {
-      type: 'varchar'
-    },
-    description: {
-      type: 'varchar',
-      nullable: true
-    },
-    createdAt: {
-      type: 'timestamptz',
-      createDate: true
-    },
-    updatedAt: {
-      type: 'timestamptz',
-      updateDate: true
-    },
-    enabled: {
-      type: 'boolean',
-      default: true
-    },
-    vaultId: {
-      type: 'uuid',
-      generated: 'uuid'
-    }
-  },
-  relations: {
-    fees: {
-      target: 'fee',
-      type: 'one-to-many',
-      joinTable: true,
-      inverseSide: 'relayer',
-      cascade: true
-    }
-  }
-});
+@Entity('relayer')
+export class Relayer {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ type: 'varchar', length: 66, unique: true })
+    publicKey: string;
+
+    @Column({ type: 'varchar' })
+    defaultFee: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    description: string;
+
+    @CreateDateColumn({ type: 'timestamptz' })
+    createdAt: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz' })
+    updatedAt: Date;
+
+    @Column({ type: 'boolean', default: true })
+    enabled: boolean;
+
+    @Column({ type: 'uuid', generated: 'uuid' })
+    vaultId: string;
+
+    @OneToMany(() => Fee, fee => fee.relayer, { cascade: true })
+    fees: Fee[];
+}

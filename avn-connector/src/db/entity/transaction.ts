@@ -1,44 +1,27 @@
-var EntitySchema = require('typeorm').EntitySchema;
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { PayerTransaction } from './payerTransaction';
+import { Fee } from './fee';
 
-module.exports = new EntitySchema({
-  name: 'transaction',
-  columns: {
-    id: {
-      primary: true,
-      type: 'int',
-      generated: true
-    },
-    name: {
-      type: 'varchar',
-      unique: true
-    },
-    createdAt: {
-      type: 'timestamptz',
-      createDate: true
-    },
-    updatedAt: {
-      type: 'timestamptz',
-      updateDate: true
-    },
-    enabled: {
-      type: 'boolean',
-      default: true
-    }
-  },
-  relations: {
-    payerTransactions: {
-      target: 'payerTransaction',
-      type: 'one-to-many',
-      joinTable: true,
-      inverseSide: 'transaction',
-      cascade: true
-    },
-    fees: {
-      target: 'fee',
-      type: 'one-to-many',
-      joinTable: true,
-      inverseSide: 'transaction',
-      cascade: true
-    }
-  }
-});
+@Entity('transaction')
+export class Transaction {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ type: 'varchar', unique: true })
+    name: string;
+
+    @CreateDateColumn({ type: 'timestamptz' })
+    createdAt: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz' })
+    updatedAt: Date;
+
+    @Column({ type: 'boolean', default: true })
+    enabled: boolean;
+
+    @OneToMany(() => PayerTransaction, payerTransaction => payerTransaction.transaction, { cascade: true })
+    payerTransactions: PayerTransaction[];
+
+    @OneToMany(() => Fee, fee => fee.transaction, { cascade: true })
+    fees: Fee[];
+}

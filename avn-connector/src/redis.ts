@@ -91,7 +91,7 @@ async function connect() {
     redisClient = new Redis.Cluster([{ port: config.redis.port, host: config.redis.url }]);
     log.info(
       'Connected to Redis database:\n',
-      (await redisClient.hello()).map((e, i) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')
+      (await redisClient.hello()).map((e: any, i: number) => (i % 2 == 0 ? e + ':' : e + ', ')).join('');
     );
   } else {
     redisClient = new Redis();
@@ -460,7 +460,7 @@ async function setSummaries(summaries: any[]): Promise<void> {
 
 async function getSummaries(): Promise<any[]> {
   const summaries = await redisClient.lrange(SUMMARIES_KEY, 0, -1);
-  return summaries ? summaries.map(s => JSON.parse(s)) : [];
+  return summaries ? summaries.map((s: string) => JSON.parse(s)) : [];
 }
 
 async function setLowerData(txHash: string, lowerData: any): Promise<void> {
@@ -546,7 +546,7 @@ async function getAutolowerNextT1Block(): Promise<number> {
 }
 
 async function setLatestAutolowerId(lowerId: number): Promise<void> {
-  await redisClient.set(LATEST_LOWER_ID_FOR_AUTOLOWWER_KEY, lowerId.toString());
+  await redisClient.set(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY, lowerId.toString());
 }
 
 async function getLatestAutolowerId(): Promise<number> {

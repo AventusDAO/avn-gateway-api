@@ -20,7 +20,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
-    "types": ["node", "@polkadot/api-augment"]
+    "types": ["node"]
   },
   "include": ["src/**/*"],
   "exclude": [

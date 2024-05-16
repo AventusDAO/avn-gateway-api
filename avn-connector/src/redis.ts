@@ -91,7 +91,7 @@ async function connect() {
     redisClient = new Redis.Cluster([{ port: config.redis.port, host: config.redis.url }]);
     log.info(
       'Connected to Redis database:\n',
-      (await redisClient.hello()).map((e: any, i: number) => (i % 2 == 0 ? e + ':' : e + ', ')).join('');
+      (await redisClient.hello()).map((e: any, i: number) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')
     );
   } else {
     redisClient = new Redis();

@@ -1,8 +1,6 @@
-const { createLogger, format, transports } = require('winston');
-const DailyRotateFile = require('winston-daily-rotate-file');
+import { createLogger, format, transports, Logger } from 'winston';
 
-const timestamp = format.timestamp();
-const errors = format.errors({ stack: true });
+const { combine, timestamp, printf, errors, colorize } = format;
 
 const levels = {
   error: 0,
@@ -14,9 +12,9 @@ const levels = {
 
 const level = process.env.ENVIRONMENT === 'prod' ? 'http' : 'debug';
 
-const logFormat = (requestId) => format.combine(
-  timestamp,
-  format.printf((info) => {
+const logFormat = (requestId: string | null) => combine(
+  timestamp(),
+  printf((info) => {
     const splat = info[Symbol.for('splat')] || {};
     const stack = info.stack;
     const data = info.data;
@@ -33,43 +31,37 @@ const logFormat = (requestId) => format.combine(
       `${dataStr}`
     );
   }),
-  errors
+  errors({ stack: true })
 );
 
-const createLoggerInstance = (requestId) => createLogger({
+const createLoggerInstance = (requestId: string | null): Logger => createLogger({
   level,
   levels,
   format: logFormat(requestId),
   transports: [
     new transports.Console({
-      format: format.combine(
-        format.colorize({ all: true }),
+      format: combine(
+        colorize({ all: true }),
         logFormat(requestId)
       )
     }),
-    new DailyRotateFile({
-      filename: 'application.log',
-      dirname: 'logs',
-      frequency: '1d',
-      maxSize: '20m'
-    })
   ]
 });
 
-let loggerInstance = createLoggerInstance(null);
+let loggerInstance: Logger = createLoggerInstance(null);
 
-const setRequestId = (requestId) => {
+const setRequestId = (requestId: string) => {
   loggerInstance = createLoggerInstance(requestId);
 };
 
-const log = (level, message, data) => {
+const log = (level: string, message: string, data?: any) => {
   loggerInstance.log(level, message, { data });
 };
 
-const info = (message, data) => log('info', message, data);
-const error = (message, data) => log('error', message, data);
-const warn = (message, data) => log('warn', message, data);
-const debug = (message, data) => log('debug', message, data);
+const info = (message: string, data?: any) => log('info', message, data);
+const error = (message: string, data?: any) => log('error', message, data);
+const warn = (message: string, data?: any) => log('warn', message, data);
+const debug = (message: string, data?: any) => log('debug', message, data);
 
 const logger = {
   setRequestId,
@@ -79,4 +71,4 @@ const logger = {
   debug,
 };
 
-module.exports = logger;
+export default logger;

@@ -11,14 +11,23 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*"]
+      "*": [
+        "node_modules/*"
+      ]
     },
     "resolveJsonModule": true,
     "sourceMap": true,
-    "typeRoots": ["./node_modules/@types"],
-    "types": ["node"],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "types": [
+      "node"
+    ],
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false
   },
   "include": [
     "src/**/*"

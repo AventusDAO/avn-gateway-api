@@ -1,6 +1,5 @@
 'use strict';
 const config = require('multiconfig').load();
-import { load } from 'multiconfig';
 import avn from './avn';
 import rds from './db/index';
 import lowering from './lowering';
@@ -10,9 +9,9 @@ import redis from './redis';
 import { processTxQueue } from './sqsConsumer';
 import webhooks from './webhooks';
 import lambda from './lambdas';
-import express, { Request, Response, NextFunction } from 'express';
-import log4js from 'log4js';
-import jsonLayout from 'log4js-json-layout';
+import express, { Express, Request, Response, NextFunction } from 'express';
+import * as log4js from 'log4js';
+const jsonLayout = require('log4js-json-layout');
 
 log4js.addLayout('json', jsonLayout);
 log4js.configure(config.log4Js);

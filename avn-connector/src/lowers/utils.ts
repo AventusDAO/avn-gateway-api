@@ -43,6 +43,7 @@ interface LowerData {
   name?: string;
   from?: string;
   claimData?: any;
+  [key: string]: string | undefined | any;
 }
 
 interface BlockId {
@@ -124,13 +125,13 @@ function updateEventArgs(currentEvent: LowerData, newEvent: LowerData): LowerDat
 }
 
 function updateBlockNumberAndIndex(lowerData: LowerEvent, blockNumber: number, index: number): [number, number] {
-  blockNumber = parseInt(blockNumber.toString()) || 0;
-  index = parseInt(index.toString()) || 0;
+  blockNumber = Number(blockNumber.toString()) || 0;
+  index = Number(index.toString()) || 0;
 
   if (!lowerData || !lowerData.block) return [blockNumber, index];
 
-  const lowerBlockHeight = parseInt(lowerData.block.height) || 0;
-  const lowerIndexInBlock = parseInt(lowerData.indexInBlock) || 0;
+  const lowerBlockHeight = Number(lowerData.block.height) || 0;
+  const lowerIndexInBlock = Number(lowerData.indexInBlock) || 0;
 
   if (blockNumber < lowerBlockHeight) {
     blockNumber = lowerBlockHeight;
@@ -142,7 +143,7 @@ function updateBlockNumberAndIndex(lowerData: LowerEvent, blockNumber: number, i
   return [blockNumber, index];
 }
 
-// We can't use parseInt or isNumber because a hex input will be treated as a valid number
+// We can't use Number or isNumber because a hex input will be treated as a valid number
 function isLowerId(input: string): boolean {
   // Check if the input contains only decimal numbers
   return /^[0-9]+$/.test(input);
@@ -154,7 +155,7 @@ function parseBlockId(fromBlockId: string): BlockId {
   }
 
   const blockInfo = fromBlockId.split('-');
-  return { blockNumber: parseInt(blockInfo[0]) || 0, index: parseInt(blockInfo[1]) || 0 };
+  return { blockNumber: Number(blockInfo[0]) || 0, index: Number(blockInfo[1]) || 0 };
 }
 
 function sortLowerEventsByIdAsc(lowerEvents: LowerEvent[]): LowerEvent[] {
@@ -174,7 +175,7 @@ async function updateEventStatusIfRequired(currentEvent: LowerData, newEvent: Lo
   } else {
     // this is an edge case where the existing entry in redis is corrupted somehow
     if (currentEvent.name === READY_TO_CLAIM_EVENT_NAME && !currentEvent.claimData) {
-      currentEvent.claimData = await avn.getLowerProof(newEvent.lowerId!);
+      currentEvent.claimData = await avn.getLowerProof(Number(newEvent.lowerId!));
     }
   }
 

@@ -6,7 +6,7 @@ import tier1 from './tier1';
 import { hexToBn, isHex } from '@polkadot/util';
 const config = require('multiconfig').load();
 import log4js from 'log4js';
-import * as utils from './lowers/utils';
+import utils from './lowers/utils';
 
 const log = log4js.getLogger();
 
@@ -77,7 +77,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock: number): Pr
   for (let i = 0; i < lowerTransactions.length; i++) {
     const lowerTx = lowerTransactions[i];
     const txHash = lowerTx.txHash;
-    const blockNumber = parseInt(lowerTx.blockNumber);
+    const blockNumber = Number(lowerTx.blockNumber);
 
     if (blockNumber > latestPublishedBlock) {
       await redis.addUnpublishedLower(txHash);
@@ -196,7 +196,7 @@ async function getLowerTransactions(fromBlock: number): Promise<LowerTransaction
     newLowers = await getLowersFromIndexer(fromId, txLimit, avtContract);
     if (newLowers.length > 0) {
       lowers = lowers.concat(newLowers);
-      fromId = generateId(parseInt(lowers[lowers.length - 1].blockNumber), parseInt(lowers[lowers.length - 1].index) + 1);
+      fromId = generateId(Number(lowers[lowers.length - 1].blockNumber), Number(lowers[lowers.length - 1].index) + 1);
     }
   } while (newLowers.length > 0);
 

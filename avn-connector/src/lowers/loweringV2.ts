@@ -47,7 +47,7 @@ async function updateLowerData(lastAvnLowerBlockId: BlockId, avtContract: string
     log.info(`Processing lowers from ${fromBlockId}. Next batch: ${JSON.stringify(toBlockInfo || {})}`);
     if (toBlockInfo) {
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
-      fromBlockId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index.toString()) + 1);
+      fromBlockId = generateId(toBlockInfo.blockNumber, Number(toBlockInfo.index.toString()) + 1);
     }
   } while (toBlockInfo);
 
@@ -67,12 +67,14 @@ async function processLowerEvents(fromId: string, avtContract: string): Promise<
     for (const lowerData of lowersArray) {
       [blockNumber, index] = utils.updateBlockNumberAndIndex(lowerData, blockNumber, index);
 
-      const lowerId = lowerData?.args?.lowerId;
+      const lowerId = lowerData?.args?.lowerId?.toString();
+      if (!lowerId) continue; // Ensure lowerId is defined and a string
+
       let currentEvent = distinctLowers[lowerId];
       const newEvent = utils.formatLowerEvent(lowerData, avtContract);
 
-      if (newEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
-        newEvent.claimData = await avn.getLowerProof(lowerId);
+      if (newEvent.name === utils.READY_TO_CLAIM_EVENT_NAME && lowerId) {
+        newEvent.claimData = await avn.getLowerProof(Number(lowerId));
       }
 
       if (!currentEvent) {
@@ -94,7 +96,6 @@ async function processLowerEvents(fromId: string, avtContract: string): Promise<
 
       if (!storedLower) {
         // there is nothing saved already so add the new event
-
         log.trace(`Storing key: ${key}, value: ${JSON.stringify(newLower)}`);
         await redis.setLowerById(key, newLower);
       } else {
@@ -133,7 +134,7 @@ async function deleteClaimedLowers(avnContract: string): Promise<void> {
   const lastClaimedEthereumLowerBlock = await redis.getLastClaimedEthereumLowerBlock();
   let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(
     avnContract,
-    parseInt(lastClaimedEthereumLowerBlock) + 1
+    Number(lastClaimedEthereumLowerBlock) + 1
   );
   for (const lowerId of claimedLowerIdsOnEthereum) {
     log.trace(`Deleting lower id ${lowerId}`);

@@ -15,16 +15,15 @@
     },
     "resolveJsonModule": true,
     "sourceMap": true,
-    "typeRoots": ["./node_modules/@types"],
-    "types": ["node"],
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "types": ["node", "@polkadot/api-augment"]
   },
   "include": ["src/**/*"],
   "exclude": [
-    "node_modules",
+    "node_modules"
   ]
 }

@@ -1,9 +1,10 @@
+import '@polkadot/api-augment';
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { isHex, stringToHex, u8aToHex } from '@polkadot/util';
 import { keccakAsHex } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
 import log4js from 'log4js';
-import avnTypes from 'avn-types';
+const avnTypes = require('avn-types');
 import redis from './redis';
 import tier1 from './tier1';
 import Vault from './vaultApp';
@@ -58,7 +59,7 @@ async function proxy(requestId: string, palletName: string, method: string, para
     const result = await signAndSend(requestId, params[0].params.relayerAddress, txn, payerAddress);
 
     if (payerAddress) {
-      await setNextPayerNonce(requestId, payerAddress, parseInt(params[0].params.paymentNonce) + 1);
+      await setNextPayerNonce(requestId, payerAddress, Number(params[0].params.paymentNonce) + 1);
       const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_sent;
       webhooks.publishEvent({ eventType, requestId, accountId: payerAddress, data: result });
     }
@@ -73,7 +74,7 @@ async function proxy(requestId: string, palletName: string, method: string, para
     const result = await signAndSend(requestId, params.relayerAddress, txn, payerAddress);
 
     if (payerAddress) {
-      await setNextPayerNonce(requestId, payerAddress, parseInt(params.paymentNonce) + 1);
+      await setNextPayerNonce(requestId, payerAddress, Number(params.paymentNonce) + 1);
       const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_sent;
       webhooks.publishEvent({ eventType, requestId, accountId: payerAddress, data: result });
     }
@@ -298,7 +299,7 @@ async function getUnprocessedLifts(): Promise<any> {
     if (unprocessedLifts.length === 0) {
       const lastT1BlockChecked = await redis.getLiftsFromTier1Block();
       if (toBlock >= lastT1BlockChecked) {
-        await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
+        await redis.setLiftsFromTier1Block(Number(toBlock) + 1);
       }
     }
 
@@ -319,7 +320,7 @@ async function processLifts(requestId: string, toBlock: number, unprocessedLifts
     const lastT1BlockChecked = await redis.getLiftsFromTier1Block();
     // extra safety to prevent resetting the last checked block
     if (toBlock >= lastT1BlockChecked) {
-      await redis.setLiftsFromTier1Block(parseInt(toBlock) + 1);
+      await redis.setLiftsFromTier1Block(Number(toBlock) + 1);
     }
   } catch (err) {
     result = err;
@@ -542,8 +543,8 @@ async function getSummaries(): Promise<any[]> {
             },
             { rootHash, isValidated, txId },
           ]) => ({
-            fromBlock: parseInt(fromBlock.toString()),
-            toBlock: parseInt(toBlock.toString()),
+            fromBlock: Number(fromBlock.toString()),
+            toBlock: Number(toBlock.toString()),
             rootHash: rootHash.toString().toLowerCase(),
             isValid: !!isValidated || !!txId,
           })

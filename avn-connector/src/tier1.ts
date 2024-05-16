@@ -9,9 +9,9 @@ const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provide
 const NATIVE_T1_TOKEN_ONLY = config.tier1.nativeT1TokenOnly === 'true' || config.tier1.nativeT1TokenOnly === true;
 const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 //(60 * 60 * 24 * 5) / 12; ~5 days @ ~12 secs per block
-const MAX_LIFT_AGE_IN_BLOCKS = parseInt(config.tier1.maxLiftAgeInBlocks);
-const REQUIRED_CONFIRMATION_BLOCKS = parseInt(config.tier1.requiredConfirmationBlocks);
-const MAX_LIFT_BLOCKS_TO_PROCESS = parseInt(config.tier1.maxLiftBlocksToProcess);
+const MAX_LIFT_AGE_IN_BLOCKS = Number(config.tier1.maxLiftAgeInBlocks);
+const REQUIRED_CONFIRMATION_BLOCKS = Number(config.tier1.requiredConfirmationBlocks);
+const MAX_LIFT_BLOCKS_TO_PROCESS = Number(config.tier1.maxLiftBlocksToProcess);
 
 const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
@@ -111,7 +111,7 @@ async function getLowersClaimedSinceBlock(avnContract: string, fromBlock: number
   try {
     const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock });
     claims.forEach(claim => {
-      const lowerId = parseInt(claim.topics[1]);
+      const lowerId = Number(claim.topics[1]);
       fromBlock = Math.max(fromBlock, claim.blockNumber);
       claimedLowerIds.push(lowerId);
     });

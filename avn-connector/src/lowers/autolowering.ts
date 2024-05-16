@@ -82,7 +82,7 @@ async function getLowersToClaim(bridge: Contract): Promise<Record<string, any>> 
   }
 
   for (const lowerId of Object.keys(lowerProofs)) {
-    await redis.addAutolower(lowerId);
+    await redis.addAutolower(Number(lowerId));
   }
 
   await redis.setLatestAutolowerId(latestLowerId);
@@ -193,12 +193,12 @@ async function recheckProofToResolve(id: string, proof: any, bridge: Contract): 
 }
 
 async function closeFailedClaim(reason: string, id: string, info: any): Promise<void> {
-  await redis.removeAutolower(id);
+  await redis.removeAutolower(Number(id));
   log.info(`[Autolower] CLAIM FAILED - Lower ID: ${id}, reason: ${reason}, info: ${info}`);
 }
 
 async function closeSuccessfulClaim(id: string, txHash: string): Promise<void> {
-  await redis.removeAutolower(id);
+  await redis.removeAutolower(Number(id));
   log.info(`[Autolower] CLAIM SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`);
 }
 
@@ -208,7 +208,7 @@ function retryClaim(reason: string, id: string, proof: any, error: any = ''): vo
 
 async function regenerateProofAndRetryClaim(reason: string, id: string, proof: any): Promise<void> {
   try {
-    await avn.regenerateLowerProof(ACCOUNTS.T2!, id);
+    await avn.regenerateLowerProof(ACCOUNTS.T2!, Number(id));
     log.info(`[Autolower] CLAIM WILL BE RETRIED WITH NEW PROOF - Lower ID: ${id}, reason: ${reason}`);
   } catch (error) {
     retryClaim(RETRY_REASON.ProofRegenerationError, id, proof, error);

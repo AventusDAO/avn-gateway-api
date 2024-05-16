@@ -1,56 +1,36 @@
-var EntitySchema = require('typeorm').EntitySchema;
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Relayer } from './relayer';
+import { Transaction } from './transaction';
 
-module.exports = new EntitySchema({
-  name: 'fee',
-  columns: {
-    id: {
-      primary: true,
-      type: 'int',
-      generated: true
-    },
-    relayerId: {
-      type: 'int'
-    },
-    transactionId: {
-      type: 'int',
-      nullable: true
-    },
-    userPublicKey: {
-      type: 'varchar',
-      length: 66,
-      nullable: true
-    },
-    fee: {
-      type: 'varchar'
-    },
-    createdAt: {
-      type: 'timestamptz',
-      createDate: true
-    },
-    updatedAt: {
-      type: 'timestamptz',
-      updateDate: true
-    },
-    enabled: {
-      type: 'boolean',
-      default: true
-    }
-  },
-  relations: {
-    relayer: {
-      target: 'relayer',
-      type: 'many-to-one',
-      joinTable: true,
-      inverseSide: 'fee',
-      eager: true
-    },
-    transaction: {
-      target: 'transaction',
-      type: 'many-to-one',
-      joinTable: true,
-      inverseSide: 'fee',
-      eager: true,
-      nullable: true
-    }
-  }
-});
+@Entity('fee')
+export class Fee {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ type: 'int' })
+    relayerId: number;
+
+    @Column({ type: 'int', nullable: true })
+    transactionId: number | null;
+
+    @Column({ type: 'varchar', length: 66, nullable: true })
+    userPublicKey: string | null;
+
+    @Column({ type: 'varchar' })
+    fee: string;
+
+    @CreateDateColumn({ type: 'timestamptz' })
+    createdAt: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz' })
+    updatedAt: Date;
+
+    @Column({ type: 'boolean', default: true })
+    enabled: boolean;
+
+    @ManyToOne(() => Relayer, relayer => relayer.fees, { eager: true })
+    relayer: Relayer;
+
+    @ManyToOne(() => Transaction, transaction => transaction.fees, { eager: true, nullable: true })
+    transaction: Transaction | null;
+}

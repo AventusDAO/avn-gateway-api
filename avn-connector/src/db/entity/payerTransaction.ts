@@ -1,45 +1,27 @@
-var EntitySchema = require('typeorm').EntitySchema;
+import { Entity, PrimaryColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Transaction } from './transaction';
+import { Payer } from './payer';
 
-module.exports = new EntitySchema({
-  name: 'payerTransaction',
-  columns: {
-    transactionId: {
-      primary: true,
-      type: 'int'
-    },
-    payerId: {
-      primary: true,
-      type: 'int'
-    },
-    createdAt: {
-      type: 'timestamptz',
-      createDate: true
-    },
-    updatedAt: {
-      type: 'timestamptz',
-      updateDate: true
-    },
-    enabled: {
-      type: 'boolean',
-      default: true
-    }
-  },
-  relations: {
-    transaction: {
-      target: 'transaction',
-      primary: true,
-      type: 'many-to-one',
-      inverseSide: 'payerTransaction',
-      joinTable: true,
-      eager: false
-    },
-    payer: {
-      target: 'payer',
-      primary: true,
-      type: 'many-to-one',
-      inverseSide: 'payerTransaction',
-      joinTable: true,
-      eager: false
-    }
-  }
-});
+@Entity('payerTransaction')
+export class PayerTransaction {
+    @PrimaryColumn()
+    transactionId: number;
+
+    @PrimaryColumn()
+    payerId: number;
+
+    @CreateDateColumn({ type: 'timestamptz' })
+    createdAt: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz' })
+    updatedAt: Date;
+
+    @Column({ type: 'boolean', default: true })
+    enabled: boolean;
+
+    @ManyToOne(() => Transaction, transaction => transaction.payerTransactions, { eager: false })
+    transaction: Transaction;
+
+    @ManyToOne(() => Payer, payer => payer.payerTransactions, { eager: false })
+    payer: Payer;
+}

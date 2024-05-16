@@ -1,14 +1,25 @@
-const { SQSClient, ReceiveMessageCommand, DeleteMessageBatchCommand } = require('@aws-sdk/client-sqs');
-const avn = require('./avn');
-const webhooks = require('./webhooks');
+import { SQSClient, ReceiveMessageCommand, DeleteMessageBatchCommand, Message } from '@aws-sdk/client-sqs';
+import * as avn from './avn';
+import * as webhooks from './webhooks';
 const config = require('multiconfig').load();
+import log4js from 'log4js';
+const logger = log4js.configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
-const logger = require("./logger");
 
 const SQS_TX_QUEUE_URL = config.sqs.txQueueUrl;
 const PROCESSING_DELAY_MS = 20000;
 
-async function processTxQueue() {
+interface TxData {
+  requestId: string;
+  txType: string;
+  palletName?: string;
+  method?: string;
+  params?: any;
+  toBlock?: number;
+  unprocessedLifts?: any[];
+}
+
+async function processTxQueue(): Promise<void> {
   while (true) {
     try {
       await processQueue();
@@ -19,7 +30,7 @@ async function processTxQueue() {
   }
 }
 
-async function processQueue() {
+async function processQueue(): Promise<void> {
   const messages = await receiveMessages();
   logger.info(`[SQS tx] Messages to process: ${messages.length}`);
   if (messages.length === 0) return;
@@ -32,7 +43,7 @@ async function processQueue() {
   logger.info(`[SQS tx] Messages deleted: ${deleted}`);
 }
 
-async function receiveMessages() {
+async function receiveMessages(): Promise<Message[]> {
   const receiveParams = {
     QueueUrl: SQS_TX_QUEUE_URL,
     MaxNumberOfMessages: 10, // 10 is the max possible
@@ -42,8 +53,8 @@ async function receiveMessages() {
   return received.Messages || [];
 }
 
-async function processMessages(messages) {
-  const processed = [];
+async function processMessages(messages: Message[]): Promise<Message[]> {
+  const processed: Message[] = [];
   for (const message of messages) {
     try {
       await processMessage(message);
@@ -56,8 +67,8 @@ async function processMessages(messages) {
   return processed;
 }
 
-async function processMessage(message) {
-  const txData = JSON.parse(message.Body);
+async function processMessage(message: Message): Promise<void> {
+  const txData: TxData = JSON.parse(message.Body!);
   const { requestId, txType } = txData;
   let result;
 
@@ -76,14 +87,14 @@ async function processMessage(message) {
         webhooks.publishEvent({ eventType, requestId, accountId: payerAddress, data: eventData });
       }
 
-      result = await avn.proxy(requestId, palletName, method, params);
+      result = await avn.proxy(requestId, palletName!, method!, params);
       logger.trace(`[SQS tx] Request ID: ${requestId} - proxy transaction sent: ${JSON.stringify(result)}`);
       break;
 
     case 'avnProcessLifts':
       logger.trace(`[SQS tx] Request ID: ${requestId} - sending lift transaction: ${JSON.stringify(txData)}`);
       const { toBlock, unprocessedLifts } = txData;
-      result = await avn.processLifts(requestId, toBlock, unprocessedLifts);
+      result = await avn.processLifts(requestId, toBlock!, unprocessedLifts!);
       logger.trace(`[SQS tx] Request ID: ${requestId} - lift transaction sent: ${JSON.stringify(result)}`);
       break;
 
@@ -92,8 +103,8 @@ async function processMessage(message) {
   }
 }
 
-async function deleteMessages(messages) {
-  const entries = messages.map(message => ({ Id: message.MessageId, ReceiptHandle: message.ReceiptHandle }));
+async function deleteMessages(messages: Message[]): Promise<number> {
+  let entries = messages.map(message => ({ Id: message.MessageId!, ReceiptHandle: message.ReceiptHandle! }));
   let numDeleted = 0;
 
   for (let attempt = 1; attempt <= 2; attempt++) {
@@ -102,7 +113,7 @@ async function deleteMessages(messages) {
     if (result.Failed === undefined) break;
 
     if (attempt === 1) {
-      const deletedMessages = new Set(result.Successful.map(messsage => messsage.Id));
+      const deletedMessages = new Set(result.Successful!.map(message => message.Id));
       entries = entries.filter(entry => !deletedMessages.has(entry.Id));
     } else {
       logger.error('[SQS tx] Failed to delete processed messages after retry:', result.Failed);
@@ -112,12 +123,12 @@ async function deleteMessages(messages) {
   return numDeleted;
 }
 
-function isSplitFeeTransaction(request) {
-  return !!request.params.splitFeePayerAddress;
+function isSplitFeeTransaction(request: TxData): boolean {
+  return !!request.params?.splitFeePayerAddress;
 }
 
-function delay(duration) {
+function delay(duration: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, duration));
 }
 
-module.exports = { processTxQueue };
+export { processTxQueue };

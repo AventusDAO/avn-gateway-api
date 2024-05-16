@@ -1,31 +1,33 @@
-const axios = require('axios');
-const logger = require("./logger");
+import axios from 'axios';
+import log4js from 'log4js';
 
-async function post(url, data, token) {
+const log = log4js.getLogger();
+
+async function post(url: string, data: any, token?: string): Promise<any> {
   const tokenReq = typeof token === 'undefined';
-  const headers = { 'Content-Type': 'application/json' };
+  const headers: { [key: string]: string } = { 'Content-Type': 'application/json' };
 
   if (!tokenReq) {
     headers['X-Vault-Request'] = 'true';
-    headers['X-Vault-Token'] = token;
+    headers['X-Vault-Token'] = token!;
   }
 
   try {
-    const res = await axios({ method: 'post', url: url, data: data, headers: headers });
+    const res = await axios({ method: 'post', url, data, headers });
     return tokenReq ? res.data.auth.client_token : res.data.data;
-  } catch (err) {
+  } catch (err: any) {
     if (err.response) throw new Error('vault - ' + err.response.data.errors.toString());
     else throw new Error('vault - cannot connect to ' + url);
   }
 }
 
-async function get(url, token) {
+async function get(url: string, token: string): Promise<any> {
   const headers = { 'X-Vault-Token': token };
 
   try {
-    return (await axios({ method: 'get', url: url, headers: headers })).data.data;
-  } catch (err) {
-    logger.info(`vault error on GET: `, err);
+    return (await axios({ method: 'get', url, headers })).data.data;
+  } catch (err: any) {
+    log.trace(`vault error on GET: `, err);
     if (err.response) {
       if (err.response.status === 404 || err.response.data.errors[0].includes('Error reading user')) return '';
       else throw new Error('vault - ' + err.response.data.errors.toString());
@@ -33,68 +35,75 @@ async function get(url, token) {
   }
 }
 
-async function appLogin(baseURL, roleId, secretId) {
-  const url = baseURL + 'auth/approle/login';
+async function appLogin(baseURL: string, roleId: string, secretId: string): Promise<string> {
+  const url = `${baseURL}auth/approle/login`;
   const data = { role_id: roleId, secret_id: secretId };
   const token = await post(url, data);
-
   return token;
 }
 
-module.exports = function (baseURL, roleId, secretId) {
-  this.loginToken = {};
-  this.baseURL = baseURL;
-  const ROLE_ID = roleId;
-  const SECRET_ID = secretId;
-  const EXPIRY = 1000 * 60 * 10; //10 min
+class Vault {
+  private loginToken: { token?: string; validUntil?: number } = {};
+  private readonly baseURL: string;
+  private readonly ROLE_ID: string;
+  private readonly SECRET_ID: string;
+  private readonly EXPIRY: number = 1000 * 60 * 10; //10 min
 
-  this.getToken = async function () {
+  constructor(baseURL: string, roleId: string, secretId: string) {
+    this.baseURL = baseURL;
+    this.ROLE_ID = roleId;
+    this.SECRET_ID = secretId;
+  }
+
+  private async getToken(): Promise<string> {
     const now = Date.now();
-    if (!this.loginToken.token || this.loginToken.validUntil < now) {
-      logger.info(`login token has expired on ${this.loginToken.validUntil}. Refreshing...`);
-      const token = await appLogin(this.baseURL, ROLE_ID, SECRET_ID);
+    if (!this.loginToken.token || this.loginToken.validUntil! < now) {
+      log.trace(`login token has expired on ${this.loginToken.validUntil}. Refreshing...`);
+      const token = await appLogin(this.baseURL, this.ROLE_ID, this.SECRET_ID);
       this.loginToken.token = token;
-      this.loginToken.validUntil = now + EXPIRY;
+      this.loginToken.validUntil = now + this.EXPIRY;
     }
 
     return this.loginToken.token;
-  };
+  }
 
-  this.createNewRelayer = async function (userName) {
+  async createNewRelayer(userName: string): Promise<string> {
     const token = await this.getToken();
-    const userUrl = this.baseURL + 'avn-vault/user/' + userName;
+    const userUrl = `${this.baseURL}avn-vault/user/${userName}`;
     const res = await get(userUrl, token);
     if (res === '') {
       return (await post(userUrl, { name: userName }, token)).publicKey;
     } else return res.publicKey;
-  };
+  }
 
-  this.setNewRelayer = async function (userName, seed) {
+  async setNewRelayer(userName: string, seed: string): Promise<string> {
     const token = await this.getToken();
-    const userUrl = this.baseURL + 'avn-vault/user/set/' + userName;
+    const userUrl = `${this.baseURL}avn-vault/user/set/${userName}`;
     const res = await get(userUrl, token);
     if (res === '') {
-      data = { name: userName, seed: seed };
+      const data = { name: userName, seed: seed };
       return (await post(userUrl, data, token)).publicKey;
     } else return res.publicKey;
-  };
+  }
 
-  this.getRelayerSeed = async function (userName) {
+  async getRelayerSeed(userName: string): Promise<string> {
     const token = await this.getToken();
-    const url = this.baseURL + 'avn-vault/user/' + userName;
+    const url = `${this.baseURL}avn-vault/user/${userName}`;
     const relayer = await get(url, token);
     return relayer.seed;
-  };
+  }
 
-  this.payerSign = async function (message, username) {
+  async payerSign(message: string, username: string): Promise<any> {
     const token = await this.getToken();
-    const res = await get(this.baseURL + 'avn-vault/user/' + username, token);
+    const res = await get(`${this.baseURL}avn-vault/user/${username}`, token);
     if (res === '') {
       throw new Error(`User ${username} does not exist in vault`);
     }
 
-    const url = this.baseURL + 'avn-vault/user/' + username + '/sign';
-    const data = { name: username, message: message };
+    const url = `${this.baseURL}avn-vault/user/${username}/sign`;
+    const data = { name: username, message };
     return await post(url, data, token);
-  };
-};
+  }
+}
+
+export default Vault;

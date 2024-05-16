@@ -1,20 +1,25 @@
 const config = require('multiconfig').load();
-const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
-const logger = require('./logger');
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import log4js from 'log4js';
 
-const lambdaFunctionName = config.lambdas.statusLambdaName;
+log4js.configure(config.log4Js);
+const log = log4js.getLogger();
 
-async function resolvePendingTransactionsState() {
-  logger.info(`Invoking ${lambdaFunctionName} lambda`);
+const lambdaFunctionName: string = config.lambdas.statusLambdaName;
+
+async function resolvePendingTransactionsState(): Promise<void> {
+  log.trace(`Invoking ${lambdaFunctionName} lambda`);
 
   const client = new LambdaClient({ region: config.aws.region });
   const command = new InvokeCommand({
-    FunctionName: lambdaFunctionName
+    FunctionName: lambdaFunctionName,
   });
 
-  client.send(command);
+  try {
+    await client.send(command);
+  } catch (error) {
+    log.error(`Failed to invoke ${lambdaFunctionName} lambda`, error);
+  }
 }
 
-module.exports = {
-  resolvePendingTransactionsState
-};
+export { resolvePendingTransactionsState };

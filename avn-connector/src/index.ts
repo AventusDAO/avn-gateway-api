@@ -1,23 +1,30 @@
 'use strict';
 const config = require('multiconfig').load();
-const avn = require('./avn');
-const rds = require('./db/index');
-const lowering = require('./lowering');
-const loweringV2 = require('./lowers/loweringV2');
-const autolowering = require('./lowers/autolowering');
-const redis = require('./redis');
-const sqsConsumer = require('./sqsConsumer');
-const webhooks = require('./webhooks');
-const lambda = require('./lambdas');
-const express = require('express');
-const { logger} = require('./logger');
+import { load } from 'multiconfig';
+import * as avn from './avn';
+import * as rds from './db/index';
+import * as lowering from './lowering';
+import * as loweringV2 from './lowers/loweringV2';
+import * as autolowering from './lowers/autolowering';
+import * as redis from './redis';
+import * as sqsConsumer from './sqsConsumer';
+import * as webhooks from './webhooks';
+import * as lambda from './lambdas';
+import { Request, Response, NextFunction } from 'express';
+import log4js from 'log4js';
+import jsonLayout from 'log4js-json-layout';
+
+log4js.addLayout('json', jsonLayout);
+log4js.configure(config.log4Js);
+const log = log4js.getLogger();
+
 const app = express();
-const port = config.serverPort;
+const port: number = config.serverPort;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: '50mb' }));
 
-app.get('/health', async (req, res, next) => {
+app.get('/health', async (req: Request, res: Response, next: NextFunction) => {
   try {
     res.send({});
   } catch (err) {
@@ -25,9 +32,9 @@ app.get('/health', async (req, res, next) => {
   }
 });
 
-app.post('/avnQuery', async (req, res, next) => {
+app.post('/avnQuery', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ avnQueryRequest: req.body });
+    log.trace({ avnQueryRequest: req.body });
     const result = await avn.query(req.body.palletName, req.body.storageName, req.body.params);
     res.send(result);
   } catch (err) {
@@ -35,12 +42,11 @@ app.post('/avnQuery', async (req, res, next) => {
   }
 });
 
-app.post('/avnPoll', async (req, res, next) => {
+app.post('/avnPoll', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ avnPollRequest: req.body });
+    log.trace({ avnPollRequest: req.body });
     // the await is removed on purpose here
     lambda.resolvePendingTransactionsState();
-
     const result = await avn.poll(req.body.requestId);
     res.send(result);
   } catch (err) {
@@ -48,9 +54,9 @@ app.post('/avnPoll', async (req, res, next) => {
   }
 });
 
-app.get('/pendingTransactions', async (req, res, next) => {
+app.get('/pendingTransactions', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info('pendingTransactions invoked');
+    log.trace('pendingTransactions invoked');
     const result = await redis.getNextTransactionsToCheck();
     res.send(result);
   } catch (err) {
@@ -58,9 +64,9 @@ app.get('/pendingTransactions', async (req, res, next) => {
   }
 });
 
-app.post('/resolvePendingTransactions', async (req, res, next) => {
+app.post('/resolvePendingTransactions', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ resolvePendingTransactions: Object.keys(req.body) });
+    log.trace({ resolvePendingTransactions: Object.keys(req.body) });
     const transactions = req.body.transactions;
     webhooks.publishTransactionEvents(transactions);
     const result = await redis.resolvePendingAvnTransactions(transactions);
@@ -70,9 +76,9 @@ app.post('/resolvePendingTransactions', async (req, res, next) => {
   }
 });
 
-app.post('/relayerFees', async (req, res, next) => {
+app.post('/relayerFees', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ relayerFeesRequest: req.body });
+    log.trace({ relayerFeesRequest: req.body });
     const result = await rds.getFees(req.body.relayer, req.body.user, req.body.transactionType);
     res.send(result);
   } catch (err) {
@@ -80,9 +86,9 @@ app.post('/relayerFees', async (req, res, next) => {
   }
 });
 
-app.post('/avnAccountInfo', async (req, res, next) => {
+app.post('/avnAccountInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ avnAccountInfoRequest: req.body });
+    log.trace({ avnAccountInfoRequest: req.body });
     const result = await avn.getAccountInfo(req.body.accountId);
     res.send(result);
   } catch (err) {
@@ -90,9 +96,9 @@ app.post('/avnAccountInfo', async (req, res, next) => {
   }
 });
 
-app.post('/avnValidatorsToNominate', async (req, res, next) => {
+app.post('/avnValidatorsToNominate', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ avnValidatorsToNominateRequest: req.body });
+    log.trace({ avnValidatorsToNominateRequest: req.body });
     const result = await avn.getCollatorsToNominate();
     res.send(JSON.stringify(result));
   } catch (err) {
@@ -100,9 +106,9 @@ app.post('/avnValidatorsToNominate', async (req, res, next) => {
   }
 });
 
-app.post('/avnStakingStats', async (req, res, next) => {
+app.post('/avnStakingStats', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ avnStakingStatsRequest: req.body });
+    log.trace({ avnStakingStatsRequest: req.body });
     const result = await avn.getStakingStats();
     res.send(JSON.stringify(result));
   } catch (err) {
@@ -110,9 +116,9 @@ app.post('/avnStakingStats', async (req, res, next) => {
   }
 });
 
-app.post('/avnChainInfo', async (req, res, next) => {
+app.post('/avnChainInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ avnChainInfoRequest: req.body });
+    log.trace({ avnChainInfoRequest: req.body });
     const result = await avn.getChainInfo();
     res.send(JSON.stringify(result));
   } catch (err) {
@@ -120,9 +126,9 @@ app.post('/avnChainInfo', async (req, res, next) => {
   }
 });
 
-app.post('/avnCurrentBlock', async (req, res, next) => {
+app.post('/avnCurrentBlock', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ avnCurrentBlockRequest: req.body });
+    log.trace({ avnCurrentBlockRequest: req.body });
     const result = await avn.getCurrentBlock();
     res.send(result);
   } catch (err) {
@@ -130,9 +136,9 @@ app.post('/avnCurrentBlock', async (req, res, next) => {
   }
 });
 
-app.post('/getDefaultRelayer', async (req, res, next) => {
+app.post('/getDefaultRelayer', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ defaultRelayerRequest: req.body });
+    log.trace({ defaultRelayerRequest: req.body });
     const result = avn.RELAYER_ADDRESS;
     res.send(result);
   } catch (err) {
@@ -140,9 +146,9 @@ app.post('/getDefaultRelayer', async (req, res, next) => {
   }
 });
 
-app.get('/unprocessedLifts', async (req, res, next) => {
+app.get('/unprocessedLifts', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info('unprocessedLifts invoked');
+    log.trace('unprocessedLifts invoked');
     const result = await avn.getUnprocessedLifts();
     res.send(result);
   } catch (err) {
@@ -150,20 +156,20 @@ app.get('/unprocessedLifts', async (req, res, next) => {
   }
 });
 
-app.get('/autolower', async (req, res, next) => {
+app.get('/autolower', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info('autolower invoked');
+    log.trace('autolower invoked');
     const result = await autolowering.autolower();
-    logger.info(result);
+    log.info(result);
     res.send(result);
   } catch (err) {
     next(err);
   }
 });
 
-app.post('/ethereumEventStatus', async (req, res, next) => {
+app.post('/ethereumEventStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ ethereumEventStatusRequest: req.body });
+    log.trace({ ethereumEventStatusRequest: req.body });
     const result = await avn.ethereumEventStatus(req.body.ethTransactionHash);
     res.send(result);
   } catch (err) {
@@ -171,9 +177,9 @@ app.post('/ethereumEventStatus', async (req, res, next) => {
   }
 });
 
-app.post('/avnTotalToken', async (req, res, next) => {
+app.post('/avnTotalToken', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ avnTotalTokenRequest: req.body });
+    log.trace({ avnTotalTokenRequest: req.body });
     const result = await avn.getTotalToken(req.body.token);
     res.send({ total: result });
   } catch (err) {
@@ -181,9 +187,9 @@ app.post('/avnTotalToken', async (req, res, next) => {
   }
 });
 
-app.post('/avnNftContractAddresses', async (req, res, next) => {
+app.post('/avnNftContractAddresses', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ avnNftContractAddresses: req.body });
+    log.trace({ avnNftContractAddresses: req.body });
     const result = await avn.getNftContractAddresses();
     res.send(result);
   } catch (err) {
@@ -191,9 +197,9 @@ app.post('/avnNftContractAddresses', async (req, res, next) => {
   }
 });
 
-app.post('/getNftInfo', async (req, res, next) => {
+app.post('/getNftInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ getNftInfo: req.body });
+    log.trace({ getNftInfo: req.body });
     const result = await avn.getNftInfo(req.body.nftId);
     res.send(result);
   } catch (err) {
@@ -201,9 +207,9 @@ app.post('/getNftInfo', async (req, res, next) => {
   }
 });
 
-app.post('/getBatchInfo', async (req, res, next) => {
+app.post('/getBatchInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ getBatchInfo: req.body });
+    log.trace({ getBatchInfo: req.body });
     const result = await avn.getBatchInfo(req.body.batchId);
     res.send(result);
   } catch (err) {
@@ -211,9 +217,9 @@ app.post('/getBatchInfo', async (req, res, next) => {
   }
 });
 
-app.post('/lowers', async (req, res, next) => {
+app.post('/lowers', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ lowerDataRequest: req.body });
+    log.trace({ lowerDataRequest: req.body });
     let oldLowers;
 
     try {
@@ -223,16 +229,16 @@ app.post('/lowers', async (req, res, next) => {
       oldLowers = [];
     }
 
-    let newLowers = await loweringV2.getLowers(req.body.account);
+    const newLowers = await loweringV2.getLowers(req.body.account);
     res.send((oldLowers || []).concat(newLowers));
   } catch (err) {
     next(err);
   }
 });
 
-app.post('/gatewayUserInfo', async (req, res, next) => {
+app.post('/gatewayUserInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ gatewayUserInfo: req.body });
+    log.trace({ gatewayUserInfo: req.body });
     const result = await avn.getGatewayUserInfo(req.body.account);
     res.send(result);
   } catch (err) {
@@ -240,9 +246,9 @@ app.post('/gatewayUserInfo', async (req, res, next) => {
   }
 });
 
-app.post('/getPayer', async (req, res, next) => {
+app.post('/getPayer', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ getPayer: JSON.stringify(req.body) });
+    log.trace({ getPayer: JSON.stringify(req.body) });
     let result = await rds.getPayer(req.body.user, req.body.payer);
     result = !!result && (await avn.payerHasFunds(result.payerAddress)) ? result : undefined;
     res.send(result);
@@ -251,9 +257,9 @@ app.post('/getPayer', async (req, res, next) => {
   }
 });
 
-app.post('/isPayerTransaction', async (req, res, next) => {
+app.post('/isPayerTransaction', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ isPayerTransaction: JSON.stringify(req.body) });
+    log.trace({ isPayerTransaction: JSON.stringify(req.body) });
     const result = await rds.isPayerTransaction(req.body.payer, req.body.transaction);
     res.send(result);
   } catch (err) {
@@ -261,9 +267,9 @@ app.post('/isPayerTransaction', async (req, res, next) => {
   }
 });
 
-app.post('/addNewTransactionStatus', async (req, res, next) => {
+app.post('/addNewTransactionStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ addNewTransactionStatus: JSON.stringify(req.body) });
+    log.trace({ addNewTransactionStatus: JSON.stringify(req.body) });
     await avn.addNewTransaction(req.body.requestId);
     res.status(200).send({});
   } catch (err) {
@@ -271,9 +277,9 @@ app.post('/addNewTransactionStatus', async (req, res, next) => {
   }
 });
 
-app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
+app.post('/setTransactionRefusedByPayerStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });
+    log.trace({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });
     await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.PayerRefused);
     res.status(200).send({});
   } catch (err) {
@@ -281,9 +287,9 @@ app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
   }
 });
 
-app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
+app.post('/setTransactionFailedToBeSentStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ setTransactionFailedToBeSentStatus: JSON.stringify(req.body) });
+    log.trace({ setTransactionFailedToBeSentStatus: JSON.stringify(req.body) });
     await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
     res.status(200).send({});
   } catch (err) {
@@ -291,9 +297,9 @@ app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
   }
 });
 
-app.post('/publishEvent', async (req, res, next) => {
+app.post('/publishEvent', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    logger.info({ publishEventRequest: req.body });
+    log.trace({ publishEventRequest: req.body });
     webhooks.publishEvent(req.body);
     res.status(200).send({});
   } catch (err) {
@@ -301,13 +307,13 @@ app.post('/publishEvent', async (req, res, next) => {
   }
 });
 
-app.use(function (err, req, res, _next) {
-  logger.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });
 });
 
 app.listen(port, () => {
-  logger.info(`AvN connector listening on port ${port}`);
+  log.info(`AvN connector listening on port ${port}`);
 });
 
 async function instantiateConnector() {

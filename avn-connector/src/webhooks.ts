@@ -1,14 +1,17 @@
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import avn from './avn';
-import rds from './db/index';
-const redis = require('./redis');
-const crypto = require('crypto');
-const lambda = require('./lambdas');
-const util = require('util');
+import * as avn from './avn';
+import * as rds from './db/index';
+import * as redis from './redis';
+import * as crypto from 'crypto';
+import * as lambda from './lambdas';
+import * as util from 'util';
 const config = require('multiconfig').load();
+import log4js from 'log4js';
+
 const setTimeoutPromise = util.promisify(setTimeout);
+
+const log = log4js.configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
-const logger = require("./logger");
 
 const TRIGGER_TX_STATUS_UPDATE_DELAY_MS = 45000;
 const WEBHOOKS_REFRESH_INTERVAL_MS = 20000;
@@ -24,13 +27,33 @@ const WEBHOOK_EVENT_TYPES = {
   tx_payer_refused: 'tx_payer_refused',
   tx_send_failed: 'tx_send_failed',
   tx_execution_failed: 'tx_execution_failed',
-  tx_succeeded: 'tx_succeeded'
-};
+  tx_succeeded: 'tx_succeeded',
+} as const;
+
+type WebhookEventType = keyof typeof WEBHOOK_EVENT_TYPES;
+
+interface Transaction {
+  transactionHash: string;
+  status: 'Processed' | 'Rejected';
+}
+
+interface Event {
+  eventType: WebhookEventType;
+  accountId: string;
+  requestId: string;
+  data: any;
+}
 
 // Initializes the permitted event types and any active webhooks
 // Webhooks are kept up-to-date via frequent DB resyncs that run in the background
 class Webhooks {
-  constructor(refreshInterval) {
+  eventTypes: Record<string, string>;
+  active: Record<string, { endpoint: string; eventTypes: Record<string, string> }>;
+  refreshInterval: number;
+  eventTypesState: string | null;
+  webhooksState: string | null;
+
+  constructor(refreshInterval: number) {
     this.eventTypes = {};
     this.active = {};
     this.refreshInterval = refreshInterval;
@@ -43,7 +66,7 @@ class Webhooks {
       rds.getWebhookEventTypes(),
       rds.getActiveWebhooks(),
       rds.getWebhooksState(),
-      rds.getWebhookEventTypesState()
+      rds.getWebhookEventTypesState(),
     ]);
     this.scheduleNextRefresh();
   }
@@ -74,12 +97,12 @@ class Webhooks {
     setTimeout(() => this.refresh(), this.refreshInterval);
   }
 
-  hasEventTypes() {
+  hasEventTypes(): boolean {
     return Object.keys(this.eventTypes).length > 0;
   }
 }
 
-let webhooks;
+let webhooks: Webhooks;
 
 async function init() {
   try {
@@ -112,7 +135,7 @@ function confirmExpectedEventTypes() {
   }
 }
 
-async function publishTransactionEvents(transactions) {
+async function publishTransactionEvents(transactions: Transaction[]) {
   if (!webhooks.hasEventTypes()) {
     return;
   }
@@ -122,7 +145,7 @@ async function publishTransactionEvents(transactions) {
       const { requestId, accountId } = await redis.getSentTxDetails(tx.transactionHash);
       if (!requestId) continue;
 
-      let eventType = null;
+      let eventType: WebhookEventType | null = null;
 
       if (tx.status === 'Processed') {
         eventType = WEBHOOK_EVENT_TYPES.tx_succeeded;
@@ -133,14 +156,14 @@ async function publishTransactionEvents(transactions) {
       if (!eventType) continue;
 
       await publishEvent({ eventType, requestId, accountId, data: tx });
-      redis.deleteSentTxDetails(tx.transactionHash);
+      await redis.deleteSentTxDetails(tx.transactionHash);
     } catch (error) {
       log.error('[Webhooks] Error - Error publishing transaction events', error);
     }
   }
 }
 
-async function publishEvent(event) {
+async function publishEvent(event: Event) {
   if (!webhooks.hasEventTypes()) {
     return;
   }
@@ -163,7 +186,7 @@ async function publishEvent(event) {
   }
 }
 
-async function attemptToPublishEvent(event) {
+async function attemptToPublishEvent(event: Event) {
   const { eventType, publicKey, requestId, data } = checkEvent(event);
   if (!webhooks.active.hasOwnProperty(publicKey)) return;
 
@@ -183,7 +206,7 @@ async function attemptToPublishEvent(event) {
   await sendToQueue(JSON.stringify({ endpoint, eventData }), publicKey);
 }
 
-function checkEvent(event) {
+function checkEvent(event: Event) {
   const { eventType, accountId, requestId, data } = event;
   const missingParams = Object.entries(event)
     .filter(([, value]) => !value)
@@ -205,24 +228,24 @@ function checkEvent(event) {
   }
 }
 
-async function sendToQueue(message, messageGroup) {
+async function sendToQueue(message: string, messageGroup: string) {
   const params = {
     QueueUrl: config.webhooks.queue_url,
     MessageBody: message,
     MessageGroupId: messageGroup,
-    MessageDeduplicationId: hash(message)
+    MessageDeduplicationId: hash(message),
   };
 
   await sqsClient.send(new SendMessageCommand(params));
 }
 
-function hash(message) {
+function hash(message: string): string {
   return crypto.createHash('sha256').update(message).digest('hex');
 }
 
-module.exports = {
+export {
   init,
   publishEvent,
   publishTransactionEvents,
-  WEBHOOK_EVENT_TYPES
+  WEBHOOK_EVENT_TYPES,
 };

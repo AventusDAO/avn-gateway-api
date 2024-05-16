@@ -1,21 +1,56 @@
-const axios = require('axios');
-const log4js = require('log4js');
-const log = log4js.getLogger();
+import axios from 'axios';
+import log4js from 'log4js';
 const config = require('multiconfig').load();
-const { hexToBn, isHex } = require('@polkadot/util');
+import { hexToBn, isHex } from '@polkadot/util';
+import * as avn from '../avn';
+
+const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 const READY_TO_CLAIM_EVENT_NAME = 'TokenManager.LowerReadyToClaim';
 const LOWER_REQUEST_EVENT_NAME = 'TokenManager.LowerRequested';
 
-const lowerStates = {
+const lowerStates: Record<string, number> = {
   'TokenManager.AvtLowered': 1,
   'TokenManager.TokenLowered': 1
 };
 lowerStates[LOWER_REQUEST_EVENT_NAME] = 0;
 lowerStates[READY_TO_CLAIM_EVENT_NAME] = 2;
 
-async function getLowersFromIndexer(fromId, txLimit) {
+interface LowerEvent {
+  args: {
+    lowerId?: string;
+    tokenId?: string;
+    t1Recipient?: string;
+    amount?: string;
+    from?: string;
+    sender?: string;
+  };
+  block: {
+    height: string;
+  };
+  id: string;
+  indexInBlock: string;
+  name: string;
+  claimData?: any;
+}
+
+interface LowerData {
+  lowerId?: string;
+  token?: string;
+  to?: string;
+  amount?: string;
+  name?: string;
+  from?: string;
+  claimData?: any;
+}
+
+interface BlockId {
+  blockNumber: number;
+  index: number;
+}
+
+async function getLowersFromIndexer(fromId: string, txLimit: number): Promise<LowerEvent[]> {
   const query = `
         query LowerQuery {
             events(
@@ -42,7 +77,7 @@ async function getLowersFromIndexer(fromId, txLimit) {
       operationName: 'LowerQuery'
     });
 
-    let lowerEvents = response?.data?.data?.events;
+    const lowerEvents = response?.data?.data?.events as LowerEvent[];
     if (lowerEvents) {
       return sortLowerEventsByIdAsc(lowerEvents);
     }
@@ -54,8 +89,8 @@ async function getLowersFromIndexer(fromId, txLimit) {
   }
 }
 
-function formatLowerEvent(lowerEvent, avtContract) {
-  const lowerData = {
+function formatLowerEvent(lowerEvent: LowerEvent, avtContract: string): LowerData {
+  const lowerData: LowerData = {
     lowerId: lowerEvent?.args?.lowerId,
     token: lowerEvent?.args?.tokenId || avtContract,
     to: lowerEvent?.args?.t1Recipient?.toLowerCase(),
@@ -69,28 +104,28 @@ function formatLowerEvent(lowerEvent, avtContract) {
   return lowerData;
 }
 
-function canUpdateEventStatus(currentEvent, newEvent) {
+function canUpdateEventStatus(currentEvent: LowerData, newEvent: LowerData): boolean {
   if (!currentEvent || Object.keys(currentEvent).length === 0) return true;
 
-  let transitionIsValid = lowerStates[newEvent?.name] > lowerStates[currentEvent?.name];
+  const transitionIsValid = lowerStates[newEvent?.name!] > lowerStates[currentEvent?.name!];
   return transitionIsValid;
 }
 
-function currentEventMissingArgs(currentEvent) {
+function currentEventMissingArgs(currentEvent: LowerData): boolean {
   if (!currentEvent) return false;
   return ['from', 'to', 'amount'].every(prop => currentEvent[prop] === null || currentEvent[prop] === undefined);
 }
 
-function updateEventArgs(currentEvent, newEvent) {
+function updateEventArgs(currentEvent: LowerData, newEvent: LowerData): LowerData {
   currentEvent.from = newEvent.from;
   currentEvent.to = newEvent.to;
   currentEvent.amount = newEvent.amount;
   return currentEvent;
 }
 
-function updateBlockNumberAndIndex(lowerData, blockNumber, index) {
-  blockNumber = parseInt(blockNumber) || 0;
-  index = parseInt(index) || 0;
+function updateBlockNumberAndIndex(lowerData: LowerEvent, blockNumber: number, index: number): [number, number] {
+  blockNumber = parseInt(blockNumber.toString()) || 0;
+  index = parseInt(index.toString()) || 0;
 
   if (!lowerData || !lowerData.block) return [blockNumber, index];
 
@@ -108,33 +143,25 @@ function updateBlockNumberAndIndex(lowerData, blockNumber, index) {
 }
 
 // We can't use parseInt or isNumber because a hex input will be treated as a valid number
-function isLowerId(input) {
+function isLowerId(input: string): boolean {
   // Check if the input contains only decimal numbers
   return /^[0-9]+$/.test(input);
 }
 
-function parseBlockId(fromBlockId) {
+function parseBlockId(fromBlockId: string): BlockId {
   if (!fromBlockId) {
     return { blockNumber: 0, index: 0 };
   }
 
-  let blockInfo = fromBlockId.split('-');
-  return { blockNumber: blockInfo[0] || 0, index: blockInfo[1] || 0 };
+  const blockInfo = fromBlockId.split('-');
+  return { blockNumber: parseInt(blockInfo[0]) || 0, index: parseInt(blockInfo[1]) || 0 };
 }
 
-function sortLowerEventsByIdAsc(lowerEvents) {
-  return lowerEvents.sort((a, b) => {
-    if (a.id === b.id) {
-      return 0;
-    } else if (a.id < b.id) {
-      return -1;
-    } else {
-      return 1;
-    }
-  });
+function sortLowerEventsByIdAsc(lowerEvents: LowerEvent[]): LowerEvent[] {
+  return lowerEvents.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 
-async function updateEventStatusIfRequired(currentEvent, newEvent) {
+async function updateEventStatusIfRequired(currentEvent: LowerData, newEvent: LowerData): Promise<LowerData> {
   if (!newEvent || !currentEvent) return currentEvent;
 
   if (currentEventMissingArgs(currentEvent)) {
@@ -145,16 +172,16 @@ async function updateEventStatusIfRequired(currentEvent, newEvent) {
     currentEvent.name = newEvent.name;
     currentEvent.claimData = newEvent.claimData;
   } else {
-    // this is an edge case where the existiing entry in redis is corrupted somehow
+    // this is an edge case where the existing entry in redis is corrupted somehow
     if (currentEvent.name === READY_TO_CLAIM_EVENT_NAME && !currentEvent.claimData) {
-      currentEvent.claimData = await avn.getLowerProof(newEvent.lowerId);
+      currentEvent.claimData = await avn.getLowerProof(newEvent.lowerId!);
     }
   }
 
   return currentEvent;
 }
 
-module.exports = {
+export {
   formatLowerEvent,
   getLowersFromIndexer,
   READY_TO_CLAIM_EVENT_NAME,

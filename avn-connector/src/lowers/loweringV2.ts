@@ -1,18 +1,28 @@
-const utils = require('./utils');
-const avn = require('../avn');
-const redis = require('../redis');
-const tier1 = require('../tier1');
-const log4js = require('log4js');
+import * as utils from './utils';
+import * as avn from '../avn';
+import * as redis from '../redis';
+import * as tier1 from '../tier1';
+import log4js from 'log4js';
+
 const log = log4js.getLogger();
 
 const TX_LIMIT = 50;
 
-async function getLowers(addressOrId) {
+interface BlockId {
+  blockNumber: number;
+  index: number;
+}
+
+interface LowerData {
+  [key: string]: any;
+}
+
+async function getLowers(addressOrId: string): Promise<any> {
   log.info(`Getting lower data for ${addressOrId}`);
   const { avnContract } = await avn.getChainInfo();
 
   const lastAvnLowerBlockId = await redis.getLastLowerBlockIdFromAvn();
-  const parsedLastAvnLowerBlockId = utils.parseBlockId(lastAvnLowerBlockId);
+  const parsedLastAvnLowerBlockId: BlockId = utils.parseBlockId(lastAvnLowerBlockId);
 
   const toBlock = await updateLowerData(parsedLastAvnLowerBlockId, avnContract);
   await redis.setLastLowerBlockIdFromAvn(toBlock);
@@ -25,34 +35,34 @@ async function getLowers(addressOrId) {
   }
 }
 
-async function updateLowerData(lastAvnLowerBlockId, avtContract) {
-  const generateId = (block, index) =>
+async function updateLowerData(lastAvnLowerBlockId: BlockId, avtContract: string): Promise<string> {
+  const generateId = (block: number, index: number): string =>
     [block.toString().padStart(10, '0'), index.toString().padStart(6, '0'), '00000'].join('-');
 
   let fromBlockId = generateId(lastAvnLowerBlockId.blockNumber, lastAvnLowerBlockId.index);
-  let toBlockInfo;
-
+  let toBlockInfo: BlockId | null;
   // Loop to retrieve lowers so as not to exceed the indexer limit:
   do {
     toBlockInfo = await processLowerEvents(fromBlockId, avtContract);
     log.info(`Processing lowers from ${fromBlockId}. Next batch: ${JSON.stringify(toBlockInfo || {})}`);
     if (toBlockInfo) {
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
-      fromBlockId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index) + 1);
+      fromBlockId = generateId(toBlockInfo.blockNumber, parseInt(toBlockInfo.index.toString()) + 1);
     }
   } while (toBlockInfo);
 
   return fromBlockId;
 }
 
-async function processLowerEvents(fromId, avtContract) {
+async function processLowerEvents(fromId: string, avtContract: string): Promise<BlockId | null> {
   try {
     const lowersArray = await utils.getLowersFromIndexer(fromId, TX_LIMIT);
     if (lowersArray.length === 0) return null;
 
-    let blockNumber, index;
+    let blockNumber: number = 0;
+    let index: number = 0;
     let counter = 0;
-    const distinctLowers = {};
+    const distinctLowers: Record<string, LowerData> = {};
 
     for (const lowerData of lowersArray) {
       [blockNumber, index] = utils.updateBlockNumberAndIndex(lowerData, blockNumber, index);
@@ -69,14 +79,14 @@ async function processLowerEvents(fromId, avtContract) {
         distinctLowers[lowerId] = newEvent;
         continue;
       }
-
+    
       // handle multiple events for the same lowerId
       currentEvent = await utils.updateEventStatusIfRequired(currentEvent, newEvent);
 
       distinctLowers[lowerId] = currentEvent;
     }
 
-    for (key in distinctLowers) {
+    for (const key in distinctLowers) {
       // One last check to make sure we don't overwrite stored events.
       // This can happen if events are split across different batches (txLimits)
       let storedLower = await redis.getLowerById(key);
@@ -105,10 +115,10 @@ async function processLowerEvents(fromId, avtContract) {
   }
 }
 
-async function getLowerByAddress(address) {
-  const lowerData = [];
+async function getLowerByAddress(address: string): Promise<any[]> {
+  const lowerData: any[] = [];
   const lowerIds = await redis.getLowerIdsByAddress(address);
-  for (id of lowerIds) {
+  for (const id of lowerIds) {
     let lower = await redis.getLowerById(id);
     if (lower) {
       lowerData.push(lower);
@@ -119,13 +129,13 @@ async function getLowerByAddress(address) {
   return lowerData;
 }
 
-async function deleteClaimedLowers(avnContract) {
+async function deleteClaimedLowers(avnContract: string): Promise<void> {
   const lastClaimedEthereumLowerBlock = await redis.getLastClaimedEthereumLowerBlock();
   let [lastBlockChecked, claimedLowerIdsOnEthereum] = await tier1.getLowersClaimedSinceBlock(
     avnContract,
     parseInt(lastClaimedEthereumLowerBlock) + 1
   );
-  for (lowerId of claimedLowerIdsOnEthereum) {
+  for (const lowerId of claimedLowerIdsOnEthereum) {
     log.trace(`Deleting lower id ${lowerId}`);
     await redis.deleteLowerById(lowerId);
   }
@@ -133,6 +143,6 @@ async function deleteClaimedLowers(avnContract) {
   await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
 }
 
-module.exports = {
+export {
   getLowers
 };

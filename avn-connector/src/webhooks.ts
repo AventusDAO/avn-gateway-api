@@ -1,6 +1,6 @@
-const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
-const avn = require('./avn');
-const rds = require('./db/index');
+import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
+import avn from './avn';
+import rds from './db/index';
 const redis = require('./redis');
 const crypto = require('crypto');
 const lambda = require('./lambdas');

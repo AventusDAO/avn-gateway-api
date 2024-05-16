@@ -1,41 +1,26 @@
-var EntitySchema = require('typeorm').EntitySchema;
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Webhooks } from './webhooks';
 
-module.exports = new EntitySchema({
-  name: 'webhookEvent',
-  columns: {
-    id: {
-      primary: true,
-      type: 'int',
-      generated: true
-    },
-    type: {
-      type: 'varchar',
-      unique: true,
-      nullable: false
-    },
-    description: {
-      type: 'varchar',
-      unique: true,
-      nullable: false
-    },
-    createdAt: {
-      type: 'timestamptz',
-      createDate: true
-    },
-    updatedAt: {
-      type: 'timestamptz',
-      updateDate: true
-    },
-    enabled: {
-      type: 'boolean',
-      default: true
-    }
-  },
-  relations: {
-    webhooks: {
-      target: 'webhooks',
-      type: 'one-to-many',
-      inverseSide: 'webhookEvent'
-    }
-  }
-});
+@Entity('webhookEvent')
+export class WebhookEvent {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ type: 'varchar', unique: true, nullable: false })
+    type: string;
+
+    @Column({ type: 'varchar', unique: true, nullable: false })
+    description: string;
+
+    @CreateDateColumn({ type: 'timestamptz' })
+    createdAt: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz' })
+    updatedAt: Date;
+
+    @Column({ type: 'boolean', default: true })
+    enabled: boolean;
+
+    @OneToMany(() => Webhooks, webhook => webhook.webhookEvent)
+    webhooks: Webhooks[];
+}

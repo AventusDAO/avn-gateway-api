@@ -1,9 +1,9 @@
+import { DataSource, IsNull } from 'typeorm';
+import { isHex, u8aToHex } from '@polkadot/util';
+import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
+import crypto from 'crypto';
+
 const config = require('multiconfig').load();
-const typeorm = require('typeorm');
-const { IsNull, Not } = require('typeorm');
-const { isHex, u8aToHex } = require('@polkadot/util');
-const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
-const crypto = require('crypto');
 
 const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
 const FEE_TABLE = 'fee';
@@ -15,10 +15,10 @@ const WEBHOOK_ENDPOINT_TABLE = 'webhookEndpoint';
 const WEBHOOK_EVENT_TABLE = 'webhookEvent';
 const WEBHOOKS_TABLE = 'webhooks';
 
-let dataSource;
+let dataSource: DataSource;
 
-async function init() {
-  dataSource = new typeorm.DataSource({
+async function init(): Promise<DataSource> {
+  dataSource = new DataSource({
     type: 'postgres',
     host: config.postgres.host,
     port: config.postgres.port,
@@ -44,7 +44,7 @@ async function init() {
   return dataSource;
 }
 
-async function getPayer(user, payer) {
+async function getPayer(user: string, payer?: string): Promise<{ payerId: number; payerAddress: string; vaultId: string } | undefined> {
   const userPublicKey = getPublicKey(user);
 
   if (!userPublicKey && !payer) return undefined;
@@ -57,7 +57,6 @@ async function getPayer(user, payer) {
   });
   if (!splitFeeUser || !splitFeeUser.payer) return undefined;
 
-  // This check is useful when we start supporting multiple payers for the same user.
   if (payer) {
     const payerPublicKey = getPublicKey(payer);
     if (splitFeeUser.payer.publicKey !== payerPublicKey) {
@@ -72,9 +71,8 @@ async function getPayer(user, payer) {
   };
 }
 
-// This function will return the fee as a string
-async function getFees(relayerAddress, user, transactionName) {
-  let userPk;
+async function getFees(relayerAddress: string, user?: string, transactionName?: string): Promise<Record<string, string>|string> {
+  let userPk: string | undefined;
 
   const relayer = await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
@@ -93,13 +91,13 @@ async function getFees(relayerAddress, user, transactionName) {
   return await getAllFees(feeDataSource, relayer, userPk);
 }
 
-async function isPayerTransaction(payer, transactionName) {
+async function isPayerTransaction(payer: string, transactionName: string): Promise<boolean> {
   if (!payer || !transactionName) return false;
   const payerPk = getPublicKey(payer);
 
   const payerTransactionDataSource = await dataSource.getRepository(PAYER_TRANSACTION_TABLE);
 
-  let payerTx = await payerTransactionDataSource.findOne({
+  const payerTx = await payerTransactionDataSource.findOne({
     where: {
       payer: { publicKey: payerPk, enabled: true },
       transaction: { name: transactionName, enabled: true },
@@ -111,7 +109,7 @@ async function isPayerTransaction(payer, transactionName) {
   return payerTx ? true : false;
 }
 
-async function getRelayer(relayerAddress) {
+async function getRelayer(relayerAddress: string): Promise<any> { // Define a type for relayer if available
   if (!relayerAddress) return undefined;
 
   const relayerPk = getPublicKey(relayerAddress);
@@ -119,20 +117,17 @@ async function getRelayer(relayerAddress) {
   return await relayerDataSource.findOne({ where: { publicKey: relayerPk, enabled: true } });
 }
 
-// This function expects that each relayer has at least one default fee or a fee for each transaction type.
-function buildFeesJson(dbResult, relayerDefaultFee, transactionTypes) {
-  let defaultFee;
-  let relayerFees = {};
+function buildFeesJson(dbResult: any[], relayerDefaultFee: string, transactionTypes: any[]): Record<string, string> { // Define proper types for dbResult and transactionTypes if available
+  let defaultFee: string | null = null;
+  const relayerFees: Record<string, string> = {};
 
   (dbResult || []).forEach(r => {
     const hasTransactionFee = !!r.transaction && !!r.transaction.name;
     if (hasTransactionFee) {
-      // Prioritise user specific fees over default fees for transaction
       if (!relayerFees[r.transaction.name] || r.userPublicKey) {
         relayerFees[r.transaction.name] = r.fee;
       }
     } else if (r.userPublicKey) {
-      // This is the default fee for the user
       defaultFee = r.fee;
     }
   });
@@ -143,7 +138,7 @@ function buildFeesJson(dbResult, relayerDefaultFee, transactionTypes) {
   return relayerFees;
 }
 
-async function getTransactions() {
+async function getTransactions(): Promise<any[]> { // Define a type for transactions if available
   const transactionDataSource = await dataSource.getRepository(TRANSACTION_TABLE);
 
   return await transactionDataSource.find({
@@ -153,8 +148,8 @@ async function getTransactions() {
   });
 }
 
-async function getSingleFee(feeDataSource, relayer, userPk, transactionName) {
-  let feeRow = await feeDataSource.findOne({
+async function getSingleFee(feeDataSource: any, relayer: any, userPk: string | undefined, transactionName: string): Promise<string> { // Define proper types for feeDataSource and relayer if available
+  const feeRow = await feeDataSource.findOne({
     where: {
       relayerId: relayer.id,
       userPublicKey: userPk || IsNull(),
@@ -166,7 +161,7 @@ async function getSingleFee(feeDataSource, relayer, userPk, transactionName) {
   return feeRow ? feeRow.fee : relayer.defaultFee;
 }
 
-async function getAllFees(feeDataSource, relayer, userPk) {
+async function getAllFees(feeDataSource: any, relayer: any, userPk: string | undefined): Promise<Record<string,string>> { // Define proper types for feeDataSource and relayer if available
   const fees = await feeDataSource.find({
     where: {
       relayerId: relayer.id,
@@ -180,7 +175,7 @@ async function getAllFees(feeDataSource, relayer, userPk) {
   return buildFeesJson(fees, relayer.defaultFee, transactionTypes);
 }
 
-async function getRelayerVaultId(relayerAddress) {
+async function getRelayerVaultId(relayerAddress: string): Promise<string> {
   if (!relayerAddress) throw new Error(`Invalid relayer address ${relayerAddress}`);
 
   const relayer = await getRelayer(relayerAddress);
@@ -189,18 +184,18 @@ async function getRelayerVaultId(relayerAddress) {
   return relayer.vaultId;
 }
 
-function getPublicKey(account) {
+function getPublicKey(account: string): string {
   if (!account) throw new Error(`Address is NULL`);
   if (isHex(account) && account.length != 66) throw new Error(`Invalid hex encoded address ${account}`);
 
   try {
     return u8aToHex(decodeAddress(account));
-  } catch (err) {
+  } catch (err: any) {
     throw new Error(`Invalid address ${account}: ${err.toString()}`);
   }
 }
 
-async function getActiveWebhooks() {
+async function getActiveWebhooks(): Promise<Record<string, any>> { // Define a proper type for the return value if available
   try {
     const webhooks = await dataSource
       .getRepository(PAYER_TABLE)
@@ -223,24 +218,24 @@ async function getActiveWebhooks() {
       active[publicKey].eventTypes[eventType] = eventDescription;
       return active;
     }, {});
-  } catch (error) {
+  } catch (error:any) {
     throw new Error(`Failed to get active webhooks: ${error.message}`);
   }
 }
 
-async function getWebhookEventTypes() {
+async function getWebhookEventTypes(): Promise<Record<string, string>> {
   try {
     const webhookEventDataSource = await dataSource.getRepository(WEBHOOK_EVENT_TABLE);
     return (await webhookEventDataSource.find()).reduce((webhookEvents, { type, description }) => {
       webhookEvents[type] = description;
       return webhookEvents;
     }, {});
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(`Failed to get webhook event types: ${error.message}`);
   }
 }
 
-async function getWebhookEventTypesState() {
+async function getWebhookEventTypesState(): Promise<string> {
   const stats = await dataSource
     .getRepository(WEBHOOK_EVENT_TABLE)
     .createQueryBuilder('event')
@@ -251,7 +246,7 @@ async function getWebhookEventTypesState() {
   return crypto.createHash('sha256').update(JSON.stringify(stats)).digest('hex');
 }
 
-async function getWebhooksState() {
+async function getWebhooksState(): Promise<string> {
   const stats = await Promise.all([
     dataSource
       .getRepository(PAYER_TABLE)
@@ -275,7 +270,7 @@ async function getWebhooksState() {
   return crypto.createHash('sha256').update(JSON.stringify(stats)).digest('hex');
 }
 
-module.exports = {
+export {
   getPayer,
   getFees,
   getPublicKey,

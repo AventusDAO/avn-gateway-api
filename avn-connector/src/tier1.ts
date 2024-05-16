@@ -2,8 +2,7 @@ const redis = require('./redis');
 const config = require('multiconfig').load();
 const { ethers } = require('ethers');
 const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provider_url);
-const log4js = require('log4js');
-const log = log4js.getLogger();
+const logger = require("./logger");
 
 const MIN_LIFT_AMOUNT = toBn(config.tier1.minLiftAmount);
 const NATIVE_T1_TOKEN_ONLY = config.tier1.nativeT1TokenOnly === 'true' || config.tier1.nativeT1TokenOnly === true;
@@ -32,7 +31,7 @@ async function getLockedBalance(avnContract, tokenAddress) {
       balance = await tokenContract.balanceOf(avnContract);
     }
   } catch (error) {
-    log.error('Error getting locked balance:', error);
+    logger.error('Error getting locked balance:', error);
   }
 
   return balance.toString();
@@ -57,7 +56,7 @@ async function getLiftEvents(avnContract) {
           if (!NATIVE_T1_TOKEN_ONLY || token === EVM_TOKEN.toLowerCase()) {
             liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]);
           } else {
-            log.trace(`Ignoring lift for token: ${token}, amount: ${amount.toString()}, block: ${event.blockNumber}`);
+            logger.info(`Ignoring lift for token: ${token}, amount: ${amount.toString()}, block: ${event.blockNumber}`);
           }
         }
       });
@@ -68,7 +67,7 @@ async function getLiftEvents(avnContract) {
     // return the same block for `from` and `to` with an empty `events`
     return { fromBlock, toBlock: fromBlock, liftEvents };
   } catch (error) {
-    log.error('Error getting lift events:', error);
+    logger.error('Error getting lift events:', error);
     throw error;
   }
 }
@@ -86,7 +85,7 @@ async function getLatestClaimedLowers(avnContract) {
     }
     if (events.length > 0) await redis.setClaimedLowersFromTier1Block(events[events.length - 1].blockNumber + 1);
   } catch (error) {
-    log.error('Error getting claimed lowers:', error);
+    logger.error('Error getting claimed lowers:', error);
   }
 
   return claimedLowers;
@@ -100,7 +99,7 @@ async function getLatestPublishedRoots(avnContract) {
     events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock });
     if (events.length > 0) await redis.setPublishedRootsFromTier1Block(events[events.length - 1].blockNumber + 1);
   } catch (error) {
-    log.error('Error getting published roots:', error);
+    logger.error('Error getting published roots:', error);
   }
 
   return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
@@ -117,7 +116,7 @@ async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
       claimedLowerIds.push(lowerId);
     });
   } catch (error) {
-    log.error('Error getting claimed lowers:', error);
+    logger.error('Error getting claimed lowers:', error);
   }
 
   return [fromBlock, claimedLowerIds];

@@ -7,8 +7,8 @@ const lambda = require('./lambdas');
 const util = require('util');
 const config = require('multiconfig').load();
 const setTimeoutPromise = util.promisify(setTimeout);
-const log = require('log4js').configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
+const logger = require("./logger");
 
 const TRIGGER_TX_STATUS_UPDATE_DELAY_MS = 45000;
 const WEBHOOKS_REFRESH_INTERVAL_MS = 20000;

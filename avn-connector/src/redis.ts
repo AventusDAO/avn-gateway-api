@@ -1,8 +1,7 @@
 const Redis = require('ioredis');
 const _ = require('lodash');
 const config = require('multiconfig').load();
-const log4js = require('log4js');
-const log = log4js.getLogger();
+const logger = require("./logger");
 
 const transactionObject = {
   senderAddress: 'senderAddress',
@@ -77,9 +76,9 @@ let redisClient;
 
 async function connect() {
   if ('redis' in config) {
-    log.info(`Attempting to connect to Redis database on ${config.redis.url}:${config.redis.port}`);
+    logger.info(`Attempting to connect to Redis database on ${config.redis.url}:${config.redis.port}`);
     redisClient = new Redis.Cluster([{ port: config.redis.port, host: config.redis.url }]);
-    log.info(
+    logger.info(
       'Connected to Redis database:\n',
       (await redisClient.hello()).map((e, i) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')
     );
@@ -150,10 +149,10 @@ function getKey(key) {
 async function addNewAvnTransaction(requestId, requestIdHash) {
   const transactionHashKey = getKey(requestIdHash);
 
-  log.trace(`[redis] [addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
+  logger.info(`[redis] [addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
 
   if (await redisClient.exists(transactionHashKey)) {
-    log.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
+    logger.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
     return;
   }
 
@@ -169,12 +168,12 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const requestIdKey = getKey(requestId);
 
-  log.trace(
+  logger.info(
     `[redis] [addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
   );
 
   if (await redisClient.exists(txHashOrRequestIdKey)) {
-    log.warn(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
+    logger.warn(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
     await redisClient.hset(txHashOrRequestIdKey, buildTransactionJson(senderAddress, senderNonce, reason));
     return;
   }
@@ -192,7 +191,7 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
   const transactionHashKey = getKey(transactionHash);
   const requestIdKey = getKey(requestId);
 
-  log.trace(
+  logger.info(
     `[redis] [updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
   );
 
@@ -216,16 +215,16 @@ async function getAvnTransaction(txHashOrRequestId) {
 
 async function resolvePendingAvnTransactions(transactions) {
   if (!transactions) {
-    log.trace(`[redis] No transactions to update`);
+    logger.info(`[redis] No transactions to update`);
     return;
   }
 
-  log.trace(`[redis] Updating ${transactions.length} transactions`);
+  logger.info(`[redis] Updating ${transactions.length} transactions`);
   for (const tx of transactions) {
     const transactionHashKey = getKey(tx.transactionHash);
 
     if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(tx.status)) {
-      log.warn({ message: 'invalid status, ignoring request', transactionHash: tx.transactionHash, txStatus: tx.status });
+      logger.warn({ message: 'invalid status, ignoring request', transactionHash: tx.transactionHash, txStatus: tx.status });
       continue;
     }
 
@@ -236,7 +235,7 @@ async function resolvePendingAvnTransactions(transactions) {
     newValue[transactionObject.eventArgs] = dataToJsonString(tx.eventArgs);
 
     if (tx.status === transactionStatus.Validating) {
-      log.trace(`[redis] Updating tx status to validated: txHash: ${tx.transactionHash}`);
+      logger.info(`[redis] Updating tx status to validated: txHash: ${tx.transactionHash}`);
       // make sure we don't accidentally overwrite an end state or re-write the same state
       const pendingTx = await redisClient.hgetall(transactionHashKey);
       if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(pendingTx.status)) {
@@ -267,11 +266,11 @@ async function getNextTransactionsToCheck() {
     .exec();
 
   if (numUpdated[1] !== numExpired[1]) {
-    log.warn(`[redis] Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);
+    logger.warn(`[redis] Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);
   }
-  log.trace(`[redis] Transactions with updated expiry: ${numUpdated[1]}\n`);
-  log.trace(`[redis] Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
-  log.trace(`[redis] Next transactions to check: ${txToCheckNext[1]}\n`);
+  logger.info(`[redis] Transactions with updated expiry: ${numUpdated[1]}\n`);
+  logger.info(`[redis] Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
+  logger.info(`[redis] Next transactions to check: ${txToCheckNext[1]}\n`);
   return txToCheckNext[1];
 }
 
@@ -486,7 +485,7 @@ async function deleteLowerById(lowerId) {
 
   const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
   const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
-  log.trace(`Deleting senderKey: ${senderKey} and recipientKey: ${recipientKey}`);
+  logger.info(`Deleting senderKey: ${senderKey} and recipientKey: ${recipientKey}`);
 
   await redisClient
     .multi()

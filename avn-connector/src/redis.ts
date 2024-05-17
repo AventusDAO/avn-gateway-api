@@ -1,9 +1,18 @@
-const Redis = require('ioredis');
-const _ = require('lodash');
+import Redis, { Cluster } from 'ioredis';
+import _ from 'lodash';
 const config = require('multiconfig').load();
-const logger = require("./logger");
+import logger from './logger';
 
-const transactionObject = {
+interface Transaction {
+  senderAddress: string;
+  senderNonce: string;
+  status: string;
+  blockNumber: string;
+  transactionIndex: string;
+  eventArgs: string;
+}
+
+const transactionObject: Transaction = {
   senderAddress: 'senderAddress',
   senderNonce: 'senderNonce',
   status: 'status',
@@ -72,15 +81,15 @@ const COLLATORS_EXPIRY_IN_SECONDS = 86400; //1 day
 const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; //1 day
 const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; //1 day
 
-let redisClient;
+let redisClient: Redis | Cluster;
 
 async function connect() {
   if ('redis' in config) {
     logger.info(`Attempting to connect to Redis database on ${config.redis.url}:${config.redis.port}`);
-    redisClient = new Redis.Cluster([{ port: config.redis.port, host: config.redis.url }]);
+    redisClient = new Cluster([{ port: config.redis.port, host: config.redis.url }]);
     logger.info(
       'Connected to Redis database:\n',
-      (await redisClient.hello()).map((e, i) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')
+      (await redisClient.hello()).map((e: any, i: number) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')
     );
   } else {
     redisClient = new Redis();
@@ -133,7 +142,25 @@ async function connect() {
   });
 }
 
-function dataToJsonString(data) {
+declare module 'ioredis' {
+  interface RedisCommander<Context> {
+    addzrangebyscore(
+      keys1: string,
+      keys2: string,
+      argv1: string,
+      argv2: number
+    ): any;
+
+    nextzsubset(
+      keys1: string,
+      keys2: string,
+      argv1: number,
+      argv2: number
+    ): any;
+  }
+}
+
+function dataToJsonString(data: any): string {
   if (_.isString(data)) {
     throw new Error('Data is already stringified: ' + data);
   } else {
@@ -141,12 +168,12 @@ function dataToJsonString(data) {
   }
 }
 
-function getKey(key) {
+function getKey(key: string): string {
   return `${SLOT_PREFIX}${key}`;
 }
 
 // There is no transaction hash at this point, so use a hash of the request Id
-async function addNewAvnTransaction(requestId, requestIdHash) {
+async function addNewAvnTransaction(requestId: string, requestIdHash: string): Promise<void> {
   const transactionHashKey = getKey(requestIdHash);
 
   logger.info(`[redis] [addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
@@ -164,7 +191,13 @@ async function addNewAvnTransaction(requestId, requestIdHash) {
     .exec();
 }
 
-async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddress, senderNonce, reason) {
+async function addFailedAvnTransaction(
+  requestId: string,
+  txHashOrRequestId: string,
+  senderAddress: string,
+  senderNonce: string,
+  reason: string
+): Promise<void> {
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const requestIdKey = getKey(requestId);
 
@@ -187,7 +220,12 @@ async function addFailedAvnTransaction(requestId, txHashOrRequestId, senderAddre
 
 // When a transaction is pending, it will have a txHash for the first time.
 // This function should not be exposed outside the connector
-async function updateTransactionStatusToPending(requestId, transactionHash, senderAddress, senderNonce) {
+async function updateTransactionStatusToPending(
+  requestId: string,
+  transactionHash: string,
+  senderAddress: string,
+  senderNonce: string
+): Promise<void> {
   const transactionHashKey = getKey(transactionHash);
   const requestIdKey = getKey(requestId);
 
@@ -207,13 +245,14 @@ async function updateTransactionStatusToPending(requestId, transactionHash, send
 }
 
 // Returns null if txHashOrRequestIdKey is not found
-async function getAvnTransaction(txHashOrRequestId) {
+async function getAvnTransaction(txHashOrRequestId: string | null): Promise<Record<string, string> | undefined> {
+  if (txHashOrRequestId === null) return undefined;
   const txHashOrRequestIdKey = getKey(txHashOrRequestId);
   const result = await redisClient.hgetall(txHashOrRequestIdKey);
   return Object.keys(result).length === 0 ? undefined : result;
 }
 
-async function resolvePendingAvnTransactions(transactions) {
+async function resolvePendingAvnTransactions(transactions: any[]): Promise<void> {
   if (!transactions) {
     logger.info(`[redis] No transactions to update`);
     return;
@@ -228,7 +267,7 @@ async function resolvePendingAvnTransactions(transactions) {
       continue;
     }
 
-    const newValue = {};
+    const newValue: Record<string, any> = {};
     newValue[transactionObject.status] = tx.status;
     newValue[transactionObject.blockNumber] = tx.blockNumber;
     newValue[transactionObject.transactionIndex] = tx.index;
@@ -253,7 +292,7 @@ async function resolvePendingAvnTransactions(transactions) {
   }
 }
 
-async function getNextTransactionsToCheck() {
+async function getNextTransactionsToCheck(): Promise<string[]> {
   const timeNow = Date.now();
   const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000;
 
@@ -274,196 +313,196 @@ async function getNextTransactionsToCheck() {
   return txToCheckNext[1];
 }
 
-async function getTransactionHashByRequestId(requestId) {
+async function getTransactionHashByRequestId(requestId: string): Promise<string | null> {
   const requestIdKey = getKey(requestId);
   return await redisClient.get(requestIdKey);
 }
 
-function buildTransactionJson(senderAddress, senderNonce, status) {
-  const result = {};
-  result[transactionObject.senderAddress] = senderAddress;
+function buildTransactionJson(senderAddress: string | undefined, senderNonce: string | undefined, status: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  result[transactionObject.senderAddress] = senderAddress || '';
   result[transactionObject.senderNonce] = senderNonce || '';
   result[transactionObject.status] = status;
   return result;
 }
 
-async function getNextNonce(senderAddress) {
+async function getNextNonce(senderAddress: string): Promise<number | undefined> {
   const nonce = await redisClient.get(NONCE_NAMESPACE + senderAddress);
-  return nonce == null ? undefined : parseInt(nonce);
+  return nonce == null ? undefined : Number(nonce);
 }
 
-async function setNextNonce(senderAddress, nonce) {
+async function setNextNonce(senderAddress: string, nonce: number): Promise<void> {
   await redisClient.setex(NONCE_NAMESPACE + senderAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
 }
 
-async function getNextPayerNonce(payerAddress) {
+async function getNextPayerNonce(payerAddress: string): Promise<number | undefined> {
   const nonce = await redisClient.get(PAYER_NONCE_NAMESPACE + payerAddress);
-  return nonce == null ? undefined : parseInt(nonce);
+  return nonce == null ? undefined : Number(nonce);
 }
 
-async function setNextPayerNonce(payerAddress, nonce) {
+async function setNextPayerNonce(payerAddress: string, nonce: number): Promise<void> {
   await redisClient.setex(PAYER_NONCE_NAMESPACE + payerAddress, NONCE_EXPIRY_IN_SECONDS, nonce.toString());
 }
 
-async function setCollatorsToNominate(collators) {
+async function setCollatorsToNominate(collators: any): Promise<void> {
   await redisClient.setex(COLLATORS_KEY, COLLATORS_EXPIRY_IN_SECONDS, dataToJsonString(collators));
 }
 
-async function getCollatorsToNominate() {
+async function getCollatorsToNominate(): Promise<any | undefined> {
   const collators = await redisClient.get(COLLATORS_KEY);
   return collators ? JSON.parse(collators) : undefined;
 }
 
-async function setStakingStats(stakingStats) {
+async function setStakingStats(stakingStats: any): Promise<void> {
   await redisClient.setex(STAKING_STAT_KEY, STAKING_STAT_EXPIRY_IN_SECONDS, dataToJsonString(stakingStats));
 }
 
-async function getStakingStats() {
+async function getStakingStats(): Promise<any | undefined> {
   const stakingStats = await redisClient.get(STAKING_STAT_KEY);
   return stakingStats ? JSON.parse(stakingStats) : undefined;
 }
 
-async function setChainInfo(chainInfo) {
+async function setChainInfo(chainInfo: any): Promise<void> {
   await redisClient.setex(CHAIN_INFO_KEY, CHAIN_INFO_EXPIRY_IN_SECONDS, dataToJsonString(chainInfo));
 }
 
-async function getChainInfo() {
+async function getChainInfo(): Promise<any | undefined> {
   const chainInfo = await redisClient.get(CHAIN_INFO_KEY);
   return chainInfo ? JSON.parse(chainInfo) : undefined;
 }
 
-async function setLiftsFromTier1Block(blockNumber) {
+async function setLiftsFromTier1Block(blockNumber: number): Promise<void> {
   await redisClient.set(LIFTS_FROM_TIER1_BLOCK_KEY, blockNumber);
 }
 
-async function getLiftsFromTier1Block() {
+async function getLiftsFromTier1Block(): Promise<number> {
   const blockNumber = await redisClient.get(LIFTS_FROM_TIER1_BLOCK_KEY);
-  return blockNumber ? parseInt(blockNumber) : 0;
+  return blockNumber ? Number(blockNumber) : 0;
 }
 
-async function setTotalToken(token, total) {
-  await redisClient.setex(TOTAL_TOKEN_NAMESPACE + token, TOTAL_TOKEN_EXPIRY_IN_SECONDS, total);
+async function setTotalToken(token: string, total: number): Promise<void> {
+  await redisClient.setex(TOTAL_TOKEN_NAMESPACE + token, TOTAL_TOKEN_EXPIRY_IN_SECONDS, total.toString());
 }
 
-async function getTotalToken(token) {
+async function getTotalToken(token: string): Promise<string | null> {
   return await redisClient.get(TOTAL_TOKEN_NAMESPACE + token);
 }
 
-async function setRetrieveLowersFromAvnBlock(blockNumber) {
+async function setRetrieveLowersFromAvnBlock(blockNumber: number): Promise<void> {
   await redisClient.set(LOWERS_FROM_AVN_BLOCK_KEY, blockNumber);
 }
 
-async function getRetrieveLowersFromAvnBlock() {
+async function getRetrieveLowersFromAvnBlock(): Promise<number> {
   const blockNumber = await redisClient.get(LOWERS_FROM_AVN_BLOCK_KEY);
-  return blockNumber ? parseInt(blockNumber) : 0;
+  return blockNumber ? Number(blockNumber) : 0;
 }
 
-async function setClaimedLowersFromTier1Block(blockNumber) {
+async function setClaimedLowersFromTier1Block(blockNumber: number): Promise<void> {
   await redisClient.set(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY, blockNumber);
 }
 
-async function getClaimedLowersFromTier1Block() {
+async function getClaimedLowersFromTier1Block(): Promise<number> {
   const blockNumber = await redisClient.get(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY);
-  return blockNumber ? parseInt(blockNumber) : 0;
+  return blockNumber ? Number(blockNumber) : 0;
 }
 
-async function setPublishedRootsFromTier1Block(blockNumber) {
+async function setPublishedRootsFromTier1Block(blockNumber: number): Promise<void> {
   await redisClient.set(PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY, blockNumber);
 }
 
-async function getPublishedRootsFromTier1Block() {
+async function getPublishedRootsFromTier1Block(): Promise<number> {
   const blockNumber = await redisClient.get(PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY);
-  return blockNumber ? parseInt(blockNumber) : 0;
+  return blockNumber ? Number(blockNumber) : 0;
 }
 
-async function setBlockIndex(txHash, blockIndex) {
+async function setBlockIndex(txHash: string, blockIndex: any): Promise<void> {
   await redisClient.set(LOWER_BLOCK_INDEX_KEY + txHash, dataToJsonString(blockIndex));
 }
 
-async function deleteBlockIndex(txHash) {
+async function deleteBlockIndex(txHash: string): Promise<void> {
   await redisClient.del(LOWER_BLOCK_INDEX_KEY + txHash);
 }
 
-async function getBlockIndex(txHash) {
+async function getBlockIndex(txHash: string): Promise<any> {
   const blockIndex = await redisClient.get(LOWER_BLOCK_INDEX_KEY + txHash);
   return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
 }
 
-async function addUnpublishedLower(txHash) {
+async function addUnpublishedLower(txHash: string): Promise<void> {
   await redisClient.sadd(UNPUBLISHED_LOWERS_KEY, txHash);
 }
 
-async function removeUnpublishedLower(txHash) {
+async function removeUnpublishedLower(txHash: string): Promise<void> {
   await redisClient.srem(UNPUBLISHED_LOWERS_KEY, txHash);
 }
 
-async function getUnpublishedLowers() {
+async function getUnpublishedLowers(): Promise<string[]> {
   const unpublished = await redisClient.smembers(UNPUBLISHED_LOWERS_KEY);
   return unpublished || [];
 }
 
-async function addAwaitingClaimDataLower(txHash) {
+async function addAwaitingClaimDataLower(txHash: string): Promise<void> {
   await redisClient.sadd(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
 }
 
-async function removeAwaitingClaimDataLower(txHash) {
+async function removeAwaitingClaimDataLower(txHash: string): Promise<void> {
   await redisClient.srem(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
 }
 
-async function getAwaitingClaimDataLowers() {
+async function getAwaitingClaimDataLowers(): Promise<string[]> {
   const awaiting = await redisClient.smembers(AWAITING_CLAIM_DATA_LOWERS_KEY);
   return awaiting || [];
 }
 
-async function addUnclaimedLower(txHash) {
+async function addUnclaimedLower(txHash: string): Promise<void> {
   await redisClient.sadd(UNCLAIMED_LOWERS_KEY, txHash);
 }
 
-async function removeUnclaimedLower(txHash) {
+async function removeUnclaimedLower(txHash: string): Promise<void> {
   await redisClient.srem(UNCLAIMED_LOWERS_KEY, txHash);
 }
 
-async function getUnclaimedLowers() {
+async function getUnclaimedLowers(): Promise<string[]> {
   const unclaimed = await redisClient.smembers(UNCLAIMED_LOWERS_KEY);
   return unclaimed || [];
 }
 
-async function setSummaries(summaries) {
+async function setSummaries(summaries: any[]): Promise<void> {
   await redisClient.del(SUMMARIES_KEY);
   await redisClient.rpush(
     SUMMARIES_KEY,
-    summaries.map(s => dataToJsonString(s))
+    ...summaries.map(s => dataToJsonString(s))
   );
 }
 
-async function getSummaries() {
+async function getSummaries(): Promise<any[]> {
   const summaries = await redisClient.lrange(SUMMARIES_KEY, 0, -1);
-  return summaries ? summaries.map(s => JSON.parse(s)) : [];
+  return summaries ? summaries.map((s: string) => JSON.parse(s)) : [];
 }
 
-async function setLowerData(txHash, lowerData) {
+async function setLowerData(txHash: string, lowerData: any): Promise<void> {
   await redisClient.set(LOWER_DATA_KEY + txHash, dataToJsonString(lowerData));
 }
 
-async function deleteLowerData(txHash) {
+async function deleteLowerData(txHash: string): Promise<void> {
   await redisClient.del(LOWER_DATA_KEY + txHash);
 }
 
-async function getLowerData(txHash) {
+async function getLowerData(txHash: string): Promise<any | undefined> {
   const lowerData = await redisClient.get(LOWER_DATA_KEY + txHash);
   return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
-async function setLastLowerBlockIdFromAvn(blockId) {
+async function setLastLowerBlockIdFromAvn(blockId: string): Promise<void> {
   await redisClient.set(LAST_LOWER_BLOCK_ID_FROM_AVN, blockId);
 }
 
-async function getLastLowerBlockIdFromAvn() {
+async function getLastLowerBlockIdFromAvn(): Promise<string> {
   const blockId = await redisClient.get(LAST_LOWER_BLOCK_ID_FROM_AVN);
   return blockId === null ? '' : blockId;
 }
 
-async function setLowerById(lowerId, lowerData) {
+async function setLowerById(lowerId: string, lowerData: any): Promise<void> {
   const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
   const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
   await redisClient
@@ -474,12 +513,12 @@ async function setLowerById(lowerId, lowerData) {
     .exec();
 }
 
-async function getLowerById(lowerId) {
+async function getLowerById(lowerId: any): Promise<any | undefined> {
   const lowerData = await redisClient.get(LOWER_ID_PREFIX + lowerId);
   return lowerData ? JSON.parse(lowerData) : undefined;
 }
 
-async function deleteLowerById(lowerId) {
+async function deleteLowerById(lowerId: number): Promise<void> {
   const lowerData = await getLowerById(lowerId);
   if (!lowerData) return;
 
@@ -495,7 +534,7 @@ async function deleteLowerById(lowerId) {
     .exec();
 }
 
-async function getLowerIdsByAddress(address) {
+async function getLowerIdsByAddress(address: string): Promise<string[]> {
   const senderKey = LOWER_SENDER_PREFIX + address;
   const recipientKey = LOWER_RECIPIENT_PREFIX + address;
   let lowerIds = await redisClient.smembers(senderKey);
@@ -505,67 +544,67 @@ async function getLowerIdsByAddress(address) {
   return lowerIds ? lowerIds : [];
 }
 
-async function getLastClaimedEthereumLowerBlock() {
+async function getLastClaimedEthereumLowerBlock(): Promise<number> {
   const blockNumber = await redisClient.get(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX);
-  return blockNumber ? parseInt(blockNumber) : 0;
+  return blockNumber ? Number(blockNumber) : 0;
 }
 
-async function setLastClaimedEthereumLowerBlock(blockNumber) {
+async function setLastClaimedEthereumLowerBlock(blockNumber: number): Promise<void> {
   await redisClient.set(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX, blockNumber);
 }
 
-async function setAutolowerNextT1Block(blockNumber) {
+async function setAutolowerNextT1Block(blockNumber: number): Promise<void> {
   await redisClient.set(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY, blockNumber);
 }
 
-async function getAutolowerNextT1Block() {
+async function getAutolowerNextT1Block(): Promise<number> {
   const blockNumber = await redisClient.get(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY);
-  return blockNumber ? parseInt(blockNumber) : 0;
+  return blockNumber ? Number(blockNumber) : 0;
 }
 
-async function setLatestAutolowerId(lowerId) {
-  await redisClient.set(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY, lowerId);
+async function setLatestAutolowerId(lowerId: number): Promise<void> {
+  await redisClient.set(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY, lowerId.toString());
 }
 
-async function getLatestAutolowerId() {
+async function getLatestAutolowerId(): Promise<number> {
   const lowerId = await redisClient.get(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY);
-  return lowerId ? parseInt(lowerId) : -1;
+  return lowerId ? Number(lowerId) : -1;
 }
 
-async function addAutolower(lowerId) {
-  const result = await redisClient.sadd(AUTOLOWERS_KEY, lowerId);
+async function addAutolower(lowerId: number): Promise<void> {
+  const result = await redisClient.sadd(AUTOLOWERS_KEY, lowerId.toString());
   const newEntry = result === 1;
   if (newEntry) {
-    await redisClient.setex(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId, AUTOLOWER_RETRY_LIFETIME_SECONDS, true);
+    await redisClient.setex(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId, AUTOLOWER_RETRY_LIFETIME_SECONDS, 'true');
   }
 }
 
-async function removeAutolower(lowerId) {
-  await redisClient.srem(AUTOLOWERS_KEY, lowerId);
+async function removeAutolower(lowerId: number): Promise<void> {
+  await redisClient.srem(AUTOLOWERS_KEY, lowerId.toString());
   await redisClient.del(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId);
 }
 
-async function getAutolowers() {
+async function getAutolowers(): Promise<number[]> {
   const lowerIds = await redisClient.smembers(AUTOLOWERS_KEY);
-  const liveLowerIds = [];
+  const liveLowerIds: number[] = [];
   for (const lowerId of lowerIds || []) {
     const exists = await redisClient.exists(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId);
     const retry = exists === 1;
     if (retry) {
-      liveLowerIds.push(parseInt(lowerId));
+      liveLowerIds.push(Number(lowerId));
     } else {
-      await removeAutolower(lowerId);
+      await removeAutolower(Number(lowerId));
     }
   }
   return liveLowerIds;
 }
 
-async function acquireAutolowerLock(bridgeAddress) {
-  const result = await redisClient.set(AUTOLOWER_LOCK_KEY, bridgeAddress, 'NX', 'EX', AUTOLOWER_MAX_LOCK_IN_SECONDS);
+async function acquireAutolowerLock(bridgeAddress: string): Promise<boolean> {
+  const result = await redisClient.set(AUTOLOWER_LOCK_KEY, bridgeAddress, 'EX', AUTOLOWER_MAX_LOCK_IN_SECONDS, 'NX');
   return result === 'OK';
 }
 
-async function releaseAutolowerLock(bridgeAddress) {
+async function releaseAutolowerLock(bridgeAddress: string): Promise<void> {
   const script = `if redis.call("get", KEYS[1]) == ARGV[1] then
       return redis.call("del", KEYS[1])
     else
@@ -574,29 +613,29 @@ async function releaseAutolowerLock(bridgeAddress) {
   await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress);
 }
 
-async function refreshAutolowerLock(bridgeAddress) {
+async function refreshAutolowerLock(bridgeAddress: string): Promise<void> {
   const script = `if redis.call("get", KEYS[1]) == ARGV[1] then
       return redis.call("expire", KEYS[1], ARGV[2])
     else
       return 0
     end`;
-  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress, AUTOLOWER_MAX_LOCK_IN_SECONDS);
+  await redisClient.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress, AUTOLOWER_MAX_LOCK_IN_SECONDS.toString());
 }
 
-async function setSentTxDetails(txHash, details) {
+async function setSentTxDetails(txHash: string, details: any): Promise<void> {
   await redisClient.set(WEBHOOKS_SENT_TX_KEY + txHash, dataToJsonString(details));
 }
 
-async function getSentTxDetails(txHash) {
+async function getSentTxDetails(txHash: string): Promise<any> {
   const details = await redisClient.get(WEBHOOKS_SENT_TX_KEY + txHash);
   return details ? JSON.parse(details) : {};
 }
 
-async function deleteSentTxDetails(txHash) {
+async function deleteSentTxDetails(txHash: string): Promise<void> {
   await redisClient.del(WEBHOOKS_SENT_TX_KEY + txHash);
 }
 
-module.exports = {
+const redis = {
   connect,
   addNewAvnTransaction,
   addFailedAvnTransaction,
@@ -665,3 +704,4 @@ module.exports = {
   getSentTxDetails,
   deleteSentTxDetails
 };
+export default redis;

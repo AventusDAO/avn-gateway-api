@@ -270,7 +270,7 @@ async function getWebhooksState(): Promise<string> {
   return crypto.createHash('sha256').update(JSON.stringify(stats)).digest('hex');
 }
 
-export {
+const rds = {
   getPayer,
   getFees,
   getPublicKey,
@@ -282,3 +282,4 @@ export {
   getWebhookEventTypesState,
   getWebhooksState
 };
+export default rds;

@@ -1,20 +1,36 @@
-const { keccakAsHex } = require('@polkadot/util-crypto');
-const axios = require('axios');
-const avn = require('./avn');
-const redis = require('./redis');
-const tier1 = require('./tier1');
-const { hexToBn, isHex } = require('@polkadot/util');
+import { keccakAsHex } from '@polkadot/util-crypto';
+import axios from 'axios';
+import avn from './avn';
+import redis from './redis';
+import tier1 from './tier1';
+import { hexToBn, isHex } from '@polkadot/util';
 const config = require('multiconfig').load();
-const log4js = require('log4js');
-const utils = require('./lowers/utils');
-const logger = require('./logger');
+import logger from './logger';
+import utils from './lowers/utils';
 
-const AVN_EXPLORER_URL = config.avnExplorerUrl;
+const AVN_EXPLORER_URL: string = config.avnExplorerUrl;
 
-async function getLowers(account) {
+interface LowerTransaction {
+  txHash: string;
+  blockNumber: string;
+  index: string;
+  token: string;
+  amount: string;
+  from: string;
+  to: string;
+}
+
+interface Summary {
+  published: boolean;
+  toBlock: number;
+  rootHash: string;
+  fromBlock: number;
+}
+
+async function getLowers(account: string): Promise<any[]> {
   logger.info(`\nProcessing lowers`);
 
-  if (utils.isLowerId(account)) return;
+  if (utils.isLowerId(account)) return [];
 
   const { avnContract } = await avn.getChainInfo();
 
@@ -28,11 +44,11 @@ async function getLowers(account) {
   return await getLowersForAccount(account);
 }
 
-async function updateSummaries(avnContract) {
+async function updateSummaries(avnContract: any): Promise<number> {
   const avnSummaries = await avn.getSummaries();
   const redisSummaries = await redis.getSummaries();
   const publishedRoots = await tier1.getLatestPublishedRoots(avnContract);
-  let unpublishedIndex = redisSummaries.findIndex(summary => summary.published === false);
+  let unpublishedIndex = redisSummaries.findIndex((summary: Summary) => summary.published === false);
   let latestPublishedBlock = 0;
   if (unpublishedIndex < 0) unpublishedIndex = 0;
   if (unpublishedIndex > 0) latestPublishedBlock = redisSummaries[unpublishedIndex - 1].toBlock;
@@ -51,7 +67,7 @@ async function updateSummaries(avnContract) {
   return latestPublishedBlock;
 }
 
-async function retrieveLatestLowerTransactions(latestPublishedBlock) {
+async function retrieveLatestLowerTransactions(latestPublishedBlock: number): Promise<void> {
   let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
@@ -59,7 +75,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   for (let i = 0; i < lowerTransactions.length; i++) {
     const lowerTx = lowerTransactions[i];
     const txHash = lowerTx.txHash;
-    const blockNumber = parseInt(lowerTx.blockNumber);
+    const blockNumber = Number(lowerTx.blockNumber);
 
     if (blockNumber > latestPublishedBlock) {
       await redis.addUnpublishedLower(txHash);
@@ -81,7 +97,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock) {
   await redis.setRetrieveLowersFromAvnBlock(retrieveFromBlock);
 }
 
-async function updateUnpublishedLowers(latestPublishedBlock) {
+async function updateUnpublishedLowers(latestPublishedBlock: number): Promise<void> {
   const unpublished = await redis.getUnpublishedLowers();
 
   logger.info(`\tLowers not yet published: ${unpublished.length}`);
@@ -96,7 +112,7 @@ async function updateUnpublishedLowers(latestPublishedBlock) {
   }
 }
 
-async function updateAwaitingClaimDataLowers() {
+async function updateAwaitingClaimDataLowers(): Promise<void> {
   const awaiting = await redis.getAwaitingClaimDataLowers();
   const summaries = await redis.getSummaries();
   let error = false;
@@ -106,7 +122,7 @@ async function updateAwaitingClaimDataLowers() {
     const txHash = awaiting[i];
     const { blockNumber, index } = await redis.getBlockIndex(txHash);
     if (blockNumber === -1) break;
-    const summaryData = summaries.find(s => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
+    const summaryData = summaries.find((s: Summary) => blockNumber >= s.fromBlock && blockNumber <= s.toBlock);
 
     if (summaryData) {
       const { fromBlock, toBlock } = summaryData;
@@ -142,7 +158,7 @@ async function updateAwaitingClaimDataLowers() {
   }
 }
 
-async function updateUnclaimedLowers(avnContract, account) {
+async function updateUnclaimedLowers(avnContract: any, account: string): Promise<void> {
   const claimedLowers = await tier1.getLatestClaimedLowers(avnContract);
   let claimed = 0;
 
@@ -165,12 +181,12 @@ async function updateUnclaimedLowers(avnContract, account) {
   logger.info(`\tRecently claimed: ${claimed} `);
 }
 
-async function getLowerTransactions(fromBlock) {
-  const generateId = (block, index) =>
+async function getLowerTransactions(fromBlock: number): Promise<LowerTransaction[]> {
+  const generateId = (block: number, index: number) =>
     [block.toString().padStart(10, '0'), index.toString().padStart(6, '0'), '00000'].join('-');
   const txLimit = 50;
-  let newLowers = [];
-  let lowers = [];
+  let newLowers: LowerTransaction[] = [];
+  let lowers: LowerTransaction[] = [];
   let fromId = generateId(fromBlock, 0);
   const { avtContract } = await avn.getChainInfo();
 
@@ -180,20 +196,20 @@ async function getLowerTransactions(fromBlock) {
     if (newLowers.length > 0) {
       lowers = lowers.concat(newLowers);
       // Update the starting position (lowers are ordered so the last entry is always the most recent):
-      fromId = generateId(lowers[lowers.length - 1].blockNumber, parseInt(lowers[lowers.length - 1].index + 1));
+      fromId = generateId(Number(lowers[lowers.length - 1].blockNumber), Number(lowers[lowers.length - 1].index) + 1);
     }
   } while (newLowers.length > 0);
 
   return lowers;
 }
 
-async function getLowersFromIndexer(fromId, txLimit, avtContract) {
+async function getLowersFromIndexer(fromId: string, txLimit: number, avtContract: string): Promise<LowerTransaction[]> {
   try {
     const query = `query ConnectorLower { events( where: { name_in:[ "TokenManager.TokenLowered", "TokenManager.AvtLowered"], call: { id_gte: "${fromId}" } },
         limit: ${txLimit}, orderBy: id_ASC) { args extrinsic { hash id indexInBlock block { height } } } }`;
     const response = await axios.post(AVN_EXPLORER_URL, { query: query, operationName: 'ConnectorLower' });
     const events = response.data.data.events;
-    return events.map(event => ({
+    return events.map((event: any) => ({
       txHash: event.extrinsic.hash,
       blockNumber: event.extrinsic.block.height.toString(),
       index: event.extrinsic.indexInBlock.toString(),
@@ -208,12 +224,12 @@ async function getLowersFromIndexer(fromId, txLimit, avtContract) {
   }
 }
 
-async function getLowersForAccount(account) {
+async function getLowersForAccount(account: string): Promise<any[]> {
   const unpublished = await redis.getUnpublishedLowers();
   const awaiting = await redis.getAwaitingClaimDataLowers();
   const unclaimed = await redis.getUnclaimedLowers();
   const outstanding = unpublished.concat(awaiting).concat(unclaimed);
-  let lowers = [];
+  let lowers: any[] = [];
 
   for (let i = 0; i < outstanding.length; i++) {
     const lowerData = await redis.getLowerData(outstanding[i]);
@@ -227,10 +243,11 @@ async function getLowersForAccount(account) {
   return lowers;
 }
 
-function lowerDataContainsAccount(lowerData, account) {
+function lowerDataContainsAccount(lowerData: any, account: string): boolean {
   return lowerData.from.toLowerCase() === account.toLowerCase() || lowerData.to.toLowerCase() === account.toLowerCase();
 }
 
-module.exports = {
+const lowering = {
   getLowers
 };
+export default lowering;

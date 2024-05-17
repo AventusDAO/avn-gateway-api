@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "outDir": "./dist",
+    "outDir": "./build",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
@@ -11,52 +11,17 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "*": [
-        "node_modules/*"
-      ]
+      "*": ["node_modules/*"]
     },
     "resolveJsonModule": true,
     "sourceMap": true,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "types": [
-      "node"
-    ],
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "types": ["node"]
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "src/avn.ts",
-    "src/index.ts",
-    "src/lambdas.ts",
-    "src/lowering.ts",
-    "src/paymentInfoHelper.ts",
-    "src/redis.ts",
-    "src/sqsConsumer.ts",
-    "src/stakingHelper.ts",
-    "src/tier1.ts",
-    "src/vaultApp.ts",
-    "src/webhooks.ts",
-    // "src/db/index.ts",
-    // "src/db/entity/fee.ts",
-    // "src/db/entity/payer.ts",
-    // "src/db/entity/payerTransaction.ts",
-    // "src/db/entity/relayer.ts",
-    // "src/db/entity/splitFeeUser.ts",
-    // "src/db/entity/transaction.ts",
-    // "src/db/entity/webhookEndpoint.ts",
-    // "src/db/entity/webhookEvent.ts",
-    // "src/db/entity/webhooks.ts",
-    "src/lowers/autolowering.ts",
-    "src/lowers/loweringV2.ts",
-    "src/lowers/utils.ts"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

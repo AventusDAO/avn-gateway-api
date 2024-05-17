@@ -2,9 +2,6 @@
 
 import { TypeRegistry } from '@polkadot/types';
 import { u8aConcat, u8aToHex, stringToHex } from '@polkadot/util';
-import log4js from 'log4js';
-
-const log = log4js.getLogger();
 const registry = new TypeRegistry();
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';

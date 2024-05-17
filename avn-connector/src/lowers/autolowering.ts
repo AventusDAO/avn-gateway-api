@@ -2,10 +2,8 @@ import avn from '../avn';
 import redis from '../redis';
 import tier1 from '../tier1';
 const config = require('multiconfig').load();
-import log4js from 'log4js';
+import logger from '../logger';
 import { Contract, ethers } from 'ethers';
-
-const log = log4js.getLogger();
 
 const ACCOUNTS: Record<string, string | null> = {};
 
@@ -105,7 +103,7 @@ async function attemptClaims(bridge: Contract, lowerProofs: Record<string, any>)
   }
 
   await redis.releaseAutolowerLock(bridge.address);
-  log.info(`[Autolower] STATUS - Finished processing ${numLowers} lowers`);
+  logger.info(`[Autolower] STATUS - Finished processing ${numLowers} lowers`);
 }
 
 async function proofChecksPass(bridge: Contract, id: string, proof: any): Promise<boolean> {
@@ -194,22 +192,22 @@ async function recheckProofToResolve(id: string, proof: any, bridge: Contract): 
 
 async function closeFailedClaim(reason: string, id: string, info: any): Promise<void> {
   await redis.removeAutolower(Number(id));
-  log.info(`[Autolower] CLAIM FAILED - Lower ID: ${id}, reason: ${reason}, info: ${info}`);
+  logger.info(`[Autolower] CLAIM FAILED - Lower ID: ${id}, reason: ${reason}, info: ${info}`);
 }
 
 async function closeSuccessfulClaim(id: string, txHash: string): Promise<void> {
   await redis.removeAutolower(Number(id));
-  log.info(`[Autolower] CLAIM SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`);
+  logger.info(`[Autolower] CLAIM SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`);
 }
 
 function retryClaim(reason: string, id: string, proof: any, error: any = ''): void {
-  log.info(`[Autolower] CLAIM WILL BE RETRIED - Lower ID: ${id}, reason: ${reason}, proof: ${proof}, error: ${error}`);
+  logger.info(`[Autolower] CLAIM WILL BE RETRIED - Lower ID: ${id}, reason: ${reason}, proof: ${proof}, error: ${error}`);
 }
 
 async function regenerateProofAndRetryClaim(reason: string, id: string, proof: any): Promise<void> {
   try {
     await avn.regenerateLowerProof(ACCOUNTS.T2!, Number(id));
-    log.info(`[Autolower] CLAIM WILL BE RETRIED WITH NEW PROOF - Lower ID: ${id}, reason: ${reason}`);
+    logger.info(`[Autolower] CLAIM WILL BE RETRIED WITH NEW PROOF - Lower ID: ${id}, reason: ${reason}`);
   } catch (error) {
     retryClaim(RETRY_REASON.ProofRegenerationError, id, proof, error);
   }

@@ -1,10 +1,8 @@
 import axios from 'axios';
-import log4js from 'log4js';
+import logger from '../logger';
 const config = require('multiconfig').load();
 import { hexToBn, isHex } from '@polkadot/util';
 import avn from '../avn';
-
-const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
 const READY_TO_CLAIM_EVENT_NAME = 'TokenManager.LowerReadyToClaim';
@@ -85,7 +83,7 @@ async function getLowersFromIndexer(fromId: string, txLimit: number): Promise<Lo
 
     return [];
   } catch (error) {
-    log.error('💔 Error fetching lower events:', error);
+    logger.error('💔 Error fetching lower events:', error);
     return [];
   }
 }

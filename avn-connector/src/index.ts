@@ -11,12 +11,6 @@ import webhooks from './webhooks';
 import lambda from './lambdas';
 import express, { Express, Request, Response, NextFunction } from 'express';
 import logger from './logger';
-import * as log4js from 'log4js';
-const jsonLayout = require('log4js-json-layout');
-
-log4js.addLayout('json', jsonLayout);
-log4js.configure(config.log4Js);
-const log = log4js.getLogger();
 
 const app: Express = express();
 const port: number = config.serverPort;
@@ -160,7 +154,7 @@ app.get('/autolower', async (req: Request, res: Response, next: NextFunction) =>
   try {
     logger.info('autolower invoked');
     const result = await autolowering.autolower();
-    log.info(result);
+    logger.info(result);
     res.send(result);
   } catch (err) {
     next(err);
@@ -308,12 +302,12 @@ app.post('/publishEvent', async (req: Request, res: Response, next: NextFunction
 });
 
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-  log.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
+  logger.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });
 });
 
 app.listen(port, () => {
-  log.info(`AvN connector listening on port ${port}`);
+  logger.info(`AvN connector listening on port ${port}`);
 });
 
 async function instantiateConnector() {

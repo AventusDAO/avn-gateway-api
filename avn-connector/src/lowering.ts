@@ -5,10 +5,8 @@ import redis from './redis';
 import tier1 from './tier1';
 import { hexToBn, isHex } from '@polkadot/util';
 const config = require('multiconfig').load();
-import log4js from 'log4js';
+import logger from './logger';
 import utils from './lowers/utils';
-
-const log = log4js.getLogger();
 
 const AVN_EXPLORER_URL: string = config.avnExplorerUrl;
 
@@ -30,14 +28,14 @@ interface Summary {
 }
 
 async function getLowers(account: string): Promise<any[]> {
-  console.log(`\nProcessing lowers`);
+  logger.info(`\nProcessing lowers`);
 
   if (utils.isLowerId(account)) return [];
 
   const { avnContract } = await avn.getChainInfo();
 
   const latestPublishedBlock = await updateSummaries(avnContract);
-  console.log(`\tLatest block published: ${latestPublishedBlock}`);
+  logger.info(`\tLatest block published: ${latestPublishedBlock}`);
 
   await retrieveLatestLowerTransactions(latestPublishedBlock);
   await updateUnpublishedLowers(latestPublishedBlock);
@@ -73,7 +71,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock: number): Pr
   let retrieveFromBlock = await redis.getRetrieveLowersFromAvnBlock();
   const lowerTransactions = await getLowerTransactions(retrieveFromBlock);
 
-  console.log(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
+  logger.info(`\tChecking for lowers from block ${retrieveFromBlock} - found ${lowerTransactions.length}`);
   for (let i = 0; i < lowerTransactions.length; i++) {
     const lowerTx = lowerTransactions[i];
     const txHash = lowerTx.txHash;
@@ -102,7 +100,7 @@ async function retrieveLatestLowerTransactions(latestPublishedBlock: number): Pr
 async function updateUnpublishedLowers(latestPublishedBlock: number): Promise<void> {
   const unpublished = await redis.getUnpublishedLowers();
 
-  console.log(`\tLowers not yet published: ${unpublished.length}`);
+  logger.info(`\tLowers not yet published: ${unpublished.length}`);
   for (let i = 0; i < unpublished.length; i++) {
     const txHash = unpublished[i];
     const { blockNumber } = await redis.getBlockIndex(txHash);
@@ -119,7 +117,7 @@ async function updateAwaitingClaimDataLowers(): Promise<void> {
   const summaries = await redis.getSummaries();
   let error = false;
 
-  console.log(`\tChecking for claim data: ${awaiting.length}`);
+  logger.info(`\tChecking for claim data: ${awaiting.length}`);
   for (let i = 0; i < awaiting.length; i++) {
     const txHash = awaiting[i];
     const { blockNumber, index } = await redis.getBlockIndex(txHash);
@@ -180,7 +178,7 @@ async function updateUnclaimedLowers(avnContract: any, account: string): Promise
     }
   }
 
-  console.log(`\tRecently claimed: ${claimed} `);
+  logger.info(`\tRecently claimed: ${claimed} `);
 }
 
 async function getLowerTransactions(fromBlock: number): Promise<LowerTransaction[]> {
@@ -238,8 +236,8 @@ async function getLowersForAccount(account: string): Promise<any[]> {
     }
   }
 
-  console.log(`\tTotal lowers outstanding: ${outstanding.length}`);
-  console.log(`\tFound ${lowers.length} lowers relating to account ${account}`);
+  logger.info(`\tTotal lowers outstanding: ${outstanding.length}`);
+  logger.info(`\tFound ${lowers.length} lowers relating to account ${account}`);
   return lowers;
 }
 

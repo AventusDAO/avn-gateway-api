@@ -2,8 +2,7 @@ import { SQSClient, ReceiveMessageCommand, DeleteMessageBatchCommand, Message } 
 import avn from './avn';
 import webhooks from './webhooks';
 const config = require('multiconfig').load();
-import log4js from 'log4js';
-const logger = log4js.configure(config.log4Js).getLogger();
+import logger from './logger';
 const sqsClient = new SQSClient({ region: config.aws.region });
 
 const SQS_TX_QUEUE_URL = config.sqs.txQueueUrl;
@@ -74,13 +73,13 @@ async function processMessage(message: Message): Promise<void> {
 
   switch (txType) {
     case 'avnProxy':
-      logger.trace(`[SQS tx] Request ID: ${requestId} - sending proxy transaction: ${JSON.stringify(txData)}`);
+      logger.info(`[SQS tx] Request ID: ${requestId} - sending proxy transaction: ${JSON.stringify(txData)}`);
       const { palletName, method, params } = txData;
 
       if (isSplitFeeTransaction(txData)) {
         const payerAddress = params.splitFeePayerAddress;
         params.paymentNonce = await avn.getPayerPaymentNonce(requestId, payerAddress);
-        logger.trace(`[SQS tx] Request ID: ${requestId} - split fee payment nonce: ${params.paymentNonce}`);
+        logger.info(`[SQS tx] Request ID: ${requestId} - split fee payment nonce: ${params.paymentNonce}`);
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(requestId, params, params.paymentNonce);
         const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_payer_accepted;
         const eventData = { tx: txData, payment: params.paymentInfo };
@@ -88,14 +87,14 @@ async function processMessage(message: Message): Promise<void> {
       }
 
       result = await avn.proxy(requestId, palletName!, method!, params);
-      logger.trace(`[SQS tx] Request ID: ${requestId} - proxy transaction sent: ${JSON.stringify(result)}`);
+      logger.info(`[SQS tx] Request ID: ${requestId} - proxy transaction sent: ${JSON.stringify(result)}`);
       break;
 
     case 'avnProcessLifts':
-      logger.trace(`[SQS tx] Request ID: ${requestId} - sending lift transaction: ${JSON.stringify(txData)}`);
+      logger.info(`[SQS tx] Request ID: ${requestId} - sending lift transaction: ${JSON.stringify(txData)}`);
       const { toBlock, unprocessedLifts } = txData;
       result = await avn.processLifts(requestId, toBlock!, unprocessedLifts!);
-      logger.trace(`[SQS tx] Request ID: ${requestId} - lift transaction sent: ${JSON.stringify(result)}`);
+      logger.info(`[SQS tx] Request ID: ${requestId} - lift transaction sent: ${JSON.stringify(result)}`);
       break;
 
     default:

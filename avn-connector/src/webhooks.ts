@@ -6,11 +6,9 @@ import * as crypto from 'crypto';
 import lambda from './lambdas';
 import * as util from 'util';
 const config = require('multiconfig').load();
-import log4js from 'log4js';
+import logger from './logger';
 
 const setTimeoutPromise = util.promisify(setTimeout);
-
-const log = log4js.configure(config.log4Js).getLogger();
 const sqsClient = new SQSClient({ region: config.aws.region });
 
 const TRIGGER_TX_STATUS_UPDATE_DELAY_MS = 45000;
@@ -78,16 +76,16 @@ class Webhooks {
       if (this.eventTypesState !== eventTypesState) {
         this.eventTypesState = eventTypesState;
         this.eventTypes = await rds.getWebhookEventTypes();
-        log.info(`[Webhooks] Refreshed event types - ${Object.keys(this.eventTypes).length} event types`);
+        logger.info(`[Webhooks] Refreshed event types - ${Object.keys(this.eventTypes).length} event types`);
       }
 
       if (this.webhooksState !== webhooksState) {
         this.webhooksState = webhooksState;
         this.active = await rds.getActiveWebhooks();
-        log.info(`[Webhooks] Refreshed webhooks - ${Object.keys(this.active).length} webhooks`);
+        logger.info(`[Webhooks] Refreshed webhooks - ${Object.keys(this.active).length} webhooks`);
       }
     } catch (error) {
-      log.error('[Webhooks] Error - Failed to refresh webhooks:', error);
+      logger.error('[Webhooks] Error - Failed to refresh webhooks:', error);
     } finally {
       this.scheduleNextRefresh();
     }
@@ -109,16 +107,16 @@ async function init() {
     _webhooks = new Webhooks(WEBHOOKS_REFRESH_INTERVAL_MS);
     await _webhooks.initialize();
     confirmExpectedEventTypes();
-    log.info(`[Webhooks] Init - ${Object.keys(_webhooks.active).length} hooks ${Object.keys(_webhooks.eventTypes).length} types`);
+    logger.info(`[Webhooks] Init - ${Object.keys(_webhooks.active).length} hooks ${Object.keys(_webhooks.eventTypes).length} types`);
   } catch (error) {
-    log.error('[Webhooks] Init error:', error);
+    logger.error('[Webhooks] Init error:', error);
     throw error;
   }
 }
 
 function confirmExpectedEventTypes() {
   if (!_webhooks.hasEventTypes()) {
-    log.info('[Webhooks] Webhook Event table not populated - skipping expected types check');
+    logger.info('[Webhooks] Webhook Event table not populated - skipping expected types check');
     return;
   }
 
@@ -158,7 +156,7 @@ async function publishTransactionEvents(transactions: Transaction[]) {
       await publishEvent({ eventType, requestId, accountId, data: tx });
       await redis.deleteSentTxDetails(tx.transactionHash);
     } catch (error) {
-      log.error('[Webhooks] Error - Error publishing transaction events', error);
+      logger.error('[Webhooks] Error - Error publishing transaction events', error);
     }
   }
 }
@@ -176,9 +174,9 @@ async function publishEvent(event: Event) {
       return;
     } catch (error) {
       attempt++;
-      log.error(`[Webhooks] Error - Attempt ${attempt}: Error publishing event`, error);
+      logger.error(`[Webhooks] Error - Attempt ${attempt}: Error publishing event`, error);
       if (attempt >= MAX_PUBLISH_EVENT_RETRIES) {
-        log.error('[Webhooks] Error - Maximum retry attempts reached. Event not published.', error);
+        logger.error('[Webhooks] Error - Maximum retry attempts reached. Event not published.', error);
         return;
       }
       await setTimeoutPromise(PUBLISH_EVENT_RETRY_DELAY_MS);
@@ -197,7 +195,7 @@ async function attemptToPublishEvent(event: Event) {
     await redis.setSentTxDetails(data.transactionHash, { requestId, accountId: publicKey });
     setTimeout(() => {
       lambda.resolvePendingTransactionsState().catch(error => {
-        log.error('[Webhooks] Error - Failed to trigger tx status update', error);
+        logger.error('[Webhooks] Error - Failed to trigger tx status update', error);
       });
     }, TRIGGER_TX_STATUS_UPDATE_DELAY_MS);
   }

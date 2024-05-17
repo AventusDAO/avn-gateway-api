@@ -60,10 +60,9 @@ async function getLiftEvents(avnContract: string): Promise<{ fromBlock: number; 
           }
         }
       });
-
       return { fromBlock, toBlock, liftEvents };
     }
-
+    // return the same block for `from` and `to` with an empty `events`
     return { fromBlock, toBlock: fromBlock, liftEvents };
   } catch (error) {
     logger.error('Error getting lift events:', error);

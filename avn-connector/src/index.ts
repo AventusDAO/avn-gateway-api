@@ -219,7 +219,7 @@ app.post('/lowers', async (req: Request, res: Response, next: NextFunction) => {
     try {
       oldLowers = await lowering.getLowers(req.body.account);
     } catch (err) {
-      console.log(`Error fetching legacy lowers`, err);
+      logger.error(`Error fetching legacy lowers`, err);
       oldLowers = [];
     }
 

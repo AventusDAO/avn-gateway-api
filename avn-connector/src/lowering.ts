@@ -127,7 +127,7 @@ async function updateAwaitingClaimDataLowers(): Promise<void> {
     if (summaryData) {
       const { fromBlock, toBlock } = summaryData;
       if (summaryData.published === false) {
-        console.warn(`\t  🚨 Unpublished summary for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
+        logger.warn(`\t  🚨 Unpublished summary for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`);
       } else {
         let rpcData = await avn.getLowerDataFromRpc(fromBlock, toBlock, blockNumber, index);
         if (!rpcData.isEmpty) {
@@ -141,11 +141,11 @@ async function updateAwaitingClaimDataLowers(): Promise<void> {
             await redis.deleteBlockIndex(txHash);
             await redis.addUnclaimedLower(txHash);
           } catch (e) {
-            console.error(`💔 Error processing lowers awaiting claimed data: `, e);
+            logger.error(`💔 Error processing lowers awaiting claimed data: `, e);
             error = true;
           }
         } else {
-          console.warn(
+          logger.warn(
             `\t  🚨 Unable to get RPC lower data for: range[${fromBlock} - ${toBlock}], tx:(${blockNumber}, ${index})`
           );
         }
@@ -219,7 +219,7 @@ async function getLowersFromIndexer(fromId: string, txLimit: number, avtContract
       to: event.args.t1Recipient
     }));
   } catch (error) {
-    console.error(`💔 Error running next lower tx hashes query: `, error);
+    logger.error(`💔 Error running next lower tx hashes query: `, error);
     return [];
   }
 }

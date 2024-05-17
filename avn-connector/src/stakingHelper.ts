@@ -1,6 +1,7 @@
 import BN from 'bn.js';
 import { u8aConcat, u8aToHex, hexToBn } from '@polkadot/util';
 import lambda from './lambdas';
+import logger from './logger';
 
 const BN_ZERO = new BN(0);
 
@@ -87,7 +88,7 @@ function getRequestedAmount(requestAction: RequestAction): BN {
     return hexToBn(requestAction.toJSON().revoke!);
   }
 
-  console.warn(`Warning: Scheduled request action (${requestAction}) is not recognized. Unable to return amount`);
+  logger.warn(`Warning: Scheduled request action (${requestAction}) is not recognized. Unable to return amount`);
   return BN_ZERO;
 }
 

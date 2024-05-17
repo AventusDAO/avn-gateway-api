@@ -303,7 +303,7 @@ async function getUnprocessedLifts(): Promise<any> {
 
     return { fromBlock, toBlock, unprocessedLifts };
   } catch (error) {
-    console.error(`Error getting unprocessed lifts: `, error);
+    logger.error(`Error getting unprocessed lifts: `, error);
     throw error;
   }
 }

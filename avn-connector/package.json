@@ -24,15 +24,12 @@
     "express-winston": "^4.2.0",
     "ioredis": "^5.0.4",
     "lodash": "^4.17.21",
-    "log4js": "^6.3.0",
-    "log4js-json-layout": "^2.2.3",
     "multiconfig": "^1.1.6",
     "pg": "^8.8.0",
     "reflect-metadata": "^0.1.14",
     "typeorm": "0.3.11",
     "winston": "^3.13.0",
-    "winston-daily-rotate-file": "^5.0.0",
-    "yargs": "^16.2.0"
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@aws-sdk/types": "^3.575.0",
@@ -41,7 +38,6 @@
     "@types/lodash": "^4.17.1",
     "@types/pg": "^8.11.6",
     "@types/winston": "^2.4.4",
-    "@types/yargs": "^17.0.32",
     "concurrently": "^6.2.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",

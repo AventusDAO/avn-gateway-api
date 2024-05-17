@@ -1,16 +1,44 @@
-const BN = require('bn.js');
+import BN from 'bn.js';
+import { u8aConcat, u8aToHex, hexToBn } from '@polkadot/util';
+import lambda from './lambdas';
+import logger from './logger';
+
 const BN_ZERO = new BN(0);
-const lambda = require('./lambdas');
-const { hexToBn } = require('@polkadot/util');
-const logger = require("./logger");
 
-function calculateNominatorStakingBalances(nominatorState, nominatorRequests, currentEraIndex) {
-  let stakedBalance = BN_ZERO,
-    unlockedBalance = BN_ZERO,
-    unstakedBalance = BN_ZERO;
+interface NominatorState {
+  isEmpty: boolean;
+  toJSON: () => { total: string };
+}
 
-  if (nominatorState.isEmpty === false) {
-    stakedBalance = hexToBn(nominatorState.toJSON().total).toString();
+interface RequestAction {
+  isDecrease: boolean;
+  isRevoke: boolean;
+  toJSON: () => { decrease?: string; revoke?: string };
+}
+
+interface NominatorRequest {
+  whenExecutable: string;
+  action: RequestAction;
+}
+
+interface CandidateInfo {
+  isEmpty: boolean;
+  toJSON: () => { bond: string; request?: { whenExecutable: string; amount: string } };
+}
+
+interface StakingBalances {
+  stakedBalance: BN;
+  unlockedBalance: BN;
+  unstakedBalance: BN;
+}
+
+function calculateNominatorStakingBalances(nominatorState: NominatorState, nominatorRequests: NominatorRequest[], currentEraIndex: string): StakingBalances {
+  let stakedBalance = BN_ZERO.clone(),
+    unlockedBalance = BN_ZERO.clone(),
+    unstakedBalance = BN_ZERO.clone();
+
+  if (!nominatorState.isEmpty) {
+    stakedBalance = hexToBn(nominatorState.toJSON().total);
   }
 
   nominatorRequests.forEach(req => {
@@ -28,19 +56,20 @@ function calculateNominatorStakingBalances(nominatorState, nominatorRequests, cu
   };
 }
 
-function calculateCollatorStakingBalances(candidateInfo, currentEra) {
-  let stakedBalance = BN_ZERO,
-    unlockedBalance = BN_ZERO,
-    unstakedBalance = BN_ZERO;
-  if (candidateInfo.isEmpty === false) {
-    candidateInfo = candidateInfo.toJSON();
-    stakedBalance = hexToBn(candidateInfo.bond);
+function calculateCollatorStakingBalances(candidateInfo: CandidateInfo, currentEra: string): StakingBalances {
+  let stakedBalance = BN_ZERO.clone(),
+    unlockedBalance = BN_ZERO.clone(),
+    unstakedBalance = BN_ZERO.clone();
 
-    if (candidateInfo.request) {
-      if (new BN(candidateInfo.request.whenExecutable).gt(new BN(currentEra))) {
-        unstakedBalance = hexToBn(candidateInfo.request.amount);
+  if (!candidateInfo.isEmpty) {
+    const info = candidateInfo.toJSON();
+    stakedBalance = hexToBn(info.bond);
+
+    if (info.request) {
+      if (new BN(info.request.whenExecutable).gt(new BN(currentEra))) {
+        unstakedBalance = hexToBn(info.request.amount);
       } else {
-        unlockedBalance = hexToBn(candidateInfo.request.amount);
+        unlockedBalance = hexToBn(info.request.amount);
       }
     }
   }
@@ -52,18 +81,19 @@ function calculateCollatorStakingBalances(candidateInfo, currentEra) {
   };
 }
 
-function getRequestedAmount(requestAction) {
-  if (requestAction.isDecrease === true) {
-    return hexToBn(requestAction.toJSON().decrease);
-  } else if (requestAction.isRevoke === true) {
-    return hexToBn(requestAction.toJSON().revoke);
+function getRequestedAmount(requestAction: RequestAction): BN {
+  if (requestAction.isDecrease) {
+    return hexToBn(requestAction.toJSON().decrease!);
+  } else if (requestAction.isRevoke) {
+    return hexToBn(requestAction.toJSON().revoke!);
   }
 
-  logger.info(`Warning: Scheduled request action (${requestAction}) is not recognised. Unable to return amount`);
+  logger.warn(`Warning: Scheduled request action (${requestAction}) is not recognized. Unable to return amount`);
   return BN_ZERO;
 }
 
-module.exports = {
+const stakingHelper = {
   calculateCollatorStakingBalances,
   calculateNominatorStakingBalances
 };
+export default stakingHelper;

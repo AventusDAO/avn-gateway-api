@@ -58,10 +58,10 @@ const log = (level: string, message: string, data?: any) => {
   loggerInstance.log(level, message, { data });
 };
 
-const info = (message: string, data?: any) => log('info', message, data);
-const error = (message: string, data?: any) => log('error', message, data);
-const warn = (message: string, data?: any) => log('warn', message, data);
-const debug = (message: string, data?: any) => log('debug', message, data);
+const info = (message: any, data?: any) => log('info', message, data);
+const error = (message: any, data?: any) => log('error', message, data);
+const warn = (message: any, data?: any) => log('warn', message, data);
+const debug = (message: any, data?: any) => log('debug', message, data);
 
 const logger = {
   setRequestId,

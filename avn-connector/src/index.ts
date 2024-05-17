@@ -1,23 +1,24 @@
 'use strict';
 const config = require('multiconfig').load();
-const avn = require('./avn');
-const rds = require('./db/index');
-const lowering = require('./lowering');
-const loweringV2 = require('./lowers/loweringV2');
-const autolowering = require('./lowers/autolowering');
-const redis = require('./redis');
-const sqsConsumer = require('./sqsConsumer');
-const webhooks = require('./webhooks');
-const lambda = require('./lambdas');
-const express = require('express');
-const { logger} = require('./logger');
-const app = express();
-const port = config.serverPort;
+import avn from './avn';
+import rds from './db/index';
+import lowering from './lowering';
+import loweringV2 from './lowers/loweringV2';
+import autolowering from './lowers/autolowering';
+import redis from './redis';
+import { processTxQueue } from './sqsConsumer';
+import webhooks from './webhooks';
+import lambda from './lambdas';
+import express, { Express, Request, Response, NextFunction } from 'express';
+import logger from './logger';
+
+const app: Express = express();
+const port: number = config.serverPort;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: '50mb' }));
 
-app.get('/health', async (req, res, next) => {
+app.get('/health', async (req: Request, res: Response, next: NextFunction) => {
   try {
     res.send({});
   } catch (err) {
@@ -25,7 +26,7 @@ app.get('/health', async (req, res, next) => {
   }
 });
 
-app.post('/avnQuery', async (req, res, next) => {
+app.post('/avnQuery', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ avnQueryRequest: req.body });
     const result = await avn.query(req.body.palletName, req.body.storageName, req.body.params);
@@ -35,12 +36,11 @@ app.post('/avnQuery', async (req, res, next) => {
   }
 });
 
-app.post('/avnPoll', async (req, res, next) => {
+app.post('/avnPoll', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ avnPollRequest: req.body });
     // the await is removed on purpose here
     lambda.resolvePendingTransactionsState();
-
     const result = await avn.poll(req.body.requestId);
     res.send(result);
   } catch (err) {
@@ -48,7 +48,7 @@ app.post('/avnPoll', async (req, res, next) => {
   }
 });
 
-app.get('/pendingTransactions', async (req, res, next) => {
+app.get('/pendingTransactions', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info('pendingTransactions invoked');
     const result = await redis.getNextTransactionsToCheck();
@@ -58,7 +58,7 @@ app.get('/pendingTransactions', async (req, res, next) => {
   }
 });
 
-app.post('/resolvePendingTransactions', async (req, res, next) => {
+app.post('/resolvePendingTransactions', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ resolvePendingTransactions: Object.keys(req.body) });
     const transactions = req.body.transactions;
@@ -70,7 +70,7 @@ app.post('/resolvePendingTransactions', async (req, res, next) => {
   }
 });
 
-app.post('/relayerFees', async (req, res, next) => {
+app.post('/relayerFees', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ relayerFeesRequest: req.body });
     const result = await rds.getFees(req.body.relayer, req.body.user, req.body.transactionType);
@@ -80,7 +80,7 @@ app.post('/relayerFees', async (req, res, next) => {
   }
 });
 
-app.post('/avnAccountInfo', async (req, res, next) => {
+app.post('/avnAccountInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ avnAccountInfoRequest: req.body });
     const result = await avn.getAccountInfo(req.body.accountId);
@@ -90,7 +90,7 @@ app.post('/avnAccountInfo', async (req, res, next) => {
   }
 });
 
-app.post('/avnValidatorsToNominate', async (req, res, next) => {
+app.post('/avnValidatorsToNominate', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ avnValidatorsToNominateRequest: req.body });
     const result = await avn.getCollatorsToNominate();
@@ -100,7 +100,7 @@ app.post('/avnValidatorsToNominate', async (req, res, next) => {
   }
 });
 
-app.post('/avnStakingStats', async (req, res, next) => {
+app.post('/avnStakingStats', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ avnStakingStatsRequest: req.body });
     const result = await avn.getStakingStats();
@@ -110,7 +110,7 @@ app.post('/avnStakingStats', async (req, res, next) => {
   }
 });
 
-app.post('/avnChainInfo', async (req, res, next) => {
+app.post('/avnChainInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ avnChainInfoRequest: req.body });
     const result = await avn.getChainInfo();
@@ -120,7 +120,7 @@ app.post('/avnChainInfo', async (req, res, next) => {
   }
 });
 
-app.post('/avnCurrentBlock', async (req, res, next) => {
+app.post('/avnCurrentBlock', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ avnCurrentBlockRequest: req.body });
     const result = await avn.getCurrentBlock();
@@ -130,7 +130,7 @@ app.post('/avnCurrentBlock', async (req, res, next) => {
   }
 });
 
-app.post('/getDefaultRelayer', async (req, res, next) => {
+app.post('/getDefaultRelayer', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ defaultRelayerRequest: req.body });
     const result = avn.RELAYER_ADDRESS;
@@ -140,7 +140,7 @@ app.post('/getDefaultRelayer', async (req, res, next) => {
   }
 });
 
-app.get('/unprocessedLifts', async (req, res, next) => {
+app.get('/unprocessedLifts', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info('unprocessedLifts invoked');
     const result = await avn.getUnprocessedLifts();
@@ -150,7 +150,7 @@ app.get('/unprocessedLifts', async (req, res, next) => {
   }
 });
 
-app.get('/autolower', async (req, res, next) => {
+app.get('/autolower', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info('autolower invoked');
     const result = await autolowering.autolower();
@@ -161,7 +161,7 @@ app.get('/autolower', async (req, res, next) => {
   }
 });
 
-app.post('/ethereumEventStatus', async (req, res, next) => {
+app.post('/ethereumEventStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ ethereumEventStatusRequest: req.body });
     const result = await avn.ethereumEventStatus(req.body.ethTransactionHash);
@@ -171,7 +171,7 @@ app.post('/ethereumEventStatus', async (req, res, next) => {
   }
 });
 
-app.post('/avnTotalToken', async (req, res, next) => {
+app.post('/avnTotalToken', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ avnTotalTokenRequest: req.body });
     const result = await avn.getTotalToken(req.body.token);
@@ -181,7 +181,7 @@ app.post('/avnTotalToken', async (req, res, next) => {
   }
 });
 
-app.post('/avnNftContractAddresses', async (req, res, next) => {
+app.post('/avnNftContractAddresses', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ avnNftContractAddresses: req.body });
     const result = await avn.getNftContractAddresses();
@@ -191,7 +191,7 @@ app.post('/avnNftContractAddresses', async (req, res, next) => {
   }
 });
 
-app.post('/getNftInfo', async (req, res, next) => {
+app.post('/getNftInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ getNftInfo: req.body });
     const result = await avn.getNftInfo(req.body.nftId);
@@ -201,7 +201,7 @@ app.post('/getNftInfo', async (req, res, next) => {
   }
 });
 
-app.post('/getBatchInfo', async (req, res, next) => {
+app.post('/getBatchInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ getBatchInfo: req.body });
     const result = await avn.getBatchInfo(req.body.batchId);
@@ -211,7 +211,7 @@ app.post('/getBatchInfo', async (req, res, next) => {
   }
 });
 
-app.post('/lowers', async (req, res, next) => {
+app.post('/lowers', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ lowerDataRequest: req.body });
     let oldLowers;
@@ -219,18 +219,18 @@ app.post('/lowers', async (req, res, next) => {
     try {
       oldLowers = await lowering.getLowers(req.body.account);
     } catch (err) {
-      console.log(`Error fetching legacy lowers`, err);
+      logger.error(`Error fetching legacy lowers`, err);
       oldLowers = [];
     }
 
-    let newLowers = await loweringV2.getLowers(req.body.account);
+    const newLowers = await loweringV2.getLowers(req.body.account);
     res.send((oldLowers || []).concat(newLowers));
   } catch (err) {
     next(err);
   }
 });
 
-app.post('/gatewayUserInfo', async (req, res, next) => {
+app.post('/gatewayUserInfo', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ gatewayUserInfo: req.body });
     const result = await avn.getGatewayUserInfo(req.body.account);
@@ -240,7 +240,7 @@ app.post('/gatewayUserInfo', async (req, res, next) => {
   }
 });
 
-app.post('/getPayer', async (req, res, next) => {
+app.post('/getPayer', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ getPayer: JSON.stringify(req.body) });
     let result = await rds.getPayer(req.body.user, req.body.payer);
@@ -251,7 +251,7 @@ app.post('/getPayer', async (req, res, next) => {
   }
 });
 
-app.post('/isPayerTransaction', async (req, res, next) => {
+app.post('/isPayerTransaction', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ isPayerTransaction: JSON.stringify(req.body) });
     const result = await rds.isPayerTransaction(req.body.payer, req.body.transaction);
@@ -261,7 +261,7 @@ app.post('/isPayerTransaction', async (req, res, next) => {
   }
 });
 
-app.post('/addNewTransactionStatus', async (req, res, next) => {
+app.post('/addNewTransactionStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ addNewTransactionStatus: JSON.stringify(req.body) });
     await avn.addNewTransaction(req.body.requestId);
@@ -271,7 +271,7 @@ app.post('/addNewTransactionStatus', async (req, res, next) => {
   }
 });
 
-app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
+app.post('/setTransactionRefusedByPayerStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });
     await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.PayerRefused);
@@ -281,7 +281,7 @@ app.post('/setTransactionRefusedByPayerStatus', async (req, res, next) => {
   }
 });
 
-app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
+app.post('/setTransactionFailedToBeSentStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ setTransactionFailedToBeSentStatus: JSON.stringify(req.body) });
     await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
@@ -291,7 +291,7 @@ app.post('/setTransactionFailedToBeSentStatus', async (req, res, next) => {
   }
 });
 
-app.post('/publishEvent', async (req, res, next) => {
+app.post('/publishEvent', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ publishEventRequest: req.body });
     webhooks.publishEvent(req.body);
@@ -301,7 +301,7 @@ app.post('/publishEvent', async (req, res, next) => {
   }
 });
 
-app.use(function (err, req, res, _next) {
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(`Error processing request: ${JSON.stringify(req.body, null, 2)}`, `Stack: ${err.stack}`);
   res.status(500).send({ error: err.message });
 });
@@ -315,7 +315,7 @@ async function instantiateConnector() {
   await avn.init();
   await rds.init();
   await webhooks.init();
-  sqsConsumer.processTxQueue(); // triggers infinite loop - don't await
+  processTxQueue(); // triggers infinite loop - don't await
   loweringV2.getLowers('0x0'); // populates redis with up-to-date lower data upon initialisation
 }
 

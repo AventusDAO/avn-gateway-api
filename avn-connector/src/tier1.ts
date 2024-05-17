@@ -1,16 +1,16 @@
-const redis = require('./redis');
+import { ethers } from 'ethers';
 const config = require('multiconfig').load();
-const { ethers } = require('ethers');
-const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provider_url);
-const logger = require("./logger");
+import logger from './logger';
+import redis from './redis';
 
 const MIN_LIFT_AMOUNT = toBn(config.tier1.minLiftAmount);
+const provider = new ethers.providers.JsonRpcProvider(config.tier1.tier1_provider_url);
 const NATIVE_T1_TOKEN_ONLY = config.tier1.nativeT1TokenOnly === 'true' || config.tier1.nativeT1TokenOnly === true;
 const EVM_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 //(60 * 60 * 24 * 5) / 12; ~5 days @ ~12 secs per block
-const MAX_LIFT_AGE_IN_BLOCKS = parseInt(config.tier1.maxLiftAgeInBlocks);
-const REQUIRED_CONFIRMATION_BLOCKS = parseInt(config.tier1.requiredConfirmationBlocks);
-const MAX_LIFT_BLOCKS_TO_PROCESS = parseInt(config.tier1.maxLiftBlocksToProcess);
+const MAX_LIFT_AGE_IN_BLOCKS = Number(config.tier1.maxLiftAgeInBlocks);
+const REQUIRED_CONFIRMATION_BLOCKS = Number(config.tier1.requiredConfirmationBlocks);
+const MAX_LIFT_BLOCKS_TO_PROCESS = Number(config.tier1.maxLiftBlocksToProcess);
 
 const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
@@ -19,8 +19,8 @@ const EVENT_SIG = {
   ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
 };
 
-async function getLockedBalance(avnContract, tokenAddress) {
-  let balance = 0;
+async function getLockedBalance(avnContract: string, tokenAddress: string): Promise<string> {
+  let balance = toBn(0);
 
   try {
     if (tokenAddress.toLowerCase() === EVM_TOKEN) {
@@ -37,10 +37,10 @@ async function getLockedBalance(avnContract, tokenAddress) {
   return balance.toString();
 }
 
-async function getLiftEvents(avnContract) {
-  let fromBlock = 0,
-    toBlock = 0;
-  const liftEvents = [];
+async function getLiftEvents(avnContract: string): Promise<{ fromBlock: number; toBlock: number; liftEvents: [string, string][] }> {
+  let fromBlock = 0;
+  let toBlock = 0;
+  const liftEvents: [string, string][] = [];
 
   try {
     const currentBlock = await provider.getBlockNumber();
@@ -60,10 +60,8 @@ async function getLiftEvents(avnContract) {
           }
         }
       });
-
       return { fromBlock, toBlock, liftEvents };
     }
-
     // return the same block for `from` and `to` with an empty `events`
     return { fromBlock, toBlock: fromBlock, liftEvents };
   } catch (error) {
@@ -72,14 +70,14 @@ async function getLiftEvents(avnContract) {
   }
 }
 
-async function getLatestClaimedLowers(avnContract) {
-  const claimedLowers = [];
+async function getLatestClaimedLowers(avnContract: string): Promise<string[]> {
+  const claimedLowers: string[] = [];
 
   try {
     const fromBlock = await redis.getClaimedLowersFromTier1Block();
     const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock });
-    for await (const txHash of events.map(event => event.transactionHash)) {
-      const txData = await provider.getTransaction(txHash);
+    for (const event of events) {
+      const txData = await provider.getTransaction(event.transactionHash);
       const inputs = ethers.utils.defaultAbiCoder.decode(['bytes', 'bytes32[]'], ethers.utils.hexDataSlice(txData.data, 4));
       claimedLowers.push(ethers.utils.keccak256(inputs[0]));
     }
@@ -91,8 +89,8 @@ async function getLatestClaimedLowers(avnContract) {
   return claimedLowers;
 }
 
-async function getLatestPublishedRoots(avnContract) {
-  let events = [];
+async function getLatestPublishedRoots(avnContract: string): Promise<string[]> {
+  let events: ethers.providers.Log[] = [];
 
   try {
     const fromBlock = await redis.getPublishedRootsFromTier1Block();
@@ -102,16 +100,16 @@ async function getLatestPublishedRoots(avnContract) {
     logger.error('Error getting published roots:', error);
   }
 
-  return events.map(event => event.topics[1].toLowerCase()); // topic 1 = rootHash
+  return events.map(event => event.topics[1].toLowerCase());
 }
 
-async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
-  const claimedLowerIds = [];
+async function getLowersClaimedSinceBlock(avnContract: string, fromBlock: number): Promise<[number, number[]]> {
+  const claimedLowerIds: number[] = [];
 
   try {
     const claims = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.CLAIM], fromBlock });
     claims.forEach(claim => {
-      const lowerId = parseInt(claim.topics[1]);
+      const lowerId = Number(claim.topics[1]);
       fromBlock = Math.max(fromBlock, claim.blockNumber);
       claimedLowerIds.push(lowerId);
     });
@@ -122,16 +120,16 @@ async function getLowersClaimedSinceBlock(avnContract, fromBlock) {
   return [fromBlock, claimedLowerIds];
 }
 
-function connectToBridge(contract, abi, account) {
+function connectToBridge(contract: string, abi: any, account: string): ethers.Contract {
   const signer = new ethers.Wallet(account, provider);
   return new ethers.Contract(contract, abi, signer);
 }
 
-function toBn(val) {
+function toBn(val: any): ethers.BigNumber {
   return ethers.BigNumber.from(val);
 }
 
-module.exports = {
+const tier1 = {
   getLatestClaimedLowers,
   getLiftEvents,
   getLockedBalance,
@@ -139,3 +137,4 @@ module.exports = {
   getLowersClaimedSinceBlock,
   connectToBridge
 };
+export default tier1;

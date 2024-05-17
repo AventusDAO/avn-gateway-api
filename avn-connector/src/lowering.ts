@@ -190,10 +190,12 @@ async function getLowerTransactions(fromBlock: number): Promise<LowerTransaction
   let fromId = generateId(fromBlock, 0);
   const { avtContract } = await avn.getChainInfo();
 
+  // Loop to retrieve lowers so as not to exceed the indexer limit:
   do {
     newLowers = await getLowersFromIndexer(fromId, txLimit, avtContract);
     if (newLowers.length > 0) {
       lowers = lowers.concat(newLowers);
+      // Update the starting position (lowers are ordered so the last entry is always the most recent):
       fromId = generateId(Number(lowers[lowers.length - 1].blockNumber), Number(lowers[lowers.length - 1].index) + 1);
     }
   } while (newLowers.length > 0);

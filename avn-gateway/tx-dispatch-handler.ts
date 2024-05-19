@@ -1,10 +1,15 @@
-import * as utils from '/opt/utils';
+import { init, callWithTimeout, requestFailed, buildErrorBody, isValidProxySignature, axios, toBnString,
+  isValidAccountId, getProxyProof, isValidSignatureFormat, isSplitFeeTransaction, isValidNonce,
+  publishEvent, buildValidResponseBody, isValidString, isValidEthereumAddress, isValidNftId,
+  isValidAmount, isValidEthereumTransactionHash, encodeRoyalties, convertToPublicKey,
+  NONCE_INFO, WEBHOOK_EVENT_TYPES } from '/opt/utils';
 import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
 import { StatusCode, CustomSQSHandler, ValidResponse,
   ProxyParams, ProxyProof, QueryParams, PublishEventData, NonceInfo,
   CallConfig, ProxyTransaction, ProxyCall } from './types';
-  import { ErrorBody, SendTxResult,SignDataItem } from './common/types';
+import { ErrorBody, SendTxResult, SignDataItem, eventType, marketType } from './common/types';
+import { u64 } from '@polkadot/types';
 
   // @ts-ignore
 import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
@@ -13,7 +18,7 @@ const AVN_CONNECTOR_ENDPOINT: string = process.env.AVN_CONNECTOR_ENDPOINT || '';
 const SQS_TX_QUEUE_URL: string = process.env.SQS_TX_QUEUE_URL || '';
 
 export const handler: CustomSQSHandler = async (event: SQSEvent, context: Context): Promise<APIGatewayProxyResult | SQSBatchResponse> => {
-  await utils.init();
+  await init();
   let processedMessagesCount = 0;
 
   if (!event.Records) {
@@ -28,8 +33,8 @@ export const handler: CustomSQSHandler = async (event: SQSEvent, context: Contex
 
   try {
     for (let record of event.Records) {
-      const result = await utils.callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [record.body]);
-      if (utils.requestFailed(result) === true) {
+      const result = await callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [record.body]);
+      if (requestFailed(result) === true) {
         break;
       }
       processedMessagesCount += 1;
@@ -61,7 +66,7 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
     call = JSON.parse(request);
   } catch (err) {
     console.error(`Failed to parse message as JSON: `, err);
-    return utils.buildErrorBody('parse', 'Failed to parse message as JSON', err.toString(), request, null);
+    return buildErrorBody('parse', 'Failed to parse message as JSON', err.toString(), request, null);
   }
 
   const requestId = call.awsRequestId ?? '';
@@ -75,14 +80,14 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
 async function validateAndProcessCall(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
   if (typeof call.method !== 'string') {
     console.error(`Invalid method type: Expected string, received ${typeof call.method}`);
-    return utils.buildErrorBody('request', 'Method type must be string', call.method, request, call.id);
+    return buildErrorBody('request', 'Method type must be string', call.method, request, call.id);
   }
 
   try {
     return callSwitch(call, request, requestId);
   } catch (err) {
     console.error(`Failed to process message from default queue: `, err);
-    return utils.buildErrorBody('request', 'Failed to process message from default queue', err.toString(), request, call.id);
+    return buildErrorBody('request', 'Failed to process message from default queue', err.toString(), request, call.id);
   }
 }
 
@@ -93,7 +98,7 @@ async function callSwitch(call: ProxyCall, request: string, requestId: string): 
   if (callConfigs[call.method]) {
     return await processProxyCall(call.method, call, request, requestId);
   } else {
-    return utils.buildErrorBody('method', 'Method not found', call.method, request, call.id);
+    return buildErrorBody('method', 'Method not found', call.method, request, call.id);
   }
 }
 
@@ -104,21 +109,24 @@ async function processProxyCall(callType: string, call: ProxyCall, request: stri
   }
 
   const { pallet, method, buildMethodParams, buildSignData } = config;
-  let nonce = call.params.nonce ?? await queryNonce(requestId, utils.NONCE_INFO[config.nonceType], call.params.user);
-  call.params.nonce = nonce;
+
+  if (config.nonceType) {
+    let nonce = call.params.nonce ?? await queryNonce(requestId, NONCE_INFO[config.nonceType], call.params.user);
+    call.params.nonce = nonce;
+  }
 
   const methodParams = buildMethodParams(call.params);
-  const signData = buildSignData({ ...call.params, nonce });
+  const signData = buildSignData({ ...call.params });
 
   try {
-    validateSignData(signData, config.pallet);
+    // validateSignData(signData, config.pallet);
 
-    if (!utils.isValidProxySignature(call.params.proxySignature, call.params.user, signData)) {
+    if (!isValidProxySignature(call.params.proxySignature, call.params.user, signData)) {
       throw 'proxySignature';
     }
   } catch (param) {
     const badParamValue = JSON.stringify(call.params[param]);
-    return utils.buildErrorBody('params', `invalid ${param}: ${badParamValue}`, param, request, call.id);
+    return buildErrorBody('params', `invalid ${param}: ${badParamValue}`, param, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -129,8 +137,8 @@ async function queryNonce(requestId: string, nonceInfo: NonceInfo, nonceKey: str
   const { palletName, storageName } = nonceInfo;
   console.log(`${requestId} - Refreshing nonce from chain for ${palletName}.${storageName} - ${nonceKey}`);
   const params: QueryParams = { requestId, palletName, storageName, params: [nonceKey] };
-  const result = await utils.axios.post(`${AVN_CONNECTOR_ENDPOINT}avnQuery`, params);
-  const nonce = storageName === 'nfts' ? utils.toBnString(result.data.nonce) : utils.toBnString(result.data);
+  const result = await axios.post(`${AVN_CONNECTOR_ENDPOINT}avnQuery`, params);
+  const nonce = storageName === 'nfts' ? toBnString(result.data.nonce) : toBnString(result.data);
   console.log(`${requestId} - new nonce: ${nonce}`);
   return nonce;
 }
@@ -146,33 +154,33 @@ async function processProxyMethod(
   const { relayer, user, payer, proxySignature } = call.params;
 
   try {
-    if (!utils.isValidAccountId(relayer)) throw 'relayer';
-    if (!utils.isValidAccountId(user)) throw 'user';
-    if (!utils.isValidAccountId(payer)) throw 'payer';
-    if (!utils.isValidSignatureFormat(proxySignature)) throw 'proxySignature';
+    if (!isValidAccountId(relayer)) throw 'relayer';
+    if (!isValidAccountId(user)) throw 'user';
+    if (!isValidAccountId(payer)) throw 'payer';
+    if (!isValidSignatureFormat(proxySignature)) throw 'proxySignature';
 
-    if (!utils.isSplitFeeTransaction(call)) {
-      if (!utils.isValidSignatureFormat(call.params.feePaymentSignature!)) throw 'feePaymentSignature';
-      if (!utils.isValidNonce(call.params.paymentNonce!)) throw 'paymentNonce';
+    if (!isSplitFeeTransaction(call)) {
+      if (!isValidSignatureFormat(call.params.feePaymentSignature!)) throw 'feePaymentSignature';
+      if (!isValidNonce(call.params.paymentNonce!)) throw 'paymentNonce';
     }
   } catch (param) {
-    return utils.buildErrorBody('params', `invalid proxy method ${param}: ${call.params[param]}`, param, request, call.id);
+    return buildErrorBody('params', `invalid proxy method ${param}: ${call.params[param]}`, param, request, call.id);
   }
 
-  const proxyProof: ProxyProof = utils.getProxyProof(user, relayer, proxySignature);
+  const proxyProof: ProxyProof = getProxyProof(user, relayer, proxySignature);
 
   const params: ProxyParams = {
     proxyParams: [proxyProof].concat(methodParams),
     relayerAddress: relayer
   };
 
-  if (utils.isSplitFeeTransaction(call)) {
+  if (isSplitFeeTransaction(call)) {
     params.splitFeePayerAddress = call.splitFeePayerAddress!;
     params.splitFeePayerVaultId = call.splitFeePayerVaultId!;
     params.relayerFees = call.relayerFee!;
     params.splitFeeProxyProof = proxyProof;
-    const eventType = utils.WEBHOOK_EVENT_TYPES.tx_ready;
-    await utils.publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, params.splitFeePayerAddress, {
+    const eventType = WEBHOOK_EVENT_TYPES.tx_ready;
+    await publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, params.splitFeePayerAddress, {
       relayer,
       user,
       proxySignature,
@@ -209,29 +217,24 @@ async function sendTx(
     const txType = 'avnProxy';
     const tx:  ProxyTransaction = { requestId, txType, palletName, method, params };
     const result = await sqs.sendToQueue(SQS_TX_QUEUE_URL, tx);
-    return utils.buildValidResponseBody(call.id, result);
+    return buildValidResponseBody(call.id, result);
   } catch (err) {
-    return utils.buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
+    return buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
   }
 }
 
 const typeValidationMap = {
-  AccountId: utils.isValidAccountId,
-  H160: utils.isValidEthereumAddress,
-  u128: utils.isValidAmount,
-  H256: utils.isValidEthereumTransactionHash,
-  u8: (value, pallet) => {
-    if (pallet === 'nftManager') {
-      return utils.isValidMarket(value);
-    } else if (pallet === 'ethereumEvents') {
-      return utils.isValidEventType(value);
-    }
-  },
-  u64: utils.isValidNumber,
-  SkipEncode: utils.isValidArray,
-  U256: utils.isValidNftId,
-  'Vec<u8>': utils.isValidString,
-  'Vec<LookupSource>': utils.isValidArray
+  Text: isValidString, // leave it
+  AccountId: isValidAccountId, // leave it
+  H160: isValidEthereumAddress, // leave it
+  u128: isValidAmount, // leave it
+  H256: isValidEthereumTransactionHash, // leave it
+  u8: true, // remove
+  u64: true, // remove
+  SkipEncode: true, // remove
+  U256: isValidNftId, // leave it
+  'Vec<u8>': isValidString, // leave it
+  'Vec<LookupSource>': true
 };
 
 const callConfigs: { [key: string]: CallConfig } = {
@@ -354,7 +357,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { Text: 'authorization for create batch operation' },
       { AccountId: relayer },
       { u64: totalSupply },
-      { SkipEncode: utils.encodeRoyalties(royalties) },
+      { SkipEncode: encodeRoyalties(royalties) },
       { H160: t1Authority },
       { u64: nonce }
     ]
@@ -443,7 +446,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { Text: 'authorization for mint single nft operation' },
       { AccountId: relayer },
       { 'Vec<u8>': externalRef },
-      { SkipEncode: utils.encodeRoyalties(royalties) },
+      { SkipEncode: encodeRoyalties(royalties) },
       { H160: t1Authority }
     ]
   },
@@ -480,7 +483,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     buildMethodParams: ({ targets, amount }) => [targets, amount],
     buildSignData: ({ relayer, amount, targets, nonce }) => [
       { Text: 'parachain authorization for nominate operation' },
-      { AccountId: utils.convertToPublicKey(relayer) },
+      { AccountId: convertToPublicKey(relayer) },
       { 'Vec<LookupSource>': targets },
       { BalanceOf: amount },
       { u64: nonce }
@@ -554,13 +557,13 @@ function validateSignData(signData: SignDataItem[], pallet?: string): void {
       if (!validator) {
         throw `${value}`;
       }
-
       if (type === 'u8') {
-        if (!validator(value, pallet)) {
+        // force parse to number??
+        if (!validator(parseInt(value), pallet)) {
           throw `${value}`;
         }
       } else {
-        if (!validator(value)) {
+        if (!validator(value) && type != 'SkipEncode') {
           throw `${value}`;
         }
       }

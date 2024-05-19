@@ -1,4 +1,4 @@
-import * as utils from '/opt/utils.js';
+import { BN, axios, init, verifyAwtTokenSignature, isSplitFeeToken } from '/opt/utils.js';
 // @ts-ignore
 import { APIGatewayRequestAuthorizerEvent, APIGatewaySimpleAuthorizerWithContextResult,APIGatewayAuthorizerResultContext } from 'aws-lambda';
 import { UserInfo, PayerData, AWTToken, ValidRequestContext } from './types';
@@ -7,14 +7,14 @@ import { UserInfo, PayerData, AWTToken, ValidRequestContext } from './types';
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 const MAX_TOKEN_AGE_MSEC = parseInt(process.env.MAX_TOKEN_AGE_MSEC as string);
 const CLOCK_JITTER_MSEC: number = -15000;
-const MIN_AVT_BALANCE = new utils.BN(process.env.MIN_AVT_BALANCE ?? 0);
+const MIN_AVT_BALANCE = new BN(process.env.MIN_AVT_BALANCE ?? 0);
 const AUTH_PREFIX = 'Bearer ';
 const InvalidRequestResponse: APIGatewaySimpleAuthorizerWithContextResult<APIGatewayAuthorizerResultContext> = { isAuthorized: false, context: {} };
 
 type AuthorizationResponse = APIGatewaySimpleAuthorizerWithContextResult<ValidRequestContext>
 
 export const handler = async (event: APIGatewayRequestAuthorizerEvent): Promise<AuthorizationResponse> => {
-  await utils.init();
+  await init();
   return await validateAwtToken(event);
 };
 
@@ -36,12 +36,12 @@ async function validateAwtToken(event: APIGatewayRequestAuthorizerEvent): Promis
     return InvalidRequestResponse;
   }
 
-  if (!utils.verifyAwtTokenSignature(awtToken.pk, awtToken.iat, awtToken.sig, awtToken.hasPayer, awtToken.payer)) {
+  if (!verifyAwtTokenSignature(awtToken.pk, awtToken.iat, awtToken.sig, awtToken.hasPayer, awtToken.payer)) {
     console.info('Invalid AWT token - bad signature');
     return InvalidRequestResponse;
   }
 
-  if (utils.isSplitFeeToken(awtToken) && awtToken.payer) {
+  if (isSplitFeeToken(awtToken) && awtToken.payer) {
     const payerData: PayerData | undefined = await tryGetPayerAddressForUser(awtToken);
 
     if (payerData?.payerAddress) {
@@ -94,15 +94,15 @@ async function isValidSelfPayUser(awtToken: AWTToken): Promise<boolean> {
   const userInfo: UserInfo | undefined = await tryGetUserInfo(awtToken);
   if (!userInfo) return false;
 
-  const avtBalance = new utils.BN(userInfo.freeBalance.toString().replace('0x', ''), 16);
-  const existingUser = new utils.BN(userInfo.paymentNonce).gt(new utils.BN(0));
+  const avtBalance = new BN(userInfo.freeBalance.toString().replace('0x', ''), 16);
+  const existingUser = new BN(userInfo.paymentNonce).gt(new BN(0));
 
   return existingUser || avtBalance.gte(MIN_AVT_BALANCE);
 }
 
 async function tryGetPayerAddressForUser(awtToken: AWTToken): Promise<PayerData | undefined> {
   try {
-    const avnResponse = await utils.axios.post(`${AVN_CONNECTOR_ENDPOINT}getPayer`, {
+    const avnResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}getPayer`, {
       user: awtToken.pk,
       payer: awtToken.payer
     });
@@ -116,7 +116,7 @@ async function tryGetPayerAddressForUser(awtToken: AWTToken): Promise<PayerData 
 
 async function tryGetUserInfo(awtToken: AWTToken): Promise<UserInfo | undefined> {
   try {
-    const avnResponse = await utils.axios.post(`${AVN_CONNECTOR_ENDPOINT}gatewayUserInfo`, {
+    const avnResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}gatewayUserInfo`, {
       account: awtToken.pk
     });
 

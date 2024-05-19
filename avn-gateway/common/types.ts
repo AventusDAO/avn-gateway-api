@@ -1,8 +1,12 @@
 import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
-import { GenericEthereumLookupSource, Vec, u8, u64, u128, U256 } from '@polkadot/types'
-import { H256, H160, BalanceOf } from "@polkadot/types/interfaces"
+import { GenericEthereumLookupSource, Vec, u8, u64, u128, U256 } from '@polkadot/types';
+import { H256, H160, BalanceOf } from "@polkadot/types/interfaces";
+
+
+export type eventType = 0 | 1 | 2 | 3 | 4 | 5;
+export type marketType = 0 | 1;
 
 export type SignDataItem = | { Text: string }
     | { AccountId: string }
@@ -121,7 +125,7 @@ export interface PaymentInfo {
       Sr25519: string;
     };
   }
-  
+
 
 export interface DataItem {
     [key: string]: string | number | Uint8Array;

@@ -3,13 +3,14 @@ import * as crypto from 'crypto';
 import axios from 'axios';
 import { TypeRegistry } from '@polkadot/types';
 import {
-  hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat, isNumber
+  hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat,
 } from '@polkadot/util';
 import { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } from '@polkadot/util-crypto';
 const { BN } = require('bn.js');
 import { validate as uuidValidate } from 'uuid';
 import { InterfaceTypes } from '@polkadot/types/types';
-import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, ProofParams, ProxyProof, RPCError, RPCResponse, Response, Royalty, SuccessResponse, Token, Transaction, TransactionType } from './types';
+import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, ProxyProof, RPCError, RPCResponse, Response, Royalty, SuccessResponse, Token, Transaction,
+  TransactionType } from './types';
 
 const registry = new TypeRegistry();
 
@@ -31,32 +32,6 @@ enum WEBHOOK_EVENT_TYPES {
   tx_execution_failed = 'tx_execution_failed',
   tx_succeeded = 'tx_succeeded'
 }
-
-//TODO: replace this with the values from the rds database
-const TX_TYPES: TransactionType[] = [
-  'proxyAvtTransfer',
-  'proxyTokenTransfer',
-  'proxyConfirmTokenLift',
-  'proxyTokenLower',
-  'proxyCreateNftBatch',
-  'proxyMintSingleNft',
-  'proxyMintBatchNft',
-  'proxyListNftOpenForSale',
-  'proxyListNftBatchForSale',
-  'proxyTransferFiatNft',
-  'proxyCancelListFiatNft',
-  'proxyEndNftBatchSale',
-  'proxyIncreaseStake',
-  'proxyUnstake',
-  'proxyWithdrawUnlocked',
-  'proxyStakeAvt',
-  'proxyMintEthereumBatchNft',
-  'proxyTransferEthereumNft',
-  'proxyCancelEthereumNftSale',
-  'proxyEndEthereumBatchSale',
-  'proxyListEthereumNftForSale',
-  'proxyListEthereumNftBatchForSale'
-];
 
 const NONCE_INFO: NonceInfo = {
   batch: { palletName: 'nftManager', storageName: 'batchNonces' },
@@ -121,7 +96,6 @@ function isSplitFeeToken(token: Token): boolean {
   return token.hasPayer === true || payerAddressIsSet === true;
 }
 
-
 function isSplitFeeTransaction(tx: Transaction): boolean {
   return !!tx.splitFeePayerAddress && isValidAccountId(tx.splitFeePayerAddress);
 }
@@ -139,24 +113,12 @@ function isValidAmount(amount: string): boolean {
   return /^\d+$/.test(amount) && !new BN(amount).isZero();
 }
 
-function isValidArray<T>(value: T[]): boolean {
-  return Array.isArray(value);
-}
-
 function isValidEthereumAddress(tokenId: string): boolean {
   return isHex(tokenId) && tokenId.split('').length == 42;
 }
 
 function isValidEthereumTransactionHash(transactionHash: string): boolean {
   return isHex(transactionHash) && transactionHash.split('').length == 66;
-}
-
-function isValidEventType(eventType: number): boolean {
-  return [0, 1, 2, 3, 4, 5].includes(eventType);
-}
-
-function isValidMarket(market: number | typeof BN): boolean {
-  return [1, 2].includes(market);
 }
 
 function isValidNftId(nftId: string | typeof BN): boolean {
@@ -178,14 +140,6 @@ function isValidSignatureFormat(signature: string): boolean {
 
 function isValidString(value: string): boolean {
   return !(value ? value.replace(/\s/g, '').length === 0 : true);
-}
-
-function isValidTransactionType(transactionType: TransactionType): boolean {
-  return TX_TYPES.includes(transactionType);
-}
-
-function isValidNumber(val: string): boolean {
-  return isNumber(parseInt(val));
 }
 
 function convertToAddress(accountId: string | String | Uint8Array): string {
@@ -373,18 +327,13 @@ export {
   isSplitFeeTransaction,
   isValidAccountId,
   isValidAmount,
-  isValidArray,
   isValidEthereumAddress,
   isValidEthereumTransactionHash,
-  isValidEventType,
-  isValidMarket,
   isValidNftId,
   isValidNonce,
-  isValidNumber,
   isValidRequestId,
   isValidSignatureFormat,
   isValidString,
-  isValidTransactionType,
   isValidProxySignature,
   NONCE_INFO,
   publishEvent,

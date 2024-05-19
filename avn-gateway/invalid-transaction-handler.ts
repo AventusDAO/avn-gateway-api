@@ -1,4 +1,4 @@
-import * as utils from '/opt/utils.js';
+import { requestFailed, axios } from '/opt/utils.js';
 // @ts-ignore
 import { SQSEvent, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 import { StatusCode, CustomSQSHandler } from './types';
@@ -24,7 +24,7 @@ export const handler: CustomSQSHandler = async (event: SQSEvent): Promise<SQSBat
     for (let record of event.Records) {
       const result = await processFailedMessage(record.body);
 
-      if (utils.requestFailed(result) === true) {
+      if (requestFailed(result) === true) {
         failedMessages.push(record);
       } else {
         processedMessagesCount += 1;
@@ -68,7 +68,7 @@ async function processFailedMessage(message: string): Promise<Response> {
   console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
 
   try {
-    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', { requestId: requestId });
+    await axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', { requestId: requestId });
   } catch (err) {
     const errorMessage = `Failed to set status of requestId ${requestId} as 'SendingFailed': ${err.toString()}`;
     console.error(errorMessage);

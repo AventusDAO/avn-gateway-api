@@ -1,4 +1,4 @@
-import * as utils from '/opt/utils.js';
+import { axios } from '/opt/utils.js';
 // @ts-ignore
 import { Handler, APIGatewayProxyEvent } from 'aws-lambda';
 import { StatusCode, LowerStatus, LowerResult, Lower, QueryStringParam } from './types';
@@ -18,7 +18,7 @@ async function getLowers(qsParam: QueryStringParam): Promise<Lower> {
   console.log('Processing lowers from account: ', qsParam.account);
 
   try {
-    const response = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'lowers', { account: qsParam.account });
+    const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'lowers', { account: qsParam.account });
     result.lowerData = response.data;
   } catch (err) {
     console.log(err);

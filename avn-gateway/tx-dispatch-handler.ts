@@ -119,7 +119,7 @@ async function processProxyCall(callType: string, call: ProxyCall, request: stri
   const signData = buildSignData({ ...call.params });
 
   try {
-    // validateSignData(signData, config.pallet);
+    validateSignData(signData);
 
     if (!isValidProxySignature(call.params.proxySignature, call.params.user, signData)) {
       throw 'proxySignature';
@@ -224,17 +224,13 @@ async function sendTx(
 }
 
 const typeValidationMap = {
-  Text: isValidString, // leave it
-  AccountId: isValidAccountId, // leave it
-  H160: isValidEthereumAddress, // leave it
-  u128: isValidAmount, // leave it
-  H256: isValidEthereumTransactionHash, // leave it
-  u8: true, // remove
-  u64: true, // remove
-  SkipEncode: true, // remove
-  U256: isValidNftId, // leave it
-  'Vec<u8>': isValidString, // leave it
-  'Vec<LookupSource>': true
+  Text: isValidString,
+  AccountId: isValidAccountId,
+  H160: isValidEthereumAddress,
+  u128: isValidAmount,
+  H256: isValidEthereumTransactionHash,
+  U256: isValidNftId,
+  'Vec<u8>': isValidString,
 };
 
 const callConfigs: { [key: string]: CallConfig } = {
@@ -550,22 +546,12 @@ const callConfigs: { [key: string]: CallConfig } = {
   },
 };
 
-function validateSignData(signData: SignDataItem[], pallet?: string): void {
+function validateSignData(signData: SignDataItem[]): void {
   signData.forEach(item => {
     for (const [type, value] of Object.entries(item)) {
       const validator = typeValidationMap[type];
-      if (!validator) {
+      if (validator && !validator(value)) {
         throw `${value}`;
-      }
-      if (type === 'u8') {
-        // force parse to number??
-        if (!validator(parseInt(value), pallet)) {
-          throw `${value}`;
-        }
-      } else {
-        if (!validator(value) && type != 'SkipEncode') {
-          throw `${value}`;
-        }
       }
     }
   });

@@ -1,8 +1,8 @@
 import { requestFailed, axios } from '/opt/utils.js';
 // @ts-ignore
 import { SQSEvent, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
-import { StatusCode, CustomSQSHandler } from './types';
-import { Response } from './common/types';
+import { StatusCode, CustomSQSHandler } from '/opt/handler-types';
+import { Response } from '/opt/types';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 

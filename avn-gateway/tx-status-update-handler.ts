@@ -1,5 +1,5 @@
 import { axios } from '/opt/utils';
-import { TransactionEvent, BlockchainEvent, TransactionResponse, CrossChainTxStatus, TransactionStatus, TxEventsMap, CrossChainTxMap } from './types';
+import { TransactionEvent, BlockchainEvent, TransactionResponse, CrossChainTxStatus, TransactionStatus, TxEventsMap, CrossChainTxMap } from '/opt/handler-types';
 
 // @ts-ignore
 import { APIGatewayProxyResultV2, Handler } from 'aws-lambda';
@@ -12,7 +12,11 @@ const TX_LIMIT = 2500;
 const transactionStatus = {
   Processed: 'Processed',
   Rejected: 'Rejected',
-  Validating: 'Validating'
+  Validating: 'Validating',
+  Pending: 'Pending',
+  SendingFailed: 'SendingFailed',
+  PayerRefused: 'PayerRefused',
+  AwaitingToSend: 'AwaitingToSend',
 } as const;
 
 // any cross chain transactions such as lifting will emit this event

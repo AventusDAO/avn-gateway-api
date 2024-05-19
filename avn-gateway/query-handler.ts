@@ -1,8 +1,8 @@
 import { init, buildErrorBody, isValidAccountId, isValidString, buildValidResponseBody, axios,
   isValidNftId, isValidEthereumAddress, convertToAddress, convertToPublicKey, BN, toBnString,
   NONCE_INFO } from '/opt/utils';
-import { Call, ValidError, ValidResponse } from './types';
-import { ErrorBody } from './common/types';
+import { Call, ValidError, ValidResponse } from '/opt/handler-types';
+import { ErrorBody } from '/opt/types';
 // @ts-ignore
 import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 

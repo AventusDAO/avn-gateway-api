@@ -2,7 +2,7 @@ import { axios, init, callWithTimeout, requestFailed, buildErrorResponse, buildE
   publishEvent, buildSuccessResponse, buildValidResponseBody, isValidAccountId,
   WEBHOOK_EVENT_TYPES } from '/opt/utils';
 import * as sqs from '/opt/sqsUtils';
-import { ValidRequestContext, Transaction } from './types';
+import { ValidRequestContext, Transaction } from '/opt/handler-types';
 // @ts-ignore
 import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from 'aws-lambda';
 

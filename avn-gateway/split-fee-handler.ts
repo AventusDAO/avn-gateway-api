@@ -4,8 +4,8 @@ import { init, callWithTimeout, requestFailed, buildErrorBody, publishEvent, get
   WEBHOOK_EVENT_TYPES } from '/opt/utils.js';
 import * as fees from '/opt/paymentUtils.js';
 import * as sqs from '/opt/sqsUtils.js';
-import { StatusCode, CustomSQSHandler, ValidResponse, Transaction } from './types';
-import { ErrorBody } from './common/types';
+import { StatusCode, CustomSQSHandler, ValidResponse, Transaction } from '/opt/handler-types';
+import { ErrorBody } from '/opt/types';
 // @ts-ignore
 import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 

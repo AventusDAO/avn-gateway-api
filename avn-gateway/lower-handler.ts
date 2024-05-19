@@ -1,7 +1,7 @@
 import { axios } from '/opt/utils.js';
 // @ts-ignore
 import { Handler, APIGatewayProxyEvent } from 'aws-lambda';
-import { StatusCode, LowerStatus, LowerResult, Lower, QueryStringParam } from './types';
+import { StatusCode, LowerStatus, LowerResult, Lower, QueryStringParam } from '/opt/handler-types';
 
 const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 

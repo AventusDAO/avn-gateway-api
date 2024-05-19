@@ -1,6 +1,6 @@
 import { init, buildErrorBody, isValidRequestId, buildValidResponseBody, axios } from '/opt/utils.js';
-import { ValidError, Call } from './types';
-import { ErrorBody } from './common/types';
+import { ValidError, Call } from '/opt/handler-types';
+import { ErrorBody } from '/opt/types';
 // @ts-ignore
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 

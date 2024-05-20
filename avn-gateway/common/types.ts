@@ -15,7 +15,7 @@ export type SignDataItem = | { Text: string }
     | { 'Vec<LookupSource>': Vec<GenericEthereumLookupSource>[]; }
     | { H256: H256; }
     | { U256: U256 }
-    | { u8: u8; }
+    | { u8: eventType | marketType; }
     | { u64: u64 }
     | { u128: u128 }
     | { BalanceOf: BalanceOf }

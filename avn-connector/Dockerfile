@@ -10,7 +10,7 @@ RUN npm i
 
 RUN npm run build
 
-COPY src/build .
+COPY build .
 
 RUN npm ci --production
 

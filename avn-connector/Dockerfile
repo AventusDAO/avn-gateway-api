@@ -10,6 +10,8 @@ RUN npm i
 
 RUN npm run build
 
+RUN pwd
+
 COPY build .
 
 RUN npm ci --production

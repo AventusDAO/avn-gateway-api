@@ -8,6 +8,9 @@ RUN apk update && \
 
 WORKDIR /
 
+# Output the current working directory
+RUN echo "Current working directory: $(pwd)"
+
 COPY package*.json ./
 
 RUN npm i
@@ -15,8 +18,6 @@ RUN npm i
 COPY . .
 
 RUN npm run build
-
-RUN pwd
 
 COPY build .
 

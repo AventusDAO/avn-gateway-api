@@ -3,20 +3,22 @@ FROM node:16-alpine
 # Need to be root to write logs to volume.
 # TODO: use log driver to send stdout to CloudWatch?
 
-RUN apk update && \
-    apk add g++ make py3-pip
+# RUN apk update && \
+#     apk add g++ make py3-pip
 
-WORKDIR /
+# Set the working directory inside the container
+WORKDIR /app
 
-# Output the current working directory
-RUN echo "Current working directory: $(pwd)"
-
+# Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
-RUN npm i
+# Install dependencies
+RUN npm install
 
+# Copy the rest of the application code to the working directory
 COPY . .
 
+# Build the TypeScript code
 RUN npm run build
 
 COPY build .

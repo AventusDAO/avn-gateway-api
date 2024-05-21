@@ -6,6 +6,14 @@ FROM node:16-alpine
 RUN apk update && \
     apk add g++ make py3-pip
 
+WORKDIR /
+
+COPY package*.json ./
+
+RUN npm i
+
+COPY . .
+
 RUN npm run build
 
 RUN pwd

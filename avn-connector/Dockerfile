@@ -21,7 +21,7 @@ COPY . .
 # Build the TypeScript code
 RUN npm run build
 
-COPY build .
+# COPY build .
 
 RUN npm ci --production
 

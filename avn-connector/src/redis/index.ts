@@ -1,6 +1,6 @@
-const config = require('multiconfig').load({directory: '../config'});
-import { Cluster, Redis } from "ioredis";
-import logger from "../logger";
+const config = require('multiconfig').load({ directory: '../config' })
+import { Cluster, Redis } from 'ioredis'
+import logger from '../logger'
 import {
   AUTOLOWERS_KEY,
   AUTOLOWER_LOCK_KEY,
@@ -40,41 +40,45 @@ import {
   UNCLAIMED_LOWERS_KEY,
   UNPUBLISHED_LOWERS_KEY,
   WEBHOOKS_SENT_TX_KEY,
-  transactionStatus,
-} from "./constants";
-import { transactionObject } from "./types";
-import _ from "lodash";
+  transactionStatus
+} from './constants'
+import { transactionObject } from './types'
+import _ from 'lodash'
 
 class RedisClient {
-  client: Redis | Cluster;
+  client: Redis | Cluster
 
   async connect() {
-    this.client = await this.initializeClient();
-    await this.logConnection(this.client);
-    this.defineCommands();
+    this.client = await this.initializeClient()
+    await this.logConnection(this.client)
+    this.defineCommands()
   }
   private async initializeClient(): Promise<Redis | Cluster> {
     if ('redis' in config) {
-      logger.info(`Attempting to connect to Redis database on ${config.redis.url}:${config.redis.port}`);
+      logger.info(
+        `Attempting to connect to Redis database on ${config.redis.url}:${config.redis.port}`
+      )
       const client = new Cluster([
-        { port: Number(config.redis.port), host: `${config.redis.url}` },
-      ]);
-      return client;
+        { port: Number(config.redis.port), host: `${config.redis.url}` }
+      ])
+      return client
     } else {
-      return new Redis();
+      return new Redis()
     }
   }
 
   private async logConnection(client: Redis | Cluster) {
     logger.info(
       'Connected to Redis database:\n',
-      (await client.hello()).map((e: any, i: number) => (i % 2 == 0 ? e + ':' : e + ', ')).join('')
-    );
+      (await client.hello())
+        .map((e: any, i: number) => (i % 2 == 0 ? e + ':' : e + ', '))
+        .join('')
+    )
   }
 
   private defineCommands() {
     if (!this.client) {
-      throw new Error('Redis client is not initialized');
+      throw new Error('Redis client is not initialized')
     }
     this.client.defineCommand('addzrangebyscore', {
       numberOfKeys: 2,
@@ -95,7 +99,7 @@ class RedisClient {
             else
               return 0
             end`
-    });
+    })
 
     this.client.defineCommand('nextzsubset', {
       numberOfKeys: 2,
@@ -112,68 +116,85 @@ class RedisClient {
             else
               return {}
             end`
-    });
+    })
   }
 
   async setKey(key: string, value: string, expiry?: number): Promise<void> {
     if (expiry) {
-      await this.client.setex(key, expiry, value);
+      await this.client.setex(key, expiry, value)
     } else {
-      await this.client.set(key, value);
+      await this.client.set(key, value)
     }
   }
 
   async getKey(key: string): Promise<string | null> {
-    return await this.client.get(key);
+    return await this.client.get(key)
   }
 
   async delKey(key: string): Promise<void> {
-    await this.client.del(key);
+    await this.client.del(key)
   }
 
-   async hsetKey(key: string, value: Record<string, any>): Promise<void> {
-    await this.client.hset(key, value);
+  async hsetKey(key: string, value: Record<string, any>): Promise<void> {
+    await this.client.hset(key, value)
   }
 
-   async hgetKey(key: string): Promise<Record<string, any>> {
-    return await this.client.hgetall(key);
+  async hgetKey(key: string): Promise<Record<string, any>> {
+    return await this.client.hgetall(key)
   }
 
-   async saddKey(key: string, value: string): Promise<number> {
-    return await this.client.sadd(key, value);
+  async saddKey(key: string, value: string): Promise<number> {
+    return await this.client.sadd(key, value)
   }
 
-   async sremKey(key: string, value: string): Promise<void> {
-    await this.client.srem(key, value);
+  async sremKey(key: string, value: string): Promise<void> {
+    await this.client.srem(key, value)
   }
 
-   async smembersKey(key: string): Promise<string[]> {
-    return await this.client.smembers(key);
+  async smembersKey(key: string): Promise<string[]> {
+    return await this.client.smembers(key)
   }
 
-   async multiExec(commands: [string, any[]][]): Promise<any> {
-    const multi = this.client.multi();
+  async multiExec(commands: [string, any[]][]): Promise<any> {
+    const multi = this.client.multi()
     commands.forEach(([command, args]) => {
-      (multi as any)[command](...args);
-    });
-    return await multi.exec();
+      ;(multi as any)[command](...args)
+    })
+    return await multi.exec()
   }
 
-  async addNewAvnTransaction(requestId: string, requestIdHash: string): Promise<void> {
-    const transactionHashKey = `${SLOT_PREFIX}${requestIdHash}`;
-    const requestIdKey = `${SLOT_PREFIX}${requestId}`;
+  async addNewAvnTransaction(
+    requestId: string,
+    requestIdHash: string
+  ): Promise<void> {
+    const transactionHashKey = `${SLOT_PREFIX}${requestIdHash}`
+    const requestIdKey = `${SLOT_PREFIX}${requestId}`
 
-    logger.info(`[redis] [addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`);
+    logger.info(
+      `[redis] [addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`
+    )
 
     if (await this.client.exists(transactionHashKey)) {
-      logger.error(`Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`);
-      return;
+      logger.error(
+        `Transaction hash (${transactionHashKey}) exists already, cannot add duplicate value.`
+      )
+      return
     }
 
     await this.multiExec([
-      ["hset", [transactionHashKey, this.buildTransactionJson(undefined, undefined, transactionStatus.AwaitingToSend)]],
-      ["set", [requestIdKey, requestIdHash]],
-    ]);
+      [
+        'hset',
+        [
+          transactionHashKey,
+          this.buildTransactionJson(
+            undefined,
+            undefined,
+            transactionStatus.AwaitingToSend
+          )
+        ]
+      ],
+      ['set', [requestIdKey, requestIdHash]]
+    ])
   }
 
   async addFailedAvnTransaction(
@@ -183,23 +204,34 @@ class RedisClient {
     senderNonce: string,
     reason: string
   ): Promise<void> {
-    const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`;
-    const requestIdKey = `${SLOT_PREFIX}${requestId}`;
+    const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`
+    const requestIdKey = `${SLOT_PREFIX}${requestId}`
 
     logger.info(
       `[redis] [addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
-    );
+    )
 
     if (await this.client.exists(txHashOrRequestIdKey)) {
-      logger.warn(`Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`);
-      await this.hsetKey(txHashOrRequestIdKey, this.buildTransactionJson(senderAddress, senderNonce, reason));
-      return;
+      logger.warn(
+        `Updating status of transaction: ${txHashOrRequestId} (${requestId}) to ${reason}`
+      )
+      await this.hsetKey(
+        txHashOrRequestIdKey,
+        this.buildTransactionJson(senderAddress, senderNonce, reason)
+      )
+      return
     }
 
     await this.multiExec([
-      ["hset", [txHashOrRequestIdKey, this.buildTransactionJson(senderAddress, senderNonce, reason)]],
-      ["set", [requestIdKey, txHashOrRequestId]],
-    ]);
+      [
+        'hset',
+        [
+          txHashOrRequestIdKey,
+          this.buildTransactionJson(senderAddress, senderNonce, reason)
+        ]
+      ],
+      ['set', [requestIdKey, txHashOrRequestId]]
+    ])
   }
 
   async updateTransactionStatusToPending(
@@ -208,370 +240,474 @@ class RedisClient {
     senderAddress: string,
     senderNonce: string
   ): Promise<void> {
-    const transactionHashKey = `${SLOT_PREFIX}${transactionHash}`;
-    const requestIdKey = `${SLOT_PREFIX}${requestId}`;
+    const transactionHashKey = `${SLOT_PREFIX}${transactionHash}`
+    const requestIdKey = `${SLOT_PREFIX}${requestId}`
 
     logger.info(
       `[redis] [updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
-    );
+    )
 
-    const age = Date.now();
+    const age = Date.now()
     await this.multiExec([
-      ["hset", [transactionHashKey, this.buildTransactionJson(senderAddress, senderNonce, transactionStatus.Pending)]],
-      ["zadd", [PENDING_TX_KEY.ALL, age, transactionHash]],
-      ["set", [requestIdKey, transactionHash]],
-    ]);
+      [
+        'hset',
+        [
+          transactionHashKey,
+          this.buildTransactionJson(
+            senderAddress,
+            senderNonce,
+            transactionStatus.Pending
+          )
+        ]
+      ],
+      ['zadd', [PENDING_TX_KEY.ALL, age, transactionHash]],
+      ['set', [requestIdKey, transactionHash]]
+    ])
   }
 
-  async getAvnTransaction(txHashOrRequestId: string | null): Promise<Record<string, string> | undefined> {
-    if (txHashOrRequestId === null) return undefined;
-    const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`;
-    const result = await this.hgetKey(txHashOrRequestIdKey);
-    return Object.keys(result).length === 0 ? undefined : result;
+  async getAvnTransaction(
+    txHashOrRequestId: string | null
+  ): Promise<Record<string, string> | undefined> {
+    if (txHashOrRequestId === null) return undefined
+    const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`
+    const result = await this.hgetKey(txHashOrRequestIdKey)
+    return Object.keys(result).length === 0 ? undefined : result
   }
 
   async resolvePendingAvnTransactions(transactions: any[]): Promise<void> {
     if (!transactions) {
-      logger.info(`[redis] No transactions to update`);
-      return;
+      logger.info(`[redis] No transactions to update`)
+      return
     }
 
-    logger.info(`[redis] Updating ${transactions.length} transactions`);
+    logger.info(`[redis] Updating ${transactions.length} transactions`)
     for (const tx of transactions) {
-      const transactionHashKey = `${SLOT_PREFIX}${tx.transactionHash}`;
+      const transactionHashKey = `${SLOT_PREFIX}${tx.transactionHash}`
 
-      if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(tx.status)) {
+      if (
+        ![
+          transactionStatus.Processed,
+          transactionStatus.Rejected,
+          transactionStatus.Validating
+        ].includes(tx.status)
+      ) {
         logger.warn({
           message: 'invalid status, ignoring request',
           transactionHash: tx.transactionHash,
-          txStatus: tx.status,
-        });
-        continue;
+          txStatus: tx.status
+        })
+        continue
       }
 
-      const newValue: Record<string, any> = {};
-      newValue[transactionObject.status] = tx.status;
-      newValue[transactionObject.blockNumber] = tx.blockNumber;
-      newValue[transactionObject.transactionIndex] = tx.index;
-      newValue[transactionObject.eventArgs] = this.dataToJsonString(tx.eventArgs);
+      const newValue: Record<string, any> = {}
+      newValue[transactionObject.status] = tx.status
+      newValue[transactionObject.blockNumber] = tx.blockNumber
+      newValue[transactionObject.transactionIndex] = tx.index
+      newValue[transactionObject.eventArgs] = this.dataToJsonString(
+        tx.eventArgs
+      )
 
       if (tx.status === transactionStatus.Validating) {
-        logger.info(`[redis] Updating tx status to validated: txHash: ${tx.transactionHash}`);
+        logger.info(
+          `[redis] Updating tx status to validated: txHash: ${tx.transactionHash}`
+        )
 
-        const pendingTx = await this.hgetKey(transactionHashKey);
-        if (![transactionStatus.Processed, transactionStatus.Rejected, transactionStatus.Validating].includes(pendingTx.status)) {
-          await this.hsetKey(transactionHashKey, newValue);
+        const pendingTx = await this.hgetKey(transactionHashKey)
+        if (
+          ![
+            transactionStatus.Processed,
+            transactionStatus.Rejected,
+            transactionStatus.Validating
+          ].includes(pendingTx.status)
+        ) {
+          await this.hsetKey(transactionHashKey, newValue)
         }
       } else {
         await this.multiExec([
-          ["hset", [transactionHashKey, newValue]],
-          ["zrem", [PENDING_TX_KEY.ALL, tx.transactionHash]],
-          ["zrem", [PENDING_TX_KEY.CHECKING, tx.transactionHash]],
-          ["zrem", [PENDING_TX_KEY.NEXT, tx.transactionHash]],
-        ]);
+          ['hset', [transactionHashKey, newValue]],
+          ['zrem', [PENDING_TX_KEY.ALL, tx.transactionHash]],
+          ['zrem', [PENDING_TX_KEY.CHECKING, tx.transactionHash]],
+          ['zrem', [PENDING_TX_KEY.NEXT, tx.transactionHash]]
+        ])
       }
     }
   }
 
   async getNextTransactionsToCheck(): Promise<string[]> {
-    const timeNow = Date.now();
-    const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000;
+    const timeNow = Date.now()
+    const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000
 
-    const [numUpdated, numExpired, numAwaitingCheck, txToCheckNext] = await this.multiExec([
-      ["addzrangebyscore", [PENDING_TX_KEY.CHECKING, PENDING_TX_KEY.ALL, '-inf', timeNow]],
-      ["zremrangebyscore", [PENDING_TX_KEY.CHECKING, '-inf', timeNow]],
-      ["zdiffstore", [PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING]],
-      ["nextzsubset", [PENDING_TX_KEY.NEXT, PENDING_TX_KEY.CHECKING, MAX_PENDING_TX_TO_CHECK, expiry]],
-    ]);
+    const [numUpdated, numExpired, numAwaitingCheck, txToCheckNext] =
+      await this.multiExec([
+        [
+          'addzrangebyscore',
+          [PENDING_TX_KEY.CHECKING, PENDING_TX_KEY.ALL, '-inf', timeNow]
+        ],
+        ['zremrangebyscore', [PENDING_TX_KEY.CHECKING, '-inf', timeNow]],
+        [
+          'zdiffstore',
+          [PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING]
+        ],
+        [
+          'nextzsubset',
+          [
+            PENDING_TX_KEY.NEXT,
+            PENDING_TX_KEY.CHECKING,
+            MAX_PENDING_TX_TO_CHECK,
+            expiry
+          ]
+        ]
+      ])
 
     if (numUpdated[1] !== numExpired[1]) {
-      logger.warn(`[redis] Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`);
+      logger.warn(
+        `[redis] Count of expired (${numExpired[1]}) and updated (${numUpdated[1]}) transactions differs\n`
+      )
     }
-    logger.info(`[redis] Transactions with updated expiry: ${numUpdated[1]}\n`);
-    logger.info(`[redis] Transactions awaiting check: ${numAwaitingCheck[1]}\n`);
-    logger.info(`[redis] Next transactions to check: ${txToCheckNext[1]}\n`);
-    return txToCheckNext[1];
+    logger.info(`[redis] Transactions with updated expiry: ${numUpdated[1]}\n`)
+    logger.info(`[redis] Transactions awaiting check: ${numAwaitingCheck[1]}\n`)
+    logger.info(`[redis] Next transactions to check: ${txToCheckNext[1]}\n`)
+    return txToCheckNext[1]
   }
 
-  async getTransactionHashByRequestId(requestId: string): Promise<string | null> {
-    const requestIdKey = `${SLOT_PREFIX}${requestId}`;
-    return await this.getKey(requestIdKey);
+  async getTransactionHashByRequestId(
+    requestId: string
+  ): Promise<string | null> {
+    const requestIdKey = `${SLOT_PREFIX}${requestId}`
+    return await this.getKey(requestIdKey)
   }
 
-  private buildTransactionJson(senderAddress: string | undefined, senderNonce: string | undefined, status: string): Record<string, string> {
-    const result: Record<string, string> = {};
-    result[transactionObject.senderAddress] = senderAddress || '';
-    result[transactionObject.senderNonce] = senderNonce || '';
-    result[transactionObject.status] = status;
-    return result;
+  private buildTransactionJson(
+    senderAddress: string | undefined,
+    senderNonce: string | undefined,
+    status: string
+  ): Record<string, string> {
+    const result: Record<string, string> = {}
+    result[transactionObject.senderAddress] = senderAddress || ''
+    result[transactionObject.senderNonce] = senderNonce || ''
+    result[transactionObject.status] = status
+    return result
   }
 
   async getNextNonce(senderAddress: string): Promise<number | undefined> {
-    const nonce = await this.getKey(NONCE_NAMESPACE + senderAddress);
-    return nonce == null ? undefined : Number(nonce);
+    const nonce = await this.getKey(NONCE_NAMESPACE + senderAddress)
+    return nonce == null ? undefined : Number(nonce)
   }
 
   async setNextNonce(senderAddress: string, nonce: number): Promise<void> {
-    await this.setKey(NONCE_NAMESPACE + senderAddress, nonce.toString(), NONCE_EXPIRY_IN_SECONDS);
+    await this.setKey(
+      NONCE_NAMESPACE + senderAddress,
+      nonce.toString(),
+      NONCE_EXPIRY_IN_SECONDS
+    )
   }
 
   async getNextPayerNonce(payerAddress: string): Promise<number | undefined> {
-    const nonce = await this.getKey(PAYER_NONCE_NAMESPACE + payerAddress);
-    return nonce == null ? undefined : Number(nonce);
+    const nonce = await this.getKey(PAYER_NONCE_NAMESPACE + payerAddress)
+    return nonce == null ? undefined : Number(nonce)
   }
 
   async setNextPayerNonce(payerAddress: string, nonce: number): Promise<void> {
-    await this.setKey(PAYER_NONCE_NAMESPACE + payerAddress, nonce.toString(), NONCE_EXPIRY_IN_SECONDS);
+    await this.setKey(
+      PAYER_NONCE_NAMESPACE + payerAddress,
+      nonce.toString(),
+      NONCE_EXPIRY_IN_SECONDS
+    )
   }
 
   async setCollatorsToNominate(collators: any): Promise<void> {
-    await this.setKey(COLLATORS_KEY, this.dataToJsonString(collators), COLLATORS_EXPIRY_IN_SECONDS);
+    await this.setKey(
+      COLLATORS_KEY,
+      this.dataToJsonString(collators),
+      COLLATORS_EXPIRY_IN_SECONDS
+    )
   }
 
   async getCollatorsToNominate(): Promise<any | undefined> {
-    const collators = await this.getKey(COLLATORS_KEY);
-    return collators ? JSON.parse(collators) : undefined;
+    const collators = await this.getKey(COLLATORS_KEY)
+    return collators ? JSON.parse(collators) : undefined
   }
 
   async setStakingStats(stakingStats: any): Promise<void> {
-    await this.setKey(STAKING_STAT_KEY, this.dataToJsonString(stakingStats), STAKING_STAT_EXPIRY_IN_SECONDS);
+    await this.setKey(
+      STAKING_STAT_KEY,
+      this.dataToJsonString(stakingStats),
+      STAKING_STAT_EXPIRY_IN_SECONDS
+    )
   }
 
   async getStakingStats(): Promise<any | undefined> {
-    const stakingStats = await this.getKey(STAKING_STAT_KEY);
-    return stakingStats ? JSON.parse(stakingStats) : undefined;
+    const stakingStats = await this.getKey(STAKING_STAT_KEY)
+    return stakingStats ? JSON.parse(stakingStats) : undefined
   }
 
   async setChainInfo(chainInfo: any): Promise<void> {
-    await this.setKey(CHAIN_INFO_KEY, this.dataToJsonString(chainInfo), CHAIN_INFO_EXPIRY_IN_SECONDS);
+    await this.setKey(
+      CHAIN_INFO_KEY,
+      this.dataToJsonString(chainInfo),
+      CHAIN_INFO_EXPIRY_IN_SECONDS
+    )
   }
 
   async getChainInfo(): Promise<any | undefined> {
-    const chainInfo = await this.getKey(CHAIN_INFO_KEY);
-    return chainInfo ? JSON.parse(chainInfo) : undefined;
+    const chainInfo = await this.getKey(CHAIN_INFO_KEY)
+    return chainInfo ? JSON.parse(chainInfo) : undefined
   }
 
   async setLiftsFromTier1Block(blockNumber: number): Promise<void> {
-    await this.setKey(LIFTS_FROM_TIER1_BLOCK_KEY, blockNumber.toString());
+    await this.setKey(LIFTS_FROM_TIER1_BLOCK_KEY, blockNumber.toString())
   }
 
   async getLiftsFromTier1Block(): Promise<number> {
-    const blockNumber = await this.getKey(LIFTS_FROM_TIER1_BLOCK_KEY);
-    return blockNumber ? Number(blockNumber) : 0;
+    const blockNumber = await this.getKey(LIFTS_FROM_TIER1_BLOCK_KEY)
+    return blockNumber ? Number(blockNumber) : 0
   }
 
   async setTotalToken(token: string, total: number): Promise<void> {
-    await this.setKey(TOTAL_TOKEN_NAMESPACE + token, total.toString(), TOTAL_TOKEN_EXPIRY_IN_SECONDS);
+    await this.setKey(
+      TOTAL_TOKEN_NAMESPACE + token,
+      total.toString(),
+      TOTAL_TOKEN_EXPIRY_IN_SECONDS
+    )
   }
 
   async getTotalToken(token: string): Promise<string | null> {
-    return await this.getKey(TOTAL_TOKEN_NAMESPACE + token);
+    return await this.getKey(TOTAL_TOKEN_NAMESPACE + token)
   }
 
   async setRetrieveLowersFromAvnBlock(blockNumber: number): Promise<void> {
-    await this.setKey(LOWERS_FROM_AVN_BLOCK_KEY, blockNumber.toString());
+    await this.setKey(LOWERS_FROM_AVN_BLOCK_KEY, blockNumber.toString())
   }
 
   async getRetrieveLowersFromAvnBlock(): Promise<number> {
-    const blockNumber = await this.getKey(LOWERS_FROM_AVN_BLOCK_KEY);
-    return blockNumber ? Number(blockNumber) : 0;
+    const blockNumber = await this.getKey(LOWERS_FROM_AVN_BLOCK_KEY)
+    return blockNumber ? Number(blockNumber) : 0
   }
 
   async setClaimedLowersFromTier1Block(blockNumber: number): Promise<void> {
-    await this.setKey(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY, blockNumber.toString());
+    await this.setKey(
+      CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY,
+      blockNumber.toString()
+    )
   }
 
   async getClaimedLowersFromTier1Block(): Promise<number> {
-    const blockNumber = await this.getKey(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY);
-    return blockNumber ? Number(blockNumber) : 0;
+    const blockNumber = await this.getKey(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY)
+    return blockNumber ? Number(blockNumber) : 0
   }
 
   async setPublishedRootsFromTier1Block(blockNumber: number): Promise<void> {
-    await this.setKey(PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY, blockNumber.toString());
+    await this.setKey(
+      PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY,
+      blockNumber.toString()
+    )
   }
 
   async getPublishedRootsFromTier1Block(): Promise<number> {
-    const blockNumber = await this.getKey(PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY);
-    return blockNumber ? Number(blockNumber) : 0;
+    const blockNumber = await this.getKey(PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY)
+    return blockNumber ? Number(blockNumber) : 0
   }
 
   async setBlockIndex(txHash: string, blockIndex: any): Promise<void> {
-    await this.setKey(LOWER_BLOCK_INDEX_KEY + txHash, this.dataToJsonString(blockIndex));
+    await this.setKey(
+      LOWER_BLOCK_INDEX_KEY + txHash,
+      this.dataToJsonString(blockIndex)
+    )
   }
 
   async deleteBlockIndex(txHash: string): Promise<void> {
-    await this.delKey(LOWER_BLOCK_INDEX_KEY + txHash);
+    await this.delKey(LOWER_BLOCK_INDEX_KEY + txHash)
   }
 
   async getBlockIndex(txHash: string): Promise<any> {
-    const blockIndex = await this.getKey(LOWER_BLOCK_INDEX_KEY + txHash);
-    return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 };
+    const blockIndex = await this.getKey(LOWER_BLOCK_INDEX_KEY + txHash)
+    return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 }
   }
 
   async addUnpublishedLower(txHash: string): Promise<void> {
-    await this.saddKey(UNPUBLISHED_LOWERS_KEY, txHash);
+    await this.saddKey(UNPUBLISHED_LOWERS_KEY, txHash)
   }
 
   async removeUnpublishedLower(txHash: string): Promise<void> {
-    await this.sremKey(UNPUBLISHED_LOWERS_KEY, txHash);
+    await this.sremKey(UNPUBLISHED_LOWERS_KEY, txHash)
   }
 
   async getUnpublishedLowers(): Promise<string[]> {
-    return await this.smembersKey(UNPUBLISHED_LOWERS_KEY);
+    return await this.smembersKey(UNPUBLISHED_LOWERS_KEY)
   }
 
   async addAwaitingClaimDataLower(txHash: string): Promise<void> {
-    await this.saddKey(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+    await this.saddKey(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash)
   }
 
   async removeAwaitingClaimDataLower(txHash: string): Promise<void> {
-    await this.sremKey(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash);
+    await this.sremKey(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash)
   }
 
   async getAwaitingClaimDataLowers(): Promise<string[]> {
-    return await this.smembersKey(AWAITING_CLAIM_DATA_LOWERS_KEY);
+    return await this.smembersKey(AWAITING_CLAIM_DATA_LOWERS_KEY)
   }
 
   async addUnclaimedLower(txHash: string): Promise<void> {
-    await this.saddKey(UNCLAIMED_LOWERS_KEY, txHash);
+    await this.saddKey(UNCLAIMED_LOWERS_KEY, txHash)
   }
 
   async removeUnclaimedLower(txHash: string): Promise<void> {
-    await this.sremKey(UNCLAIMED_LOWERS_KEY, txHash);
+    await this.sremKey(UNCLAIMED_LOWERS_KEY, txHash)
   }
 
   async getUnclaimedLowers(): Promise<string[]> {
-    return await this.smembersKey(UNCLAIMED_LOWERS_KEY);
+    return await this.smembersKey(UNCLAIMED_LOWERS_KEY)
   }
 
   async setSummaries(summaries: any[]): Promise<void> {
-    await this.delKey(SUMMARIES_KEY);
-    await this.client.rpush(SUMMARIES_KEY, ...summaries.map((s) => this.dataToJsonString(s)));
+    await this.delKey(SUMMARIES_KEY)
+    await this.client.rpush(
+      SUMMARIES_KEY,
+      ...summaries.map(s => this.dataToJsonString(s))
+    )
   }
 
   async getSummaries(): Promise<any[]> {
-    const summaries = await this.client.lrange(SUMMARIES_KEY, 0, -1);
-    return summaries ? summaries.map((s: string) => JSON.parse(s)) : [];
+    const summaries = await this.client.lrange(SUMMARIES_KEY, 0, -1)
+    return summaries ? summaries.map((s: string) => JSON.parse(s)) : []
   }
 
   async setLowerData(txHash: string, lowerData: any): Promise<void> {
-    await this.setKey(LOWER_DATA_KEY + txHash, this.dataToJsonString(lowerData));
+    await this.setKey(LOWER_DATA_KEY + txHash, this.dataToJsonString(lowerData))
   }
 
   async deleteLowerData(txHash: string): Promise<void> {
-    await this.delKey(LOWER_DATA_KEY + txHash);
+    await this.delKey(LOWER_DATA_KEY + txHash)
   }
 
   async getLowerData(txHash: string): Promise<any | undefined> {
-    const lowerData = await this.getKey(LOWER_DATA_KEY + txHash);
-    return lowerData ? JSON.parse(lowerData) : undefined;
+    const lowerData = await this.getKey(LOWER_DATA_KEY + txHash)
+    return lowerData ? JSON.parse(lowerData) : undefined
   }
 
   async setLastLowerBlockIdFromAvn(blockId: string): Promise<void> {
-    await this.setKey(LAST_LOWER_BLOCK_ID_FROM_AVN, blockId);
+    await this.setKey(LAST_LOWER_BLOCK_ID_FROM_AVN, blockId)
   }
 
   async getLastLowerBlockIdFromAvn(): Promise<string> {
-    const blockId = await this.getKey(LAST_LOWER_BLOCK_ID_FROM_AVN);
-    return blockId === null ? '' : blockId;
+    const blockId = await this.getKey(LAST_LOWER_BLOCK_ID_FROM_AVN)
+    return blockId === null ? '' : blockId
   }
 
   async setLowerById(lowerId: string, lowerData: any): Promise<void> {
-    const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
-    const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
+    const senderKey = LOWER_SENDER_PREFIX + lowerData?.from
+    const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase()
     await this.multiExec([
-      ["set", [LOWER_ID_PREFIX + lowerId, this.dataToJsonString(lowerData)]],
-      ["sadd", [senderKey, lowerId]],
-      ["sadd", [recipientKey, lowerId]],
-    ]);
+      ['set', [LOWER_ID_PREFIX + lowerId, this.dataToJsonString(lowerData)]],
+      ['sadd', [senderKey, lowerId]],
+      ['sadd', [recipientKey, lowerId]]
+    ])
   }
 
   async getLowerById(lowerId: any): Promise<any | undefined> {
-    const lowerData = await this.getKey(LOWER_ID_PREFIX + lowerId);
-    return lowerData ? JSON.parse(lowerData) : undefined;
+    const lowerData = await this.getKey(LOWER_ID_PREFIX + lowerId)
+    return lowerData ? JSON.parse(lowerData) : undefined
   }
 
   async deleteLowerById(lowerId: number): Promise<void> {
-    const lowerData = await this.getLowerById(lowerId);
-    if (!lowerData) return;
+    const lowerData = await this.getLowerById(lowerId)
+    if (!lowerData) return
 
-    const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
-    const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
-    logger.info(`Deleting senderKey: ${senderKey} and recipientKey: ${recipientKey}`);
+    const senderKey = LOWER_SENDER_PREFIX + lowerData?.from
+    const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase()
+    logger.info(
+      `Deleting senderKey: ${senderKey} and recipientKey: ${recipientKey}`
+    )
 
     await this.multiExec([
-      ["del", [LOWER_ID_PREFIX + lowerId]],
-      ["srem", [senderKey, lowerId]],
-      ["srem", [recipientKey, lowerId]],
-    ]);
+      ['del', [LOWER_ID_PREFIX + lowerId]],
+      ['srem', [senderKey, lowerId]],
+      ['srem', [recipientKey, lowerId]]
+    ])
   }
 
   async getLowerIdsByAddress(address: string): Promise<string[]> {
-    const senderKey = LOWER_SENDER_PREFIX + address;
-    const recipientKey = LOWER_RECIPIENT_PREFIX + address;
-    let lowerIds = await this.smembersKey(senderKey);
+    const senderKey = LOWER_SENDER_PREFIX + address
+    const recipientKey = LOWER_RECIPIENT_PREFIX + address
+    let lowerIds = await this.smembersKey(senderKey)
     if (!lowerIds || lowerIds.length === 0) {
-      lowerIds = await this.smembersKey(recipientKey);
+      lowerIds = await this.smembersKey(recipientKey)
     }
-    return lowerIds || [];
+    return lowerIds || []
   }
 
   async getLastClaimedEthereumLowerBlock(): Promise<number> {
-    const blockNumber = await this.getKey(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX);
-    return blockNumber ? Number(blockNumber) : 0;
+    const blockNumber = await this.getKey(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX)
+    return blockNumber ? Number(blockNumber) : 0
   }
 
   async setLastClaimedEthereumLowerBlock(blockNumber: number): Promise<void> {
-    await this.setKey(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX, blockNumber.toString());
+    await this.setKey(
+      LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX,
+      blockNumber.toString()
+    )
   }
 
   async setAutolowerNextT1Block(blockNumber: number): Promise<void> {
-    await this.setKey(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY, blockNumber.toString());
+    await this.setKey(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY, blockNumber.toString())
   }
 
   async getAutolowerNextT1Block(): Promise<number> {
-    const blockNumber = await this.getKey(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY);
-    return blockNumber ? Number(blockNumber) : 0;
+    const blockNumber = await this.getKey(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY)
+    return blockNumber ? Number(blockNumber) : 0
   }
 
   async setLatestAutolowerId(lowerId: number): Promise<void> {
-    await this.setKey(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY, lowerId.toString());
+    await this.setKey(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY, lowerId.toString())
   }
 
   async getLatestAutolowerId(): Promise<number> {
-    const lowerId = await this.getKey(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY);
-    return lowerId ? Number(lowerId) : -1;
+    const lowerId = await this.getKey(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY)
+    return lowerId ? Number(lowerId) : -1
   }
 
   async addAutolower(lowerId: number): Promise<void> {
-    const result = await this.saddKey(AUTOLOWERS_KEY, lowerId.toString());
+    const result = await this.saddKey(AUTOLOWERS_KEY, lowerId.toString())
     if (result === 1) {
-      await this.setKey(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId, 'true', AUTOLOWER_RETRY_LIFETIME_SECONDS);
+      await this.setKey(
+        AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId,
+        'true',
+        AUTOLOWER_RETRY_LIFETIME_SECONDS
+      )
     }
   }
 
   async removeAutolower(lowerId: number): Promise<void> {
-    await this.sremKey(AUTOLOWERS_KEY, lowerId.toString());
-    await this.delKey(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId);
+    await this.sremKey(AUTOLOWERS_KEY, lowerId.toString())
+    await this.delKey(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId)
   }
 
   async getAutolowers(): Promise<number[]> {
-    const lowerIds = await this.smembersKey(AUTOLOWERS_KEY);
-    const liveLowerIds: number[] = [];
+    const lowerIds = await this.smembersKey(AUTOLOWERS_KEY)
+    const liveLowerIds: number[] = []
     for (const lowerId of lowerIds || []) {
-      const exists = await this.client.exists(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId);
+      const exists = await this.client.exists(
+        AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId
+      )
       if (exists) {
-        liveLowerIds.push(Number(lowerId));
+        liveLowerIds.push(Number(lowerId))
       } else {
-        await this.removeAutolower(Number(lowerId));
+        await this.removeAutolower(Number(lowerId))
       }
     }
-    return liveLowerIds;
+    return liveLowerIds
   }
 
   async acquireAutolowerLock(bridgeAddress: string): Promise<boolean> {
-    const result = await this.client.set(AUTOLOWER_LOCK_KEY, bridgeAddress, 'EX', AUTOLOWER_MAX_LOCK_IN_SECONDS, 'NX');
-    return result === 'OK';
+    const result = await this.client.set(
+      AUTOLOWER_LOCK_KEY,
+      bridgeAddress,
+      'EX',
+      AUTOLOWER_MAX_LOCK_IN_SECONDS,
+      'NX'
+    )
+    return result === 'OK'
   }
 
   async releaseAutolowerLock(bridgeAddress: string): Promise<void> {
@@ -579,8 +715,8 @@ class RedisClient {
         return redis.call("del", KEYS[1])
       else
         return 0
-      end`;
-    await this.client.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress);
+      end`
+    await this.client.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress)
   }
 
   async refreshAutolowerLock(bridgeAddress: string): Promise<void> {
@@ -588,32 +724,41 @@ class RedisClient {
         return redis.call("expire", KEYS[1], ARGV[2])
       else
         return 0
-      end`;
-    await this.client.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress, AUTOLOWER_MAX_LOCK_IN_SECONDS.toString());
+      end`
+    await this.client.eval(
+      script,
+      1,
+      AUTOLOWER_LOCK_KEY,
+      bridgeAddress,
+      AUTOLOWER_MAX_LOCK_IN_SECONDS.toString()
+    )
   }
 
   async setSentTxDetails(txHash: string, details: any): Promise<void> {
-    await this.setKey(WEBHOOKS_SENT_TX_KEY + txHash, this.dataToJsonString(details));
+    await this.setKey(
+      WEBHOOKS_SENT_TX_KEY + txHash,
+      this.dataToJsonString(details)
+    )
   }
 
   async getSentTxDetails(txHash: string): Promise<any> {
-    const details = await this.getKey(WEBHOOKS_SENT_TX_KEY + txHash);
-    return details ? JSON.parse(details) : {};
+    const details = await this.getKey(WEBHOOKS_SENT_TX_KEY + txHash)
+    return details ? JSON.parse(details) : {}
   }
 
   async deleteSentTxDetails(txHash: string): Promise<void> {
-    await this.delKey(WEBHOOKS_SENT_TX_KEY + txHash);
+    await this.delKey(WEBHOOKS_SENT_TX_KEY + txHash)
   }
 
   private dataToJsonString(data: any): string {
     if (_.isString(data)) {
-      throw new Error('Data is already stringified: ' + data);
+      throw new Error('Data is already stringified: ' + data)
     } else {
-      return JSON.stringify(data);
+      return JSON.stringify(data)
     }
   }
 }
 
-const redisClient = new RedisClient();
-export default redisClient;
-export {transactionStatus};
+const redisClient = new RedisClient()
+export default redisClient
+export { transactionStatus }

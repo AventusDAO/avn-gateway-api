@@ -1,6 +1,5 @@
-const config = require('multiconfig').load();
+const config = require('multiconfig').load({directory: '../config'});
 import { Cluster, Redis } from "ioredis";
-// import config from "multiconfig";
 import logger from "../logger";
 import {
   AUTOLOWERS_KEY,
@@ -43,21 +42,23 @@ import {
   WEBHOOKS_SENT_TX_KEY,
   transactionStatus,
 } from "./constants";
-import { Transaction, TransactionStatus, transactionObject } from "./types";
+import { transactionObject } from "./types";
 import _ from "lodash";
 
 class RedisClient {
-  private client: Redis | Cluster;
+  client: Redis | Cluster;
 
-  constructor() {
-    this.client = this.initializeClient();
+  async connect() {
+    this.client = await this.initializeClient();
+    await this.logConnection(this.client);
+    this.defineCommands();
   }
-
-  private initializeClient(): Redis | Cluster {
+  private async initializeClient(): Promise<Redis | Cluster> {
     if ('redis' in config) {
       logger.info(`Attempting to connect to Redis database on ${config.redis.url}:${config.redis.port}`);
-      const client = new Cluster([{ port: config.redis.port, host: config.redis.url }]);
-      this.logConnection(client);
+      const client = new Cluster([
+        { port: Number(config.redis.port), host: `${config.redis.url}` },
+      ]);
       return client;
     } else {
       return new Redis();
@@ -71,11 +72,10 @@ class RedisClient {
     );
   }
 
-  async connect() {
-    this.defineCommands();
-  }
-
   private defineCommands() {
+    if (!this.client) {
+      throw new Error('Redis client is not initialized');
+    }
     this.client.defineCommand('addzrangebyscore', {
       numberOfKeys: 2,
       lua: `local subset = redis.call('ZRANGE', KEYS[1], ARGV[1], ARGV[2], 'BYSCORE', 'WITHSCORES')
@@ -115,7 +115,7 @@ class RedisClient {
     });
   }
 
-  private async setKey(key: string, value: string, expiry?: number): Promise<void> {
+  async setKey(key: string, value: string, expiry?: number): Promise<void> {
     if (expiry) {
       await this.client.setex(key, expiry, value);
     } else {
@@ -123,35 +123,35 @@ class RedisClient {
     }
   }
 
-  private async getKey(key: string): Promise<string | null> {
+  async getKey(key: string): Promise<string | null> {
     return await this.client.get(key);
   }
 
-  private async delKey(key: string): Promise<void> {
+  async delKey(key: string): Promise<void> {
     await this.client.del(key);
   }
 
-  private async hsetKey(key: string, value: Record<string, any>): Promise<void> {
+   async hsetKey(key: string, value: Record<string, any>): Promise<void> {
     await this.client.hset(key, value);
   }
 
-  private async hgetKey(key: string): Promise<Record<string, any>> {
+   async hgetKey(key: string): Promise<Record<string, any>> {
     return await this.client.hgetall(key);
   }
 
-  private async saddKey(key: string, value: string): Promise<number> {
+   async saddKey(key: string, value: string): Promise<number> {
     return await this.client.sadd(key, value);
   }
 
-  private async sremKey(key: string, value: string): Promise<void> {
+   async sremKey(key: string, value: string): Promise<void> {
     await this.client.srem(key, value);
   }
 
-  private async smembersKey(key: string): Promise<string[]> {
+   async smembersKey(key: string): Promise<string[]> {
     return await this.client.smembers(key);
   }
 
-  private async multiExec(commands: [string, any[]][]): Promise<any> {
+   async multiExec(commands: [string, any[]][]): Promise<any> {
     const multi = this.client.multi();
     commands.forEach(([command, args]) => {
       (multi as any)[command](...args);

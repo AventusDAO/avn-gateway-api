@@ -18,10 +18,7 @@ export interface Transaction {
     eventArgs: 'eventArgs',
   };
 
-  
   export type TransactionStatus = typeof transactionStatus[keyof typeof transactionStatus];
-
-
 
 export interface LowerData {
     from:string;

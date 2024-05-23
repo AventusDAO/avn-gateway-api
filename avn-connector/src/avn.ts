@@ -496,47 +496,6 @@ async function connectToAvN(): Promise<void> {
   logger.info(`You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`);
 }
 
-async function getSummaries(): Promise<any[]> {
-  let entries = [],
-    summaries = [],
-    startKey;
-
-  try {
-    do {
-      entries = await api.query.summary.roots.entriesPaged({ pageSize: 1000, args: [], startKey });
-      if (entries.length > 0) {
-        startKey = entries[entries.length - 1][0];
-        const formattedEntries = entries.map(
-          ([
-            {
-              args: [{ fromBlock, toBlock }],
-            },
-            { rootHash, isValidated, txId },
-          ]) => ({
-            fromBlock: Number(fromBlock.toString()),
-            toBlock: Number(toBlock.toString()),
-            rootHash: rootHash.toString().toLowerCase(),
-            isValid: !!isValidated || !!txId,
-          })
-        );
-        const validEntries = formattedEntries
-          .filter((s) => s.isValid === true)
-          .map(({ fromBlock, toBlock, rootHash }) => ({ fromBlock, toBlock, rootHash }));
-        summaries = summaries.concat(validEntries);
-      }
-    } while (entries.length > 0);
-
-    return summaries.sort((a, b) => a.fromBlock - b.fromBlock);
-  } catch (error) {
-    logger.error({ message: 'Error getting summaries', err: error });
-    return [];
-  }
-}
-
-async function getLowerDataFromRpc(fromBlock: number, toBlock: number, blockNumber: number, index: number): Promise<any> {
-  return await api.rpc.lower.data(fromBlock, toBlock, blockNumber, index);
-}
-
 function createAccount(suri: string): any {
   const keyring = new Keyring({ type: 'sr25519' });
   return keyring.addFromUri(suri);
@@ -707,12 +666,10 @@ const avn = {
   getUnclaimedLowerProofs,
   getLowerProof,
   getCollatorsToNominate,
-  getLowerDataFromRpc,
   getStakingStats,
   getChainInfo,
   getCurrentBlock,
   getGatewayUserInfo,
-  getSummaries,
   getTotalToken,
   getUnprocessedLifts,
   ethereumEventStatus,

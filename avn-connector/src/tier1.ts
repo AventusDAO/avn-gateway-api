@@ -14,9 +14,7 @@ const MAX_LIFT_BLOCKS_TO_PROCESS = Number(config.tier1.maxLiftBlocksToProcess);
 
 const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
-  LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
   CLAIM: ethers.utils.id('LogLowerClaimed(uint32)'),
-  ROOT: ethers.utils.id('LogRootPublished(bytes32,uint256)')
 };
 
 async function getLockedBalance(avnContract: string, tokenAddress: string): Promise<string> {
@@ -70,39 +68,6 @@ async function getLiftEvents(avnContract: string): Promise<{ fromBlock: number; 
   }
 }
 
-async function getLatestClaimedLowers(avnContract: string): Promise<string[]> {
-  const claimedLowers: string[] = [];
-
-  try {
-    const fromBlock = await redis.getClaimedLowersFromTier1Block();
-    const events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.LOWER], fromBlock });
-    for (const event of events) {
-      const txData = await provider.getTransaction(event.transactionHash);
-      const inputs = ethers.utils.defaultAbiCoder.decode(['bytes', 'bytes32[]'], ethers.utils.hexDataSlice(txData.data, 4));
-      claimedLowers.push(ethers.utils.keccak256(inputs[0]));
-    }
-    if (events.length > 0) await redis.setClaimedLowersFromTier1Block(events[events.length - 1].blockNumber + 1);
-  } catch (error) {
-    logger.error('Error getting claimed lowers:', error);
-  }
-
-  return claimedLowers;
-}
-
-async function getLatestPublishedRoots(avnContract: string): Promise<string[]> {
-  let events: ethers.providers.Log[] = [];
-
-  try {
-    const fromBlock = await redis.getPublishedRootsFromTier1Block();
-    events = await provider.getLogs({ address: avnContract, topics: [EVENT_SIG.ROOT], fromBlock });
-    if (events.length > 0) await redis.setPublishedRootsFromTier1Block(events[events.length - 1].blockNumber + 1);
-  } catch (error) {
-    logger.error('Error getting published roots:', error);
-  }
-
-  return events.map(event => event.topics[1].toLowerCase());
-}
-
 async function getLowersClaimedSinceBlock(avnContract: string, fromBlock: number): Promise<[number, number[]]> {
   const claimedLowerIds: number[] = [];
 
@@ -130,10 +95,8 @@ function toBn(val: any): ethers.BigNumber {
 }
 
 const tier1 = {
-  getLatestClaimedLowers,
   getLiftEvents,
   getLockedBalance,
-  getLatestPublishedRoots,
   getLowersClaimedSinceBlock,
   connectToBridge
 };

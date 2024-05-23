@@ -7,19 +7,14 @@ import {
   AUTOLOWER_MAX_LOCK_IN_SECONDS,
   AUTOLOWER_RETRY_LIFETIME_NAMESPACE,
   AUTOLOWER_RETRY_LIFETIME_SECONDS,
-  AWAITING_CLAIM_DATA_LOWERS_KEY,
   CHAIN_INFO_EXPIRY_IN_SECONDS,
   CHAIN_INFO_KEY,
-  CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY,
   COLLATORS_EXPIRY_IN_SECONDS,
   COLLATORS_KEY,
   LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX,
   LAST_LOWER_BLOCK_ID_FROM_AVN,
   LATEST_LOWER_ID_FOR_AUTOLOWER_KEY,
   LIFTS_FROM_TIER1_BLOCK_KEY,
-  LOWERS_FROM_AVN_BLOCK_KEY,
-  LOWER_BLOCK_INDEX_KEY,
-  LOWER_DATA_KEY,
   LOWER_ID_PREFIX,
   LOWER_RECIPIENT_PREFIX,
   LOWER_SENDER_PREFIX,
@@ -30,15 +25,11 @@ import {
   PAYER_NONCE_NAMESPACE,
   PENDING_TX_CHECKING_WINDOW_IN_SECONDS,
   PENDING_TX_KEY,
-  PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY,
   SLOT_PREFIX,
   STAKING_STAT_EXPIRY_IN_SECONDS,
   STAKING_STAT_KEY,
-  SUMMARIES_KEY,
   TOTAL_TOKEN_EXPIRY_IN_SECONDS,
   TOTAL_TOKEN_NAMESPACE,
-  UNCLAIMED_LOWERS_KEY,
-  UNPUBLISHED_LOWERS_KEY,
   WEBHOOKS_SENT_TX_KEY,
   transactionStatus
 } from './constants'
@@ -473,117 +464,6 @@ class RedisClient {
 
   async getTotalToken(token: string): Promise<string | null> {
     return await this.getKey(TOTAL_TOKEN_NAMESPACE + token)
-  }
-
-  async setRetrieveLowersFromAvnBlock(blockNumber: number): Promise<void> {
-    await this.setKey(LOWERS_FROM_AVN_BLOCK_KEY, blockNumber.toString())
-  }
-
-  async getRetrieveLowersFromAvnBlock(): Promise<number> {
-    const blockNumber = await this.getKey(LOWERS_FROM_AVN_BLOCK_KEY)
-    return blockNumber ? Number(blockNumber) : 0
-  }
-
-  async setClaimedLowersFromTier1Block(blockNumber: number): Promise<void> {
-    await this.setKey(
-      CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY,
-      blockNumber.toString()
-    )
-  }
-
-  async getClaimedLowersFromTier1Block(): Promise<number> {
-    const blockNumber = await this.getKey(CLAIMED_LOWERS_FROM_TIER1_BLOCK_KEY)
-    return blockNumber ? Number(blockNumber) : 0
-  }
-
-  async setPublishedRootsFromTier1Block(blockNumber: number): Promise<void> {
-    await this.setKey(
-      PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY,
-      blockNumber.toString()
-    )
-  }
-
-  async getPublishedRootsFromTier1Block(): Promise<number> {
-    const blockNumber = await this.getKey(PUBLISHED_ROOTS_FROM_TIER1_BLOCK_KEY)
-    return blockNumber ? Number(blockNumber) : 0
-  }
-
-  async setBlockIndex(txHash: string, blockIndex: any): Promise<void> {
-    await this.setKey(
-      LOWER_BLOCK_INDEX_KEY + txHash,
-      this.dataToJsonString(blockIndex)
-    )
-  }
-
-  async deleteBlockIndex(txHash: string): Promise<void> {
-    await this.delKey(LOWER_BLOCK_INDEX_KEY + txHash)
-  }
-
-  async getBlockIndex(txHash: string): Promise<any> {
-    const blockIndex = await this.getKey(LOWER_BLOCK_INDEX_KEY + txHash)
-    return blockIndex ? JSON.parse(blockIndex) : { blockNumber: -1, index: -1 }
-  }
-
-  async addUnpublishedLower(txHash: string): Promise<void> {
-    await this.saddKey(UNPUBLISHED_LOWERS_KEY, txHash)
-  }
-
-  async removeUnpublishedLower(txHash: string): Promise<void> {
-    await this.sremKey(UNPUBLISHED_LOWERS_KEY, txHash)
-  }
-
-  async getUnpublishedLowers(): Promise<string[]> {
-    return await this.smembersKey(UNPUBLISHED_LOWERS_KEY)
-  }
-
-  async addAwaitingClaimDataLower(txHash: string): Promise<void> {
-    await this.saddKey(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash)
-  }
-
-  async removeAwaitingClaimDataLower(txHash: string): Promise<void> {
-    await this.sremKey(AWAITING_CLAIM_DATA_LOWERS_KEY, txHash)
-  }
-
-  async getAwaitingClaimDataLowers(): Promise<string[]> {
-    return await this.smembersKey(AWAITING_CLAIM_DATA_LOWERS_KEY)
-  }
-
-  async addUnclaimedLower(txHash: string): Promise<void> {
-    await this.saddKey(UNCLAIMED_LOWERS_KEY, txHash)
-  }
-
-  async removeUnclaimedLower(txHash: string): Promise<void> {
-    await this.sremKey(UNCLAIMED_LOWERS_KEY, txHash)
-  }
-
-  async getUnclaimedLowers(): Promise<string[]> {
-    return await this.smembersKey(UNCLAIMED_LOWERS_KEY)
-  }
-
-  async setSummaries(summaries: any[]): Promise<void> {
-    await this.delKey(SUMMARIES_KEY)
-    await this.client.rpush(
-      SUMMARIES_KEY,
-      ...summaries.map(s => this.dataToJsonString(s))
-    )
-  }
-
-  async getSummaries(): Promise<any[]> {
-    const summaries = await this.client.lrange(SUMMARIES_KEY, 0, -1)
-    return summaries ? summaries.map((s: string) => JSON.parse(s)) : []
-  }
-
-  async setLowerData(txHash: string, lowerData: any): Promise<void> {
-    await this.setKey(LOWER_DATA_KEY + txHash, this.dataToJsonString(lowerData))
-  }
-
-  async deleteLowerData(txHash: string): Promise<void> {
-    await this.delKey(LOWER_DATA_KEY + txHash)
-  }
-
-  async getLowerData(txHash: string): Promise<any | undefined> {
-    const lowerData = await this.getKey(LOWER_DATA_KEY + txHash)
-    return lowerData ? JSON.parse(lowerData) : undefined
   }
 
   async setLastLowerBlockIdFromAvn(blockId: string): Promise<void> {

@@ -14,7 +14,6 @@ const MAX_LIFT_BLOCKS_TO_PROCESS = Number(config.tier1.maxLiftBlocksToProcess);
 
 const EVENT_SIG = {
   LIFT: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
-  LOWER: ethers.utils.id('LogLowered(address,address,bytes32,uint256)'),
   CLAIM: ethers.utils.id('LogLowerClaimed(uint32)'),
 };
 

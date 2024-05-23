@@ -2,7 +2,6 @@
 const config = require('multiconfig').load();
 import avn from './avn';
 import rds from './db/index';
-import lowering from './lowering';
 import loweringV2 from './lowers/loweringV2';
 import autolowering from './lowers/autolowering';
 import redis, {transactionStatus} from './redis';
@@ -214,17 +213,8 @@ app.post('/getBatchInfo', async (req: Request, res: Response, next: NextFunction
 app.post('/lowers', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ lowerDataRequest: req.body });
-    let oldLowers;
-
-    try {
-      oldLowers = await lowering.getLowers(req.body.account);
-    } catch (err) {
-      logger.error(`Error fetching legacy lowers`, err);
-      oldLowers = [];
-    }
-
-    const newLowers = await loweringV2.getLowers(req.body.account);
-    res.send((oldLowers || []).concat(newLowers));
+    const result = await loweringV2.getLowers(req.body.account);
+    res.send(result);
   } catch (err) {
     next(err);
   }

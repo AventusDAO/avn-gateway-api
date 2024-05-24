@@ -470,7 +470,7 @@ const formatListingAsString = data => {
     return 'Not listed';
   }
 
-  return data.toString()
-}
+  return data.toString();
+};
 
-const formatAsNull = data => (data || null)
+const formatAsNull = data => data || null;

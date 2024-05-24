@@ -1,7 +1,10 @@
+useTabs: false,
+printWidth: 128,
 trailingComma: 'none'
 tabWidth: 2
-semi: false
+semi: true
 singleQuote: true
 arrowParens: avoid
 bracketSpacing: true
+bracketSameLine: false
 jsxSingleQuote: true

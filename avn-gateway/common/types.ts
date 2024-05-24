@@ -1,8 +1,22 @@
 import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
-import { GenericEthereumLookupSource, Vec, u8, u64, u128, U256 } from '@polkadot/types'
-import { H256, H160, BalanceOf } from "@polkadot/types/interfaces"
+import { GenericEthereumLookupSource, Vec, u8, u64, u128, U256 } from '@polkadot/types';
+import { H256, H160, BalanceOf } from "@polkadot/types/interfaces";
+
+export enum EventType {
+    AddedValidator = 0,
+    Lifted = 1,
+    NftMint = 2,
+    NftTransferTo = 3,
+    NftCancelListing = 4,
+    NftEndBatchListing = 5
+}
+
+export enum MarketType {
+    Ethereum = 1,
+    Fiat = 2
+}
 
 export type SignDataItem = | { Text: string }
     | { AccountId: string }
@@ -11,7 +25,7 @@ export type SignDataItem = | { Text: string }
     | { 'Vec<LookupSource>': Vec<GenericEthereumLookupSource>[]; }
     | { H256: H256; }
     | { U256: U256 }
-    | { u8: u8; }
+    | { u8: EventType | MarketType; }
     | { u64: u64 }
     | { u128: u128 }
     | { BalanceOf: BalanceOf }
@@ -121,7 +135,7 @@ export interface PaymentInfo {
       Sr25519: string;
     };
   }
-  
+
 
 export interface DataItem {
     [key: string]: string | number | Uint8Array;

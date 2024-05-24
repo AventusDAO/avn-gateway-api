@@ -1,4 +1,4 @@
-import * as utils from '/opt/utils.js';
+import { axios } from '/opt/utils.js';
 import * as sqs from '/opt/sqsUtils.js';
 // @ts-ignore
 import { Handler, Context } from 'aws-lambda';
@@ -16,7 +16,7 @@ export const handler: Handler = async (_event: any, context: Context): Promise<v
 };
 
 async function processLifts(requestId: string): Promise<void> {
-  let { fromBlock, toBlock, unprocessedLifts }: LiftData = (await utils.axios.get(`${AVN_CONNECTOR_ENDPOINT}unprocessedLifts`)).data;
+  let { fromBlock, toBlock, unprocessedLifts }: LiftData = (await axios.get(`${AVN_CONNECTOR_ENDPOINT}unprocessedLifts`)).data;
   if (!unprocessedLifts || unprocessedLifts.length === 0) {
     console.info(`Checked Ethereum blocks ${fromBlock} to ${toBlock} - no lifts to process`);
   } else {

@@ -1,4 +1,4 @@
-import * as utils from '/opt/utils';
+import { axios } from '/opt/utils';
 import { TransactionEvent, BlockchainEvent, TransactionResponse, CrossChainTxStatus, TransactionStatus, TxEventsMap, CrossChainTxMap } from '/opt/handler-types';
 
 // @ts-ignore
@@ -52,7 +52,7 @@ export const handler: Handler = async (_event: unknown): Promise<APIGatewayProxy
 };
 
 async function processRequest(): Promise<TransactionResponse[] | undefined> {
-  const pendingTransactionHashes = (await utils.axios.get(AVN_CONNECTOR_ENDPOINT + 'pendingTransactions')).data;
+  const pendingTransactionHashes = (await axios.get(AVN_CONNECTOR_ENDPOINT + 'pendingTransactions')).data;
 
   if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {
     console.info('No pending transactions to resolve');
@@ -83,7 +83,7 @@ async function processRequest(): Promise<TransactionResponse[] | undefined> {
     throw new Error(`Error calculating transaction statuses: ${error}`);
   }
 
-  await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'resolvePendingTransactions', { transactions });
+  await axios.post(AVN_CONNECTOR_ENDPOINT + 'resolvePendingTransactions', { transactions });
 }
 
 async function getTransactionEventsFromIndexer(transactionHashes: string[]): Promise<TransactionEvent[]> {
@@ -99,7 +99,7 @@ async function getTransactionEventsFromIndexer(transactionHashes: string[]): Pro
         name_in: ${JSON.stringify(extrinsicFilter)}}, limit: ${limit})
         { name args extrinsic { hash indexInBlock success block { height } } } }`;
 
-    const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
+    const response = await axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiStatus' });
     return response?.data?.data?.events || [];
   } catch (error) {
     console.error(error);
@@ -161,7 +161,7 @@ async function getCrossChainTxFinalStatuses(txEvents: CrossChainTxStatus[]): Pro
     ]},
     limit: ${txEvents.length}) {name args}}`;
 
-  const response = await utils.axios.post(BLOCK_EXPLORER_BASE_URL, {
+  const response = await axios.post(BLOCK_EXPLORER_BASE_URL, {
     query,
     operationName: 'GatewayApiStatus'
   });

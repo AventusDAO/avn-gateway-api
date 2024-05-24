@@ -8,7 +8,6 @@ export type TransactionStatus = 'Validating' | 'Processed' | 'Rejected' | 'Await
 export type TxEventsMap = Record<string, TransactionEvent>;
 export type CrossChainTxMap = Map<string, CrossChainTxStatus | string>;
 
-
 export enum LowerStatus {
     Success = 'success',
     Error = 'error'
@@ -149,7 +148,7 @@ export interface UserInfo {
 }
 
 export interface PayerData {
-    payerId: string;
+    payerId: number;
     payerAddress: string;
     vaultId: string;
 }
@@ -164,7 +163,7 @@ export interface AWTToken {
 
 export interface ValidRequestContext {
     isSplitFeeUser?: boolean;
-    splitFeePayerId?: string;
+    splitFeePayerId?: number;
     splitFeePayerVaultId?: string;
     splitFeePayerAddress?: string;
 }
@@ -253,7 +252,7 @@ export interface ProxyParams {
 export interface Transaction {
     id: string,
     awsRequestId?: string,
-    splitFeePayerId?: string,
+    splitFeePayerId?: number,
     splitFeePayerVaultId?: string,
     splitFeePayerAddress?: string,
     method?: TransactionType,

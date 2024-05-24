@@ -2,7 +2,7 @@
 import { S3Client, GetObjectCommand, ListObjectsV2Command, PutObjectCommand } from '@aws-sdk/client-s3';
 // @ts-ignore
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import * as utils from '/opt/utils';
+import { init, convertToPublicKey, stringToHex, signatureVerify, axios, toWholeAVT, convertToAddress } from '/opt/utils';
 import { Readable } from 'stream';
 import { VoterIntention, ProposalData, FormattedVote, FormattedProposal } from '/opt/handler-types';
 
@@ -12,7 +12,7 @@ const AVN_VOTES_BUCKET: string | undefined = process.env.AVN_VOTES_BUCKET;
 const s3 = new S3Client();
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  await utils.init();
+  await init();
   const method = event.requestContext.httpMethod;
   let response;
 
@@ -71,7 +71,7 @@ async function checkVoteAndUpdateProposal(requestData: string): Promise<{result:
 
   try {
     voterIntention = JSON.parse(requestData);
-    voterIntention.publicKey = utils.convertToPublicKey(voterIntention.address);
+    voterIntention.publicKey = convertToPublicKey(voterIntention.address);
     proposalData = await getProposalData(voterIntention.proposal);
     if (proposalData.votes === undefined) {
       proposalData.votes = {};
@@ -109,8 +109,8 @@ async function changeVoteAndUpdateProposal(voterIntention: VoterIntention, propo
 }
 
 function verifyVotingSignature(votingIntention: VoterIntention): boolean {
-  const message = utils.stringToHex('<Bytes>' + votingIntention.proposal + votingIntention.vote + '</Bytes>');
-  return utils.signatureVerify(message, votingIntention.signature, votingIntention.publicKey).isValid;
+  const message = stringToHex('<Bytes>' + votingIntention.proposal + votingIntention.vote + '</Bytes>');
+  return signatureVerify(message, votingIntention.signature, votingIntention.publicKey).isValid;
 }
 
 async function weightVoteAndUpdateProposal(voterIntention: VoterIntention, proposalData: ProposalData): Promise<string> {
@@ -190,9 +190,9 @@ async function weightVote(voterIntention: VoterIntention, proposalData: Proposal
   try {
       const params = ['at', proposalData.blockNumber, voterIntention.publicKey];
       const query = { palletName: 'system', storageName: 'account', params: params };
-      const avnResponse = await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
-      const voterBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.free);
-      const voterStakedBalanceAtBlock = utils.toWholeAVT(avnResponse.data.data.frozen);
+      const avnResponse = await axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
+      const voterBalanceAtBlock = toWholeAVT(avnResponse.data.data.free);
+      const voterStakedBalanceAtBlock = toWholeAVT(avnResponse.data.data.frozen);
       const voterUnstakedBalanceAtBlock = voterBalanceAtBlock - voterStakedBalanceAtBlock;
       return voterStakedBalanceAtBlock + voterUnstakedBalanceAtBlock;
   } catch (err) {
@@ -220,7 +220,7 @@ function formatVotes(votes: Record<string, number>, votingChoice: number[]): For
   let formattedVotes: FormattedVote[] = [];
   for (const [publicKey, weight] of Object.entries(votes)) {
       formattedVotes.push({
-          address: utils.convertToAddress(publicKey),
+          address: convertToAddress(publicKey),
           voteSway: weight > 0 ? votingChoice[0] : votingChoice[1],
           avtWeight: Math.abs(weight)
       });

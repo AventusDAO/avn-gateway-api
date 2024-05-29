@@ -1,5 +1,4 @@
 import BN from 'bn.js';
-// import BN = require('bn.js');
 import { u8aConcat, u8aToHex, hexToBn } from '@polkadot/util';
 import lambda from './lambdas';
 import logger from './logger';
@@ -45,16 +44,14 @@ interface StakingBalances {
   unstakedBalance: BN;
 }
 
-function calculateNominatorStakingBalances(nominatorState: NominatorState, nominatorRequests: NominatorRequest[], currentEraIndex: number): StakingBalances {
+function calculateNominatorStakingBalances(nominatorState: NominatorStateResponse, nominatorRequests: NominatorRequest[], currentEraIndex: number): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
 
-  // if (!nominatorState.isEmpty) {
-    // stakedBalance = hexToBn(nominatorState.toJSON().total);
-  // }
-
-  stakedBalance = hexToBn(nominatorState.total);
+  if (!nominatorState.isEmpty) {
+    stakedBalance = hexToBn(nominatorState.toJSON().total);
+  }
 
   nominatorRequests.forEach(req => {
     if (new BN(req.whenExecutable).gt(new BN(currentEraIndex))) {
@@ -71,23 +68,23 @@ function calculateNominatorStakingBalances(nominatorState: NominatorState, nomin
   };
 }
 
-function calculateCollatorStakingBalances(candidateInfo: CandidateInfo, currentEra: number): StakingBalances {
+function calculateCollatorStakingBalances(candidateInfo: CandidateInfoResponse, currentEra: number): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
 
-  // if (!candidateInfo.isEmpty) {
-    // const info = candidateInfo.toJSON();
-    stakedBalance = hexToBn(candidateInfo.bond);
+  if (!candidateInfo.isEmpty) {
+    const info = candidateInfo.toJSON();
+    stakedBalance = hexToBn(info.bond);
 
-    if (candidateInfo.request) {
-      if (new BN(candidateInfo.request.whenExecutable).gt(new BN(currentEra))) {
-        unstakedBalance = hexToBn(candidateInfo.request.amount);
+    if (info.request) {
+      if (new BN(info.request.whenExecutable).gt(new BN(currentEra))) {
+        unstakedBalance = hexToBn(info.request.amount);
       } else {
-        unlockedBalance = hexToBn(candidateInfo.request.amount);
+        unlockedBalance = hexToBn(info.request.amount);
       }
     }
-  // }
+  }
 
   return {
     stakedBalance,

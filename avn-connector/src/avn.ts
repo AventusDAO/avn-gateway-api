@@ -13,7 +13,7 @@ import rds from './db/index';
 import BN from 'bn.js';
 import logger from './logger';
 import { Option } from '@polkadot/types';
-import { Era, BatchInfo, InfoId, NftInfo, Nft, CandidateInfo, NominatorState, liftStatus, uncheckedEvent, eventPendingChallenge, accountInfo } from './types';
+import { Era, BatchInfo, InfoId, NftInfo, Nft, CandidateInfo, NominatorState, liftStatus, accountInfo } from './types';
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -130,13 +130,12 @@ async function getAccountInfo(accountId: string): Promise<any> {
   const currentEra = (await api.query.parachainStaking.era()).toJSON() as Era;
   const currentEraIndex = currentEra.current;
 
-  // const currentEraIndex = (await api.query.parachainStaking.era()).current;
   const collators = await getCollatorsToNominate();
   let stakedBalance, unlockedBalance, unstakedBalance;
 
   if (collators.some((c: string) => c.toLowerCase() === accountId.toLowerCase())) {
     const rawCandidateInfo = await api.query.parachainStaking.candidateInfo(accountId);
-    const candidateInfo = rawCandidateInfo.toJSON() as unknown as CandidateInfo;
+    const candidateInfo = rawCandidateInfo.toJSON() as any;
 
     ({ stakedBalance, unlockedBalance, unstakedBalance } = stakingHelper.calculateCollatorStakingBalances(
       candidateInfo,
@@ -144,7 +143,7 @@ async function getAccountInfo(accountId: string): Promise<any> {
     ));
   } else {
     const rawNominatorState = await api.query.parachainStaking.nominatorState(accountId);
-    const nominatorState = rawNominatorState.toJSON() as unknown as NominatorState;
+    const nominatorState = rawNominatorState.toJSON() as any;
 
     const allRequests = await api.query.parachainStaking.nominationScheduledRequests.multi(collators);
 
@@ -260,12 +259,12 @@ async function ethereumEventStatus(transactionHash: string): Promise<any> {
   await api.queryMulti(
     [api.query.ethereumEvents.uncheckedEvents, api.query.ethereumEvents.eventsPendingChallenge],
     ([rawUncheckedEvents, rawEventsPendingChallenge]) => {
-      let uncheckedEvents = rawUncheckedEvents.toJSON() as unknown as uncheckedEvent[];
+      let uncheckedEvents = rawUncheckedEvents.toJSON() as any;
       if (uncheckedEvents.find((t: any) => t.toJSON()[0].transactionHash === transactionHash)) {
         liftStatus = liftStatusesEnum.UNCHECKED_LIFT;
       }
-      let eventsPendingChallenge = rawEventsPendingChallenge.toJSON() as unknown as eventPendingChallenge[];
-      if (eventsPendingChallenge.find((t: any) => t.toJSON()[0].event.eventId.transactionHash === transactionHash)) {
+      let eventsPendingChallenge = rawEventsPendingChallenge.toJSON() as any;
+      if (eventsPendingChallenge.find((t: any) => t.toJSON()[0].transactionHash === transactionHash)) {
         liftStatus = liftStatusesEnum.PENDING_VALIDATION;
       }
     }
@@ -579,7 +578,6 @@ function toBn(val: any): BN {
 async function getLowerProof(lowerId: number): Promise<string | null> {
   const rawProof = await api.query.tokenManager.lowersReadyToClaim(lowerId);
   let proof = rawProof.toJSON() as unknown as Option<any>;
-
   return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
 }
 
@@ -657,7 +655,6 @@ async function getBatchInfo(batchId: number): Promise<any> {
 
     const rawBatchInfo = await api.query.nftManager.nftInfos(infoId);
     const batchInfo = rawBatchInfo.toJSON() as Partial<BatchInfo>;
-
     return {
       ownerAddress: batchInfo.creator,
       infoId: batchInfo.infoId,

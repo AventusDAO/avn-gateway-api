@@ -69,32 +69,6 @@ export interface transactionStatus {
     Validating: string
 }
 
-export interface transaction {
-    signature: string
-    transactionHash: string
-}
-
-export type uncheckedEvent = [transaction, number, number];
-
-
-export interface event {
-    event: {
-        eventId: {
-          signature: string
-          transactionHash: string
-        }
-        eventData: {
-          LogLifted: {
-            tokenContract: string
-            senderAddress: string
-            receiverAddress: string
-            amount: number
-            nonce: number
-          }
-        }
-      }
-}
-
 export interface accountInfo {
     nonce: number
     consumers: number
@@ -113,20 +87,4 @@ export interface lowerReadyToClaim {
     encodedLowerData: string
 }
 
-export type eventPendingChallenge = [event, string, string, number, number, number];
-
-// export interface CandidateInfo {
-//     isEmpty: boolean;
-//     toJSON: () => { bond: string; request?: { whenExecutable: string; amount: string } };
-// }
-
 export interface Royalty { recipient_t1_address: string; rate: { parts_per_million: number } }
-
-// export interface Era {
-//     isEmpty: boolean;
-//     toJSON: () => {
-//         current: number,
-//         first: number,
-//         length: number
-//     };
-//   }

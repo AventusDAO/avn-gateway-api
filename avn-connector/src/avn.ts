@@ -12,6 +12,9 @@ import fees from './paymentInfoHelper';
 import rds from './db/index';
 import BN from 'bn.js';
 import logger from './logger';
+import { Codec } from '@polkadot/types/types';
+import { Era, BatchInfo, InfoId, NftInfo, Nft, CandidateInfo, NominatorState, liftStatus, transactionStatus } from './types';
+// import { CandidateInfo } from './stakingHelper';
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -124,18 +127,26 @@ async function poll(requestId: string): Promise<any> {
 
 async function getAccountInfo(accountId: string): Promise<any> {
   const balancesAll = await api.derive.balances.all(accountId);
-  const currentEraIndex = (await api.query.parachainStaking.era()).current;
+
+  const currentEra = (await api.query.parachainStaking.era()).toJSON() as Era;
+  const currentEraIndex = currentEra.current;
+
+  // const currentEraIndex = (await api.query.parachainStaking.era()).current;
   const collators = await getCollatorsToNominate();
   let stakedBalance, unlockedBalance, unstakedBalance;
 
   if (collators.some((c: string) => c.toLowerCase() === accountId.toLowerCase())) {
-    const candidateInfo = await api.query.parachainStaking.candidateInfo(accountId);
+    const rawCandidateInfo = await api.query.parachainStaking.candidateInfo(accountId);
+    const candidateInfo = rawCandidateInfo.toJSON() as unknown as CandidateInfo;
+
     ({ stakedBalance, unlockedBalance, unstakedBalance } = stakingHelper.calculateCollatorStakingBalances(
       candidateInfo,
       currentEraIndex
     ));
   } else {
-    const nominatorState = await api.query.parachainStaking.nominatorState(accountId);
+    const rawNominatorState = await api.query.parachainStaking.nominatorState(accountId);
+    const nominatorState = rawNominatorState.toJSON() as unknown as NominatorState;
+
     const allRequests = await api.query.parachainStaking.nominationScheduledRequests.multi(collators);
 
     const nominatorRequests = allRequests.flat().filter((req: any) => req.nominator.eq(accountId));
@@ -170,12 +181,14 @@ async function getCollatorsToNominate(): Promise<any[]> {
 async function getStakingStats(): Promise<any> {
   let stakingStats = await redis.getStakingStats();
   if (stakingStats === undefined) {
-    const [minUserBond, maxNominatorsRewardedPerValidator, totalStaked, stakersData] = await Promise.all([
+    const [minUserBond, maxNominatorsRewardedPerValidator, rawTotalStaked, stakersData] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
       api.query.parachainStaking.total(),
       api.query['parachainStaking']['nominatorState'].keys(),
     ]);
+
+    const totalStaked = new BN(rawTotalStaked.toJSON() as number);
     const numActiveStakes = stakersData.length;
     const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {
@@ -287,7 +300,8 @@ async function getUnprocessedLifts(): Promise<any> {
 
     if (liftEvents.length > 0) {
       const liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
-      for (let [i, isProcessed] of liftStatuses.entries()) {
+      for (let [i, rawIsProcessed] of liftStatuses.entries()) {
+        const isProcessed = rawIsProcessed.toJSON() as unknown as liftStatus;
         if (isProcessed.isFalse) {
           unprocessedLifts.push(liftEvents[i][1]);
         }
@@ -649,18 +663,18 @@ async function regenerateLowerProof(account: any, lowerId: number): Promise<any>
 
 async function getNftInfo(nftId: number): Promise<any> {
   try {
-    const nft = (await api.query.nftManager.nfts(nftId)).toJSON();
+    const nft = (await api.query.nftManager.nfts(nftId)).toJSON() as Partial<Nft>;
     if (!nft) {
       return null;
     }
 
-    const nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON();
+    const nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON() as Partial<NftInfo>;
     return {
       ownerAddress: nft.owner,
       nonce: nft.nonce,
       infoId: nft.infoId,
       uniqueExternalRef: nft.uniqueExternalRef,
-      royalties: nftInfo.royalties.map((r: any) => {
+      royalties: nftInfo.royalties?.map((r: any) => {
         return {
           recipient_t1_address: r.recipientT1Address,
           rate: { parts_per_million: r.rate.partsPerMillion },
@@ -676,17 +690,19 @@ async function getNftInfo(nftId: number): Promise<any> {
 
 async function getBatchInfo(batchId: number): Promise<any> {
   try {
-    const infoId = await api.query.nftManager.batchInfoId(batchId);
+    const infoId = (await api.query.nftManager.batchInfoId(batchId)).toJSON() as InfoId;
     if (infoId <= 0) {
       return null;
     }
 
-    const batchInfo = (await api.query.nftManager.nftInfos(infoId)).toJSON();
+    const rawBatchInfo = await api.query.nftManager.nftInfos(infoId);
+    const batchInfo = rawBatchInfo.toJSON() as Partial<BatchInfo>;
+
     return {
       ownerAddress: batchInfo.creator,
       infoId: batchInfo.infoId,
       totalSupply: batchInfo.totalSupply,
-      royalties: batchInfo.royalties.map((r: any) => {
+      royalties: batchInfo.royalties?.map((r: any) => {
         return {
           recipient_t1_address: r.recipientT1Address,
           rate: { parts_per_million: r.rate.partsPerMillion },

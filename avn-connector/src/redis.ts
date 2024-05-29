@@ -12,6 +12,16 @@ interface Transaction {
   eventArgs: string;
 }
 
+interface transactionStatus {
+  Pending: string
+  Processed: string
+  Rejected: string
+  SendingFailed: string
+  PayerRefused: string
+  AwaitingToSend: string
+  Validating: string
+}
+
 const transactionObject: Transaction = {
   senderAddress: 'senderAddress',
   senderNonce: 'senderNonce',
@@ -21,7 +31,7 @@ const transactionObject: Transaction = {
   eventArgs: 'eventArgs'
 };
 
-const transactionStatus = {
+const transactionStatus: transactionStatus = {
   Pending: 'Pending',
   Processed: 'Processed',
   Rejected: 'Rejected',
@@ -380,8 +390,8 @@ async function getLiftsFromTier1Block(): Promise<number> {
   return blockNumber ? Number(blockNumber) : 0;
 }
 
-async function setTotalToken(token: string, total: number): Promise<void> {
-  await redisClient.setex(TOTAL_TOKEN_NAMESPACE + token, TOTAL_TOKEN_EXPIRY_IN_SECONDS, total.toString());
+async function setTotalToken(token: string, total: string): Promise<void> {
+  await redisClient.setex(TOTAL_TOKEN_NAMESPACE + token, TOTAL_TOKEN_EXPIRY_IN_SECONDS, total);
 }
 
 async function getTotalToken(token: string): Promise<string | null> {

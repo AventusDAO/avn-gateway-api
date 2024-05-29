@@ -8,6 +8,7 @@ on:
       - main
       - parachain_main
       - feature/*
+      - feat/*
     paths:
       - 'avn-connector/**'
   push:

@@ -391,7 +391,7 @@ async function signAndSend(requestId: string, relayerAddress: string, txn: any, 
       requestId,
       transactionHash,
       relayerAddress,
-      nonce!.toString(),
+      nonce?.toString(),
       transactionStatus.SendingFailed
     );
 

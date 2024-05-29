@@ -6,10 +6,6 @@ import logger from './logger';
 const BN_ZERO = new BN(0);
 
 interface NominatorState {
-  total: string
-}
-
-interface NominatorStateResponse {
   isEmpty: boolean;
   toJSON: () => { total: string };
 }
@@ -26,16 +22,8 @@ interface NominatorRequest {
 }
 
 export interface CandidateInfo {
-  bond: string;
-  request?: {
-      whenExecutable: string;
-      amount: string
-  }
-}
-
-export interface CandidateInfoResponse {
   isEmpty: boolean;
-  toJSON: () => CandidateInfo;
+  toJSON: () => { bond: string; request?: { whenExecutable: string; amount: string } };
 }
 
 interface StakingBalances {
@@ -44,7 +32,7 @@ interface StakingBalances {
   unstakedBalance: BN;
 }
 
-function calculateNominatorStakingBalances(nominatorState: NominatorStateResponse, nominatorRequests: NominatorRequest[], currentEraIndex: number): StakingBalances {
+function calculateNominatorStakingBalances(nominatorState: NominatorState, nominatorRequests: NominatorRequest[], currentEraIndex: number): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
@@ -68,7 +56,7 @@ function calculateNominatorStakingBalances(nominatorState: NominatorStateRespons
   };
 }
 
-function calculateCollatorStakingBalances(candidateInfo: CandidateInfoResponse, currentEra: number): StakingBalances {
+function calculateCollatorStakingBalances(candidateInfo: CandidateInfo, currentEra: number): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();

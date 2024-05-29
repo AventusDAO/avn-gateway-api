@@ -13,7 +13,7 @@ import rds from './db/index';
 import BN from 'bn.js';
 import logger from './logger';
 import { Option } from '@polkadot/types';
-import { Era, BatchInfo, InfoId, NftInfo, Nft, CandidateInfo, NominatorState, liftStatus, accountInfo } from './types';
+import { Era, BatchInfo, NftInfo, Nft, liftStatus, accountInfo } from './types';
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -126,7 +126,6 @@ async function poll(requestId: string): Promise<any> {
 
 async function getAccountInfo(accountId: string): Promise<any> {
   const balancesAll = await api.derive.balances.all(accountId);
-
   const currentEra = (await api.query.parachainStaking.era()).toJSON() as Era;
   const currentEraIndex = currentEra.current;
 
@@ -148,7 +147,7 @@ async function getAccountInfo(accountId: string): Promise<any> {
     const allRequests = await api.query.parachainStaking.nominationScheduledRequests.multi(collators);
 
     const rawNominatorRequests = allRequests.flat().filter((req: any) => req.nominator.eq(accountId));
-    const nominatorRequests = rawNominatorRequests as any[];
+    const nominatorRequests = rawNominatorRequests as any;
     ({ stakedBalance, unlockedBalance, unstakedBalance } = stakingHelper.calculateNominatorStakingBalances(
       nominatorState,
       nominatorRequests,
@@ -648,7 +647,7 @@ async function getNftInfo(nftId: number): Promise<any> {
 
 async function getBatchInfo(batchId: number): Promise<any> {
   try {
-    const infoId = (await api.query.nftManager.batchInfoId(batchId)).toJSON() as InfoId;
+    const infoId = (await api.query.nftManager.batchInfoId(batchId)).toJSON() as number;
     if (infoId <= 0) {
       return null;
     }

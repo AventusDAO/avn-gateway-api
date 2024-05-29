@@ -21,7 +21,7 @@ interface NominatorRequest {
   action: RequestAction;
 }
 
-export interface CandidateInfo {
+interface CandidateInfo {
   isEmpty: boolean;
   toJSON: () => { bond: string; request?: { whenExecutable: string; amount: string } };
 }

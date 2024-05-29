@@ -4,7 +4,7 @@ export type Era = {
     length: number
 }
 
-export type BatchInfo = {
+export interface BatchInfo {
     infoId: number,
     batchId: number,
     royalties: Royalty[],
@@ -13,11 +13,16 @@ export type BatchInfo = {
     creator: string
 }
 
-export type InfoId = number;
-
 export interface NftInfo {
     royalties: Royalty[];
     t1Authority: string;
+}
+
+export interface Royalty {
+    recipient_t1_address: string;
+    rate: {
+        parts_per_million: number
+    }
 }
 
 export interface Nft {
@@ -35,24 +40,8 @@ export interface CandidateInfo {
     }
 }
 
-export interface CandidateInfoResponse {
-    isEmpty: boolean;
-    toJSON: () => CandidateInfo;
-}
-
 export interface NominatorState {
     total: string
-}
-
-export interface NominatorRequest {
-    whenExecutable: string;
-    action: RequestAction;
-}
-
-interface RequestAction {
-    isDecrease: boolean;
-    isRevoke: boolean;
-    toJSON: () => { decrease?: string; revoke?: string };
 }
 
 export interface liftStatus {
@@ -86,5 +75,3 @@ export interface lowerReadyToClaim {
     params: string
     encodedLowerData: string
 }
-
-export interface Royalty { recipient_t1_address: string; rate: { parts_per_million: number } }

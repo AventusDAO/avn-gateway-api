@@ -3,7 +3,7 @@ import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { isHex, stringToHex, u8aToHex } from '@polkadot/util';
 import { keccakAsHex } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
-import redis from './redis';
+import redis, { transactionStatus } from './redis';
 import tier1 from './tier1';
 import Vault from './vaultApp';
 import stakingHelper from './stakingHelper';
@@ -12,9 +12,8 @@ import fees from './paymentInfoHelper';
 import rds from './db/index';
 import BN from 'bn.js';
 import logger from './logger';
-import { Codec } from '@polkadot/types/types';
-import { Era, BatchInfo, InfoId, NftInfo, Nft, CandidateInfo, NominatorState, liftStatus, transactionStatus } from './types';
-// import { CandidateInfo } from './stakingHelper';
+import { Option } from '@polkadot/types';
+import { Era, BatchInfo, InfoId, NftInfo, Nft, CandidateInfo, NominatorState, liftStatus, uncheckedEvent, eventPendingChallenge, accountInfo } from './types';
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -149,8 +148,8 @@ async function getAccountInfo(accountId: string): Promise<any> {
 
     const allRequests = await api.query.parachainStaking.nominationScheduledRequests.multi(collators);
 
-    const nominatorRequests = allRequests.flat().filter((req: any) => req.nominator.eq(accountId));
-
+    const rawNominatorRequests = allRequests.flat().filter((req: any) => req.nominator.eq(accountId));
+    const nominatorRequests = rawNominatorRequests as any[];
     ({ stakedBalance, unlockedBalance, unstakedBalance } = stakingHelper.calculateNominatorStakingBalances(
       nominatorState,
       nominatorRequests,
@@ -260,11 +259,13 @@ async function ethereumEventStatus(transactionHash: string): Promise<any> {
 
   await api.queryMulti(
     [api.query.ethereumEvents.uncheckedEvents, api.query.ethereumEvents.eventsPendingChallenge],
-    ([uncheckedEvents, eventsPendingChallenge]) => {
+    ([rawUncheckedEvents, rawEventsPendingChallenge]) => {
+      let uncheckedEvents = rawUncheckedEvents.toJSON() as unknown as uncheckedEvent[];
       if (uncheckedEvents.find((t: any) => t.toJSON()[0].transactionHash === transactionHash)) {
         liftStatus = liftStatusesEnum.UNCHECKED_LIFT;
       }
-      if (eventsPendingChallenge.find((t: any) => t.toJSON()[0].transactionHash === transactionHash)) {
+      let eventsPendingChallenge = rawEventsPendingChallenge.toJSON() as unknown as eventPendingChallenge[];
+      if (eventsPendingChallenge.find((t: any) => t.toJSON()[0].event.eventId.transactionHash === transactionHash)) {
         liftStatus = liftStatusesEnum.PENDING_VALIDATION;
       }
     }
@@ -390,8 +391,8 @@ async function signAndSend(requestId: string, relayerAddress: string, txn: any, 
       requestId,
       transactionHash,
       relayerAddress,
-      nonce.toString(),
-      redis.transactionStatus.SendingFailed
+      nonce!.toString(),
+      transactionStatus.SendingFailed
     );
 
     throw err;
@@ -400,12 +401,8 @@ async function signAndSend(requestId: string, relayerAddress: string, txn: any, 
   return { transactionHash };
 }
 
-async function setSendingFailedStatus(requestId: string, failure: string): Promise<void> {
+async function setSendingFailedStatus(requestId: string, failureReason: string): Promise<void> {
   if (!requestId) throw new Error('setSendingFailedStatus - RequestId is mandatory');
-  const failureReason = redis.transactionStatus[failure];
-
-  if (!failureReason) throw new Error('Invalid failure reason: ', failure);
-
   await redis.addFailedAvnTransaction(requestId, keccakAsHex(requestId), undefined, undefined, failureReason);
 }
 
@@ -445,7 +442,8 @@ async function getGatewayUserInfo(account: string): Promise<any> {
     [api.query.system.account, account],
   ]);
 
-  const [paymentNonce, { data: balance }] = result;
+  const [paymentNonce, accountInfo] = result;
+  let balance = (accountInfo.toJSON() as unknown as accountInfo).data;
 
   return {
     paymentNonce: paymentNonce.toString(),
@@ -523,7 +521,8 @@ async function getPayerPaymentNonce(requestId: string, payerAddress: string): Pr
   try {
     let nonce = await redis.getNextPayerNonce(payerAddress);
     if (!nonce) {
-      nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
+      let rawNonce = await api.query.avnProxy.paymentNonces(payerAddress);
+      nonce = rawNonce.toJSON() as number;
       logger.info(`${requestId} - Nonce expired, refreshing from chain. New nonce: ${nonce}`);
     }
     logger.info(`${requestId} - Payer ${payerAddress}, payment nonce: ${nonce}`);
@@ -578,14 +577,16 @@ function toBn(val: any): BN {
 }
 
 async function getLowerProof(lowerId: number): Promise<string | null> {
-  const proof = await api.query.tokenManager.lowersReadyToClaim(lowerId);
+  const rawProof = await api.query.tokenManager.lowersReadyToClaim(lowerId);
+  let proof = rawProof.toJSON() as unknown as Option<any>;
+
   return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
 }
 
 async function getUnclaimedLowerProofs(minLowerId: number, additionalLowerIds: number[]): Promise<Record<number, string>> {
   try {
     let entries = [],
-      startKey,
+      startKey: any,
       unclaimedLowerIds: number[] = [],
       claimData: any[] = [];
 
@@ -594,7 +595,7 @@ async function getUnclaimedLowerProofs(minLowerId: number, additionalLowerIds: n
       if (entries.length > 0) {
         startKey = entries[entries.length - 1];
         const filteredIds = entries
-          .map(({ args: [lowerId] }) => lowerId.toNumber())
+          .map(({ args: [lowerId] }) => lowerId.toJSON() as number)
           .filter((lowerId) => lowerId > minLowerId || additionalLowerIds.includes(lowerId));
 
         unclaimedLowerIds = unclaimedLowerIds.concat(filteredIds);

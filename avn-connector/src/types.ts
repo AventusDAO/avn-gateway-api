@@ -68,6 +68,53 @@ export interface transactionStatus {
     AwaitingToSend: string
     Validating: string
 }
+
+export interface transaction {
+    signature: string
+    transactionHash: string
+}
+
+export type uncheckedEvent = [transaction, number, number];
+
+
+export interface event {
+    event: {
+        eventId: {
+          signature: string
+          transactionHash: string
+        }
+        eventData: {
+          LogLifted: {
+            tokenContract: string
+            senderAddress: string
+            receiverAddress: string
+            amount: number
+            nonce: number
+          }
+        }
+      }
+}
+
+export interface accountInfo {
+    nonce: number
+    consumers: number
+    providers: number
+    sufficients: number
+    data: {
+      free: number
+      reserved: number
+      frozen: number
+      flags: number
+    }
+}
+
+export interface lowerReadyToClaim {
+    params: string
+    encodedLowerData: string
+}
+
+export type eventPendingChallenge = [event, string, string, number, number, number];
+
 // export interface CandidateInfo {
 //     isEmpty: boolean;
 //     toJSON: () => { bond: string; request?: { whenExecutable: string; amount: string } };

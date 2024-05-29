@@ -191,8 +191,8 @@ class RedisClient {
   async addFailedAvnTransaction(
     requestId: string,
     txHashOrRequestId: string,
-    senderAddress: string,
-    senderNonce: string,
+    senderAddress: string | undefined,
+    senderNonce: string | undefined,
     reason: string
   ): Promise<void> {
     const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`
@@ -454,10 +454,10 @@ class RedisClient {
     return blockNumber ? Number(blockNumber) : 0
   }
 
-  async setTotalToken(token: string, total: number): Promise<void> {
+  async setTotalToken(token: string, total: string): Promise<void> {
     await this.setKey(
       TOTAL_TOKEN_NAMESPACE + token,
-      total.toString(),
+      total,
       TOTAL_TOKEN_EXPIRY_IN_SECONDS
     )
   }

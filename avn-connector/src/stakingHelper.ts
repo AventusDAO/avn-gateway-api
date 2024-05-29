@@ -45,7 +45,7 @@ interface StakingBalances {
   unstakedBalance: BN;
 }
 
-function calculateNominatorStakingBalances(nominatorState: NominatorState, nominatorRequests: NominatorRequest[], currentEraIndex: string): StakingBalances {
+function calculateNominatorStakingBalances(nominatorState: NominatorState, nominatorRequests: NominatorRequest[], currentEraIndex: number): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();

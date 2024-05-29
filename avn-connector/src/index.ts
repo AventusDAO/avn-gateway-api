@@ -2,10 +2,9 @@
 const config = require('multiconfig').load();
 import avn from './avn';
 import rds from './db/index';
-import lowering from './lowering';
 import loweringV2 from './lowers/loweringV2';
 import autolowering from './lowers/autolowering';
-import redis from './redis';
+import redis, {transactionStatus} from './redis';
 import { processTxQueue } from './sqsConsumer';
 import webhooks from './webhooks';
 import lambda from './lambdas';
@@ -214,17 +213,8 @@ app.post('/getBatchInfo', async (req: Request, res: Response, next: NextFunction
 app.post('/lowers', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ lowerDataRequest: req.body });
-    let oldLowers;
-
-    try {
-      oldLowers = await lowering.getLowers(req.body.account);
-    } catch (err) {
-      logger.error(`Error fetching legacy lowers`, err);
-      oldLowers = [];
-    }
-
-    const newLowers = await loweringV2.getLowers(req.body.account);
-    res.send((oldLowers || []).concat(newLowers));
+    const result = await loweringV2.getLowers(req.body.account);
+    res.send(result);
   } catch (err) {
     next(err);
   }
@@ -274,7 +264,7 @@ app.post('/addNewTransactionStatus', async (req: Request, res: Response, next: N
 app.post('/setTransactionRefusedByPayerStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ setTransactionRefusedByPayerStatus: JSON.stringify(req.body) });
-    await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.PayerRefused);
+    await avn.setSendingFailedStatus(req.body.requestId, transactionStatus.PayerRefused);
     res.status(200).send({});
   } catch (err) {
     next(err);
@@ -284,7 +274,7 @@ app.post('/setTransactionRefusedByPayerStatus', async (req: Request, res: Respon
 app.post('/setTransactionFailedToBeSentStatus', async (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.info({ setTransactionFailedToBeSentStatus: JSON.stringify(req.body) });
-    await avn.setSendingFailedStatus(req.body.requestId, redis.transactionStatus.SendingFailed);
+    await avn.setSendingFailedStatus(req.body.requestId, transactionStatus.SendingFailed);
     res.status(200).send({});
   } catch (err) {
     next(err);

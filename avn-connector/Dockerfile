@@ -16,10 +16,10 @@ COPY package*.json ./
 RUN npm install
 
 # Copy the rest of the application code to the working directory
-COPY src .
+COPY src/* ./
 
 # Ensure the config directory is copied
-COPY src/config ./config
+# COPY src/config ./config
 
 # Build the TypeScript code
 RUN npm run build

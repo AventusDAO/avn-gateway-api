@@ -18,11 +18,11 @@ COPY . .
 # Copy the configuration files to /config directory
 RUN mkdir -p /config && cp -r src/config/* /config/
 
+# Copy the contents of the src directory to the build directory
+RUN cp -r src/. build/
+
 # Build the TypeScript code
 RUN npm run build
-
-# Copy the configuration files to build/config directory
-RUN mkdir -p build/config && cp -r src/config/* build/config/
 
 RUN npm ci --production
 

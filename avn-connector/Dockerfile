@@ -19,7 +19,7 @@ RUN npm install
 COPY . .
 
 # Ensure the config directory is copied
-COPY config ./config
+COPY src/config ./config
 
 # Build the TypeScript code
 RUN npm run build

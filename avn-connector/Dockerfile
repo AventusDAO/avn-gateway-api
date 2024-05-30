@@ -7,7 +7,7 @@ RUN apk update && \
     apk add g++ make py3-pip
 
 # Set the working directory inside the container
-# WORKDIR /app
+WORKDIR /app
 
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
@@ -19,10 +19,7 @@ RUN npm install
 COPY . .
 
 # Copy the rest of the application code to the working directory
-COPY src/* ./
-
-# Ensure the config directory is copied
-# COPY src/config ./config
+RUN mkdir -p build/config && cp -r src/config/* build/config/
 
 # Build the TypeScript code
 RUN npm run build

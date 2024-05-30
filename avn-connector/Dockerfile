@@ -7,7 +7,7 @@ RUN apk update && \
     apk add g++ make py3-pip
 
 # Set the working directory inside the container
-WORKDIR /app
+# WORKDIR /app
 
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./

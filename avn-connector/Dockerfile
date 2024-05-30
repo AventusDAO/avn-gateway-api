@@ -16,7 +16,7 @@ COPY package*.json ./
 RUN npm install
 
 # Copy the rest of the application code to the working directory
-COPY . .
+COPY src .
 
 # Ensure the config directory is copied
 COPY src/config ./config

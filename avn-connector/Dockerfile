@@ -21,6 +21,9 @@ RUN mkdir -p /config && cp -r src/config/* /config/
 # Build the TypeScript code
 RUN npm run build
 
+# Copy the configuration files to build/config directory
+RUN mkdir -p build/config && cp -r src/config/* build/config/
+
 RUN npm ci --production
 
 ENTRYPOINT npm start

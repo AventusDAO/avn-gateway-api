@@ -18,11 +18,14 @@ RUN npm install
 # Copy the rest of the application code to the working directory
 COPY . .
 
-# Copy the rest of the application code to the working directory
-RUN mkdir -p build/config && cp -r src/config/* build/config/
+# Copy the configuration files separately if they need to be at /app/config
+RUN mkdir -p /app/config && cp -r src/config/* /app/config/
 
 # Build the TypeScript code
 RUN npm run build
+
+# Ensure the configuration files are also copied to the build directory
+RUN cp -r /app/config build/config
 
 RUN npm ci --production
 

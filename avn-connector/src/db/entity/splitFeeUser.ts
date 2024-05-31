@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Payer } from './payer';
 
-@Entity('splitFeeUser')
+@Entity('split_fee_user')
 export class SplitFeeUser {
     @PrimaryGeneratedColumn()
     id: number;

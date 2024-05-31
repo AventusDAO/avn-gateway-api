@@ -2,7 +2,7 @@ import { Entity, PrimaryColumn, Column, ManyToOne, CreateDateColumn, UpdateDateC
 import { Transaction } from './transaction';
 import { Payer } from './payer';
 
-@Entity('payerTransaction')
+@Entity('payer_transaction')
 export class PayerTransaction {
     @PrimaryColumn()
     transactionId: number;

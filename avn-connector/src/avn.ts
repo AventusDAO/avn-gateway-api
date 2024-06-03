@@ -142,15 +142,7 @@ async function getAccountInfo(accountId: string): Promise<any> {
     ));
   } else {
     const rawNominatorState = await api.query.parachainStaking.nominatorState(accountId);
-
-    console.log(`debug1: rawNominatorState: ` + rawNominatorState);
-    console.log(`debug2: nominatorState: ` + JSON.stringify(rawNominatorState, null, 2));
-
-    // const nominatorState = rawNominatorState.toJSON() as any;
     const nominatorState = rawNominatorState as unknown as Option<any>;
-
-    console.log(`debug3: rawNominatorState: ` + rawNominatorState);
-
     const allRequests = await api.query.parachainStaking.nominationScheduledRequests.multi(collators);
 
     const rawNominatorRequests = allRequests.flat().filter((req: any) => req.nominator.eq(accountId));

@@ -13,7 +13,7 @@ import rds from './db/index';
 import BN from 'bn.js';
 import logger from './logger';
 import { Option } from '@polkadot/types';
-import { Era, BatchInfo, NftInfo, Nft, liftStatus, accountInfo } from './types';
+import { Era, BatchInfo, NftInfo, Nft, liftStatus, accountInfo, LiftStatuses } from './types';
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -232,20 +232,12 @@ async function getTotalToken(token: string): Promise<string> {
 }
 
 async function ethereumEventStatus(transactionHash: string): Promise<any> {
-  const liftStatusesEnum = {
-    AWAITING_TO_RECEIVE: 'AwaitingToReceive',
-    UNCHECKED_LIFT: 'UncheckedLift',
-    PENDING_VALIDATION: 'PendingValidation',
-    LIFT_PROCESSED: 'LiftProcessed',
-    LIFT_NOT_FOUND: 'LiftNotFound',
-  };
-
   const { avnContract } = await getChainInfo();
   const { liftEvents } = await tier1.getLiftEvents(avnContract);
 
   const liftEvent = liftEvents.find((liftEvent: any) => liftEvent[1] === transactionHash);
 
-  let liftStatus = liftStatusesEnum.LIFT_NOT_FOUND;
+  let liftStatus = LiftStatuses.LIFT_NOT_FOUND;
 
   if (!liftEvent) {
     return {
@@ -259,16 +251,16 @@ async function ethereumEventStatus(transactionHash: string): Promise<any> {
     ([rawUncheckedEvents, rawEventsPendingChallenge]) => {
       let uncheckedEvents = rawUncheckedEvents.toJSON() as any;
       if (uncheckedEvents.find((t: any) => t.toJSON()[0].transactionHash === transactionHash)) {
-        liftStatus = liftStatusesEnum.UNCHECKED_LIFT;
+        liftStatus = LiftStatuses.UNCHECKED_LIFT;
       }
       let eventsPendingChallenge = rawEventsPendingChallenge.toJSON() as any;
       if (eventsPendingChallenge.find((t: any) => t.toJSON()[0].transactionHash === transactionHash)) {
-        liftStatus = liftStatusesEnum.PENDING_VALIDATION;
+        liftStatus = LiftStatuses.PENDING_VALIDATION;
       }
     }
   );
 
-  if (liftStatus !== liftStatusesEnum.LIFT_NOT_FOUND) {
+  if (liftStatus !== LiftStatuses.LIFT_NOT_FOUND) {
     return {
       transactionHash,
       liftStatus,
@@ -277,7 +269,7 @@ async function ethereumEventStatus(transactionHash: string): Promise<any> {
 
   const isProcessed = await api.query.ethereumEvents.processedEvents(liftEvent);
   if (isProcessed) {
-    liftStatus = liftStatusesEnum.LIFT_PROCESSED;
+    liftStatus = LiftStatuses.LIFT_PROCESSED;
     return {
       transactionHash,
       liftStatus,
@@ -286,7 +278,7 @@ async function ethereumEventStatus(transactionHash: string): Promise<any> {
 
   return {
     transactionHash,
-    liftStatus: liftStatusesEnum.AWAITING_TO_RECEIVE,
+    liftStatus: LiftStatuses.AWAITING_TO_RECEIVE,
   };
 }
 

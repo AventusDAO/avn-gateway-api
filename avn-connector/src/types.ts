@@ -75,3 +75,11 @@ export interface lowerReadyToClaim {
     params: string
     encodedLowerData: string
 }
+
+export enum LiftStatuses {
+    AWAITING_TO_RECEIVE = 'AwaitingToReceive',
+    UNCHECKED_LIFT = 'UncheckedLift',
+    PENDING_VALIDATION = 'PendingValidation',
+    LIFT_PROCESSED = 'LiftProcessed',
+    LIFT_NOT_FOUND = 'LiftNotFound',
+  }

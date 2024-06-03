@@ -134,7 +134,7 @@ async function getAccountInfo(accountId: string): Promise<any> {
 
   if (collators.some((c: string) => c.toLowerCase() === accountId.toLowerCase())) {
     const rawCandidateInfo = await api.query.parachainStaking.candidateInfo(accountId);
-    const candidateInfo = rawCandidateInfo.toJSON() as any;
+    const candidateInfo = rawCandidateInfo as any;
 
     ({ stakedBalance, unlockedBalance, unstakedBalance } = stakingHelper.calculateCollatorStakingBalances(
       candidateInfo,

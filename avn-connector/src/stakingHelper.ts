@@ -2,6 +2,7 @@ import BN from 'bn.js';
 import { u8aConcat, u8aToHex, hexToBn } from '@polkadot/util';
 import lambda from './lambdas';
 import logger from './logger';
+import { Option } from '@polkadot/types';
 
 const BN_ZERO = new BN(0);
 
@@ -32,17 +33,20 @@ interface StakingBalances {
   unstakedBalance: BN;
 }
 
-function calculateNominatorStakingBalances(nominatorState: NominatorState, nominatorRequests: NominatorRequest[], currentEraIndex: number): StakingBalances {
+function calculateNominatorStakingBalances(nominatorState: Option<any>, nominatorRequests: NominatorRequest[], currentEraIndex: number): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
 
-    console.log(`inside staking helper: ` + nominatorState);
+    console.log(`inside staking helper: ` + JSON.stringify(nominatorState, null, 2));
     console.log(`isEmpty: ` + nominatorState.isEmpty);
     console.log(`json: ` + nominatorState.toJSON());
 
-  if (!nominatorState.isEmpty) {
-    stakedBalance = hexToBn(nominatorState.toJSON().total);
+  const nominatorStateValue = nominatorState.unwrapOr(null);
+  console.log(`json value: ` + nominatorStateValue.toJSON());
+
+  if (nominatorStateValue && !nominatorState.isEmpty) {
+    stakedBalance = hexToBn(nominatorStateValue.toJSON().total);
   }
 
   nominatorRequests.forEach(req => {

@@ -146,7 +146,8 @@ async function getAccountInfo(accountId: string): Promise<any> {
     console.log(`debug1: rawNominatorState: ` + rawNominatorState);
     console.log(`debug2: nominatorState: ` + JSON.stringify(rawNominatorState, null, 2));
 
-    const nominatorState = rawNominatorState.toJSON() as any;
+    // const nominatorState = rawNominatorState.toJSON() as any;
+    const nominatorState = rawNominatorState as unknown as Option<any>;
 
     console.log(`debug3: rawNominatorState: ` + rawNominatorState);
 

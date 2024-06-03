@@ -1,8 +1,12 @@
-const utils = require('/opt/utils.js');
+import { requestFailed, axios } from '/opt/utils.js';
+// @ts-ignore
+import { SQSEvent, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
+import { StatusCode, CustomSQSHandler } from '/opt/handler-types';
+import { Response } from '/opt/types';
 
-const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
+const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 
-exports.handler = async event => {
+export const handler: CustomSQSHandler = async (event: SQSEvent): Promise<SQSBatchResponse|APIGatewayProxyResult> => {
   let processedMessagesCount = 0;
   let failedMessages = [];
 
@@ -10,7 +14,7 @@ exports.handler = async event => {
     if (!event.Records) {
       console.log(`No messages to process.`);
       return {
-        statusCode: 200,
+        statusCode: StatusCode.OK,
         body: `No messages to process`
       };
     }
@@ -20,7 +24,7 @@ exports.handler = async event => {
     for (let record of event.Records) {
       const result = await processFailedMessage(record.body);
 
-      if (utils.requestFailed(result) === true) {
+      if (requestFailed(result) === true) {
         failedMessages.push(record);
       } else {
         processedMessagesCount += 1;
@@ -47,7 +51,7 @@ exports.handler = async event => {
   }
 };
 
-async function processFailedMessage(message) {
+async function processFailedMessage(message: string): Promise<Response> {
   let tx;
   let requestId;
 
@@ -64,13 +68,13 @@ async function processFailedMessage(message) {
   console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
 
   try {
-    await utils.axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', { requestId: requestId });
+    await axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionFailedToBeSentStatus', { requestId: requestId });
   } catch (err) {
     const errorMessage = `Failed to set status of requestId ${requestId} as 'SendingFailed': ${err.toString()}`;
     console.error(errorMessage);
 
     return {
-      error: errorMessage
+      error: {message: errorMessage}
     };
   }
 }

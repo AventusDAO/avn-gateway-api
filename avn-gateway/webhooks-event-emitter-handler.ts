@@ -1,10 +1,13 @@
-const { axios, callWithTimeout } = require('/opt/utils.js');
-const { signMessage } = require('/opt/kmsUtils.js');
-const { getFailedMessagesForFifoQueue } = require('/opt/sqsUtils.js');
+import { axios, callWithTimeout } from '/opt/utils';
+import { signMessage } from '/opt/kmsUtils.js';
+import { getFailedMessagesForFifoQueue } from '/opt/sqsUtils.js';
+import { CustomSQSHandler, EventRecord, Event } from '/opt/handler-types';
+// @ts-ignore
+import { SQSBatchResponse, SQSEvent, Context } from 'aws-lambda';
 
-const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID;
+const KMS_KEY_ID = process.env.WEBHOOKS_SIGNER_KMS_KEY_ID!;
 
-exports.handler = async (event, context) => {
+export const handler: CustomSQSHandler = async (event: SQSEvent, context: Context): Promise<void|SQSBatchResponse> => {
   let acknowledgedEvents = 0;
 
   try {
@@ -19,12 +22,12 @@ exports.handler = async (event, context) => {
   }
 };
 
-async function processRecordAndEmitEvent(record) {
+async function processRecordAndEmitEvent(record: EventRecord): Promise<void> {
   const event = await processRecord(record);
   await emitEvent(event);
 }
 
-async function processRecord(record) {
+async function processRecord(record: EventRecord): Promise<Event> {
   try {
     const id = record.messageId;
     const { endpoint, eventData: data } = JSON.parse(record.body);
@@ -37,7 +40,7 @@ async function processRecord(record) {
   }
 }
 
-async function emitEvent(event) {
+async function emitEvent(event: Event): Promise<void> {
   const { id, freshness, signature, endpoint, data } = event;
   const headers = {
     'content-type': 'application/json',

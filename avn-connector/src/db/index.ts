@@ -2,6 +2,15 @@ import { DataSource, IsNull } from 'typeorm';
 import { isHex, u8aToHex } from '@polkadot/util';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 import crypto from 'crypto';
+import { Payer } from './entity/payer';
+import { SplitFeeUser } from './entity/splitFeeUser';
+import { Transaction } from './entity/transaction';
+import { PayerTransaction } from './entity/payerTransaction';
+import { Fee } from './entity/fee';
+import { Relayer } from './entity/relayer';
+import { WebhookEndpoint } from './entity/webhookEndpoint';
+import { WebhookEvent } from './entity/webhookEvent';
+import { Webhooks } from './entity/webhooks';
 
 const config = require('multiconfig').load();
 
@@ -27,15 +36,15 @@ async function init(): Promise<DataSource> {
     database: config.postgres.database,
     synchronize: config.postgres.synchronize === 'true',
     entities: [
-      require('./entity/payer'),
-      require('./entity/splitFeeUser'),
-      require('./entity/transaction'),
-      require('./entity/payerTransaction'),
-      require('./entity/fee'),
-      require('./entity/relayer'),
-      require('./entity/webhookEndpoint'),
-      require('./entity/webhookEvent'),
-      require('./entity/webhooks')
+      Payer,
+      SplitFeeUser,
+      Transaction,
+      PayerTransaction,
+      Fee,
+      Relayer,
+      WebhookEndpoint,
+      WebhookEvent,
+      Webhooks
     ]
   });
 
@@ -49,7 +58,7 @@ async function getPayer(user: string, payer?: string): Promise<{ payerId: number
 
   if (!userPublicKey && !payer) return undefined;
 
-  const userDataSource = await dataSource.getRepository(SPLIT_FEE_USER_TABLE);
+  const userDataSource = await dataSource.getRepository(SplitFeeUser);
 
   const splitFeeUser = await userDataSource.findOne({
     where: { publicKey: userPublicKey, enabled: true },
@@ -78,7 +87,7 @@ async function getFees(relayerAddress: string, user?: string, transactionName?: 
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
   if (!relayer.defaultFee) throw new Error(`Relayer  ${relayerAddress} does not have a default fee set`);
 
-  const feeDataSource = await dataSource.getRepository(FEE_TABLE);
+  const feeDataSource = await dataSource.getRepository(Fee);
 
   if (user) {
     userPk = getPublicKey(user);
@@ -95,7 +104,7 @@ async function isPayerTransaction(payer: string, transactionName: string): Promi
   if (!payer || !transactionName) return false;
   const payerPk = getPublicKey(payer);
 
-  const payerTransactionDataSource = await dataSource.getRepository(PAYER_TRANSACTION_TABLE);
+  const payerTransactionDataSource = await dataSource.getRepository(PayerTransaction);
 
   const payerTx = await payerTransactionDataSource.findOne({
     where: {
@@ -113,7 +122,7 @@ async function getRelayer(relayerAddress: string): Promise<any> { // Define a ty
   if (!relayerAddress) return undefined;
 
   const relayerPk = getPublicKey(relayerAddress);
-  const relayerDataSource = await dataSource.getRepository(RELAYER_TABLE);
+  const relayerDataSource = await dataSource.getRepository(Relayer);
   return await relayerDataSource.findOne({ where: { publicKey: relayerPk, enabled: true } });
 }
 
@@ -139,7 +148,7 @@ function buildFeesJson(dbResult: any[], relayerDefaultFee: string, transactionTy
 }
 
 async function getTransactions(): Promise<any[]> { // Define a type for transactions if available
-  const transactionDataSource = await dataSource.getRepository(TRANSACTION_TABLE);
+  const transactionDataSource = await dataSource.getRepository(Transaction);
 
   return await transactionDataSource.find({
     where: {
@@ -198,7 +207,7 @@ function getPublicKey(account: string): string {
 async function getActiveWebhooks(): Promise<Record<string, any>> { // Define a proper type for the return value if available
   try {
     const webhooks = await dataSource
-      .getRepository(PAYER_TABLE)
+      .getRepository(Payer)
       .createQueryBuilder('p')
       .select('p.publicKey', 'publicKey')
       .addSelect('we.endpoint', 'endpoint')
@@ -225,8 +234,8 @@ async function getActiveWebhooks(): Promise<Record<string, any>> { // Define a p
 
 async function getWebhookEventTypes(): Promise<Record<string, string>> {
   try {
-    const webhookEventDataSource = await dataSource.getRepository(WEBHOOK_EVENT_TABLE);
-    return (await webhookEventDataSource.find()).reduce((webhookEvents, { type, description }) => {
+    const webhookEventDataSource = await dataSource.getRepository(WebhookEvent);
+    return (await webhookEventDataSource.find()).reduce((webhookEvents: { [type: string]: string }, { type, description }: WebhookEvent) => {
       webhookEvents[type] = description;
       return webhookEvents;
     }, {});
@@ -237,7 +246,7 @@ async function getWebhookEventTypes(): Promise<Record<string, string>> {
 
 async function getWebhookEventTypesState(): Promise<string> {
   const stats = await dataSource
-    .getRepository(WEBHOOK_EVENT_TABLE)
+    .getRepository(WebhookEvent)
     .createQueryBuilder('event')
     .select('COUNT(event.id)', 'count')
     .addSelect('MAX(event.updatedAt)', 'lastUpdate')
@@ -249,19 +258,19 @@ async function getWebhookEventTypesState(): Promise<string> {
 async function getWebhooksState(): Promise<string> {
   const stats = await Promise.all([
     dataSource
-      .getRepository(PAYER_TABLE)
+      .getRepository(Payer)
       .createQueryBuilder('payer')
       .select('COUNT(payer.id)', 'payerCount')
       .addSelect('MAX(payer.updatedAt)', 'payerLastUpdate')
       .getRawOne(),
     dataSource
-      .getRepository(WEBHOOK_ENDPOINT_TABLE)
+      .getRepository(WebhookEndpoint)
       .createQueryBuilder('endpoint')
       .select('COUNT(endpoint.id)', 'endpointCount')
       .addSelect('MAX(endpoint.updatedAt)', 'endpointLastUpdate')
       .getRawOne(),
     dataSource
-      .getRepository(WEBHOOKS_TABLE)
+      .getRepository(Webhooks)
       .createQueryBuilder('webhooks')
       .select('COUNT(webhooks.webhookEndpointId)', 'webhooksCount')
       .getRawOne()

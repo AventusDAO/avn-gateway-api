@@ -2,13 +2,9 @@ import BN from 'bn.js';
 import { u8aConcat, u8aToHex, hexToBn } from '@polkadot/util';
 import lambda from './lambdas';
 import logger from './logger';
+import { Option } from '@polkadot/types';
 
 const BN_ZERO = new BN(0);
-
-interface NominatorState {
-  isEmpty: boolean;
-  toJSON: () => { total: string };
-}
 
 interface RequestAction {
   isDecrease: boolean;
@@ -21,24 +17,20 @@ interface NominatorRequest {
   action: RequestAction;
 }
 
-interface CandidateInfo {
-  isEmpty: boolean;
-  toJSON: () => { bond: string; request?: { whenExecutable: string; amount: string } };
-}
-
 interface StakingBalances {
   stakedBalance: BN;
   unlockedBalance: BN;
   unstakedBalance: BN;
 }
 
-function calculateNominatorStakingBalances(nominatorState: NominatorState, nominatorRequests: NominatorRequest[], currentEraIndex: string): StakingBalances {
+function calculateNominatorStakingBalances(nominatorState: Option<any>, nominatorRequests: NominatorRequest[], currentEraIndex: number): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
 
-  if (!nominatorState.isEmpty) {
-    stakedBalance = hexToBn(nominatorState.toJSON().total);
+  const nominatorStateValue = nominatorState.unwrapOr(null);
+  if (nominatorStateValue && !nominatorState.isEmpty) {
+    stakedBalance = hexToBn(nominatorStateValue.toJSON().total);
   }
 
   nominatorRequests.forEach(req => {
@@ -56,13 +48,14 @@ function calculateNominatorStakingBalances(nominatorState: NominatorState, nomin
   };
 }
 
-function calculateCollatorStakingBalances(candidateInfo: CandidateInfo, currentEra: string): StakingBalances {
+function calculateCollatorStakingBalances(candidateInfo: Option<any>, currentEra: number): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
 
-  if (!candidateInfo.isEmpty) {
-    const info = candidateInfo.toJSON();
+  const candidateInfoValue = candidateInfo.unwrapOr(null);
+  if (candidateInfoValue && !candidateInfo.isEmpty) {
+    const info = candidateInfoValue.toJSON();
     stakedBalance = hexToBn(info.bond);
 
     if (info.request) {

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Webhooks } from './webhooks';
 
-@Entity('webhookEvent')
+@Entity('webhook_event')
 export class WebhookEvent {
     @PrimaryGeneratedColumn()
     id: number;

@@ -5,7 +5,7 @@
   "private": true,
   "description": "Connects to the AVN and keeps connection in memory",
   "scripts": {
-    "start": "node index.js",
+    "start": "node build/index.js",
     "build": "tsc",
     "pretty": "prettier --config ./.prettierrc.yml --check \"**/*.{js,ts,json}\"",
     "pretty:fix": "prettier --config ./.prettierrc.yml --write \"**/*.{js,ts,json}\"",

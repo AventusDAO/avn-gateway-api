@@ -3,7 +3,7 @@ import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { isHex, stringToHex, u8aToHex } from '@polkadot/util';
 import { keccakAsHex } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
-import redis from './redis';
+import redis, { transactionStatus } from './redis';
 import tier1 from './tier1';
 import Vault from './vaultApp';
 import stakingHelper from './stakingHelper';
@@ -12,6 +12,8 @@ import fees from './paymentInfoHelper';
 import rds from './db/index';
 import BN from 'bn.js';
 import logger from './logger';
+import { Option } from '@polkadot/types';
+import { Era, BatchInfo, NftInfo, Nft, liftStatus, accountInfo, LiftStatuses } from './types';
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -124,22 +126,27 @@ async function poll(requestId: string): Promise<any> {
 
 async function getAccountInfo(accountId: string): Promise<any> {
   const balancesAll = await api.derive.balances.all(accountId);
-  const currentEraIndex = (await api.query.parachainStaking.era()).current;
+  const currentEra = (await api.query.parachainStaking.era()).toJSON() as Era;
+  const currentEraIndex = currentEra.current;
+
   const collators = await getCollatorsToNominate();
   let stakedBalance, unlockedBalance, unstakedBalance;
 
   if (collators.some((c: string) => c.toLowerCase() === accountId.toLowerCase())) {
-    const candidateInfo = await api.query.parachainStaking.candidateInfo(accountId);
+    const rawCandidateInfo = await api.query.parachainStaking.candidateInfo(accountId);
+    const candidateInfo = rawCandidateInfo as any;
+
     ({ stakedBalance, unlockedBalance, unstakedBalance } = stakingHelper.calculateCollatorStakingBalances(
       candidateInfo,
       currentEraIndex
     ));
   } else {
-    const nominatorState = await api.query.parachainStaking.nominatorState(accountId);
+    const rawNominatorState = await api.query.parachainStaking.nominatorState(accountId);
+    const nominatorState = rawNominatorState as unknown as Option<any>;
     const allRequests = await api.query.parachainStaking.nominationScheduledRequests.multi(collators);
 
-    const nominatorRequests = allRequests.flat().filter((req: any) => req.nominator.eq(accountId));
-
+    const rawNominatorRequests = allRequests.flat().filter((req: any) => req.nominator.eq(accountId));
+    const nominatorRequests = rawNominatorRequests as any;
     ({ stakedBalance, unlockedBalance, unstakedBalance } = stakingHelper.calculateNominatorStakingBalances(
       nominatorState,
       nominatorRequests,
@@ -170,12 +177,14 @@ async function getCollatorsToNominate(): Promise<any[]> {
 async function getStakingStats(): Promise<any> {
   let stakingStats = await redis.getStakingStats();
   if (stakingStats === undefined) {
-    const [minUserBond, maxNominatorsRewardedPerValidator, totalStaked, stakersData] = await Promise.all([
+    const [minUserBond, maxNominatorsRewardedPerValidator, rawTotalStaked, stakersData] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
       api.query.parachainStaking.total(),
       api.query['parachainStaking']['nominatorState'].keys(),
     ]);
+
+    const totalStaked = toBn(rawTotalStaked.toJSON());
     const numActiveStakes = stakersData.length;
     const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {
@@ -223,20 +232,12 @@ async function getTotalToken(token: string): Promise<string> {
 }
 
 async function ethereumEventStatus(transactionHash: string): Promise<any> {
-  const liftStatusesEnum = {
-    AWAITING_TO_RECEIVE: 'AwaitingToReceive',
-    UNCHECKED_LIFT: 'UncheckedLift',
-    PENDING_VALIDATION: 'PendingValidation',
-    LIFT_PROCESSED: 'LiftProcessed',
-    LIFT_NOT_FOUND: 'LiftNotFound',
-  };
-
   const { avnContract } = await getChainInfo();
   const { liftEvents } = await tier1.getLiftEvents(avnContract);
 
   const liftEvent = liftEvents.find((liftEvent: any) => liftEvent[1] === transactionHash);
 
-  let liftStatus = liftStatusesEnum.LIFT_NOT_FOUND;
+  let liftStatus = LiftStatuses.LIFT_NOT_FOUND;
 
   if (!liftEvent) {
     return {
@@ -247,17 +248,19 @@ async function ethereumEventStatus(transactionHash: string): Promise<any> {
 
   await api.queryMulti(
     [api.query.ethereumEvents.uncheckedEvents, api.query.ethereumEvents.eventsPendingChallenge],
-    ([uncheckedEvents, eventsPendingChallenge]) => {
+    ([rawUncheckedEvents, rawEventsPendingChallenge]) => {
+      let uncheckedEvents = rawUncheckedEvents.toJSON() as any;
       if (uncheckedEvents.find((t: any) => t.toJSON()[0].transactionHash === transactionHash)) {
-        liftStatus = liftStatusesEnum.UNCHECKED_LIFT;
+        liftStatus = LiftStatuses.UNCHECKED_LIFT;
       }
+      let eventsPendingChallenge = rawEventsPendingChallenge.toJSON() as any;
       if (eventsPendingChallenge.find((t: any) => t.toJSON()[0].transactionHash === transactionHash)) {
-        liftStatus = liftStatusesEnum.PENDING_VALIDATION;
+        liftStatus = LiftStatuses.PENDING_VALIDATION;
       }
     }
   );
 
-  if (liftStatus !== liftStatusesEnum.LIFT_NOT_FOUND) {
+  if (liftStatus !== LiftStatuses.LIFT_NOT_FOUND) {
     return {
       transactionHash,
       liftStatus,
@@ -266,7 +269,7 @@ async function ethereumEventStatus(transactionHash: string): Promise<any> {
 
   const isProcessed = await api.query.ethereumEvents.processedEvents(liftEvent);
   if (isProcessed) {
-    liftStatus = liftStatusesEnum.LIFT_PROCESSED;
+    liftStatus = LiftStatuses.LIFT_PROCESSED;
     return {
       transactionHash,
       liftStatus,
@@ -275,7 +278,7 @@ async function ethereumEventStatus(transactionHash: string): Promise<any> {
 
   return {
     transactionHash,
-    liftStatus: liftStatusesEnum.AWAITING_TO_RECEIVE,
+    liftStatus: LiftStatuses.AWAITING_TO_RECEIVE,
   };
 }
 
@@ -287,7 +290,8 @@ async function getUnprocessedLifts(): Promise<any> {
 
     if (liftEvents.length > 0) {
       const liftStatuses = await api.query.ethereumEvents.processedEvents.multi(liftEvents);
-      for (let [i, isProcessed] of liftStatuses.entries()) {
+      for (let [i, rawIsProcessed] of liftStatuses.entries()) {
+        const isProcessed = rawIsProcessed.toJSON() as unknown as liftStatus;
         if (isProcessed.isFalse) {
           unprocessedLifts.push(liftEvents[i][1]);
         }
@@ -376,8 +380,8 @@ async function signAndSend(requestId: string, relayerAddress: string, txn: any, 
       requestId,
       transactionHash,
       relayerAddress,
-      nonce.toString(),
-      redis.transactionStatus.SendingFailed
+      nonce?.toString(),
+      transactionStatus.SendingFailed
     );
 
     throw err;
@@ -386,12 +390,8 @@ async function signAndSend(requestId: string, relayerAddress: string, txn: any, 
   return { transactionHash };
 }
 
-async function setSendingFailedStatus(requestId: string, failure: string): Promise<void> {
+async function setSendingFailedStatus(requestId: string, failureReason: string): Promise<void> {
   if (!requestId) throw new Error('setSendingFailedStatus - RequestId is mandatory');
-  const failureReason = redis.transactionStatus[failure];
-
-  if (!failureReason) throw new Error('Invalid failure reason: ', failure);
-
   await redis.addFailedAvnTransaction(requestId, keccakAsHex(requestId), undefined, undefined, failureReason);
 }
 
@@ -431,7 +431,8 @@ async function getGatewayUserInfo(account: string): Promise<any> {
     [api.query.system.account, account],
   ]);
 
-  const [paymentNonce, { data: balance }] = result;
+  const [paymentNonce, accountInfo] = result;
+  let balance = (accountInfo.toJSON() as unknown as accountInfo).data;
 
   return {
     paymentNonce: paymentNonce.toString(),
@@ -509,7 +510,8 @@ async function getPayerPaymentNonce(requestId: string, payerAddress: string): Pr
   try {
     let nonce = await redis.getNextPayerNonce(payerAddress);
     if (!nonce) {
-      nonce = (await api.query.avnProxy.paymentNonces(payerAddress)).toNumber();
+      let rawNonce = await api.query.avnProxy.paymentNonces(payerAddress);
+      nonce = rawNonce.toJSON() as number;
       logger.info(`${requestId} - Nonce expired, refreshing from chain. New nonce: ${nonce}`);
     }
     logger.info(`${requestId} - Payer ${payerAddress}, payment nonce: ${nonce}`);
@@ -564,14 +566,15 @@ function toBn(val: any): BN {
 }
 
 async function getLowerProof(lowerId: number): Promise<string | null> {
-  const proof = await api.query.tokenManager.lowersReadyToClaim(lowerId);
+  const rawProof = await api.query.tokenManager.lowersReadyToClaim(lowerId);
+  let proof = rawProof.toJSON() as unknown as Option<any>;
   return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
 }
 
 async function getUnclaimedLowerProofs(minLowerId: number, additionalLowerIds: number[]): Promise<Record<number, string>> {
   try {
     let entries = [],
-      startKey,
+      startKey: any,
       unclaimedLowerIds: number[] = [],
       claimData: any[] = [];
 
@@ -580,7 +583,7 @@ async function getUnclaimedLowerProofs(minLowerId: number, additionalLowerIds: n
       if (entries.length > 0) {
         startKey = entries[entries.length - 1];
         const filteredIds = entries
-          .map(({ args: [lowerId] }) => lowerId.toNumber())
+          .map(({ args: [lowerId] }) => lowerId.toJSON() as number)
           .filter((lowerId) => lowerId > minLowerId || additionalLowerIds.includes(lowerId));
 
         unclaimedLowerIds = unclaimedLowerIds.concat(filteredIds);
@@ -608,18 +611,18 @@ async function regenerateLowerProof(account: any, lowerId: number): Promise<any>
 
 async function getNftInfo(nftId: number): Promise<any> {
   try {
-    const nft = (await api.query.nftManager.nfts(nftId)).toJSON();
+    const nft = (await api.query.nftManager.nfts(nftId)).toJSON() as Partial<Nft>;
     if (!nft) {
       return null;
     }
 
-    const nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON();
+    const nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON() as Partial<NftInfo>;
     return {
       ownerAddress: nft.owner,
       nonce: nft.nonce,
       infoId: nft.infoId,
       uniqueExternalRef: nft.uniqueExternalRef,
-      royalties: nftInfo.royalties.map((r: any) => {
+      royalties: nftInfo.royalties?.map((r: any) => {
         return {
           recipient_t1_address: r.recipientT1Address,
           rate: { parts_per_million: r.rate.partsPerMillion },
@@ -635,17 +638,18 @@ async function getNftInfo(nftId: number): Promise<any> {
 
 async function getBatchInfo(batchId: number): Promise<any> {
   try {
-    const infoId = await api.query.nftManager.batchInfoId(batchId);
+    const infoId = (await api.query.nftManager.batchInfoId(batchId)).toJSON() as number;
     if (infoId <= 0) {
       return null;
     }
 
-    const batchInfo = (await api.query.nftManager.nftInfos(infoId)).toJSON();
+    const rawBatchInfo = await api.query.nftManager.nftInfos(infoId);
+    const batchInfo = rawBatchInfo.toJSON() as Partial<BatchInfo>;
     return {
       ownerAddress: batchInfo.creator,
       infoId: batchInfo.infoId,
       totalSupply: batchInfo.totalSupply,
-      royalties: batchInfo.royalties.map((r: any) => {
+      royalties: batchInfo.royalties?.map((r: any) => {
         return {
           recipient_t1_address: r.recipientT1Address,
           rate: { parts_per_million: r.rate.partsPerMillion },

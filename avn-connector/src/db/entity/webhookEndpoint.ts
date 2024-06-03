@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, Up
 import { Payer } from './payer';
 import { Webhooks } from './webhooks';
 
-@Entity('webhookEndpoint')
+@Entity('webhook_endpoint')
 @Index('IDX_webhookEndpoint_updatedAt', ['updatedAt'])
 export class WebhookEndpoint {
     @PrimaryGeneratedColumn()

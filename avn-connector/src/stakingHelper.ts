@@ -37,6 +37,10 @@ function calculateNominatorStakingBalances(nominatorState: NominatorState, nomin
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
 
+    console.log(`inside staking helper: ` + nominatorState);
+    console.log(`isEmpty: ` + nominatorState.isEmpty);
+    console.log(`json: ` + nominatorState.toJSON());
+
   if (!nominatorState.isEmpty) {
     stakedBalance = hexToBn(nominatorState.toJSON().total);
   }

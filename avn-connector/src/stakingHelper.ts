@@ -6,11 +6,6 @@ import { Option } from '@polkadot/types';
 
 const BN_ZERO = new BN(0);
 
-interface NominatorState {
-  isEmpty: boolean;
-  toJSON: () => { total: string };
-}
-
 interface RequestAction {
   isDecrease: boolean;
   isRevoke: boolean;
@@ -20,11 +15,6 @@ interface RequestAction {
 interface NominatorRequest {
   whenExecutable: string;
   action: RequestAction;
-}
-
-interface CandidateInfo {
-  isEmpty: boolean;
-  toJSON: () => { bond: string; request?: { whenExecutable: string; amount: string } };
 }
 
 interface StakingBalances {

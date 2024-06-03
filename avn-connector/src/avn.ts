@@ -187,14 +187,11 @@ async function getStakingStats(): Promise<any> {
     const [minUserBond, maxNominatorsRewardedPerValidator, rawTotalStaked, stakersData] = await Promise.all([
       api.query.parachainStaking.minTotalNominatorStake(),
       api.consts.parachainStaking.maxTopNominationsPerCandidate,
-      api.query.parachainStaking.total() as unknown as number,
+      api.query.parachainStaking.total(),
       api.query['parachainStaking']['nominatorState'].keys(),
     ]);
 
-    console.log(`stakingStats-debug1:` + rawTotalStaked);
-    console.log(`stakingStats-debug2:` + JSON.stringify(rawTotalStaked, null, 2));
-
-    const totalStaked = new BN(rawTotalStaked);
+    const totalStaked = toBn(rawTotalStaked.toJSON());
     const numActiveStakes = stakersData.length;
     const averageStaked = totalStaked.divn(numActiveStakes).toString();
     stakingStats = {

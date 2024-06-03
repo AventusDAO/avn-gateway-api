@@ -142,7 +142,13 @@ async function getAccountInfo(accountId: string): Promise<any> {
     ));
   } else {
     const rawNominatorState = await api.query.parachainStaking.nominatorState(accountId);
+
+    console.log(`debug1: rawNominatorState: ` + rawNominatorState);
+    console.log(`debug2: nominatorState: ` + JSON.stringify(rawNominatorState, null, 2));
+
     const nominatorState = rawNominatorState.toJSON() as any;
+
+    console.log(`debug3: rawNominatorState: ` + rawNominatorState);
 
     const allRequests = await api.query.parachainStaking.nominationScheduledRequests.multi(collators);
 
@@ -184,6 +190,9 @@ async function getStakingStats(): Promise<any> {
       api.query.parachainStaking.total(),
       api.query['parachainStaking']['nominatorState'].keys(),
     ]);
+
+    console.log(`stakingStats-debug1:` + rawTotalStaked);
+    console.log(`stakingStats-debug2:` + JSON.stringify(rawTotalStaked, null, 2));
 
     const totalStaked = new BN(rawTotalStaked.toJSON() as number);
     const numActiveStakes = stakersData.length;

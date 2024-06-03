@@ -58,13 +58,14 @@ function calculateNominatorStakingBalances(nominatorState: Option<any>, nominato
   };
 }
 
-function calculateCollatorStakingBalances(candidateInfo: CandidateInfo, currentEra: number): StakingBalances {
+function calculateCollatorStakingBalances(candidateInfo: Option<any>, currentEra: number): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
 
-  if (!candidateInfo.isEmpty) {
-    const info = candidateInfo.toJSON();
+  const candidateInfoValue = candidateInfo.unwrapOr(null);
+  if (candidateInfoValue && !candidateInfo.isEmpty) {
+    const info = candidateInfoValue.toJSON();
     stakedBalance = hexToBn(info.bond);
 
     if (info.request) {

@@ -1,4 +1,4 @@
-import { transactionStatus } from './constants'
+import { TransactionStatus } from './constants'
 
 export interface Transaction {
   senderAddress: string
@@ -19,7 +19,7 @@ export const transactionObject: Transaction = {
 }
 
 export type TransactionStatus =
-  (typeof transactionStatus)[keyof typeof transactionStatus]
+  (typeof TransactionStatus)[keyof typeof TransactionStatus]
 
 export interface LowerData {
   from: string

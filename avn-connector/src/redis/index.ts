@@ -1,38 +1,7 @@
 const config = require('multiconfig').load({ directory: '../config' })
 import { Cluster, Redis } from 'ioredis'
 import logger from '../logger'
-import {
-  AUTOLOWERS_KEY,
-  AUTOLOWER_LOCK_KEY,
-  AUTOLOWER_MAX_LOCK_IN_SECONDS,
-  AUTOLOWER_RETRY_LIFETIME_NAMESPACE,
-  AUTOLOWER_RETRY_LIFETIME_SECONDS,
-  CHAIN_INFO_EXPIRY_IN_SECONDS,
-  CHAIN_INFO_KEY,
-  COLLATORS_EXPIRY_IN_SECONDS,
-  COLLATORS_KEY,
-  LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX,
-  LAST_LOWER_BLOCK_ID_FROM_AVN,
-  LATEST_LOWER_ID_FOR_AUTOLOWER_KEY,
-  LIFTS_FROM_TIER1_BLOCK_KEY,
-  LOWER_ID_PREFIX,
-  LOWER_RECIPIENT_PREFIX,
-  LOWER_SENDER_PREFIX,
-  MAX_PENDING_TX_TO_CHECK,
-  NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY,
-  NONCE_EXPIRY_IN_SECONDS,
-  NONCE_NAMESPACE,
-  PAYER_NONCE_NAMESPACE,
-  PENDING_TX_CHECKING_WINDOW_IN_SECONDS,
-  PENDING_TX_KEY,
-  SLOT_PREFIX,
-  STAKING_STAT_EXPIRY_IN_SECONDS,
-  STAKING_STAT_KEY,
-  TOTAL_TOKEN_EXPIRY_IN_SECONDS,
-  TOTAL_TOKEN_NAMESPACE,
-  WEBHOOKS_SENT_TX_KEY,
-  transactionStatus
-} from './constants'
+import { Prefix, Key, Expiry, Limit, TransactionStatus } from './constants'
 import { transactionObject } from './types'
 import _ from 'lodash'
 
@@ -158,8 +127,8 @@ class RedisClient {
     requestId: string,
     requestIdHash: string
   ): Promise<void> {
-    const transactionHashKey = `${SLOT_PREFIX}${requestIdHash}`
-    const requestIdKey = `${SLOT_PREFIX}${requestId}`
+    const transactionHashKey = Prefix.TxId + requestIdHash
+    const requestIdKey = Prefix.TxId + requestId
 
     logger.info(
       `[redis] [addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`
@@ -180,7 +149,7 @@ class RedisClient {
           this.buildTransactionJson(
             undefined,
             undefined,
-            transactionStatus.AwaitingToSend
+            TransactionStatus.AwaitingToSend
           )
         ]
       ],
@@ -195,8 +164,8 @@ class RedisClient {
     senderNonce: string | undefined,
     reason: string
   ): Promise<void> {
-    const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`
-    const requestIdKey = `${SLOT_PREFIX}${requestId}`
+    const txHashOrRequestIdKey = Prefix.TxId + txHashOrRequestId
+    const requestIdKey = Prefix.TxId + requestId
 
     logger.info(
       `[redis] [addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
@@ -231,8 +200,8 @@ class RedisClient {
     senderAddress: string,
     senderNonce: string
   ): Promise<void> {
-    const transactionHashKey = `${SLOT_PREFIX}${transactionHash}`
-    const requestIdKey = `${SLOT_PREFIX}${requestId}`
+    const transactionHashKey = `${Prefix.TxId}${transactionHash}`
+    const requestIdKey = Prefix.TxId + requestId
 
     logger.info(
       `[redis] [updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
@@ -247,11 +216,11 @@ class RedisClient {
           this.buildTransactionJson(
             senderAddress,
             senderNonce,
-            transactionStatus.Pending
+            TransactionStatus.Pending
           )
         ]
       ],
-      ['zadd', [PENDING_TX_KEY.ALL, age, transactionHash]],
+      ['zadd', [Key.PendingTxAll, age, transactionHash]],
       ['set', [requestIdKey, transactionHash]]
     ])
   }
@@ -260,7 +229,7 @@ class RedisClient {
     txHashOrRequestId: string | null
   ): Promise<Record<string, string> | undefined> {
     if (txHashOrRequestId === null) return undefined
-    const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`
+    const txHashOrRequestIdKey = Prefix.TxId + txHashOrRequestId
     const result = await this.hgetKey(txHashOrRequestIdKey)
     return Object.keys(result).length === 0 ? undefined : result
   }
@@ -273,13 +242,13 @@ class RedisClient {
 
     logger.info(`[redis] Updating ${transactions.length} transactions`)
     for (const tx of transactions) {
-      const transactionHashKey = `${SLOT_PREFIX}${tx.transactionHash}`
+      const transactionHashKey = Prefix.TxId + tx.transactionHash
 
       if (
         ![
-          transactionStatus.Processed,
-          transactionStatus.Rejected,
-          transactionStatus.Validating
+          TransactionStatus.Processed,
+          TransactionStatus.Rejected,
+          TransactionStatus.Validating
         ].includes(tx.status)
       ) {
         logger.warn({
@@ -298,7 +267,7 @@ class RedisClient {
         tx.eventArgs
       )
 
-      if (tx.status === transactionStatus.Validating) {
+      if (tx.status === TransactionStatus.Validating) {
         logger.info(
           `[redis] Updating tx status to validated: txHash: ${tx.transactionHash}`
         )
@@ -306,9 +275,9 @@ class RedisClient {
         const pendingTx = await this.hgetKey(transactionHashKey)
         if (
           ![
-            transactionStatus.Processed,
-            transactionStatus.Rejected,
-            transactionStatus.Validating
+            TransactionStatus.Processed,
+            TransactionStatus.Rejected,
+            TransactionStatus.Validating
           ].includes(pendingTx.status)
         ) {
           await this.hsetKey(transactionHashKey, newValue)
@@ -316,9 +285,9 @@ class RedisClient {
       } else {
         await this.multiExec([
           ['hset', [transactionHashKey, newValue]],
-          ['zrem', [PENDING_TX_KEY.ALL, tx.transactionHash]],
-          ['zrem', [PENDING_TX_KEY.CHECKING, tx.transactionHash]],
-          ['zrem', [PENDING_TX_KEY.NEXT, tx.transactionHash]]
+          ['zrem', [Key.PendingTxAll, tx.transactionHash]],
+          ['zrem', [Key.PendingTxCheck, tx.transactionHash]],
+          ['zrem', [Key.PendingTxNext, tx.transactionHash]]
         ])
       }
     }
@@ -326,25 +295,25 @@ class RedisClient {
 
   async getNextTransactionsToCheck(): Promise<string[]> {
     const timeNow = Date.now()
-    const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000
+    const expiry = timeNow + Expiry.PendingTxCheck * 1000
 
     const [numUpdated, numExpired, numAwaitingCheck, txToCheckNext] =
       await this.multiExec([
         [
           'addzrangebyscore',
-          [PENDING_TX_KEY.CHECKING, PENDING_TX_KEY.ALL, '-inf', timeNow]
+          [Key.PendingTxCheck, Key.PendingTxAll, '-inf', timeNow]
         ],
-        ['zremrangebyscore', [PENDING_TX_KEY.CHECKING, '-inf', timeNow]],
+        ['zremrangebyscore', [Key.PendingTxCheck, '-inf', timeNow]],
         [
           'zdiffstore',
-          [PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING]
+          [Key.PendingTxNext, 2, Key.PendingTxAll, Key.PendingTxCheck]
         ],
         [
           'nextzsubset',
           [
-            PENDING_TX_KEY.NEXT,
-            PENDING_TX_KEY.CHECKING,
-            MAX_PENDING_TX_TO_CHECK,
+            Key.PendingTxNext,
+            Key.PendingTxCheck,
+            Limit.PendingTxCheck,
             expiry
           ]
         ]
@@ -364,7 +333,7 @@ class RedisClient {
   async getTransactionHashByRequestId(
     requestId: string
   ): Promise<string | null> {
-    const requestIdKey = `${SLOT_PREFIX}${requestId}`
+    const requestIdKey = Prefix.TxId + requestId
     return await this.getKey(requestIdKey)
   }
 
@@ -381,112 +350,112 @@ class RedisClient {
   }
 
   async getNextNonce(senderAddress: string): Promise<number | undefined> {
-    const nonce = await this.getKey(NONCE_NAMESPACE + senderAddress)
+    const nonce = await this.getKey(Prefix.Nonce + senderAddress)
     return nonce == null ? undefined : Number(nonce)
   }
 
   async setNextNonce(senderAddress: string, nonce: number): Promise<void> {
     await this.setKey(
-      NONCE_NAMESPACE + senderAddress,
+      Prefix.Nonce + senderAddress,
       nonce.toString(),
-      NONCE_EXPIRY_IN_SECONDS
+      Expiry.Nonce
     )
   }
 
   async getNextPayerNonce(payerAddress: string): Promise<number | undefined> {
-    const nonce = await this.getKey(PAYER_NONCE_NAMESPACE + payerAddress)
+    const nonce = await this.getKey(Prefix.Payer + payerAddress)
     return nonce == null ? undefined : Number(nonce)
   }
 
   async setNextPayerNonce(payerAddress: string, nonce: number): Promise<void> {
     await this.setKey(
-      PAYER_NONCE_NAMESPACE + payerAddress,
+      Prefix.Payer + payerAddress,
       nonce.toString(),
-      NONCE_EXPIRY_IN_SECONDS
+      Expiry.Nonce
     )
   }
 
   async setCollatorsToNominate(collators: any): Promise<void> {
     await this.setKey(
-      COLLATORS_KEY,
+      Key.Collators,
       this.dataToJsonString(collators),
-      COLLATORS_EXPIRY_IN_SECONDS
+      Expiry.Collators
     )
   }
 
   async getCollatorsToNominate(): Promise<any | undefined> {
-    const collators = await this.getKey(COLLATORS_KEY)
+    const collators = await this.getKey(Key.Collators)
     return collators ? JSON.parse(collators) : undefined
   }
 
   async setStakingStats(stakingStats: any): Promise<void> {
     await this.setKey(
-      STAKING_STAT_KEY,
+      Key.StakingStats,
       this.dataToJsonString(stakingStats),
-      STAKING_STAT_EXPIRY_IN_SECONDS
+      Expiry.StakingStats
     )
   }
 
   async getStakingStats(): Promise<any | undefined> {
-    const stakingStats = await this.getKey(STAKING_STAT_KEY)
+    const stakingStats = await this.getKey(Key.StakingStats)
     return stakingStats ? JSON.parse(stakingStats) : undefined
   }
 
   async setChainInfo(chainInfo: any): Promise<void> {
     await this.setKey(
-      CHAIN_INFO_KEY,
+      Key.ChainInfo,
       this.dataToJsonString(chainInfo),
-      CHAIN_INFO_EXPIRY_IN_SECONDS
+      Expiry.ChainInfo
     )
   }
 
   async getChainInfo(): Promise<any | undefined> {
-    const chainInfo = await this.getKey(CHAIN_INFO_KEY)
+    const chainInfo = await this.getKey(Key.ChainInfo)
     return chainInfo ? JSON.parse(chainInfo) : undefined
   }
 
   async setLiftsFromTier1Block(blockNumber: number): Promise<void> {
-    await this.setKey(LIFTS_FROM_TIER1_BLOCK_KEY, blockNumber.toString())
+    await this.setKey(Key.LiftingEthBlock, blockNumber.toString())
   }
 
   async getLiftsFromTier1Block(): Promise<number> {
-    const blockNumber = await this.getKey(LIFTS_FROM_TIER1_BLOCK_KEY)
+    const blockNumber = await this.getKey(Key.LiftingEthBlock)
     return blockNumber ? Number(blockNumber) : 0
   }
 
   async setTotalToken(token: string, total: string): Promise<void> {
     await this.setKey(
-      TOTAL_TOKEN_NAMESPACE + token,
+      Prefix.Token + token,
       total,
-      TOTAL_TOKEN_EXPIRY_IN_SECONDS
+      Expiry.Token
     )
   }
 
   async getTotalToken(token: string): Promise<string | null> {
-    return await this.getKey(TOTAL_TOKEN_NAMESPACE + token)
+    return await this.getKey(Prefix.Token + token)
   }
 
   async setLastLowerBlockIdFromAvn(blockId: string): Promise<void> {
-    await this.setKey(LAST_LOWER_BLOCK_ID_FROM_AVN, blockId)
+    await this.setKey(Key.LoweringAvnBlock, blockId)
   }
 
   async getLastLowerBlockIdFromAvn(): Promise<string> {
-    const blockId = await this.getKey(LAST_LOWER_BLOCK_ID_FROM_AVN)
+    const blockId = await this.getKey(Key.LoweringAvnBlock)
     return blockId === null ? '' : blockId
   }
 
   async setLowerById(lowerId: string, lowerData: any): Promise<void> {
-    const senderKey = LOWER_SENDER_PREFIX + lowerData?.from
-    const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase()
+    const senderKey = Prefix.LowerSender + lowerData?.from
+    const recipientKey = Prefix.LowerRecipient + lowerData?.to?.toLowerCase()
     await this.multiExec([
-      ['set', [LOWER_ID_PREFIX + lowerId, this.dataToJsonString(lowerData)]],
+      ['set', [Prefix.LowerId + lowerId, this.dataToJsonString(lowerData)]],
       ['sadd', [senderKey, lowerId]],
       ['sadd', [recipientKey, lowerId]]
     ])
   }
 
   async getLowerById(lowerId: any): Promise<any | undefined> {
-    const lowerData = await this.getKey(LOWER_ID_PREFIX + lowerId)
+    const lowerData = await this.getKey(Prefix.LowerId + lowerId)
     return lowerData ? JSON.parse(lowerData) : undefined
   }
 
@@ -494,22 +463,22 @@ class RedisClient {
     const lowerData = await this.getLowerById(lowerId)
     if (!lowerData) return
 
-    const senderKey = LOWER_SENDER_PREFIX + lowerData?.from
-    const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase()
+    const senderKey = Prefix.LowerSender + lowerData?.from
+    const recipientKey = Prefix.LowerRecipient + lowerData?.to?.toLowerCase()
     logger.info(
       `Deleting senderKey: ${senderKey} and recipientKey: ${recipientKey}`
     )
 
     await this.multiExec([
-      ['del', [LOWER_ID_PREFIX + lowerId]],
+      ['del', [Prefix.LowerId + lowerId]],
       ['srem', [senderKey, lowerId]],
       ['srem', [recipientKey, lowerId]]
     ])
   }
 
   async getLowerIdsByAddress(address: string): Promise<string[]> {
-    const senderKey = LOWER_SENDER_PREFIX + address
-    const recipientKey = LOWER_RECIPIENT_PREFIX + address
+    const senderKey = Prefix.LowerSender + address
+    const recipientKey = Prefix.LowerRecipient + address
     let lowerIds = await this.smembersKey(senderKey)
     if (!lowerIds || lowerIds.length === 0) {
       lowerIds = await this.smembersKey(recipientKey)
@@ -518,57 +487,57 @@ class RedisClient {
   }
 
   async getLastClaimedEthereumLowerBlock(): Promise<number> {
-    const blockNumber = await this.getKey(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX)
+    const blockNumber = await this.getKey(Key.LoweringEthBlock)
     return blockNumber ? Number(blockNumber) : 0
   }
 
   async setLastClaimedEthereumLowerBlock(blockNumber: number): Promise<void> {
     await this.setKey(
-      LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX,
+      Key.LoweringEthBlock,
       blockNumber.toString()
     )
   }
 
   async setAutolowerNextT1Block(blockNumber: number): Promise<void> {
-    await this.setKey(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY, blockNumber.toString())
+    await this.setKey(Key.AutolowerEthBlock, blockNumber.toString())
   }
 
   async getAutolowerNextT1Block(): Promise<number> {
-    const blockNumber = await this.getKey(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY)
+    const blockNumber = await this.getKey(Key.AutolowerEthBlock)
     return blockNumber ? Number(blockNumber) : 0
   }
 
   async setLatestAutolowerId(lowerId: number): Promise<void> {
-    await this.setKey(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY, lowerId.toString())
+    await this.setKey(Key.AutolowerId, lowerId.toString())
   }
 
   async getLatestAutolowerId(): Promise<number> {
-    const lowerId = await this.getKey(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY)
+    const lowerId = await this.getKey(Key.AutolowerId)
     return lowerId ? Number(lowerId) : -1
   }
 
   async addAutolower(lowerId: number): Promise<void> {
-    const result = await this.saddKey(AUTOLOWERS_KEY, lowerId.toString())
+    const result = await this.saddKey(Key.Autolower, lowerId.toString())
     if (result === 1) {
       await this.setKey(
-        AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId,
+        Prefix.AutolowerRetry + lowerId,
         'true',
-        AUTOLOWER_RETRY_LIFETIME_SECONDS
+        Expiry.AutolowerRetryLifetime
       )
     }
   }
 
   async removeAutolower(lowerId: number): Promise<void> {
-    await this.sremKey(AUTOLOWERS_KEY, lowerId.toString())
-    await this.delKey(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId)
+    await this.sremKey(Key.Autolower, lowerId.toString())
+    await this.delKey(Prefix.AutolowerRetry + lowerId)
   }
 
   async getAutolowers(): Promise<number[]> {
-    const lowerIds = await this.smembersKey(AUTOLOWERS_KEY)
+    const lowerIds = await this.smembersKey(Key.Autolower)
     const liveLowerIds: number[] = []
     for (const lowerId of lowerIds || []) {
       const exists = await this.client.exists(
-        AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId
+        Prefix.AutolowerRetry + lowerId
       )
       if (exists) {
         liveLowerIds.push(Number(lowerId))
@@ -581,10 +550,10 @@ class RedisClient {
 
   async acquireAutolowerLock(bridgeAddress: string): Promise<boolean> {
     const result = await this.client.set(
-      AUTOLOWER_LOCK_KEY,
+      Key.AutolowerLock,
       bridgeAddress,
       'EX',
-      AUTOLOWER_MAX_LOCK_IN_SECONDS,
+      Expiry.AutolowerLock,
       'NX'
     )
     return result === 'OK'
@@ -596,7 +565,7 @@ class RedisClient {
       else
         return 0
       end`
-    await this.client.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress)
+    await this.client.eval(script, 1, Key.AutolowerLock, bridgeAddress)
   }
 
   async refreshAutolowerLock(bridgeAddress: string): Promise<void> {
@@ -608,26 +577,26 @@ class RedisClient {
     await this.client.eval(
       script,
       1,
-      AUTOLOWER_LOCK_KEY,
+      Key.AutolowerLock,
       bridgeAddress,
-      AUTOLOWER_MAX_LOCK_IN_SECONDS.toString()
+      Expiry.AutolowerLock.toString()
     )
   }
 
   async setSentTxDetails(txHash: string, details: any): Promise<void> {
     await this.setKey(
-      WEBHOOKS_SENT_TX_KEY + txHash,
+      Key.Webhooks + txHash,
       this.dataToJsonString(details)
     )
   }
 
   async getSentTxDetails(txHash: string): Promise<any> {
-    const details = await this.getKey(WEBHOOKS_SENT_TX_KEY + txHash)
+    const details = await this.getKey(Key.Webhooks + txHash)
     return details ? JSON.parse(details) : {}
   }
 
   async deleteSentTxDetails(txHash: string): Promise<void> {
-    await this.delKey(WEBHOOKS_SENT_TX_KEY + txHash)
+    await this.delKey(Key.Webhooks + txHash)
   }
 
   private dataToJsonString(data: any): string {
@@ -641,4 +610,4 @@ class RedisClient {
 
 const redisClient = new RedisClient()
 export default redisClient
-export { transactionStatus }
+export { TransactionStatus }

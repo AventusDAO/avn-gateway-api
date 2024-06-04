@@ -12,7 +12,8 @@ export enum LowerStatus {
     Error = 'error'
 }
 
-enum TransactionStatus {
+// Must match same enum in avn-connector/src/redis/constants.ts
+export enum TransactionStatus {
   AwaitingToSend = 'AWAITING_TO_SEND',
   PayerRefused = 'PAYER_REFUSED',
   Pending = 'PENDING',

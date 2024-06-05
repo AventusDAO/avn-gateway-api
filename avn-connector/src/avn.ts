@@ -3,7 +3,7 @@ import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { isHex, stringToHex, u8aToHex } from '@polkadot/util';
 import { keccakAsHex } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
-import redis, { transactionStatus } from './redis';
+import redis, { TransactionStatus } from './redis';
 import tier1 from './tier1';
 import Vault from './vaultApp';
 import stakingHelper from './stakingHelper';
@@ -381,7 +381,7 @@ async function signAndSend(requestId: string, relayerAddress: string, txn: any, 
       transactionHash,
       relayerAddress,
       nonce?.toString(),
-      transactionStatus.SendingFailed
+      TransactionStatus.SendingFailed
     );
 
     throw err;

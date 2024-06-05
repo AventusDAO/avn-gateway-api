@@ -8,17 +8,6 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT!;
 const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL!;
 const TX_LIMIT = 2500;
 
-// Make sure this is kept in sync with the state names defined in avn-connector/src/redis.js
-const transactionStatus = {
-  Processed: 'Processed',
-  Rejected: 'Rejected',
-  Validating: 'Validating',
-  Pending: 'Pending',
-  SendingFailed: 'SendingFailed',
-  PayerRefused: 'PayerRefused',
-  AwaitingToSend: 'AwaitingToSend',
-} as const;
-
 // any cross chain transactions such as lifting will emit this event
 const NEW_CROSS_CHAIN_EVENTS = ['EthereumEvents.EthereumEventAdded', 'EthereumEvents.NftEthereumEventAdded'];
 const SUCCESS_CROSS_CHAIN_EVENT = 'EthereumEvents.EventAccepted';
@@ -122,7 +111,7 @@ function processTransactionsEvents(transactionEvents: TransactionEvent[]): { txE
     if (NEW_CROSS_CHAIN_EVENTS.includes(event.name)) {
       // we have a successfull new cross chain transaction, set the status to validating and have 2 keys in the map
       const ethEventId = JSON.stringify(event.args.ethEventId);
-      crossChainTxMap.set(txHash, { ...event.args.ethEventId, status: transactionStatus.Validating });
+      crossChainTxMap.set(txHash, { ...event.args.ethEventId, status: TransactionStatus.Validating });
       crossChainTxMap.set(ethEventId, txHash);
     }
   });
@@ -142,7 +131,7 @@ async function updateCrossChainTxStatuses(crossChainTxMap: CrossChainTxMap): Pro
     const ethEventId = JSON.stringify(event.args.ethEventId);
     const txHash = crossChainTxMap.get(ethEventId) as string;
     const currentTxStatus = crossChainTxMap.get(txHash) as CrossChainTxStatus;
-    currentTxStatus.status = failureFilter.includes(event.name) ? transactionStatus.Rejected : transactionStatus.Processed;
+    currentTxStatus.status = failureFilter.includes(event.name) ? TransactionStatus.Rejected : TransactionStatus.Processed;
     crossChainTxMap.set(txHash, currentTxStatus);
   });
 
@@ -171,7 +160,7 @@ async function getCrossChainTxFinalStatuses(txEvents: CrossChainTxStatus[]): Pro
 
 function calculateTransactionStatus(txEvent: TransactionEvent, failureEvents: string[], crossChainTxMap: CrossChainTxMap): TransactionStatus {
   if (failureEvents.includes(txEvent.name)) {
-    return transactionStatus.Rejected;
+    return TransactionStatus.Rejected;
   }
 
   const txStatus = crossChainTxMap.get(txEvent.extrinsic.hash);
@@ -180,7 +169,7 @@ function calculateTransactionStatus(txEvent: TransactionEvent, failureEvents: st
     return txStatus.status;
   }
 
-  return transactionStatus.Processed;
+  return TransactionStatus.Processed;
 }
 
 function log(state: string, txHashes: string[] = [], crossChainCount?: number): void {

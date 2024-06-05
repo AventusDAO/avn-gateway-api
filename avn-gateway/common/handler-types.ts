@@ -4,13 +4,23 @@ import { SQSEvent, Handler, SQSBatchResponse, APIGatewayProxyResult } from 'aws-
 import { Response, SignDataItem, TransactionType } from './types';
 
 export type CustomSQSHandler = Handler<SQSEvent, (SQSBatchResponse | APIGatewayProxyResult) | void>
-export type TransactionStatus = 'Validating' | 'Processed' | 'Rejected' | 'AwaitingToSend' | 'Pending' | 'SendingFailed'|'PayerRefused';
 export type TxEventsMap = Record<string, TransactionEvent>;
 export type CrossChainTxMap = Map<string, CrossChainTxStatus | string>;
 
 export enum LowerStatus {
     Success = 'success',
     Error = 'error'
+}
+
+// Must match same enum in avn-connector/src/redis/constants.ts
+export enum TransactionStatus {
+  AwaitingToSend = 'AWAITING_TO_SEND',
+  PayerRefused = 'PAYER_REFUSED',
+  Pending = 'PENDING',
+  Processed = 'PROCESSED',
+  Rejected = 'REJECTED',
+  SendingFailed = 'SENDING_FAILED',
+  Validating = 'VALIDATING'
 }
 
 export enum StatusCode {

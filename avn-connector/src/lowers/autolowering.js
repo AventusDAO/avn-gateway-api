@@ -7,6 +7,8 @@ const log = log4js.getLogger();
 
 const ACCOUNTS = {};
 
+const MINIMUM_AMOUNT = BigInt(config.autolower.minimumAmount);
+
 const LOWERING_ABI = [
   'function claimLower(bytes calldata)',
   'function checkLower(bytes calldata) external view returns (address token, uint256 amount, address recipient, uint32 lowerId, uint256 confirmationsRequired, uint256 confirmationsProvided, bool proofIsValid, bool lowerIsClaimed)'
@@ -15,7 +17,8 @@ const LOWERING_ABI = [
 const FAILURE_REASON = {
   InvalidProof: 'Invalid proof',
   AlreadyClaimed: 'Already claimed',
-  RejectedByBridge: 'Rejected by bridge'
+  RejectedByBridge: 'Rejected by bridge',
+  BelowMinimumAmount: 'Below minimum amount'
 };
 
 const RETRY_REASON = {
@@ -131,6 +134,11 @@ async function handleProofCheckResult(check, id, proof) {
     } else {
       await closeFailedClaim(FAILURE_REASON.InvalidProof, id, proof);
     }
+    return false;
+  }
+
+  if (check.amount < MINIMUM_AMOUNT) {
+    await closeFailedClaim(FAILURE_REASON.BelowMinimumAmount, id, proof);
     return false;
   }
 

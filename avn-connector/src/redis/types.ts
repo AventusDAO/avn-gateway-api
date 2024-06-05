@@ -18,9 +18,6 @@ export const transactionObject: Transaction = {
   eventArgs: 'eventArgs'
 }
 
-export type TransactionStatus =
-  (typeof TransactionStatus)[keyof typeof TransactionStatus]
-
 export interface LowerData {
   from: string
   to: string

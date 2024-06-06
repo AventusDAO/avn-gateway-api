@@ -20,8 +20,26 @@ defaults:
     shell: bash
 
 jobs:
+  run-npm-pretty:
+    name: Run npm pretty
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm pretty
+        run: npm run pretty
   avn-docker-connector:
     name: (AVN) build docker connector
+    needs: run-npm-pretty
     uses: ./.github/workflows/docker-build.yaml
     with:
       aws_region: eu-west-2

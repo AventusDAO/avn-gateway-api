@@ -1,23 +1,17 @@
 {
-    "compilerOptions": {
-        "baseUrl": ".", // This sets the base directory for relative paths in the "paths" field
-        "paths": {
-            "/opt/*": [
-                "./common/*"
-            ] // Maps all imports from "/opt/" to "./common/"
-        },
-        // "moduleResolution": "node", // Ensures that module resolution follows Node.js-style resolution
-        "esModuleInterop": true,
-        "rootDir": ".",
-        "outDir": "./dist",
-        "skipLibCheck": true,
-        "module": "node16",
-        "target": "es2020",
+  "compilerOptions": {
+    "baseUrl": ".", // This sets the base directory for relative paths in the "paths" field
+    "paths": {
+      "/opt/*": ["./common/*"] // Maps all imports from "/opt/" to "./common/"
     },
-    "include": [
-        "./**/*"
-    ],
-    "exclude": [
-        "node_modules"
-    ]
+    // "moduleResolution": "node", // Ensures that module resolution follows Node.js-style resolution
+    "esModuleInterop": true,
+    "rootDir": ".",
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "module": "node16",
+    "target": "es2020"
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules"]
 }

@@ -1,12 +1,12 @@
-import { TransactionStatus } from './constants'
+import { TransactionStatus } from './constants';
 
 export interface Transaction {
-  senderAddress: string
-  senderNonce: string
-  status: string
-  blockNumber: string
-  transactionIndex: string
-  eventArgs: string
+  senderAddress: string;
+  senderNonce: string;
+  status: string;
+  blockNumber: string;
+  transactionIndex: string;
+  eventArgs: string;
 }
 
 export const transactionObject: Transaction = {
@@ -16,9 +16,9 @@ export const transactionObject: Transaction = {
   blockNumber: 'blockNumber',
   transactionIndex: 'transactionIndex',
   eventArgs: 'eventArgs'
-}
+};
 
 export interface LowerData {
-  from: string
-  to: string
+  from: string;
+  to: string;
 }

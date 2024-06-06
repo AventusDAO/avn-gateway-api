@@ -6,7 +6,7 @@ enum Prefix {
   Nonce = 'NONCE_',
   Payer = 'PAYER_',
   Token = 'TOKEN_',
-  TxId = 'TX_ID_',
+  TxId = 'TX_ID_'
 }
 
 enum Key {
@@ -52,10 +52,4 @@ enum Limit {
   PendingTxCheck = 250
 }
 
-export {
-  Prefix,
-  Key,
-  Expiry,
-  TransactionStatus,
-  Limit
-}
+export { Prefix, Key, Expiry, TransactionStatus, Limit };

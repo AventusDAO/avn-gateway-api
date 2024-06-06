@@ -9,7 +9,7 @@ async function resolvePendingTransactionsState(): Promise<void> {
 
   const client = new LambdaClient({ region: config.aws.region });
   const command = new InvokeCommand({
-    FunctionName: lambdaFunctionName,
+    FunctionName: lambdaFunctionName
   });
 
   try {

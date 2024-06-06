@@ -3,6 +3,7 @@ import { Cluster, Redis } from 'ioredis'
 import logger from '../logger'
 import { Prefix, Key, Expiry, Limit, TransactionStatus } from './constants'
 import { transactionObject } from './types'
+import { LowerData } from '../types'
 import _ from 'lodash'
 
 class RedisClient {
@@ -454,7 +455,7 @@ class RedisClient {
     ])
   }
 
-  async getLowerById(lowerId: any): Promise<any | undefined> {
+  async getLowerById(lowerId: any): Promise<LowerData | undefined> {
     const lowerData = await this.getKey(Prefix.LowerId + lowerId)
     return lowerData ? JSON.parse(lowerData) : undefined
   }

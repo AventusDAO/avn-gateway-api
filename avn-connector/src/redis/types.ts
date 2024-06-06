@@ -17,8 +17,3 @@ export const transactionObject: Transaction = {
   transactionIndex: 'transactionIndex',
   eventArgs: 'eventArgs'
 }
-
-export interface LowerData {
-  from: string
-  to: string
-}

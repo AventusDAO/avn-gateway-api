@@ -5,15 +5,34 @@ export type Era = {
 }
 
 export interface BatchInfo {
-    infoId: number,
-    batchId: number,
-    royalties: Royalty[],
-    totalSupply: number,
+    ownerAddress: string | undefined,
+    infoId: number | undefined,
+    royalties: Royalty[] | undefined,
+    totalSupply: number | undefined,
+    marketplaceId: string | undefined
+}
+
+export interface BatchInfoInfo {
+    ownerAddress: string | undefined,
+    infoId: number | undefined,
+    batchId: number | number,
+    royalties: Royalty[] | undefined,
+    totalSupply: number | undefined,
     t1Authority: string,
-    creator: string
+    creator: string,
+    marketplaceId: string | undefined
 }
 
 export interface NftInfo {
+    ownerAddress: string | undefined,
+    nonce: number | undefined,
+    infoId: number | undefined,
+    uniqueExternalRef: string | undefined,
+    royalties: Royalty[] | undefined,
+    marketplaceId: string | undefined,
+}
+
+export interface NftAuthority {
     royalties: Royalty[];
     t1Authority: string;
 }
@@ -76,10 +95,81 @@ export interface lowerReadyToClaim {
     encodedLowerData: string
 }
 
+export interface PollResult {
+    txHash: string | null,
+    status: string,
+    blockNumber: string,
+    transactionIndex: string,
+    senderNonce: string,
+    eventArgs: any,
+}
+
+export interface TxNotFoundResult {
+    status: string,
+}
+
+export interface PollErrorResult {
+    error: string,
+}
+
+export interface AccountInfo {
+    totalBalance: string,
+    freeBalance: string,
+    stakedBalance: string,
+    unlockedBalance: string,
+    unstakedBalance: string
+}
+
+export interface UnprocessedLifts {
+    fromBlock: number,
+    toBlock: number,
+    unprocessedLifts: string[]
+}
+
+export interface EthereumEventStatus {
+    transactionHash: string,
+    liftStatus: string,
+}
+
+export interface LowerData {
+    lowerId?: string;
+    token?: string;
+    to?: string;
+    amount?: string;
+    name?: string;
+    from?: string;
+    claimData?: any;
+    [key: string]: string | undefined | any;
+}
+
+export interface GatewayUserInfo {
+    paymentNonce: string,
+    freeBalance: string,
+}
+
+export interface PayerInfo {
+    payerId: number
+    payerAddress: string
+    vaultId: string
+}
+
+export interface SuccessResponse<T> {
+    data: T;
+}
+
+export interface TotalToken {
+    total: string;
+}
+
+export interface BlockId {
+    blockNumber: number;
+    index: number;
+}
+
 export enum LiftStatuses {
     AWAITING_TO_RECEIVE = 'AwaitingToReceive',
     UNCHECKED_LIFT = 'UncheckedLift',
     PENDING_VALIDATION = 'PendingValidation',
     LIFT_PROCESSED = 'LiftProcessed',
     LIFT_NOT_FOUND = 'LiftNotFound',
-  }
+}

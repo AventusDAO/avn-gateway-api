@@ -13,7 +13,8 @@ import rds from './db/index';
 import BN from 'bn.js';
 import logger from './logger';
 import { Option } from '@polkadot/types';
-import { Era, BatchInfo, NftInfo, Nft, liftStatus, accountInfo, LiftStatuses } from './types';
+import { Era, BatchInfo, NftInfo, Nft, liftStatus, accountInfo, LiftStatuses, PollResult, TxNotFoundResult, PollErrorResult,
+  AccountInfo, UnprocessedLifts, EthereumEventStatus, NftAuthority, BatchInfoInfo, GatewayUserInfo } from './types';
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -93,7 +94,7 @@ async function setNextPayerNonce(requestId: string, payerAddress: string, nonce:
   }
 }
 
-async function poll(requestId: string): Promise<any> {
+async function poll(requestId: string): Promise<PollResult | PollErrorResult | TxNotFoundResult> {
   if (!requestId) {
     logger.error(`Unknown request: ${requestId}`);
     return { error: 'Bad request' };
@@ -124,7 +125,7 @@ async function poll(requestId: string): Promise<any> {
   }
 }
 
-async function getAccountInfo(accountId: string): Promise<any> {
+async function getAccountInfo(accountId: string): Promise<AccountInfo> {
   const balancesAll = await api.derive.balances.all(accountId);
   const currentEra = (await api.query.parachainStaking.era()).toJSON() as Era;
   const currentEraIndex = currentEra.current;
@@ -231,7 +232,7 @@ async function getTotalToken(token: string): Promise<string> {
   return total;
 }
 
-async function ethereumEventStatus(transactionHash: string): Promise<any> {
+async function ethereumEventStatus(transactionHash: string): Promise<EthereumEventStatus> {
   const { avnContract } = await getChainInfo();
   const { liftEvents } = await tier1.getLiftEvents(avnContract);
 
@@ -282,7 +283,7 @@ async function ethereumEventStatus(transactionHash: string): Promise<any> {
   };
 }
 
-async function getUnprocessedLifts(): Promise<any> {
+async function getUnprocessedLifts(): Promise<UnprocessedLifts> {
   let unprocessedLifts: string[] = [];
   try {
     const { avnContract } = await getChainInfo();
@@ -425,7 +426,7 @@ async function getNftContractAddresses(): Promise<string> {
   return JSON.stringify(data.map(([key, _]) => key.args.map((k: any) => k.toHuman())).flat());
 }
 
-async function getGatewayUserInfo(account: string): Promise<any> {
+async function getGatewayUserInfo(account: string): Promise<GatewayUserInfo> {
   const result = await api.queryMulti([
     [api.query.avnProxy.paymentNonces, account],
     [api.query.system.account, account],
@@ -609,14 +610,14 @@ async function regenerateLowerProof(account: any, lowerId: number): Promise<any>
   return await txn.signAndSend(account, { nonce: -1 });
 }
 
-async function getNftInfo(nftId: number): Promise<any> {
+async function getNftInfo(nftId: number): Promise<null | NftInfo> {
   try {
     const nft = (await api.query.nftManager.nfts(nftId)).toJSON() as Partial<Nft>;
     if (!nft) {
       return null;
     }
 
-    const nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON() as Partial<NftInfo>;
+    const nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON() as Partial<NftAuthority>;
     return {
       ownerAddress: nft.owner,
       nonce: nft.nonce,
@@ -636,7 +637,7 @@ async function getNftInfo(nftId: number): Promise<any> {
   }
 }
 
-async function getBatchInfo(batchId: number): Promise<any> {
+async function getBatchInfo(batchId: number): Promise<BatchInfo | null> {
   try {
     const infoId = (await api.query.nftManager.batchInfoId(batchId)).toJSON() as number;
     if (infoId <= 0) {
@@ -644,7 +645,7 @@ async function getBatchInfo(batchId: number): Promise<any> {
     }
 
     const rawBatchInfo = await api.query.nftManager.nftInfos(infoId);
-    const batchInfo = rawBatchInfo.toJSON() as Partial<BatchInfo>;
+    const batchInfo = rawBatchInfo.toJSON() as Partial<BatchInfoInfo>;
     return {
       ownerAddress: batchInfo.creator,
       infoId: batchInfo.infoId,

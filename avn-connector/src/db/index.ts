@@ -11,6 +11,7 @@ import { Relayer } from './entity/relayer';
 import { WebhookEndpoint } from './entity/webhookEndpoint';
 import { WebhookEvent } from './entity/webhookEvent';
 import { Webhooks } from './entity/webhooks';
+import { PayerInfo } from '../types';
 
 const config = require('multiconfig').load();
 
@@ -53,7 +54,7 @@ async function init(): Promise<DataSource> {
   return dataSource;
 }
 
-async function getPayer(user: string, payer?: string): Promise<{ payerId: number; payerAddress: string; vaultId: string } | undefined> {
+async function getPayer(user: string, payer?: string): Promise<PayerInfo | undefined> {
   const userPublicKey = getPublicKey(user);
 
   if (!userPublicKey && !payer) return undefined;

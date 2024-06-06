@@ -5,36 +5,24 @@ export type Era = {
 }
 
 export interface BatchInfo {
-    ownerAddress: string | undefined,
-    infoId: number | undefined,
-    royalties: Royalty[] | undefined,
-    totalSupply: number | undefined,
-    marketplaceId: string | undefined
-}
-
-export interface BatchInfoInfo {
-    ownerAddress: string | undefined,
-    infoId: number | undefined,
-    batchId: number | number,
-    royalties: Royalty[] | undefined,
-    totalSupply: number | undefined,
-    t1Authority: string,
-    creator: string,
-    marketplaceId: string | undefined
+    ownerAddress?: string,
+    infoId?: string,
+    royalties?: Royalty[],
+    totalSupply?: number,
+    marketplaceId?: string,
+    batchId?: string,
+    t1Authority?: string,
+    creator?: string,
 }
 
 export interface NftInfo {
-    ownerAddress: string | undefined,
-    nonce: number | undefined,
-    infoId: number | undefined,
-    uniqueExternalRef: string | undefined,
-    royalties: Royalty[] | undefined,
-    marketplaceId: string | undefined,
-}
-
-export interface NftAuthority {
-    royalties: Royalty[];
-    t1Authority: string;
+    ownerAddress?: string,
+    nonce?: number,
+    infoId?: number,
+    uniqueExternalRef?: string,
+    royalties?: Royalty[],
+    marketplaceId?: string,
+    t1Authority?: string;
 }
 
 export interface Royalty {

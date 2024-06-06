@@ -14,7 +14,7 @@ import BN from 'bn.js';
 import logger from './logger';
 import { Option } from '@polkadot/types';
 import { Era, BatchInfo, NftInfo, Nft, liftStatus, accountInfo, LiftStatuses, PollResult, TxNotFoundResult, PollErrorResult,
-  AccountInfo, UnprocessedLifts, EthereumEventStatus, NftAuthority, BatchInfoInfo, GatewayUserInfo } from './types';
+  AccountInfo, UnprocessedLifts, EthereumEventStatus, GatewayUserInfo } from './types';
 
 const AVN_URL = config.avnUrl;
 const RELAYER_ADDRESS = config.relayer.address;
@@ -617,7 +617,7 @@ async function getNftInfo(nftId: number): Promise<null | NftInfo> {
       return null;
     }
 
-    const nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON() as Partial<NftAuthority>;
+    const nftInfo = (await api.query.nftManager.nftInfos(nft.infoId)).toJSON() as Partial<NftInfo>;
     return {
       ownerAddress: nft.owner,
       nonce: nft.nonce,
@@ -645,7 +645,7 @@ async function getBatchInfo(batchId: number): Promise<BatchInfo | null> {
     }
 
     const rawBatchInfo = await api.query.nftManager.nftInfos(infoId);
-    const batchInfo = rawBatchInfo.toJSON() as Partial<BatchInfoInfo>;
+    const batchInfo = rawBatchInfo.toJSON() as Partial<BatchInfo>;
     return {
       ownerAddress: batchInfo.creator,
       infoId: batchInfo.infoId,

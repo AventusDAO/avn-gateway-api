@@ -12,7 +12,12 @@ interface ProxyProofParams {
   signature: string;
 }
 
-function encodePaymentParams(relayer: string, relayerFee: string, paymentNonce: number, proxyProof: ProxyProofParams): Uint8Array {
+function encodePaymentParams(
+  relayer: string,
+  relayerFee: string,
+  paymentNonce: number,
+  proxyProof: ProxyProofParams
+): Uint8Array {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
   const encodedProxyProof = encodeProxyProof(proxyProof);
   const encodedRelayer = registry.createType('AccountId', relayer);
@@ -32,7 +37,11 @@ function encodeProxyProof(params: ProxyProofParams): Uint8Array {
   const user = registry.createType('AccountId', params.signer);
   const relayer = registry.createType('AccountId', params.relayer);
   const signature = registry.createType('MultiSignature', params.signature);
-  return u8aConcat(user.toU8a(true), relayer.toU8a(true), signature.toU8a(false));
+  return u8aConcat(
+    user.toU8a(true),
+    relayer.toU8a(true),
+    signature.toU8a(false)
+  );
 }
 
 function getPayerVaultUsername(payerVaultId: string): string {

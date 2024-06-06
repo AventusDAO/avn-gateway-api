@@ -5,7 +5,9 @@ import logger from './logger';
 
 async function post(url: string, data: any, token?: string): Promise<any> {
   const tokenReq = typeof token === 'undefined';
-  const headers: { [key: string]: string } = { 'Content-Type': 'application/json' };
+  const headers: { [key: string]: string } = {
+    'Content-Type': 'application/json'
+  };
 
   if (!tokenReq) {
     headers['X-Vault-Request'] = 'true';
@@ -16,7 +18,8 @@ async function post(url: string, data: any, token?: string): Promise<any> {
     const res = await axios({ method: 'post', url, data, headers });
     return tokenReq ? res.data.auth.client_token : res.data.data;
   } catch (err: any) {
-    if (err.response) throw new Error('vault - ' + err.response.data.errors.toString());
+    if (err.response)
+      throw new Error('vault - ' + err.response.data.errors.toString());
     else throw new Error('vault - cannot connect to ' + url);
   }
 }
@@ -29,13 +32,21 @@ async function get(url: string, token: string): Promise<any> {
   } catch (err: any) {
     logger.info(`vault error on GET: `, err);
     if (err.response) {
-      if (err.response.status === 404 || err.response.data.errors[0].includes('Error reading user')) return '';
+      if (
+        err.response.status === 404 ||
+        err.response.data.errors[0].includes('Error reading user')
+      )
+        return '';
       else throw new Error('vault - ' + err.response.data.errors.toString());
     } else throw new Error('vault - cannot connect to ' + url);
   }
 }
 
-async function appLogin(baseURL: string, roleId: string, secretId: string): Promise<string> {
+async function appLogin(
+  baseURL: string,
+  roleId: string,
+  secretId: string
+): Promise<string> {
   const url = `${baseURL}auth/approle/login`;
   const data = { role_id: roleId, secret_id: secretId };
   const token = await post(url, data);
@@ -58,7 +69,9 @@ class Vault {
   private async getToken(): Promise<string> {
     const now = Date.now();
     if (!this.loginToken.token || this.loginToken.validUntil! < now) {
-      logger.info(`login token has expired on ${this.loginToken.validUntil}. Refreshing...`);
+      logger.info(
+        `login token has expired on ${this.loginToken.validUntil}. Refreshing...`
+      );
       const token = await appLogin(this.baseURL, this.ROLE_ID, this.SECRET_ID);
       this.loginToken.token = token;
       this.loginToken.validUntil = now + this.EXPIRY;

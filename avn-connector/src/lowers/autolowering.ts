@@ -44,9 +44,16 @@ async function autolower(): Promise<string> {
 }
 
 function setupAccounts(): void {
-  ACCOUNTS.T1 = config.autolower.t1_pk === '$ENV:AUTOLOWER_T1_PK' ? null : config.autolower.t1_pk;
-  ACCOUNTS.T2 = config.autolower.t2_pk === '$ENV:AUTOLOWER_T2_PK' ? null : avn.createAccount(config.autolower.t2_pk);
-  if (!ACCOUNTS.T1 || !ACCOUNTS.T2) throw new Error('Account keys not configured');
+  ACCOUNTS.T1 =
+    config.autolower.t1_pk === '$ENV:AUTOLOWER_T1_PK'
+      ? null
+      : config.autolower.t1_pk;
+  ACCOUNTS.T2 =
+    config.autolower.t2_pk === '$ENV:AUTOLOWER_T2_PK'
+      ? null
+      : avn.createAccount(config.autolower.t2_pk);
+  if (!ACCOUNTS.T1 || !ACCOUNTS.T2)
+    throw new Error('Account keys not configured');
 }
 
 async function processLowers(bridge: Contract): Promise<string> {
@@ -68,13 +75,19 @@ async function processLowers(bridge: Contract): Promise<string> {
   return `[Autolower] STATUS - Found ${lowerIds.length} lowers to process${statusMessage}`;
 }
 
-async function getLowersToClaim(bridge: Contract): Promise<Record<string, any>> {
+async function getLowersToClaim(
+  bridge: Contract
+): Promise<Record<string, any>> {
   let latestLowerId = await redis.getLatestAutolowerId();
   const unresolvedLowerIds = await redis.getAutolowers();
-  const lowerProofs = await avn.getUnclaimedLowerProofs(latestLowerId, unresolvedLowerIds);
+  const lowerProofs = await avn.getUnclaimedLowerProofs(
+    latestLowerId,
+    unresolvedLowerIds
+  );
 
   const checkFromT1Block = await redis.getAutolowerNextT1Block();
-  const [checkedToT1Block, recentClaims] = await tier1.getLowersClaimedSinceBlock(bridge.address, checkFromT1Block);
+  const [checkedToT1Block, recentClaims] =
+    await tier1.getLowersClaimedSinceBlock(bridge.address, checkFromT1Block);
 
   for (const lowerId of recentClaims) {
     await redis.removeAutolower(lowerId);
@@ -91,7 +104,10 @@ async function getLowersToClaim(bridge: Contract): Promise<Record<string, any>> 
   return lowerProofs;
 }
 
-async function attemptClaims(bridge: Contract, lowerProofs: Record<string, any>): Promise<void> {
+async function attemptClaims(
+  bridge: Contract,
+  lowerProofs: Record<string, any>
+): Promise<void> {
   const numLowers = Object.keys(lowerProofs).length;
   if (numLowers === 0) {
     await redis.releaseAutolowerLock(bridge.address);
@@ -109,7 +125,11 @@ async function attemptClaims(bridge: Contract, lowerProofs: Record<string, any>)
   logger.info(`[Autolower] STATUS - Finished processing ${numLowers} lowers`);
 }
 
-async function proofChecksPass(bridge: Contract, id: string, proof: any): Promise<boolean> {
+async function proofChecksPass(
+  bridge: Contract,
+  id: string,
+  proof: any
+): Promise<boolean> {
   try {
     const check = await bridge.checkLower(proof);
     return await handleProofCheckResult(check, id, proof);
@@ -123,7 +143,11 @@ async function proofChecksPass(bridge: Contract, id: string, proof: any): Promis
   }
 }
 
-async function handleProofCheckResult(check: any, id: string, proof: any): Promise<boolean> {
+async function handleProofCheckResult(
+  check: any,
+  id: string,
+  proof: any
+): Promise<boolean> {
   if (check.lowerIsClaimed) {
     await closeFailedClaim(FAILURE_REASON.AlreadyClaimed, id, proof);
     return false;
@@ -131,7 +155,11 @@ async function handleProofCheckResult(check: any, id: string, proof: any): Promi
 
   if (!check.proofIsValid) {
     if (check.confirmationsRequired > check.confirmationsProvided) {
-      await regenerateProofAndRetryClaim(RETRY_REASON.AdditionalConfirmationsRequired, id, proof);
+      await regenerateProofAndRetryClaim(
+        RETRY_REASON.AdditionalConfirmationsRequired,
+        id,
+        proof
+      );
     } else {
       await closeFailedClaim(FAILURE_REASON.InvalidProof, id, proof);
     }
@@ -146,7 +174,11 @@ async function handleProofCheckResult(check: any, id: string, proof: any): Promi
   return true;
 }
 
-async function attemptClaim(bridge: Contract, id: string, proof: any): Promise<void> {
+async function attemptClaim(
+  bridge: Contract,
+  id: string,
+  proof: any
+): Promise<void> {
   try {
     const tx = await bridge.claimLower(proof);
     await handleClaimTransaction(tx, id);
@@ -155,7 +187,10 @@ async function attemptClaim(bridge: Contract, id: string, proof: any): Promise<v
   }
 }
 
-async function handleClaimTransaction(tx: ethers.ContractTransaction, id: string): Promise<void> {
+async function handleClaimTransaction(
+  tx: ethers.ContractTransaction,
+  id: string
+): Promise<void> {
   const receipt = await tx.wait();
   if (receipt.status === 0) {
     await closeFailedClaim(FAILURE_REASON.RejectedByBridge, id, tx.hash);
@@ -164,7 +199,12 @@ async function handleClaimTransaction(tx: ethers.ContractTransaction, id: string
   }
 }
 
-async function handleClaimError(error: any, id: string, proof: any, bridge: Contract): Promise<void> {
+async function handleClaimError(
+  error: any,
+  id: string,
+  proof: any,
+  bridge: Contract
+): Promise<void> {
   switch (error.code) {
     case 'INSUFFICIENT_FUNDS':
       retryClaim(RETRY_REASON.InsufficientFunds, id, proof);
@@ -180,7 +220,11 @@ async function handleClaimError(error: any, id: string, proof: any, bridge: Cont
   }
 }
 
-async function recheckProofToResolve(id: string, proof: any, bridge: Contract): Promise<void> {
+async function recheckProofToResolve(
+  id: string,
+  proof: any,
+  bridge: Contract
+): Promise<void> {
   try {
     const check = await bridge.checkLower(proof);
 
@@ -189,7 +233,11 @@ async function recheckProofToResolve(id: string, proof: any, bridge: Contract): 
     } else if (check.proofIsValid) {
       retryClaim(RETRY_REASON.InsufficientFunds, id, proof);
     } else if (check.confirmationsRequired > check.confirmationsProvided) {
-      await regenerateProofAndRetryClaim(RETRY_REASON.AdditionalConfirmationsRequired, id, proof);
+      await regenerateProofAndRetryClaim(
+        RETRY_REASON.AdditionalConfirmationsRequired,
+        id,
+        proof
+      );
     } else {
       await closeFailedClaim(FAILURE_REASON.InvalidProof, id, proof);
     }
@@ -198,24 +246,45 @@ async function recheckProofToResolve(id: string, proof: any, bridge: Contract): 
   }
 }
 
-async function closeFailedClaim(reason: string, id: string, info: any): Promise<void> {
+async function closeFailedClaim(
+  reason: string,
+  id: string,
+  info: any
+): Promise<void> {
   await redis.removeAutolower(Number(id));
-  logger.info(`[Autolower] CLAIM FAILED - Lower ID: ${id}, reason: ${reason}, info: ${info}`);
+  logger.info(
+    `[Autolower] CLAIM FAILED - Lower ID: ${id}, reason: ${reason}, info: ${info}`
+  );
 }
 
 async function closeSuccessfulClaim(id: string, txHash: string): Promise<void> {
   await redis.removeAutolower(Number(id));
-  logger.info(`[Autolower] CLAIM SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`);
+  logger.info(
+    `[Autolower] CLAIM SUCCEEDED - Lower ID: ${id}, tx hash: ${txHash}`
+  );
 }
 
-function retryClaim(reason: string, id: string, proof: any, error: any = ''): void {
-  logger.info(`[Autolower] CLAIM WILL BE RETRIED - Lower ID: ${id}, reason: ${reason}, proof: ${proof}, error: ${error}`);
+function retryClaim(
+  reason: string,
+  id: string,
+  proof: any,
+  error: any = ''
+): void {
+  logger.info(
+    `[Autolower] CLAIM WILL BE RETRIED - Lower ID: ${id}, reason: ${reason}, proof: ${proof}, error: ${error}`
+  );
 }
 
-async function regenerateProofAndRetryClaim(reason: string, id: string, proof: any): Promise<void> {
+async function regenerateProofAndRetryClaim(
+  reason: string,
+  id: string,
+  proof: any
+): Promise<void> {
   try {
     await avn.regenerateLowerProof(ACCOUNTS.T2!, Number(id));
-    logger.info(`[Autolower] CLAIM WILL BE RETRIED WITH NEW PROOF - Lower ID: ${id}, reason: ${reason}`);
+    logger.info(
+      `[Autolower] CLAIM WILL BE RETRIED WITH NEW PROOF - Lower ID: ${id}, reason: ${reason}`
+    );
   } catch (error) {
     retryClaim(RETRY_REASON.ProofRegenerationError, id, proof, error);
   }

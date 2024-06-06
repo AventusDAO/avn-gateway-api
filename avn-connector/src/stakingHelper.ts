@@ -23,7 +23,11 @@ interface StakingBalances {
   unstakedBalance: BN;
 }
 
-function calculateNominatorStakingBalances(nominatorState: Option<any>, nominatorRequests: NominatorRequest[], currentEraIndex: number): StakingBalances {
+function calculateNominatorStakingBalances(
+  nominatorState: Option<any>,
+  nominatorRequests: NominatorRequest[],
+  currentEraIndex: number
+): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
@@ -48,7 +52,10 @@ function calculateNominatorStakingBalances(nominatorState: Option<any>, nominato
   };
 }
 
-function calculateCollatorStakingBalances(candidateInfo: Option<any>, currentEra: number): StakingBalances {
+function calculateCollatorStakingBalances(
+  candidateInfo: Option<any>,
+  currentEra: number
+): StakingBalances {
   let stakedBalance = BN_ZERO.clone(),
     unlockedBalance = BN_ZERO.clone(),
     unstakedBalance = BN_ZERO.clone();
@@ -81,7 +88,9 @@ function getRequestedAmount(requestAction: RequestAction): BN {
     return hexToBn(requestAction.toJSON().revoke!);
   }
 
-  logger.warn(`Warning: Scheduled request action (${requestAction}) is not recognized. Unable to return amount`);
+  logger.warn(
+    `Warning: Scheduled request action (${requestAction}) is not recognized. Unable to return amount`
+  );
   return BN_ZERO;
 }
 

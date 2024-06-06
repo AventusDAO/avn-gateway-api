@@ -7,46 +7,45 @@ const levels = {
   warn: 1,
   info: 2,
   http: 3,
-  debug: 4,
+  debug: 4
 };
 
 const level = process.env.ENVIRONMENT === 'prod' ? 'http' : 'debug';
 
-const logFormat = (requestId: string | null) => combine(
-  timestamp(),
-  printf((info) => {
-    const splat = info[Symbol.for('splat')] || {};
-    const stack = info.stack;
-    const data = info.data;
-    const dataStr = data ? `\n${JSON.stringify(data)}` : '';
-    const context = splat[0]?.context || info.stack?.[0] || '';
+const logFormat = (requestId: string | null) =>
+  combine(
+    timestamp(),
+    printf(info => {
+      const splat = info[Symbol.for('splat')] || {};
+      const stack = info.stack;
+      const data = info.data;
+      const dataStr = data ? `\n${JSON.stringify(data)}` : '';
+      const context = splat[0]?.context || info.stack?.[0] || '';
 
-    return (
-      `${info.timestamp} ` +
-      `${requestId ? `[Request ID: ${requestId}] ` : ''}` +
-      `${info.level}: ` +
-      `${info.message} ` +
-      `${context ? `${context} ` : ''}` +
-      `${stack instanceof Array ? '' : stack || ''}` +
-      `${dataStr}`
-    );
-  }),
-  errors({ stack: true })
-);
-
-const createLoggerInstance = (requestId: string | null): Logger => createLogger({
-  level,
-  levels,
-  format: logFormat(requestId),
-  transports: [
-    new transports.Console({
-      format: combine(
-        colorize({ all: true }),
-        logFormat(requestId)
-      )
+      return (
+        `${info.timestamp} ` +
+        `${requestId ? `[Request ID: ${requestId}] ` : ''}` +
+        `${info.level}: ` +
+        `${info.message} ` +
+        `${context ? `${context} ` : ''}` +
+        `${stack instanceof Array ? '' : stack || ''}` +
+        `${dataStr}`
+      );
     }),
-  ]
-});
+    errors({ stack: true })
+  );
+
+const createLoggerInstance = (requestId: string | null): Logger =>
+  createLogger({
+    level,
+    levels,
+    format: logFormat(requestId),
+    transports: [
+      new transports.Console({
+        format: combine(colorize({ all: true }), logFormat(requestId))
+      })
+    ]
+  });
 
 let loggerInstance: Logger = createLoggerInstance(null);
 
@@ -68,7 +67,7 @@ const logger = {
   info,
   error,
   warn,
-  debug,
+  debug
 };
 
 export default logger;

@@ -44,9 +44,7 @@ async function getLockedBalance(
   return balance.toString();
 }
 
-async function getLiftEvents(
-  avnContract: string
-): Promise<{
+async function getLiftEvents(avnContract: string): Promise<{
   fromBlock: number;
   toBlock: number;
   liftEvents: [string, string][];

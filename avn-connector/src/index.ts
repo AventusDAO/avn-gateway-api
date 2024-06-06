@@ -60,14 +60,13 @@ app.get('/pendingTransactions', async (req: Request, res: Response<SuccessRespon
   }
 });
 
-// return void should be null?
-app.post('/resolvePendingTransactions', async (req: Request, res: Response<SuccessResponse<void>>, next: NextFunction) => {
+app.post('/resolvePendingTransactions', async (req: Request, res: Response<SuccessResponse<null>>, next: NextFunction) => {
   try {
     logger.info({ resolvePendingTransactions: Object.keys(req.body) });
     const transactions = req.body.transactions;
     webhooks.publishTransactionEvents(transactions);
-    const result = await redis.resolvePendingAvnTransactions(transactions);
-    res.status(200).send({ data: result });
+    await redis.resolvePendingAvnTransactions(transactions);
+    res.status(200).send({ data: null });
   } catch (err) {
     next(err);
   }

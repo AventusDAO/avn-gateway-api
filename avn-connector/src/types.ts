@@ -1,8 +1,8 @@
 export type Era = {
-    current: number,
-    first: number,
-    length: number
-}
+  current: number;
+  first: number;
+  length: number;
+};
 
 export interface BatchInfo {
     ownerAddress?: string,
@@ -26,61 +26,61 @@ export interface NftInfo {
 }
 
 export interface Royalty {
-    recipient_t1_address: string;
-    rate: {
-        parts_per_million: number
-    }
+  recipient_t1_address: string;
+  rate: {
+    parts_per_million: number;
+  };
 }
 
 export interface Nft {
-    owner: string;
-    nonce: number;
-    infoId: number;
-    uniqueExternalRef: string;
+  owner: string;
+  nonce: number;
+  infoId: number;
+  uniqueExternalRef: string;
 }
 
 export interface CandidateInfo {
-    bond: string;
-    request?: {
-        whenExecutable: string;
-        amount: string
-    }
+  bond: string;
+  request?: {
+    whenExecutable: string;
+    amount: string;
+  };
 }
 
 export interface NominatorState {
-    total: string
+  total: string;
 }
 
 export interface liftStatus {
-    isFalse: boolean
+  isFalse: boolean;
 }
 
 export interface transactionStatus {
-    Pending: string
-    Processed: string
-    Rejected: string
-    SendingFailed: string
-    PayerRefused: string
-    AwaitingToSend: string
-    Validating: string
+  Pending: string;
+  Processed: string;
+  Rejected: string;
+  SendingFailed: string;
+  PayerRefused: string;
+  AwaitingToSend: string;
+  Validating: string;
 }
 
 export interface accountInfo {
-    nonce: number
-    consumers: number
-    providers: number
-    sufficients: number
-    data: {
-      free: number
-      reserved: number
-      frozen: number
-      flags: number
-    }
+  nonce: number;
+  consumers: number;
+  providers: number;
+  sufficients: number;
+  data: {
+    free: number;
+    reserved: number;
+    frozen: number;
+    flags: number;
+  };
 }
 
 export interface lowerReadyToClaim {
-    params: string
-    encodedLowerData: string
+  params: string;
+  encodedLowerData: string;
 }
 
 export interface PollResult {
@@ -155,9 +155,9 @@ export interface BlockId {
 }
 
 export enum LiftStatuses {
-    AWAITING_TO_RECEIVE = 'AwaitingToReceive',
-    UNCHECKED_LIFT = 'UncheckedLift',
-    PENDING_VALIDATION = 'PendingValidation',
-    LIFT_PROCESSED = 'LiftProcessed',
-    LIFT_NOT_FOUND = 'LiftNotFound',
+  AWAITING_TO_RECEIVE = 'AwaitingToReceive',
+  UNCHECKED_LIFT = 'UncheckedLift',
+  PENDING_VALIDATION = 'PendingValidation',
+  LIFT_PROCESSED = 'LiftProcessed',
+  LIFT_NOT_FOUND = 'LiftNotFound'
 }

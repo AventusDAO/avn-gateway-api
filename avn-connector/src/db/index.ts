@@ -54,7 +54,10 @@ async function init(): Promise<DataSource> {
   return dataSource;
 }
 
-async function getPayer(user: string, payer?: string): Promise<PayerInfo | undefined> {
+async function getPayer(
+  user: string,
+  payer?: string
+): Promise<PayerInfo | undefined> {
   const userPublicKey = getPublicKey(user);
 
   if (!userPublicKey && !payer) return undefined;
@@ -81,12 +84,19 @@ async function getPayer(user: string, payer?: string): Promise<PayerInfo | undef
   };
 }
 
-async function getFees(relayerAddress: string, user?: string, transactionName?: string): Promise<Record<string, string>|string> {
+async function getFees(
+  relayerAddress: string,
+  user?: string,
+  transactionName?: string
+): Promise<Record<string, string> | string> {
   let userPk: string | undefined;
 
   const relayer = await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
-  if (!relayer.defaultFee) throw new Error(`Relayer  ${relayerAddress} does not have a default fee set`);
+  if (!relayer.defaultFee)
+    throw new Error(
+      `Relayer  ${relayerAddress} does not have a default fee set`
+    );
 
   const feeDataSource = await dataSource.getRepository(Fee);
 
@@ -101,11 +111,15 @@ async function getFees(relayerAddress: string, user?: string, transactionName?: 
   return await getAllFees(feeDataSource, relayer, userPk);
 }
 
-async function isPayerTransaction(payer: string, transactionName: string): Promise<boolean> {
+async function isPayerTransaction(
+  payer: string,
+  transactionName: string
+): Promise<boolean> {
   if (!payer || !transactionName) return false;
   const payerPk = getPublicKey(payer);
 
-  const payerTransactionDataSource = await dataSource.getRepository(PayerTransaction);
+  const payerTransactionDataSource =
+    await dataSource.getRepository(PayerTransaction);
 
   const payerTx = await payerTransactionDataSource.findOne({
     where: {
@@ -119,15 +133,23 @@ async function isPayerTransaction(payer: string, transactionName: string): Promi
   return payerTx ? true : false;
 }
 
-async function getRelayer(relayerAddress: string): Promise<any> { // Define a type for relayer if available
+async function getRelayer(relayerAddress: string): Promise<any> {
+  // Define a type for relayer if available
   if (!relayerAddress) return undefined;
 
   const relayerPk = getPublicKey(relayerAddress);
   const relayerDataSource = await dataSource.getRepository(Relayer);
-  return await relayerDataSource.findOne({ where: { publicKey: relayerPk, enabled: true } });
+  return await relayerDataSource.findOne({
+    where: { publicKey: relayerPk, enabled: true }
+  });
 }
 
-function buildFeesJson(dbResult: any[], relayerDefaultFee: string, transactionTypes: any[]): Record<string, string> { // Define proper types for dbResult and transactionTypes if available
+function buildFeesJson(
+  dbResult: any[],
+  relayerDefaultFee: string,
+  transactionTypes: any[]
+): Record<string, string> {
+  // Define proper types for dbResult and transactionTypes if available
   let defaultFee: string | null = null;
   const relayerFees: Record<string, string> = {};
 
@@ -143,12 +165,15 @@ function buildFeesJson(dbResult: any[], relayerDefaultFee: string, transactionTy
   });
 
   defaultFee = defaultFee ?? relayerDefaultFee;
-  transactionTypes.forEach(tx => (relayerFees[tx.name] = relayerFees[tx.name] ?? defaultFee));
+  transactionTypes.forEach(
+    tx => (relayerFees[tx.name] = relayerFees[tx.name] ?? defaultFee)
+  );
 
   return relayerFees;
 }
 
-async function getTransactions(): Promise<any[]> { // Define a type for transactions if available
+async function getTransactions(): Promise<any[]> {
+  // Define a type for transactions if available
   const transactionDataSource = await dataSource.getRepository(Transaction);
 
   return await transactionDataSource.find({
@@ -158,7 +183,13 @@ async function getTransactions(): Promise<any[]> { // Define a type for transact
   });
 }
 
-async function getSingleFee(feeDataSource: any, relayer: any, userPk: string | undefined, transactionName: string): Promise<string> { // Define proper types for feeDataSource and relayer if available
+async function getSingleFee(
+  feeDataSource: any,
+  relayer: any,
+  userPk: string | undefined,
+  transactionName: string
+): Promise<string> {
+  // Define proper types for feeDataSource and relayer if available
   const feeRow = await feeDataSource.findOne({
     where: {
       relayerId: relayer.id,
@@ -171,7 +202,12 @@ async function getSingleFee(feeDataSource: any, relayer: any, userPk: string | u
   return feeRow ? feeRow.fee : relayer.defaultFee;
 }
 
-async function getAllFees(feeDataSource: any, relayer: any, userPk: string | undefined): Promise<Record<string,string>> { // Define proper types for feeDataSource and relayer if available
+async function getAllFees(
+  feeDataSource: any,
+  relayer: any,
+  userPk: string | undefined
+): Promise<Record<string, string>> {
+  // Define proper types for feeDataSource and relayer if available
   const fees = await feeDataSource.find({
     where: {
       relayerId: relayer.id,
@@ -186,7 +222,8 @@ async function getAllFees(feeDataSource: any, relayer: any, userPk: string | und
 }
 
 async function getRelayerVaultId(relayerAddress: string): Promise<string> {
-  if (!relayerAddress) throw new Error(`Invalid relayer address ${relayerAddress}`);
+  if (!relayerAddress)
+    throw new Error(`Invalid relayer address ${relayerAddress}`);
 
   const relayer = await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
@@ -196,7 +233,8 @@ async function getRelayerVaultId(relayerAddress: string): Promise<string> {
 
 function getPublicKey(account: string): string {
   if (!account) throw new Error(`Address is NULL`);
-  if (isHex(account) && account.length != 66) throw new Error(`Invalid hex encoded address ${account}`);
+  if (isHex(account) && account.length != 66)
+    throw new Error(`Invalid hex encoded address ${account}`);
 
   try {
     return u8aToHex(decodeAddress(account));
@@ -205,7 +243,8 @@ function getPublicKey(account: string): string {
   }
 }
 
-async function getActiveWebhooks(): Promise<Record<string, any>> { // Define a proper type for the return value if available
+async function getActiveWebhooks(): Promise<Record<string, any>> {
+  // Define a proper type for the return value if available
   try {
     const webhooks = await dataSource
       .getRepository(Payer)
@@ -218,17 +257,25 @@ async function getActiveWebhooks(): Promise<Record<string, any>> { // Define a p
       .addSelect('wev.type', 'eventType')
       .addSelect('wev.description', 'eventDescription')
       .where('p.enabled = :enabled', { enabled: true })
-      .andWhere('we.enabled = :webhookEndpointEnabled', { webhookEndpointEnabled: true })
-      .andWhere('wev.enabled = :webhookEventEnabled', { webhookEventEnabled: true })
+      .andWhere('we.enabled = :webhookEndpointEnabled', {
+        webhookEndpointEnabled: true
+      })
+      .andWhere('wev.enabled = :webhookEventEnabled', {
+        webhookEventEnabled: true
+      })
       .andWhere('p.webhookEndpointId IS NOT NULL')
       .getRawMany();
 
-    return webhooks.reduce((active, { publicKey, endpoint, eventType, eventDescription }) => {
-      if (!active[publicKey]) active[publicKey] = { endpoint, eventTypes: {} };
-      active[publicKey].eventTypes[eventType] = eventDescription;
-      return active;
-    }, {});
-  } catch (error:any) {
+    return webhooks.reduce(
+      (active, { publicKey, endpoint, eventType, eventDescription }) => {
+        if (!active[publicKey])
+          active[publicKey] = { endpoint, eventTypes: {} };
+        active[publicKey].eventTypes[eventType] = eventDescription;
+        return active;
+      },
+      {}
+    );
+  } catch (error: any) {
     throw new Error(`Failed to get active webhooks: ${error.message}`);
   }
 }
@@ -236,10 +283,16 @@ async function getActiveWebhooks(): Promise<Record<string, any>> { // Define a p
 async function getWebhookEventTypes(): Promise<Record<string, string>> {
   try {
     const webhookEventDataSource = await dataSource.getRepository(WebhookEvent);
-    return (await webhookEventDataSource.find()).reduce((webhookEvents: { [type: string]: string }, { type, description }: WebhookEvent) => {
-      webhookEvents[type] = description;
-      return webhookEvents;
-    }, {});
+    return (await webhookEventDataSource.find()).reduce(
+      (
+        webhookEvents: { [type: string]: string },
+        { type, description }: WebhookEvent
+      ) => {
+        webhookEvents[type] = description;
+        return webhookEvents;
+      },
+      {}
+    );
   } catch (error: any) {
     throw new Error(`Failed to get webhook event types: ${error.message}`);
   }
@@ -253,7 +306,10 @@ async function getWebhookEventTypesState(): Promise<string> {
     .addSelect('MAX(event.updatedAt)', 'lastUpdate')
     .getRawOne();
 
-  return crypto.createHash('sha256').update(JSON.stringify(stats)).digest('hex');
+  return crypto
+    .createHash('sha256')
+    .update(JSON.stringify(stats))
+    .digest('hex');
 }
 
 async function getWebhooksState(): Promise<string> {
@@ -277,7 +333,10 @@ async function getWebhooksState(): Promise<string> {
       .getRawOne()
   ]);
 
-  return crypto.createHash('sha256').update(JSON.stringify(stats)).digest('hex');
+  return crypto
+    .createHash('sha256')
+    .update(JSON.stringify(stats))
+    .digest('hex');
 }
 
 const rds = {

@@ -49,7 +49,10 @@ interface BlockId {
   index: number;
 }
 
-async function getLowersFromIndexer(fromId: string, txLimit: number): Promise<LowerEvent[]> {
+async function getLowersFromIndexer(
+  fromId: string,
+  txLimit: number
+): Promise<LowerEvent[]> {
   const query = `
         query LowerQuery {
             events(
@@ -88,41 +91,62 @@ async function getLowersFromIndexer(fromId: string, txLimit: number): Promise<Lo
   }
 }
 
-function formatLowerEvent(lowerEvent: LowerEvent, avtContract: string): LowerData {
+function formatLowerEvent(
+  lowerEvent: LowerEvent,
+  avtContract: string
+): LowerData {
   const lowerData: LowerData = {
     lowerId: lowerEvent?.args?.lowerId,
     token: lowerEvent?.args?.tokenId || avtContract,
     to: lowerEvent?.args?.t1Recipient?.toLowerCase(),
-    amount: isHex(lowerEvent?.args?.amount) ? hexToBn(lowerEvent?.args?.amount).toString() : lowerEvent?.args?.amount,
+    amount: isHex(lowerEvent?.args?.amount)
+      ? hexToBn(lowerEvent?.args?.amount).toString()
+      : lowerEvent?.args?.amount,
     name: lowerEvent?.name,
     claimData: lowerEvent?.claimData
   };
 
-  lowerData.from = lowerEvent?.name === LOWER_REQUEST_EVENT_NAME ? lowerEvent?.args?.from : lowerEvent?.args?.sender;
+  lowerData.from =
+    lowerEvent?.name === LOWER_REQUEST_EVENT_NAME
+      ? lowerEvent?.args?.from
+      : lowerEvent?.args?.sender;
 
   return lowerData;
 }
 
-function canUpdateEventStatus(currentEvent: LowerData, newEvent: LowerData): boolean {
+function canUpdateEventStatus(
+  currentEvent: LowerData,
+  newEvent: LowerData
+): boolean {
   if (!currentEvent || Object.keys(currentEvent).length === 0) return true;
 
-  const transitionIsValid = lowerStates[newEvent?.name!] > lowerStates[currentEvent?.name!];
+  const transitionIsValid =
+    lowerStates[newEvent?.name!] > lowerStates[currentEvent?.name!];
   return transitionIsValid;
 }
 
 function currentEventMissingArgs(currentEvent: LowerData): boolean {
   if (!currentEvent) return false;
-  return ['from', 'to', 'amount'].every(prop => currentEvent[prop] === null || currentEvent[prop] === undefined);
+  return ['from', 'to', 'amount'].every(
+    prop => currentEvent[prop] === null || currentEvent[prop] === undefined
+  );
 }
 
-function updateEventArgs(currentEvent: LowerData, newEvent: LowerData): LowerData {
+function updateEventArgs(
+  currentEvent: LowerData,
+  newEvent: LowerData
+): LowerData {
   currentEvent.from = newEvent.from;
   currentEvent.to = newEvent.to;
   currentEvent.amount = newEvent.amount;
   return currentEvent;
 }
 
-function updateBlockNumberAndIndex(lowerData: LowerEvent, blockNumber: number, index: number): [number, number] {
+function updateBlockNumberAndIndex(
+  lowerData: LowerEvent,
+  blockNumber: number,
+  index: number
+): [number, number] {
   blockNumber = Number(blockNumber.toString()) || 0;
   index = Number(index.toString()) || 0;
 
@@ -153,14 +177,20 @@ function parseBlockId(fromBlockId: string): BlockId {
   }
 
   const blockInfo = fromBlockId.split('-');
-  return { blockNumber: Number(blockInfo[0]) || 0, index: Number(blockInfo[1]) || 0 };
+  return {
+    blockNumber: Number(blockInfo[0]) || 0,
+    index: Number(blockInfo[1]) || 0
+  };
 }
 
 function sortLowerEventsByIdAsc(lowerEvents: LowerEvent[]): LowerEvent[] {
   return lowerEvents.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 
-async function updateEventStatusIfRequired(currentEvent: LowerData, newEvent: LowerData): Promise<LowerData> {
+async function updateEventStatusIfRequired(
+  currentEvent: LowerData,
+  newEvent: LowerData
+): Promise<LowerData> {
   if (!newEvent || !currentEvent) return currentEvent;
 
   if (currentEventMissingArgs(currentEvent)) {
@@ -172,8 +202,13 @@ async function updateEventStatusIfRequired(currentEvent: LowerData, newEvent: Lo
     currentEvent.claimData = newEvent.claimData;
   } else {
     // this is an edge case where the existing entry in redis is corrupted somehow
-    if (currentEvent.name === READY_TO_CLAIM_EVENT_NAME && !currentEvent.claimData) {
-      currentEvent.claimData = await avn.getLowerProof(Number(newEvent.lowerId!));
+    if (
+      currentEvent.name === READY_TO_CLAIM_EVENT_NAME &&
+      !currentEvent.claimData
+    ) {
+      currentEvent.claimData = await avn.getLowerProof(
+        Number(newEvent.lowerId!)
+      );
     }
   }
 

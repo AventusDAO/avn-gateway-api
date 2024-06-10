@@ -5,24 +5,24 @@ export type Era = {
 };
 
 export interface BatchInfo {
-    ownerAddress?: string,
-    infoId?: string,
-    royalties?: Royalty[],
-    totalSupply?: number,
-    marketplaceId?: string,
-    batchId?: string,
-    t1Authority?: string,
-    creator?: string,
+  ownerAddress?: string;
+  infoId?: string;
+  royalties?: Royalty[];
+  totalSupply?: number;
+  marketplaceId?: string;
+  batchId?: string;
+  t1Authority?: string;
+  creator?: string;
 }
 
 export interface NftInfo {
-    ownerAddress?: string,
-    nonce?: number,
-    infoId?: number,
-    uniqueExternalRef?: string,
-    royalties?: Royalty[],
-    marketplaceId?: string,
-    t1Authority?: string;
+  ownerAddress?: string;
+  nonce?: number;
+  infoId?: number;
+  uniqueExternalRef?: string;
+  royalties?: Royalty[];
+  marketplaceId?: string;
+  t1Authority?: string;
 }
 
 export interface Royalty {
@@ -84,74 +84,74 @@ export interface lowerReadyToClaim {
 }
 
 export interface PollResult {
-    txHash: string | null,
-    status: string,
-    blockNumber: string,
-    transactionIndex: string,
-    senderNonce: string,
-    eventArgs: any,
+  txHash: string | null;
+  status: string;
+  blockNumber: string;
+  transactionIndex: string;
+  senderNonce: string;
+  eventArgs: any;
 }
 
 export interface TxNotFoundResult {
-    status: string,
+  status: string;
 }
 
 export interface PollErrorResult {
-    error: string,
+  error: string;
 }
 
 export interface AccountInfo {
-    totalBalance: string,
-    freeBalance: string,
-    stakedBalance: string,
-    unlockedBalance: string,
-    unstakedBalance: string
+  totalBalance: string;
+  freeBalance: string;
+  stakedBalance: string;
+  unlockedBalance: string;
+  unstakedBalance: string;
 }
 
 export interface UnprocessedLifts {
-    fromBlock: number,
-    toBlock: number,
-    unprocessedLifts: string[]
+  fromBlock: number;
+  toBlock: number;
+  unprocessedLifts: string[];
 }
 
 export interface EthereumEventStatus {
-    transactionHash: string,
-    liftStatus: string,
+  transactionHash: string;
+  liftStatus: string;
 }
 
 export interface LowerData {
-    lowerId?: string;
-    token?: string;
-    to?: string;
-    amount?: string;
-    name?: string;
-    from?: string;
-    claimData?: any;
-    [key: string]: string | undefined | any;
+  lowerId?: string;
+  token?: string;
+  to?: string;
+  amount?: string;
+  name?: string;
+  from?: string;
+  claimData?: any;
+  [key: string]: string | undefined | any;
 }
 
 export interface GatewayUserInfo {
-    paymentNonce: string,
-    freeBalance: string,
+  paymentNonce: string;
+  freeBalance: string;
 }
 
 export interface PayerInfo {
-    payerId: number
-    payerAddress: string
-    vaultId: string
+  payerId: number;
+  payerAddress: string;
+  vaultId: string;
 }
 
 export interface SuccessResponse<T> {
-    data: T;
+  data: T;
 }
 
 export interface TotalToken {
-    total: string;
+  total: string;
 }
 
 export interface BlockId {
-    blockNumber: number;
-    index: number;
+  blockNumber: number;
+  index: number;
 }
 
 export enum LiftStatuses {

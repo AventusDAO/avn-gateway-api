@@ -16,4 +16,4 @@ export const transactionObject: Transaction = {
   blockNumber: 'blockNumber',
   transactionIndex: 'transactionIndex',
   eventArgs: 'eventArgs'
-}
+};

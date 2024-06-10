@@ -14,13 +14,13 @@ export enum LowerStatus {
 
 // Must match same enum in avn-connector/src/redis/constants.ts
 export enum TransactionStatus {
-  AwaitingToSend = 'AWAITING_TO_SEND',
-  PayerRefused = 'PAYER_REFUSED',
-  Pending = 'PENDING',
-  Processed = 'PROCESSED',
-  Rejected = 'REJECTED',
-  SendingFailed = 'SENDING_FAILED',
-  Validating = 'VALIDATING'
+  AwaitingToSend = 'AwaitingToSend',
+  PayerRefused = 'PayerRefused',
+  Pending = 'Pending',
+  Processed = 'Processed',
+  Rejected = 'Rejected',
+  SendingFailed = 'SendingFailed',
+  Validating = 'Validating'
 }
 
 export enum StatusCode {

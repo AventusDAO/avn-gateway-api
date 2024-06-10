@@ -162,7 +162,9 @@ async function setNextPayerNonce(
   }
 }
 
-async function poll(requestId: string): Promise<PollResult | PollErrorResult | TxNotFoundResult> {
+async function poll(
+  requestId: string
+): Promise<PollResult | PollErrorResult | TxNotFoundResult> {
   if (!requestId) {
     logger.error(`Unknown request: ${requestId}`);
     return { error: 'Bad request' };
@@ -326,7 +328,9 @@ async function getTotalToken(token: string): Promise<string> {
   return total;
 }
 
-async function ethereumEventStatus(transactionHash: string): Promise<EthereumEventStatus> {
+async function ethereumEventStatus(
+  transactionHash: string
+): Promise<EthereumEventStatus> {
   const { avnContract } = await getChainInfo();
   const { liftEvents } = await tier1.getLiftEvents(avnContract);
 

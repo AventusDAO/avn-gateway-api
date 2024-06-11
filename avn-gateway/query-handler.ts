@@ -160,14 +160,14 @@ async function getNftId(call: Call, request: string) {
     const uniqueExternalRef = '0x' + Buffer.from(externalRef, 'utf8').toString('hex');
     const callArgs = { uniqueExternalRef };
     const proxyArgs = { call: { value: callArgs } };
-    const query = `query GatewayApiNftId { 
+    const query = `query GatewayApiNftId {
       events (
-        where: { 
+        where: {
           name_in: ["NftManager.BatchNftMinted","NftManager.SingleNftMinted"],
-          call: { 
+          call: {
             args_jsonContains: ${JSON.stringify(JSON.stringify(callArgs))},
-            OR: { args_jsonContains: ${JSON.stringify(JSON.stringify(proxyArgs))} } 
-          } 
+            OR: { args_jsonContains: ${JSON.stringify(JSON.stringify(proxyArgs))} }
+          }
         }, limit: 1) { args } }`;
     const response = await axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiNftId' });
     const events = response.data.data.events;
@@ -439,6 +439,10 @@ async function query(call: Call, request: string, method: string, params: object
     const result = avnResponse.data.error || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return buildValidResponseBody(call.id, result);
   } catch (err: any) {
+
+    console.log(`Error debug handler: ${err}`);
+    console.log(`Error debug handler stringified: ${JSON.stringify(err, null, 2)}`);
+
     return buildErrorBody(
       'internal',
       `failed to invoke ${method} when querying the chain`,

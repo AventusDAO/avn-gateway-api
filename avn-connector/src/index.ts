@@ -134,6 +134,10 @@ app.post(
     try {
       logger.info({ avnAccountInfoRequest: req.body });
       const result = await avn.getAccountInfo(req.body.accountId);
+
+      // Force an error
+      throw new Error("avnAccountInfo error message here, expect this to be handled properly");
+
       res.status(200).send(result);
     } catch (err) {
       next(err);
@@ -436,6 +440,9 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     `Error processing request: ${JSON.stringify(req.body, null, 2)}`,
     `Stack: ${err.stack}`
   );
+
+  console.log(`Error object: ${JSON.stringify(err, null, 2)}`);
+
   res.status(500).send({ error: err.message });
 });
 

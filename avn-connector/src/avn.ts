@@ -827,7 +827,7 @@ async function regenerateLowerProof(
   return await txn.signAndSend(account, { nonce: -1 });
 }
 
-async function getNftInfo(nftId: number): Promise<null | NftInfo> {
+async function getNftInfo(nftId: number): Promise<NftInfo | null> {
   try {
     const nft = (
       await api.query.nftManager.nfts(nftId)

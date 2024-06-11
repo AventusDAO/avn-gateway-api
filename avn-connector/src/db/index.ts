@@ -57,10 +57,10 @@ async function init(): Promise<DataSource> {
 async function getPayer(
   user: string,
   payer?: string
-): Promise<PayerInfo | undefined> {
+): Promise<PayerInfo | null> {
   const userPublicKey = getPublicKey(user);
 
-  if (!userPublicKey && !payer) return undefined;
+  if (!userPublicKey && !payer) return null;
 
   const userDataSource = await dataSource.getRepository(SplitFeeUser);
 
@@ -68,12 +68,12 @@ async function getPayer(
     where: { publicKey: userPublicKey, enabled: true },
     relations: ['payer']
   });
-  if (!splitFeeUser || !splitFeeUser.payer) return undefined;
+  if (!splitFeeUser || !splitFeeUser.payer) return null;
 
   if (payer) {
     const payerPublicKey = getPublicKey(payer);
     if (splitFeeUser.payer.publicKey !== payerPublicKey) {
-      return undefined;
+      return null;
     }
   }
 

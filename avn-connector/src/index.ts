@@ -306,7 +306,7 @@ app.post(
   '/lowers',
   async (
     req: Request,
-    res: Response<LowerData | undefined>,
+    res: Response<LowerData | null>,
     next: NextFunction
   ) => {
     try {
@@ -336,7 +336,7 @@ app.post(
   '/getPayer',
   async (
     req: Request,
-    res: Response<PayerInfo | undefined>,
+    res: Response<PayerInfo | null>,
     next: NextFunction
   ) => {
     try {
@@ -345,7 +345,7 @@ app.post(
       result =
         !!result && (await avn.payerHasFunds(result.payerAddress))
           ? result
-          : undefined;
+          : null;
       res.status(200).send(result);
     } catch (err) {
       next(err);

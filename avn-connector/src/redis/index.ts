@@ -477,9 +477,9 @@ class RedisClient {
     ]);
   }
 
-  async getLowerById(lowerId: any): Promise<LowerData | undefined> {
+  async getLowerById(lowerId: any): Promise<LowerData | null> {
     const lowerData = await this.getKey(SLOT_PREFIX+Prefix.LowerId + lowerId);
-    return lowerData ? JSON.parse(lowerData) : undefined;
+    return lowerData ? JSON.parse(lowerData) : null;
   }
 
   async deleteLowerById(lowerId: number): Promise<void> {

@@ -7,7 +7,7 @@ import { LowerData, BlockId } from '../types';
 
 const TX_LIMIT = 50;
 
-async function getLowers(addressOrId: string): Promise<LowerData | undefined> {
+async function getLowers(addressOrId: string): Promise<LowerData | null> {
   logger.info(`Getting lower data for ${addressOrId}`);
   const { avnContract } = await avn.getChainInfo();
 

@@ -39,7 +39,11 @@ async function sendToQueue<T>(queueUrl: string, data: T): Promise<SendMessageCom
 
   try {
     const result = await sqsClient.send(new SendMessageCommand(params));
-    console.info(`Message sent to queue "${queueUrl}"`, result);
+    console.info(JSON.stringify({
+      info: `Message sent to queue ${queueUrl}`,
+      result,
+      data: messageBody
+    }));
     return result;
   } catch (error) {
     console.error(`Failed to send message to queue "${queueUrl}"`, error);

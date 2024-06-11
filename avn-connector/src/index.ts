@@ -134,10 +134,6 @@ app.post(
     try {
       logger.info({ avnAccountInfoRequest: req.body });
       const result = await avn.getAccountInfo(req.body.accountId);
-
-      // Force an error
-      throw new Error("avnAccountInfo error message here, expect this to be handled properly");
-
       res.status(200).send(result);
     } catch (err) {
       next(err);

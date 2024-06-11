@@ -441,7 +441,12 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     `Stack: ${err.stack}`
   );
 
-  console.log(`Error object: ${JSON.stringify(err, null, 2)}`);
+  console.log(`Error message: ${err.message}`);
+  console.log(`Error stack: ${err.stack}`);
+  console.log(`Error name: ${err.name}`);
+
+  console.log(`Error object: ${err}`);
+  console.log(`Error object stringified: ${JSON.stringify(err, null, 2)}`);
 
   res.status(500).send({ error: err.message });
 });

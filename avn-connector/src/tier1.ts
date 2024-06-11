@@ -49,6 +49,7 @@ async function getLiftEvents(avnContract: string): Promise<{
   toBlock: number;
   liftEvents: [string, string][];
 }> {
+  logger.info(`Getting lift events`);
   let fromBlock = 0;
   let toBlock = 0;
   const liftEvents: [string, string][] = [];

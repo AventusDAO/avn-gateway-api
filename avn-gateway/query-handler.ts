@@ -439,10 +439,6 @@ async function query(call: Call, request: string, method: string, params: object
     const result = avnResponse.data.error || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
     return buildValidResponseBody(call.id, result);
   } catch (err: any) {
-
-    console.log(`Error debug handler: ${err}`);
-    console.log(`Error debug handler stringified: ${JSON.stringify(err, null, 2)}`);
-
     return buildErrorBody(
       'internal',
       `failed to invoke ${method} when querying the chain`,

@@ -78,7 +78,7 @@ async function checkVoteAndUpdateProposal(requestData: string): Promise<{result:
       proposalData.scores = [0, 0];
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return { result: 'bad request' };
   }
 
@@ -145,7 +145,7 @@ async function getProposalData(proposal: string): Promise<ProposalData> {
     const bodyData = (await bodyStream.toArray()).map(chunk => chunk.toString()).join('');
     proposalData = JSON.parse(bodyData);
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 
   return proposalData;
@@ -159,7 +159,7 @@ async function listProposals(): Promise<string[]> {
     const data = await s3.send(new ListObjectsV2Command(s3Params));
     proposalList = data.Contents.map(c => c.Key.split('.')[0]);
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 
   return proposalList;
@@ -170,7 +170,7 @@ async function updateProposalData(proposal: string, proposalData: ProposalData):
     const s3Params = { Bucket: AVN_VOTES_BUCKET!, Key: proposal + '.json', Body: JSON.stringify(proposalData) };
     await s3.send(new PutObjectCommand(s3Params));
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 }
 

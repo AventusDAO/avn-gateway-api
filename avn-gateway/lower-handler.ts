@@ -15,13 +15,13 @@ export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<Low
 
 async function getLowers(qsParam: QueryStringParam): Promise<Lower> {
   const result: Lower = { lowerData: [], status: LowerStatus.Success };
-  console.log('Processing lowers from account: ', qsParam.account);
+  console.info('Processing lowers from account: ', qsParam.account);
 
   try {
     const response = await axios.post(AVN_CONNECTOR_ENDPOINT + 'lowers', { account: qsParam.account });
     result.lowerData = response.data;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     result.status = LowerStatus.Error;
   }
 

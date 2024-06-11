@@ -160,14 +160,14 @@ async function getNftId(call: Call, request: string) {
     const uniqueExternalRef = '0x' + Buffer.from(externalRef, 'utf8').toString('hex');
     const callArgs = { uniqueExternalRef };
     const proxyArgs = { call: { value: callArgs } };
-    const query = `query GatewayApiNftId { 
+    const query = `query GatewayApiNftId {
       events (
-        where: { 
+        where: {
           name_in: ["NftManager.BatchNftMinted","NftManager.SingleNftMinted"],
-          call: { 
+          call: {
             args_jsonContains: ${JSON.stringify(JSON.stringify(callArgs))},
-            OR: { args_jsonContains: ${JSON.stringify(JSON.stringify(proxyArgs))} } 
-          } 
+            OR: { args_jsonContains: ${JSON.stringify(JSON.stringify(proxyArgs))} }
+          }
         }, limit: 1) { args } }`;
     const response = await axios.post(BLOCK_EXPLORER_BASE_URL, { query, operationName: 'GatewayApiNftId' });
     const events = response.data.data.events;

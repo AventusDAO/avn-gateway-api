@@ -5,17 +5,24 @@ export type Era = {
 };
 
 export interface BatchInfo {
-  infoId: number;
-  batchId: number;
-  royalties: Royalty[];
-  totalSupply: number;
-  t1Authority: string;
-  creator: string;
+  ownerAddress?: string;
+  infoId?: string;
+  royalties?: Royalty[];
+  totalSupply?: number;
+  marketplaceId?: string;
+  batchId?: string;
+  t1Authority?: string;
+  creator?: string;
 }
 
 export interface NftInfo {
-  royalties: Royalty[];
-  t1Authority: string;
+  ownerAddress?: string;
+  nonce?: number;
+  infoId?: number;
+  uniqueExternalRef?: string;
+  royalties?: Royalty[];
+  marketplaceId?: string;
+  t1Authority?: string;
 }
 
 export interface Royalty {
@@ -74,6 +81,77 @@ export interface accountInfo {
 export interface lowerReadyToClaim {
   params: string;
   encodedLowerData: string;
+}
+
+export interface PollResult {
+  txHash: string | null;
+  status: string;
+  blockNumber: string;
+  transactionIndex: string;
+  senderNonce: string;
+  eventArgs: any;
+}
+
+export interface TxNotFoundResult {
+  status: string;
+}
+
+export interface PollErrorResult {
+  error: string;
+}
+
+export interface AccountInfo {
+  totalBalance: string;
+  freeBalance: string;
+  stakedBalance: string;
+  unlockedBalance: string;
+  unstakedBalance: string;
+}
+
+export interface UnprocessedLifts {
+  fromBlock: number;
+  toBlock: number;
+  unprocessedLifts: string[];
+}
+
+export interface EthereumEventStatus {
+  transactionHash: string;
+  liftStatus: string;
+}
+
+export interface LowerData {
+  lowerId?: string;
+  token?: string;
+  to?: string;
+  amount?: string;
+  name?: string;
+  from?: string;
+  claimData?: any;
+  [key: string]: string | undefined | any;
+}
+
+export interface GatewayUserInfo {
+  paymentNonce: string;
+  freeBalance: string;
+}
+
+export interface PayerInfo {
+  payerId: number;
+  payerAddress: string;
+  vaultId: string;
+}
+
+export interface SuccessResponse<T> {
+  data: T;
+}
+
+export interface TotalToken {
+  total: string;
+}
+
+export interface BlockId {
+  blockNumber: number;
+  index: number;
 }
 
 export enum LiftStatuses {

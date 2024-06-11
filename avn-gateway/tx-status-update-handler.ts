@@ -68,7 +68,7 @@ async function processRequest(): Promise<TransactionResponse[] | undefined> {
       };
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw new Error(`Error calculating transaction statuses: ${error}`);
   }
 

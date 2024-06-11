@@ -69,7 +69,7 @@ function buildErrorBody(rpcError: keyof RPCError, gatewayError: string = '', err
   const lineNum = frame.split(':').reverse()[1];
   const func = frame.split(' ')[5];
   const ref = file + ' line ' + lineNum + ' (' + func + ')';
-  const errorData = error.response ? error.response.data : 'N/A';
+  const errorData = error.response ? error.response.data?.error : 'N/A';
   console.error(
     `${gatewayError.toUpperCase()} Ref: ${ref} ID: ${id} Error data: ${errorData} Error details: ${typeof error === 'object' ? JSON.stringify(error) : error
     }`

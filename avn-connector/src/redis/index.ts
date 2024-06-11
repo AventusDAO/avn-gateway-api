@@ -1,8 +1,16 @@
 const config = require('multiconfig').load({ directory: '../config' });
 import { Cluster, Redis } from 'ioredis';
 import logger from '../logger';
-import { Prefix, Key, Expiry, Limit, TransactionStatus } from './constants';
+import {
+  Prefix,
+  Key,
+  Expiry,
+  Limit,
+  TransactionStatus,
+  SLOT_PREFIX
+} from './constants';
 import { transactionObject } from './types';
+import { LowerData } from '../types';
 import _ from 'lodash';
 
 class RedisClient {
@@ -116,19 +124,41 @@ class RedisClient {
   }
 
   async multiExec(commands: [string, any[]][]): Promise<any> {
-    const multi = this.client.multi();
-    commands.forEach(([command, args]) => {
-      (multi as any)[command](...args);
-    });
-    return await multi.exec();
+    try {
+      const multi = this.client.multi();
+      commands.forEach(([command, args]) => {
+        logger.debug(
+          `Adding command to pipeline: ${command} with args: ${args}`
+        );
+        (multi as any)[command](...args);
+      });
+
+      const results = await multi.exec();
+      // Check for errors in the pipeline results
+      if (results) {
+        for (const [error, result] of results) {
+          if (error) {
+            logger.error(`Redis command error: ${error.message}`);
+            throw new Error(`Redis command error: ${error.message}`);
+          }
+        }
+      }
+      return results;
+    } catch (error: any) {
+      logger.error(`Error executing Redis multi: ${error.message}`, {
+        command: { name: 'exec', args: [] },
+        previousErrors: error.errors || []
+      });
+      throw error;
+    }
   }
 
   async addNewAvnTransaction(
     requestId: string,
     requestIdHash: string
   ): Promise<void> {
-    const transactionHashKey = Prefix.TxId + requestIdHash;
-    const requestIdKey = Prefix.TxId + requestId;
+    const transactionHashKey = SLOT_PREFIX + requestIdHash;
+    const requestIdKey = SLOT_PREFIX + requestId;
 
     logger.info(
       `[redis] [addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`
@@ -164,8 +194,8 @@ class RedisClient {
     senderNonce: string | undefined,
     reason: string
   ): Promise<void> {
-    const txHashOrRequestIdKey = Prefix.TxId + txHashOrRequestId;
-    const requestIdKey = Prefix.TxId + requestId;
+    const txHashOrRequestIdKey = SLOT_PREFIX + txHashOrRequestId;
+    const requestIdKey = SLOT_PREFIX + requestId;
 
     logger.info(
       `[redis] [addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
@@ -200,8 +230,8 @@ class RedisClient {
     senderAddress: string,
     senderNonce: string
   ): Promise<void> {
-    const transactionHashKey = `${Prefix.TxId}${transactionHash}`;
-    const requestIdKey = Prefix.TxId + requestId;
+    const transactionHashKey = `${SLOT_PREFIX}${transactionHash}`;
+    const requestIdKey = `${SLOT_PREFIX}${requestId}`;
 
     logger.info(
       `[redis] [updateTransactionStatusToPending] - requestId: ${requestId}, transactionHash: ${transactionHash}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}`
@@ -229,7 +259,7 @@ class RedisClient {
     txHashOrRequestId: string | null
   ): Promise<Record<string, string> | undefined> {
     if (txHashOrRequestId === null) return undefined;
-    const txHashOrRequestIdKey = Prefix.TxId + txHashOrRequestId;
+    const txHashOrRequestIdKey = SLOT_PREFIX + txHashOrRequestId;
     const result = await this.hgetKey(txHashOrRequestIdKey);
     return Object.keys(result).length === 0 ? undefined : result;
   }
@@ -242,7 +272,7 @@ class RedisClient {
 
     logger.info(`[redis] Updating ${transactions.length} transactions`);
     for (const tx of transactions) {
-      const transactionHashKey = Prefix.TxId + tx.transactionHash;
+      const transactionHashKey = SLOT_PREFIX + tx.transactionHash;
 
       if (
         ![
@@ -330,7 +360,7 @@ class RedisClient {
   async getTransactionHashByRequestId(
     requestId: string
   ): Promise<string | null> {
-    const requestIdKey = Prefix.TxId + requestId;
+    const requestIdKey = SLOT_PREFIX + requestId;
     return await this.getKey(requestIdKey);
   }
 
@@ -438,40 +468,40 @@ class RedisClient {
   }
 
   async setLowerById(lowerId: string, lowerData: any): Promise<void> {
-    const senderKey = Prefix.LowerSender + lowerData?.from;
-    const recipientKey = Prefix.LowerRecipient + lowerData?.to?.toLowerCase();
+    const senderKey = SLOT_PREFIX+Prefix.LowerSender + lowerData?.from;
+    const recipientKey = SLOT_PREFIX+Prefix.LowerRecipient + lowerData?.to?.toLowerCase();
     await this.multiExec([
-      ['set', [Prefix.LowerId + lowerId, this.dataToJsonString(lowerData)]],
+      ['set', [SLOT_PREFIX+Prefix.LowerId + lowerId, this.dataToJsonString(lowerData)]],
       ['sadd', [senderKey, lowerId]],
       ['sadd', [recipientKey, lowerId]]
     ]);
   }
 
-  async getLowerById(lowerId: any): Promise<any | undefined> {
-    const lowerData = await this.getKey(Prefix.LowerId + lowerId);
-    return lowerData ? JSON.parse(lowerData) : undefined;
+  async getLowerById(lowerId: any): Promise<LowerData | null> {
+    const lowerData = await this.getKey(SLOT_PREFIX+Prefix.LowerId + lowerId);
+    return lowerData ? JSON.parse(lowerData) : null;
   }
 
   async deleteLowerById(lowerId: number): Promise<void> {
     const lowerData = await this.getLowerById(lowerId);
     if (!lowerData) return;
 
-    const senderKey = Prefix.LowerSender + lowerData?.from;
-    const recipientKey = Prefix.LowerRecipient + lowerData?.to?.toLowerCase();
+    const senderKey = SLOT_PREFIX+Prefix.LowerSender + lowerData?.from;
+    const recipientKey = SLOT_PREFIX+Prefix.LowerRecipient + lowerData?.to?.toLowerCase();
     logger.info(
       `Deleting senderKey: ${senderKey} and recipientKey: ${recipientKey}`
     );
 
     await this.multiExec([
-      ['del', [Prefix.LowerId + lowerId]],
+      ['del', [SLOT_PREFIX+Prefix.LowerId + lowerId]],
       ['srem', [senderKey, lowerId]],
       ['srem', [recipientKey, lowerId]]
     ]);
   }
 
   async getLowerIdsByAddress(address: string): Promise<string[]> {
-    const senderKey = Prefix.LowerSender + address;
-    const recipientKey = Prefix.LowerRecipient + address;
+    const senderKey = SLOT_PREFIX+Prefix.LowerSender + address;
+    const recipientKey = SLOT_PREFIX+Prefix.LowerRecipient + address;
     let lowerIds = await this.smembersKey(senderKey);
     if (!lowerIds || lowerIds.length === 0) {
       lowerIds = await this.smembersKey(recipientKey);

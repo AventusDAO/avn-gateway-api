@@ -3,19 +3,11 @@ import avn from '../avn';
 import redis from '../redis';
 import tier1 from '../tier1';
 import logger from '../logger';
+import { LowerData, BlockId } from '../types';
 
 const TX_LIMIT = 50;
 
-interface BlockId {
-  blockNumber: number;
-  index: number;
-}
-
-interface LowerData {
-  [key: string]: any;
-}
-
-async function getLowers(addressOrId: string): Promise<any> {
+async function getLowers(addressOrId: string): Promise<LowerData | null> {
   logger.info(`Getting lower data for ${addressOrId}`);
   const { avnContract } = await avn.getChainInfo();
 

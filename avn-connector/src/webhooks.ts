@@ -159,6 +159,7 @@ async function publishTransactionEvents(transactions: Transaction[]) {
     return;
   }
 
+  logger.info(`[Webhooks] Publishing transactions events`);
   for (const tx of transactions) {
     try {
       const { requestId, accountId } = await redis.getSentTxDetails(
@@ -191,7 +192,7 @@ async function publishEvent(event: Event) {
   if (!_webhooks.hasEventTypes()) {
     return;
   }
-
+  logger.info(`[Webhooks] Publishing event ${JSON.stringify(event)}`);
   let attempt = 0;
 
   while (attempt < MAX_PUBLISH_EVENT_RETRIES) {

@@ -1,3 +1,5 @@
+export const SLOT_PREFIX = '{gateway}:';
+
 enum Prefix {
   AutolowerRetry = 'AUTOLOWER_RETRY_',
   LowerId = 'LOWER_ID_',
@@ -10,20 +12,20 @@ enum Prefix {
 }
 
 enum Key {
-  Autolower = 'AUTOLOWER',
-  AutolowerEthBlock = 'AUTOLOWER_ETH_BLOCK',
-  AutolowerId = 'AUTOLOWER_ID',
-  AutolowerLock = 'AUTOLOWER_LOCK',
-  ChainInfo = 'CHAIN_INFO',
-  Collators = 'COLLATORS',
-  LiftingEthBlock = 'LIFTING_ETH_BLOCK',
-  LoweringAvnBlock = 'LOWERING_AVN_BLOCK',
-  LoweringEthBlock = 'LOWERING_ETH_BLOCK',
-  PendingTxAll = 'PENDING_TX_ALL',
-  PendingTxCheck = 'PENDING_TX_CHECK',
-  PendingTxNext = 'PENDING_TX_NEXT',
-  StakingStats = 'STAKING_STATS',
-  Webhooks = 'WEBHOOKS'
+  Autolower = `${SLOT_PREFIX}AUTOLOWER`,
+  AutolowerEthBlock = `${SLOT_PREFIX}AUTOLOWER_ETH_BLOCK`,
+  AutolowerId = `${SLOT_PREFIX}AUTOLOWER_ID`,
+  AutolowerLock = `${SLOT_PREFIX}AUTOLOWER_LOCK`,
+  ChainInfo = `${SLOT_PREFIX}CHAIN_INFO`,
+  Collators = `${SLOT_PREFIX}COLLATORS`,
+  LiftingEthBlock = `${SLOT_PREFIX}LIFTING_ETH_BLOCK`,
+  LoweringAvnBlock = `${SLOT_PREFIX}LOWERING_AVN_BLOCK`,
+  LoweringEthBlock = `${SLOT_PREFIX}LOWERING_ETH_BLOCK`,
+  PendingTxAll = `${SLOT_PREFIX}PENDING_TX_ALL`,
+  PendingTxCheck = `${SLOT_PREFIX}PENDING_TX_CHECK`,
+  PendingTxNext = `${SLOT_PREFIX}PENDING_TX_NEXT`,
+  StakingStats = `${SLOT_PREFIX}STAKING_STATS`,
+  Webhooks = `${SLOT_PREFIX}WEBHOOKS`
 }
 
 // Expiry times are in seconds
@@ -39,13 +41,13 @@ enum Expiry {
 }
 
 enum TransactionStatus {
-  AwaitingToSend = 'AWAITING_TO_SEND',
-  PayerRefused = 'PAYER_REFUSED',
-  Pending = 'PENDING',
-  Processed = 'PROCESSED',
-  Rejected = 'REJECTED',
-  SendingFailed = 'SENDING_FAILED',
-  Validating = 'VALIDATING'
+  AwaitingToSend = 'AwaitingToSend',
+  PayerRefused = 'PayerRefused',
+  Pending = 'Pending',
+  Processed = 'Processed',
+  Rejected = 'Rejected',
+  SendingFailed = 'SendingFailed',
+  Validating = 'Validating'
 }
 
 enum Limit {

@@ -17,7 +17,7 @@ enum Key {
   AutolowerId = `${SLOT_PREFIX}AUTOLOWER_ID`,
   AutolowerLock = `${SLOT_PREFIX}AUTOLOWER_LOCK`,
   ChainInfo = `${SLOT_PREFIX}CHAIN_INFO`,
-  Collators = `C${SLOT_PREFIX}OLLATORS`,
+  Collators = `${SLOT_PREFIX}COLLATORS`,
   LiftingEthBlock = `${SLOT_PREFIX}LIFTING_ETH_BLOCK`,
   LoweringAvnBlock = `${SLOT_PREFIX}LOWERING_AVN_BLOCK`,
   LoweringEthBlock = `${SLOT_PREFIX}LOWERING_ETH_BLOCK`,

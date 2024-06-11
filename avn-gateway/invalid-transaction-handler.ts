@@ -12,14 +12,14 @@ export const handler: CustomSQSHandler = async (event: SQSEvent): Promise<SQSBat
 
   try {
     if (!event.Records) {
-      console.log(`No messages to process.`);
+      console.info(`No messages to process.`);
       return {
         statusCode: StatusCode.OK,
         body: `No messages to process`
       };
     }
 
-    console.log(`Processing ${event.Records.length} message(s) from dead letter queue`);
+    console.info(`Processing ${event.Records.length} message(s) from dead letter queue`);
 
     for (let record of event.Records) {
       const result = await processFailedMessage(record.body);

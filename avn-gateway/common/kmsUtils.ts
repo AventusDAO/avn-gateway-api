@@ -4,6 +4,7 @@ import { KMSClient, GetPublicKeyCommand, SignCommand } from '@aws-sdk/client-kms
 const kmsClient = new KMSClient({ region: process.env.AWS_REGION });
 
 async function getPublicKeyPEM(keyId:string):Promise<string> {
+  console.info(`Getting verification key for keyId: ${keyId}`);
   const getPublicKeyCommand = new GetPublicKeyCommand({ KeyId: keyId });
   const { PublicKey } = await kmsClient.send(getPublicKeyCommand);
   const base64Key = Buffer.from(PublicKey).toString('base64');

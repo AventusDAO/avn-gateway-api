@@ -16,7 +16,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
 async function processRequest(request: string): Promise<ValidError | ErrorBody> {
   let call: Call;
-
   try {
     call = JSON.parse(request);
   } catch (err) {
@@ -49,6 +48,8 @@ async function makeCall(call: Call, request: string): Promise<ValidError | Error
 }
 
 async function poll(call: Call, request: string, requestId?: string): Promise<ValidError | ErrorBody> {
+  console.info(`Polling requestId: ${requestId}`);
+
   try {
     const callId = call.id;
     const avnResponse = await axios.post(AVN_CONNECTOR_ENDPOINT + 'avnPoll', { callId, requestId });

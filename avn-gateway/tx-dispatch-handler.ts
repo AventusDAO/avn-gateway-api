@@ -21,14 +21,14 @@ export const handler: CustomSQSHandler = async (event: SQSEvent, context: Contex
   let processedMessagesCount = 0;
 
   if (!event.Records) {
-    console.log(`No messages to process.`);
+    console.info(`No messages to process.`);
     return {
       statusCode: StatusCode.OK,
       body: `No messages to process`
     };
   }
 
-  console.log(`Processing ${event.Records.length} message(s) from queue`);
+  console.info(`Processing ${event.Records.length} message(s) from queue`);
 
   try {
     for (let record of event.Records) {
@@ -134,11 +134,11 @@ async function processProxyCall(callType: string, call: ProxyCall, request: stri
 //TODO: Fix me. We should not read the nonce from the chain because we risk getting duplicate values for different tx's
 async function queryNonce(requestId: string, nonceInfo: NonceInfo, nonceKey: string): Promise<string> {
   const { palletName, storageName } = nonceInfo;
-  console.log(`${requestId} - Refreshing nonce from chain for ${palletName}.${storageName} - ${nonceKey}`);
+  console.info(`${requestId} - Refreshing nonce from chain for ${palletName}.${storageName} - ${nonceKey}`);
   const params: QueryParams = { requestId, palletName, storageName, params: [nonceKey] };
   const result = await axios.post(`${AVN_CONNECTOR_ENDPOINT}avnQuery`, params);
   const nonce = storageName === 'nfts' ? toBnString(result.data.nonce) : toBnString(result.data);
-  console.log(`${requestId} - new nonce: ${nonce}`);
+  console.info(`${requestId} - new nonce: ${nonce}`);
   return nonce;
 }
 

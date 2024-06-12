@@ -2,12 +2,36 @@ const config = require('multiconfig').load({ directory: '../config' });
 import { Cluster, Redis } from 'ioredis';
 import logger from '../logger';
 import {
-  Prefix,
-  Key,
-  Expiry,
-  Limit,
-  TransactionStatus,
-  SLOT_PREFIX
+  AUTOLOWERS_KEY,
+  AUTOLOWER_LOCK_KEY,
+  AUTOLOWER_MAX_LOCK_IN_SECONDS,
+  AUTOLOWER_RETRY_LIFETIME_NAMESPACE,
+  AUTOLOWER_RETRY_LIFETIME_SECONDS,
+  CHAIN_INFO_EXPIRY_IN_SECONDS,
+  CHAIN_INFO_KEY,
+  COLLATORS_EXPIRY_IN_SECONDS,
+  COLLATORS_KEY,
+  LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX,
+  LAST_LOWER_BLOCK_ID_FROM_AVN,
+  LATEST_LOWER_ID_FOR_AUTOLOWER_KEY,
+  LIFTS_FROM_TIER1_BLOCK_KEY,
+  LOWER_ID_PREFIX,
+  LOWER_RECIPIENT_PREFIX,
+  LOWER_SENDER_PREFIX,
+  MAX_PENDING_TX_TO_CHECK,
+  NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY,
+  NONCE_EXPIRY_IN_SECONDS,
+  NONCE_NAMESPACE,
+  PAYER_NONCE_NAMESPACE,
+  PENDING_TX_CHECKING_WINDOW_IN_SECONDS,
+  PENDING_TX_KEY,
+  SLOT_PREFIX,
+  STAKING_STAT_EXPIRY_IN_SECONDS,
+  STAKING_STAT_KEY,
+  TOTAL_TOKEN_EXPIRY_IN_SECONDS,
+  TOTAL_TOKEN_NAMESPACE,
+  WEBHOOKS_SENT_TX_KEY,
+  TransactionStatus
 } from './constants';
 import { transactionObject } from './types';
 import { LowerData } from '../types';
@@ -157,8 +181,8 @@ class RedisClient {
     requestId: string,
     requestIdHash: string
   ): Promise<void> {
-    const transactionHashKey = SLOT_PREFIX + requestIdHash;
-    const requestIdKey = SLOT_PREFIX + requestId;
+    const transactionHashKey = `${SLOT_PREFIX}${requestIdHash}`;
+    const requestIdKey = `${SLOT_PREFIX}${requestId}`;
 
     logger.info(
       `[redis] [addNewAvnTransaction] - requestId: ${requestId}, transactionHash: ${requestIdHash}`
@@ -194,8 +218,8 @@ class RedisClient {
     senderNonce: string | undefined,
     reason: string
   ): Promise<void> {
-    const txHashOrRequestIdKey = SLOT_PREFIX + txHashOrRequestId;
-    const requestIdKey = SLOT_PREFIX + requestId;
+    const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`;
+    const requestIdKey = `${SLOT_PREFIX}${requestId}`;
 
     logger.info(
       `[redis] [addFailedAvnTransaction] - requestId: ${requestId}, transactionHash: ${txHashOrRequestId}, senderAddress: ${senderAddress}, senderNonce: ${senderNonce}, reason: ${reason}`
@@ -250,7 +274,7 @@ class RedisClient {
           )
         ]
       ],
-      ['zadd', [Key.PendingTxAll, age, transactionHash]],
+      ['zadd', [PENDING_TX_KEY.ALL, age, transactionHash]],
       ['set', [requestIdKey, transactionHash]]
     ]);
   }
@@ -259,7 +283,7 @@ class RedisClient {
     txHashOrRequestId: string | null
   ): Promise<Record<string, string> | undefined> {
     if (txHashOrRequestId === null) return undefined;
-    const txHashOrRequestIdKey = SLOT_PREFIX + txHashOrRequestId;
+    const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`;
     const result = await this.hgetKey(txHashOrRequestIdKey);
     return Object.keys(result).length === 0 ? undefined : result;
   }
@@ -272,7 +296,7 @@ class RedisClient {
 
     logger.info(`[redis] Updating ${transactions.length} transactions`);
     for (const tx of transactions) {
-      const transactionHashKey = SLOT_PREFIX + tx.transactionHash;
+      const transactionHashKey = `${SLOT_PREFIX}${tx.transactionHash}`;
 
       if (
         ![
@@ -315,9 +339,9 @@ class RedisClient {
       } else {
         await this.multiExec([
           ['hset', [transactionHashKey, newValue]],
-          ['zrem', [Key.PendingTxAll, tx.transactionHash]],
-          ['zrem', [Key.PendingTxCheck, tx.transactionHash]],
-          ['zrem', [Key.PendingTxNext, tx.transactionHash]]
+          ['zrem', [PENDING_TX_KEY.ALL, tx.transactionHash]],
+          ['zrem', [PENDING_TX_KEY.CHECKING, tx.transactionHash]],
+          ['zrem', [PENDING_TX_KEY.NEXT, tx.transactionHash]]
         ]);
       }
     }
@@ -325,22 +349,27 @@ class RedisClient {
 
   async getNextTransactionsToCheck(): Promise<string[]> {
     const timeNow = Date.now();
-    const expiry = timeNow + Expiry.PendingTxCheck * 1000;
+    const expiry = timeNow + PENDING_TX_CHECKING_WINDOW_IN_SECONDS * 1000;
 
     const [numUpdated, numExpired, numAwaitingCheck, txToCheckNext] =
       await this.multiExec([
         [
           'addzrangebyscore',
-          [Key.PendingTxCheck, Key.PendingTxAll, '-inf', timeNow]
+          [PENDING_TX_KEY.CHECKING, PENDING_TX_KEY.ALL, '-inf', timeNow]
         ],
-        ['zremrangebyscore', [Key.PendingTxCheck, '-inf', timeNow]],
+        ['zremrangebyscore', [PENDING_TX_KEY.CHECKING, '-inf', timeNow]],
         [
           'zdiffstore',
-          [Key.PendingTxNext, 2, Key.PendingTxAll, Key.PendingTxCheck]
+          [PENDING_TX_KEY.NEXT, 2, PENDING_TX_KEY.ALL, PENDING_TX_KEY.CHECKING]
         ],
         [
           'nextzsubset',
-          [Key.PendingTxNext, Key.PendingTxCheck, Limit.PendingTxCheck, expiry]
+          [
+            PENDING_TX_KEY.NEXT,
+            PENDING_TX_KEY.CHECKING,
+            MAX_PENDING_TX_TO_CHECK,
+            expiry
+          ]
         ]
       ]);
 
@@ -360,7 +389,7 @@ class RedisClient {
   async getTransactionHashByRequestId(
     requestId: string
   ): Promise<string | null> {
-    const requestIdKey = SLOT_PREFIX + requestId;
+    const requestIdKey = `${SLOT_PREFIX}${requestId}`;
     return await this.getKey(requestIdKey);
   }
 
@@ -377,131 +406,135 @@ class RedisClient {
   }
 
   async getNextNonce(senderAddress: string): Promise<number | undefined> {
-    const nonce = await this.getKey(Prefix.Nonce + senderAddress);
+    const nonce = await this.getKey(NONCE_NAMESPACE + senderAddress);
     return nonce == null ? undefined : Number(nonce);
   }
 
   async setNextNonce(senderAddress: string, nonce: number): Promise<void> {
     await this.setKey(
-      Prefix.Nonce + senderAddress,
+      NONCE_NAMESPACE + senderAddress,
       nonce.toString(),
-      Expiry.Nonce
+      NONCE_EXPIRY_IN_SECONDS
     );
   }
 
   async getNextPayerNonce(payerAddress: string): Promise<number | undefined> {
-    const nonce = await this.getKey(Prefix.Payer + payerAddress);
+    const nonce = await this.getKey(PAYER_NONCE_NAMESPACE + payerAddress);
     return nonce == null ? undefined : Number(nonce);
   }
 
   async setNextPayerNonce(payerAddress: string, nonce: number): Promise<void> {
     await this.setKey(
-      Prefix.Payer + payerAddress,
+      PAYER_NONCE_NAMESPACE + payerAddress,
       nonce.toString(),
-      Expiry.Nonce
+      NONCE_EXPIRY_IN_SECONDS
     );
   }
 
   async setCollatorsToNominate(collators: any): Promise<void> {
     await this.setKey(
-      Key.Collators,
+      COLLATORS_KEY,
       this.dataToJsonString(collators),
-      Expiry.Collators
+      COLLATORS_EXPIRY_IN_SECONDS
     );
   }
 
   async getCollatorsToNominate(): Promise<any | undefined> {
-    const collators = await this.getKey(Key.Collators);
+    const collators = await this.getKey(COLLATORS_KEY);
     return collators ? JSON.parse(collators) : undefined;
   }
 
   async setStakingStats(stakingStats: any): Promise<void> {
     await this.setKey(
-      Key.StakingStats,
+      STAKING_STAT_KEY,
       this.dataToJsonString(stakingStats),
-      Expiry.StakingStats
+      STAKING_STAT_EXPIRY_IN_SECONDS
     );
   }
 
   async getStakingStats(): Promise<any | undefined> {
-    const stakingStats = await this.getKey(Key.StakingStats);
+    const stakingStats = await this.getKey(STAKING_STAT_KEY);
     return stakingStats ? JSON.parse(stakingStats) : undefined;
   }
 
   async setChainInfo(chainInfo: any): Promise<void> {
     await this.setKey(
-      Key.ChainInfo,
+      CHAIN_INFO_KEY,
       this.dataToJsonString(chainInfo),
-      Expiry.ChainInfo
+      CHAIN_INFO_EXPIRY_IN_SECONDS
     );
   }
 
   async getChainInfo(): Promise<any | undefined> {
-    const chainInfo = await this.getKey(Key.ChainInfo);
+    const chainInfo = await this.getKey(CHAIN_INFO_KEY);
     return chainInfo ? JSON.parse(chainInfo) : undefined;
   }
 
   async setLiftsFromTier1Block(blockNumber: number): Promise<void> {
-    await this.setKey(Key.LiftingEthBlock, blockNumber.toString());
+    await this.setKey(LIFTS_FROM_TIER1_BLOCK_KEY, blockNumber.toString());
   }
 
   async getLiftsFromTier1Block(): Promise<number> {
-    const blockNumber = await this.getKey(Key.LiftingEthBlock);
+    const blockNumber = await this.getKey(LIFTS_FROM_TIER1_BLOCK_KEY);
     return blockNumber ? Number(blockNumber) : 0;
   }
 
   async setTotalToken(token: string, total: string): Promise<void> {
-    await this.setKey(Prefix.Token + token, total, Expiry.Token);
+    await this.setKey(
+      TOTAL_TOKEN_NAMESPACE + token,
+      total,
+      TOTAL_TOKEN_EXPIRY_IN_SECONDS
+    );
   }
 
   async getTotalToken(token: string): Promise<string | null> {
-    return await this.getKey(Prefix.Token + token);
+    return await this.getKey(TOTAL_TOKEN_NAMESPACE + token);
   }
 
   async setLastLowerBlockIdFromAvn(blockId: string): Promise<void> {
-    await this.setKey(Key.LoweringAvnBlock, blockId);
+    await this.setKey(LAST_LOWER_BLOCK_ID_FROM_AVN, blockId);
   }
 
   async getLastLowerBlockIdFromAvn(): Promise<string> {
-    const blockId = await this.getKey(Key.LoweringAvnBlock);
+    const blockId = await this.getKey(LAST_LOWER_BLOCK_ID_FROM_AVN);
     return blockId === null ? '' : blockId;
   }
 
   async setLowerById(lowerId: string, lowerData: any): Promise<void> {
-    const senderKey = SLOT_PREFIX+Prefix.LowerSender + lowerData?.from;
-    const recipientKey = SLOT_PREFIX+Prefix.LowerRecipient + lowerData?.to?.toLowerCase();
+    const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
+    const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
     await this.multiExec([
-      ['set', [SLOT_PREFIX+Prefix.LowerId + lowerId, this.dataToJsonString(lowerData)]],
+      ['set', [LOWER_ID_PREFIX + lowerId, this.dataToJsonString(lowerData)]],
       ['sadd', [senderKey, lowerId]],
       ['sadd', [recipientKey, lowerId]]
     ]);
   }
 
   async getLowerById(lowerId: any): Promise<LowerData | null> {
-    const lowerData = await this.getKey(SLOT_PREFIX+Prefix.LowerId + lowerId);
-    return lowerData ? JSON.parse(lowerData) : null;
+    const lowerData = await this.getKey(LOWER_ID_PREFIX + lowerId);
+    return lowerData ? JSON.parse(lowerData) : undefined;
   }
 
   async deleteLowerById(lowerId: number): Promise<void> {
     const lowerData = await this.getLowerById(lowerId);
     if (!lowerData) return;
 
-    const senderKey = SLOT_PREFIX+Prefix.LowerSender + lowerData?.from;
-    const recipientKey = SLOT_PREFIX+Prefix.LowerRecipient + lowerData?.to?.toLowerCase();
+    const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
+    const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
     logger.info(
       `Deleting senderKey: ${senderKey} and recipientKey: ${recipientKey}`
     );
 
     await this.multiExec([
-      ['del', [SLOT_PREFIX+Prefix.LowerId + lowerId]],
+      ['del', [LOWER_ID_PREFIX + lowerId]],
       ['srem', [senderKey, lowerId]],
       ['srem', [recipientKey, lowerId]]
     ]);
   }
 
   async getLowerIdsByAddress(address: string): Promise<string[]> {
-    const senderKey = SLOT_PREFIX+Prefix.LowerSender + address;
-    const recipientKey = SLOT_PREFIX+Prefix.LowerRecipient + address;
+    const senderKey = LOWER_SENDER_PREFIX + address;
+    const recipientKey = LOWER_RECIPIENT_PREFIX + address;
     let lowerIds = await this.smembersKey(senderKey);
     if (!lowerIds || lowerIds.length === 0) {
       lowerIds = await this.smembersKey(recipientKey);
@@ -510,53 +543,58 @@ class RedisClient {
   }
 
   async getLastClaimedEthereumLowerBlock(): Promise<number> {
-    const blockNumber = await this.getKey(Key.LoweringEthBlock);
+    const blockNumber = await this.getKey(LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX);
     return blockNumber ? Number(blockNumber) : 0;
   }
 
   async setLastClaimedEthereumLowerBlock(blockNumber: number): Promise<void> {
-    await this.setKey(Key.LoweringEthBlock, blockNumber.toString());
+    await this.setKey(
+      LAST_CLAIMED_ETH_LOWER_BLOCK_PREFIX,
+      blockNumber.toString()
+    );
   }
 
   async setAutolowerNextT1Block(blockNumber: number): Promise<void> {
-    await this.setKey(Key.AutolowerEthBlock, blockNumber.toString());
+    await this.setKey(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY, blockNumber.toString());
   }
 
   async getAutolowerNextT1Block(): Promise<number> {
-    const blockNumber = await this.getKey(Key.AutolowerEthBlock);
+    const blockNumber = await this.getKey(NEXT_T1_BLOCK_FOR_AUTOLOWER_KEY);
     return blockNumber ? Number(blockNumber) : 0;
   }
 
   async setLatestAutolowerId(lowerId: number): Promise<void> {
-    await this.setKey(Key.AutolowerId, lowerId.toString());
+    await this.setKey(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY, lowerId.toString());
   }
 
   async getLatestAutolowerId(): Promise<number> {
-    const lowerId = await this.getKey(Key.AutolowerId);
+    const lowerId = await this.getKey(LATEST_LOWER_ID_FOR_AUTOLOWER_KEY);
     return lowerId ? Number(lowerId) : -1;
   }
 
   async addAutolower(lowerId: number): Promise<void> {
-    const result = await this.saddKey(Key.Autolower, lowerId.toString());
+    const result = await this.saddKey(AUTOLOWERS_KEY, lowerId.toString());
     if (result === 1) {
       await this.setKey(
-        Prefix.AutolowerRetry + lowerId,
+        AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId,
         'true',
-        Expiry.AutolowerRetryLifetime
+        AUTOLOWER_RETRY_LIFETIME_SECONDS
       );
     }
   }
 
   async removeAutolower(lowerId: number): Promise<void> {
-    await this.sremKey(Key.Autolower, lowerId.toString());
-    await this.delKey(Prefix.AutolowerRetry + lowerId);
+    await this.sremKey(AUTOLOWERS_KEY, lowerId.toString());
+    await this.delKey(AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId);
   }
 
   async getAutolowers(): Promise<number[]> {
-    const lowerIds = await this.smembersKey(Key.Autolower);
+    const lowerIds = await this.smembersKey(AUTOLOWERS_KEY);
     const liveLowerIds: number[] = [];
     for (const lowerId of lowerIds || []) {
-      const exists = await this.client.exists(Prefix.AutolowerRetry + lowerId);
+      const exists = await this.client.exists(
+        AUTOLOWER_RETRY_LIFETIME_NAMESPACE + lowerId
+      );
       if (exists) {
         liveLowerIds.push(Number(lowerId));
       } else {
@@ -568,10 +606,10 @@ class RedisClient {
 
   async acquireAutolowerLock(bridgeAddress: string): Promise<boolean> {
     const result = await this.client.set(
-      Key.AutolowerLock,
+      AUTOLOWER_LOCK_KEY,
       bridgeAddress,
       'EX',
-      Expiry.AutolowerLock,
+      AUTOLOWER_MAX_LOCK_IN_SECONDS,
       'NX'
     );
     return result === 'OK';
@@ -583,7 +621,7 @@ class RedisClient {
       else
         return 0
       end`;
-    await this.client.eval(script, 1, Key.AutolowerLock, bridgeAddress);
+    await this.client.eval(script, 1, AUTOLOWER_LOCK_KEY, bridgeAddress);
   }
 
   async refreshAutolowerLock(bridgeAddress: string): Promise<void> {
@@ -595,23 +633,26 @@ class RedisClient {
     await this.client.eval(
       script,
       1,
-      Key.AutolowerLock,
+      AUTOLOWER_LOCK_KEY,
       bridgeAddress,
-      Expiry.AutolowerLock.toString()
+      AUTOLOWER_MAX_LOCK_IN_SECONDS.toString()
     );
   }
 
   async setSentTxDetails(txHash: string, details: any): Promise<void> {
-    await this.setKey(Key.Webhooks + txHash, this.dataToJsonString(details));
+    await this.setKey(
+      WEBHOOKS_SENT_TX_KEY + txHash,
+      this.dataToJsonString(details)
+    );
   }
 
   async getSentTxDetails(txHash: string): Promise<any> {
-    const details = await this.getKey(Key.Webhooks + txHash);
+    const details = await this.getKey(WEBHOOKS_SENT_TX_KEY + txHash);
     return details ? JSON.parse(details) : {};
   }
 
   async deleteSentTxDetails(txHash: string): Promise<void> {
-    await this.delKey(Key.Webhooks + txHash);
+    await this.delKey(WEBHOOKS_SENT_TX_KEY + txHash);
   }
 
   private dataToJsonString(data: any): string {

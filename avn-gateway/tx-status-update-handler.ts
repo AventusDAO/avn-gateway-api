@@ -40,7 +40,7 @@ export const handler: Handler = async (_event: unknown): Promise<APIGatewayProxy
   }
 };
 
-async function processRequest(): Promise<TransactionResponse[] | undefined> {
+async function processRequest(): Promise<TransactionResponse[] | null> {
   const pendingTransactionHashes = (await axios.get(AVN_CONNECTOR_ENDPOINT + 'pendingTransactions')).data;
 
   if (!pendingTransactionHashes || pendingTransactionHashes.length == 0) {

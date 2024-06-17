@@ -41,7 +41,7 @@ interface LowerData {
   name?: string;
   from?: string;
   claimData?: any;
-  [key: string]: string | undefined | any;
+  [key: string]: string | null | any;
 }
 
 interface BlockId {

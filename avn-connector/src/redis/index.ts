@@ -281,11 +281,11 @@ class RedisClient {
 
   async getAvnTransaction(
     txHashOrRequestId: string | null
-  ): Promise<Record<string, string> | undefined> {
-    if (txHashOrRequestId === null) return undefined;
+  ): Promise<Record<string, string> | null> {
+    if (txHashOrRequestId === null) return null;
     const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`;
     const result = await this.hgetKey(txHashOrRequestIdKey);
-    return Object.keys(result).length === 0 ? undefined : result;
+    return Object.keys(result).length === 0 ? null : result;
   }
 
   async resolvePendingAvnTransactions(transactions: any[]): Promise<void> {
@@ -405,9 +405,9 @@ class RedisClient {
     return result;
   }
 
-  async getNextNonce(senderAddress: string): Promise<number | undefined> {
+  async getNextNonce(senderAddress: string): Promise<number | null> {
     const nonce = await this.getKey(NONCE_NAMESPACE + senderAddress);
-    return nonce == null ? undefined : Number(nonce);
+    return nonce == null ? null : Number(nonce);
   }
 
   async setNextNonce(senderAddress: string, nonce: number): Promise<void> {
@@ -418,9 +418,9 @@ class RedisClient {
     );
   }
 
-  async getNextPayerNonce(payerAddress: string): Promise<number | undefined> {
+  async getNextPayerNonce(payerAddress: string): Promise<number | null> {
     const nonce = await this.getKey(PAYER_NONCE_NAMESPACE + payerAddress);
-    return nonce == null ? undefined : Number(nonce);
+    return nonce == null ? null : Number(nonce);
   }
 
   async setNextPayerNonce(payerAddress: string, nonce: number): Promise<void> {
@@ -439,9 +439,9 @@ class RedisClient {
     );
   }
 
-  async getCollatorsToNominate(): Promise<any | undefined> {
+  async getCollatorsToNominate(): Promise<any | null> {
     const collators = await this.getKey(COLLATORS_KEY);
-    return collators ? JSON.parse(collators) : undefined;
+    return collators ? JSON.parse(collators) : null;
   }
 
   async setStakingStats(stakingStats: any): Promise<void> {
@@ -452,9 +452,9 @@ class RedisClient {
     );
   }
 
-  async getStakingStats(): Promise<any | undefined> {
+  async getStakingStats(): Promise<any | null> {
     const stakingStats = await this.getKey(STAKING_STAT_KEY);
-    return stakingStats ? JSON.parse(stakingStats) : undefined;
+    return stakingStats ? JSON.parse(stakingStats) : null;
   }
 
   async setChainInfo(chainInfo: any): Promise<void> {
@@ -465,9 +465,9 @@ class RedisClient {
     );
   }
 
-  async getChainInfo(): Promise<any | undefined> {
+  async getChainInfo(): Promise<any | null> {
     const chainInfo = await this.getKey(CHAIN_INFO_KEY);
-    return chainInfo ? JSON.parse(chainInfo) : undefined;
+    return chainInfo ? JSON.parse(chainInfo) : null;
   }
 
   async setLiftsFromTier1Block(blockNumber: number): Promise<void> {
@@ -512,7 +512,7 @@ class RedisClient {
 
   async getLowerById(lowerId: any): Promise<LowerData | null> {
     const lowerData = await this.getKey(LOWER_ID_PREFIX + lowerId);
-    return lowerData ? JSON.parse(lowerData) : undefined;
+    return lowerData ? JSON.parse(lowerData) : null;
   }
 
   async deleteLowerById(lowerId: number): Promise<void> {

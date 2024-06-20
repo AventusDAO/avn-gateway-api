@@ -42,7 +42,7 @@ async function validateAwtToken(event: APIGatewayRequestAuthorizerEvent): Promis
   }
 
   if (isSplitFeeToken(awtToken) && awtToken.payer) {
-    const payerData: PayerData | undefined = await tryGetPayerAddressForUser(awtToken);
+    const payerData: PayerData | null = await tryGetPayerAddressForUser(awtToken);
 
     if (payerData?.payerAddress) {
       ValidRequestResponse.context = {
@@ -91,7 +91,7 @@ function tokenAgeIsValid(token: AWTToken): boolean {
 }
 
 async function isValidSelfPayUser(awtToken: AWTToken): Promise<boolean> {
-  const userInfo: UserInfo | undefined = await tryGetUserInfo(awtToken);
+  const userInfo: UserInfo | null = await tryGetUserInfo(awtToken);
   if (!userInfo) return false;
 
   const avtBalance = new BN(userInfo.freeBalance.toString().replace('0x', ''), 16);
@@ -100,7 +100,7 @@ async function isValidSelfPayUser(awtToken: AWTToken): Promise<boolean> {
   return existingUser || avtBalance.gte(MIN_AVT_BALANCE);
 }
 
-async function tryGetPayerAddressForUser(awtToken: AWTToken): Promise<PayerData | undefined> {
+async function tryGetPayerAddressForUser(awtToken: AWTToken): Promise<PayerData | null> {
   try {
     const avnResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}getPayer`, {
       user: awtToken.pk,
@@ -110,11 +110,11 @@ async function tryGetPayerAddressForUser(awtToken: AWTToken): Promise<PayerData 
     return avnResponse.data;
   } catch (err) {
     console.error('Failed to get payer data: ', err);
-    return undefined;
+    return null;
   }
 }
 
-async function tryGetUserInfo(awtToken: AWTToken): Promise<UserInfo | undefined> {
+async function tryGetUserInfo(awtToken: AWTToken): Promise<UserInfo | null> {
   try {
     const avnResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}gatewayUserInfo`, {
       account: awtToken.pk
@@ -123,6 +123,6 @@ async function tryGetUserInfo(awtToken: AWTToken): Promise<UserInfo | undefined>
     return avnResponse.data;
   } catch (err) {
     console.error('Failed to get user info from chain', err);
-    return undefined;
+    return null;
   }
 }

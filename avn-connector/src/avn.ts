@@ -257,7 +257,7 @@ async function getAccountInfo(accountId: string): Promise<AccountInfo> {
 async function getCollatorsToNominate(): Promise<any[]> {
   let collators = await redis.getCollatorsToNominate();
 
-  if (collators === undefined) {
+  if (collators === null) {
     collators = await api.query.parachainStaking.selectedCandidates();
     await redis.setCollatorsToNominate(collators);
   }
@@ -267,7 +267,7 @@ async function getCollatorsToNominate(): Promise<any[]> {
 
 async function getStakingStats(): Promise<any> {
   let stakingStats = await redis.getStakingStats();
-  if (stakingStats === undefined) {
+  if (stakingStats === null) {
     const [
       minUserBond,
       maxNominatorsRewardedPerValidator,
@@ -298,7 +298,7 @@ async function getStakingStats(): Promise<any> {
 
 async function getChainInfo(): Promise<any> {
   let chainInfo = await redis.getChainInfo();
-  if (chainInfo === undefined) {
+  if (chainInfo === null) {
     await setChainInfo();
     chainInfo = await redis.getChainInfo();
   }
@@ -489,7 +489,7 @@ async function signAndSend(
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);
-    if (nonce === undefined)
+    if (nonce === null)
       nonce = (
         await api.rpc.system.accountNextIndex(relayerAddress)
       ).toNumber();

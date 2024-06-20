@@ -135,7 +135,7 @@ async function isPayerTransaction(
 
 async function getRelayer(relayerAddress: string): Promise<any> {
   // Define a type for relayer if available
-  if (!relayerAddress) return undefined;
+  if (!relayerAddress) return null;
 
   const relayerPk = getPublicKey(relayerAddress);
   const relayerDataSource = await dataSource.getRepository(Relayer);

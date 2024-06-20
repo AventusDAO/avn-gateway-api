@@ -201,8 +201,8 @@ class RedisClient {
         [
           transactionHashKey,
           this.buildTransactionJson(
-            null,
-            null,
+            undefined,
+            undefined,
             TransactionStatus.AwaitingToSend
           )
         ]
@@ -214,8 +214,8 @@ class RedisClient {
   async addFailedAvnTransaction(
     requestId: string,
     txHashOrRequestId: string,
-    senderAddress: string | null,
-    senderNonce: string | null,
+    senderAddress: string | undefined,
+    senderNonce: string | undefined,
     reason: string
   ): Promise<void> {
     const txHashOrRequestIdKey = `${SLOT_PREFIX}${txHashOrRequestId}`;
@@ -394,8 +394,8 @@ class RedisClient {
   }
 
   private buildTransactionJson(
-    senderAddress: string | null,
-    senderNonce: string | null,
+    senderAddress: string | undefined,
+    senderNonce: string | undefined,
     status: string
   ): Record<string, string> {
     const result: Record<string, string> = {};

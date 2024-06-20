@@ -532,7 +532,7 @@ async function signAndSend(
       requestId,
       transactionHash,
       relayerAddress,
-      nonce ? nonce.toString() : null,
+      nonce?.toString(),
       TransactionStatus.SendingFailed
     );
 
@@ -551,8 +551,8 @@ async function setSendingFailedStatus(
   await redis.addFailedAvnTransaction(
     requestId,
     keccakAsHex(requestId),
-    null,
-    null,
+    undefined,
+    undefined,
     failureReason
   );
 }

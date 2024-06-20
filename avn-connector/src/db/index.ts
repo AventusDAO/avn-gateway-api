@@ -89,7 +89,7 @@ async function getFees(
   user?: string,
   transactionName?: string
 ): Promise<Record<string, string> | string> {
-  let userPk: string | null;
+  let userPk: string | undefined;
 
   const relayer = await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
@@ -102,8 +102,6 @@ async function getFees(
 
   if (user) {
     userPk = getPublicKey(user);
-  } else {
-    userPk = null;
   }
 
   if (transactionName) {
@@ -188,7 +186,7 @@ async function getTransactions(): Promise<any[]> {
 async function getSingleFee(
   feeDataSource: any,
   relayer: any,
-  userPk: string | null,
+  userPk: string | undefined,
   transactionName: string
 ): Promise<string> {
   // Define proper types for feeDataSource and relayer if available
@@ -207,7 +205,7 @@ async function getSingleFee(
 async function getAllFees(
   feeDataSource: any,
   relayer: any,
-  userPk: string | null
+  userPk: string | undefined
 ): Promise<Record<string, string>> {
   // Define proper types for feeDataSource and relayer if available
   const fees = await feeDataSource.find({

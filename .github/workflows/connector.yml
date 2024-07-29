@@ -37,16 +37,15 @@ jobs:
 
       - name: Run npm pretty
         run: npm run pretty
+
   avn-docker-connector:
     name: (AVN) build docker connector
     needs: run-npm-pretty
     uses: ./.github/workflows/docker-build.yaml
     with:
-      aws_region: eu-west-2
-      aws_account_id: 189013141504
+      runner: avn-runner
+      aws_region: eu-west-1
+      aws_account_id: 931945598683
       context: avn-connector
-      short_image_name: avn-connector
-      ecr_repository_prefix: gateway-api
-    secrets:
-      aws_access_key: ${{ secrets.TESTNET_AWS_ACCESS_KEY_ID }}
-      aws_secret_key: ${{ secrets.TESTNET_AWS_SECRET_ACCESS_KEY }}
+      short_image_name: connector
+      ecr_repository_prefix: gateway

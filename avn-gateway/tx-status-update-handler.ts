@@ -10,11 +10,11 @@ const TX_LIMIT = 2500;
 
 // any cross chain transactions such as lifting will emit this event
 const NEW_CROSS_CHAIN_EVENTS = ['EthereumEvents.EthereumEventAdded', 'EthereumEvents.NftEthereumEventAdded'];
-const SUCCESS_CROSS_CHAIN_EVENT = 'EthereumEvents.EventAccepted';
-const FAILED_CROSS_CHAIN_EVENT = 'EthereumEvents.EventRejected';
+const SUCCESS_CROSS_CHAIN_EVENTS = ['EthereumEvents.EventAccepted', 'EthBridge.EventAccepted'];
+const FAILED_CROSS_CHAIN_EVENTS = ['EthereumEvents.EventRejected', 'EthBridge.EventRejected'];
 
 const successFilter = ['System.ExtrinsicSuccess'];
-const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected'];
+const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected', 'EthBridge.EventRejected'];
 
 // Any extrinsics for which we wish to capture event output can be added to the argsFilter:
 const argsFilter = [
@@ -140,7 +140,7 @@ async function updateCrossChainTxStatuses(crossChainTxMap: CrossChainTxMap): Pro
 
 async function getCrossChainTxFinalStatuses(txEvents: CrossChainTxStatus[]): Promise<BlockchainEvent[]> {
   const query = `query CrossChainTransactions { events(where: {
-    name_in: ["${SUCCESS_CROSS_CHAIN_EVENT}", "${FAILED_CROSS_CHAIN_EVENT}"],
+    name_in: ["${SUCCESS_CROSS_CHAIN_EVENTS.join('", "')}", "${FAILED_CROSS_CHAIN_EVENTS.join('", "')}"],
     AND: [
       { OR: [
         ${txEvents.map(txEvent =>

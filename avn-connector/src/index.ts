@@ -15,6 +15,7 @@ import {
   TxNotFoundResult,
   PollErrorResult,
   AccountInfo,
+  AccountInfoNonStaking,
   UnprocessedLifts,
   EthereumEventStatus,
   NftInfo,
@@ -25,6 +26,8 @@ import {
   TotalToken,
   LowerData
 } from './types';
+
+const VOW_MODE = config.vowMode === 'true';
 
 const app: Express = express();
 const port: number = config.serverPort;
@@ -48,11 +51,19 @@ app.post(
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
       logger.info({ avnQueryRequest: req.body });
-      const result = await avn.query(
-        req.body.palletName,
-        req.body.storageName,
-        req.body.params
-      );
+
+      let result;
+
+      if (VOW_MODE && req.body.palletName in ['parachainStaking', 'nftManager', 'validatorsManager']) {
+        result = '';
+      } else {
+        result = await avn.query(
+          req.body.palletName,
+          req.body.storageName,
+          req.body.params
+        );
+      }
+
       res.status(200).send(result);
     } catch (err) {
       next(err);
@@ -130,7 +141,7 @@ app.post(
 
 app.post(
   '/avnAccountInfo',
-  async (req: Request, res: Response<AccountInfo>, next: NextFunction) => {
+  async (req: Request, res: Response<AccountInfo | AccountInfoNonStaking>, next: NextFunction) => {
     try {
       logger.info({ avnAccountInfoRequest: req.body });
       const result = await avn.getAccountInfo(req.body.accountId);

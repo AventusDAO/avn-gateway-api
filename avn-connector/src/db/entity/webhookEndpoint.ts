@@ -10,7 +10,7 @@ import {
 import { Payer } from './payer';
 import { Webhooks } from './webhooks';
 
-@Entity('webhook_endpoint')
+@Entity('webhookEndpoint')
 @Index('IDX_webhookEndpoint_updatedAt', ['updatedAt'])
 export class WebhookEndpoint {
   @PrimaryGeneratedColumn()

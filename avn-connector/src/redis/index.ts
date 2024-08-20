@@ -470,10 +470,6 @@ class RedisClient {
     return chainInfo ? JSON.parse(chainInfo) : null;
   }
 
-  async setLiftsFromTier1Block(blockNumber: number): Promise<void> {
-    await this.setKey(LIFTS_FROM_TIER1_BLOCK_KEY, blockNumber.toString());
-  }
-
   async getLiftsFromTier1Block(): Promise<number> {
     const blockNumber = await this.getKey(LIFTS_FROM_TIER1_BLOCK_KEY);
     return blockNumber ? Number(blockNumber) : 0;

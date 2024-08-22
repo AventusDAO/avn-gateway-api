@@ -27,6 +27,17 @@ async function tryGetPaymentInfo(
   proxyProof: ProxyProof
 ): Promise<PaymentInfo> {
   const relayerFee = await getRelayerFee(connectorUrl, relayerAddress, payerAddress, transactionType);
+
+  console.info(`connectorUrl: ${connectorUrl} |
+    payerAddress: ${payerAddress} |
+    relayerAddress: ${relayerAddress} |
+    feePaymentSignature: ${feePaymentSignature} |
+    transactionType: ${transactionType} |
+    paymentNonce: ${paymentNonce} |
+    proxyProof: ${proxyProof} |
+    relayerFee: ${relayerFee}`
+  );
+
   const isVerified = verifyFeePaymentSignature(
     payerAddress,
     relayerAddress,

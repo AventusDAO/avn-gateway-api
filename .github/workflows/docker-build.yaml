@@ -51,17 +51,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.aws_secret_key }}
           aws-region: ${{ inputs.aws_region }}
 
-      - name: Login to the AWS registry
-        run: |
-          aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
+      - name: Configure AWS credentials Role
+        if: ${{ !inputs.config_creds }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: AWS ECR login
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registries: ${{ inputs.aws_account_id }}
 
       - name: Create tag for PR
-        if: ${{ !startsWith(github.event.ref, 'refs/tags/v') }}
-        run: echo "DOCKER_TAG=${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/${{ inputs.ecr_repository_prefix }}/${{ inputs.short_image_name }}:pr-${{ github.event.number }}" >> $GITHUB_ENV
+        if: github.ref != 'refs/heads/main'
+        run: echo "DOCKER_TAG=${{ steps.login-ecr.outputs.registry }}/${{ inputs.ecr_repository_prefix }}/${{ inputs.short_image_name }}:pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Create tag for merge
-        if: startsWith(github.event.ref, 'refs/tags/v')
-        run: echo "DOCKER_TAG=${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/${{ inputs.ecr_repository_prefix }}/${{ inputs.short_image_name }}:${GITHUB_REF#refs/*/},${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/${{ inputs.ecr_repository_prefix }}/${{ inputs.short_image_name }}:latest" >> $GITHUB_ENV
+        if: github.ref == 'refs/heads/main'
+        run: echo "DOCKER_TAG=${{ steps.login-ecr.outputs.registry }}/${{ inputs.ecr_repository_prefix }}/${{ inputs.short_image_name }}:${GITHUB_SHA::7},${{ steps.login-ecr.outputs.registry }}/${{ inputs.ecr_repository_prefix }}/${{ inputs.short_image_name }}:latest" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v4

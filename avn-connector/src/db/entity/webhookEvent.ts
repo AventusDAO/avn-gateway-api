@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { Webhooks } from './webhooks';
 
-@Entity('webhook_event')
+@Entity('webhookEvent')
 export class WebhookEvent {
   @PrimaryGeneratedColumn()
   id: number;

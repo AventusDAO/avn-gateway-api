@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { Payer } from './payer';
 
-@Entity('split_fee_user')
+@Entity('splitFeeUser')
 export class SplitFeeUser {
   @PrimaryGeneratedColumn()
   id: number;

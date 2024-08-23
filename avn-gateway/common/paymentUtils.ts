@@ -61,6 +61,7 @@ function verifyFeePaymentSignature(
   paymentNonce: string
 ): boolean {
   const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof);
+  console.log(`encodedData: ${encodedData}`);
   return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
 }
 

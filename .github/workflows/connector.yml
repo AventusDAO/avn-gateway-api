@@ -6,9 +6,6 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - main
-      - parachain_main
-      - feature/*
-      - feat/*
     paths:
       - 'avn-connector/**'
   push:

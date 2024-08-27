@@ -151,6 +151,7 @@ async function processProxyMethod(
   methodParams: any[]
 ): Promise<ValidResponse | ErrorBody> {
   const { relayer, user, payer, proxySignature } = call.params;
+  console.warn(`warning: @@@@@@@@@@@-processProxyMethod-@@@@@@@@@@@`);
 
   try {
     if (!isValidAccountId(relayer)) throw 'relayer';
@@ -189,6 +190,7 @@ async function processProxyMethod(
     } as PublishEventData);
   } else {
 
+    console.warn(`warning: @@@@@@@@@@@-message-@@@@@@@@@@@`);
     console.info(`dispatch-handler: connectorUrl: ${AVN_CONNECTOR_ENDPOINT} |
       payerAddress: ${payer} |
       relayerAddress: ${relayer} |

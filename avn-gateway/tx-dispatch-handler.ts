@@ -188,6 +188,16 @@ async function processProxyMethod(
       methodParams
     } as PublishEventData);
   } else {
+
+    console.info(`dispatch-handler: connectorUrl: ${AVN_CONNECTOR_ENDPOINT} |
+      payerAddress: ${payer} |
+      relayerAddress: ${relayer} |
+      feePaymentSignature: ${call.params.feePaymentSignature!} |
+      transactionType: ${call.method} |
+      paymentNonce: ${call.params.paymentNonce!} |
+      proxyProof: ${proxyProof}`
+    );
+
     const paymentInfo = await fees.tryGetPaymentInfo(
       AVN_CONNECTOR_ENDPOINT,
       payer,

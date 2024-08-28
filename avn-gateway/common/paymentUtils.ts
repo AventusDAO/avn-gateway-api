@@ -72,6 +72,14 @@ function encodePaymentParams(relayer:string, relayerFee:string, paymentNonce:str
   const encodedRelayerFee = registry.createType('Balance', relayerFee);
   const encodedPaymentNonce = registry.createType('u64', paymentNonce);
 
+
+  console.log(`FEE_PAYMENT_CONTEXT: ${JSON.stringify(FEE_PAYMENT_CONTEXT, null, 2)}`);
+  console.log(`proxyProof: ${JSON.stringify(proxyProof, null, 2)}`);
+  console.log(`relayer: ${JSON.stringify(relayer, null, 2)}`);
+  console.log(`relayerFee: ${JSON.stringify(relayerFee, null, 2)}`);
+  console.log(`paymentNonce: ${JSON.stringify(paymentNonce, null, 2)}`);
+
+
   return u8aConcat(
     encodedContext.toU8a(false),
     encodedProxyProof,

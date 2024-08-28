@@ -34,7 +34,7 @@ async function tryGetPaymentInfo(
     feePaymentSignature: ${feePaymentSignature} |
     transactionType: ${transactionType} |
     paymentNonce: ${paymentNonce} |
-    proxyProof: ${proxyProof} |
+    proxyProof: ${JSON.stringify(proxyProof, null, 2)} |
     relayerFee: ${relayerFee}`
   );
 
@@ -61,7 +61,7 @@ function verifyFeePaymentSignature(
   paymentNonce: string
 ): boolean {
   const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof);
-  console.log(`encodedData: ${encodedData}`);
+  console.info(`encodedData: ${JSON.stringify(encodedData, null, 2)}`);
   return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
 }
 

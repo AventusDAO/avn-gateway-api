@@ -14,8 +14,8 @@
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.39.0",
     "@aws-sdk/client-sqs": "^3.495.0",
-    "@polkadot/api": "^11.0.3",
-    "@polkadot/api-augment": "^11.0.3",
+    "@polkadot/api": "12.4.2",
+    "@polkadot/api-augment": "12.4.2",
     "avn-types": "^1.2.2",
     "axios": "^0.21.4",
     "class-validator": "^0.14.1",
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@aws-sdk/types": "^3.575.0",
-    "@polkadot/types": "^11.0.3",
+    "@polkadot/types": "12.4.2",
     "@types/express": "^4.17.21",
     "@types/lodash": "^4.17.1",
     "@types/pg": "^8.11.6",

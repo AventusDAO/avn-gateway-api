@@ -512,8 +512,8 @@ async function signAndSend(
   logger.info(`${requestId} - encodedTransaction: ${txn.toString()}`);
 
   console.log(`relayerAddress: ${relayerAddress}`);
-  relayerAddress = convertToPublicKey(relayerAddress);
-  console.log(`relayerPublicKey: ${relayerAddress}`);
+  // relayerAddress = convertToPublicKey(relayerAddress);
+  // console.log(`relayerPublicKey: ${relayerAddress}`);
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);

@@ -1,7 +1,7 @@
 import '@polkadot/api-augment';
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { isHex, stringToHex, u8aToHex } from '@polkadot/util';
-import { keccakAsHex } from '@polkadot/util-crypto';
+import { keccakAsHex, decodeAddress } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
 import redis, { TransactionStatus } from './redis';
 import tier1 from './tier1';
@@ -470,6 +470,10 @@ async function processLifts(
   return result;
 }
 
+function convertToPublicKey(accountId: string): string {
+  return isHex(accountId) ? accountId : u8aToHex(decodeAddress(accountId));
+}
+
 //This function can be called multiple times (3 by default) from sqsConsumer, for the same transaction if it returns an error.
 async function signAndSend(
   requestId: string,
@@ -506,6 +510,10 @@ async function signAndSend(
   }
 
   logger.info(`${requestId} - encodedTransaction: ${txn.toString()}`);
+
+  console.log(`relayerAddress: ${relayerAddress}`);
+  relayerAddress = convertToPublicKey(relayerAddress);
+  console.log(`relayerPublicKey: ${relayerAddress}`);
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);

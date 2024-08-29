@@ -1,7 +1,7 @@
 import '@polkadot/api-augment';
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { isHex, stringToHex, u8aToHex } from '@polkadot/util';
-import { keccakAsHex, decodeAddress } from '@polkadot/util-crypto';
+import { keccakAsHex, decodeAddress, setSS58Format } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
 import redis, { TransactionStatus } from './redis';
 import tier1 from './tier1';
@@ -703,6 +703,8 @@ async function connectToAvN(): Promise<void> {
 
   const provider = new WsProvider(AVN_URL);
   api = await ApiPromise.create({ provider });
+
+  setSS58Format(2024);
 
   const [chain, nodeName, nodeVersion] = await Promise.all([
     api.rpc.system.chain(),

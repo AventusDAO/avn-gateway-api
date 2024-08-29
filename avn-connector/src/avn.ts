@@ -507,23 +507,27 @@ async function signAndSend(
 
   logger.info(`${requestId} - encodedTransaction: ${txn.toString()}`);
 
+  const keyring = new Keyring({ type: 'sr25519', ss58Format: 2024 });
+  keyring.setSS58Format(42);
+
+  const relayerAdd = keyring.encodeAddress(relayerAddress, 42);
   try {
-    nonce = await redis.getNextNonce(relayerAddress);
+    nonce = await redis.getNextNonce(relayerAdd);
     if (nonce === null)
       nonce = (
-        await api.rpc.system.accountNextIndex(relayerAddress)
+        await api.rpc.system.accountNextIndex(relayerAdd)
       ).toNumber();
     const signedTx = await txn.signAsync(relayerAccount, {
       nonce: nonce.toString()
     });
     const receipt = await signedTx.send();
-    await redis.setNextNonce(relayerAddress, nonce + 1);
+    await redis.setNextNonce(relayerAdd, nonce + 1);
 
     transactionHash = receipt.toString();
     await redis.updateTransactionStatusToPending(
       requestId,
       transactionHash,
-      relayerAddress,
+      relayerAdd,
       nonce.toString()
     );
 
@@ -551,7 +555,7 @@ async function signAndSend(
     await redis.addFailedAvnTransaction(
       requestId,
       transactionHash,
-      relayerAddress,
+      relayerAdd,
       nonce?.toString(),
       TransactionStatus.SendingFailed
     );

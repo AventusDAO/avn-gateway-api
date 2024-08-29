@@ -718,8 +718,9 @@ async function connectToAvN(): Promise<void> {
 
   // const keyring = new Keyring({ type: 'sr25519' });
   // keyring.setSS58Format(42);
-  const keyring = new Keyring({ type: 'sr25519', ss58Format: 2024 });
-  keyring.setSS58Format(42);
+  // const keyring = new Keyring({ type: 'sr25519', ss58Format: 2024 });
+  // keyring.setSS58Format(42);
+
   const [chain, nodeName, nodeVersion] = await Promise.all([
     api.rpc.system.chain(),
     api.rpc.system.name(),

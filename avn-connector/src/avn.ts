@@ -726,6 +726,8 @@ async function connectToAvN(): Promise<void> {
     api.rpc.system.version()
   ]);
 
+  logger.info(`CHECKING LOG STATUS ON INIT`);
+
   logger.info(
     `You are connected to chain ${chain} (${AVN_URL}) using ${nodeName} v${nodeVersion}\n`
   );

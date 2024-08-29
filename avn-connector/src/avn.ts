@@ -481,6 +481,9 @@ async function signAndSend(
   txn: any,
   optionalAccountForWebhook?: string
 ): Promise<any> {
+
+  logger.info(`SIGN AND SEND STATUS CHECK`);
+
   let transactionHash, nonce, relayerAccount;
   logger.info(`${requestId} - Sending transaction to the AvN`);
   try {
@@ -511,15 +514,20 @@ async function signAndSend(
 
   logger.info(`${requestId} - encodedTransaction: ${txn.toString()}`);
 
+  logger.info(`CHECKING LOG`);
   // const keyring = new Keyring({ type: 'sr25519', ss58Format: 2024 });
   // keyring.setSS58Format(42);
   // const relayerAdd = keyring.encodeAddress(relayerAddress, 42);
 
-  logger.info(`relayerAddress: ${relayerAddress}`);
-  relayerAddress = convertToPublicKey(relayerAddress);
-  logger.info(`relayerPublicKey: ${relayerAddress}`);
 
   try {
+
+    logger.warn(`@@@ - before converting to PK - @@@`);
+
+    logger.info(`relayerAddress: ${relayerAddress}`);
+    relayerAddress = convertToPublicKey(relayerAddress);
+    logger.info(`relayerPublicKey: ${relayerAddress}`);
+
     nonce = await redis.getNextNonce(relayerAddress);
     if (nonce === null)
       nonce = (

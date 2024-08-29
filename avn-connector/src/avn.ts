@@ -1,7 +1,7 @@
 import '@polkadot/api-augment';
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { isHex, stringToHex, u8aToHex } from '@polkadot/util';
-import { keccakAsHex } from '@polkadot/util-crypto';
+import { keccakAsHex, decodeAddress } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
 import redis, { TransactionStatus } from './redis';
 import tier1 from './tier1';
@@ -470,6 +470,10 @@ async function processLifts(
   return result;
 }
 
+function convertToPublicKey(accountId: string): string {
+  return isHex(accountId) ? accountId : u8aToHex(decodeAddress(accountId));
+}
+
 //This function can be called multiple times (3 by default) from sqsConsumer, for the same transaction if it returns an error.
 async function signAndSend(
   requestId: string,
@@ -507,27 +511,31 @@ async function signAndSend(
 
   logger.info(`${requestId} - encodedTransaction: ${txn.toString()}`);
 
-  const keyring = new Keyring({ type: 'sr25519', ss58Format: 2024 });
-  keyring.setSS58Format(42);
+  // const keyring = new Keyring({ type: 'sr25519', ss58Format: 2024 });
+  // keyring.setSS58Format(42);
+  // const relayerAdd = keyring.encodeAddress(relayerAddress, 42);
 
-  const relayerAdd = keyring.encodeAddress(relayerAddress, 42);
+  console.log(`relayerAddress: ${relayerAddress}`);
+  relayerAddress = convertToPublicKey(relayerAddress);
+  console.log(`relayerPublicKey: ${relayerAddress}`);
+
   try {
-    nonce = await redis.getNextNonce(relayerAdd);
+    nonce = await redis.getNextNonce(relayerAddress);
     if (nonce === null)
       nonce = (
-        await api.rpc.system.accountNextIndex(relayerAdd)
+        await api.rpc.system.accountNextIndex(relayerAddress)
       ).toNumber();
     const signedTx = await txn.signAsync(relayerAccount, {
       nonce: nonce.toString()
     });
     const receipt = await signedTx.send();
-    await redis.setNextNonce(relayerAdd, nonce + 1);
+    await redis.setNextNonce(relayerAddress, nonce + 1);
 
     transactionHash = receipt.toString();
     await redis.updateTransactionStatusToPending(
       requestId,
       transactionHash,
-      relayerAdd,
+      relayerAddress,
       nonce.toString()
     );
 
@@ -555,7 +563,7 @@ async function signAndSend(
     await redis.addFailedAvnTransaction(
       requestId,
       transactionHash,
-      relayerAdd,
+      relayerAddress,
       nonce?.toString(),
       TransactionStatus.SendingFailed
     );

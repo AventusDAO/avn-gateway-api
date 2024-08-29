@@ -515,9 +515,9 @@ async function signAndSend(
   // keyring.setSS58Format(42);
   // const relayerAdd = keyring.encodeAddress(relayerAddress, 42);
 
-  logger.info(`relayerAddress: ${relayerAddress}`);
+  console.log(`relayerAddress: ${relayerAddress}`);
   relayerAddress = convertToPublicKey(relayerAddress);
-  logger.info(`relayerPublicKey: ${relayerAddress}`);
+  console.log(`relayerPublicKey: ${relayerAddress}`);
 
   try {
     nonce = await redis.getNextNonce(relayerAddress);

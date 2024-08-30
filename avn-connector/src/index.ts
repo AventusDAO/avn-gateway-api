@@ -16,7 +16,6 @@ import {
   PollErrorResult,
   AccountInfo,
   AccountInfoNonStaking,
-  UnprocessedLifts,
   EthereumEventStatus,
   NftInfo,
   BatchInfo,
@@ -210,19 +209,6 @@ app.post(
     try {
       logger.info({ defaultRelayerRequest: req.body });
       const result = avn.RELAYER_ADDRESS;
-      res.status(200).send(result);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-app.get(
-  '/unprocessedLifts',
-  async (req: Request, res: Response<UnprocessedLifts>, next: NextFunction) => {
-    try {
-      logger.info('unprocessedLifts invoked');
-      const result = await avn.getUnprocessedLifts();
       res.status(200).send(result);
     } catch (err) {
       next(err);

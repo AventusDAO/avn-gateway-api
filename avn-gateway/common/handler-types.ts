@@ -178,13 +178,6 @@ export interface ValidRequestContext {
     splitFeePayerAddress?: string;
 }
 
-export interface LiftTransaction {
-    txType: string;
-    requestId: string;
-    toBlock: number;
-    unprocessedLifts: string[];
-}
-
 export interface EventRecord {
     messageId: string,
     body: string,
@@ -279,12 +272,6 @@ export interface TransactionParams {
     feePaymentSignature?: string;
     paymentNonce?: string;
     nonce?: string;
-}
-
-export interface LiftData {
-    fromBlock: number;
-    toBlock: number;
-    unprocessedLifts: string[];
 }
 
 export interface VoterIntention {

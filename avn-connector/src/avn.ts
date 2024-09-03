@@ -26,7 +26,6 @@ import {
   PollErrorResult,
   AccountInfo,
   AccountInfoNonStaking,
-  UnprocessedLifts,
   EthereumEventStatus,
   GatewayUserInfo
 } from './types';
@@ -412,62 +411,6 @@ async function ethereumEventStatus(
     transactionHash,
     liftStatus: LiftStatuses.AWAITING_TO_RECEIVE
   };
-}
-
-async function getUnprocessedLifts(): Promise<UnprocessedLifts> {
-  let unprocessedLifts: string[] = [];
-  try {
-    const { avnContract } = await getChainInfo();
-    const { fromBlock, toBlock, liftEvents } =
-      await tier1.getLiftEvents(avnContract);
-
-    if (liftEvents.length > 0) {
-      const liftStatuses =
-        await api.query.ethereumEvents.processedEvents.multi(liftEvents);
-      for (let [i, rawIsProcessed] of liftStatuses.entries()) {
-        const isProcessed = rawIsProcessed.toJSON() as unknown as liftStatus;
-        if (isProcessed.isFalse) {
-          unprocessedLifts.push(liftEvents[i][1]);
-        }
-      }
-    }
-
-    if (unprocessedLifts.length === 0) {
-      const lastT1BlockChecked = await redis.getLiftsFromTier1Block();
-      if (toBlock >= lastT1BlockChecked) {
-        await redis.setLiftsFromTier1Block(Number(toBlock) + 1);
-      }
-    }
-
-    return { fromBlock, toBlock, unprocessedLifts };
-  } catch (error) {
-    logger.error(`Error getting unprocessed lifts: `, error);
-    throw error;
-  }
-}
-
-async function processLifts(
-  requestId: string,
-  toBlock: number,
-  unprocessedLifts: string[]
-): Promise<any> {
-  const liftEventType = 1;
-  const calls = unprocessedLifts.map(txHash =>
-    api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash)
-  );
-  const txn = api.tx.utility.batch(calls);
-  let result;
-  try {
-    result = await signAndSend(requestId, RELAYER_ADDRESS, txn);
-    const lastT1BlockChecked = await redis.getLiftsFromTier1Block();
-    // extra safety to prevent resetting the last checked block
-    if (toBlock >= lastT1BlockChecked) {
-      await redis.setLiftsFromTier1Block(Number(toBlock) + 1);
-    }
-  } catch (err) {
-    result = err;
-  }
-  return result;
 }
 
 //This function can be called multiple times (3 by default) from sqsConsumer, for the same transaction if it returns an error.
@@ -934,13 +877,11 @@ const avn = {
   getCurrentBlock,
   getGatewayUserInfo,
   getTotalToken,
-  getUnprocessedLifts,
   ethereumEventStatus,
   getNftContractAddresses,
   init,
   proxy,
   poll,
-  processLifts,
   query,
   RELAYER_ADDRESS,
   signPaymentInfo,

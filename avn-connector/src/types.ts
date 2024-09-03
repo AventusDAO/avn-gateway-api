@@ -110,12 +110,6 @@ export interface AccountInfo {
 
 export type AccountInfoNonStaking = Pick<AccountInfo, 'totalBalance' | 'freeBalance'>;
 
-export interface UnprocessedLifts {
-  fromBlock: number;
-  toBlock: number;
-  unprocessedLifts: string[];
-}
-
 export interface EthereumEventStatus {
   transactionHash: string;
   liftStatus: string;

@@ -20,6 +20,7 @@ interface TxData {
   method?: string;
   params?: any;
   toBlock?: number;
+  unprocessedLifts?: any[];
 }
 
 async function processTxQueue(): Promise<void> {
@@ -114,6 +115,17 @@ async function processMessage(message: Message): Promise<void> {
       result = await avn.proxy(requestId, palletName!, method!, params);
       logger.info(
         `[SQS tx] Request ID: ${requestId} - proxy transaction sent: ${JSON.stringify(result)}`
+      );
+      break;
+
+    case 'avnProcessLifts':
+      logger.info(
+        `[SQS tx] Request ID: ${requestId} - sending lift transaction: ${JSON.stringify(txData)}`
+      );
+      const { toBlock, unprocessedLifts } = txData;
+      result = await avn.processLifts(requestId, toBlock!, unprocessedLifts!);
+      logger.info(
+        `[SQS tx] Request ID: ${requestId} - lift transaction sent: ${JSON.stringify(result)}`
       );
       break;
 

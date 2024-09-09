@@ -54,7 +54,7 @@ app.post(
 
       let result;
 
-      if (VOW_MODE && req.body.palletName in ['parachainStaking', 'nftManager', 'validatorsManager']) {
+      if (VOW_MODE && req.body.palletName in ['parachainStaking', 'validatorsManager']) {
         result = '';
       } else {
         result = await avn.query(

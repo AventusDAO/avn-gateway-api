@@ -9,7 +9,7 @@ import {
 import { Transaction } from './transaction';
 import { Payer } from './payer';
 
-@Entity('payer_transaction')
+@Entity('payerTransaction')
 export class PayerTransaction {
   @PrimaryColumn()
   transactionId: number;

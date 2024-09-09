@@ -611,10 +611,6 @@ async function getRelayerAccount(relayerAddress: string): Promise<any> {
 }
 
 async function getNftContractAddresses(): Promise<string> {
-  if (VOW_MODE) {
-    return '';
-  }
-
   const data = await api.query.ethereumEvents.nftT1Contracts.entries();
   return JSON.stringify(
     data.map(([key, _]) => key.args.map((k: any) => k.toHuman())).flat()
@@ -855,10 +851,6 @@ async function regenerateLowerProof(
 }
 
 async function getNftInfo(nftId: number): Promise<NftInfo | null> {
-  if (VOW_MODE) {
-    return null;
-  }
-
   try {
     const nft = (
       await api.query.nftManager.nfts(nftId)
@@ -890,10 +882,6 @@ async function getNftInfo(nftId: number): Promise<NftInfo | null> {
 }
 
 async function getBatchInfo(batchId: number): Promise<BatchInfo | null> {
-  if (VOW_MODE) {
-    return null;
-  }
-
   try {
     const infoId = (
       await api.query.nftManager.batchInfoId(batchId)

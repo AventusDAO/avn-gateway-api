@@ -427,13 +427,13 @@ async function getUnprocessedLifts(): Promise<UnprocessedLifts> {
 
       logger.debug(`liftStatuses: ${JSON.stringify(liftStatuses, null, 2)}`);
       for (let [i, rawIsProcessed] of liftStatuses.entries()) {
-        const isProcessed = rawIsProcessed.toJSON() as unknown as liftStatus;
+        const isProcessed = rawIsProcessed.toJSON();
         logger.debug(`isProcessed: ${isProcessed}`);
-        if (isProcessed.isFalse) {
+        if (isProcessed !== true) {
           logger.debug(`Adding tx hash: ${liftEvents[i][1]}`);
           unprocessedLifts.push(liftEvents[i][1]);
         } else {
-          logger.debug(`isProcessed.isFalse = ${isProcessed.isFalse}`);
+          logger.debug(`isProcessed.isFalse = ${isProcessed}`);
         }
       }
     }

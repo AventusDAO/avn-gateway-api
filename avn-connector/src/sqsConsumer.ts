@@ -67,9 +67,9 @@ async function processMessages(messages: Message[]): Promise<Message[]> {
       processed.push(message);
     } catch (error) {
       logger.error(
-        `[SQS tx] Error processing message ${message.MessageId}`,
-        error
+        `[SQS tx] Error processing message ${message.MessageId}`
       );
+      logger.error(error);
       break; // Stop processing on the first error to continue from the same point on retry
     }
   }

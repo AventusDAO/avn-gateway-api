@@ -425,15 +425,10 @@ async function getUnprocessedLifts(): Promise<UnprocessedLifts> {
       const liftStatuses =
         await api.query.ethereumEvents.processedEvents.multi(liftEvents);
 
-      logger.debug(`liftStatuses: ${JSON.stringify(liftStatuses, null, 2)}`);
       for (let [i, rawIsProcessed] of liftStatuses.entries()) {
         const isProcessed = rawIsProcessed.toJSON();
-        logger.debug(`isProcessed: ${isProcessed}`);
         if (isProcessed !== true) {
-          logger.debug(`Adding tx hash: ${liftEvents[i][1]}`);
           unprocessedLifts.push(liftEvents[i][1]);
-        } else {
-          logger.debug(`isProcessed.isFalse = ${isProcessed}`);
         }
       }
     }
@@ -462,6 +457,8 @@ async function processLifts(
   const calls = unprocessedLifts.map(txHash =>
     api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash)
   );
+  logger.debug(`Utility: ${JSON.stringify(api.tx.utility)}`);
+  logger.debug(api.tx.utility);
   const txn = api.tx.utility.batch(calls);
   let result;
   try {

@@ -457,8 +457,6 @@ async function processLifts(
   const calls = unprocessedLifts.map(txHash =>
     api.tx.ethereumEvents.addEthereumLog(liftEventType, txHash)
   );
-  logger.debug(`Utility: ${JSON.stringify(api.tx.utility)}`);
-  logger.debug(api.tx.utility);
   const txn = api.tx.utility.batch(calls);
   let result;
   try {

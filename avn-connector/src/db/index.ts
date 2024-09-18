@@ -13,6 +13,7 @@ import { WebhookEvent } from './entity/webhookEvent';
 import { Webhooks } from './entity/webhooks';
 import { PayerInfo } from '../types';
 import { DefaultRelayerFee } from './entity/defaultRelayerFee';
+import { Currency } from './entity/currency';
 
 const config = require('multiconfig').load();
 
@@ -36,7 +37,9 @@ async function init(): Promise<DataSource> {
       Relayer,
       WebhookEndpoint,
       WebhookEvent,
-      Webhooks
+      Webhooks,
+      Currency,
+      DefaultRelayerFee
     ]
   });
 

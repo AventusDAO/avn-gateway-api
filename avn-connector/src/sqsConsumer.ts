@@ -98,7 +98,8 @@ async function processMessage(message: Message): Promise<void> {
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(
           requestId,
           params,
-          params.paymentNonce
+          params.paymentNonce,
+          params.currencyToken
         );
         const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_payer_accepted;
         const eventData = { tx: txData, payment: params.paymentInfo };

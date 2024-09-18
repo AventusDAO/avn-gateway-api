@@ -401,6 +401,7 @@ const rds = {
   getActiveWebhooks,
   getWebhookEventTypes,
   getWebhookEventTypesState,
-  getWebhooksState
+  getWebhooksState,
+  relayerAcceptsCurrency
 };
 export default rds;

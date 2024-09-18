@@ -747,7 +747,8 @@ async function getPayerPaymentNonce(
 async function generateSplitFeePaymentInfo(
   requestId: string,
   transaction: any,
-  paymentNonce: number
+  paymentNonce: number,
+  currencyToken: string
 ): Promise<any> {
   logger.info(
     `${requestId} - Generating payment info. Payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`
@@ -757,7 +758,8 @@ async function generateSplitFeePaymentInfo(
     transaction.relayerAddress,
     transaction.relayerFees,
     paymentNonce,
-    transaction.splitFeeProxyProof
+    transaction.splitFeeProxyProof,
+    currencyToken
   );
 
   const payerUserName = fees.getPayerVaultUsername(

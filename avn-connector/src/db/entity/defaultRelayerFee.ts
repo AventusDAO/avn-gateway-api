@@ -31,9 +31,9 @@ export class DefaultRelayerFee {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @ManyToOne(() => Relayer, relayer => relayer.defaultFees, { eager: true })
+  @ManyToOne(() => Relayer, relayer => relayer.defaultFees, { eager: false })
   relayer: Relayer;
 
-  @ManyToOne(() => Currency, currency => currency.defaultFees, { eager: true })
+  @ManyToOne(() => Currency, currency => currency.defaultFees, { eager: false })
   currency: Currency;
 }

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Relayer } from './relayer';
 import { Transaction } from './transaction';
+import { Currency } from './currency';
 
 @Entity('fee')
 export class Fee {
@@ -16,6 +17,9 @@ export class Fee {
 
   @Column({ type: 'int' })
   relayerId: number;
+
+  @Column({ type: 'int' })
+  currencyId: number;
 
   @Column({ type: 'int', nullable: true })
   transactionId: number | null;
@@ -37,6 +41,9 @@ export class Fee {
 
   @ManyToOne(() => Relayer, relayer => relayer.fees, { eager: true })
   relayer: Relayer;
+
+  @ManyToOne(() => Currency, currency => currency.fees, { eager: true })
+  currency: Currency;
 
   @ManyToOne(() => Transaction, transaction => transaction.fees, {
     eager: true,

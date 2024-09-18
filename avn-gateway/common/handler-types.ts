@@ -239,6 +239,7 @@ export interface ProxyCallParams {
     feePaymentSignature?: string;
     paymentNonce?: string;
     nonce?: string;
+    currencyToken: string;
 }
 
 export interface ProxyTransaction {
@@ -257,6 +258,7 @@ export interface ProxyParams {
     relayerFees?: string;
     splitFeeProxyProof?: any;
     paymentInfo?: PaymentInfo;
+    currencyToken: string;
 }
 
 export interface Transaction {
@@ -279,6 +281,7 @@ export interface TransactionParams {
     feePaymentSignature?: string;
     paymentNonce?: string;
     nonce?: string;
+    currencyToken: string;
 }
 
 export interface LiftData {

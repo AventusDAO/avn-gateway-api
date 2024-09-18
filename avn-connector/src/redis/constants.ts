@@ -47,6 +47,4 @@ export const COLLATORS_EXPIRY_IN_SECONDS = 86400; // 1 day
 export const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; // 1 day
 export const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; // 1 day
 
-export {
-  TransactionStatus
-}
+export { TransactionStatus };

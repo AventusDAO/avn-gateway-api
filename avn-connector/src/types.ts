@@ -108,7 +108,10 @@ export interface AccountInfo {
   unstakedBalance: string;
 }
 
-export type AccountInfoNonStaking = Pick<AccountInfo, 'totalBalance' | 'freeBalance'>;
+export type AccountInfoNonStaking = Pick<
+  AccountInfo,
+  'totalBalance' | 'freeBalance'
+>;
 
 export interface UnprocessedLifts {
   fromBlock: number;

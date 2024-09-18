@@ -1,7 +1,7 @@
 
 import { init, callWithTimeout, requestFailed, buildErrorBody, publishEvent, getRelayerFee,
   buildValidResponseBody, isValidAccountId, isValidString, axios, isValidSignatureFormat,
-  WEBHOOK_EVENT_TYPES } from '/opt/utils.js';
+  isValidCurrencyFormat, WEBHOOK_EVENT_TYPES } from '/opt/utils.js';
 import * as fees from '/opt/paymentUtils.js';
 import * as sqs from '/opt/sqsUtils.js';
 import { StatusCode, CustomSQSHandler, ValidResponse, Transaction } from '/opt/handler-types';
@@ -69,10 +69,10 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
   }
 
   try {
-    console.info('CALLID_TO_REQUESTID:', tx.id + ' : ' + requestId);
+    console.info(`Processing split fee request: ${request}`);
     validateTransaction(tx);
 
-    if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method)) === false) {
+    if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method, tx.params.currencyToken)) === false) {
       // transaction has been rejected by payer, inform user
       const eventType = WEBHOOK_EVENT_TYPES.tx_payer_refused;
       await publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, tx.splitFeePayerAddress, tx);
@@ -80,7 +80,7 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
       return;
     }
 
-    const relayerFee = await getRelayerFee(AVN_CONNECTOR_ENDPOINT, tx.params.relayer, tx.splitFeePayerAddress, tx.method);
+    const relayerFee = await getRelayerFee(AVN_CONNECTOR_ENDPOINT, tx.params.relayer, tx.splitFeePayerAddress, tx.method, tx.params.currencyToken);
     tx.params.payer = tx.splitFeePayerAddress;
     tx.relayerFee = relayerFee;
 
@@ -104,21 +104,23 @@ function validateTransaction(tx: Transaction): void {
     if (isValidString(tx.splitFeePayerVaultId) === false) throw 'splitFeePayerVaultId';
     if (isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
     if (isValidSignatureFormat(tx.params.proxySignature) === false) throw 'proxy signature format';
+    if (isValidCurrencyFormat(tx.params.currencyToken) === false) throw 'currencyToken format';
   } catch (errParam) {
     throw new Error(`Invalid transaction data: ${errParam}`);
   }
 }
 
-async function payerCanPayForTransaction(payerAddress: string, transactionName: string): Promise<Boolean> {
+async function payerCanPayForTransaction(payerAddress: string, transactionName: string, currencyToken: string): Promise<Boolean> {
   try {
     const avnResponse = await axios.post(AVN_CONNECTOR_ENDPOINT + 'isPayerTransaction', {
       payer: payerAddress,
-      transaction: transactionName
+      transaction: transactionName,
+      currencyToken: currencyToken
     });
 
     return avnResponse.data === true;
   } catch (err) {
-    console.error(`Failed to check if payer ${payerAddress} can pay for transaction ${transactionName}:`, err.toString());
+    console.error(`Failed to check if payer ${payerAddress} can pay for transaction ${transactionName}:`, err);
     throw err;
   }
 }
@@ -127,7 +129,7 @@ async function updateTransactionStatusToRejected(requestId: string): Promise<voi
   try {
     await axios.post(AVN_CONNECTOR_ENDPOINT + 'setTransactionRefusedByPayerStatus', { requestId: requestId });
   } catch (err) {
-    console.error(`Failed to set status of requestId ${requestId} as 'Rejected by payer':`, err.toString());
+    console.error(`Failed to set status of requestId ${requestId} as 'Rejected by payer':`, err);
     throw err;
   }
 }

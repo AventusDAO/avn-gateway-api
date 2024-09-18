@@ -90,10 +90,14 @@ async function getLiftEvents(avnContract: string): Promise<{
           }
         }
       });
-      logger.debug(`Returned lift events ${JSON.stringify({ fromBlock, toBlock, liftEvents })}`);
+      logger.debug(
+        `Returned lift events ${JSON.stringify({ fromBlock, toBlock, liftEvents })}`
+      );
       return { fromBlock, toBlock, liftEvents };
     }
-    logger.debug(`Returned lift events ${JSON.stringify({ fromBlock, toBlock: fromBlock, liftEvents })}`);
+    logger.debug(
+      `Returned lift events ${JSON.stringify({ fromBlock, toBlock: fromBlock, liftEvents })}`
+    );
     // return the same block for `from` and `to` with an empty `events`
     return { fromBlock, toBlock: fromBlock, liftEvents };
   } catch (error) {

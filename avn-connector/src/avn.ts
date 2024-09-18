@@ -204,7 +204,9 @@ async function poll(
   }
 }
 
-async function getAccountInfo(accountId: string): Promise<AccountInfo | AccountInfoNonStaking> {
+async function getAccountInfo(
+  accountId: string
+): Promise<AccountInfo | AccountInfoNonStaking> {
   const balancesAll = await api.derive.balances.all(accountId);
 
   if (VOW_MODE) {
@@ -440,7 +442,9 @@ async function getUnprocessedLifts(): Promise<UnprocessedLifts> {
       }
     }
 
-    logger.debug(`returning unprocessedLifts: ${JSON.stringify(unprocessedLifts, null, 2)}`);
+    logger.debug(
+      `returning unprocessedLifts: ${JSON.stringify(unprocessedLifts, null, 2)}`
+    );
     return { fromBlock, toBlock, unprocessedLifts };
   } catch (error) {
     logger.error(`Error getting unprocessed lifts: `, error);

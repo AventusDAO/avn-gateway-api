@@ -142,6 +142,10 @@ function isValidString(value: string): boolean {
   return !(value ? value.replace(/\s/g, '').length === 0 : true);
 }
 
+function isValidCurrencyFormat(value: string): boolean {
+  return isHex(value) && hexToU8a(value).length === 20;
+}
+
 function convertToAddress(accountId: string | String | Uint8Array): string {
   if (accountId instanceof String) {
     accountId = accountId.toString();
@@ -237,12 +241,13 @@ function getProxyProof(user: string, relayerAddress: string, proxySignature: str
   };
 }
 
-async function getRelayerFee(connectorUrl: string, relayer: string, user: string, transactionType: TransactionType): Promise<string> {
+async function getRelayerFee(connectorUrl: string, relayer: string, user: string, transactionType: TransactionType, currencyToken: string): Promise<string> {
   try {
     const avnResponse = await axios.post(connectorUrl + 'relayerFees', {
       relayer,
       user,
-      transactionType
+      transactionType,
+      currencyToken
     });
 
     return avnResponse.data.toString();
@@ -327,6 +332,7 @@ export {
   isSplitFeeTransaction,
   isValidAccountId,
   isValidAmount,
+  isValidCurrencyFormat,
   isValidEthereumAddress,
   isValidEthereumTransactionHash,
   isValidNftId,

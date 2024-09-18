@@ -35,6 +35,7 @@ async function processRequest(event: APIGatewayProxyEvent, context: Context): Pr
 
   try {
     console.info('TX_ID <-> AWS_REQUESTID:', tx.id + ' : ' + awsRequestId);
+    console.info(`Processing request: ${request}`);
 
     //Update redis with requestId. This prevents a "transaction not found" message when polling directly after sending
     await axios.post(AVN_CONNECTOR_ENDPOINT + 'addNewTransactionStatus', { requestId: awsRequestId });

@@ -54,7 +54,7 @@ app.post(
 
       let result;
 
-      if (VOW_MODE && req.body.palletName in ['parachainStaking', 'validatorsManager']) {
+      if (VOW_MODE && req.body.palletName in ['parachainStaking']) {
         result = '';
       } else {
         result = await avn.query(
@@ -129,6 +129,7 @@ app.post(
       logger.info({ relayerFeesRequest: req.body });
       const result = await rds.getFees(
         req.body.relayer,
+        req.body.currencyToken,
         req.body.user,
         req.body.transactionType
       );
@@ -141,7 +142,11 @@ app.post(
 
 app.post(
   '/avnAccountInfo',
-  async (req: Request, res: Response<AccountInfo | AccountInfoNonStaking>, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response<AccountInfo | AccountInfoNonStaking>,
+    next: NextFunction
+  ) => {
     try {
       logger.info({ avnAccountInfoRequest: req.body });
       const result = await avn.getAccountInfo(req.body.accountId);
@@ -315,11 +320,7 @@ app.post(
 
 app.post(
   '/lowers',
-  async (
-    req: Request,
-    res: Response<LowerData | null>,
-    next: NextFunction
-  ) => {
+  async (req: Request, res: Response<LowerData | null>, next: NextFunction) => {
     try {
       logger.info({ lowerDataRequest: req.body });
       const result = await loweringV2.getLowers(req.body.account);
@@ -345,11 +346,7 @@ app.post(
 
 app.post(
   '/getPayer',
-  async (
-    req: Request,
-    res: Response<PayerInfo | null>,
-    next: NextFunction
-  ) => {
+  async (req: Request, res: Response<PayerInfo | null>, next: NextFunction) => {
     try {
       logger.info({ getPayer: JSON.stringify(req.body) });
       let result = await rds.getPayer(req.body.user, req.body.payer);
@@ -371,7 +368,8 @@ app.post(
       logger.info({ isPayerTransaction: JSON.stringify(req.body) });
       const result = await rds.isPayerTransaction(
         req.body.payer,
-        req.body.transaction
+        req.body.transaction,
+        req.body.currencyToken
       );
       res.status(200).send(result);
     } catch (err) {
@@ -436,6 +434,22 @@ app.post(
       logger.info({ publishEventRequest: req.body });
       webhooks.publishEvent(req.body);
       res.status(200).send(null);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+app.post(
+  '/relayerAcceptsCurrency',
+  async (req: Request, res: Response<boolean>, next: NextFunction) => {
+    try {
+      logger.info({ relayerAcceptsCurrency: JSON.stringify(req.body) });
+      const result = await rds.relayerAcceptsCurrency(
+        req.body.relayerAddress,
+        req.body.currencyToken
+      );
+      res.status(200).send(result);
     } catch (err) {
       next(err);
     }

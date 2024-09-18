@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Transaction } from './transaction';
 import { Payer } from './payer';
+import { Currency } from './currency';
 
 @Entity('payerTransaction')
 export class PayerTransaction {
@@ -16,6 +17,9 @@ export class PayerTransaction {
 
   @PrimaryColumn()
   payerId: number;
+
+  @PrimaryColumn()
+  currencyId: number;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
@@ -33,4 +37,9 @@ export class PayerTransaction {
 
   @ManyToOne(() => Payer, payer => payer.payerTransactions, { eager: false })
   payer: Payer;
+
+  @ManyToOne(() => Currency, currency => currency.payerTransactions, {
+    eager: false
+  })
+  currency: Currency;
 }

@@ -1,4 +1,4 @@
-import { init, callWithTimeout, requestFailed, buildErrorBody, isValidProxySignature, axios, toBnString,
+import { init, callWithTimeout, requestFailed, buildErrorBody, isValidCurrencyFormat, isValidProxySignature, axios, toBnString,
   isValidAccountId, getProxyProof, isValidSignatureFormat, isSplitFeeTransaction, isValidNonce,
   publishEvent, buildValidResponseBody, isValidString, isValidEthereumAddress, isValidNftId,
   isValidAmount, isValidEthereumTransactionHash, encodeRoyalties, convertToPublicKey,
@@ -71,7 +71,7 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
   const requestId = call.awsRequestId ?? '';
   if (!call.id) call.id = '';
 
-  console.info('CALLID_TO_REQUESTID:', `${call.id} : ${requestId}`);
+  console.info(`Dispatching request: ${request}`);
 
   return validateAndProcessCall(call, request, requestId);
 }
@@ -150,13 +150,14 @@ async function processProxyMethod(
   method: string,
   methodParams: any[]
 ): Promise<ValidResponse | ErrorBody> {
-  const { relayer, user, payer, proxySignature } = call.params;
+  const { relayer, user, payer, proxySignature, currencyToken } = call.params;
 
   try {
     if (!isValidAccountId(relayer)) throw 'relayer';
     if (!isValidAccountId(user)) throw 'user';
     if (!isValidAccountId(payer)) throw 'payer';
     if (!isValidSignatureFormat(proxySignature)) throw 'proxySignature';
+    if (!isValidCurrencyFormat(currencyToken)) throw 'currencyToken';
 
     if (!isSplitFeeTransaction(call)) {
       if (!isValidSignatureFormat(call.params.feePaymentSignature!)) throw 'feePaymentSignature';
@@ -170,7 +171,8 @@ async function processProxyMethod(
 
   const params: ProxyParams = {
     proxyParams: [proxyProof].concat(methodParams),
-    relayerAddress: relayer
+    relayerAddress: relayer,
+    currencyToken: currencyToken
   };
 
   if (isSplitFeeTransaction(call)) {
@@ -185,7 +187,8 @@ async function processProxyMethod(
       proxySignature,
       pallet,
       method,
-      methodParams
+      methodParams,
+      currencyToken
     } as PublishEventData);
   } else {
     const paymentInfo = await fees.tryGetPaymentInfo(
@@ -195,7 +198,8 @@ async function processProxyMethod(
       call.params.feePaymentSignature!,
       call.method,
       call.params.paymentNonce!,
-      proxyProof
+      proxyProof,
+      currencyToken
     );
 
     params.paymentInfo = paymentInfo;
@@ -230,6 +234,7 @@ const typeValidationMap = {
   H256: isValidEthereumTransactionHash,
   U256: isValidNftId,
   'Vec<u8>': isValidString,
+  // What about U8, U64, BalanceOf...?
 };
 
 const callConfigs: { [key: string]: CallConfig } = {

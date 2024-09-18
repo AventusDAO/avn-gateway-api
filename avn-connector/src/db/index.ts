@@ -16,16 +16,6 @@ import { DefaultRelayerFee } from './entity/defaultRelayerFee';
 
 const config = require('multiconfig').load();
 
-const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
-const FEE_TABLE = 'fee';
-const RELAYER_TABLE = 'relayer';
-const PAYER_TABLE = 'payer';
-const PAYER_TRANSACTION_TABLE = 'payerTransaction';
-const TRANSACTION_TABLE = 'transaction';
-const WEBHOOK_ENDPOINT_TABLE = 'webhookEndpoint';
-const WEBHOOK_EVENT_TABLE = 'webhookEvent';
-const WEBHOOKS_TABLE = 'webhooks';
-
 let dataSource: DataSource;
 
 async function init(): Promise<DataSource> {

@@ -18,7 +18,7 @@ export class PayerTransaction {
   @PrimaryColumn()
   payerId: number;
 
-  @PrimaryColumn()
+  @PrimaryColumn({ default: null }) // Remove default value
   currencyId: number;
 
   @CreateDateColumn({ type: 'timestamptz' })

@@ -4,13 +4,15 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
+  Unique
 } from 'typeorm';
 import { Relayer } from './relayer';
 import { Transaction } from './transaction';
 import { Currency } from './currency';
 
 @Entity('fee')
+@Unique(['relayerId', 'currencyId', 'transactionId', 'userPublicKey'])
 export class Fee {
   @PrimaryGeneratedColumn()
   id: number;
@@ -18,7 +20,7 @@ export class Fee {
   @Column({ type: 'int' })
   relayerId: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true }) // Remove `nullable` after this is applied
   currencyId: number;
 
   @Column({ type: 'int', nullable: true })

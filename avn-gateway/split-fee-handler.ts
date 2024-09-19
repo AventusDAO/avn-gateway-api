@@ -62,6 +62,13 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
 
   try {
     tx = JSON.parse(request);
+
+    if (tx.params?.currencyToken) {
+      // We don't want to pollute the actual extrinsic params
+      tx.currencyToken = tx.params.currencyToken;
+      delete tx.params.currencyToken;
+    }
+
     requestId = tx.awsRequestId;
   } catch (err) {
     console.error(`Failed to parse message as JSON: `, err);

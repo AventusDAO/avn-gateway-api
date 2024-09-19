@@ -282,6 +282,7 @@ export interface TransactionParams {
     feePaymentSignature?: string;
     paymentNonce?: string;
     nonce?: string;
+    currencyToken?: string;
 }
 
 export interface LiftData {

@@ -50,6 +50,8 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getAvnContractAddress(call, request);
     case 'getDefaultRelayer':
       return await getDefaultRelayer(call, request);
+    case 'getNativeCurrencyToken':
+      return await getNativeCurrencyToken(call, request);
     case 'getNftContractAddress':
       return await getNftContractAddress(call, request);
     case 'getNftId':
@@ -140,6 +142,12 @@ async function getAvnContractAddress(call: Call, request: string): Promise<Valid
 
 async function getDefaultRelayer(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'getDefaultRelayer';
+  const params = { callId: call.id };
+  return await query(call, request, method, params);
+}
+
+async function getNativeCurrencyToken(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const method = 'nativeCurrencyToken';
   const params = { callId: call.id };
   return await query(call, request, method, params);
 }

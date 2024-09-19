@@ -133,8 +133,8 @@ async function payerCanPayForTransaction(payerAddress: string, transactionName: 
 
 async function getNativeCurrency(): Promise<string> {
   try {
-    const avnResponse = await axios.get(AVN_CONNECTOR_ENDPOINT + 'defaultCurrencyToken');
-    console.info(`defaultCurrencyToken response: `, avnResponse);
+    const avnResponse = await axios.post(AVN_CONNECTOR_ENDPOINT + 'nativeCurrencyToken', {});
+    console.info(`nativeCurrencyToken response: `, avnResponse);
     return avnResponse?.data?.defaultCurrencyToken;
   } catch (err) {
     console.error(`Failed to get native currency token:`, err);

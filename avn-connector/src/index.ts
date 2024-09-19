@@ -456,11 +456,11 @@ app.post(
   }
 );
 
-app.get(
+app.post(
   '/nativeCurrencyToken',
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
-      logger.info(`nativeCurrencyToken invoken`);
+      logger.info({ nativeCurrencyToken: JSON.stringify(req.body) });
       const result = await rds.getNativeCurrencyToken();
       res.status(200).send(JSON.stringify(result));
     } catch (err) {

@@ -4,8 +4,7 @@ import {
   Column,
   OneToMany,
   CreateDateColumn,
-  UpdateDateColumn,
-  Index
+  UpdateDateColumn
 } from 'typeorm';
 import { Payer } from './payer';
 import { Webhooks } from './webhooks';

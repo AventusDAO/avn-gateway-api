@@ -14,6 +14,7 @@ import { Webhooks } from './entity/webhooks';
 import { PayerInfo } from '../types';
 import { DefaultRelayerFee } from './entity/defaultRelayerFee';
 import { Currency } from './entity/currency';
+import { multiCurrency31726749398507 } from './migrations/1726749398507-multi-currency-3';
 import { multiCurrency21726747887371 } from './migrations/1726747887371-multi-currency-2';
 
 const config = require('multiconfig').load();
@@ -28,7 +29,7 @@ async function init(): Promise<DataSource> {
     username: config.postgres.username,
     password: config.postgres.password,
     database: config.postgres.database,
-    synchronize: false, //config.postgres.synchronize === 'true',
+    synchronize: false,
     entities: [
       Payer,
       SplitFeeUser,
@@ -43,7 +44,8 @@ async function init(): Promise<DataSource> {
       DefaultRelayerFee
     ],
     migrations: [
-      multiCurrency21726747887371
+      multiCurrency21726747887371,
+      multiCurrency31726749398507
     ],
     migrationsRun: config.postgres.synchronize === 'true',
   });

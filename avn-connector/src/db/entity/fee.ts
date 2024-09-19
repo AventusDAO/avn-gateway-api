@@ -20,7 +20,7 @@ export class Fee {
   @Column({ type: 'int' })
   relayerId: number;
 
-  @Column({ type: 'int', nullable: true }) // Remove `nullable` after this is applied
+  @Column({ type: 'int' })
   currencyId: number;
 
   @Column({ type: 'int', nullable: true })

@@ -44,7 +44,8 @@ async function init(): Promise<DataSource> {
     ],
     migrations: [
       multiCurrency1726740102221
-    ]
+    ],
+    migrationsRun: config.postgres.synchronize === 'true',
   });
 
   await dataSource.initialize();

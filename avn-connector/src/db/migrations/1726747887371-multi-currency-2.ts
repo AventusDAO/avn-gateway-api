@@ -21,7 +21,7 @@ export class multiCurrency21726747887371 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "payer_transaction" ADD CONSTRAINT "FK_8444ee59f786ff114e38537ddb1" FOREIGN KEY ("currencyId") REFERENCES "currency"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "payer" ADD CONSTRAINT "FK_08b842580c013ebc4f51495a2ce" FOREIGN KEY ("webhookEndpointId") REFERENCES "webhook_endpoint"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
 
-        const currency = await queryRunner.query(`INSERT INTO currency (token, native) VALUES ('${config.postgres.nativeTokenAddress}', true) RETURNING id`);
+        const currency = await queryRunner.query(`INSERT INTO currency (token, native) VALUES ('${config.nativeTokenAddress}', true) RETURNING id`);
         await queryRunner.query(`INSERT INTO default_relayer_fee ("relayerId", "currencyId", fee) VALUES (${relayer[0].id}, ${currency[0].id}, ${relayer[0].defaultFee})`);
         await queryRunner.query(`UPDATE fee SET "currencyId" = ${currency[0].id}`);
         await queryRunner.query(`UPDATE payer_transaction SET "currencyId" = ${currency[0].id}`);

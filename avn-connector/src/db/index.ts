@@ -52,6 +52,8 @@ async function init(): Promise<DataSource> {
 
   await dataSource.initialize();
 
+
+  console.log("Native token: ", config.nativeTokenAddress);
   return dataSource;
 }
 

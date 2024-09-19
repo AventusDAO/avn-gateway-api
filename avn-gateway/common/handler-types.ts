@@ -229,6 +229,7 @@ export interface ProxyCall {
     relayerFee?: string,
     params?: ProxyCallParams,
     pallet?: string,
+    currencyToken: string;
 }
 
 export interface ProxyCallParams {
@@ -239,7 +240,6 @@ export interface ProxyCallParams {
     feePaymentSignature?: string;
     paymentNonce?: string;
     nonce?: string;
-    currencyToken: string;
 }
 
 export interface ProxyTransaction {
@@ -271,6 +271,7 @@ export interface Transaction {
     relayerFee?: string,
     params?: TransactionParams,
     pallet?: string,
+    currencyToken: string;
 }
 
 export interface TransactionParams {
@@ -281,7 +282,6 @@ export interface TransactionParams {
     feePaymentSignature?: string;
     paymentNonce?: string;
     nonce?: string;
-    currencyToken: string;
 }
 
 export interface LiftData {

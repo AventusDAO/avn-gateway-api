@@ -70,9 +70,15 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
 
   try {
     console.info(`Processing split fee request: ${request}`);
+    if (!tx.currencyToken) {
+      const nativeTokenCurrency = await getNativeCurrency();
+      if (!nativeTokenCurrency) throw new Error(`Unable to determine currency token`);
+      tx.currencyToken = nativeTokenCurrency;
+    }
+
     validateTransaction(tx);
 
-    if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method, tx.params.currencyToken)) === false) {
+    if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method, tx.currencyToken)) === false) {
       // transaction has been rejected by payer, inform user
       const eventType = WEBHOOK_EVENT_TYPES.tx_payer_refused;
       await publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, tx.splitFeePayerAddress, tx);
@@ -80,7 +86,7 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
       return;
     }
 
-    const relayerFee = await getRelayerFee(AVN_CONNECTOR_ENDPOINT, tx.params.relayer, tx.splitFeePayerAddress, tx.method, tx.params.currencyToken);
+    const relayerFee = await getRelayerFee(AVN_CONNECTOR_ENDPOINT, tx.params.relayer, tx.splitFeePayerAddress, tx.method, tx.currencyToken);
     tx.params.payer = tx.splitFeePayerAddress;
     tx.relayerFee = relayerFee;
 
@@ -104,7 +110,7 @@ function validateTransaction(tx: Transaction): void {
     if (isValidString(tx.splitFeePayerVaultId) === false) throw 'splitFeePayerVaultId';
     if (isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
     if (isValidSignatureFormat(tx.params.proxySignature) === false) throw 'proxy signature format';
-    if (isValidCurrencyFormat(tx.params.currencyToken) === false) throw 'currencyToken format';
+    if (isValidCurrencyFormat(tx.currencyToken) === false) throw 'currencyToken format';
   } catch (errParam) {
     throw new Error(`Invalid transaction data: ${errParam}`);
   }
@@ -121,6 +127,17 @@ async function payerCanPayForTransaction(payerAddress: string, transactionName: 
     return avnResponse.data === true;
   } catch (err) {
     console.error(`Failed to check if payer ${payerAddress} can pay for transaction ${transactionName}:`, err);
+    throw err;
+  }
+}
+
+async function getNativeCurrency(): Promise<string> {
+  try {
+    const avnResponse = await axios.get(AVN_CONNECTOR_ENDPOINT + 'defaultCurrencyToken');
+    console.info(`defaultCurrencyToken response: `, avnResponse);
+    return avnResponse?.data?.defaultCurrencyToken;
+  } catch (err) {
+    console.error(`Failed to get native currency token:`, err);
     throw err;
   }
 }

@@ -456,6 +456,19 @@ app.post(
   }
 );
 
+app.get(
+  '/nativeCurrencyToken',
+  async (req: Request, res: Response<string>, next: NextFunction) => {
+    try {
+      logger.info(`nativeCurrencyToken invoken`);
+      const result = await rds.getNativeCurrencyToken();
+      res.status(200).send(JSON.stringify(result));
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(
     `Error processing request: ${JSON.stringify(req.body, null, 2)}`,

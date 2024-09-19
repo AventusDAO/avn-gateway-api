@@ -150,7 +150,8 @@ async function processProxyMethod(
   method: string,
   methodParams: any[]
 ): Promise<ValidResponse | ErrorBody> {
-  const { relayer, user, payer, proxySignature, currencyToken } = call.params;
+  const { relayer, user, payer, proxySignature } = call.params;
+  const currencyToken = call.currencyToken;
 
   try {
     if (!isValidAccountId(relayer)) throw 'relayer';

@@ -391,6 +391,15 @@ async function getWebhooksState(): Promise<string> {
     .digest('hex');
 }
 
+async function getNativeCurrencyToken(): Promise<{ nativeCurrencyToken: string | undefined }> {
+  const currencyDataSource = await dataSource.getRepository(Currency);
+  const result = await currencyDataSource.findOne({
+    where: { native: true, enabled: true }
+  });
+
+  return {nativeCurrencyToken: result?.token}
+}
+
 const rds = {
   getPayer,
   getFees,
@@ -402,6 +411,7 @@ const rds = {
   getWebhookEventTypes,
   getWebhookEventTypesState,
   getWebhooksState,
-  relayerAcceptsCurrency
+  relayerAcceptsCurrency,
+  getNativeCurrencyToken
 };
 export default rds;

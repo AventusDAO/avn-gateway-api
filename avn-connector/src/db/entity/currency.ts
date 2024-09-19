@@ -14,7 +14,7 @@ import { DefaultRelayerFee } from './defaultRelayerFee';
 @Entity('currency')
 export class Currency {
   @PrimaryGeneratedColumn()
-  currencyId: number;
+  id: number;
 
   @Column({ type: 'varchar', length: 42, unique: true })
   token: string;

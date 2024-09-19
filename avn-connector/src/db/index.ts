@@ -14,7 +14,7 @@ import { Webhooks } from './entity/webhooks';
 import { PayerInfo } from '../types';
 import { DefaultRelayerFee } from './entity/defaultRelayerFee';
 import { Currency } from './entity/currency';
-import { multiCurrency1726740102221 } from './migrations/1726740102221-multi-currency';
+import { multiCurrency21726747887371 } from './migrations/1726747887371-multi-currency-2';
 
 const config = require('multiconfig').load();
 
@@ -43,7 +43,7 @@ async function init(): Promise<DataSource> {
       DefaultRelayerFee
     ],
     migrations: [
-      multiCurrency1726740102221
+      multiCurrency21726747887371
     ],
     migrationsRun: config.postgres.synchronize === 'true',
   });

@@ -10,7 +10,7 @@ import {
 import { Payer } from './payer';
 import { Webhooks } from './webhooks';
 
-@Entity('webhookEndpoint')
+@Entity('webhook_endpoint')
 export class WebhookEndpoint {
   @PrimaryGeneratedColumn()
   id: number;

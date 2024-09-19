@@ -10,7 +10,7 @@ import { Transaction } from './transaction';
 import { Payer } from './payer';
 import { Currency } from './currency';
 
-@Entity('payerTransaction')
+@Entity('payer_transaction')
 export class PayerTransaction {
   @PrimaryColumn()
   transactionId: number;

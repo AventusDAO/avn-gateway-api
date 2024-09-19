@@ -10,7 +10,7 @@ import {
 import { Relayer } from './relayer';
 import { Currency } from './currency';
 
-@Entity('defaultRelayerFee')
+@Entity('default_relayer_fee')
 @Unique(['relayerId', 'currencyId'])
 export class DefaultRelayerFee {
   @PrimaryGeneratedColumn()

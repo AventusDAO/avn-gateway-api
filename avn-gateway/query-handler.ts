@@ -1,6 +1,6 @@
 import { init, buildErrorBody, isValidAccountId, isValidString, buildValidResponseBody, axios,
   isValidNftId, isValidEthereumAddress, convertToAddress, convertToPublicKey, BN, toBnString,
-  NONCE_INFO } from '/opt/utils';
+  NONCE_INFO, isValidCurrencyFormat} from '/opt/utils';
 import { Call, ValidError, ValidResponse } from '/opt/handler-types';
 import { ErrorBody } from '/opt/types';
 // @ts-ignore
@@ -253,10 +253,11 @@ async function getNftOwner(call: Call, request: string): Promise<ValidResponse |
 }
 
 async function getRelayerFees(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
-  let { relayer, user, transactionType } = call.params;
+  let { relayer, user, transactionType, currencyToken } = call.params;
 
   try {
     if (isValidAccountId(relayer) === false) throw 'relayer';
+    if (isValidCurrencyFormat(currencyToken) === false) throw 'currencyToken';
     if (user && isValidAccountId(user) === false) throw 'user';
   } catch (param) {
     const gatewayError = 'invalid ' + param;
@@ -266,7 +267,7 @@ async function getRelayerFees(call: Call, request: string): Promise<ValidRespons
   try {
     relayer = convertToAddress(relayer);
     user = convertToAddress(user);
-    const avnResponse = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType });
+    const avnResponse = await axios.post(AVN_CONNECTOR_ENDPOINT + 'relayerFees', { relayer, user, transactionType, currencyToken });
     let result = avnResponse.data;
     result = typeof result === 'number' ? result.toString() : result;
     return buildValidResponseBody(call.id, result);

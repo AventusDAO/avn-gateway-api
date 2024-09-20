@@ -211,6 +211,7 @@ export interface CallParams {
     token?: string;
     fromTimestamp?: string;
     toTimestamp?: string;
+    currencyToken: string;
 };
 
 export interface Call {

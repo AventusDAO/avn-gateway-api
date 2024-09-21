@@ -774,6 +774,7 @@ async function generateSplitFeePaymentInfo(
     payer: transaction.splitFeePayerAddress,
     recipient: transaction.relayerAddress,
     amount: transaction.relayerFees,
+    token: currencyToken,
     signature: {
       Sr25519: signedData.signature
     }

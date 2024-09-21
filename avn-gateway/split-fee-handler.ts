@@ -76,7 +76,7 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
   }
 
   try {
-    console.info(`Processing split fee request: ${request}`);
+    console.info(`Processing split fee request: ${tx}`);
     if (!tx.currencyToken) {
       const nativeTokenCurrency = await getNativeCurrency();
       if (!nativeTokenCurrency) throw new Error(`Unable to determine currency token`);

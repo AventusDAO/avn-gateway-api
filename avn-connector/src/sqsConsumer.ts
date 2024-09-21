@@ -85,7 +85,7 @@ async function processMessage(message: Message): Promise<void> {
       logger.info(
         `[SQS tx] Request ID: ${requestId} - sending proxy transaction: ${JSON.stringify(txData)}`
       );
-      const { palletName, method, params, currencyToken } = txData;
+      const { palletName, method, params } = txData;
 
       if (isSplitFeeTransaction(txData)) {
         const payerAddress = params.splitFeePayerAddress;
@@ -100,7 +100,7 @@ async function processMessage(message: Message): Promise<void> {
           requestId,
           params,
           params.paymentNonce,
-          currencyToken
+          params.currencyToken
         );
         const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_payer_accepted;
         const eventData = { tx: txData, payment: params.paymentInfo };

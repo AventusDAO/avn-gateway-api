@@ -252,7 +252,8 @@ async function getRelayerFee(connectorUrl: string, relayer: string, user: string
 
     return avnResponse.data.toString();
   } catch (error) {
-    throw new Error(`could not get relayer fee: ${error.toString()}`);
+    console.error(`could not get relayer fee for relayer: ${relayer}, user: ${user}, transactionType: ${transactionType}, currencyToken: ${currencyToken}: `, error)
+    throw error;
   }
 }
 

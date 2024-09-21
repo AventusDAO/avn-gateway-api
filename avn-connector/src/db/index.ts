@@ -166,7 +166,10 @@ async function getRelayer(relayerAddress: string): Promise<Relayer | null> {
   const relayerPk = getPublicKey(relayerAddress);
   const relayerDataSource = await dataSource.getRepository(Relayer);
   return await relayerDataSource.findOne({
-    where: { publicKey: relayerPk, enabled: true }
+    where: {
+      publicKey: relayerPk, enabled: true
+    },
+    relations: ["defaultFees", "defaultFees.currency" ]
   });
 }
 
@@ -270,7 +273,7 @@ function getRelayerDetaultFee(
   relayer: Relayer,
   currencyToken: string
 ): DefaultRelayerFee | undefined {
-  return relayer.defaultFees.find(f => f.currency.token === currencyToken);
+  return relayer.defaultFees?.find(f => f.currency?.token === currencyToken);
 }
 
 async function getRelayerVaultId(relayerAddress: string): Promise<string> {

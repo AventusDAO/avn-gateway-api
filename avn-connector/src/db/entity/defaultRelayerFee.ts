@@ -34,6 +34,6 @@ export class DefaultRelayerFee {
   @ManyToOne(() => Relayer, relayer => relayer.defaultFees, { eager: false })
   relayer: Relayer;
 
-  @ManyToOne(() => Currency, currency => currency.defaultFees, { eager: false })
+  @ManyToOne(() => Currency, currency => currency.defaultFees, { eager: true })
   currency: Currency;
 }

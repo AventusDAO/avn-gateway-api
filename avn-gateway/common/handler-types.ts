@@ -230,17 +230,17 @@ export interface ProxyCall {
     relayerFee?: string,
     params?: ProxyCallParams,
     pallet?: string,
-    currencyToken: string;
 }
 
 export interface ProxyCallParams {
-    user?: string,
-    relayer?: string,
-    payer?: string,
-    proxySignature?: string
+    user?: string;
+    relayer?: string;
+    payer?: string;
+    proxySignature?: string;
     feePaymentSignature?: string;
     paymentNonce?: string;
     nonce?: string;
+    currencyToken: string;
 }
 
 export interface ProxyTransaction {
@@ -248,7 +248,7 @@ export interface ProxyTransaction {
     txType: string;
     palletName: string;
     method: string;
-    params: ProxyParams
+    params: ProxyParams;
 }
 
 export interface ProxyParams {

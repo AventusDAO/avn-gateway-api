@@ -53,6 +53,7 @@ function getPayerVaultUsername(payerVaultId: string): string {
 
 const paymentInfoHelper = {
   encodePaymentParams,
-  getPayerVaultUsername
+  getPayerVaultUsername,
+  FEE_PAYMENT_CONTEXT
 };
 export default paymentInfoHelper;

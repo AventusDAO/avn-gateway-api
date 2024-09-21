@@ -18,7 +18,6 @@ const EXECUTION_MARGIN = 1000;
 const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
-const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const NUM_TYPES = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
 
 enum WEBHOOK_EVENT_TYPES {

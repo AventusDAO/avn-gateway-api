@@ -642,7 +642,7 @@ async function signPaymentInfo(
   message: string,
   payerUsername: string
 ): Promise<any> {
-  const paymentInfoContext = stringToHex('authorization for proxy payment');
+  const paymentInfoContext = stringToHex(fees.FEE_PAYMENT_CONTEXT);
   const messageWithoutPrefix = '0x' + message.slice(4);
 
   // Important: we only want to sign correctly formatted payment data.

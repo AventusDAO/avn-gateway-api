@@ -612,7 +612,6 @@ async function getRelayerAccount(relayerAddress: string): Promise<any> {
       }
     }
     relayers[relayerAddress] = createAccount(relayerSuri);
-    logger.info(`r suri: ${relayerSuri}`);
   }
   return relayers[relayerAddress];
 }

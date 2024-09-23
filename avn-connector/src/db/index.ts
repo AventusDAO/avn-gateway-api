@@ -403,6 +403,17 @@ async function getNativeCurrencyToken(): Promise<{ nativeCurrencyToken: string |
   return {nativeCurrencyToken: result?.token}
 }
 
+async function getSupportedCurrencies() : Promise<string[]> {
+  const currencyTokens = await dataSource.getRepository(DefaultRelayerFee)
+    .createQueryBuilder("relayerCurrencies")
+    .innerJoinAndSelect("relayerCurrencies.currency", "currency")
+    .select("currency.token", "token")
+    .distinct(true)
+    .getRawMany();
+
+  return currencyTokens.map(row => row.token);
+}
+
 const rds = {
   getPayer,
   getFees,
@@ -415,6 +426,7 @@ const rds = {
   getWebhookEventTypesState,
   getWebhooksState,
   relayerAcceptsCurrency,
-  getNativeCurrencyToken
+  getNativeCurrencyToken,
+  getSupportedCurrencies
 };
 export default rds;

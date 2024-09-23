@@ -100,6 +100,10 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getNftListingStatus(call, request);
     case 'getBatchListingStatus':
       return await getBatchListingStatus(call, request);
+    case 'getLoweringStatus':
+        return await getLoweringStatus(call, request);
+    case 'getSupportedCurrencies':
+      return await getSupportedCurrencies(call, request);
 
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -132,6 +136,10 @@ async function getAvtBalance(call: Call, request: string): Promise<ValidResponse
   }
 }
 
+async function getLoweringStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  return await queryChain(call, request, 'tokenManager', 'lowersDisabled', [], formatAsLowerStatus);
+}
+
 async function getAvtContractAddress(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   return await getChainInfo(call, request, filterAvtContract);
 }
@@ -154,6 +162,11 @@ async function getNativeCurrencyToken(call: Call, request: string): Promise<Vali
 
 async function getNftContractAddress(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'avnNftContractAddresses';
+  return await query(call, request, method, {});
+}
+
+async function getSupportedCurrencies(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const method = 'supportedCurrencies';
   return await query(call, request, method, {});
 }
 
@@ -482,6 +495,13 @@ const formatListingAsString = data => {
   }
 
   return data.toString()
+}
+
+const formatAsLowerStatus = data => {
+  if (data && data === true) { // this is not a bug, true -> Disabled
+    return `Disabled`
+  }
+  return `Enabled`
 }
 
 const formatAsNull = data => (data || null)

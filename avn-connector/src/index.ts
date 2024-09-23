@@ -469,6 +469,19 @@ app.post(
   }
 );
 
+app.post(
+  '/supportedCurrencies',
+  async (req: Request, res: Response<string>, next: NextFunction) => {
+    try {
+      logger.info({ supportedCurrencies: JSON.stringify(req.body) });
+      const result = await rds.getSupportedCurrencies();
+      res.status(200).send(JSON.stringify(result));
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(
     `Error processing request: ${err.message}. Request: ${JSON.stringify(req.body)}`,

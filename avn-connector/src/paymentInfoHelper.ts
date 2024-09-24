@@ -16,12 +16,14 @@ function encodePaymentParams(
   relayer: string,
   relayerFee: string,
   paymentNonce: number,
-  proxyProof: ProxyProofParams
+  proxyProof: ProxyProofParams,
+  currencyToken: string
 ): Uint8Array {
   const encodedContext = registry.createType('Text', FEE_PAYMENT_CONTEXT);
   const encodedProxyProof = encodeProxyProof(proxyProof);
   const encodedRelayer = registry.createType('AccountId', relayer);
   const encodedRelayerFee = registry.createType('Balance', relayerFee);
+  const encodedCurrency = registry.createType('H160', currencyToken);
   const encodedPaymentNonce = registry.createType('u64', paymentNonce);
 
   return u8aConcat(
@@ -29,6 +31,7 @@ function encodePaymentParams(
     encodedProxyProof,
     encodedRelayer.toU8a(true),
     encodedRelayerFee.toU8a(true),
+    encodedCurrency.toU8a(true),
     encodedPaymentNonce.toU8a(true)
   );
 }
@@ -50,6 +53,7 @@ function getPayerVaultUsername(payerVaultId: string): string {
 
 const paymentInfoHelper = {
   encodePaymentParams,
-  getPayerVaultUsername
+  getPayerVaultUsername,
+  FEE_PAYMENT_CONTEXT
 };
 export default paymentInfoHelper;

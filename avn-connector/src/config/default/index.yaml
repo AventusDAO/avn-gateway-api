@@ -4,3 +4,4 @@ serverPort: $ENV:SERVER_PORT
 stakingPayoutRelayer: $ENV:STAKING_PAYOUT_RELAYER
 minimumPayerBalance: $ENV:MINIMUM_PAYER_BALANCE
 vowMode: $ENV:VOW_MODE
+nativeTokenAddress: $ENV:NATIVE_TOKEN_ADDRESS

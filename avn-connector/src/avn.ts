@@ -204,7 +204,9 @@ async function poll(
   }
 }
 
-async function getAccountInfo(accountId: string): Promise<AccountInfo | AccountInfoNonStaking> {
+async function getAccountInfo(
+  accountId: string
+): Promise<AccountInfo | AccountInfoNonStaking> {
   const balancesAll = await api.derive.balances.all(accountId);
 
   if (VOW_MODE) {
@@ -440,7 +442,9 @@ async function getUnprocessedLifts(): Promise<UnprocessedLifts> {
       }
     }
 
-    logger.debug(`returning unprocessedLifts: ${JSON.stringify(unprocessedLifts, null, 2)}`);
+    logger.debug(
+      `returning unprocessedLifts: ${JSON.stringify(unprocessedLifts, null, 2)}`
+    );
     return { fromBlock, toBlock, unprocessedLifts };
   } catch (error) {
     logger.error(`Error getting unprocessed lifts: `, error);
@@ -638,7 +642,7 @@ async function signPaymentInfo(
   message: string,
   payerUsername: string
 ): Promise<any> {
-  const paymentInfoContext = stringToHex('authorization for proxy payment');
+  const paymentInfoContext = stringToHex(fees.FEE_PAYMENT_CONTEXT);
   const messageWithoutPrefix = '0x' + message.slice(4);
 
   // Important: we only want to sign correctly formatted payment data.
@@ -743,7 +747,8 @@ async function getPayerPaymentNonce(
 async function generateSplitFeePaymentInfo(
   requestId: string,
   transaction: any,
-  paymentNonce: number
+  paymentNonce: number,
+  currencyToken: string
 ): Promise<any> {
   logger.info(
     `${requestId} - Generating payment info. Payer: ${transaction.splitFeePayerAddress}, nonce: ${paymentNonce}, amount: ${transaction.relayerFees}`
@@ -753,7 +758,8 @@ async function generateSplitFeePaymentInfo(
     transaction.relayerAddress,
     transaction.relayerFees,
     paymentNonce,
-    transaction.splitFeeProxyProof
+    transaction.splitFeeProxyProof,
+    currencyToken
   );
 
   const payerUserName = fees.getPayerVaultUsername(
@@ -768,6 +774,7 @@ async function generateSplitFeePaymentInfo(
     payer: transaction.splitFeePayerAddress,
     recipient: transaction.relayerAddress,
     amount: transaction.relayerFees,
+    token: currencyToken,
     signature: {
       Sr25519: signedData.signature
     }

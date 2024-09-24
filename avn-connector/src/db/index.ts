@@ -1,4 +1,4 @@
-import { DataSource, IsNull } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 import { isHex, u8aToHex } from '@polkadot/util';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 import crypto from 'crypto';
@@ -12,18 +12,12 @@ import { WebhookEndpoint } from './entity/webhookEndpoint';
 import { WebhookEvent } from './entity/webhookEvent';
 import { Webhooks } from './entity/webhooks';
 import { PayerInfo } from '../types';
+import { DefaultRelayerFee } from './entity/defaultRelayerFee';
+import { Currency } from './entity/currency';
+import { multiCurrency31726749398507 } from './migrations/1726749398507-multi-currency-3';
+import { multiCurrency21726747887371 } from './migrations/1726747887371-multi-currency-2';
 
 const config = require('multiconfig').load();
-
-const SPLIT_FEE_USER_TABLE = 'splitFeeUser';
-const FEE_TABLE = 'fee';
-const RELAYER_TABLE = 'relayer';
-const PAYER_TABLE = 'payer';
-const PAYER_TRANSACTION_TABLE = 'payerTransaction';
-const TRANSACTION_TABLE = 'transaction';
-const WEBHOOK_ENDPOINT_TABLE = 'webhookEndpoint';
-const WEBHOOK_EVENT_TABLE = 'webhookEvent';
-const WEBHOOKS_TABLE = 'webhooks';
 
 let dataSource: DataSource;
 
@@ -35,7 +29,7 @@ async function init(): Promise<DataSource> {
     username: config.postgres.username,
     password: config.postgres.password,
     database: config.postgres.database,
-    synchronize: config.postgres.synchronize === 'true',
+    synchronize: false,
     entities: [
       Payer,
       SplitFeeUser,
@@ -45,8 +39,15 @@ async function init(): Promise<DataSource> {
       Relayer,
       WebhookEndpoint,
       WebhookEvent,
-      Webhooks
-    ]
+      Webhooks,
+      Currency,
+      DefaultRelayerFee
+    ],
+    migrations: [
+      multiCurrency21726747887371,
+      multiCurrency31726749398507
+    ],
+    migrationsRun: config.postgres.synchronize === 'true',
   });
 
   await dataSource.initialize();
@@ -86,6 +87,7 @@ async function getPayer(
 
 async function getFees(
   relayerAddress: string,
+  currencyToken: string,
   user?: string,
   transactionName?: string
 ): Promise<Record<string, string> | string> {
@@ -93,9 +95,9 @@ async function getFees(
 
   const relayer = await getRelayer(relayerAddress);
   if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
-  if (!relayer.defaultFee)
+  if (!getRelayerDetaultFee(relayer, currencyToken))
     throw new Error(
-      `Relayer  ${relayerAddress} does not have a default fee set`
+      `Relayer ${relayerAddress} does not support currency token: ${currencyToken}`
     );
 
   const feeDataSource = await dataSource.getRepository(Fee);
@@ -105,15 +107,22 @@ async function getFees(
   }
 
   if (transactionName) {
-    return await getSingleFee(feeDataSource, relayer, userPk, transactionName);
+    return await getSingleFee(
+      feeDataSource,
+      relayer,
+      currencyToken,
+      userPk,
+      transactionName
+    );
   }
 
-  return await getAllFees(feeDataSource, relayer, userPk);
+  return await getAllFees(feeDataSource, relayer, currencyToken, userPk);
 }
 
 async function isPayerTransaction(
   payer: string,
-  transactionName: string
+  transactionName: string,
+  currencyToken: string
 ): Promise<boolean> {
   if (!payer || !transactionName) return false;
   const payerPk = getPublicKey(payer);
@@ -125,41 +134,62 @@ async function isPayerTransaction(
     where: {
       payer: { publicKey: payerPk, enabled: true },
       transaction: { name: transactionName, enabled: true },
+      currency: { token: currencyToken, enabled: true },
       enabled: true
     },
-    relations: ['payer', 'transaction']
+    relations: ['payer', 'transaction', 'currency']
   });
 
   return payerTx ? true : false;
 }
 
-async function getRelayer(relayerAddress: string): Promise<any> {
+async function relayerAcceptsCurrency(
+  relayerAddress: string,
+  currencyToken: string
+): Promise<boolean> {
+  const relayer = await getRelayer(relayerAddress);
+  if (!relayer) throw new Error(`Relayer (${relayerAddress}) cannot be found.`);
+  if (!currencyToken) throw new Error(`Currency not specified`);
+
+  const defaultRelayerFee = getRelayerDetaultFee(relayer, currencyToken);
+  if (defaultRelayerFee) {
+    return true;
+  }
+
+  return false;
+}
+
+async function getRelayer(relayerAddress: string): Promise<Relayer | null> {
   // Define a type for relayer if available
   if (!relayerAddress) return null;
 
   const relayerPk = getPublicKey(relayerAddress);
   const relayerDataSource = await dataSource.getRepository(Relayer);
   return await relayerDataSource.findOne({
-    where: { publicKey: relayerPk, enabled: true }
+    where: {
+      publicKey: relayerPk, enabled: true
+    },
+    relations: ["defaultFees", "defaultFees.currency" ]
   });
 }
 
 function buildFeesJson(
-  dbResult: any[],
+  feeDbResult: Fee[],
   relayerDefaultFee: string,
-  transactionTypes: any[]
+  transactionTypes: Transaction[]
 ): Record<string, string> {
-  // Define proper types for dbResult and transactionTypes if available
   let defaultFee: string | null = null;
   const relayerFees: Record<string, string> = {};
 
-  (dbResult || []).forEach(r => {
+  (feeDbResult || []).forEach(r => {
     const hasTransactionFee = !!r.transaction && !!r.transaction.name;
     if (hasTransactionFee) {
-      if (!relayerFees[r.transaction.name] || r.userPublicKey) {
-        relayerFees[r.transaction.name] = r.fee;
+      if (!relayerFees[r.transaction!.name] || r.userPublicKey) {
+        relayerFees[r.transaction!.name] = r.fee;
       }
     } else if (r.userPublicKey) {
+      // We set a default fee for all transactions under this user
+      // Except for the ones we have explicitly set
       defaultFee = r.fee;
     }
   });
@@ -172,7 +202,7 @@ function buildFeesJson(
   return relayerFees;
 }
 
-async function getTransactions(): Promise<any[]> {
+async function getTransactions(): Promise<Transaction[]> {
   // Define a type for transactions if available
   const transactionDataSource = await dataSource.getRepository(Transaction);
 
@@ -184,41 +214,66 @@ async function getTransactions(): Promise<any[]> {
 }
 
 async function getSingleFee(
-  feeDataSource: any,
-  relayer: any,
+  feeDataSource: Repository<Fee>,
+  relayer: Relayer,
+  currencyToken: string,
   userPk: string | undefined,
   transactionName: string
 ): Promise<string> {
-  // Define proper types for feeDataSource and relayer if available
   const feeRow = await feeDataSource.findOne({
     where: {
       relayerId: relayer.id,
+      currency: { token: currencyToken, enabled: true },
       userPublicKey: userPk || IsNull(),
       enabled: true,
       transaction: { name: transactionName, enabled: true }
     }
   });
 
-  return feeRow ? feeRow.fee : relayer.defaultFee;
+  if (feeRow) {
+    return feeRow.fee;
+  } else {
+    const defaultRelayerFee = getRelayerDetaultFee(relayer, currencyToken);
+    if (!defaultRelayerFee)
+      throw new Error(
+        `Relayer ${relayer.id} does not accept currency: ${currencyToken}`
+      );
+
+    return defaultRelayerFee.fee;
+  }
 }
 
 async function getAllFees(
-  feeDataSource: any,
-  relayer: any,
+  feeDataSource: Repository<Fee>,
+  relayer: Relayer,
+  currencyToken: string,
   userPk: string | undefined
 ): Promise<Record<string, string>> {
-  // Define proper types for feeDataSource and relayer if available
   const fees = await feeDataSource.find({
     where: {
       relayerId: relayer.id,
       userPublicKey: userPk || IsNull(),
+      currency: { token: currencyToken, enabled: true },
       enabled: true
     }
   });
 
-  const transactionTypes = await getTransactions();
+  const defaultRelayerFee = getRelayerDetaultFee(relayer, currencyToken);
+  if (!fees && !defaultRelayerFee) {
+    throw new Error(
+      `Relayer ${relayer.id} does not accept currency: ${currencyToken}`
+    );
+  }
 
-  return buildFeesJson(fees, relayer.defaultFee, transactionTypes);
+  const transactionTypes = await getTransactions();
+  return buildFeesJson(fees, defaultRelayerFee!.fee, transactionTypes);
+}
+
+function getRelayerDetaultFee(
+  relayer: Relayer,
+  currencyToken: string
+): DefaultRelayerFee | undefined {
+  return relayer.defaultFees?.find(f => f.currency?.token === currencyToken);
 }
 
 async function getRelayerVaultId(relayerAddress: string): Promise<string> {
@@ -339,6 +394,26 @@ async function getWebhooksState(): Promise<string> {
     .digest('hex');
 }
 
+async function getNativeCurrencyToken(): Promise<{ nativeCurrencyToken: string | undefined }> {
+  const currencyDataSource = await dataSource.getRepository(Currency);
+  const result = await currencyDataSource.findOne({
+    where: { native: true, enabled: true }
+  });
+
+  return {nativeCurrencyToken: result?.token}
+}
+
+async function getSupportedCurrencies() : Promise<string[]> {
+  const currencyTokens = await dataSource.getRepository(DefaultRelayerFee)
+    .createQueryBuilder("relayerCurrencies")
+    .innerJoinAndSelect("relayerCurrencies.currency", "currency")
+    .select("currency.token", "token")
+    .distinct(true)
+    .getRawMany();
+
+  return currencyTokens.map(row => row.token);
+}
+
 const rds = {
   getPayer,
   getFees,
@@ -349,6 +424,9 @@ const rds = {
   getActiveWebhooks,
   getWebhookEventTypes,
   getWebhookEventTypesState,
-  getWebhooksState
+  getWebhooksState,
+  relayerAcceptsCurrency,
+  getNativeCurrencyToken,
+  getSupportedCurrencies
 };
 export default rds;

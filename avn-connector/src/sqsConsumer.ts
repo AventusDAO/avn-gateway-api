@@ -21,6 +21,7 @@ interface TxData {
   params?: any;
   toBlock?: number;
   unprocessedLifts?: any[];
+  currencyToken: string;
 }
 
 async function processTxQueue(): Promise<void> {
@@ -66,9 +67,7 @@ async function processMessages(messages: Message[]): Promise<Message[]> {
       await processMessage(message);
       processed.push(message);
     } catch (error) {
-      logger.error(
-        `[SQS tx] Error processing message ${message.MessageId}`
-      );
+      logger.error(`[SQS tx] Error processing message ${message.MessageId}`);
       logger.error(error);
       break; // Stop processing on the first error to continue from the same point on retry
     }
@@ -100,7 +99,8 @@ async function processMessage(message: Message): Promise<void> {
         params.paymentInfo = await avn.generateSplitFeePaymentInfo(
           requestId,
           params,
-          params.paymentNonce
+          params.paymentNonce,
+          params.currencyToken
         );
         const eventType = webhooks.WEBHOOK_EVENT_TYPES.tx_payer_accepted;
         const eventData = { tx: txData, payment: params.paymentInfo };

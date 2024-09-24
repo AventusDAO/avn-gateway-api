@@ -18,7 +18,6 @@ const EXECUTION_MARGIN = 1000;
 const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
-const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 const NUM_TYPES = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
 
 enum WEBHOOK_EVENT_TYPES {
@@ -142,6 +141,10 @@ function isValidString(value: string): boolean {
   return !(value ? value.replace(/\s/g, '').length === 0 : true);
 }
 
+function isValidCurrencyFormat(value: string): boolean {
+  return isHex(value) && hexToU8a(value).length === 20;
+}
+
 function convertToAddress(accountId: string | String | Uint8Array): string {
   if (accountId instanceof String) {
     accountId = accountId.toString();
@@ -237,17 +240,19 @@ function getProxyProof(user: string, relayerAddress: string, proxySignature: str
   };
 }
 
-async function getRelayerFee(connectorUrl: string, relayer: string, user: string, transactionType: TransactionType): Promise<string> {
+async function getRelayerFee(connectorUrl: string, relayer: string, user: string, transactionType: TransactionType, currencyToken: string): Promise<string> {
   try {
     const avnResponse = await axios.post(connectorUrl + 'relayerFees', {
       relayer,
       user,
-      transactionType
+      transactionType,
+      currencyToken
     });
 
     return avnResponse.data.toString();
   } catch (error) {
-    throw new Error(`could not get relayer fee: ${error.toString()}`);
+    console.error(`could not get relayer fee for relayer: ${relayer}, user: ${user}, transactionType: ${transactionType}, currencyToken: ${currencyToken}: `, error)
+    throw error;
   }
 }
 
@@ -327,6 +332,7 @@ export {
   isSplitFeeTransaction,
   isValidAccountId,
   isValidAmount,
+  isValidCurrencyFormat,
   isValidEthereumAddress,
   isValidEthereumTransactionHash,
   isValidNftId,

@@ -4,14 +4,12 @@ import {
   Column,
   OneToMany,
   CreateDateColumn,
-  UpdateDateColumn,
-  Index
+  UpdateDateColumn
 } from 'typeorm';
 import { Payer } from './payer';
 import { Webhooks } from './webhooks';
 
-@Entity('webhookEndpoint')
-@Index('IDX_webhookEndpoint_updatedAt', ['updatedAt'])
+@Entity('webhook_endpoint')
 export class WebhookEndpoint {
   @PrimaryGeneratedColumn()
   id: number;

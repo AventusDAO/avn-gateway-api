@@ -50,11 +50,11 @@ app.post(
   '/avnQuery',
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
-      logger.info({ avnQueryRequest: req.body });
+      logger.info({ avnQueryRequest: JSON.stringify(req.body) });
 
       let result;
 
-      if (VOW_MODE && req.body.palletName in ['parachainStaking', 'validatorsManager']) {
+      if (VOW_MODE && req.body.palletName in ['parachainStaking']) {
         result = '';
       } else {
         result = await avn.query(
@@ -79,7 +79,7 @@ app.post(
     next: NextFunction
   ) => {
     try {
-      logger.info({ avnPollRequest: req.body });
+      logger.info({ avnPollRequest: JSON.stringify(req.body) });
       // the await is removed on purpose here
       lambda.resolvePendingTransactionsState();
       const result = await avn.poll(req.body.requestId);
@@ -126,9 +126,10 @@ app.post(
     next: NextFunction
   ) => {
     try {
-      logger.info({ relayerFeesRequest: req.body });
+      logger.info({ relayerFeesRequest: JSON.stringify(req.body) });
       const result = await rds.getFees(
         req.body.relayer,
+        req.body.currencyToken,
         req.body.user,
         req.body.transactionType
       );
@@ -141,9 +142,13 @@ app.post(
 
 app.post(
   '/avnAccountInfo',
-  async (req: Request, res: Response<AccountInfo | AccountInfoNonStaking>, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response<AccountInfo | AccountInfoNonStaking>,
+    next: NextFunction
+  ) => {
     try {
-      logger.info({ avnAccountInfoRequest: req.body });
+      logger.info({ avnAccountInfoRequest: JSON.stringify(req.body) });
       const result = await avn.getAccountInfo(req.body.accountId);
       res.status(200).send(result);
     } catch (err) {
@@ -156,7 +161,7 @@ app.post(
   '/avnValidatorsToNominate',
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
-      logger.info({ avnValidatorsToNominateRequest: req.body });
+      logger.info({ avnValidatorsToNominateRequest: JSON.stringify(req.body) });
       const result = await avn.getCollatorsToNominate();
       res.status(200).send(JSON.stringify(result));
     } catch (err) {
@@ -169,7 +174,7 @@ app.post(
   '/avnStakingStats',
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
-      logger.info({ avnStakingStatsRequest: req.body });
+      logger.info({ avnStakingStatsRequest: JSON.stringify(req.body) });
       const result = await avn.getStakingStats();
       res.status(200).send(JSON.stringify(result));
     } catch (err) {
@@ -182,7 +187,7 @@ app.post(
   '/avnChainInfo',
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
-      logger.info({ avnChainInfoRequest: req.body });
+      logger.info({ avnChainInfoRequest: JSON.stringify(req.body) });
       const result = await avn.getChainInfo();
       res.status(200).send(JSON.stringify(result));
     } catch (err) {
@@ -195,7 +200,7 @@ app.post(
   '/avnCurrentBlock',
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
-      logger.info({ avnCurrentBlockRequest: req.body });
+      logger.info({ avnCurrentBlockRequest: JSON.stringify(req.body) });
       const result = await avn.getCurrentBlock();
       res.status(200).send(result);
     } catch (err) {
@@ -208,7 +213,7 @@ app.post(
   '/getDefaultRelayer',
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
-      logger.info({ defaultRelayerRequest: req.body });
+      logger.info({ defaultRelayerRequest: JSON.stringify(req.body) });
       const result = avn.RELAYER_ADDRESS;
       res.status(200).send(result);
     } catch (err) {
@@ -252,7 +257,7 @@ app.post(
     next: NextFunction
   ) => {
     try {
-      logger.info({ ethereumEventStatusRequest: req.body });
+      logger.info({ ethereumEventStatusRequest: JSON.stringify(req.body) });
       const result = await avn.ethereumEventStatus(req.body.ethTransactionHash);
       res.status(200).send(result);
     } catch (err) {
@@ -265,7 +270,7 @@ app.post(
   '/avnTotalToken',
   async (req: Request, res: Response<TotalToken>, next: NextFunction) => {
     try {
-      logger.info({ avnTotalTokenRequest: req.body });
+      logger.info({ avnTotalTokenRequest: JSON.stringify(req.body) });
       const result = await avn.getTotalToken(req.body.token);
       res.status(200).send({ total: result });
     } catch (err) {
@@ -278,7 +283,7 @@ app.post(
   '/avnNftContractAddresses',
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
-      logger.info({ avnNftContractAddresses: req.body });
+      logger.info({ avnNftContractAddresses: JSON.stringify(req.body) });
       const result = await avn.getNftContractAddresses();
       res.status(200).send(result);
     } catch (err) {
@@ -291,7 +296,7 @@ app.post(
   '/getNftInfo',
   async (req: Request, res: Response<NftInfo | null>, next: NextFunction) => {
     try {
-      logger.info({ getNftInfo: req.body });
+      logger.info({ getNftInfo: JSON.stringify(req.body) });
       const result = await avn.getNftInfo(req.body.nftId);
       res.status(200).send(result);
     } catch (err) {
@@ -304,7 +309,7 @@ app.post(
   '/getBatchInfo',
   async (req: Request, res: Response<BatchInfo | null>, next: NextFunction) => {
     try {
-      logger.info({ getBatchInfo: req.body });
+      logger.info({ getBatchInfo: JSON.stringify(req.body) });
       const result = await avn.getBatchInfo(req.body.batchId);
       res.status(200).send(result);
     } catch (err) {
@@ -315,13 +320,9 @@ app.post(
 
 app.post(
   '/lowers',
-  async (
-    req: Request,
-    res: Response<LowerData | null>,
-    next: NextFunction
-  ) => {
+  async (req: Request, res: Response<LowerData | null>, next: NextFunction) => {
     try {
-      logger.info({ lowerDataRequest: req.body });
+      logger.info({ lowerDataRequest: JSON.stringify(req.body) });
       const result = await loweringV2.getLowers(req.body.account);
       res.status(200).send(result);
     } catch (err) {
@@ -334,7 +335,7 @@ app.post(
   '/gatewayUserInfo',
   async (req: Request, res: Response<GatewayUserInfo>, next: NextFunction) => {
     try {
-      logger.info({ gatewayUserInfo: req.body });
+      logger.info({ gatewayUserInfo: JSON.stringify(req.body) });
       const result = await avn.getGatewayUserInfo(req.body.account);
       res.status(200).send(result);
     } catch (err) {
@@ -345,11 +346,7 @@ app.post(
 
 app.post(
   '/getPayer',
-  async (
-    req: Request,
-    res: Response<PayerInfo | null>,
-    next: NextFunction
-  ) => {
+  async (req: Request, res: Response<PayerInfo | null>, next: NextFunction) => {
     try {
       logger.info({ getPayer: JSON.stringify(req.body) });
       let result = await rds.getPayer(req.body.user, req.body.payer);
@@ -371,7 +368,8 @@ app.post(
       logger.info({ isPayerTransaction: JSON.stringify(req.body) });
       const result = await rds.isPayerTransaction(
         req.body.payer,
-        req.body.transaction
+        req.body.transaction,
+        req.body.currencyToken
       );
       res.status(200).send(result);
     } catch (err) {
@@ -433,7 +431,7 @@ app.post(
   '/publishEvent',
   async (req: Request, res: Response<null>, next: NextFunction) => {
     try {
-      logger.info({ publishEventRequest: req.body });
+      logger.info({ publishEventRequest: JSON.stringify(req.body) });
       webhooks.publishEvent(req.body);
       res.status(200).send(null);
     } catch (err) {
@@ -442,9 +440,51 @@ app.post(
   }
 );
 
+app.post(
+  '/relayerAcceptsCurrency',
+  async (req: Request, res: Response<boolean>, next: NextFunction) => {
+    try {
+      logger.info({ relayerAcceptsCurrency: JSON.stringify(req.body) });
+      const result = await rds.relayerAcceptsCurrency(
+        req.body.relayerAddress,
+        req.body.currencyToken
+      );
+      res.status(200).send(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+app.post(
+  '/nativeCurrencyToken',
+  async (req: Request, res: Response<string>, next: NextFunction) => {
+    try {
+      logger.info({ nativeCurrencyToken: JSON.stringify(req.body) });
+      const result = await rds.getNativeCurrencyToken();
+      res.status(200).send(JSON.stringify(result));
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+app.post(
+  '/supportedCurrencies',
+  async (req: Request, res: Response<string>, next: NextFunction) => {
+    try {
+      logger.info({ supportedCurrencies: JSON.stringify(req.body) });
+      const result = await rds.getSupportedCurrencies();
+      res.status(200).send(JSON.stringify(result));
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(
-    `Error processing request: ${JSON.stringify(req.body, null, 2)}`,
+    `Error processing request: ${err.message}. Request: ${JSON.stringify(req.body)}`,
     `Stack: ${err.stack}`
   );
   res.status(500).send({ error: err.message });

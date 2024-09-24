@@ -211,6 +211,7 @@ export interface CallParams {
     token?: string;
     fromTimestamp?: string;
     toTimestamp?: string;
+    currencyToken: string;
 };
 
 export interface Call {
@@ -232,13 +233,14 @@ export interface ProxyCall {
 }
 
 export interface ProxyCallParams {
-    user?: string,
-    relayer?: string,
-    payer?: string,
-    proxySignature?: string
+    user?: string;
+    relayer?: string;
+    payer?: string;
+    proxySignature?: string;
     feePaymentSignature?: string;
     paymentNonce?: string;
     nonce?: string;
+    currencyToken: string;
 }
 
 export interface ProxyTransaction {
@@ -246,7 +248,7 @@ export interface ProxyTransaction {
     txType: string;
     palletName: string;
     method: string;
-    params: ProxyParams
+    params: ProxyParams;
 }
 
 export interface ProxyParams {
@@ -257,6 +259,7 @@ export interface ProxyParams {
     relayerFees?: string;
     splitFeeProxyProof?: any;
     paymentInfo?: PaymentInfo;
+    currencyToken: string;
 }
 
 export interface Transaction {
@@ -269,6 +272,7 @@ export interface Transaction {
     relayerFee?: string,
     params?: TransactionParams,
     pallet?: string,
+    currencyToken: string;
 }
 
 export interface TransactionParams {
@@ -279,6 +283,7 @@ export interface TransactionParams {
     feePaymentSignature?: string;
     paymentNonce?: string;
     nonce?: string;
+    currencyToken?: string;
 }
 
 export interface LiftData {

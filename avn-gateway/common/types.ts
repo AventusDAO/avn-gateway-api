@@ -131,6 +131,7 @@ export interface PaymentInfo {
     payer: string;
     recipient: string;
     amount: string;
+    token: string,
     signature: {
       Sr25519: string;
     };

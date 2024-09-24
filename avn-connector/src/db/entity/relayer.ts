@@ -7,6 +7,7 @@ import {
   UpdateDateColumn
 } from 'typeorm';
 import { Fee } from './fee';
+import { DefaultRelayerFee } from './defaultRelayerFee';
 
 @Entity('relayer')
 export class Relayer {
@@ -15,9 +16,6 @@ export class Relayer {
 
   @Column({ type: 'varchar', length: 66, unique: true })
   publicKey: string;
-
-  @Column({ type: 'varchar' })
-  defaultFee: string;
 
   @Column({ type: 'varchar', nullable: true })
   description: string;
@@ -36,4 +34,11 @@ export class Relayer {
 
   @OneToMany(() => Fee, fee => fee.relayer, { cascade: true })
   fees: Fee[];
+
+  @OneToMany(
+    () => DefaultRelayerFee,
+    defaultRelayerFee => defaultRelayerFee.relayer,
+    { eager: true }
+  )
+  defaultFees: DefaultRelayerFee[];
 }

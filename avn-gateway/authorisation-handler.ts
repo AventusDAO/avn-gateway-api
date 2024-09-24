@@ -41,7 +41,7 @@ async function validateAwtToken(event: APIGatewayRequestAuthorizerEvent): Promis
     return InvalidRequestResponse;
   }
 
-  if (isSplitFeeToken(awtToken) && awtToken.payer) {
+  if (isSplitFeeToken(awtToken)) {
     const payerData: PayerData | null = await tryGetPayerAddressForUser(awtToken);
 
     if (payerData?.payerAddress) {

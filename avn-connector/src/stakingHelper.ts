@@ -1,6 +1,4 @@
 import BN from 'bn.js';
-import { u8aConcat, u8aToHex, hexToBn } from '@polkadot/util';
-import lambda from './lambdas';
 import logger from './logger';
 import { Option } from '@polkadot/types';
 
@@ -34,7 +32,7 @@ function calculateNominatorStakingBalances(
 
   const nominatorStateValue = nominatorState.unwrapOr(null);
   if (nominatorStateValue && !nominatorState.isEmpty) {
-    stakedBalance = hexToBn(nominatorStateValue.toJSON().total);
+    stakedBalance = new BN(nominatorStateValue.toJSON().total);
   }
 
   nominatorRequests.forEach(req => {
@@ -63,13 +61,13 @@ function calculateCollatorStakingBalances(
   const candidateInfoValue = candidateInfo.unwrapOr(null);
   if (candidateInfoValue && !candidateInfo.isEmpty) {
     const info = candidateInfoValue.toJSON();
-    stakedBalance = hexToBn(info.bond);
+    stakedBalance = new BN(info.bond);
 
     if (info.request) {
       if (new BN(info.request.whenExecutable).gt(new BN(currentEra))) {
-        unstakedBalance = hexToBn(info.request.amount);
+        unstakedBalance = new BN(info.request.amount);
       } else {
-        unlockedBalance = hexToBn(info.request.amount);
+        unlockedBalance = new BN(info.request.amount);
       }
     }
   }
@@ -83,9 +81,9 @@ function calculateCollatorStakingBalances(
 
 function getRequestedAmount(requestAction: RequestAction): BN {
   if (requestAction.isDecrease) {
-    return hexToBn(requestAction.toJSON().decrease!);
+    return new BN(requestAction.toJSON().decrease!);
   } else if (requestAction.isRevoke) {
-    return hexToBn(requestAction.toJSON().revoke!);
+    return new BN(requestAction.toJSON().revoke!);
   }
 
   logger.warn(

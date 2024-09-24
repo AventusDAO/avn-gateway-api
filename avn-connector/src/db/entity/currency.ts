@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import { PayerTransaction } from './payerTransaction';
 import { Fee } from './fee';
-import { Relayer } from './relayer';
 import { DefaultRelayerFee } from './defaultRelayerFee';
 
 @Entity('currency')
@@ -18,6 +17,9 @@ export class Currency {
 
   @Column({ type: 'varchar', length: 42, unique: true })
   token: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  name: string;
 
   @Column({ type: 'boolean', default: false })
   native: boolean;

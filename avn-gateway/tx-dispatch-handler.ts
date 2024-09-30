@@ -418,7 +418,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: "batch",
     buildMethodParams: ({ batchId, market }) => [batchId, market],
     buildSignData: ({ relayer, batchId, market, nonce }) => [
-      { Text: 'authorization for list nft open for sale operation' },
+      { Text: 'authorization for list batch for sale operation' },
       { AccountId: relayer },
       { U256: batchId },
       { u8: market },
@@ -431,7 +431,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: "batch",
     buildMethodParams: ({ batchId, market }) => [batchId, market],
     buildSignData: ({ relayer, batchId, market, nonce }) => [
-      { Text: 'authorization for list nft open for sale operation' },
+      { Text: 'authorization for list batch for sale operation' },
       { AccountId: relayer },
       { U256: batchId },
       { u8: market },

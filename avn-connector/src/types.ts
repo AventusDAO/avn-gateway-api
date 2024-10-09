@@ -166,3 +166,18 @@ export enum LiftStatuses {
   LIFT_PROCESSED = 'LiftProcessed',
   LIFT_NOT_FOUND = 'LiftNotFound'
 }
+
+export interface ChainSummary {
+  rootId: {
+    rootRange: {
+      from_block: number;
+    };
+  };
+  rootData: {
+    rootHash: string;
+    addedBy: string;
+    isValidated: boolean;
+    isFinalised: boolean;
+    txId: number;
+  };
+}

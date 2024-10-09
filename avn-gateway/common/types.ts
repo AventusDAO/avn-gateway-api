@@ -1,7 +1,7 @@
 import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
-import { GenericEthereumLookupSource, Vec, u8, u64, u128, U256 } from '@polkadot/types';
+import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256 } from '@polkadot/types';
 import { H256, H160, BalanceOf } from "@polkadot/types/interfaces";
 
 export enum EventType {
@@ -26,6 +26,7 @@ export type SignDataItem = | { Text: string }
     | { H256: H256; }
     | { U256: U256 }
     | { u8: EventType | MarketType; }
+    | { u32: u32 }
     | { u64: u64 }
     | { u128: u128 }
     | { BalanceOf: BalanceOf }
@@ -38,6 +39,7 @@ export interface NonceInfo {
     payment: { palletName: string; storageName: string };
     staking: { palletName: string; storageName: string };
     token: { palletName: string; storageName: string };
+    anchoring: { palletName: string; storageName: string };
 }
 
 export type TransactionType = 'proxyAvtTransfer' |

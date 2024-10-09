@@ -548,6 +548,31 @@ const callConfigs: { [key: string]: CallConfig } = {
       { u64: nonce }
     ]
   },
+  'proxyRegisterHandler': {
+    pallet: 'avnAnchor',
+    method: 'signedRegisterChainHandler',
+    buildMethodParams: ({ user }) => [user],
+    buildSignData: ({ relayer, handler, name }) => [
+      { Text: 'register chain to be anchored' },
+      { AccountId: relayer },
+      { AccountId: handler },
+      { 'Vec<u8>': name },
+    ]
+  },
+  'proxySubmitCheckpoint': {
+    pallet: 'avnAnchor',
+    method: 'signedSubmitCheckpointWithIdentity',
+    nonceType:'anchoring',
+    buildMethodParams: ({ user }) => [user],
+    buildSignData: ({ relayer, handler, checkpoint, chainId, nonce }) => [
+      { Text: 'submit checkpoint for anchored chain' },
+      { AccountId: relayer },
+      { AccountId: handler },
+      { H256: checkpoint },
+      { u32: chainId },
+      { u64: nonce }
+    ]
+  },
 };
 
 function validateSignData(signData: SignDataItem[]): void {

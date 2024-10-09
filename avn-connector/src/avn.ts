@@ -1,7 +1,7 @@
 import '@polkadot/api-augment';
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { hexToU8a, isHex, stringToHex, u8aToHex } from '@polkadot/util';
-import { cryptoWaitReady, keccakAsHex } from '@polkadot/util-crypto';
+import { keccakAsHex } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
 import redis, { TransactionStatus } from './redis';
 import tier1 from './tier1';

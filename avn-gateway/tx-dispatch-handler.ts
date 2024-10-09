@@ -562,7 +562,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxySubmitCheckpoint': {
     pallet: 'avnAnchor',
     method: 'signedSubmitCheckpointWithIdentity',
-    nonceType:'anchoring',
+    nonceType:'anchor',
     buildMethodParams: ({ user }) => [user],
     buildSignData: ({ relayer, handler, checkpoint, chainId, nonce }) => [
       { Text: 'submit checkpoint for anchored chain' },

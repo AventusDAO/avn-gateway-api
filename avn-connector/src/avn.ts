@@ -920,15 +920,6 @@ async function getBatchInfo(batchId: number): Promise<BatchInfo | null> {
   }
 }
 
-async function registeredHandler(handler: string): Promise<boolean>{
-  try {
-    return (await api.query.avnAnchor.chainHandlers(handler)).toJSON() ? true : false
-  }catch(err:any){
-    logger.error(`Error getting registered chains: `, err);
-    throw err
-  }
-}
-
 const avn = {
   addNewTransaction,
   createAccount,
@@ -958,6 +949,5 @@ const avn = {
   regenerateLowerProof,
   getNftInfo,
   getBatchInfo,
-  registeredHandler,
 };
 export default avn;

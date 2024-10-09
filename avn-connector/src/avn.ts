@@ -920,88 +920,14 @@ async function getBatchInfo(batchId: number): Promise<BatchInfo | null> {
   }
 }
 
-async function registerChain(handlerAccountSeed:string, chainName:string): Promise<void> {
-  if (!api) {
-      throw new Error('Not connected to the receiving chain');
-  }
-
-  await cryptoWaitReady();
-  const keyring = new Keyring({ type: 'sr25519' });
-  const handler = keyring.addFromUri(handlerAccountSeed);
-
-  const name = api.createType('Vec<u8>', chainName);
-
+async function registeredHandler(handler: string): Promise<boolean>{
   try {
-      await api.tx.avnAnchor
-          .registerChainHandler(name)
-          .signAndSend(handler, { nonce: -1 });
-
-      logger.info(`Registered chain ${chainName} with handler account`);
-  } catch (error: any) {
-      if (error.message?.includes('HandlerAlreadyRegistered')) {
-          logger.info(`Chain ${chainName} is already registered with handler account`);
-      } else {
-          throw error;
-      }
+    return (await api.query.avnAnchor.chainHandlers(handler)).toJSON() ? true : false
+  }catch(err:any){
+    logger.error(`Error getting registered chains: `, err);
+    throw err
   }
 }
-
-async function submitCheckpoint(summary: ChainSummary, handlerAccount: string): Promise<void> {
-  if (!api) {
-      throw new Error('Not connected to the receiving chain');
-  }
-
-  await cryptoWaitReady();
-  const keyring = new Keyring({ type: 'sr25519' });
-  const handler = keyring.addFromUri(handlerAccount);
-
-  let checkpoint;
-  try {
-      if (isHex(summary.rootData.rootHash)) {
-          const rootHashBytes = hexToU8a(summary.rootData.rootHash);
-          if (rootHashBytes.length !== 32) {
-              throw new Error(`Invalid rootHash length: ${rootHashBytes.length} bytes`);
-          }
-          checkpoint = api.createType('H256', rootHashBytes);
-      } else {
-          throw new Error('rootHash is not a valid hex string');
-      }
-  } catch (error) {
-      logger.error(`Failed to create H256 from rootHash: ${error}`);
-      logger.error(`Received summary: ${JSON.stringify(summary)}`);
-      throw error;
-  }
-
-  let nonce = await redis.getNextNonce(handlerAccount);
-  if (nonce === undefined||nonce === null) {
-      nonce = (await api.rpc.system.accountNextIndex(handler.address)).toNumber();
-  }
-
-  const maxRetries = 5;
-  let retries = 0;
-
-  while (retries < maxRetries) {
-      try {
-          await api.tx.avnAnchor
-              .submitCheckpointWithIdentity(checkpoint)
-              .signAndSend(handler, { nonce });
-
-          logger.info(`Submitted summary ${summary.rootData.rootHash} for block range ${summary.rootId.rootRange.from_block}`);
-          break;
-      } catch (error: any) {
-          if (error.message.includes('Priority is too low')) {
-              nonce++;
-              retries++;
-              logger.warn(`Retrying submission with nonce ${nonce}. Attempt ${retries} of ${maxRetries}`);
-          } else {
-              logger.error(`Error submitting summary: ${error.message}`);
-              logger.error(`Failed summary: ${JSON.stringify(summary)}`);
-              throw error;
-          }
-      }
-  }
-}
-
 
 const avn = {
   addNewTransaction,
@@ -1032,7 +958,6 @@ const avn = {
   regenerateLowerProof,
   getNftInfo,
   getBatchInfo,
-  registerChain,
-  submitCheckpoint
+  registeredHandler,
 };
 export default avn;

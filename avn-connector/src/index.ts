@@ -482,6 +482,20 @@ app.post(
   }
 );
 
+// getRegisteredChains
+app.post(
+  '/registeredHandler',
+  async (req: Request, res: Response<boolean>, next: NextFunction) => {
+    try {
+      logger.info({ handlerAddress: JSON.stringify(req.body.handlerAddress) });
+      const result = await avn.registeredHandler(req.body.handlerAddress)
+      res.status(200).send(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(
     `Error processing request: ${err.message}. Request: ${JSON.stringify(req.body)}`,

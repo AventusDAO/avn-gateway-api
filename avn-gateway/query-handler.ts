@@ -104,6 +104,8 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
         return await getLoweringStatus(call, request);
     case 'getSupportedCurrencies':
       return await getSupportedCurrencies(call, request);
+    case 'getRegisteredChains':
+      return await getRegisteredChains(call, request)
 
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -168,6 +170,11 @@ async function getNftContractAddress(call: Call, request: string): Promise<Valid
 async function getSupportedCurrencies(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'supportedCurrencies';
   return await query(call, request, method, {});
+}
+
+async function getRegisteredChains(call: Call, request:string): Promise<ValidResponse | ErrorBody> {
+  const method = 'getRegisteredChains'
+  return await query(call, request, method, {})
 }
 
 async function getNftId(call: Call, request: string) {

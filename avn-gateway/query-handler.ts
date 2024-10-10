@@ -172,11 +172,6 @@ async function getSupportedCurrencies(call: Call, request: string): Promise<Vali
   return await query(call, request, method, {});
 }
 
-async function getRegisteredChains(call: Call, request:string): Promise<ValidResponse | ErrorBody> {
-  const method = 'getRegisteredChains'
-  return await query(call, request, method, {})
-}
-
 async function getNftId(call: Call, request: string) {
   const { externalRef } = call.params;
 
@@ -499,7 +494,7 @@ const filterAvnContract = data => (data ? data.avnContract : null);
 
 const filterAvtContract = data => (data ? data.avtContract : null);
 
-const formatAsBoolean = data => `${Boolean(data)}`;
+const formatAsBoolean = data => `${Boolean(data.toJSON())}`;
 
 const formatListingAsString = data => {
   if (!data || data.toString() === 'Unknown') {

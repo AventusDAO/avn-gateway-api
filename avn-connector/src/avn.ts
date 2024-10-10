@@ -1,6 +1,6 @@
 import '@polkadot/api-augment';
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
-import { isHex, stringToHex, u8aToHex } from '@polkadot/util';
+import { hexToU8a, isHex, stringToHex, u8aToHex } from '@polkadot/util';
 import { keccakAsHex } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
 import redis, { TransactionStatus } from './redis';
@@ -28,7 +28,8 @@ import {
   AccountInfoNonStaking,
   UnprocessedLifts,
   EthereumEventStatus,
-  GatewayUserInfo
+  GatewayUserInfo,
+  ChainSummary
 } from './types';
 
 const AVN_URL = config.avnUrl;
@@ -947,6 +948,6 @@ const avn = {
   payerHasFunds,
   regenerateLowerProof,
   getNftInfo,
-  getBatchInfo
+  getBatchInfo,
 };
 export default avn;

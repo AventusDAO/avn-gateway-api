@@ -39,7 +39,7 @@ export interface NonceInfo {
     payment: { palletName: string; storageName: string };
     staking: { palletName: string; storageName: string };
     token: { palletName: string; storageName: string };
-    anchoring: { palletName: string; storageName: string };
+    anchor: { palletName: string; storageName: string };
 }
 
 export type TransactionType = 'proxyAvtTransfer' |

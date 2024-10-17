@@ -16,11 +16,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const method = event.requestContext.httpMethod;
   let response;
 
-  if (method === 'GET') {
+  if (method === 'POST') {
+    response = await checkVoteAndUpdateProposal(event.body);
+  } else {
     const proposal = event.queryStringParameters?.proposal || null;
     response = proposal ? await getFormattedProposal(proposal) : await getFormattedProposalList();
-  } else if (method === 'POST') {
-    response = await checkVoteAndUpdateProposal(event.body);
   }
 
   return {

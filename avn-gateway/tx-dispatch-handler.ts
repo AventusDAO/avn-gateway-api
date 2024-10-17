@@ -551,7 +551,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyRegisterHandler': {
     pallet: 'avnAnchor',
     method: 'signedRegisterChainHandler',
-    buildMethodParams: ({ user }) => [user],
+    buildMethodParams: ({ user, name }) => [user, name],
     buildSignData: ({ relayer, handler, name }) => [
       { Text: 'register chain to be anchored' },
       { AccountId: relayer },
@@ -562,7 +562,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxySubmitCheckpoint': {
     pallet: 'avnAnchor',
     method: 'signedSubmitCheckpointWithIdentity',
-    nonceType:'anchor',
+    nonceType: 'anchor',
     buildMethodParams: ({ user }) => [user],
     buildSignData: ({ relayer, handler, checkpoint, chainId, nonce }) => [
       { Text: 'submit checkpoint for anchored chain' },

@@ -21,8 +21,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   } else if (method === 'GET') {
     const proposal = event.queryStringParameters?.proposal || null;
     response = proposal ? await getFormattedProposal(proposal) : await getFormattedProposalList();
-  } else {
-    throw new Error(`Invalid method ${method} found. Request: ${JSON.stringify(event.requestContext)}`);
   }
 
   return {

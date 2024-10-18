@@ -13,14 +13,16 @@ const s3 = new S3Client();
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   await init();
-  const method = event.requestContext.httpMethod;
+  const method = event.requestContext.http.method;
   let response;
 
   if (method === 'POST') {
     response = await checkVoteAndUpdateProposal(event.body);
-  } else {
+  } else if (method === 'GET') {
     const proposal = event.queryStringParameters?.proposal || null;
     response = proposal ? await getFormattedProposal(proposal) : await getFormattedProposalList();
+  } else {
+    throw new Error(`Invalid method ${method} found. Request: ${JSON.stringify(event.requestContext)}`);
   }
 
   return {

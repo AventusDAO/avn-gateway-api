@@ -204,6 +204,7 @@ export interface CallParams {
     nonceType?: string;
     externalRef?: string;
     nftId?: string;
+    chainId?: string;
     batchId?: string;
     relayer?: string;
     user?: string;
@@ -212,6 +213,7 @@ export interface CallParams {
     fromTimestamp?: string;
     toTimestamp?: string;
     currencyToken: string;
+    handler?: string;
 };
 
 export interface Call {

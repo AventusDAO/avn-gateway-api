@@ -563,7 +563,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'avnAnchor',
     method: 'signedSubmitCheckpointWithIdentity',
     nonceType: 'anchor',
-    buildMethodParams: ({ user, checkpoint, nonce }) => [user, checkpoint, nonce],
+    buildMethodParams: ({ user, checkpoint }) => [user, checkpoint],
     buildSignData: ({ relayer, handler, checkpoint, nonce }) => [
       { Text: 'submit_checkpoint' },
       { AccountId: relayer },

@@ -460,12 +460,12 @@ async function getChainInfo(call: Call, request: string, filter?: (data: any) =>
 
 async function isHandlerRegistered(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { handler } = call.params
-  return await queryChain(call, request, 'avnAnchor', 'chainHandlers', [handler], formatAsBoolean);
+  return await queryChain(call, request, 'avnAnchor', 'chainHandlers', [handler]);
 }
 
 async function getAnchorNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { chainId } = call.params;
-  return await queryChain(call, request, 'avnAnchor', 'nonces', [parseInt(chainId)], formatNftNonceAsString); // TODO: rename the formatter
+  return await queryChain(call, request, 'avnAnchor', 'nonces', [parseInt(chainId)]);
 }
 
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any):Promise<ValidResponse|ErrorBody> {
@@ -501,8 +501,6 @@ const filterNftOwner = data => (data ? data.owner : null);
 const filterAvnContract = data => (data ? data.avnContract : null);
 
 const filterAvtContract = data => (data ? data.avtContract : null);
-
-const formatAsBoolean = data => data;
 
 const formatListingAsString = data => {
   if (!data || data.toString() === 'Unknown') {

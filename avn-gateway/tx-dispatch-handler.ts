@@ -564,11 +564,12 @@ const callConfigs: { [key: string]: CallConfig } = {
     method: 'signedSubmitCheckpointWithIdentity',
     nonceType: 'anchor',
     buildMethodParams: ({ user, checkpoint }) => [user, checkpoint],
-    buildSignData: ({ relayer, handler, checkpoint, nonce }) => [
+    buildSignData: ({ relayer, handler, checkpoint, chainId, nonce }) => [
       { Text: 'submit_checkpoint' },
       { AccountId: relayer },
       { AccountId: handler },
       { H256: checkpoint },
+      { u32: chainId},
       { u64: nonce }
     ]
   },

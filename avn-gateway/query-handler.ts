@@ -502,7 +502,7 @@ const filterAvnContract = data => (data ? data.avnContract : null);
 
 const filterAvtContract = data => (data ? data.avtContract : null);
 
-const formatAsBoolean = data => `${Boolean(data.toHuman())}`;
+const formatAsBoolean = data => data;
 
 const formatListingAsString = data => {
   if (!data || data.toString() === 'Unknown') {

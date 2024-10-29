@@ -553,7 +553,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     method: 'signedRegisterChainHandler',
     buildMethodParams: ({ user, name }) => [user, name],
     buildSignData: ({ relayer, handler, name }) => [
-      { Text: 'register chain to be anchored' },
+      { Text: 'register_chain_handler' },
       { AccountId: relayer },
       { AccountId: handler },
       { 'Vec<u8>': name },
@@ -563,13 +563,13 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'avnAnchor',
     method: 'signedSubmitCheckpointWithIdentity',
     nonceType: 'anchor',
-    buildMethodParams: ({ user }) => [user],
+    buildMethodParams: ({ user, checkpoint }) => [user, checkpoint],
     buildSignData: ({ relayer, handler, checkpoint, chainId, nonce }) => [
-      { Text: 'submit checkpoint for anchored chain' },
+      { Text: 'submit_checkpoint' },
       { AccountId: relayer },
       { AccountId: handler },
       { H256: checkpoint },
-      { u32: chainId },
+      { u32: chainId},
       { u64: nonce }
     ]
   },

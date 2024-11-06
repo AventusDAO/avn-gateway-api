@@ -512,7 +512,7 @@ app.post(
 
       await redis.setLastSubmittedSummary(chainId, summary);
 
-      res.status(200).json(JSON.stringify(summary));
+      res.status(200).json(summary);
     } catch (error) {
       next(error);
     }

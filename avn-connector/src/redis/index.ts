@@ -671,7 +671,7 @@ class RedisClient {
         `${LAST_SUMMARY_PREFIX}${chainId}`
       );
       logger.info('Retrieved summary string:', summaryString);
-      return summaryString ? JSON.parse(summaryString) : null;
+      return summaryString ? {rootId:chainId, rootHash: summaryString } as unknown as ChainSummary : null;
     } catch (error) {
       logger.error('Error getting last submitted summary:', error);
       throw error;

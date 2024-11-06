@@ -502,7 +502,7 @@ app.post(
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
       const { chainId, summary } = req.body;
-      if (!chainId || typeof chainId !== 'number') {
+      if (!chainId) {
         next(new Error("Chain Id is required"))
       }
 

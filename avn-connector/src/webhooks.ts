@@ -155,7 +155,7 @@ function confirmExpectedEventTypes() {
 }
 
 async function publishTransactionEvents(transactions: Transaction[]) {
-  if (!_webhooks.hasEventTypes()) {
+  if (!_webhooks?.hasEventTypes()) {
     return;
   }
 

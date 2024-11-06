@@ -680,12 +680,12 @@ class RedisClient {
 
   async setLastSubmittedSummary(
     chainId: number,
-    summary: ChainSummary
+    summary: string
   ): Promise<void> {
     try {
       await this.setKey(
         `${LAST_SUMMARY_PREFIX}${chainId}`,
-        this.dataToJsonString(summary)
+        summary
       );
       logger.info(
         'Successfully set last submitted summary for chain:',

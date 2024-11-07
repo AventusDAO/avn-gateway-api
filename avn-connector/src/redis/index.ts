@@ -664,7 +664,7 @@ class RedisClient {
     }
   }
 
-  async getLastSubmittedSummary(chainId: number): Promise<ChainSummary | null> {
+  async getLastSubmittedSummary(chainId: string): Promise<ChainSummary | null> {
     logger.info('Attempting to get last submitted summary for chain:', chainId);
     try {
       const summaryString = await this.getKey(
@@ -679,7 +679,7 @@ class RedisClient {
   }
 
   async setLastSubmittedSummary(
-    chainId: number,
+    chainId: string,
     summary: string
   ): Promise<void> {
     try {

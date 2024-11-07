@@ -486,7 +486,7 @@ app.get(
   '/getLastSubmittedSummary',
   async (req: Request, res: Response<string>, next: NextFunction) => {
     try {
-      const chainId = parseInt(req.query.chainId as string);
+      const chainId = req.query.chainId as string;
 
       const summary = await redis.getLastSubmittedSummary(chainId);
 

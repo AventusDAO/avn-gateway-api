@@ -503,11 +503,11 @@ app.post(
     try {
       const { chainId, summary } = req.body;
       if (!chainId) {
-        next(new Error("Chain Id is required"))
+        new Error("Chain Id is required")
       }
 
       if (!summary) {
-        next(new Error("Summary is required"))
+        new Error("Summary is required")
       }
 
       await redis.setLastSubmittedSummary(chainId, summary);

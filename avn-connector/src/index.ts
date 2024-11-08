@@ -482,6 +482,43 @@ app.post(
   }
 );
 
+app.get(
+  '/getLastSubmittedSummary',
+  async (req: Request, res: Response<string>, next: NextFunction) => {
+    try {
+      const chainId = req.query.chainId as string;
+
+      const summary = await redis.getLastSubmittedSummary(chainId);
+
+      res.status(200).json(JSON.stringify(summary));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.post(
+  '/setLastSubmittedSummary',
+  async (req: Request, res: Response<string>, next: NextFunction) => {
+    try {
+      const { chainId, summary } = req.body;
+      if (!chainId) {
+        new Error("Chain Id is required")
+      }
+
+      if (!summary) {
+        new Error("Summary is required")
+      }
+
+      await redis.setLastSubmittedSummary(chainId, summary);
+
+      res.status(200).json(summary);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(
     `Error processing request: ${err.message}. Request: ${JSON.stringify(req.body)}`,

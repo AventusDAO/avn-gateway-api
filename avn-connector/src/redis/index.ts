@@ -31,9 +31,10 @@ import {
   TOTAL_TOKEN_EXPIRY_IN_SECONDS,
   TOTAL_TOKEN_NAMESPACE,
   WEBHOOKS_SENT_TX_KEY,
-  TransactionStatus
+  TransactionStatus,
+  LAST_SUMMARY_PREFIX
 } from './constants';
-import { transactionObject } from './types';
+import { ChainSummary, transactionObject } from './types';
 import { LowerData } from '../types';
 import _ from 'lodash';
 
@@ -660,6 +661,39 @@ class RedisClient {
       throw new Error('Data is already stringified: ' + data);
     } else {
       return JSON.stringify(data);
+    }
+  }
+
+  async getLastSubmittedSummary(chainId: string): Promise<ChainSummary | null> {
+    logger.info('Attempting to get last submitted summary for chain:', chainId);
+    try {
+      const summaryString = await this.getKey(
+        `${LAST_SUMMARY_PREFIX}${chainId}`
+      );
+      logger.info('Retrieved summary string:', summaryString);
+      return summaryString ? {rootId:chainId, rootHash: summaryString } as unknown as ChainSummary : null;
+    } catch (error) {
+      logger.error('Error getting last submitted summary:', error);
+      throw error;
+    }
+  }
+
+  async setLastSubmittedSummary(
+    chainId: string,
+    summary: string
+  ): Promise<void> {
+    try {
+      await this.setKey(
+        `${LAST_SUMMARY_PREFIX}${chainId}`,
+        summary
+      );
+      logger.info(
+        'Successfully set last submitted summary for chain:',
+        chainId
+      );
+    } catch (error) {
+      logger.error('Error setting last submitted summary:', error);
+      throw error;
     }
   }
 }

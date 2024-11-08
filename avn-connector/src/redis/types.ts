@@ -17,3 +17,8 @@ export const transactionObject: Transaction = {
   transactionIndex: 'transactionIndex',
   eventArgs: 'eventArgs'
 };
+
+export interface ChainSummary {
+  rootId: string;
+  rootHash: string;
+}

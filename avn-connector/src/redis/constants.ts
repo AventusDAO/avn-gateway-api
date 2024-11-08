@@ -6,6 +6,7 @@ export const COLLATORS_KEY = 'collators';
 export const STAKING_STAT_KEY = 'stakingStats';
 export const CHAIN_INFO_KEY = 'chainInfo';
 export const LIFTS_FROM_TIER1_BLOCK_KEY = 'liftsFromBlock';
+export const LAST_SUMMARY_PREFIX = 'last_summary:';
 export const LAST_LOWER_BLOCK_ID_FROM_AVN = `${SLOT_PREFIX}lwr_lastAvnBlock`;
 export const WEBHOOKS_SENT_TX_KEY = 'txSent';
 

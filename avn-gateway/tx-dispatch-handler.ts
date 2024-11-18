@@ -512,7 +512,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: "staking",
     buildMethodParams: ({ amount }) => [amount],
     buildSignData: ({ relayer, amount, nonce }) => [
-      { Text: 'parachain authorization for nominator bond extra operation' },
+      { Text: 'parachain authorization for scheduling nominator unbond operation' },
       { AccountId: relayer },
       { BalanceOf: amount },
       { u64: nonce }

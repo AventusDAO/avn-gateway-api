@@ -273,6 +273,10 @@ function getPayerVaultUsername(payerVaultId:string):string {
   return `${VAULT_PAYER_USERNAME_PREFIX}${payerVaultId}`;
 }
 
+function isValidArray(value) {
+  return Array.isArray(value);
+}
+
 function isValidProxySignature(proxySignature:string, user:string, data:any[]):boolean {
   const encodedData = encodeOrderedData(data);
   return verifySignatureWithOrWithoutWrapping(encodedData, proxySignature, user);
@@ -281,9 +285,6 @@ function isValidProxySignature(proxySignature:string, user:string, data:any[]):b
 function encodeOrderedData(data:DataItem[]):Uint8Array {
   const encodedDataToSign = data.map(d => {
     const [type, value] = Object.entries(d)[0] as [ExtendedInterfaceTypes, string | number | Uint8Array];
-    if (typeof type !== 'string' || !(typeof value === 'string' || typeof value === 'number' || value instanceof Uint8Array)) {
-      throw new Error("Invalid type or value");
-    }
     return type === 'SkipEncode' ? value as Uint8Array: registry.createType(type, value).toU8a(NUM_TYPES.includes(type));
   });
   return u8aConcat(...encodedDataToSign);
@@ -331,6 +332,7 @@ export {
   init,
   isSplitFeeToken,
   isSplitFeeTransaction,
+  isValidArray,
   isValidAccountId,
   isValidAmount,
   isValidCurrencyFormat,

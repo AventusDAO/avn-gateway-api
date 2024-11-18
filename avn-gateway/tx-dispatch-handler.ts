@@ -2,7 +2,8 @@ import { init, callWithTimeout, requestFailed, buildErrorBody, isValidCurrencyFo
   isValidAccountId, getProxyProof, isValidSignatureFormat, isSplitFeeTransaction, isValidNonce,
   publishEvent, buildValidResponseBody, isValidString, isValidEthereumAddress, isValidNftId,
   isValidAmount, isValidEthereumTransactionHash, encodeRoyalties, convertToPublicKey,
-  NONCE_INFO, WEBHOOK_EVENT_TYPES } from '/opt/utils';
+  NONCE_INFO, WEBHOOK_EVENT_TYPES, 
+  isValidArray} from '/opt/utils';
 import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
 import { StatusCode, CustomSQSHandler, ValidResponse,
@@ -34,6 +35,7 @@ export const handler: CustomSQSHandler = async (event: SQSEvent, context: Contex
     for (let record of event.Records) {
       const result = await callWithTimeout(context.getRemainingTimeInMillis(), processRequest, [record.body]);
       if (requestFailed(result) === true) {
+        console.error('Request failed:', result);
         break;
       }
       processedMessagesCount += 1;
@@ -51,7 +53,7 @@ export const handler: CustomSQSHandler = async (event: SQSEvent, context: Contex
       body: `${event.Records.length} message(s) processed successfully.`
     };
   } catch (err) {
-    console.error(`Failed to process messages: `, err);
+    console.error('Failed to process messages: ', err);
     return {
       batchItemFailures: sqs.getFailedMessagesForFifoQueue(event.Records, processedMessagesCount)
     };
@@ -64,7 +66,7 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
   try {
     call = JSON.parse(request);
   } catch (err) {
-    console.error(`Failed to parse message as JSON: `, err);
+    console.error('Parse error:', err);
     return buildErrorBody('parse', 'Failed to parse message as JSON', err.toString(), request, null);
   }
 
@@ -85,7 +87,7 @@ async function validateAndProcessCall(call: ProxyCall, request: string, requestI
   try {
     return callSwitch(call, request, requestId);
   } catch (err) {
-    console.error(`Failed to process message from default queue: `, err);
+    console.error('Failed to process message from default queue:', err);
     return buildErrorBody('request', 'Failed to process message from default queue', err.toString(), request, call.id);
   }
 }
@@ -123,9 +125,10 @@ async function processProxyCall(callType: string, call: ProxyCall, request: stri
     if (!isValidProxySignature(call.params.proxySignature, call.params.user, signData)) {
       throw 'proxySignature';
     }
-  } catch (param) {
-    const badParamValue = JSON.stringify(call.params[param]);
-    return buildErrorBody('params', `invalid ${param}: ${badParamValue}`, param, request, call.id);
+  } catch (err) {
+    console.error(`Error in processProxyCall:`, err);
+    const badParamValue = err.toString();
+    return buildErrorBody('params', `invalid ${badParamValue}`, badParamValue, request, call.id);
   }
 
   return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
@@ -222,6 +225,7 @@ async function sendTx(
     const result = await sqs.sendToQueue(SQS_TX_QUEUE_URL, tx);
     return buildValidResponseBody(call.id, result);
   } catch (err) {
+    console.error('Failed to send proxy transaction:', err);
     return buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
   }
 }
@@ -234,6 +238,7 @@ const typeValidationMap = {
   H256: isValidEthereumTransactionHash,
   U256: isValidNftId,
   'Vec<u8>': isValidString,
+  'Vec<LookupSource>': isValidArray
   // What about U8, U64, BalanceOf...?
 };
 
@@ -576,12 +581,17 @@ const callConfigs: { [key: string]: CallConfig } = {
 };
 
 function validateSignData(signData: SignDataItem[]): void {
-  signData.forEach(item => {
-    for (const [type, value] of Object.entries(item)) {
-      const validator = typeValidationMap[type];
-      if (validator && !validator(value)) {
-        throw `${value}`;
+  try {
+    signData.forEach(item => {
+      for (const [type, value] of Object.entries(item)) {
+        const validator = typeValidationMap[type];
+        if (validator && !validator(value)) {
+          throw new Error(`Invalid value ${value} for type ${type}`);
+        }
       }
-    }
-  });
+    });
+  } catch (err) {
+    console.error('Validation error:', err);
+    throw err;
+  }
 }

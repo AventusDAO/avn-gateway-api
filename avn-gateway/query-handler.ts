@@ -471,7 +471,7 @@ async function getAnchorNonce(call: Call, request: string): Promise<ValidRespons
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any):Promise<ValidResponse|ErrorBody> {
   try {
     const avnResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}${method}`, params);
-    const result = avnResponse.data.error || (responseFormatter ? responseFormatter(avnResponse.data) : avnResponse.data);
+    const result = avnResponse?.data?.error || (responseFormatter ? responseFormatter(avnResponse?.data) : avnResponse?.data);
     return buildValidResponseBody(call.id, result);
   } catch (err: any) {
     return buildErrorBody(

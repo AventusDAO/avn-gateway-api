@@ -804,8 +804,8 @@ function toBn(val: any): BN {
 
 async function getLowerProof(lowerId: number): Promise<string | null> {
   const rawProof = await api.query.tokenManager.lowersReadyToClaim(lowerId);
-  let proof = rawProof.toJSON() as unknown as Option<any>;
-  return proof.isSome ? proof.unwrap().toJSON().encodedLowerData : null;
+  let proof = rawProof.toJSON() as any;
+  return proof?.encodedLowerData ?? null;
 }
 
 async function getUnclaimedLowerProofs(

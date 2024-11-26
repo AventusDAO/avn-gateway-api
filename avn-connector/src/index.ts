@@ -511,6 +511,7 @@ app.post(
       }
 
       await redis.setLastSubmittedSummary(chainId, summary);
+      logger.info(`last submitted summary set for chainId ${chainId}, summaryIndex ${summary}`);
 
       res.status(200).json(summary);
     } catch (error) {

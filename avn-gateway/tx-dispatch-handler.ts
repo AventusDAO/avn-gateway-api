@@ -2,7 +2,7 @@ import { init, callWithTimeout, requestFailed, buildErrorBody, isValidCurrencyFo
   isValidAccountId, getProxyProof, isValidSignatureFormat, isSplitFeeTransaction, isValidNonce,
   publishEvent, buildValidResponseBody, isValidString, isValidEthereumAddress, isValidNftId,
   isValidAmount, isValidEthereumTransactionHash, encodeRoyalties, convertToPublicKey,
-  NONCE_INFO, WEBHOOK_EVENT_TYPES, 
+  NONCE_INFO, WEBHOOK_EVENT_TYPES,
   isValidArray} from '/opt/utils';
 import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
@@ -547,7 +547,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: 'staking',
     buildMethodParams: ({ user }) => [user],
     buildSignData: ({ relayer, user, nonce }) => [
-      { Text: 'parachain authorization for scheduling leaving nominators operation' },
+      { Text: 'parachain authorization for executing leave nominators operation' },
       { AccountId: relayer },
       { AccountId: user },
       { u64: nonce }

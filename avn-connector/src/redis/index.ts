@@ -670,8 +670,22 @@ class RedisClient {
       const summaryString = await this.getKey(
         `${LAST_SUMMARY_PREFIX}${chainId}`
       );
-      logger.info('Retrieved summary string:', summaryString);
-      return summaryString ? JSON.parse(summaryString) : null;
+      logger.info('Retrieved raw summary string:', summaryString);
+      
+      if (!summaryString) return null;
+      
+      try {
+        const parsed = JSON.parse(summaryString);
+        return parsed;
+      } catch (parseError) {
+        logger.error('Failed to parse summary JSON:', parseError);
+        // If it's not JSON, it might be the old format where we only stored the rootHash
+        return {
+          chainId,
+          rootId: chainId, // Using chainId as rootId as per previous implementation
+          rootHash: summaryString
+        };
+      }
     } catch (error) {
       logger.error('Error getting last submitted summary:', error);
       throw error;

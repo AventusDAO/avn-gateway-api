@@ -671,21 +671,21 @@ class RedisClient {
         `${LAST_SUMMARY_PREFIX}${chainId}`
       );
       logger.info('Retrieved summary string:', summaryString);
-      return summaryString ? {rootId:chainId, rootHash: summaryString } as unknown as ChainSummary : null;
+      return summaryString ? JSON.parse(summaryString) : null;
     } catch (error) {
       logger.error('Error getting last submitted summary:', error);
       throw error;
     }
   }
-
+  
   async setLastSubmittedSummary(
     chainId: string,
-    summary: string
+    summary: ChainSummary
   ): Promise<void> {
     try {
       await this.setKey(
         `${LAST_SUMMARY_PREFIX}${chainId}`,
-        summary
+        JSON.stringify(summary)
       );
       logger.info(
         'Successfully set last submitted summary for chain:',

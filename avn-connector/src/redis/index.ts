@@ -679,10 +679,9 @@ class RedisClient {
         return parsed;
       } catch (parseError) {
         logger.error('Failed to parse summary JSON:', parseError);
-        // If it's not JSON, it might be the old format where we only stored the rootHash
         return {
           chainId,
-          rootId: chainId, // Using chainId as rootId as per previous implementation
+          rootId: `${0}`,
           rootHash: summaryString
         };
       }

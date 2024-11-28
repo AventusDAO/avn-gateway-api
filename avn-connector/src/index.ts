@@ -505,6 +505,7 @@ app.post(
   '/setLastSubmittedSummary',
   async (req: Request, res: Response<ChainSummary>, next: NextFunction) => {
     try {
+      logger.info({ setLastSubmittedSummary: JSON.stringify(req.body) });
       const { chainId, rootId, rootHash } = req.body;
       
       if (!chainId) {

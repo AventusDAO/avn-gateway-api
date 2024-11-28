@@ -678,7 +678,7 @@ class RedisClient {
         const parsed = JSON.parse(summaryString);
         return parsed;
       } catch (parseError) {
-        logger.error('Failed to parse summary JSON:', parseError);
+        logger.error('Failed to parse summary as json:', parseError);
         return {
           chainId,
           rootId: `${0}`,

@@ -487,6 +487,7 @@ app.get(
   '/getLastSubmittedSummary',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      logger.info({ getLastSubmittedSummary: JSON.stringify(req.query) });
       const chainId = req.query.chainId as string;
       const summary = await redis.getLastSubmittedSummary(chainId);
       

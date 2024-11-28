@@ -679,11 +679,7 @@ class RedisClient {
         return parsed;
       } catch (parseError) {
         logger.error('Failed to parse summary as json:', parseError);
-        return {
-          chainId,
-          rootId: `${0}`,
-          rootHash: summaryString
-        };
+        throw parseError
       }
     } catch (error) {
       logger.error('Error getting last submitted summary:', error);

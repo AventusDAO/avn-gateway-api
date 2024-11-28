@@ -26,6 +26,7 @@ import {
   TotalToken,
   LowerData
 } from './types';
+import { ChainSummary } from './redis/types';
 
 const VOW_MODE = config.vowMode === 'true';
 
@@ -484,13 +485,17 @@ app.post(
 
 app.get(
   '/getLastSubmittedSummary',
-  async (req: Request, res: Response<string>, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
+      logger.info({ getLastSubmittedSummary: JSON.stringify(req.query) });
       const chainId = req.query.chainId as string;
-
       const summary = await redis.getLastSubmittedSummary(chainId);
-
-      res.status(200).json(JSON.stringify(summary));
+      
+      if (!summary) {
+        res.status(404).json({ message: "Summary not found" });
+      }
+      
+      res.status(200).json(summary);
     } catch (error) {
       next(error);
     }
@@ -499,19 +504,25 @@ app.get(
 
 app.post(
   '/setLastSubmittedSummary',
-  async (req: Request, res: Response<string>, next: NextFunction) => {
+  async (req: Request, res: Response<ChainSummary>, next: NextFunction) => {
     try {
-      const { chainId, summary } = req.body;
+      logger.info({ setLastSubmittedSummary: JSON.stringify(req.body) });
+      const { chainId, rootId, rootHash } = req.body;
+      
       if (!chainId) {
-        new Error("Chain Id is required")
+        throw new Error("Chain Id is required");
+      }
+      if (!rootId) {
+        throw new Error("Root Id is required");
+      }
+      if (!rootHash) {
+        throw new Error("Root Hash is required");
       }
 
-      if (!summary) {
-        new Error("Summary is required")
-      }
-
+      const summary: ChainSummary = { chainId, rootId, rootHash };
       await redis.setLastSubmittedSummary(chainId, summary);
-
+      
+      logger.info(`Last submitted summary for chainId ${chainId}: `, summary);
       res.status(200).json(summary);
     } catch (error) {
       next(error);

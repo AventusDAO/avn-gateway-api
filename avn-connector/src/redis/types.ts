@@ -19,6 +19,7 @@ export const transactionObject: Transaction = {
 };
 
 export interface ChainSummary {
+  chainId: string;
   rootId: string;
   rootHash: string;
 }

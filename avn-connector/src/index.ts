@@ -521,7 +521,7 @@ app.post(
       const summary: ChainSummary = { chainId, rootId, rootHash };
       await redis.setLastSubmittedSummary(chainId, summary);
       
-      logger.info(`Last submitted summary set for chainId ${chainId}`, summary);
+      logger.info(`Last submitted summary for chainId ${chainId}: `, summary);
       res.status(200).json(summary);
     } catch (error) {
       next(error);

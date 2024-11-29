@@ -146,7 +146,7 @@ async function updateCrossChainTxStatuses(crossChainTxMap: CrossChainTxMap): Pro
     currentTxStatus.status = failureFilter.includes(event.name) ? TransactionStatus.Rejected : TransactionStatus.Processed;
     currentTxStatus.eventArgs = {
       ...event.args,
-      blockNumber: event.block.height,
+      statusUpdateBlockNumber: event.block.height,
       index:event.extrinsic.indexInBlock
     }
 

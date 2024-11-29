@@ -61,14 +61,17 @@ async function processRequest(): Promise<TransactionResponse[] | null> {
     transactions = Object.values(txEvents).map((txEvent): TransactionResponse => {
       const txHash = txEvent.extrinsic.hash;
       const crossChainStatus = crossChainTxMap.get(txHash) as CrossChainTxStatus;
-      if (crossChainStatus?.eventArgs) {
-        return {
-          transactionHash: txHash,
-          status: calculateTransactionStatus(txEvent, failureFilter, crossChainTxMap),
-          blockNumber: crossChainStatus.eventArgs.blockNumber,
-          index: crossChainStatus.eventArgs.index,
-          eventArgs: crossChainStatus.eventArgs
-        };
+      let eventArgs;
+
+      if (argsFilter.includes(txEvent.name)) {
+        const txArgs = txEvent.args;
+        const crossArgs = crossChainStatus?.eventArgs;
+
+        if (txArgs && crossArgs) {
+          eventArgs = { ...txArgs, ...crossArgs };
+        } else {
+          eventArgs = txArgs || crossArgs;
+        }
       }
 
       return {
@@ -76,7 +79,7 @@ async function processRequest(): Promise<TransactionResponse[] | null> {
         status: calculateTransactionStatus(txEvent, failureFilter, crossChainTxMap),
         blockNumber: txEvent.extrinsic.block.height,
         index: txEvent.extrinsic.indexInBlock,
-        eventArgs: argsFilter.includes(txEvent.name) ? txEvent.args : {}
+        eventArgs
       };
     });
   } catch (error) {

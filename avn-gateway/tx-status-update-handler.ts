@@ -147,7 +147,7 @@ async function updateCrossChainTxStatuses(crossChainTxMap: CrossChainTxMap): Pro
     currentTxStatus.eventArgs = {
       ...event.args,
       statusUpdateBlockNumber: event.block.height,
-      index:event.extrinsic.indexInBlock
+      statusUpdateIndex:event.extrinsic.indexInBlock
     }
 
     crossChainTxMap.set(txHash, currentTxStatus);

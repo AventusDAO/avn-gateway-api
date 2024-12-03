@@ -96,6 +96,7 @@ export interface BlockchainEvent {
     };
     extrinsic: {
       indexInBlock: number;
+      hash: string;
     };
   }
 
@@ -113,6 +114,14 @@ export interface CrossChainTxStatus {
     signature: string;
     transactionHash: string;
     eventArgs?: any;
+}
+
+export interface CrossChainTxEvent {
+    name: string;
+    args: any;
+    extrinsic: {
+        hash: string;
+    };
 }
 
 export interface LowerResult {

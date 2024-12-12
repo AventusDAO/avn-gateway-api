@@ -108,6 +108,10 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await isHandlerRegistered(call, request)
     case 'getAnchorNonce':
       return await getAnchorNonce(call, request)
+    case 'getPredictionMarketsNonce':
+      return await getPredictionMarketsNonce(call, request)
+    case 'getHybridRouterNonce':
+      return await getHybridRouterNonce(call, request)
 
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -466,6 +470,16 @@ async function isHandlerRegistered(call: Call, request: string): Promise<ValidRe
 async function getAnchorNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { chainId } = call.params;
   return await queryChain(call, request, 'avnAnchor', 'nonces', [parseInt(chainId)]);
+}
+
+async function getPredictionMarketsNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { chainId } = call.params;
+  return await queryChain(call, request, 'predictionMarkets', 'marketNonces', []);
+}
+
+async function getHybridRouterNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { chainId } = call.params;
+  return await queryChain(call, request, 'hybridRouter', 'nonces', []);
 }
 
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any):Promise<ValidResponse|ErrorBody> {

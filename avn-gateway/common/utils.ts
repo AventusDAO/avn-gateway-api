@@ -1,11 +1,13 @@
 
 import * as crypto from 'crypto';
+import ethers from 'ethers';
 import axios from 'axios';
+import { Keyring } from '@polkadot/keyring';
 import { TypeRegistry } from '@polkadot/types';
 import {
   hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat,
 } from '@polkadot/util';
-import { cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } from '@polkadot/util-crypto';
+import { cryptoWaitReady, decodeAddress, encodeAddress, keccakAsHex, signatureVerify } from '@polkadot/util-crypto';
 const { BN } = require('bn.js');
 import { validate as uuidValidate } from 'uuid';
 import { InterfaceTypes } from '@polkadot/types/types';
@@ -13,6 +15,7 @@ import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, 
   TransactionType } from './types';
 
 const registry = new TypeRegistry();
+const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
 
 const EXECUTION_MARGIN = 1000;
 const AVT_DECIMALS = new BN(10).pow(new BN(18));
@@ -113,8 +116,8 @@ function isValidAmount(amount: string): boolean {
   return /^\d+$/.test(amount) && !new BN(amount).isZero();
 }
 
-function isValidEthereumAddress(tokenId: string): boolean {
-  return isHex(tokenId) && tokenId.split('').length == 42;
+function isValidEthereumAddress(address: string): boolean {
+  return ethers.isAddress(address);
 }
 
 function isValidEthereumTransactionHash(transactionHash: string): boolean {
@@ -196,7 +199,7 @@ function verifyAwtTokenSignature(publicKey: string, issuedAt: string, signature:
   if (!hasPayer && !payerAddress) {
     // this is a legacy token
     const encodedData = u8aConcat(encodedContext.toU8a(false), encodedPublicKey.toU8a(true), encodedIssuedAt.toU8a(false));
-    return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+    return determineFormatAndVerifySignature(encodedData, signature, publicKey);
   } else {
     const encodedHasPayer = registry.createType('bool', hasPayer);
     const encodedPayer = registry.createType('Option<AccountId>', payerAddress);
@@ -208,8 +211,35 @@ function verifyAwtTokenSignature(publicKey: string, issuedAt: string, signature:
       encodedHasPayer.toU8a(true),
       encodedPayer.toU8a(true)
     );
-    return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+    return determineFormatAndVerifySignature(encodedData, signature, publicKey);
   }
+}
+
+function determineFormatAndVerifySignature(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
+  if (signature.length === 130) {
+    return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
+  } else if (signature.length === 132) {
+    return verifyECDSASignature(encodedData, signature, publicKey);
+  } else {
+    throw new TypeError(`Invalid signature length: ${signature.length}`);
+  }
+}
+
+function verifyECDSASignature(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
+  try {
+    const messageHash = ethers.hashMessage(encodedData);
+    const ethereumAddress = ethers.recoverAddress(messageHash, signature);
+    return publicKey === ethereumAddressToSr25519PublicKey(ethereumAddress);
+  } catch (error) {
+    console.error(`ECDSA verification error:`, error);
+    return false;
+  }
+}
+
+function ethereumAddressToSr25519PublicKey(address: string): string {
+  const seed = keccakAsHex(hexToU8a(address));
+  const { publicKey } = keyring.addFromUri(seed);
+  return u8aToHex(publicKey);
 }
 
 function verifySignatureWithOrWithoutWrapping(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
@@ -279,7 +309,7 @@ function isValidArray(value) {
 
 function isValidProxySignature(proxySignature:string, user:string, data:any[]):boolean {
   const encodedData = encodeOrderedData(data);
-  return verifySignatureWithOrWithoutWrapping(encodedData, proxySignature, user);
+  return determineFormatAndVerifySignature(encodedData, proxySignature, user);
 }
 
 function encodeOrderedData(data:DataItem[]):Uint8Array {

@@ -621,7 +621,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: 'predictionMarkets',
     buildMethodParams: ({ user }) => [user],
     buildSignData: ({ relayer, outcome }) => [
-      { Text: 'submit_checkpoint' },
+      { Text: 'report' },
       { u32: outcome }
     ]
   },
@@ -631,7 +631,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: 'hybridRouter',
     buildMethodParams: ({ user }) => [user],
     buildSignData: ({ relayer, marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [
-      { Text: 'submit_checkpoint' },
+      { Text: 'sell' },
       { AccountId: relayer },
       { u32: marketId },
       { u16: assetCount },
@@ -648,7 +648,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: 'hybridRouter',
     buildMethodParams: ({ user }) => [user],
     buildSignData: ({ relayer, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [
-      { Text: 'submit_checkpoint' },
+      { Text: 'buy' },
       { AccountId: relayer },
       { u32: marketId },
       { u16: assetCount },

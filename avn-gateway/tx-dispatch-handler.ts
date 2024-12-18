@@ -620,8 +620,10 @@ const callConfigs: { [key: string]: CallConfig } = {
     method: 'signedReport',
     nonceType: 'predictionMarkets',
     buildMethodParams: ({ user }) => [user],
-    buildSignData: ({ relayer, outcome }) => [
-      { Text: 'report' },
+    buildSignData: ({ relayer, nonce, outcome }) => [
+      { Text: 'report_market_outcome_context' },
+      { AccountId: relayer },
+      { u64: nonce },
       { u32: outcome }
     ]
   },
@@ -630,9 +632,10 @@ const callConfigs: { [key: string]: CallConfig } = {
     method: 'signedSell',
     nonceType: 'hybridRouter',
     buildMethodParams: ({ user }) => [user],
-    buildSignData: ({ relayer, marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [
-      { Text: 'sell' },
+    buildSignData: ({ relayer, nonce, marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [
+      { Text: 'sell outcome tokens' },
       { AccountId: relayer },
+      { u64: nonce },
       { u32: marketId },
       { u16: assetCount },
       { AssetOf: asset },
@@ -647,9 +650,10 @@ const callConfigs: { [key: string]: CallConfig } = {
     method: 'signedBuy',
     nonceType: 'hybridRouter',
     buildMethodParams: ({ user }) => [user],
-    buildSignData: ({ relayer, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [
-      { Text: 'buy' },
+    buildSignData: ({ relayer, nonce, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [
+      { Text: 'buy outcome tokens' },
       { AccountId: relayer },
+      { u64: nonce },
       { u32: marketId },
       { u16: assetCount },
       { AssetOf: asset },

@@ -225,19 +225,19 @@ function determineFormatAndVerifySignature(encodedData: Uint8Array, signature: s
   }
 }
 
-function verifyECDSASignature(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
+function verifyECDSASignature(encodedData: Uint8Array, signature: string, sr25519PublicKey: string): boolean {
   try {
-    const messageHash = ethers.hashMessage(encodedData);
-    const ethereumAddress = ethers.recoverAddress(messageHash, signature);
-    return publicKey === ethereumAddressToSr25519PublicKey(ethereumAddress);
+    const messageHash = ethers.utils.hashMessage(encodedData);
+    const ecdsaPublicKey = ethers.utils.recoverPublicKey(messageHash, signature);
+    return sr25519PublicKey === ecdsaPublicKeyToSr25519PublicKey(ecdsaPublicKey);
   } catch (error) {
     console.error(`ECDSA verification error:`, error);
     return false;
   }
 }
 
-function ethereumAddressToSr25519PublicKey(address: string): string {
-  const seed = keccakAsHex(hexToU8a(address));
+function ecdsaPublicKeyToSr25519PublicKey(ecdsaPublicKey: string): string {
+  const seed = keccakAsHex(hexToU8a(ecdsaPublicKey));
   const { publicKey } = keyring.addFromUri(seed);
   return u8aToHex(publicKey);
 }

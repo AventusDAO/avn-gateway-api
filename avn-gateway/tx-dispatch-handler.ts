@@ -627,6 +627,18 @@ const callConfigs: { [key: string]: CallConfig } = {
       { u32: outcome }
     ]
   },
+  'proxyRedeemShares': {
+    pallet: 'predictionMarkets',
+    method: 'signedRedeemShares',
+    nonceType: 'predictionMarkets',
+    buildMethodParams: ({ user }) => [user],
+    buildSignData: ({ relayer, nonce, marketId }) => [
+      { Text: 'redeem_shares_context' },
+      { AccountId: relayer },
+      { u64: nonce },
+      { u32: marketId }
+    ]
+  },
   'proxySell': {
     pallet: 'hybridRouter',
     method: 'signedSell',

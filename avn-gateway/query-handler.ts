@@ -473,13 +473,16 @@ async function getAnchorNonce(call: Call, request: string): Promise<ValidRespons
 }
 
 async function getPredictionMarketsNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
-  const { chainId } = call.params;
-  return await queryChain(call, request, 'predictionMarkets', 'marketNonces', []);
+  const { marketId, accountId } = call.params;
+  if (marketId){
+    return await queryChain(call, request, 'predictionMarkets', 'marketNonces', [accountId, marketId]);
+  }
+  return await queryChain(call, request, 'predictionMarkets', 'nonces', [accountId]);
 }
 
 async function getHybridRouterNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
-  const { chainId } = call.params;
-  return await queryChain(call, request, 'hybridRouter', 'nonces', []);
+  const { marketId, accountId } = call.params;
+  return await queryChain(call, request, 'hybridRouter', 'marketNonces', [accountId, marketId]);
 }
 
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any):Promise<ValidResponse|ErrorBody> {

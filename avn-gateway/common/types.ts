@@ -18,6 +18,15 @@ export enum MarketType {
     Fiat = 2
 }
 
+
+export type PredictionMarketType = {
+    Categorical: number;
+  } | {
+    Scalar: [bigint, bigint];
+  };
+
+  export type MarketDisputeMechanism = 0 | 1;
+
 export type SignDataItem = | { Text: string }
     | { AccountId: string }
     | { SkipEncode: Uint8Array }
@@ -34,10 +43,12 @@ export type SignDataItem = | { Text: string }
     | { BalanceOf: BalanceOf }
     | { H160: H160 }
     | { AssetOf: string }
-    | { Perbill: Perbill }
+    | { Perbill: number }
     | { MarketPeriodOf: string }
     | { DeadlinePeriodOf: string }
     | { MultiHash: string }
+    | { MarketType: PredictionMarketType }
+    | { MarketDisputeMechanism: MarketDisputeMechanism }
 
 export interface NonceInfo {
     batch: { palletName: string; storageName: string };

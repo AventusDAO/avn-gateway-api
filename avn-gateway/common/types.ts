@@ -25,7 +25,7 @@ export type PredictionMarketType = {
     Scalar: [bigint, bigint];
   };
 
-  export type MarketDisputeMechanism = 0 | 1;
+  export type MarketDisputeMechanism = /*Authorized*/0 | /*Court*/1;
 
 export type SignDataItem = | { Text: string }
     | { AccountId: string }

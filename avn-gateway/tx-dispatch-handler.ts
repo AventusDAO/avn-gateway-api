@@ -589,13 +589,10 @@ const callConfigs: { [key: string]: CallConfig } = {
     buildMethodParams: ({ user }) => [user],
     buildSignData: ({ relayer, nonce,
       baseAsset,
-      creatorFee,
       oracle,
       period,
       deadlines,
       metadata,
-      marketType,
-      disputeMechanism,
       amount,
       spotPrices,
       swapFee, }) => [

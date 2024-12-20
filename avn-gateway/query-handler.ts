@@ -477,7 +477,7 @@ async function getPredictionMarketsNonce(call: Call, request: string): Promise<V
   if (marketId){
     return await queryChain(call, request, 'predictionMarkets', 'marketNonces', [accountId, marketId]);
   }
-  return await queryChain(call, request, 'predictionMarkets', 'nonces', [accountId]);
+  return await queryChain(call, request, 'predictionMarkets', 'userNonces', [accountId]);
 }
 
 async function getHybridRouterNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {

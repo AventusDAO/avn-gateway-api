@@ -83,7 +83,15 @@ export type TransactionType = 'proxyAvtTransfer' |
     'proxyCancelEthereumNftSale' |
     'proxyEndEthereumBatchSale' |
     'proxyListEthereumNftForSale' |
-    'proxyListEthereumNftBatchForSale'
+    'proxyListEthereumNftBatchForSale'|
+    'proxyRegisterHandler'|
+    'proxySubmitCheckpoint'|
+    'proxyCreateMarketAndDeployPool'|
+    'proxyReport'|
+    'proxyRedeemShares'|
+    'proxyTransferAsset'|
+    'proxySell'|
+    'proxyBuy'
 
 export interface RPCError {
     parse: { code: number; message: string };

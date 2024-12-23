@@ -376,11 +376,15 @@ async function queryAccountInfoFromChain(call: Call, request: string, accountId:
 async function getEthereumEventStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'ethereumEventStatus';
   const {txHash} = call.params;
-  let { liftStatus } = (await query(call, request, method, {txHash})).data;
+  let result = await query(call, request, method, {txHash});
 
-  console.info(`Checked Ethereum event status: ${liftStatus}`);
+  console.info(`Checked Ethereum event status: ${JSON.stringify(result)}`);
 
-  return liftStatus;
+  if (result) {
+    return result.data?.liftStatus;
+  }
+
+  return undefined;
 }
 
 async function getPredictionMarketConstants(call: Call, request: string): Promise<ValidResponse | ErrorBody> {

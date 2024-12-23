@@ -1,17 +1,21 @@
-import { init, callWithTimeout, requestFailed, buildErrorBody, isValidCurrencyFormat, isValidProxySignature, axios, toBnString,
+import {
+  init, callWithTimeout, requestFailed, buildErrorBody, isValidCurrencyFormat, isValidProxySignature, axios, toBnString,
   isValidAccountId, getProxyProof, isValidSignatureFormat, isSplitFeeTransaction, isValidNonce,
   publishEvent, buildValidResponseBody, isValidString, isValidEthereumAddress, isValidNftId,
   isValidAmount, isValidEthereumTransactionHash, encodeRoyalties, convertToPublicKey,
   NONCE_INFO, WEBHOOK_EVENT_TYPES,
-  isValidArray} from '/opt/utils';
+  isValidArray
+} from '/opt/utils';
 import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
-import { StatusCode, CustomSQSHandler, ValidResponse,
+import {
+  StatusCode, CustomSQSHandler, ValidResponse,
   ProxyParams, ProxyProof, QueryParams, PublishEventData, NonceInfo,
-  CallConfig, ProxyTransaction, ProxyCall } from '/opt/handler-types';
-import { ErrorBody, SendTxResult,SignDataItem } from '/opt/types';
+  CallConfig, ProxyTransaction, ProxyCall
+} from '/opt/handler-types';
+import { ErrorBody, SendTxResult, SignDataItem } from '/opt/types';
 
-  // @ts-ignore
+// @ts-ignore
 import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
 
 const AVN_CONNECTOR_ENDPOINT: string = process.env.AVN_CONNECTOR_ENDPOINT || '';
@@ -221,7 +225,7 @@ async function sendTx(
 ): Promise<SendTxResult | ErrorBody> {
   try {
     const txType = 'avnProxy';
-    const tx:  ProxyTransaction = { requestId, txType, palletName, method, params };
+    const tx: ProxyTransaction = { requestId, txType, palletName, method, params };
     const result = await sqs.sendToQueue(SQS_TX_QUEUE_URL, tx);
     return buildValidResponseBody(call.id, result);
   } catch (err) {
@@ -279,7 +283,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: "confirmation",
     buildMethodParams: ({ eventType, ethereumTransactionHash }) => [eventType, ethereumTransactionHash],
     buildSignData: ({ relayer, eventType, ethereumTransactionHash, nonce }) => [
-      { Text: 'authorization for add ethereum log operation'  },
+      { Text: 'authorization for add ethereum log operation' },
       { AccountId: relayer },
       { u8: eventType.toString() },
       { H256: ethereumTransactionHash },
@@ -292,7 +296,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: "confirmation",
     buildMethodParams: ({ eventType, ethereumTransactionHash }) => [eventType, ethereumTransactionHash],
     buildSignData: ({ relayer, eventType, ethereumTransactionHash, nonce }) => [
-      { Text: 'authorization for add ethereum log operation'  },
+      { Text: 'authorization for add ethereum log operation' },
       { AccountId: relayer },
       { u8: eventType.toString() },
       { H256: ethereumTransactionHash },
@@ -305,7 +309,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: "confirmation",
     buildMethodParams: ({ eventType, ethereumTransactionHash }) => [eventType, ethereumTransactionHash],
     buildSignData: ({ relayer, eventType, ethereumTransactionHash, nonce }) => [
-      { Text: 'authorization for add ethereum log operation'  },
+      { Text: 'authorization for add ethereum log operation' },
       { AccountId: relayer },
       { u8: eventType.toString() },
       { H256: ethereumTransactionHash },
@@ -318,7 +322,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: "confirmation",
     buildMethodParams: ({ eventType, ethereumTransactionHash }) => [eventType, ethereumTransactionHash],
     buildSignData: ({ relayer, eventType, ethereumTransactionHash, nonce }) => [
-      { Text: 'authorization for add ethereum log operation'  },
+      { Text: 'authorization for add ethereum log operation' },
       { AccountId: relayer },
       { u8: eventType.toString() },
       { H256: ethereumTransactionHash },
@@ -331,7 +335,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     nonceType: "confirmation",
     buildMethodParams: ({ eventType, ethereumTransactionHash }) => [eventType, ethereumTransactionHash],
     buildSignData: ({ relayer, eventType, ethereumTransactionHash, nonce }) => [
-      { Text: 'authorization for add ethereum log operation'  },
+      { Text: 'authorization for add ethereum log operation' },
       { AccountId: relayer },
       { u8: eventType.toString() },
       { H256: ethereumTransactionHash },
@@ -574,8 +578,130 @@ const callConfigs: { [key: string]: CallConfig } = {
       { AccountId: relayer },
       { AccountId: handler },
       { H256: checkpoint },
-      { u32: chainId},
+      { u32: chainId },
       { u64: nonce }
+    ]
+  },
+  'proxyCreateMarketAndDeployPool': {
+    pallet: 'predictionMarkets',
+    method: 'signedCreateMarketAndDeployPool',
+    nonceType: 'predictionMarkets',
+    buildMethodParams: ({ user, baseAsset,
+      oracle,
+      period,
+      deadlines,
+      metadata,
+      amount,
+      spotPrices,
+      swapFee }) => [user, baseAsset,
+        0,
+        oracle,
+        period,
+        deadlines,
+        metadata,
+        { Categorical: 0 },
+        0,
+        amount,
+        spotPrices,
+        swapFee],
+    buildSignData: ({ relayer, nonce,
+      baseAsset,
+      oracle,
+      period,
+      deadlines,
+      metadata,
+      amount,
+      spotPrices,
+      swapFee, }) => [
+        { Text: 'create_market_and_deploy_pool' },
+        { AccountId: relayer },
+        { u64: nonce },
+        { AssetOf: baseAsset },
+        { Perbill: 0 },
+        { AccountId: oracle },
+        { MarketPeriodOf: period },
+        { DeadlinePeriodOf: deadlines },
+        { MultiHash: metadata },
+        { MarketType: { Categorical: 0 } },
+        { MarketDisputeMechanism: 0 },
+        { BalanceOf: amount },
+        { 'Vec<u8>': spotPrices },
+        { BalanceOf: swapFee },
+      ]
+  },
+  'proxyReport': {
+    pallet: 'predictionMarkets',
+    method: 'signedReport',
+    nonceType: 'predictionMarkets',
+    buildMethodParams: ({ user, outcome }) => [user, outcome],
+    buildSignData: ({ relayer, nonce, outcome }) => [
+      { Text: 'report_market_outcome_context' },
+      { AccountId: relayer },
+      { u64: nonce },
+      { u32: outcome }
+    ]
+  },
+  'proxyRedeemShares': {
+    pallet: 'predictionMarkets',
+    method: 'signedRedeemShares',
+    nonceType: 'predictionMarkets',
+    buildMethodParams: ({ user, marketId }) => [user, marketId],
+    buildSignData: ({ relayer, nonce, marketId }) => [
+      { Text: 'redeem_shares_context' },
+      { AccountId: relayer },
+      { u64: nonce },
+      { u32: marketId }
+    ]
+  },
+  'proxyTransferAsset': {
+    pallet: 'predictionMarkets',
+    method: 'signedTransferAsset',
+    nonceType: 'predictionMarkets',
+    buildMethodParams: ({ user, token, who, to, amount }) => [user, token, who, to, amount],
+    buildSignData: ({ relayer, nonce, token, who, to, amount }) => [
+      { Text: 'redeem_shares_context' },
+      { AccountId: relayer },
+      { u64: nonce },
+      { H160: token },
+      { AccountId: who },
+      { AccountId: to },
+      { BalanceOf: amount }
+    ]
+  },
+  'proxySell': {
+    pallet: 'hybridRouter',
+    method: 'signedSell',
+    nonceType: 'hybridRouter',
+    buildMethodParams: ({ user, marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [user, marketId, assetCount, asset, amountIn, minPrice, orders, strategy],
+    buildSignData: ({ relayer, nonce, marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [
+      { Text: 'sell outcome tokens' },
+      { AccountId: relayer },
+      { u64: nonce },
+      { u32: marketId },
+      { u16: assetCount },
+      { AssetOf: asset },
+      { BalanceOf: amountIn },
+      { BalanceOf: minPrice },
+      { 'Vec<u128>': orders },
+      { u8: strategy }
+    ]
+  },
+  'proxyBuy': {
+    pallet: 'hybridRouter',
+    method: 'signedBuy',
+    nonceType: 'hybridRouter',
+    buildMethodParams: ({ user, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [user, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy],
+    buildSignData: ({ relayer, nonce, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [
+      { Text: 'buy outcome tokens' },
+      { AccountId: relayer },
+      { u64: nonce },
+      { u32: marketId },
+      { u16: assetCount },
+      { AssetOf: asset },
+      { BalanceOf: amountIn },
+      { BalanceOf: maxPrice },
+      { 'Vec<u128>': orders },
+      { u8: strategy }
     ]
   },
 };

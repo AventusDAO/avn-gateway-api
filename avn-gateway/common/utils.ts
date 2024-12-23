@@ -39,7 +39,9 @@ const NONCE_INFO: NonceInfo = {
   payment: { palletName: 'avnProxy', storageName: 'paymentNonces' },
   staking: { palletName: 'parachainStaking', storageName: 'proxyNonces' },
   token: { palletName: 'tokenManager', storageName: 'nonces' },
-  anchor: { palletName: 'avnAnchor', storageName: 'nonces' }
+  anchor: { palletName: 'avnAnchor', storageName: 'nonces' },
+  predictionMarkets: { palletName: 'predictionMarkets', storageName: 'marketNonces' },
+  hybridRouter: { palletName: 'hybridRouter', storageName: 'nonces' }
 };
 
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';

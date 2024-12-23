@@ -1,8 +1,8 @@
 import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
-import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256 } from '@polkadot/types';
-import { H256, H160, BalanceOf } from "@polkadot/types/interfaces";
+import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16 } from '@polkadot/types';
+import { H256, H160, BalanceOf, Perbill } from "@polkadot/types/interfaces";
 
 export enum EventType {
     AddedValidator = 0,
@@ -18,19 +18,37 @@ export enum MarketType {
     Fiat = 2
 }
 
+
+export type PredictionMarketType = {
+    Categorical: number;
+  } | {
+    Scalar: [bigint, bigint];
+  };
+
+  export type MarketDisputeMechanism = /*Authorized*/0 | /*Court*/1;
+
 export type SignDataItem = | { Text: string }
     | { AccountId: string }
     | { SkipEncode: Uint8Array }
     | { 'Vec<u8>': Vec<u8>; }
     | { 'Vec<LookupSource>': Vec<GenericEthereumLookupSource>[]; }
+    | { 'Vec<u128>': Vec<u128> }
     | { H256: H256; }
     | { U256: U256 }
     | { u8: EventType | MarketType; }
+    | { u16: u16 }
     | { u32: u32 }
     | { u64: u64 }
     | { u128: u128 }
     | { BalanceOf: BalanceOf }
-    | { H160: H160 };
+    | { H160: H160 }
+    | { AssetOf: string }
+    | { Perbill: number }
+    | { MarketPeriodOf: string }
+    | { DeadlinePeriodOf: string }
+    | { MultiHash: string }
+    | { MarketType: PredictionMarketType }
+    | { MarketDisputeMechanism: MarketDisputeMechanism }
 
 export interface NonceInfo {
     batch: { palletName: string; storageName: string };
@@ -40,6 +58,8 @@ export interface NonceInfo {
     staking: { palletName: string; storageName: string };
     token: { palletName: string; storageName: string };
     anchor: { palletName: string; storageName: string };
+    predictionMarkets: { palletName: string; storageName: string };
+    hybridRouter: { palletName: string; storageName: string };
 }
 
 export type TransactionType = 'proxyAvtTransfer' |
@@ -63,7 +83,15 @@ export type TransactionType = 'proxyAvtTransfer' |
     'proxyCancelEthereumNftSale' |
     'proxyEndEthereumBatchSale' |
     'proxyListEthereumNftForSale' |
-    'proxyListEthereumNftBatchForSale'
+    'proxyListEthereumNftBatchForSale'|
+    'proxyRegisterHandler'|
+    'proxySubmitCheckpoint'|
+    'proxyCreateMarketAndDeployPool'|
+    'proxyReport'|
+    'proxyRedeemShares'|
+    'proxyTransferAsset'|
+    'proxySell'|
+    'proxyBuy'
 
 export interface RPCError {
     parse: { code: number; message: string };

@@ -2,7 +2,6 @@
 import * as crypto from 'crypto';
 import ethers from 'ethers';
 import axios from 'axios';
-import { Keyring } from '@polkadot/keyring';
 import { TypeRegistry } from '@polkadot/types';
 import {
   hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat,
@@ -237,9 +236,7 @@ function verifyECDSASignature(encodedData: Uint8Array, signature: string, sr2551
 }
 
 function ecdsaPublicKeyToSr25519PublicKey(ecdsaPublicKey: string): string {
-  const seed = keccakAsHex(hexToU8a(ecdsaPublicKey));
-  const { publicKey } = keyring.addFromUri(seed);
-  return u8aToHex(publicKey);
+  return keccakAsHex(hexToU8a(ecdsaPublicKey));
 }
 
 function verifySignatureWithOrWithoutWrapping(encodedData: Uint8Array, signature: string, publicKey: string): boolean {

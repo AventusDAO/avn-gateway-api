@@ -921,6 +921,7 @@ async function getBatchInfo(batchId: number): Promise<BatchInfo | null> {
 }
 
 async function predictionMarketConstants(): Promise<any> {
+  logger.info('Getting prediction market constants');
   const [
     advisoryBond,
     validityBond,
@@ -972,6 +973,8 @@ async function predictionMarketConstants(): Promise<any> {
     api.consts.neoSwaps.maxSwapFee,
   ]);
 
+  logger.info('Prediction market constants retrieved');
+
   let result: Record<string, string> = {};
   result['advisoryBond'] = advisoryBond.toString();
   result['validityBond'] = validityBond.toString();
@@ -995,6 +998,7 @@ async function predictionMarketConstants(): Promise<any> {
   result['maxGracePeriod'] = maxGracePeriod.toString();
   result['maxSwapFee'] = maxSwapFee.toString();
 
+  logger.info('Prediction market constants: ', result);
   return result;
 }
 

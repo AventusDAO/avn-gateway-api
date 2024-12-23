@@ -493,6 +493,7 @@ app.get(
 
       if (!summary) {
         res.status(404).json({ message: "Summary not found" });
+        return;
       }
 
       res.status(200).json(summary);
@@ -534,9 +535,9 @@ app.post(
   '/getPredictionMarketConstants',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      logger.info({ getPredictionMarketConstants: JSON.stringify(req.query) });
+      logger.info({ getPredictionMarketConstants: JSON.stringify(req.body) });
       const result = await avn.predictionMarketConstants();
-      res.status(200).json(result);
+      res.status(200).send(JSON.stringify(result));
     } catch (error) {
       next(error);
     }

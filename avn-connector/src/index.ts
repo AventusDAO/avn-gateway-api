@@ -530,7 +530,7 @@ app.post(
   }
 );
 
-app.get(
+app.post(
   '/getPredictionMarketConstants',
   async (req: Request, res: Response, next: NextFunction) => {
     try {

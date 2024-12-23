@@ -215,6 +215,8 @@ export interface CallParams {
     currencyToken: string;
     handler?: string;
     marketId?: string;
+    ethTokenAddress?: string;
+    txHash?: string;
 };
 
 export interface Call {

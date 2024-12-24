@@ -487,16 +487,57 @@ app.get(
   '/getLastSubmittedSummary',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      logger.info({ getLastSubmittedSummary: JSON.stringify(req.query) });
-      const chainId = req.query.chainId as string;
-      const summary = await redis.getLastSubmittedSummary(chainId);
-      
-      if (!summary) {
-        res.status(404).json({ message: "Summary not found" });
+      if (!req.query.chainId) {
+        return res.status(400).json({ 
+          message: 'chainId is required' 
+        });
       }
-      
-      res.status(200).json(summary);
+
+      if (typeof req.query.chainId !== 'string') {
+        return res.status(400).json({ 
+          message: 'chainId must be a string' 
+        });
+      }
+
+      const chainId = req.query.chainId;
+
+      logger.info({ 
+        endpoint: 'getLastSubmittedSummary',
+        chainId,
+        query: req.query 
+      });
+
+      try {
+        const summary = await redis.getLastSubmittedSummary(chainId);
+        
+        if (!summary) {
+          return res.status(404).json({ 
+            message: 'Summary not found',
+            chainId 
+          });
+        }
+        
+        return res.status(200).json(summary);
+
+      } catch (redisError) {
+        logger.error({ 
+          error: redisError, 
+          chainId 
+        }, 'Redis error while fetching summary');
+        
+        return res.status(503).json({ 
+          message: 'Error retrieving data from cache',
+          error: redisError instanceof Error ? redisError.message : 'Unknown error'
+        });
+      }
+
     } catch (error) {
+      logger.error({ 
+        error,
+        chainId: req.query.chainId,
+        path: req.path 
+      }, 'Unexpected error in getLastSubmittedSummary');
+      
       next(error);
     }
   }
@@ -504,27 +545,70 @@ app.get(
 
 app.post(
   '/setLastSubmittedSummary',
-  async (req: Request, res: Response<ChainSummary>, next: NextFunction) => {
+  async (req: Request, res: Response<ChainSummary | { message: string }>, next: NextFunction) => {
     try {
-      logger.info({ setLastSubmittedSummary: JSON.stringify(req.body) });
       const { chainId, rootId, rootHash } = req.body;
-      
+
       if (!chainId) {
-        throw new Error("Chain Id is required");
+        return res.status(400).json({ 
+          message: 'chainId is required' 
+        });
       }
+
       if (!rootId) {
-        throw new Error("Root Id is required");
+        return res.status(400).json({ 
+          message: 'rootId is required' 
+        });
       }
+
       if (!rootHash) {
-        throw new Error("Root Hash is required");
+        return res.status(400).json({ 
+          message: 'rootHash is required' 
+        });
+      }
+
+      if (typeof chainId !== 'string' || 
+          typeof rootId !== 'string' || 
+          typeof rootHash !== 'string') {
+        return res.status(400).json({ 
+          message: 'chainId, rootId, and rootHash must all be strings' 
+        });
       }
 
       const summary: ChainSummary = { chainId, rootId, rootHash };
-      await redis.setLastSubmittedSummary(chainId, summary);
-      
-      logger.info(`Last submitted summary for chainId ${chainId}: `, summary);
-      res.status(200).json(summary);
+
+      logger.info({
+        endpoint: 'setLastSubmittedSummary',
+        summary
+      });
+
+      try {
+        await redis.setLastSubmittedSummary(chainId, summary);
+        
+        logger.info({
+          message: 'Successfully set last submitted summary',
+          chainId,
+          summary
+        });
+
+        return res.status(200).json(summary);
+
+      } catch (redisError) {
+        logger.error({ 
+          error: redisError, 
+          chainId,
+          summary 
+        }, 'Redis error while setting summary');
+        
+      }
+
     } catch (error) {
+      logger.error({ 
+        error,
+        body: req.body,
+        path: req.path 
+      }, 'Unexpected error in setLastSubmittedSummary');
+      
       next(error);
     }
   }

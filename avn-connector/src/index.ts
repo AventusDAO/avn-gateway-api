@@ -488,7 +488,7 @@ app.get(
   async (req: Request, res: Response<ChainSummary | { message: string; error?: string }>, next: NextFunction) => {
     try {
       logger.info({ getLastSubmittedSummary: JSON.stringify(req.query) });
-      
+
       const validation = avn.validateGetSummaryRequest(req.query.chainId);
       if (!validation.isValid && validation.error) {
         return res.status(validation.error.status).json({ message: validation.error.message });
@@ -496,29 +496,18 @@ app.get(
 
       const chainId = req.query.chainId as string;
 
-      try {
-        const summary = await redis.getLastSubmittedSummary(chainId);
-        
-        if (!summary) {
-          return res.status(404).json({ 
-            message: 'Summary not found',
-            chainId 
-          });
-        }
-        
-        return res.status(200).json(summary);
+      const summary = await redis.getLastSubmittedSummary(chainId);
 
-      } catch (redisError) {
-        logger.error({ 
-          error: redisError, 
-          chainId 
-        }, 'Redis error while fetching summary');
-        
-        return res.status(503).json({ 
-          message: 'Error retrieving data from cache',
-          error: redisError instanceof Error ? redisError.message : 'Unknown error'
+      if (!summary) {
+        return res.status(404).json({
+          message: 'Summary not found',
+          chainId
         });
       }
+
+      return res.status(200).json(summary);
+
+
 
     } catch (error) {
       next(error);
@@ -540,22 +529,8 @@ app.post(
       const { chainId, rootId, rootHash } = req.body;
       const summary: ChainSummary = { chainId, rootId, rootHash };
 
-      try {
-        await redis.setLastSubmittedSummary(chainId, summary);
-        return res.status(200).json(summary);
-
-      } catch (redisError) {
-        logger.error({ 
-          error: redisError, 
-          chainId,
-          summary 
-        }, 'Redis error while setting summary');
-        
-        return res.status(503).json({ 
-          message: 'Error storing data in cache',
-          error: redisError instanceof Error ? redisError.message : 'Unknown error'
-        });
-      }
+      await redis.setLastSubmittedSummary(chainId, summary);
+      return res.status(200).json(summary);
 
     } catch (error) {
       next(error);

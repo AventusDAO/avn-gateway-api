@@ -13,7 +13,6 @@ import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, 
   TransactionType } from './types';
 
 const registry = new TypeRegistry();
-
 const customTypes = {
   "Range<BlockNumber>": {
     "start": "BlockNumber",
@@ -65,7 +64,7 @@ const customTypes = {
     "Authorized": null,
     "Court": null,
   },
-  "Deadlines<BlockNumber>" : {
+  "Deadlines" : {
     "grace_period": "BlockNumber",
     "oracle_duration": "BlockNumber",
     "dispute_duration": "BlockNumber",

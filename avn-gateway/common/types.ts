@@ -25,8 +25,6 @@ export type PredictionMarketType = {
     Scalar: [bigint, bigint];
   };
 
-export type MarketDisputeMechanism = "Authorized";
-
 export type SignDataItem = | { Text: string }
     | { AccountId: string }
     | { SkipEncode: Uint8Array }
@@ -49,7 +47,7 @@ export type SignDataItem = | { Text: string }
     | { Deadlines: string }
     | { MultiHash: string }
     | { MarketType: PredictionMarketType }
-    | { MarketDisputeMechanism: MarketDisputeMechanism }
+    | { MarketDisputeMechanism: string }
 
 export interface NonceInfo {
     batch: { palletName: string; storageName: string };

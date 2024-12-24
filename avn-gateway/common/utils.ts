@@ -29,6 +29,7 @@ const customTypes = {
     }
   },
   "AssetOf": "Asset<MarketId>",
+  "MarketPeriod<BlockNumber, Moment>": "MarketPeriod",
   "MarketPeriodOf": "MarketPeriod<BlockNumber, Moment>",
   "DeadlinePeriodOf": "Deadlines<BlockNumber>",
   "MarketId" : "u128",

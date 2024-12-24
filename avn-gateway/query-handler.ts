@@ -389,7 +389,7 @@ async function getEthereumEventStatus(call: Call, request: string): Promise<any 
 
 async function getPredictionMarketConstants(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'getPredictionMarketConstants';
-  let result = (await query(call, request, method)).data;
+  let result = await query(call, request, method);
   console.info(`Prediction market constants: ${result}`);
 
   return result;

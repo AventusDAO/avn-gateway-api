@@ -40,7 +40,7 @@ const customTypes = {
       "Sha3_384": "[u8; 50]",
     }
   },
-  "Asset<MarketId>" : {
+  "Asset" : {
     "_enum": {
       "CategoricalOutcome" : "(MarketId, CategoryIndex)",
       "ScalarOutcome": "(MarketId, ScalarPosition)",

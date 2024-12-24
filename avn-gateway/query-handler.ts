@@ -373,15 +373,15 @@ async function queryAccountInfoFromChain(call: Call, request: string, accountId:
   return await query(call, request, method, params);
 }
 
-async function getEthereumEventStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+async function getEthereumEventStatus(call: Call, request: string): Promise<any | ErrorBody> {
   const method = 'ethereumEventStatus';
   const {txHash} = call.params;
-  let result = await query(call, request, method, {txHash});
+  let response: any = await query(call, request, method, {txHash});
 
-  console.info(`Checked Ethereum event status: ${JSON.stringify(result)}`);
+  console.info(`Checked Ethereum event status: ${JSON.stringify(response)}`);
 
-  if (result) {
-    return result.data?.liftStatus;
+  if (response.result) {
+    return { result: response.result.liftStatus };
   }
 
   return undefined;

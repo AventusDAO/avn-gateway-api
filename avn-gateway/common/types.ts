@@ -25,7 +25,7 @@ export type PredictionMarketType = {
     Scalar: [bigint, bigint];
   };
 
-  export type MarketDisputeMechanism = /*Authorized*/0 | /*Court*/1;
+export type MarketDisputeMechanism = "Authorized";
 
 export type SignDataItem = | { Text: string }
     | { AccountId: string }
@@ -33,6 +33,7 @@ export type SignDataItem = | { Text: string }
     | { 'Vec<u8>': Vec<u8>; }
     | { 'Vec<LookupSource>': Vec<GenericEthereumLookupSource>[]; }
     | { 'Vec<u128>': Vec<u128> }
+    | { 'Vec<BalanceOf>': Vec<BalanceOf> }
     | { H256: H256; }
     | { U256: U256 }
     | { u8: EventType | MarketType; }
@@ -45,7 +46,7 @@ export type SignDataItem = | { Text: string }
     | { AssetOf: string }
     | { Perbill: number }
     | { MarketPeriodOf: string }
-    | { DeadlinePeriodOf: string }
+    | { Deadlines: string }
     | { MultiHash: string }
     | { MarketType: PredictionMarketType }
     | { MarketDisputeMechanism: MarketDisputeMechanism }

@@ -14,11 +14,75 @@ import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, 
 
 const registry = new TypeRegistry();
 
+const customTypes = {
+  "Range<BlockNumber>": {
+    "start": "BlockNumber",
+    "end": "BlockNumber"
+  },
+  "Range<Moment>": {
+    "start": "Moment",
+    "end": "Moment"
+  },
+  "MarketPeriod<BlockNumber,Moment>": {
+    "_enum": {
+      "Block": "Range<BlockNumber>",
+      "Timestamp": "Range<Moment>"
+    }
+  },
+  "AssetOf": "Asset<MarketId>",
+  "MarketPeriodOf": "MarketPeriod<BlockNumber, Moment>",
+  "DeadlinePeriodOf": "Deadlines<BlockNumber>",
+  "MarketId" : "u128",
+  "CategoryIndex": "u16",
+  "PoolId": "u128",
+  "MultiHash": {
+    "_enum": {
+      "Sha3_384": "[u8; 50]",
+    }
+  },
+  "Asset<MarketId>" : {
+    "_enum": {
+      "CategoricalOutcome" : "(MarketId, CategoryIndex)",
+      "ScalarOutcome": "(MarketId, ScalarPosition)",
+      "CombinatorialOutcome": null,
+      "PoolShare": "PoolId",
+      "Vow": null,
+      "ForeignAsset": "u32",
+      "ParimutuelShare": "(MarketId, CategoryIndex)",
+    }
+  },
+  "ScalarPosition" : {
+    "_enum": {
+      "Long": null,
+      "Short": null
+    }
+  },
+  "MarketType": {
+    /// A market with a number of categorical outcomes.
+    "Categorical": "u16"
+  },
+  "MarketDisputeMechanism": {
+    "Authorized": null,
+    "Court": null,
+  },
+  "Deadlines<BlockNumber>" : {
+    "grace_period": "BlockNumber",
+    "oracle_duration": "BlockNumber",
+    "dispute_duration": "BlockNumber",
+  }
+};
+
+// Register these custom types so the registry knows how to decode/encode them
+registry.register(customTypes);
+
 const EXECUTION_MARGIN = 1000;
 const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
-const NUM_TYPES = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
+const NUM_TYPES = [
+  'AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u16', 'u32', 'u64', 'u128',
+  'U256', 'H160', 'H256', 'BlockNumber', 'PoolId', 'CategoryIndex', 'MarketId',
+];
 
 enum WEBHOOK_EVENT_TYPES {
   tx_received = 'tx_received',
@@ -287,6 +351,7 @@ function isValidProxySignature(proxySignature:string, user:string, data:any[]):b
 function encodeOrderedData(data:DataItem[]):Uint8Array {
   const encodedDataToSign = data.map(d => {
     const [type, value] = Object.entries(d)[0] as [ExtendedInterfaceTypes, string | number | Uint8Array];
+    console.log(` - type: ${type}, Value: ${value}`);
     return type === 'SkipEncode' ? value as Uint8Array: registry.createType(type, value).toU8a(NUM_TYPES.includes(type));
   });
   return u8aConcat(...encodedDataToSign);

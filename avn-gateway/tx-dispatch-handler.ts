@@ -120,8 +120,8 @@ async function processProxyCall(callType: string, call: ProxyCall, request: stri
     call.params.nonce = nonce;
   }
 
-  const methodParams = buildMethodParams(call.params);
-  const signData = buildSignData({ ...call.params });
+  const methodParams = await buildMethodParams(call.params);
+  const signData = await buildSignData({ ...call.params });
 
   try {
     validateSignData(signData);
@@ -232,6 +232,110 @@ async function sendTx(
     console.error('Failed to send proxy transaction:', err);
     return buildErrorBody('internal', 'failed to send proxy transaction', err.toString(), request, call.id);
   }
+}
+
+async function getDefaultMarketOpeningValues(baseAssetEthAddress: string): Promise<any> {
+  const queryParams: QueryParams = { requestId: "", palletName: 'assetRegistry', storageName: 'ethAddressToAssetId', params: [baseAssetEthAddress] };
+  const result = await axios.post(`${AVN_CONNECTOR_ENDPOINT}avnQuery`, queryParams);
+  const baseAsset = result.data;
+
+  if (!baseAsset) {
+    throw new Error(`Invalid base asset eth address: ${baseAssetEthAddress}. Asset not found`);
+  }
+
+  const creatorFee = 0;
+  const marketType = { Categorical: 2 };
+  const disputeMechanism = "Authorized";
+  const swapFee = "30000000"; //0.3% (remember its 10 decimal places not 18)
+
+  return {baseAsset, creatorFee, marketType, disputeMechanism, swapFee};
+}
+
+async function getCreateMarketSignDataItems(params: any): Promise<SignDataItem[]> {
+  const {
+    relayer,
+    nonce,
+    baseAssetEthAddress,
+    oracle,
+    period,
+    deadlines,
+    metadata,
+    amount,
+    spotPrices,
+  } = params;
+
+  console.log("getCreateMarketSignDataItems - Params: ", JSON.stringify(params));
+
+  const {baseAsset, creatorFee, marketType, disputeMechanism, swapFee} = await getDefaultMarketOpeningValues(baseAssetEthAddress);
+
+  console.log("getCreateMarketSignDataItems - Result: ",
+    [
+      { Text: 'create_market_and_deploy_pool' },
+      { AccountId: relayer },
+      { u64: nonce },
+      { AssetOf: baseAsset },
+      { Perbill: creatorFee },
+      { AccountId: oracle },
+      { MarketPeriodOf: period },
+      { Deadlines: deadlines },
+      { MultiHash: metadata },
+      { MarketType: marketType },
+      { MarketDisputeMechanism: disputeMechanism },
+      { BalanceOf: amount },
+      { 'Vec<BalanceOf>': spotPrices },
+      { BalanceOf: swapFee },
+    ]
+  );
+
+  return [
+    { Text: 'create_market_and_deploy_pool' },
+    { AccountId: relayer },
+    { u64: nonce },
+    { AssetOf: baseAsset },
+    { Perbill: creatorFee },
+    { AccountId: oracle },
+    { MarketPeriodOf: period },
+    { Deadlines: deadlines },
+    { MultiHash: metadata },
+    { MarketType: marketType },
+    { MarketDisputeMechanism: disputeMechanism },
+    { BalanceOf: amount },
+    { 'Vec<BalanceOf>': spotPrices },
+    { BalanceOf: swapFee },
+  ];
+}
+
+async function getCreateMarketAndDeployPoolMethodParams(params: any): Promise<any[]> {
+  const {
+    user,
+    baseAssetEthAddress,
+    oracle,
+    period,
+    deadlines,
+    metadata,
+    amount,
+    spotPrices,
+  } = params;
+
+  const {baseAsset, creatorFee, marketType, disputeMechanism, swapFee} = await getDefaultMarketOpeningValues(baseAssetEthAddress);
+
+  console.log("getCreateMarketAndDeployPoolMethodParams - Params: ", JSON.stringify(params));
+  console.log("getCreateMarketAndDeployPoolMethodParams - Result: ", [user,baseAsset,creatorFee,oracle,period,deadlines,metadata,marketType,disputeMechanism,amount,spotPrices,swapFee]);
+
+  return [
+    user,
+    baseAsset,
+    creatorFee,
+    oracle,
+    period,
+    deadlines,
+    metadata,
+    marketType,
+    disputeMechanism,
+    amount,
+    spotPrices,
+    swapFee
+  ];
 }
 
 const typeValidationMap = {
@@ -586,48 +690,8 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'predictionMarkets',
     method: 'signedCreateMarketAndDeployPool',
     nonceType: 'predictionMarkets',
-    buildMethodParams: ({ user, baseAsset,
-      oracle,
-      period,
-      deadlines,
-      metadata,
-      amount,
-      spotPrices,
-      swapFee }) => [user, baseAsset,
-        0,
-        oracle,
-        period,
-        deadlines,
-        metadata,
-        { Categorical: 0 },
-        0,
-        amount,
-        spotPrices,
-        swapFee],
-    buildSignData: ({ relayer, nonce,
-      baseAsset,
-      oracle,
-      period,
-      deadlines,
-      metadata,
-      amount,
-      spotPrices,
-      swapFee, }) => [
-        { Text: 'create_market_and_deploy_pool' },
-        { AccountId: relayer },
-        { u64: nonce },
-        { AssetOf: baseAsset },
-        { Perbill: 0 },
-        { AccountId: oracle },
-        { MarketPeriodOf: period },
-        { DeadlinePeriodOf: deadlines },
-        { MultiHash: metadata },
-        { MarketType: { Categorical: 0 } },
-        { MarketDisputeMechanism: 0 },
-        { BalanceOf: amount },
-        { 'Vec<u8>': spotPrices },
-        { BalanceOf: swapFee },
-      ]
+    buildMethodParams: async (params) => await getCreateMarketAndDeployPoolMethodParams(params),
+    buildSignData: async (params) => await getCreateMarketSignDataItems(params)
   },
   'proxyReport': {
     pallet: 'predictionMarkets',

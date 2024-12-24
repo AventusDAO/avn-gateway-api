@@ -33,8 +33,8 @@ export interface CallConfig {
     pallet: string;
     method: string;
     nonceType?: string;
-    buildMethodParams: (params: any) => any[];
-    buildSignData: (params: any) => SignDataItem[];
+    buildMethodParams: (params: any) => any[] | Promise<any[]>;
+    buildSignData: (params: any) => SignDataItem[] | Promise<SignDataItem[]>;
 }
 
 export interface PaymentInfo {

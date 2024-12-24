@@ -920,6 +920,86 @@ async function getBatchInfo(batchId: number): Promise<BatchInfo | null> {
   }
 }
 
+
+// Add these validation functions near the top of the file with other utility functions
+function validateGetSummaryRequest(chainId: unknown): { 
+  isValid: boolean; 
+  error?: { status: number; message: string; }
+} {
+  if (!chainId) {
+    return {
+      isValid: false,
+      error: {
+        status: 400,
+        message: 'chainId is required'
+      }
+    };
+  }
+
+  if (typeof chainId !== 'string') {
+    return {
+      isValid: false,
+      error: {
+        status: 400,
+        message: 'chainId must be a string'
+      }
+    };
+  }
+
+  return { isValid: true };
+}
+
+function validateSetSummaryRequest(body: any): {
+  isValid: boolean;
+  error?: { status: number; message: string; }
+} {
+  const { chainId, rootId, rootHash } = body;
+
+  if (!chainId) {
+    return {
+      isValid: false,
+      error: {
+        status: 400,
+        message: 'chainId is required'
+      }
+    };
+  }
+
+  if (!rootId) {
+    return {
+      isValid: false,
+      error: {
+        status: 400,
+        message: 'rootId is required'
+      }
+    };
+  }
+
+  if (!rootHash) {
+    return {
+      isValid: false,
+      error: {
+        status: 400,
+        message: 'rootHash is required'
+      }
+    };
+  }
+
+  if (typeof chainId !== 'string' || 
+      typeof rootId !== 'string' || 
+      typeof rootHash !== 'string') {
+    return {
+      isValid: false,
+      error: {
+        status: 400,
+        message: 'chainId, rootId, and rootHash must all be strings'
+      }
+    };
+  }
+
+  return { isValid: true };
+}
+
 const avn = {
   addNewTransaction,
   createAccount,
@@ -949,5 +1029,7 @@ const avn = {
   regenerateLowerProof,
   getNftInfo,
   getBatchInfo,
+  validateSetSummaryRequest,
+  validateGetSummaryRequest
 };
 export default avn;

@@ -485,27 +485,16 @@ app.post(
 
 app.get(
   '/getLastSubmittedSummary',
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response<ChainSummary | { message: string; error?: string }>, next: NextFunction) => {
     try {
-      if (!req.query.chainId) {
-        return res.status(400).json({ 
-          message: 'chainId is required' 
-        });
+      logger.info({ getLastSubmittedSummary: JSON.stringify(req.query) });
+      
+      const validation = avn.validateGetSummaryRequest(req.query.chainId);
+      if (!validation.isValid && validation.error) {
+        return res.status(validation.error.status).json({ message: validation.error.message });
       }
 
-      if (typeof req.query.chainId !== 'string') {
-        return res.status(400).json({ 
-          message: 'chainId must be a string' 
-        });
-      }
-
-      const chainId = req.query.chainId;
-
-      logger.info({ 
-        endpoint: 'getLastSubmittedSummary',
-        chainId,
-        query: req.query 
-      });
+      const chainId = req.query.chainId as string;
 
       try {
         const summary = await redis.getLastSubmittedSummary(chainId);
@@ -532,12 +521,6 @@ app.get(
       }
 
     } catch (error) {
-      logger.error({ 
-        error,
-        chainId: req.query.chainId,
-        path: req.path 
-      }, 'Unexpected error in getLastSubmittedSummary');
-      
       next(error);
     }
   }
@@ -545,52 +528,20 @@ app.get(
 
 app.post(
   '/setLastSubmittedSummary',
-  async (req: Request, res: Response<ChainSummary | { message: string }>, next: NextFunction) => {
+  async (req: Request, res: Response<ChainSummary | { message: string; error?: string }>, next: NextFunction) => {
     try {
+      logger.info({ setLastSubmittedSummary: JSON.stringify(req.body) });
+
+      const validation = avn.validateSetSummaryRequest(req.body);
+      if (!validation.isValid && validation.error) {
+        return res.status(validation.error.status).json({ message: validation.error.message });
+      }
+
       const { chainId, rootId, rootHash } = req.body;
-
-      if (!chainId) {
-        return res.status(400).json({ 
-          message: 'chainId is required' 
-        });
-      }
-
-      if (!rootId) {
-        return res.status(400).json({ 
-          message: 'rootId is required' 
-        });
-      }
-
-      if (!rootHash) {
-        return res.status(400).json({ 
-          message: 'rootHash is required' 
-        });
-      }
-
-      if (typeof chainId !== 'string' || 
-          typeof rootId !== 'string' || 
-          typeof rootHash !== 'string') {
-        return res.status(400).json({ 
-          message: 'chainId, rootId, and rootHash must all be strings' 
-        });
-      }
-
       const summary: ChainSummary = { chainId, rootId, rootHash };
-
-      logger.info({
-        endpoint: 'setLastSubmittedSummary',
-        summary
-      });
 
       try {
         await redis.setLastSubmittedSummary(chainId, summary);
-        
-        logger.info({
-          message: 'Successfully set last submitted summary',
-          chainId,
-          summary
-        });
-
         return res.status(200).json(summary);
 
       } catch (redisError) {
@@ -600,15 +551,13 @@ app.post(
           summary 
         }, 'Redis error while setting summary');
         
+        return res.status(503).json({ 
+          message: 'Error storing data in cache',
+          error: redisError instanceof Error ? redisError.message : 'Unknown error'
+        });
       }
 
     } catch (error) {
-      logger.error({ 
-        error,
-        body: req.body,
-        path: req.path 
-      }, 'Unexpected error in setLastSubmittedSummary');
-      
       next(error);
     }
   }

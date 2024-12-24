@@ -499,18 +499,19 @@ app.get(
       const summary = await redis.getLastSubmittedSummary(chainId);
 
       if (!summary) {
-        return res.status(404).json({
+        return res.status(404).send({
           message: 'Summary not found',
           chainId
         });
       }
 
-      return res.status(200).json(summary);
+      return res.status(200).send(summary);
 
 
 
     } catch (error) {
       next(error);
+      return undefined; // typescript quirk
     }
   }
 );
@@ -530,10 +531,11 @@ app.post(
       const summary: ChainSummary = { chainId, rootId, rootHash };
 
       await redis.setLastSubmittedSummary(chainId, summary);
-      return res.status(200).json(summary);
+      return res.status(200).send(summary);
 
     } catch (error) {
       next(error);
+      return undefined; // typescript quirk
     }
   }
 );

@@ -14,22 +14,21 @@ import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, 
 
 const registry = new TypeRegistry();
 const customTypes = {
-  "Range<BlockNumber>": {
+  "BlockRange": {
     "start": "BlockNumber",
     "end": "BlockNumber"
   },
-  "Range<Moment>": {
+  "TimeRange": {
     "start": "Moment",
     "end": "Moment"
   },
   "MarketPeriod": {
     "_enum": {
-      "Block": "Range<BlockNumber>",
-      "Timestamp": "Range<Moment>"
+      "Block": "BlockRange",
+      "Timestamp": "TimeRange"
     }
   },
   "AssetOf": "Asset<MarketId>",
-  "MarketPeriod<BlockNumber, Moment>": "MarketPeriod",
   "MarketPeriodOf": "MarketPeriod<BlockNumber, Moment>",
   "DeadlinePeriodOf": "Deadlines<BlockNumber>",
   "MarketId" : "u128",

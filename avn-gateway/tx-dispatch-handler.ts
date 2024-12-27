@@ -245,7 +245,7 @@ async function getDefaultMarketOpeningValues(baseAssetEthAddress: string): Promi
 
   const creatorFee = 0;
   const marketType = { Categorical: 2 };
-  const disputeMechanism = "Authorized";
+  const disputeMechanism = undefined;
   const swapFee = "30000000"; //0.3% (remember its 10 decimal places not 18)
 
   return {baseAsset, creatorFee, marketType, disputeMechanism, swapFee};
@@ -264,28 +264,7 @@ async function getCreateMarketSignDataItems(params: any): Promise<SignDataItem[]
     spotPrices,
   } = params;
 
-  console.log("getCreateMarketSignDataItems - Params: ", JSON.stringify(params));
-
   const {baseAsset, creatorFee, marketType, disputeMechanism, swapFee} = await getDefaultMarketOpeningValues(baseAssetEthAddress);
-
-  console.log("getCreateMarketSignDataItems - Result: ",
-    [
-      { Text: 'create_market_and_deploy_pool' },
-      { AccountId: relayer },
-      { u64: nonce },
-      { AssetOf: baseAsset },
-      { Perbill: creatorFee },
-      { AccountId: oracle },
-      { MarketPeriodOf: period },
-      { Deadlines: deadlines },
-      { MultiHash: metadata },
-      { MarketType: marketType },
-      { 'Option<MarketDisputeMechanism>': disputeMechanism },
-      { BalanceOf: amount },
-      { 'Vec<BalanceOf>': spotPrices },
-      { BalanceOf: swapFee },
-    ]
-  );
 
   return [
     { Text: 'create_market_and_deploy_pool' },
@@ -317,9 +296,6 @@ async function getCreateMarketAndDeployPoolMethodParams(params: any): Promise<an
   } = params;
 
   const {baseAsset, creatorFee, marketType, disputeMechanism, swapFee} = await getDefaultMarketOpeningValues(baseAssetEthAddress);
-
-  console.log("getCreateMarketAndDeployPoolMethodParams - Params: ", JSON.stringify(params));
-  console.log("getCreateMarketAndDeployPoolMethodParams - Result: ", [baseAsset,creatorFee,oracle,period,deadlines,metadata,marketType,disputeMechanism,amount,spotPrices,swapFee]);
 
   return [
     baseAsset,
@@ -734,7 +710,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'hybridRouter',
     method: 'signedSell',
     nonceType: 'hybridRouter',
-    buildMethodParams: ({ user, marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [user, marketId, assetCount, asset, amountIn, minPrice, orders, strategy],
+    buildMethodParams: ({marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [marketId, assetCount, asset, amountIn, minPrice, orders, strategy],
     buildSignData: ({ relayer, nonce, marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [
       { Text: 'sell outcome tokens' },
       { AccountId: relayer },
@@ -752,7 +728,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'hybridRouter',
     method: 'signedBuy',
     nonceType: 'hybridRouter',
-    buildMethodParams: ({ user, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [user, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy],
+    buildMethodParams: ({marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [marketId, assetCount, asset, amountIn, maxPrice, orders, strategy],
     buildSignData: ({ relayer, nonce, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [
       { Text: 'buy outcome tokens' },
       { AccountId: relayer },
@@ -763,7 +739,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { BalanceOf: amountIn },
       { BalanceOf: maxPrice },
       { 'Vec<u128>': orders },
-      { u8: strategy }
+      { 'Strategy': strategy }
     ]
   },
 };

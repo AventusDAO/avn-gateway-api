@@ -72,7 +72,13 @@ const customTypes = {
     "grace_period": "BlockNumber",
     "oracle_duration": "BlockNumber",
     "dispute_duration": "BlockNumber",
-  }
+  },
+  "Strategy": {
+    "_enum": {
+      "ImmediateOrCancel": null,
+      "LimitOrder": null,
+    }
+  },
 };
 
 // Register these custom types so the registry knows how to decode/encode them

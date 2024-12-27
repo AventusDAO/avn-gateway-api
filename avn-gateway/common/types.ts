@@ -32,6 +32,7 @@ export type SignDataItem = | { Text: string }
     | { 'Vec<u128>': Vec<u128> }
     | { 'Vec<BalanceOf>': Vec<BalanceOf> }
     | { 'Compact<BalanceOf>': Compact<BalanceOf>}
+    | { 'Strategy': string }
     | { H256: H256; }
     | { U256: U256 }
     | { u8: EventType | MarketType; }

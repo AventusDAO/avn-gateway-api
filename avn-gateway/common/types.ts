@@ -1,7 +1,7 @@
 import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
-import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16, Compact } from '@polkadot/types';
+import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16, Compact, Option } from '@polkadot/types';
 import { H256, H160, BalanceOf, Perbill } from "@polkadot/types/interfaces";
 
 export enum EventType {
@@ -17,7 +17,6 @@ export enum MarketType {
     Ethereum = 1,
     Fiat = 2
 }
-
 
 export type PredictionMarketType = {
     Categorical: number;
@@ -48,7 +47,7 @@ export type SignDataItem = | { Text: string }
     | { Deadlines: string }
     | { MultiHash: string }
     | { MarketType: PredictionMarketType }
-    | { MarketDisputeMechanism: string }
+    | { 'Option<MarketDisputeMechanism>': Option<any> }
 
 export interface NonceInfo {
     batch: { palletName: string; storageName: string };

@@ -57,8 +57,10 @@ const customTypes = {
     }
   },
   "MarketType": {
-    /// A market with a number of categorical outcomes.
-    "Categorical": "u16"
+    "_enum": {
+      /// A market with a number of categorical outcomes.
+      "Categorical": "u16"
+    }
   },
   "MarketDisputeMechanism": {
     "_enum": {

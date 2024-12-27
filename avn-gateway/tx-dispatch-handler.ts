@@ -280,10 +280,10 @@ async function getCreateMarketSignDataItems(params: any): Promise<SignDataItem[]
       { Deadlines: deadlines },
       { MultiHash: metadata },
       { MarketType: marketType },
-      { MarketDisputeMechanism: disputeMechanism },
-      { 'Compact<BalanceOf>': amount },
+      { 'Option<MarketDisputeMechanism>': disputeMechanism },
+      { BalanceOf: amount },
       { 'Vec<BalanceOf>': spotPrices },
-      { 'Compact<BalanceOf>': swapFee },
+      { BalanceOf: swapFee },
     ]
   );
 
@@ -298,10 +298,10 @@ async function getCreateMarketSignDataItems(params: any): Promise<SignDataItem[]
     { Deadlines: deadlines },
     { MultiHash: metadata },
     { MarketType: marketType },
-    { MarketDisputeMechanism: disputeMechanism },
-    { 'Compact<BalanceOf>': amount },
+    { 'Option<MarketDisputeMechanism>': disputeMechanism },
+    { BalanceOf: amount },
     { 'Vec<BalanceOf>': spotPrices },
-    { 'Compact<BalanceOf>': swapFee },
+    { BalanceOf: swapFee },
   ];
 }
 

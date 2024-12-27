@@ -38,6 +38,8 @@ async function tryGetPaymentInfo(
     paymentNonce,
     currencyToken,
   );
+  console.log(`relayer fee: ${relayerFee}`);
+  console.log(`Payment signature raw data. Payer address: ${payerAddress}, relayer address: ${relayerAddress}, relayer fee: ${relayerFee}, payment nonce: ${paymentNonce}, proxy proof: ${JSON.stringify(proxyProof)}, Currency: ${currencyToken}`);
   if (isVerified === false) {
     throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
   }

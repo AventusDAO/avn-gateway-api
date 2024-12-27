@@ -1,7 +1,7 @@
 import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
-import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16 } from '@polkadot/types';
+import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16, Compact } from '@polkadot/types';
 import { H256, H160, BalanceOf, Perbill } from "@polkadot/types/interfaces";
 
 export enum EventType {
@@ -32,6 +32,7 @@ export type SignDataItem = | { Text: string }
     | { 'Vec<LookupSource>': Vec<GenericEthereumLookupSource>[]; }
     | { 'Vec<u128>': Vec<u128> }
     | { 'Vec<BalanceOf>': Vec<BalanceOf> }
+    | { 'Compact<BalanceOf>': Compact<BalanceOf>}
     | { H256: H256; }
     | { U256: U256 }
     | { u8: EventType | MarketType; }
@@ -90,7 +91,8 @@ export type TransactionType = 'proxyAvtTransfer' |
     'proxyRedeemShares'|
     'proxyTransferAsset'|
     'proxySell'|
-    'proxyBuy'
+    'proxyBuy' |
+    'proxyWithdrawAsset'
 
 export interface RPCError {
     parse: { code: number; message: string };

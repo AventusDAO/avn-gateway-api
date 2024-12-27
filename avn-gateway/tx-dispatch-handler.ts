@@ -281,9 +281,9 @@ async function getCreateMarketSignDataItems(params: any): Promise<SignDataItem[]
       { MultiHash: metadata },
       { MarketType: marketType },
       { MarketDisputeMechanism: disputeMechanism },
-      { BalanceOf: amount },
+      { 'Compact<BalanceOf>': amount },
       { 'Vec<BalanceOf>': spotPrices },
-      { BalanceOf: swapFee },
+      { 'Compact<BalanceOf>': swapFee },
     ]
   );
 
@@ -299,15 +299,14 @@ async function getCreateMarketSignDataItems(params: any): Promise<SignDataItem[]
     { MultiHash: metadata },
     { MarketType: marketType },
     { MarketDisputeMechanism: disputeMechanism },
-    { BalanceOf: amount },
+    { 'Compact<BalanceOf>': amount },
     { 'Vec<BalanceOf>': spotPrices },
-    { BalanceOf: swapFee },
+    { 'Compact<BalanceOf>': swapFee },
   ];
 }
 
 async function getCreateMarketAndDeployPoolMethodParams(params: any): Promise<any[]> {
   const {
-    user,
     baseAssetEthAddress,
     oracle,
     period,
@@ -320,10 +319,9 @@ async function getCreateMarketAndDeployPoolMethodParams(params: any): Promise<an
   const {baseAsset, creatorFee, marketType, disputeMechanism, swapFee} = await getDefaultMarketOpeningValues(baseAssetEthAddress);
 
   console.log("getCreateMarketAndDeployPoolMethodParams - Params: ", JSON.stringify(params));
-  console.log("getCreateMarketAndDeployPoolMethodParams - Result: ", [user,baseAsset,creatorFee,oracle,period,deadlines,metadata,marketType,disputeMechanism,amount,spotPrices,swapFee]);
+  console.log("getCreateMarketAndDeployPoolMethodParams - Result: ", [baseAsset,creatorFee,oracle,period,deadlines,metadata,marketType,disputeMechanism,amount,spotPrices,swapFee]);
 
   return [
-    user,
     baseAsset,
     creatorFee,
     oracle,

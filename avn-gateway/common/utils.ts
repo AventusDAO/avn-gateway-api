@@ -366,7 +366,6 @@ function isValidProxySignature(proxySignature:string, user:string, data:any[]):b
 function encodeOrderedData(data:DataItem[]):Uint8Array {
   const encodedDataToSign = data.map(d => {
     const [type, value] = Object.entries(d)[0] as [ExtendedInterfaceTypes, string | number | Uint8Array];
-    console.log(`Encoding ${type} with Value: ${JSON.stringify(value)} gives: ${type === 'SkipEncode' ? value as Uint8Array: registry.createType(type, value).toU8a(NUM_TYPES.includes(type))}`);
     return type === 'SkipEncode' ? value as Uint8Array: registry.createType(type, value).toU8a(NUM_TYPES.includes(type));
   });
   return u8aConcat(...encodedDataToSign);

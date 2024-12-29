@@ -677,7 +677,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { AccountId: relayer },
       { u64: nonce },
       { u128: marketId },
-      { PredictionMarketOutcome: outcome }
+      { OutcomeReport: outcome }
     ]
   },
   'proxyRedeemMarketShares': {

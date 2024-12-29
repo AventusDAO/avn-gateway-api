@@ -79,6 +79,12 @@ const customTypes = {
       "LimitOrder": null,
     }
   },
+  "OutcomeReport": {
+    "_enum": {
+      "Categorical": "CategoryIndex",
+      "Scalar": "u128",
+    }
+  }
 };
 
 // Register these custom types so the registry knows how to decode/encode them

@@ -50,7 +50,7 @@ export type SignDataItem = | { Text: string }
     | { Deadlines: string }
     | { MultiHash: string }
     | { MarketType: PredictionMarketType }
-    | { PredictionMarketOutcome: PredictionMarketOutcomeType }
+    | { OutcomeReport: string }
     | { 'Option<MarketDisputeMechanism>': Option<any> }
 
 export interface NonceInfo {

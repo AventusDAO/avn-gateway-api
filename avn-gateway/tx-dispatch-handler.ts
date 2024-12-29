@@ -671,12 +671,13 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'predictionMarkets',
     method: 'signedReport',
     nonceType: 'predictionMarkets',
-    buildMethodParams: ({ user, outcome }) => [user, outcome],
-    buildSignData: ({ relayer, nonce, outcome }) => [
+    buildMethodParams: ({ marketId, outcome }) => [marketId, outcome],
+    buildSignData: ({ relayer, nonce, marketId, outcome }) => [
       { Text: 'report_market_outcome_context' },
       { AccountId: relayer },
       { u64: nonce },
-      { u32: outcome }
+      { u128: marketId },
+      { PredictionMarketOutcome: outcome }
     ]
   },
   'proxyRedeemMarketShares': {

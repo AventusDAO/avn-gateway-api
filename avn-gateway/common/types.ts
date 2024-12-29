@@ -20,9 +20,11 @@ export enum MarketType {
 
 export type PredictionMarketType = {
     Categorical: number;
-  } | {
-    Scalar: [bigint, bigint];
-  };
+};
+
+export type PredictionMarketOutcomeType = {
+    Categorical: number;
+};
 
 export type SignDataItem = | { Text: string }
     | { AccountId: string }
@@ -48,6 +50,7 @@ export type SignDataItem = | { Text: string }
     | { Deadlines: string }
     | { MultiHash: string }
     | { MarketType: PredictionMarketType }
+    | { PredictionMarketOutcome: PredictionMarketOutcomeType }
     | { 'Option<MarketDisputeMechanism>': Option<any> }
 
 export interface NonceInfo {

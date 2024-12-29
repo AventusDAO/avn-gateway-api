@@ -667,7 +667,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     buildMethodParams: async (params) => await getCreateMarketAndDeployPoolMethodParams(params),
     buildSignData: async (params) => await getCreateMarketSignDataItems(params)
   },
-  'proxyReport': {
+  'proxyReportMarketOutcome': {
     pallet: 'predictionMarkets',
     method: 'signedReport',
     nonceType: 'predictionMarkets',
@@ -679,34 +679,34 @@ const callConfigs: { [key: string]: CallConfig } = {
       { u32: outcome }
     ]
   },
-  'proxyRedeemShares': {
+  'proxyRedeemMarketShares': {
     pallet: 'predictionMarkets',
     method: 'signedRedeemShares',
     nonceType: 'predictionMarkets',
-    buildMethodParams: ({ user, marketId }) => [user, marketId],
+    buildMethodParams: ({ marketId }) => [marketId],
     buildSignData: ({ relayer, nonce, marketId }) => [
       { Text: 'redeem_shares_context' },
       { AccountId: relayer },
       { u64: nonce },
-      { u32: marketId }
+      { u128: marketId }
     ]
   },
-  'proxyTransferAsset': {
+  'proxyTransferMarketTokens': {
     pallet: 'predictionMarkets',
     method: 'signedTransferAsset',
     nonceType: 'predictionMarkets',
-    buildMethodParams: ({ user, token, who, to, amount }) => [user, token, who, to, amount],
-    buildSignData: ({ relayer, nonce, token, who, to, amount }) => [
-      { Text: 'redeem_shares_context' },
+    buildMethodParams: ({assetEthAddress, to, amount }) => [assetEthAddress, to, amount],
+    buildSignData: ({ relayer, user, nonce, assetEthAddress, to, amount }) => [
+      { Text: 'transfer_tokens_context' },
       { AccountId: relayer },
       { u64: nonce },
-      { H160: token },
-      { AccountId: who },
+      { H160: assetEthAddress },
+      { AccountId: user },
       { AccountId: to },
       { BalanceOf: amount }
     ]
   },
-  'proxySell': {
+  'proxySellMarketOutcomeTokens': {
     pallet: 'hybridRouter',
     method: 'signedSell',
     nonceType: 'hybridRouter',
@@ -715,7 +715,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { Text: 'sell outcome tokens' },
       { AccountId: relayer },
       { u64: nonce },
-      { u32: marketId },
+      { u128: marketId },
       { u16: assetCount },
       { AssetOf: asset },
       { BalanceOf: amountIn },
@@ -724,7 +724,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { u8: strategy }
     ]
   },
-  'proxyBuy': {
+  'proxyBuyMarketOutcomeTokens': {
     pallet: 'hybridRouter',
     method: 'signedBuy',
     nonceType: 'hybridRouter',
@@ -733,13 +733,27 @@ const callConfigs: { [key: string]: CallConfig } = {
       { Text: 'buy outcome tokens' },
       { AccountId: relayer },
       { u64: nonce },
-      { u32: marketId },
+      { u128: marketId },
       { u16: assetCount },
       { AssetOf: asset },
       { BalanceOf: amountIn },
       { BalanceOf: maxPrice },
       { 'Vec<u128>': orders },
       { 'Strategy': strategy }
+    ]
+  },
+  'proxyWithdrawMarketTokens': {
+    pallet: 'predictionMarkets',
+    method: 'signedWithdrawTokens',
+    nonceType: 'predictionMarkets',
+    buildMethodParams: ({assetEthAddress, amount }) => [assetEthAddress, amount],
+    buildSignData: ({ relayer, user, nonce, assetEthAddress, amount }) => [
+      { Text: 'withdraw_tokens_context' },
+      { AccountId: relayer },
+      { u64: nonce },
+      { H160: assetEthAddress },
+      { AccountId: user },
+      { BalanceOf: amount }
     ]
   },
 };

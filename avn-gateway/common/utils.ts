@@ -1,6 +1,6 @@
 
 import * as crypto from 'crypto';
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 import axios from 'axios';
 import { TypeRegistry } from '@polkadot/types';
 import {

@@ -485,48 +485,57 @@ app.post(
 
 app.get(
   '/getLastSubmittedSummary',
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response<ChainSummary | { message: string; error?: string }>, next: NextFunction) => {
     try {
       logger.info({ getLastSubmittedSummary: JSON.stringify(req.query) });
+
+      const validation = avn.validateGetSummaryRequest(req.query.chainId);
+      if (!validation.isValid && validation.error) {
+        return res.status(validation.error.status).json({ message: validation.error.message });
+      }
+
       const chainId = req.query.chainId as string;
+
       const summary = await redis.getLastSubmittedSummary(chainId);
 
       if (!summary) {
-        res.status(404).json({ message: "Summary not found" });
-        return;
+        return res.status(404).send({
+          message: 'Summary not found',
+          chainId
+        });
       }
 
-      res.status(200).json(summary);
+      return res.status(200).send(summary);
+
+
+
     } catch (error) {
       next(error);
+      return undefined; // typescript quirk
     }
   }
 );
 
 app.post(
   '/setLastSubmittedSummary',
-  async (req: Request, res: Response<ChainSummary>, next: NextFunction) => {
+  async (req: Request, res: Response<ChainSummary | { message: string; error?: string }>, next: NextFunction) => {
     try {
       logger.info({ setLastSubmittedSummary: JSON.stringify(req.body) });
+
+      const validation = avn.validateSetSummaryRequest(req.body);
+      if (!validation.isValid && validation.error) {
+        return res.status(validation.error.status).json({ message: validation.error.message });
+      }
+
       const { chainId, rootId, rootHash } = req.body;
-
-      if (!chainId) {
-        throw new Error("Chain Id is required");
-      }
-      if (!rootId) {
-        throw new Error("Root Id is required");
-      }
-      if (!rootHash) {
-        throw new Error("Root Hash is required");
-      }
-
       const summary: ChainSummary = { chainId, rootId, rootHash };
-      await redis.setLastSubmittedSummary(chainId, summary);
 
-      logger.info(`Last submitted summary for chainId ${chainId}: `, summary);
-      res.status(200).json(summary);
+      await redis.setLastSubmittedSummary(chainId, summary);
+      return res.status(200).send(summary);
+
     } catch (error) {
       next(error);
+      return undefined; // typescript quirk
     }
   }
 );

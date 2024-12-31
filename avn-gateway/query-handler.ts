@@ -116,6 +116,10 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getAssetIdFromEthToken(call, request)
     case 'getPredictionMarketConstants':
       return await getPredictionMarketConstants(call, request)
+    case 'getPredictionMarketInfo':
+      return await getPredictionMarketInfo(call, request)
+    case 'getPredictionMarketPoolInfo':
+      return await getPredictionMarketPoolInfo(call, request)
 
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -505,6 +509,16 @@ async function getHybridRouterNonce(call: Call, request: string): Promise<ValidR
 async function getAssetIdFromEthToken(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { ethTokenAddress } = call.params;
   return await queryChain(call, request, 'assetRegistry', 'ethAddressToAssetId', [ethTokenAddress]);
+}
+
+async function getPredictionMarketInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { marketId } = call.params
+  return await queryChain(call, request, 'marketCommons', 'markets', [marketId]);
+}
+
+async function getPredictionMarketPoolInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { marketId } = call.params
+  return await queryChain(call, request, 'neoSwaps', 'pools', [marketId]);
 }
 
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any):Promise<ValidResponse|ErrorBody> {

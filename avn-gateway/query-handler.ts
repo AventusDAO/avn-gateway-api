@@ -108,6 +108,10 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await isHandlerRegistered(call, request)
     case 'getAnchorNonce':
       return await getAnchorNonce(call, request)
+    case 'getPredictionMarketInfo':
+      return await getPredictionMarketInfo(call, request)
+    case 'getPredictionMarketPoolInfo':
+      return await getPredictionMarketPoolInfo(call, request)
 
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -178,7 +182,7 @@ async function getNftId(call: Call, request: string) {
   const { externalRef } = call.params;
 
   if (isValidString(externalRef) === false) {
-    return buildErrorBody('params', 'invalid external ref', externalRef, request, call.id);
+    return buildErrorB}ody('params', 'invalid external ref', externalRef, request, call.id);
   }
 
   try {
@@ -466,6 +470,16 @@ async function isHandlerRegistered(call: Call, request: string): Promise<ValidRe
 async function getAnchorNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { chainId } = call.params;
   return await queryChain(call, request, 'avnAnchor', 'nonces', [parseInt(chainId)]);
+}
+
+async function getPredictionMarketInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { marketId } = call.params
+  return await queryChain(call, request, 'marketCommons', 'markets', [marketId]);
+}
+
+async function getPredictionMarketPoolInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { marketId } = call.params
+  return await queryChain(call, request, 'neoSwaps', 'pools', [marketId]);
 }
 
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any):Promise<ValidResponse|ErrorBody> {

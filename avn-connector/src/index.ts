@@ -540,6 +540,19 @@ app.post(
   }
 );
 
+app.post(
+  '/getPredictionMarketConstants',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      logger.info({ getPredictionMarketConstants: JSON.stringify(req.body) });
+      const result = await avn.predictionMarketConstants();
+      res.status(200).send(JSON.stringify(result));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(
     `Error processing request: ${err.message}. Request: ${JSON.stringify(req.body)}`,

@@ -920,6 +920,85 @@ async function getBatchInfo(batchId: number): Promise<BatchInfo | null> {
   }
 }
 
+async function predictionMarketConstants(): Promise<any> {
+  logger.info('Getting prediction market constants');
+  const [
+    advisoryBond,
+    validityBond,
+    closeEarlyBlockPeriod,
+    closeEarlyTimeFramePeriod,
+    closeEarlyDisputeBond,
+    closeEarlyProtectionTimeFramePeriod,
+    closeEarlyProtectionBlockPeriod,
+    closeEarlyRequestBond,
+    disputeBond,
+    maxDisputes,
+    minDisputeDuration,
+    maxDisputeDuration,
+    maxCreatorFee,
+    minCategories,
+    maxCategories,
+    outsiderBond,
+    oracleBond,
+    maxOracleDuration,
+    minOracleDuration,
+    maxGracePeriod,
+    maxSwapFee,
+  ] = await Promise.all([
+    api.consts.predictionMarkets.advisoryBond,
+    api.consts.predictionMarkets.validityBond,
+
+    api.consts.predictionMarkets.closeEarlyBlockPeriod,
+    api.consts.predictionMarkets.closeEarlyTimeFramePeriod,
+    api.consts.predictionMarkets.closeEarlyDisputeBond,
+    api.consts.predictionMarkets.closeEarlyProtectionTimeFramePeriod,
+    api.consts.predictionMarkets.closeEarlyProtectionBlockPeriod,
+    api.consts.predictionMarkets.closeEarlyRequestBond,
+
+    api.consts.predictionMarkets.disputeBond,
+    api.consts.predictionMarkets.maxDisputes,
+    api.consts.predictionMarkets.minDisputeDuration,
+    api.consts.predictionMarkets.maxDisputeDuration,
+
+    api.consts.predictionMarkets.maxCreatorFee,
+    api.consts.predictionMarkets.minCategories,
+    api.consts.predictionMarkets.maxCategories,
+
+    api.consts.predictionMarkets.outsiderBond,
+    api.consts.predictionMarkets.oracleBond,
+    api.consts.predictionMarkets.maxOracleDuration,
+    api.consts.predictionMarkets.minOracleDuration,
+    api.consts.predictionMarkets.maxGracePeriod,
+
+    api.consts.neoSwaps.maxSwapFee,
+  ]);
+
+  let result: Record<string, string> = {};
+  result['advisoryBond'] = advisoryBond.toString();
+  result['validityBond'] = validityBond.toString();
+  result['closeEarlyBlockPeriod'] = closeEarlyBlockPeriod.toString();
+  result['closeEarlyTimeFramePeriod'] = closeEarlyTimeFramePeriod.toString();
+  result['closeEarlyDisputeBond'] = closeEarlyDisputeBond.toString();
+  result['closeEarlyProtectionTimeFramePeriod'] = closeEarlyProtectionTimeFramePeriod.toString();
+  result['closeEarlyProtectionBlockPeriod'] = closeEarlyProtectionBlockPeriod.toString();
+  result['closeEarlyRequestBond'] = closeEarlyRequestBond.toString();
+  result['disputeBond'] = disputeBond.toString();
+  result['maxDisputes'] = maxDisputes.toString();
+  result['minDisputeDuration'] = minDisputeDuration.toString();
+  result['maxDisputeDuration'] = maxDisputeDuration.toString();
+  result['maxCreatorFee'] = maxCreatorFee.toString();
+  result['minCategories'] = minCategories.toString();
+  result['maxCategories'] = maxCategories.toString();
+  result['outsiderBond'] = outsiderBond.toString();
+  result['oracleBond'] = oracleBond.toString();
+  result['maxOracleDuration'] = maxOracleDuration.toString();
+  result['minOracleDuration'] = minOracleDuration.toString();
+  result['maxGracePeriod'] = maxGracePeriod.toString();
+  result['maxSwapFee'] = maxSwapFee.toString();
+
+  return result;
+}
+
 const avn = {
   addNewTransaction,
   createAccount,
@@ -949,5 +1028,6 @@ const avn = {
   regenerateLowerProof,
   getNftInfo,
   getBatchInfo,
+  predictionMarketConstants,
 };
 export default avn;

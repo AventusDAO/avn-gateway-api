@@ -490,11 +490,12 @@ app.get(
       logger.info({ getLastSubmittedSummary: JSON.stringify(req.query) });
       const chainId = req.query.chainId as string;
       const summary = await redis.getLastSubmittedSummary(chainId);
-      
+
       if (!summary) {
         res.status(404).json({ message: "Summary not found" });
+        return;
       }
-      
+
       res.status(200).json(summary);
     } catch (error) {
       next(error);
@@ -508,7 +509,7 @@ app.post(
     try {
       logger.info({ setLastSubmittedSummary: JSON.stringify(req.body) });
       const { chainId, rootId, rootHash } = req.body;
-      
+
       if (!chainId) {
         throw new Error("Chain Id is required");
       }
@@ -521,9 +522,22 @@ app.post(
 
       const summary: ChainSummary = { chainId, rootId, rootHash };
       await redis.setLastSubmittedSummary(chainId, summary);
-      
+
       logger.info(`Last submitted summary for chainId ${chainId}: `, summary);
       res.status(200).json(summary);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.post(
+  '/getPredictionMarketConstants',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      logger.info({ getPredictionMarketConstants: JSON.stringify(req.body) });
+      const result = await avn.predictionMarketConstants();
+      res.status(200).send(JSON.stringify(result));
     } catch (error) {
       next(error);
     }

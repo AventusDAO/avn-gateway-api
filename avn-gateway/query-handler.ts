@@ -108,6 +108,14 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await isHandlerRegistered(call, request)
     case 'getAnchorNonce':
       return await getAnchorNonce(call, request)
+    case 'getPredictionMarketsNonce':
+      return await getPredictionMarketsNonce(call, request)
+    case 'getHybridRouterNonce':
+      return await getHybridRouterNonce(call, request)
+    case 'getAssetIdFromEthToken':
+      return await getAssetIdFromEthToken(call, request)
+    case 'getPredictionMarketConstants':
+      return await getPredictionMarketConstants(call, request)
 
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -365,13 +373,26 @@ async function queryAccountInfoFromChain(call: Call, request: string, accountId:
   return await query(call, request, method, params);
 }
 
-async function getEthereumEventStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+async function getEthereumEventStatus(call: Call, request: string): Promise<any | ErrorBody> {
   const method = 'ethereumEventStatus';
-  let { liftStatus } = (await query(call, request, method)).data;
+  const {txHash} = call.params;
+  let response: any = await query(call, request, method, {txHash});
 
-  console.info(`Checked Ethereum event status: ${liftStatus}`);
+  console.info(`Checked Ethereum event status: ${JSON.stringify(response)}`);
 
-  return liftStatus;
+  if (response.result) {
+    return { result: response.result.liftStatus };
+  }
+
+  return undefined;
+}
+
+async function getPredictionMarketConstants(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const method = 'getPredictionMarketConstants';
+  let result = await query(call, request, method);
+  console.info(`Prediction market constants: ${result}`);
+
+  return result;
 }
 
 async function queryValidatorsToNominateFromChain(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
@@ -466,6 +487,24 @@ async function isHandlerRegistered(call: Call, request: string): Promise<ValidRe
 async function getAnchorNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { chainId } = call.params;
   return await queryChain(call, request, 'avnAnchor', 'nonces', [parseInt(chainId)]);
+}
+
+async function getPredictionMarketsNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { marketId, accountId } = call.params;
+  if (marketId){
+    return await queryChain(call, request, 'predictionMarkets', 'marketNonces', [accountId, marketId]);
+  }
+  return await queryChain(call, request, 'predictionMarkets', 'userNonces', [accountId]);
+}
+
+async function getHybridRouterNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { marketId, accountId } = call.params;
+  return await queryChain(call, request, 'hybridRouter', 'marketNonces', [accountId, marketId]);
+}
+
+async function getAssetIdFromEthToken(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { ethTokenAddress } = call.params;
+  return await queryChain(call, request, 'assetRegistry', 'ethAddressToAssetId', [ethTokenAddress]);
 }
 
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any):Promise<ValidResponse|ErrorBody> {

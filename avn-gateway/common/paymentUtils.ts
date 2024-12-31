@@ -38,6 +38,7 @@ async function tryGetPaymentInfo(
     paymentNonce,
     currencyToken,
   );
+
   if (isVerified === false) {
     throw new Error(`invalid fee authorisation: ${feePaymentSignature}`);
   }

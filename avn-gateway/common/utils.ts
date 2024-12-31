@@ -13,12 +13,91 @@ import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, 
   TransactionType } from './types';
 
 const registry = new TypeRegistry();
+const customTypes = {
+  "BlockRange": {
+    "start": "BlockNumber",
+    "end": "BlockNumber"
+  },
+  "TimeRange": {
+    "start": "Moment",
+    "end": "Moment"
+  },
+  "MarketPeriod": {
+    "_enum": {
+      "Block": "BlockRange",
+      "Timestamp": "TimeRange"
+    }
+  },
+  "AssetOf": "Asset<MarketId>",
+  "MarketPeriodOf": "MarketPeriod<BlockNumber, Moment>",
+  "DeadlinePeriodOf": "Deadlines<BlockNumber>",
+  "MarketId" : "u128",
+  "CategoryIndex": "u16",
+  "PoolId": "u128",
+  "MultiHash": {
+    "_enum": {
+      "Sha3_384": "[u8; 50]",
+    }
+  },
+  "Asset" : {
+    "_enum": {
+      "CategoricalOutcome" : "(MarketId, CategoryIndex)",
+      "ScalarOutcome": "(MarketId, ScalarPosition)",
+      "CombinatorialOutcome": null,
+      "PoolShare": "PoolId",
+      "Vow": null,
+      "ForeignAsset": "u32",
+      "ParimutuelShare": "(MarketId, CategoryIndex)",
+    }
+  },
+  "ScalarPosition" : {
+    "_enum": {
+      "Long": null,
+      "Short": null
+    }
+  },
+  "MarketType": {
+    "_enum": {
+      /// A market with a number of categorical outcomes.
+      "Categorical": "u16"
+    }
+  },
+  "MarketDisputeMechanism": {
+    "_enum": {
+    "Authorized": null,
+    "Court": null,
+    }
+  },
+  "Deadlines" : {
+    "grace_period": "BlockNumber",
+    "oracle_duration": "BlockNumber",
+    "dispute_duration": "BlockNumber",
+  },
+  "Strategy": {
+    "_enum": {
+      "ImmediateOrCancel": null,
+      "LimitOrder": null,
+    }
+  },
+  "OutcomeReport": {
+    "_enum": {
+      "Categorical": "CategoryIndex",
+      "Scalar": "u128",
+    }
+  }
+};
+
+// Register these custom types so the registry knows how to decode/encode them
+registry.register(customTypes);
 
 const EXECUTION_MARGIN = 1000;
 const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
-const NUM_TYPES = ['AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u32', 'u64', 'u128', 'U256', 'H160', 'H256'];
+const NUM_TYPES = [
+  'AccountId', 'Balance', 'BalanceOf', 'EraIndex', 'u8', 'u16', 'u32', 'u64', 'u128',
+  'U256', 'H160', 'H256', 'BlockNumber', 'PoolId', 'CategoryIndex', 'MarketId',
+];
 
 enum WEBHOOK_EVENT_TYPES {
   tx_received = 'tx_received',
@@ -39,7 +118,9 @@ const NONCE_INFO: NonceInfo = {
   payment: { palletName: 'avnProxy', storageName: 'paymentNonces' },
   staking: { palletName: 'parachainStaking', storageName: 'proxyNonces' },
   token: { palletName: 'tokenManager', storageName: 'nonces' },
-  anchor: { palletName: 'avnAnchor', storageName: 'nonces' }
+  anchor: { palletName: 'avnAnchor', storageName: 'nonces' },
+  predictionMarkets: { palletName: 'predictionMarkets', storageName: 'marketNonces' },
+  hybridRouter: { palletName: 'hybridRouter', storageName: 'nonces' }
 };
 
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';

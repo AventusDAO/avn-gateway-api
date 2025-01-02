@@ -6,7 +6,7 @@ import { TypeRegistry } from '@polkadot/types';
 import {
   hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat,
 } from '@polkadot/util';
-import { cryptoWaitReady, decodeAddress, encodeAddress, keccakAsHex, signatureVerify } from '@polkadot/util-crypto';
+import { blake2AsHex, cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } from '@polkadot/util-crypto';
 const { BN } = require('bn.js');
 import { validate as uuidValidate } from 'uuid';
 import { InterfaceTypes } from '@polkadot/types/types';
@@ -298,30 +298,27 @@ function determineFormatAndVerifySignature(encodedData: Uint8Array, signature: s
   if (signature.length === 130) {
     return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
   } else if (signature.length === 132) {
-    return verifyECDSASignature(encodedData, signature, publicKey);
+    return verifyEthereumSignature(encodedData, signature, publicKey);
   } else {
     throw new TypeError(`Invalid signature length: ${signature.length}`);
   }
 }
 
-function verifyECDSASignature(encodedData: Uint8Array, signature: string, sr25519PublicKey: string): boolean {
+function verifyEthereumSignature(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
   try {
     const messageHash = ethers.utils.hashMessage(encodedData);
-    const ecdsaPublicKey = ethers.utils.recoverPublicKey(messageHash, signature);
-    return sr25519PublicKey === ecdsaPublicKeyToSr25519PublicKey(ecdsaPublicKey);
+    const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
+    const derivedPublicKey = blake2AsHex(hexToU8a(ethereumAddress));
+    return derivedPublicKey === publicKey;
   } catch (error) {
-    console.error(`ECDSA verification error:`, error);
+    console.error(`Ethereum signature verification error:`, error);
     return false;
   }
 }
 
-function ecdsaPublicKeyToSr25519PublicKey(ecdsaPublicKey: string): string {
-  return keccakAsHex(hexToU8a(ecdsaPublicKey));
-}
-
 function verifySignatureWithOrWithoutWrapping(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
   const message = u8aToHex(encodedData);
-  const wrappedMessage = stringToHex('<Bytes>') + message.substr(2) + stringToHex('</Bytes>').substr(2);
+  const wrappedMessage = stringToHex('<Bytes>') + message.slice(2) + stringToHex('</Bytes>').slice(2);
   return (
     signatureVerify(message, signature, publicKey).isValid || signatureVerify(wrappedMessage, signature, publicKey).isValid
   );

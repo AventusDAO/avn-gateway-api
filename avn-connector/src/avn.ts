@@ -771,14 +771,20 @@ async function generateSplitFeePaymentInfo(
     payerUserName
   );
 
+  let signatureType = {};
+
+  if (signedData.signature.length === 132) {
+    // This is an ECDSA signature
+    signatureType = { Ecdsa: signedData.signature };
+  } else {
+    signatureType = { Sr25519: signedData.signature }
+  }
   return {
     payer: transaction.splitFeePayerAddress,
     recipient: transaction.relayerAddress,
     amount: transaction.relayerFees,
     token: currencyToken,
-    signature: {
-      Sr25519: signedData.signature
-    }
+    signature: signatureType
   };
 }
 

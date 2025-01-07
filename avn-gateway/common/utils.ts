@@ -336,12 +336,18 @@ function hashString(string: string): string {
 }
 
 function getProxyProof(user: string, relayerAddress: string, proxySignature: string): ProxyProof {
+  let signatureType = {};
+
+  if (proxySignature.length === 132) {
+    // This is an ECDSA signature
+    signatureType = { Ecdsa: proxySignature };
+  } else {
+    signatureType = { Sr25519: proxySignature }
+  }
   return {
     signer: user,
     relayer: relayerAddress,
-    signature: {
-      Sr25519: proxySignature
-    }
+    signature: signatureType
   };
 }
 

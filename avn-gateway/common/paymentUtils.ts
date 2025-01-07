@@ -1,6 +1,6 @@
 import { TypeRegistry } from '@polkadot/types';
 import { u8aConcat, u8aToHex, isHex } from '@polkadot/util';
-import { getRelayerFee, verifySignatureWithOrWithoutWrapping, encodeProxyProof } from '/opt/utils';
+import { getRelayerFee, determineFormatAndVerifySignature, encodeProxyProof } from '/opt/utils';
 import { PaymentInfo, ProxyProof, TransactionType } from './types';
 
 const registry = new TypeRegistry();
@@ -55,7 +55,7 @@ function verifyFeePaymentSignature(
   currencyToken: string,
 ): boolean {
   const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof, currencyToken);
-  return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
+  return determineFormatAndVerifySignature(encodedData, feePaymentSignature, payer);
 }
 
 function encodePaymentParams(relayer:string, relayerFee:string, paymentNonce:string, proxyProof:ProxyProof, currencyToken: string):Uint8Array {

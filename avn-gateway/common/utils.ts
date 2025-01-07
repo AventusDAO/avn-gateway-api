@@ -309,7 +309,7 @@ function verifyEthereumSignature(encodedData: Uint8Array, signature: string, pub
     const messageHash = ethers.utils.hashMessage(encodedData);
     const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
     const derivedPublicKey = blake2AsHex(hexToU8a(ethereumAddress));
-    return derivedPublicKey === publicKey;
+    return derivedPublicKey === convertToPublicKey(publicKey);
   } catch (error) {
     console.error(`Ethereum signature verification error:`, error);
     return false;
@@ -448,6 +448,7 @@ export {
   isValidSignatureFormat,
   isValidString,
   isValidProxySignature,
+  determineFormatAndVerifySignature,
   NONCE_INFO,
   publishEvent,
   requestFailed,

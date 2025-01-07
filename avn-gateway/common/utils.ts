@@ -306,10 +306,12 @@ function determineFormatAndVerifySignature(encodedData: Uint8Array, signature: s
 
 function verifyEthereumSignature(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
   try {
+    const signerPublicKey = convertToPublicKey(publicKey);
     const messageHash = ethers.utils.hashMessage(encodedData);
     const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
     const derivedPublicKey = blake2AsHex(hexToU8a(ethereumAddress));
-    return derivedPublicKey === convertToPublicKey(publicKey);
+    console.log(`Encoded data: ${u8aToHex(encodedData)},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
+    return derivedPublicKey === signerPublicKey;
   } catch (error) {
     console.error(`Ethereum signature verification error:`, error);
     return false;

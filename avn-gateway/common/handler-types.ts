@@ -217,6 +217,7 @@ export interface CallParams {
     marketId?: string;
     ethTokenAddress?: string;
     txHash?: string;
+    predictionMarketAsset?: string;
 };
 
 export interface Call {

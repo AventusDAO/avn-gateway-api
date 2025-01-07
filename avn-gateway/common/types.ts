@@ -159,7 +159,7 @@ export interface SuccessResponse {
 
 export interface ProofParams { signer: string; relayer: string; signature: string }
 
-export interface ProxyProof { signer: string; relayer: string; signature: { Sr25519: string; } };
+export interface ProxyProof { signer: string; relayer: string; signature: { Sr25519?: string; Ecdsa?: string; } };
 
 export interface PaymentInfo {
     payer: string;
@@ -167,7 +167,8 @@ export interface PaymentInfo {
     amount: string;
     token: string,
     signature: {
-      Sr25519: string;
+        Sr25519?: string;
+        Ecdsa?: string;
     };
   }
 

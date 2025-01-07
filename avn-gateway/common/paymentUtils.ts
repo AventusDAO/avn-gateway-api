@@ -7,14 +7,21 @@ const registry = new TypeRegistry();
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 
 function getPaymentInfo(payerAddress: string, relayerAddress: string, relayerFee: string, feePaymentSignature: string, currencyToken: string): PaymentInfo {
+  let signatureType = {};
+
+  if (feePaymentSignature.length === 132) {
+    // This is an ECDSA signature
+    signatureType = { Ecdsa: feePaymentSignature };
+  } else {
+    signatureType = { Sr25519: feePaymentSignature }
+  }
+
   return {
     payer: payerAddress,
     recipient: relayerAddress,
     amount: relayerFee,
     token: currencyToken,
-    signature: {
-      Sr25519: feePaymentSignature
-    }
+    signature: signatureType
   };
 }
 

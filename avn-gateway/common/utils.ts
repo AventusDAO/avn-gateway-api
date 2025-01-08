@@ -332,6 +332,7 @@ function hashForAvn(message: any) {
   const prefixBytes = toUtf8Bytes(messagePrefix);
   const messageLengthBytes = toUtf8Bytes(String((message.length - 4) / 2));
   const dataWithPrefix = u8aConcat([prefixBytes, messageLengthBytes, message]);
+  console.log(`\nPrefixBytes: ${prefixBytes},\nMessage length: ${(message.length - 4) / 2}, Data with prefix: ${dataWithPrefix}`);
 
   return keccak256(dataWithPrefix);
 }

@@ -13,6 +13,9 @@ import { InterfaceTypes } from '@polkadot/types/types';
 import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, ProxyProof, RPCError, RPCResponse, Response, Royalty, SuccessResponse, Token, Transaction,
   TransactionType } from './types';
 
+import { keccak256 } from "@ethersproject/keccak256";
+import { toUtf8Bytes } from "@ethersproject/strings";
+
 const registry = new TypeRegistry();
 const customTypes = {
   "BlockRange": {
@@ -308,7 +311,7 @@ function verifyEthereumSignature(encodedData: Uint8Array, signature: string, pub
   try {
     const signerPublicKey = convertToPublicKey(publicKey);
     const encodedDataHex = u8aToHex(encodedData);
-    const messageHash = ethers.utils.hashMessage(toUTF8Array(encodedDataHex));
+    const messageHash = hashForAvn(toUTF8Array(encodedDataHex));
     const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
     const derivedPublicKey = blake2AsHex(hexToU8a(ethereumAddress));
     console.log(`Encoded data: ${encodedDataHex},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
@@ -317,6 +320,20 @@ function verifyEthereumSignature(encodedData: Uint8Array, signature: string, pub
     console.error(`Ethereum signature verification error:`, error);
     return false;
   }
+}
+
+function hashForAvn(message: any) {
+  const messagePrefix = "\x19Ethereum Signed Message:\n";
+
+  if (typeof(message) === "string") {
+    message = ethers.utils.arrayify(message);
+  }
+
+  const prefixBytes = toUtf8Bytes(messagePrefix);
+  const messageLengthBytes = toUtf8Bytes(String((message.length - 2) / 2));
+  const dataWithPrefix = u8aConcat([prefixBytes, messageLengthBytes, message]);
+
+  return keccak256(dataWithPrefix);
 }
 
 function toUTF8Array(str: string) {

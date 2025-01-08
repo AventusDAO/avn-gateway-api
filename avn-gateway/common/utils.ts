@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import axios from 'axios';
 import { TypeRegistry } from '@polkadot/types';
 import {
-  hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat,
+  hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat, u8aToString
 } from '@polkadot/util';
 import { blake2AsHex, cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } from '@polkadot/util-crypto';
 const { BN } = require('bn.js');
@@ -13,8 +13,6 @@ import { InterfaceTypes } from '@polkadot/types/types';
 import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, ProxyProof, RPCError, RPCResponse, Response, Royalty, SuccessResponse, Token, Transaction,
   TransactionType } from './types';
 
-import { keccak256 } from "@ethersproject/keccak256";
-import { toUtf8Bytes } from "@ethersproject/strings";
 
 const registry = new TypeRegistry();
 const customTypes = {
@@ -310,62 +308,16 @@ function determineFormatAndVerifySignature(encodedData: Uint8Array, signature: s
 function verifyEthereumSignature(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
   try {
     const signerPublicKey = convertToPublicKey(publicKey);
-    const encodedDataHex = u8aToHex(encodedData);
-    const messageHash = hashForAvn(toUTF8Array(encodedDataHex));
+    const encodedDataString = u8aToString(encodedData);
+    const messageHash = ethers.utils.hashMessage(encodedDataString);
     const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
     const derivedPublicKey = blake2AsHex(hexToU8a(ethereumAddress));
-    console.log(`Encoded data: ${encodedDataHex},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
+    console.log(`Encoded data: ${encodedDataString},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
     return derivedPublicKey === signerPublicKey;
   } catch (error) {
     console.error(`Ethereum signature verification error:`, error);
     return false;
   }
-}
-
-function hashForAvn(message: any) {
-  const messagePrefix = "\x19Ethereum Signed Message:\n";
-
-  if (typeof(message) === "string") {
-    message = ethers.utils.arrayify(message);
-  }
-
-  const prefixBytes = toUtf8Bytes(messagePrefix);
-  const messageLengthBytes = toUtf8Bytes(String((message.length - 4) / 2));
-  const dataWithPrefix = u8aConcat([prefixBytes, messageLengthBytes, message]);
-  console.log(`\nPrefixBytes: ${prefixBytes},\nMessage length: ${(message.length - 4) / 2}, Data with prefix: ${dataWithPrefix}`);
-
-  return keccak256(dataWithPrefix);
-}
-
-function toUTF8Array(str: string) {
-  var utf8 = [];
-  for (var i=0; i < str.length; i++) {
-      var charcode = str.charCodeAt(i);
-      if (charcode < 0x80) utf8.push(charcode);
-      else if (charcode < 0x800) {
-          utf8.push(0xc0 | (charcode >> 6),
-                    0x80 | (charcode & 0x3f));
-      }
-      else if (charcode < 0xd800 || charcode >= 0xe000) {
-          utf8.push(0xe0 | (charcode >> 12),
-                    0x80 | ((charcode>>6) & 0x3f),
-                    0x80 | (charcode & 0x3f));
-      }
-      // surrogate pair
-      else {
-          i++;
-          // UTF-16 encodes 0x10000-0x10FFFF by
-          // subtracting 0x10000 and splitting the
-          // 20 bits of 0x0-0xFFFFF into two halves
-          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
-                    | (str.charCodeAt(i) & 0x3ff));
-          utf8.push(0xf0 | (charcode >>18),
-                    0x80 | ((charcode>>12) & 0x3f),
-                    0x80 | ((charcode>>6) & 0x3f),
-                    0x80 | (charcode & 0x3f));
-      }
-  }
-  return utf8;
 }
 
 function verifySignatureWithOrWithoutWrapping(encodedData: Uint8Array, signature: string, publicKey: string): boolean {

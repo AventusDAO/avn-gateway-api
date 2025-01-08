@@ -308,7 +308,7 @@ function verifyEthereumSignature(encodedData: Uint8Array, signature: string, pub
   try {
     const signerPublicKey = convertToPublicKey(publicKey);
     const encodedDataHex = u8aToHex(encodedData);
-    const messageHash = ethers.utils.hashMessage(encodedDataHex);
+    const messageHash = ethers.utils.hashMessage(ethers.utils.arrayify(encodedDataHex));
     const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
     const derivedPublicKey = blake2AsHex(hexToU8a(ethereumAddress));
     console.log(`Encoded data: ${encodedDataHex},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);

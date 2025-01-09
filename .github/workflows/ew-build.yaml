@@ -12,7 +12,7 @@ jobs:
     name: build docker connector
     uses: ./.github/workflows/docker-build.yaml
     with:
-      runner: avn-runner
+      runner: avn-runner-ubuntu-2204-x64
       config_creds: false
       aws_region: us-east-1
       aws_account_id: 541507968610
@@ -41,7 +41,7 @@ jobs:
 
   upload:
     name: Upload lambdas to EW s3 bucket
-    runs-on: avn-runner
+    runs-on: avn-runner-ubuntu-2204-x64
     needs:  [package]
     steps:
     - uses: actions/download-artifact@v3

@@ -40,7 +40,7 @@ jobs:
     needs: run-npm-pretty
     uses: ./.github/workflows/docker-build.yaml
     with:
-      runner: avn-runner
+      runner: avn-runner-ubuntu-2404-x64
       aws_region: eu-west-1
       aws_account_id: 931945598683
       context: avn-connector

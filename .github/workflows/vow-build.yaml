@@ -23,6 +23,9 @@ jobs:
   package:
     runs-on: ubuntu-latest
     name: package lambda functions
+    defaults:
+      run:
+        working-directory: avn-gateway
     steps:
       - uses: actions/checkout@v3
 

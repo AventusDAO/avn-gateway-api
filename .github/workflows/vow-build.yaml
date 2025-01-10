@@ -1,4 +1,4 @@
-name: Build and Push artifacts to Energy Web
+name: Build and Push artifacts to VOW
 
 on:
   workflow_dispatch:
@@ -12,10 +12,10 @@ jobs:
     name: build docker connector
     uses: ./.github/workflows/docker-build.yaml
     with:
-      runner: avn-runner-ubuntu-2204-x64
+      runner: avn-runner-ubuntu-2404-x64
       config_creds: false
-      aws_region: us-east-1
-      aws_account_id: 541507968610
+      aws_region: eu-west-2
+      aws_account_id: 222634380664
       context: avn-connector
       short_image_name: connector
       ecr_repository_prefix: gateway
@@ -48,8 +48,8 @@ jobs:
           path: avn-gateway/build/
 
   upload:
-    name: Upload lambdas to EW internal-tools s3 bucket
-    runs-on: avn-runner-ubuntu-2404-x64
+    name: Upload lambdas to VOW internal-tools s3 bucket
+    runs-on: avn-runner-ubuntu-2204-x64
     defaults:
       run:
         working-directory: avn-gateway
@@ -62,13 +62,10 @@ jobs:
 
     - name: Upload to S3
       run: |
-        aws s3 sync build/. s3://ewx-internal-artefact/gateway-lambdas --acl bucket-owner-full-control
+        aws s3 sync build/. s3://vow-internal-artefact/gateway-lambdas --acl bucket-owner-full-control
 
   cleanup-artifacts:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: avn-gateway
     needs:  [upload]
     if: always()
     steps:

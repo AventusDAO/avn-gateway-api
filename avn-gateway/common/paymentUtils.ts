@@ -1,20 +1,27 @@
 import { TypeRegistry } from '@polkadot/types';
-import { u8aConcat, u8aToHex, isHex } from '@polkadot/util';
-import { getRelayerFee, verifySignatureWithOrWithoutWrapping, encodeProxyProof } from '/opt/utils';
+import { u8aConcat } from '@polkadot/util';
+import { getRelayerFee, determineFormatAndVerifySignature, encodeProxyProof, isEthereumSignature } from '/opt/utils';
 import { PaymentInfo, ProxyProof, TransactionType } from './types';
 
 const registry = new TypeRegistry();
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 
 function getPaymentInfo(payerAddress: string, relayerAddress: string, relayerFee: string, feePaymentSignature: string, currencyToken: string): PaymentInfo {
+  let signatureType = {};
+
+  if (isEthereumSignature(feePaymentSignature)) {
+    // This is an ECDSA signature
+    signatureType = { Ecdsa: feePaymentSignature };
+  } else {
+    signatureType = { Sr25519: feePaymentSignature }
+  }
+
   return {
     payer: payerAddress,
     recipient: relayerAddress,
     amount: relayerFee,
     token: currencyToken,
-    signature: {
-      Sr25519: feePaymentSignature
-    }
+    signature: signatureType
   };
 }
 
@@ -55,7 +62,7 @@ function verifyFeePaymentSignature(
   currencyToken: string,
 ): boolean {
   const encodedData = encodePaymentParams(relayer, relayerFee, paymentNonce, proxyProof, currencyToken);
-  return verifySignatureWithOrWithoutWrapping(encodedData, feePaymentSignature, payer);
+  return determineFormatAndVerifySignature(encodedData, feePaymentSignature, payer);
 }
 
 function encodePaymentParams(relayer:string, relayerFee:string, paymentNonce:string, proxyProof:ProxyProof, currencyToken: string):Uint8Array {

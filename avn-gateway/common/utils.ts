@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import axios from 'axios';
 import { TypeRegistry } from '@polkadot/types';
 import {
-  hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat,
+  hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat, u8aToString
 } from '@polkadot/util';
 import { blake2AsHex, cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } from '@polkadot/util-crypto';
 const { BN } = require('bn.js');
@@ -12,6 +12,7 @@ import { validate as uuidValidate } from 'uuid';
 import { InterfaceTypes } from '@polkadot/types/types';
 import { DataItem, ErrorBody, ErrorResponse, ExtendedInterfaceTypes, NonceInfo, ProxyProof, RPCError, RPCResponse, Response, Royalty, SuccessResponse, Token, Transaction,
   TransactionType } from './types';
+
 
 const registry = new TypeRegistry();
 const customTypes = {
@@ -294,10 +295,22 @@ function verifyAwtTokenSignature(publicKey: string, issuedAt: string, signature:
   }
 }
 
+function isEthereumSignature(signature: string): boolean {
+  if (!signature) return false;
+
+  return signature.length === 132;
+}
+
+function isPolkadot(signature: string): boolean {
+  if (!signature) return false;
+
+  return signature.length === 130;
+}
+
 function determineFormatAndVerifySignature(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
-  if (signature.length === 130) {
+  if (isPolkadot(signature)) {
     return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
-  } else if (signature.length === 132) {
+  } else if (isEthereumSignature(signature)) {
     return verifyEthereumSignature(encodedData, signature, publicKey);
   } else {
     throw new TypeError(`Invalid signature length: ${signature.length}`);
@@ -306,10 +319,13 @@ function determineFormatAndVerifySignature(encodedData: Uint8Array, signature: s
 
 function verifyEthereumSignature(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
   try {
-    const messageHash = ethers.utils.hashMessage(encodedData);
+    const signerPublicKey = convertToPublicKey(publicKey);
+    const encodedDataString = u8aToHex(encodedData);
+    const messageHash = ethers.utils.hashMessage(encodedDataString);
     const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
     const derivedPublicKey = blake2AsHex(hexToU8a(ethereumAddress));
-    return derivedPublicKey === publicKey;
+    console.log(`[verifyEthereumSignature] - Encoded data: ${u8aToHex(encodedData)},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
+    return derivedPublicKey === signerPublicKey;
   } catch (error) {
     console.error(`Ethereum signature verification error:`, error);
     return false;
@@ -336,12 +352,18 @@ function hashString(string: string): string {
 }
 
 function getProxyProof(user: string, relayerAddress: string, proxySignature: string): ProxyProof {
+  let signatureType = {};
+
+  if (isEthereumSignature(proxySignature)) {
+    // This is an ECDSA signature
+    signatureType = { Ecdsa: proxySignature };
+  } else {
+    signatureType = { Sr25519: proxySignature }
+  }
   return {
     signer: user,
     relayer: relayerAddress,
-    signature: {
-      Sr25519: proxySignature
-    }
+    signature: signatureType
   };
 }
 
@@ -448,6 +470,7 @@ export {
   isValidSignatureFormat,
   isValidString,
   isValidProxySignature,
+  determineFormatAndVerifySignature,
   NONCE_INFO,
   publishEvent,
   requestFailed,
@@ -458,5 +481,7 @@ export {
   buildValidResponseBody,
   verifyAwtTokenSignature,
   verifySignatureWithOrWithoutWrapping,
-  encodeRoyalties
+  encodeRoyalties,
+  isEthereumSignature,
+  isPolkadot
 };

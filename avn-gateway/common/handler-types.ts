@@ -42,7 +42,8 @@ export interface PaymentInfo {
     recipient: string;
     amount: string;
     signature: {
-        Sr25519: string;
+        Sr25519?: string;
+        Ecdsa?: string;
     };
 }
 
@@ -50,7 +51,8 @@ export interface ProxyProof {
     signer: string;
     relayer: string;
     signature: {
-        Sr25519: string;
+        Sr25519?: string;
+        Ecdsa?: string;
     };
 }
 

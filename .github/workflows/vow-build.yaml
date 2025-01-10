@@ -1,4 +1,4 @@
-name: Build and Push artifacts toVOW
+name: Build and Push artifacts to VOW
 
 on:
   workflow_dispatch:
@@ -21,8 +21,8 @@ jobs:
       ecr_repository_prefix: gateway
   
   package:
-    runs-on: ubuntu-latest
     name: package lambda functions
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: avn-gateway
@@ -48,9 +48,12 @@ jobs:
           path: avn-gateway/build/
 
   upload:
-    runs-on: avn-runner-ubuntu-2404-x64
-    needs:  [ package ]
     name: Upload lambdas to VOW internal-tools s3 bucket
+    runs-on: avn-runner-ubuntu-2204-x64
+    defaults:
+      run:
+        working-directory: avn-gateway
+    needs:  [ package ]
     steps:
     - uses: actions/download-artifact@v3
       with:

@@ -219,7 +219,12 @@ export interface CallParams {
     marketId?: string;
     ethTokenAddress?: string;
     txHash?: string;
+    predictionMarketAsset?: PredictionMarketAsset;
 };
+
+type PredictionMarketAsset = 
+  | { CategoricalOutcome: [string, string] }  
+  | { ForeignAsset: string };            
 
 export interface Call {
     id: string | null,

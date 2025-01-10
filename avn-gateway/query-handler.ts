@@ -1,6 +1,8 @@
-import { init, buildErrorBody, isValidAccountId, isValidString, buildValidResponseBody, axios,
+import {
+  init, buildErrorBody, isValidAccountId, isValidString, buildValidResponseBody, axios,
   isValidNftId, isValidEthereumAddress, convertToAddress, convertToPublicKey, BN, toBnString,
-  NONCE_INFO, isValidCurrencyFormat} from '/opt/utils';
+  NONCE_INFO, isValidCurrencyFormat
+} from '/opt/utils';
 import { Call, ValidError, ValidResponse } from '/opt/handler-types';
 import { ErrorBody } from '/opt/types';
 // @ts-ignore
@@ -101,7 +103,7 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
     case 'getBatchListingStatus':
       return await getBatchListingStatus(call, request);
     case 'getLoweringStatus':
-        return await getLoweringStatus(call, request);
+      return await getLoweringStatus(call, request);
     case 'getSupportedCurrencies':
       return await getSupportedCurrencies(call, request);
     case 'isHandlerRegistered':
@@ -120,6 +122,10 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getPredictionMarketInfo(call, request)
     case 'getPredictionMarketPoolInfo':
       return await getPredictionMarketPoolInfo(call, request)
+    case 'getPredictionMarketCounter':
+      return await getPredictionMarketCounter(call, request)
+    case 'getPredictionMarketTokenBalance':
+      return await getPredictionMarketTokenBalance(call, request)
 
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
@@ -379,8 +385,8 @@ async function queryAccountInfoFromChain(call: Call, request: string, accountId:
 
 async function getEthereumEventStatus(call: Call, request: string): Promise<any | ErrorBody> {
   const method = 'ethereumEventStatus';
-  const {txHash} = call.params;
-  let response: any = await query(call, request, method, {txHash});
+  const { txHash } = call.params;
+  let response: any = await query(call, request, method, { txHash });
 
   console.info(`Checked Ethereum event status: ${JSON.stringify(response)}`);
 
@@ -495,7 +501,7 @@ async function getAnchorNonce(call: Call, request: string): Promise<ValidRespons
 
 async function getPredictionMarketsNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { marketId, accountId } = call.params;
-  if (marketId){
+  if (marketId) {
     return await queryChain(call, request, 'predictionMarkets', 'marketNonces', [accountId, marketId]);
   }
   return await queryChain(call, request, 'predictionMarkets', 'userNonces', [accountId]);
@@ -521,7 +527,16 @@ async function getPredictionMarketPoolInfo(call: Call, request: string): Promise
   return await queryChain(call, request, 'neoSwaps', 'pools', [marketId]);
 }
 
-async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any):Promise<ValidResponse|ErrorBody> {
+async function getPredictionMarketCounter(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  return await queryChain(call, request, 'marketCommons', 'marketCounter');
+}
+
+async function getPredictionMarketTokenBalance(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { accountId, predictionMarketAsset } = call.params
+  return await queryChain(call, request, 'tokens', 'accounts', [accountId, predictionMarketAsset]);
+}
+
+async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any): Promise<ValidResponse | ErrorBody> {
   try {
     const avnResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}${method}`, params);
     const result = avnResponse?.data?.error || (responseFormatter ? responseFormatter(avnResponse?.data) : avnResponse?.data);

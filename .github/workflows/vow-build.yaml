@@ -2,6 +2,9 @@ name: Build and Deploy VOW
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - '**'
 
 defaults:
   run:

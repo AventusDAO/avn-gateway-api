@@ -295,10 +295,22 @@ function verifyAwtTokenSignature(publicKey: string, issuedAt: string, signature:
   }
 }
 
+function isEthereumSignature(signature: string): boolean {
+  if (!signature) return false;
+
+  return signature.length === 132;
+}
+
+function isPolkadot(signature: string): boolean {
+  if (!signature) return false;
+
+  return signature.length === 130;
+}
+
 function determineFormatAndVerifySignature(encodedData: Uint8Array, signature: string, publicKey: string): boolean {
-  if (signature.length === 130) {
+  if (isPolkadot(signature)) {
     return verifySignatureWithOrWithoutWrapping(encodedData, signature, publicKey);
-  } else if (signature.length === 132) {
+  } else if (isEthereumSignature(signature)) {
     return verifyEthereumSignature(encodedData, signature, publicKey);
   } else {
     throw new TypeError(`Invalid signature length: ${signature.length}`);
@@ -312,7 +324,7 @@ function verifyEthereumSignature(encodedData: Uint8Array, signature: string, pub
     const messageHash = ethers.utils.hashMessage(encodedDataString);
     const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
     const derivedPublicKey = blake2AsHex(hexToU8a(ethereumAddress));
-    console.log(`Encoded data: ${u8aToHex(encodedData)},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
+    console.log(`[verifyEthereumSignature] - Encoded data: ${u8aToHex(encodedData)},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
     return derivedPublicKey === signerPublicKey;
   } catch (error) {
     console.error(`Ethereum signature verification error:`, error);
@@ -342,7 +354,7 @@ function hashString(string: string): string {
 function getProxyProof(user: string, relayerAddress: string, proxySignature: string): ProxyProof {
   let signatureType = {};
 
-  if (proxySignature.length === 132) {
+  if (isEthereumSignature(proxySignature)) {
     // This is an ECDSA signature
     signatureType = { Ecdsa: proxySignature };
   } else {
@@ -469,5 +481,7 @@ export {
   buildValidResponseBody,
   verifyAwtTokenSignature,
   verifySignatureWithOrWithoutWrapping,
-  encodeRoyalties
+  encodeRoyalties,
+  isEthereumSignature,
+  isPolkadot
 };

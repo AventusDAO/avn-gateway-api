@@ -1,6 +1,6 @@
 import { TypeRegistry } from '@polkadot/types';
-import { u8aConcat, u8aToHex, isHex } from '@polkadot/util';
-import { getRelayerFee, determineFormatAndVerifySignature, encodeProxyProof } from '/opt/utils';
+import { u8aConcat } from '@polkadot/util';
+import { getRelayerFee, determineFormatAndVerifySignature, encodeProxyProof, isEthereumSignature } from '/opt/utils';
 import { PaymentInfo, ProxyProof, TransactionType } from './types';
 
 const registry = new TypeRegistry();
@@ -9,7 +9,7 @@ const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';
 function getPaymentInfo(payerAddress: string, relayerAddress: string, relayerFee: string, feePaymentSignature: string, currencyToken: string): PaymentInfo {
   let signatureType = {};
 
-  if (feePaymentSignature.length === 132) {
+  if (isEthereumSignature(feePaymentSignature)) {
     // This is an ECDSA signature
     signatureType = { Ecdsa: feePaymentSignature };
   } else {

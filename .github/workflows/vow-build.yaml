@@ -1,10 +1,7 @@
-name: Build and Deploy VOW
+name: Build and Push artifacts toVOW
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - '**'
 
 defaults:
   run:
@@ -33,7 +30,12 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Package Function manual build
+        if: ${{ !startsWith(github.event.ref, 'refs/tags/v') }}
+        run: make package version=${GITHUB_SHA::7}
+
       - name: Package Function release
+        if: startsWith(github.event.ref, 'refs/tags/v')
         run: make package version=${GITHUB_REF#refs/*/}
 
       - name: Upload lambdas to cache
@@ -43,9 +45,9 @@ jobs:
           path: avn-gateway/build/
 
   upload:
-    name: Upload lambdas to EW s3 bucket
     runs-on: avn-runner-ubuntu-2404-x64
-    needs:  [package]
+    needs:  [ package ]
+    name: Upload lambdas to VOW internal-tools s3 bucket
     steps:
     - uses: actions/download-artifact@v3
       with:

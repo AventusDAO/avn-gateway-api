@@ -1,4 +1,4 @@
-name: Build and Deploy Energy Web
+name: Build and Push artifacts to Energy Web
 
 on:
   workflow_dispatch:
@@ -30,7 +30,12 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Package Function manual build
+        if: ${{ !startsWith(github.event.ref, 'refs/tags/v') }}
+        run: make package version=${GITHUB_SHA::7}
+
       - name: Package Function release
+        if: startsWith(github.event.ref, 'refs/tags/v')
         run: make package version=${GITHUB_REF#refs/*/}
 
       - name: Upload lambdas to cache
@@ -40,9 +45,9 @@ jobs:
           path: avn-gateway/build/
 
   upload:
-    name: Upload lambdas to EW s3 bucket
-    runs-on: avn-runner-ubuntu-2204-x64
-    needs:  [package]
+    runs-on: avn-runner-ubuntu-2404-x64
+    needs:  [ package ]
+    name: Upload lambdas to AVN internal-tools s3 bucket
     steps:
     - uses: actions/download-artifact@v3
       with:

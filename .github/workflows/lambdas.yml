@@ -36,7 +36,7 @@ jobs:
           name: avn-gateway
           path: avn-gateway/build/
 
-  upload-internal-tools:
+  upload:
     runs-on: avn-runner-ubuntu-2404-x64
     needs:  [ package ]
     name: Upload lambdas to AVN internal-tools s3 bucket
@@ -52,7 +52,7 @@ jobs:
 
   cleanup-artifacts:
     runs-on: ubuntu-latest
-    needs:  [ upload-internal-tools ]
+    needs:  [ upload ]
     if: always()
     steps:
       - uses: geekyeggo/delete-artifact@v2

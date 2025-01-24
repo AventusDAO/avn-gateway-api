@@ -37,7 +37,6 @@ describe('Prediction Market tests', async () => {
   let api, otherUserApi, timeRange, winnerOutcomeTokens;
   let user = accounts.user;
   let otherUser = accounts.otherUser;
-  let token = helper.avt;
 
   const buyAmount = "10000000000";
   const sellAmount = "5000000000";
@@ -62,6 +61,8 @@ describe('Prediction Market tests', async () => {
     avnGateway = await helper.avnApi(options);
     api = await avnGateway.apis(user.address);
     otherUserApi = await avnGateway.apis(otherUser.address);
+
+    token = await api.query.getAvtContractAddress();
   });
 
   describe('Create market and deploy pool', function () {

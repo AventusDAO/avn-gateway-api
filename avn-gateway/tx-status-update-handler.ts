@@ -1,5 +1,5 @@
 import { axios } from '/opt/utils';
-import { TransactionEvent, BlockchainEvent, TransactionResponse, CrossChainTxStatus, TransactionStatus, TxEventsMap, CrossChainTxMap } from '/opt/handler-types';
+import { TransactionEvent, BlockchainEvent, TransactionResponse, CrossChainTxStatus, TransactionStatus, TxEventsMap, CrossChainTxMap, CrossChainTxEvent } from '/opt/handler-types';
 
 // @ts-ignore
 import { APIGatewayProxyResultV2, Handler } from 'aws-lambda';
@@ -16,13 +16,13 @@ const FAILED_CROSS_CHAIN_EVENTS = ['EthereumEvents.EventRejected', 'EthBridge.Ev
 const successFilter = ['System.ExtrinsicSuccess'];
 const failureFilter = ['System.ExtrinsicFailed', 'AvnProxy.InnerCallFailed', 'EthereumEvents.EventRejected', 'EthBridge.EventRejected'];
 
-// Any extrinsics for which we wish to capture event output can be added to the argsFilter:
+// Any extrinsics for which we wish to capture event output can be added to the argsFilter (Cross chain events are included automatically):
 const argsFilter = [
   'NftManager.SingleNftMinted',
   'NftManager.BatchNftMinted',
   'NftManager.BatchCreated',
   'TokenManager.LowerRequested'
-];
+].concat(NEW_CROSS_CHAIN_EVENTS);
 
 export const handler: Handler = async (_event: unknown): Promise<APIGatewayProxyResultV2> => {
   try {
@@ -59,12 +59,27 @@ async function processRequest(): Promise<TransactionResponse[] | null> {
     // NOT the one that finally processes the request.
     // Example: Lift (Block: 10, Index: 1) -> Validate Tx -> Process Lift (Block: 20, index: 3).
     transactions = Object.values(txEvents).map((txEvent): TransactionResponse => {
+      const txHash = txEvent.extrinsic.hash;
+      const crossChainStatus = crossChainTxMap.get(txHash) as CrossChainTxStatus;
+      let eventArgs;
+
+      if (argsFilter.includes(txEvent.name)) {
+        const txArgs = txEvent.args;
+        const crossArgs = crossChainStatus?.eventArgs;
+
+        if (txArgs && crossArgs) {
+          eventArgs = { ...txArgs, ...crossArgs };
+        } else {
+          eventArgs = txArgs || crossArgs;
+        }
+      }
+
       return {
-        transactionHash: txEvent.extrinsic.hash,
+        transactionHash: txHash,
         status: calculateTransactionStatus(txEvent, failureFilter, crossChainTxMap),
         blockNumber: txEvent.extrinsic.block.height,
         index: txEvent.extrinsic.indexInBlock,
-        eventArgs: argsFilter.includes(txEvent.name) ? txEvent.args : {}
+        eventArgs
       };
     });
   } catch (error) {
@@ -127,11 +142,21 @@ async function updateCrossChainTxStatuses(crossChainTxMap: CrossChainTxMap): Pro
       .filter((item): item is CrossChainTxStatus => typeof item !== 'string')
   );
 
+  const crossChainEvents = await getCrossChainTxEvents(crossChainTxFinalStatuses.map((s => s.extrinsic.hash)))
+
+  // How do we link data in crossChainEvents with crossChainTxFinalStatuses??
+
   crossChainTxFinalStatuses.forEach(event => {
     const ethEventId = JSON.stringify(event.args.ethEventId);
     const txHash = crossChainTxMap.get(ethEventId) as string;
     const currentTxStatus = crossChainTxMap.get(txHash) as CrossChainTxStatus;
     currentTxStatus.status = failureFilter.includes(event.name) ? TransactionStatus.Rejected : TransactionStatus.Processed;
+    currentTxStatus.eventArgs = {
+      ...event.args,
+      statusUpdateBlockNumber: event.block.height,
+      statusUpdateIndex:event.extrinsic.indexInBlock
+    }
+
     crossChainTxMap.set(txHash, currentTxStatus);
   });
 
@@ -148,7 +173,41 @@ async function getCrossChainTxFinalStatuses(txEvents: CrossChainTxStatus[]): Pro
   ).join('\n')}
       ]}
     ]},
-    limit: ${txEvents.length}) {name args}}`;
+    limit: ${txEvents.length}) {
+      name
+      args
+      block {
+        height
+      }
+      extrinsic {
+        indexInBlock
+        hash
+      }
+    }
+  }`;
+
+  const response = await axios.post(BLOCK_EXPLORER_BASE_URL, {
+    query,
+    operationName: 'GatewayApiStatus'
+  });
+
+  return response.data.data.events || [];
+}
+
+async function getCrossChainTxEvents(crossChainTxHashes: string[]): Promise<CrossChainTxEvent[]> {
+  const query = `query CrossChainTxEvents { events(where: {extrinsic: {
+    OR: [
+        ${crossChainTxHashes.map(txHash =>`{hash_eq: \\"${txHash}\\"},`).join('\n')}
+      ]
+    }},
+    limit: ${crossChainTxHashes.length}) {
+      name
+      args
+      extrinsic {
+        hash
+      }
+    }
+  }`;
 
   const response = await axios.post(BLOCK_EXPLORER_BASE_URL, {
     query,

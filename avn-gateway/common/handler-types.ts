@@ -93,7 +93,14 @@ export interface TransactionEvent {
 export interface BlockchainEvent {
     name: string;
     args: any;
-}
+    block: {
+      height: number;
+    };
+    extrinsic: {
+      indexInBlock: number;
+      hash: string;
+    };
+  }
 
 export interface TransactionResponse {
     transactionHash: string;
@@ -108,11 +115,16 @@ export interface CrossChainTxStatus {
     ethEventId?: string;
     signature: string;
     transactionHash: string;
+    eventArgs?: any;
 }
 
-// export interface ErrorResponse {
-//     error: string
-// }
+export interface CrossChainTxEvent {
+    name: string;
+    args: any;
+    extrinsic: {
+        hash: string;
+    };
+}
 
 export interface LowerResult {
     statusCode: StatusCode,

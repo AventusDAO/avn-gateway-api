@@ -220,6 +220,7 @@ export interface CallParams {
     ethTokenAddress?: string;
     txHash?: string;
     predictionMarketAsset?: PredictionMarketAsset;
+    originId?: string;
 };
 
 type PredictionMarketAsset = 

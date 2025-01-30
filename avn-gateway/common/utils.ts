@@ -3,10 +3,8 @@ import * as crypto from 'crypto';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import { TypeRegistry } from '@polkadot/types';
-import {
-  hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat, u8aToString
-} from '@polkadot/util';
-import { blake2AsHex, cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } from '@polkadot/util-crypto';
+import { hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat } from '@polkadot/util';
+import { keccakAsHex, cryptoWaitReady, decodeAddress, encodeAddress, signatureVerify } from '@polkadot/util-crypto';
 const { BN } = require('bn.js');
 import { validate as uuidValidate } from 'uuid';
 import { InterfaceTypes } from '@polkadot/types/types';
@@ -323,7 +321,7 @@ function verifyEthereumSignature(encodedData: Uint8Array, signature: string, pub
     const encodedDataString = u8aToHex(encodedData);
     const messageHash = ethers.utils.hashMessage(encodedDataString);
     const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
-    const derivedPublicKey = blake2AsHex(hexToU8a(ethereumAddress));
+    const derivedPublicKey = keccakAsHex(hexToU8a(ethereumAddress));
     console.log(`[verifyEthereumSignature] - Encoded data: ${u8aToHex(encodedData)},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
     return derivedPublicKey === signerPublicKey;
   } catch (error) {

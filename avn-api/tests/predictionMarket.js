@@ -12,7 +12,7 @@ async function getTimeRange() {
   const currentTimestamp = Date.now();
   const endTimestamp = currentTimestamp + 4 * 60 * 1000;
 
-  return { Timestamp: [currentTimestamp, endTimestamp] }
+  return { Timestamp: [currentTimestamp, endTimestamp] };
 }
 
 async function waitForEndTimestamp(endTimestamp) {
@@ -28,7 +28,7 @@ async function waitForGracePeriod(api, gracePeriod) {
   let finalBlock = currentBlock + gracePeriod;
   let blocksLeft = gracePeriod;
 
-  while( blocksLeft > 0 ) {
+  while (blocksLeft > 0) {
     await helper.sleep(blocksLeft * 6000);
     currentBlock = await api.query.getCurrentBlock();
     blocksLeft = finalBlock - currentBlock;
@@ -41,8 +41,8 @@ describe('Prediction Market tests', async () => {
   let otherUser = accounts.otherUser;
   let bank = accounts.bank;
 
-  const buyAmount = "10000000000";
-  const sellAmount = "5000000000";
+  const buyAmount = '10000000000';
+  const sellAmount = '5000000000';
   const gracePeriod = 10;
 
   let winningChoice = 1;
@@ -69,15 +69,15 @@ describe('Prediction Market tests', async () => {
     token = await api.query.getAvtContractAddress();
   });
 
-  describe('Test setup', function() {
+  describe('Test setup', function () {
     let senderBalance;
-    before(async() => {
+    before(async () => {
       senderBalance = new BN(await api.query.getAvtBalance(sender.address));
     });
 
     describe('succeeds if', async function () {
       it('sender is funded', async function () {
-        if(senderBalance.lt(MINIMUM_REQUIRED_TEST_BALANCE)) {
+        if (senderBalance.lt(MINIMUM_REQUIRED_TEST_BALANCE)) {
           let amountLeft = MINIMUM_REQUIRED_TEST_BALANCE.sub(senderBalance);
 
           const requestId = await bankApi.send.transferAvt(user.address, amountLeft);
@@ -104,14 +104,14 @@ describe('Prediction Market tests', async () => {
         { grace_period: gracePeriod, oracle_duration: 1000, dispute_duration: 0 },
         { Sha3_384: '0x1530111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110' },
         amount,
-        spotPrices,
+        spotPrices
       );
     });
 
     describe('succeeds if', async function () {
       it('Request is processed', async function () {
         await helper.confirmStatus(api.poll, requestId, 'Processed');
-        marketId = (await api.query.getMarketCounter() - 1);
+        marketId = (await api.query.getMarketCounter()) - 1;
       });
       it('Market is active', async function () {
         const marketInfo = await api.query.getMarketInfo(marketId);
@@ -144,7 +144,13 @@ describe('Prediction Market tests', async () => {
   });
 
   describe('Buy tokens via hybrid router', function () {
-    let requestId, requestId2, winnerTokenBalanceBefore, winnerTokenBalanceAfter, loserTokenBalanceBefore, loserTokenBalanceAfter, loserOutcomeTokens;
+    let requestId,
+      requestId2,
+      winnerTokenBalanceBefore,
+      winnerTokenBalanceAfter,
+      loserTokenBalanceBefore,
+      loserTokenBalanceAfter,
+      loserOutcomeTokens;
     before(async () => {
       let poolInfo = await api.query.getMarketPoolInfo(marketId);
       let choiceReserve = getOutcomeReserve(poolInfo.reserves, marketId, winningChoice);
@@ -156,10 +162,14 @@ describe('Prediction Market tests', async () => {
         new Decimal(0)
       );
 
-      winnerTokenBalanceBefore = new BN((await api.query.getMarketTokenBalance(user.address, { CategoricalOutcome: [marketId, winningChoice] })).free);
-      loserTokenBalanceBefore = new BN((await api.query.getMarketTokenBalance(otherUser.address, { CategoricalOutcome: [marketId, losingChoice] })).free);
+      winnerTokenBalanceBefore = new BN(
+        (await api.query.getMarketTokenBalance(user.address, { CategoricalOutcome: [marketId, winningChoice] })).free
+      );
+      loserTokenBalanceBefore = new BN(
+        (await api.query.getMarketTokenBalance(otherUser.address, { CategoricalOutcome: [marketId, losingChoice] })).free
+      );
 
-      requestId = await api.send.buyMarketOutcomeTokens(marketId, winningChoice, buyAmount, "7500000000");
+      requestId = await api.send.buyMarketOutcomeTokens(marketId, winningChoice, buyAmount, '7500000000');
       await helper.confirmStatus(api.poll, requestId, 'Processed');
 
       // Since pool is afected after the first buy we need to recalculate here
@@ -173,15 +183,19 @@ describe('Prediction Market tests', async () => {
         new Decimal(0)
       );
 
-      requestId2 = await otherUserApi.send.buyMarketOutcomeTokens(marketId, losingChoice, buyAmount, "7500000000");
+      requestId2 = await otherUserApi.send.buyMarketOutcomeTokens(marketId, losingChoice, buyAmount, '7500000000');
     });
 
     describe('succeeds if', function () {
       it('Requests are processed', async function () {
         await helper.confirmStatus(otherUserApi.poll, requestId2, 'Processed');
 
-        winnerTokenBalanceAfter = new BN((await api.query.getMarketTokenBalance(user.address, { CategoricalOutcome: [marketId, winningChoice] })).free);
-        loserTokenBalanceAfter = new BN((await api.query.getMarketTokenBalance(otherUser.address, { CategoricalOutcome: [marketId, losingChoice] })).free);
+        winnerTokenBalanceAfter = new BN(
+          (await api.query.getMarketTokenBalance(user.address, { CategoricalOutcome: [marketId, winningChoice] })).free
+        );
+        loserTokenBalanceAfter = new BN(
+          (await api.query.getMarketTokenBalance(otherUser.address, { CategoricalOutcome: [marketId, losingChoice] })).free
+        );
       });
       it('Winning token is correctly bought', function () {
         assert.equal(winnerTokenBalanceBefore.add(new BN(winnerOutcomeTokens)).toString(), winnerTokenBalanceAfter.toString());
@@ -193,7 +207,12 @@ describe('Prediction Market tests', async () => {
   });
 
   describe('Sell tokens via hybrid router', function () {
-    let requestId, outcomeTokenBalanceBefore, foreignAssetBalanceBefore, outcomeTokenBalanceAfter, foreignAssetBalanceAfter, outcomeTokens;
+    let requestId,
+      outcomeTokenBalanceBefore,
+      foreignAssetBalanceBefore,
+      outcomeTokenBalanceAfter,
+      foreignAssetBalanceAfter,
+      outcomeTokens;
     before(async () => {
       let poolInfo = await api.query.getMarketPoolInfo(marketId);
       let choiceReserve = getOutcomeReserve(poolInfo.reserves, marketId, losingChoice);
@@ -205,17 +224,21 @@ describe('Prediction Market tests', async () => {
         new Decimal(0)
       );
 
-      outcomeTokenBalanceBefore = new BN((await api.query.getMarketTokenBalance(otherUser.address, { CategoricalOutcome: [marketId, losingChoice] })).free);
+      outcomeTokenBalanceBefore = new BN(
+        (await api.query.getMarketTokenBalance(otherUser.address, { CategoricalOutcome: [marketId, losingChoice] })).free
+      );
       foreignAssetBalanceBefore = new BN((await api.query.getMarketTokenBalance(otherUser.address, { ForeignAsset: 0 })).free);
 
-      requestId = await otherUserApi.send.sellMarketOutcomeTokens(marketId, losingChoice, sellAmount, "10000");
+      requestId = await otherUserApi.send.sellMarketOutcomeTokens(marketId, losingChoice, sellAmount, '10000');
     });
 
     describe('succeeds if', function () {
       it('Requests are processed', async function () {
         await helper.confirmStatus(otherUserApi.poll, requestId, 'Processed');
 
-        outcomeTokenBalanceAfter = new BN((await api.query.getMarketTokenBalance(otherUser.address, { CategoricalOutcome: [marketId, losingChoice] })).free);
+        outcomeTokenBalanceAfter = new BN(
+          (await api.query.getMarketTokenBalance(otherUser.address, { CategoricalOutcome: [marketId, losingChoice] })).free
+        );
         foreignAssetBalanceAfter = new BN((await api.query.getMarketTokenBalance(otherUser.address, { ForeignAsset: 0 })).free);
       });
       it('Token is correctly sold', function () {
@@ -239,7 +262,7 @@ describe('Prediction Market tests', async () => {
       });
       it('Market report is updated correctly', async function () {
         const marketInfo = await api.query.getMarketInfo(marketId);
-        assert.equal(JSON.stringify(marketInfo.report.outcome), JSON.stringify({categorical: winningChoice}));
+        assert.equal(JSON.stringify(marketInfo.report.outcome), JSON.stringify({ categorical: winningChoice }));
       });
     });
   });
@@ -274,8 +297,8 @@ describe('Prediction Market tests', async () => {
 
   describe('withdraw tokens', function () {
     let requestId, tokenBalanceBeforeWithdraw, ForeignAssetBalanceBefore, ForeignAssetBalanceAfter, tokenBalanceAfterWithdraw;
-    let floor = "100000000";
-    let withdrawAmount = "1000000000";
+    let floor = '100000000';
+    let withdrawAmount = '1000000000';
 
     before(async () => {
       ForeignAssetBalanceBefore = new BN((await api.query.getMarketTokenBalance(user.address, { ForeignAsset: 0 })).free);
@@ -294,7 +317,10 @@ describe('Prediction Market tests', async () => {
 
       it('Tokens are withdrawn', async function () {
         let flooredWithdrawAmount = new BN(withdrawAmount).mul(new BN(floor));
-        assert.equal(tokenBalanceBeforeWithdraw.add(new BN(flooredWithdrawAmount)).toString(), tokenBalanceAfterWithdraw.toString());
+        assert.equal(
+          tokenBalanceBeforeWithdraw.add(new BN(flooredWithdrawAmount)).toString(),
+          tokenBalanceAfterWithdraw.toString()
+        );
         assert.equal(ForeignAssetBalanceBefore.toString(), ForeignAssetBalanceAfter.add(new BN(withdrawAmount)).toString());
       });
     });
@@ -316,31 +342,19 @@ async function calculateSwapAmountOutForBuy(reserve, amountIn, liquidity, poolFe
   const exp1 = amountInMinusFees.div(liquidity).exp();
   const exp2 = new Decimal(0).minus(reserve.div(liquidity)).exp();
 
-  return Math.round(exp1
-    .minus(new Decimal(1))
-    .plus(exp2)
-    .ln()
-    .mul(liquidity)
-    .plus(reserve)
-    .minus(amountIn)
-    .plus(amountIn).toNumber());
-};
+  return Math.round(
+    exp1.minus(new Decimal(1)).plus(exp2).ln().mul(liquidity).plus(reserve).minus(amountIn).plus(amountIn).toNumber()
+  );
+}
 
 // sell outcome token for the base asset
 async function calculateSwapAmountOutForSell(reserve, amountIn, liquidity, poolFee, creatorFee) {
   const exp1 = amountIn.plus(reserve).div(liquidity).exp();
   const exp2 = amountIn.div(liquidity).exp();
-  const amountOut = exp1
-    .minus(exp2)
-    .plus(1)
-    .ln()
-    .mul(liquidity)
-    .mul(-1)
-    .plus(reserve)
-    .plus(amountIn);
+  const amountOut = exp1.minus(exp2).plus(1).ln().mul(liquidity).mul(-1).plus(reserve).plus(amountIn);
 
   // remove the fees after executing the sell
   const totalFee = poolFee.plus(creatorFee);
   const feeMultiplier = new Decimal(1).minus(totalFee);
   return Math.round(amountOut.mul(feeMultiplier).toNumber());
-};
+}

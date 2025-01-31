@@ -31,7 +31,7 @@ jobs:
         run: make package version=${GITHUB_REF#refs/*/}
 
       - name: Upload lambdas to cache
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: avn-gateway
           path: avn-gateway/build/
@@ -41,7 +41,7 @@ jobs:
     needs:  [ package ]
     name: Upload lambdas to AVN internal-tools s3 bucket
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: avn-gateway
         path: avn-gateway/build/
@@ -55,6 +55,6 @@ jobs:
     needs:  [ upload ]
     if: always()
     steps:
-      - uses: geekyeggo/delete-artifact@v2
+      - uses: geekyeggo/delete-artifact@v5
         with:
           name: avn-gateway

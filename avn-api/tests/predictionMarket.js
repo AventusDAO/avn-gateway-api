@@ -6,6 +6,8 @@ const Decimal = require('decimal.js');
 const BN = helper.BN;
 const accounts = helper.ACCOUNTS;
 
+const MINIMUM_REQUIRED_TEST_BALANCE = 205000000000000000000n;
+
 async function getTimeRange() {
   const currentTimestamp = Date.now();
   const endTimestamp = currentTimestamp + 4 * 60 * 1000;
@@ -34,9 +36,10 @@ async function waitForGracePeriod(api, gracePeriod) {
 }
 
 describe('Prediction Market tests', async () => {
-  let api, otherUserApi, timeRange, winnerOutcomeTokens;
+  let api, otherUserApi, bankApi, timeRange, winnerOutcomeTokens;
   let user = accounts.user;
   let otherUser = accounts.otherUser;
+  let bank = accounts.bank;
 
   const buyAmount = "10000000000";
   const sellAmount = "5000000000";
@@ -61,8 +64,30 @@ describe('Prediction Market tests', async () => {
     avnGateway = await helper.avnApi(options);
     api = await avnGateway.apis(user.address);
     otherUserApi = await avnGateway.apis(otherUser.address);
+    bankApi = await avnGateway.apis(bank.address);
 
     token = await api.query.getAvtContractAddress();
+  });
+
+  describe('Test setup', function() {
+    let senderBalance;
+    before(async() => {
+      senderBalance = new BN(await api.query.getAvtBalance(sender.address));
+    });
+
+    describe('succeeds if', async function () {
+      it('sender is funded', async function () {
+        if(senderBalance.lt(MINIMUM_REQUIRED_TEST_BALANCE)) {
+          let amountLeft = MINIMUM_REQUIRED_TEST_BALANCE.sub(senderBalance);
+
+          const requestId = await bankApi.send.transferAvt(user.address, amountLeft);
+          await helper.confirmStatus(bankApi, requestId, 'Processed');
+
+          senderBalance = new BN(await api.query.getAvtBalance(sender.address));
+        }
+        assert(senderBalance.gte(MINIMUM_REQUIRED_TEST_BALANCE));
+      });
+    });
   });
 
   describe('Create market and deploy pool', function () {

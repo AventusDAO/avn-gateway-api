@@ -536,6 +536,11 @@ async function getPredictionMarketTokenBalance(call: Call, request: string): Pro
   return await queryChain(call, request, 'tokens', 'accounts', [accountId, predictionMarketAsset]);
 }
 
+async function getCheckpointByOriginId(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { chainId, originId } = call.params;
+  return await queryChain(call,request, 'avnAnchor', 'getCheckpointByOriginId', [chainId, originId]);
+}
+
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any): Promise<ValidResponse | ErrorBody> {
   try {
     const avnResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}${method}`, params);

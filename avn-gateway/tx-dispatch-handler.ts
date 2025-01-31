@@ -650,14 +650,15 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'avnAnchor',
     method: 'signedSubmitCheckpointWithIdentity',
     nonceType: 'anchor',
-    buildMethodParams: ({ user, checkpoint }) => [user, checkpoint],
-    buildSignData: ({ relayer, handler, checkpoint, chainId, nonce }) => [
+    buildMethodParams: ({ user, checkpoint, checkpointOriginId }) => [user, checkpoint, checkpointOriginId],
+    buildSignData: ({ relayer, handler, checkpoint, chainId, nonce, checkpointOriginId }) => [
       { Text: 'submit_checkpoint' },
       { AccountId: relayer },
       { AccountId: handler },
       { H256: checkpoint },
       { u32: chainId },
-      { u64: nonce }
+      { u64: nonce },
+      { u64: checkpointOriginId }
     ]
   },
   'proxyCreateMarketAndDeployPool': {

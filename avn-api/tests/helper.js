@@ -22,6 +22,14 @@ let argv = yargs
 // This problem does not exist with other aliases, like 'c' or 'k'
 
 let gatewayFile = argv.gateway;
+const test_config = argv.tests_config ? require(argv.tests_config) : null;
+if(!test_config) {
+  config = argv.env_config ? getTmpFileContents(argv.env_config) : require(`../config/environments/${env}.json`);
+  const accounts = argv.accounts_config ? getTmpFileContents(argv.accounts_config) : require(`../config/accounts/${env}.json`);
+  config.avn.accounts = accounts.avn;
+  config.eth.accounts = accounts.eth;
+}
+
 const configPath = argv.environment ? argv.environment : `../config/environments/${gatewayFile}.json`;
 const accountsPath = argv.accounts ? argv.accounts : `../config/accounts/${gatewayFile}.json`;
 

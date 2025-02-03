@@ -27,30 +27,26 @@ console.log(`argv: ${JSON.stringify(argv, null, 2)}`);
 
 console.log(`argv.tests_config: ${JSON.stringify(argv.tests_config, null, 2)}`);
 
+
 const test_config = argv.tests_config ? require(argv.tests_config) : null;
-
 console.log(`test_config: ${JSON.stringify(test_config, null, 2)}`);
-// if(!test_config) {
 
-//   console.log('inside config');
+let gateway, token, nfts, accounts;
+if (test_config) {
+  ({ gateway, token, nfts, accounts } = test_config);
+} else {
+  const configPath = argv.environment ? argv.environment : `../config/environments/${gatewayFile}.json`;
+  const accountsPath = argv.accounts ? argv.accounts : `../config/accounts/${gatewayFile}.json`;
 
-//   config = argv.env_config ? getTmpFileContents(argv.env_config) : require(`../config/environments/${env}.json`);
-//   const accounts = argv.accounts_config ? getTmpFileContents(argv.accounts_config) : require(`../config/accounts/${env}.json`);
-//   config.avn.accounts = accounts.avn;
-//   config.eth.accounts = accounts.eth;
-// }
+  ({ gateway, token, nfts } = require(configPath));
+  ({ accounts } = require(accountsPath));
+}
 
+console.log(`gateway: ${JSON.stringify(gateway, null, 2)}`);
+console.log(`token: ${JSON.stringify(token, null, 2)}`);
+console.log(`nfts: ${JSON.stringify(nfts, null, 2)}`);
+console.log(`accounts: ${JSON.stringify(accounts, null, 2)}`);
 
-
-// const configPath = argv.environment ? argv.environment : `../config/environments/${gatewayFile}.json`;
-// const accountsPath = argv.accounts ? argv.accounts : `../config/accounts/${gatewayFile}.json`;
-
-// const { gateway, token, nfts } = require(configPath);
-// const { accounts } = require(accountsPath);
-
-const { gateway, token, nfts, accounts } = test_config;
-
-// const { accounts } = require(accountsPath);
 
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 

@@ -106,7 +106,11 @@ pipeline {
                         if (params.utilsTest) {
                             stage('utils') {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    sh "npm run utilsTest ${params.Chain} -- --tests_config=${TESTS_CONFIG} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsTestReport;"
+                                    withEnv(["CHAIN=${params.Chain}", "TESTS_CONFIG=${env.TESTS_CONFIG}"]) {
+                                        sh 'npm run utilsTest $CHAIN -- --tests_config=$TESTS_CONFIG --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsTestReport;'
+                                    }
+                                    // sh 'npm run utilsTest $CHAIN -- --tests_config=$TESTS_CONFIG --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsTestReport;'
+                                    // sh "npm run utilsTest ${params.Chain} -- --tests_config=${TESTS_CONFIG} --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsTestReport;"
                                 }
                             }
                         }

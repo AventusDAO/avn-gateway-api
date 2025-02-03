@@ -27,8 +27,9 @@ console.log(`argv: ${JSON.stringify(argv, null, 2)}`);
 
 console.log(`argv.tests_config: ${JSON.stringify(argv.tests_config, null, 2)}`);
 
-const test_config = argv.tests_config ? getTmpFileContents(argv.tests_config) : null;
+const test_config = argv.tests_config ? require(argv.tests_config) : null;
 
+console.log(`test_config: ${JSON.stringify(test_config, null, 2)}`);
 // if(!test_config) {
 
 //   console.log('inside config');

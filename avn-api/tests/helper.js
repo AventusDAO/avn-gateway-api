@@ -22,6 +22,9 @@ let argv = yargs
 // This problem does not exist with other aliases, like 'c' or 'k'
 
 let gatewayFile = argv.gateway;
+
+console.log(`tests_config: ${JSON.stringify(argv, null, 2)}`);
+
 const test_config = argv.tests_config ? require(argv.tests_config) : null;
 if(!test_config) {
   config = argv.env_config ? getTmpFileContents(argv.env_config) : require(`../config/environments/${env}.json`);

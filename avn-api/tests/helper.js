@@ -23,21 +23,34 @@ let argv = yargs
 
 let gatewayFile = argv.gateway;
 
-console.log(`tests_config: ${JSON.stringify(argv, null, 2)}`);
+console.log(`argv: ${JSON.stringify(argv, null, 2)}`);
 
-const test_config = argv.tests_config ? require(argv.tests_config) : null;
-if(!test_config) {
-  config = argv.env_config ? getTmpFileContents(argv.env_config) : require(`../config/environments/${env}.json`);
-  const accounts = argv.accounts_config ? getTmpFileContents(argv.accounts_config) : require(`../config/accounts/${env}.json`);
-  config.avn.accounts = accounts.avn;
-  config.eth.accounts = accounts.eth;
-}
+console.log(`argv.tests_config: ${JSON.stringify(argv.tests_config, null, 2)}`);
 
-const configPath = argv.environment ? argv.environment : `../config/environments/${gatewayFile}.json`;
-const accountsPath = argv.accounts ? argv.accounts : `../config/accounts/${gatewayFile}.json`;
+const test_config = argv.tests_config ? getTmpFileContents(argv.tests_config) : null;
 
-const { gateway, token, nfts } = require(configPath);
-const { accounts } = require(accountsPath);
+// if(!test_config) {
+
+//   console.log('inside config');
+
+//   config = argv.env_config ? getTmpFileContents(argv.env_config) : require(`../config/environments/${env}.json`);
+//   const accounts = argv.accounts_config ? getTmpFileContents(argv.accounts_config) : require(`../config/accounts/${env}.json`);
+//   config.avn.accounts = accounts.avn;
+//   config.eth.accounts = accounts.eth;
+// }
+
+
+
+// const configPath = argv.environment ? argv.environment : `../config/environments/${gatewayFile}.json`;
+// const accountsPath = argv.accounts ? argv.accounts : `../config/accounts/${gatewayFile}.json`;
+
+// const { gateway, token, nfts } = require(configPath);
+// const { accounts } = require(accountsPath);
+
+const { gateway, token, nfts, accounts } = test_config;
+
+// const { accounts } = require(accountsPath);
+
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
 const ONE_ETH = '1000000000000000000';

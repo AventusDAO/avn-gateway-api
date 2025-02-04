@@ -165,7 +165,7 @@ pipeline {
                         echo "Running nightly tests on ${params.chain}"
                         stage('Prediction Market') {
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                sh 'npm run predictionMarketTest "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=predictionMarketReport;'
+                                sh 'npm run predictionMarketTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=predictionMarketReport;'
                             }
                         }
                     }

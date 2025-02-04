@@ -23,31 +23,14 @@ let argv = yargs
 
 let gatewayFile = argv.gateway;
 
-console.log(`argv: ${JSON.stringify(argv, null, 2)}`);
+const testConfig = argv.tests_config
+    ? require(argv.tests_config)
+    : {
+        ...require(path.resolve(__dirname, `../config/environments/${gatewayFile}.json`)),
+        accounts: require(path.resolve(__dirname, `../config/accounts/${gatewayFile}.json`))?.accounts || {},
+    };
 
-console.log(`argv.tests_config: ${JSON.stringify(argv.tests_config, null, 2)}`);
-
-
-const test_config = argv.tests_config ? require(argv.tests_config) : null;
-console.log(`test_config: ${JSON.stringify(test_config, null, 2)}`);
-
-let gateway, token, nfts, accounts;
-if (test_config) {
-  ({ gateway, token, nfts, accounts } = test_config);
-} else {
-  const configPath = argv.environment ? argv.environment : `../config/environments/${gatewayFile}.json`;
-  const accountsPath = argv.accounts ? argv.accounts : `../config/accounts/${gatewayFile}.json`;
-
-  ({ gateway, token, nfts } = require(configPath));
-  ({ accounts } = require(accountsPath));
-}
-
-console.log(`gateway: ${JSON.stringify(gateway, null, 2)}`);
-console.log(`token: ${JSON.stringify(token, null, 2)}`);
-console.log(`nfts: ${JSON.stringify(nfts, null, 2)}`);
-console.log(`accounts: ${JSON.stringify(accounts, null, 2)}`);
-
-
+const { gateway, token, nfts, accounts } = testConfig || {};
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
 const ONE_ETH = '1000000000000000000';

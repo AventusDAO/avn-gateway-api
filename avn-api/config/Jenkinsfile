@@ -74,8 +74,8 @@ pipeline {
         stage('Gateway tests') {
             steps {
                 script {
-                    if(!params.All) {
-                        withEnv(["CHAIN=${params.Chain}", "TESTS_CONFIG=${env.TESTS_CONFIG}"]) {
+                    withEnv(["CHAIN=${params.Chain}", "TESTS_CONFIG=${env.TESTS_CONFIG}"]) {
+                        if(!params.All) {
                             if (params.remoteSignerTests) {
                                 stage('Remote signer') {
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -160,12 +160,12 @@ pipeline {
                                     }
                                 }
                             }
-                        }
-                    } else {
-                        echo "Running nightly tests on ${params.chain}"
-                        stage('Prediction Market') {
-                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                sh 'npm run predictionMarketTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=predictionMarketReport;'
+                        } else {
+                            echo "Running nightly tests on ${params.chain}"
+                            stage('Prediction Market') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh 'npm run predictionMarketTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=predictionMarketReport;'
+                                }
                             }
                         }
                     }

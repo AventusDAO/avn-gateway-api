@@ -6,6 +6,7 @@ const fs = require('fs');
 const { randomAsHex } = require('@polkadot/util-crypto');
 const { Keyring } = require('@polkadot/keyring');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
+const path = require('path');
 
 let argv = yargs
   .usage('Run smoke tests using a given Gateway environment')
@@ -30,7 +31,7 @@ const testConfig = argv.tests_config
         accounts: require(path.resolve(__dirname, `../config/accounts/${gatewayFile}.json`))?.accounts || {},
     };
 
-const { gateway, token, nfts, accounts } = testConfig || {};
+const { gateway, token, nfts, accounts, avt } = testConfig || {};
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
 const ONE_ETH = '1000000000000000000';
@@ -105,5 +106,6 @@ module.exports = {
   randomEthTxHash,
   sleep,
   token,
+  avt,
   remoteSigner
 };

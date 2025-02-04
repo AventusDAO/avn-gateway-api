@@ -76,6 +76,13 @@ pipeline {
                 script {
                     withEnv(["CHAIN=${params.Chain}", "TESTS_CONFIG=${env.TESTS_CONFIG}"]) {
                         if(!params.All) {
+                            if (params.configurationTests) {
+                                stage('Configuration') {
+                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                        sh 'npm run configurationTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=configurationTestsReport;'
+                                    }
+                                }
+                            }
                             if (params.remoteSignerTests) {
                                 stage('Remote signer') {
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {

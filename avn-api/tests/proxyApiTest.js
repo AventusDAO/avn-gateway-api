@@ -7,12 +7,13 @@ const BAD_TOKEN = '0x0000000000000000000000000000000000000000';
 const ONE_AVT = new BN('1000000000000000000');
 
 describe('Proxy api calls:', async () => {
-  let avnApi, api, token;
+  let avnApi, api, token, avt;
   let relayer, user, recipient;
   let relayerFee;
 
   before(async () => {
     token = helper.token;
+    avt = helper.avt;
     avnApi = await helper.avnApi({
       suri: accounts.user.seed
     });
@@ -21,7 +22,7 @@ describe('Proxy api calls:', async () => {
     user = accounts.user.address;
     recipient = accounts.otherUser.address;
     recipientPubKey = accounts.otherUser.publicKey;
-    relayerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyTokenTransfer);
+    relayerFee = new BN((await api.query.getRelayerFees(relayer, avt, user)).proxyTokenTransfer);
   });
 
   describe('transferToken', async () => {
@@ -38,7 +39,7 @@ describe('Proxy api calls:', async () => {
 
     it('can transfer tokens', async () => {
       const amount = new BN(2);
-      const requestId = await api.send.transferToken(recipientPubKey, token, amount);
+      const requestId = await api.send.transferToken(recipient, token, amount);
 
       await helper.confirmStatus(api.poll, requestId, 'Processed');
 

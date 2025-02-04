@@ -72,7 +72,7 @@ describe('Prediction Market tests', async () => {
   describe('Test setup', function() {
     let senderBalance;
     before(async() => {
-      senderBalance = new BN(await api.query.getAvtBalance(sender.address));
+      senderBalance = new BN(await api.query.getAvtBalance(user.address));
     });
 
     describe('succeeds if', async function () {
@@ -83,7 +83,7 @@ describe('Prediction Market tests', async () => {
           const requestId = await bankApi.send.transferAvt(user.address, amountLeft);
           await helper.confirmStatus(bankApi, requestId, 'Processed');
 
-          senderBalance = new BN(await api.query.getAvtBalance(sender.address));
+          senderBalance = new BN(await api.query.getAvtBalance(user.address));
         }
         assert(senderBalance.gte(MINIMUM_REQUIRED_TEST_BALANCE));
       });

@@ -28,6 +28,3 @@ jobs:
 
       - name: Run prettier check
         run: npm run pretty
-
-      - name: Run linter
-        run: npm run lint

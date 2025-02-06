@@ -260,7 +260,7 @@ describe('Prediction Market tests', async () => {
         await helper.confirmStatus(otherUserApi.poll, requestId2, 'Rejected');
 
         winnerBalanceAfter = new BN((await api.query.getPredictionMarketTokenBalance(user.address, { ForeignAsset: 0 })).free);
-        loserBalanceAfter = new BN((await api.query.getMarketTokenBalance(otherUser.address, { ForeignAsset: 0 })).free);
+        loserBalanceAfter = new BN((await api.query.getPredictionMarketTokenBalance(otherUser.address, { ForeignAsset: 0 })).free);
       });
 
       it('Rewards are collected for winning user', function () {
@@ -278,7 +278,7 @@ describe('Prediction Market tests', async () => {
     let withdrawAmount = "1000000000";
 
     before(async () => {
-      ForeignAssetBalanceBefore = new BN((await api.query.getMarketTokenBalance(user.address, { ForeignAsset: 0 })).free);
+      ForeignAssetBalanceBefore = new BN((await api.query.getPredictionMarketTokenBalance(user.address, { ForeignAsset: 0 })).free);
       tokenBalanceBeforeWithdraw = new BN(await api.query.getTokenBalance(user.address, token));
 
       requestId = await api.send.withdrawMarketTokens(token, withdrawAmount);
@@ -288,7 +288,7 @@ describe('Prediction Market tests', async () => {
       it('Request is processed', async function () {
         await helper.confirmStatus(api.poll, requestId, 'Processed');
 
-        ForeignAssetBalanceAfter = new BN((await api.query.getMarketTokenBalance(user.address, { ForeignAsset: 0 })).free);
+        ForeignAssetBalanceAfter = new BN((await api.query.getPredictionMarketTokenBalance(user.address, { ForeignAsset: 0 })).free);
         tokenBalanceAfterWithdraw = new BN(await api.query.getTokenBalance(user.address, token));
       });
 

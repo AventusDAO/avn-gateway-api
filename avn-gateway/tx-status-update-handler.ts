@@ -22,7 +22,7 @@ const argsFilter = [
   'NftManager.BatchNftMinted',
   'NftManager.BatchCreated',
   'TokenManager.LowerRequested',
-  'PredictionMarket.MarketCreated',
+  'PredictionMarkets.MarketCreated',
   'NeoSwaps.BuyExecuted',
   'NeoSwaps.SellExecuted'
 ];

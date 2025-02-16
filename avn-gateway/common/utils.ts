@@ -119,8 +119,11 @@ const NONCE_INFO: NonceInfo = {
   staking: { palletName: 'parachainStaking', storageName: 'proxyNonces' },
   token: { palletName: 'tokenManager', storageName: 'nonces' },
   anchor: { palletName: 'avnAnchor', storageName: 'nonces' },
-  predictionMarkets: { palletName: 'predictionMarkets', storageName: 'marketNonces' },
-  hybridRouter: { palletName: 'hybridRouter', storageName: 'nonces' }
+  prediction_Market: { palletName: 'predictionMarkets', storageName: 'marketNonces' },
+  prediction_User: { palletName: 'predictionMarkets', storageName: 'userNonces' },
+  hybridRouter: { palletName: 'hybridRouter', storageName: 'nonces' },
+  // Review this when the signed register method is implemented
+  nodeManager: { palletName: 'nodeManager', storageName: 'proxyNonce' },
 };
 
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';

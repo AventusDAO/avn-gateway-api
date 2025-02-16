@@ -664,14 +664,14 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyCreateMarketAndDeployPool': {
     pallet: 'predictionMarkets',
     method: 'signedCreateMarketAndDeployPool',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_User',
     buildMethodParams: async (params) => await getCreateMarketAndDeployPoolMethodParams(params),
     buildSignData: async (params) => await getCreateMarketSignDataItems(params)
   },
   'proxyReportMarketOutcome': {
     pallet: 'predictionMarkets',
     method: 'signedReport',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_Market',
     buildMethodParams: ({ marketId, outcome }) => [marketId, outcome],
     buildSignData: ({ relayer, nonce, marketId, outcome }) => [
       { Text: 'report_market_outcome_context' },
@@ -684,7 +684,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyRedeemMarketShares': {
     pallet: 'predictionMarkets',
     method: 'signedRedeemShares',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_Market',
     buildMethodParams: ({ marketId }) => [marketId],
     buildSignData: ({ relayer, nonce, marketId }) => [
       { Text: 'redeem_shares_context' },
@@ -696,7 +696,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyTransferMarketTokens': {
     pallet: 'predictionMarkets',
     method: 'signedTransferAsset',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_User',
     buildMethodParams: ({assetEthAddress, to, amount }) => [assetEthAddress, to, amount],
     buildSignData: ({ relayer, user, nonce, assetEthAddress, to, amount }) => [
       { Text: 'transfer_tokens_context' },
@@ -747,7 +747,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyWithdrawMarketTokens': {
     pallet: 'predictionMarkets',
     method: 'signedWithdrawTokens',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_User',
     buildMethodParams: ({assetEthAddress, amount }) => [assetEthAddress, amount],
     buildSignData: ({ relayer, user, nonce, assetEthAddress, amount }) => [
       { Text: 'withdraw_tokens_context' },

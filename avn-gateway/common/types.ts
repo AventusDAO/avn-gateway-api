@@ -61,8 +61,10 @@ export interface NonceInfo {
     staking: { palletName: string; storageName: string };
     token: { palletName: string; storageName: string };
     anchor: { palletName: string; storageName: string };
-    predictionMarkets: { palletName: string; storageName: string };
+    prediction_Market: { palletName: string; storageName: string };
+    prediction_User: { palletName: string; storageName: string };
     hybridRouter: { palletName: string; storageName: string };
+    nodeManager: { palletName: string; storageName: string };
 }
 
 export type TransactionType = 'proxyAvtTransfer' |

@@ -105,10 +105,6 @@ export interface CrossChainTxStatus {
     transactionHash: string;
 }
 
-// export interface ErrorResponse {
-//     error: string
-// }
-
 export interface LowerResult {
     statusCode: StatusCode,
     headers: {

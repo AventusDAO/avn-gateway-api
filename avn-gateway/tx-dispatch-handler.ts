@@ -10,7 +10,7 @@ import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
 import {
   StatusCode, CustomSQSHandler, ValidResponse,
-  ProxyParams, ProxyProof, QueryParams, PublishEventData, NonceInfo,
+  ProxyParams, ProxyProof, QueryParams, PublishEventData,
   CallConfig, ProxyTransaction, ProxyCall
 } from '/opt/handler-types';
 import { ErrorBody, SendTxResult, SignDataItem } from '/opt/types';
@@ -139,7 +139,7 @@ async function processProxyCall(callType: string, call: ProxyCall, request: stri
 }
 
 //TODO: Fix me. We should not read the nonce from the chain because we risk getting duplicate values for different tx's
-async function queryNonce(requestId: string, nonceInfo: NonceInfo, nonceKey: string): Promise<string> {
+async function queryNonce(requestId: string, nonceInfo: { palletName: string, storageName: string }, nonceKey: string): Promise<string> {
   const { palletName, storageName } = nonceInfo;
   console.info(`${requestId} - Refreshing nonce from chain for ${palletName}.${storageName} - ${nonceKey}`);
   const params: QueryParams = { requestId, palletName, storageName, params: [nonceKey] };

@@ -72,11 +72,6 @@ export interface PublishEventData {
     methodParams: any[];
 }
 
-export interface NonceInfo {
-    palletName: string;
-    storageName: string;
-}
-
 export interface TransactionEvent {
     name: string;
     args: any;
@@ -109,10 +104,6 @@ export interface CrossChainTxStatus {
     signature: string;
     transactionHash: string;
 }
-
-// export interface ErrorResponse {
-//     error: string
-// }
 
 export interface LowerResult {
     statusCode: StatusCode,
@@ -223,9 +214,9 @@ export interface CallParams {
     originId?: string;
 };
 
-type PredictionMarketAsset = 
-  | { CategoricalOutcome: [string, string] }  
-  | { ForeignAsset: string };            
+type PredictionMarketAsset =
+  | { CategoricalOutcome: [string, string] }
+  | { ForeignAsset: string };
 
 export interface Call {
     id: string | null,

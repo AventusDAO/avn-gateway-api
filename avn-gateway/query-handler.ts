@@ -42,8 +42,9 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
   console.info(`Processing call: ${JSON.stringify(call)}`);
 
   switch (call.method) {
-    case 'getNonce':
-      return await getNonce(call, request);
+    case 'getUserNonce':
+    case 'getNonce': // Legacy
+      return await getUserNonce(call, request);
     case 'getAvtBalance':
       return await getAvtBalance(call, request);
     case 'getAvtContractAddress':
@@ -132,7 +133,7 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
   }
 }
 
-async function getNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+async function getUserNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { accountId, nonceType } = call.params;
 
   if (!accountId || !isValidAccountId(accountId)) {

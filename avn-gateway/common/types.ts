@@ -2,7 +2,7 @@ import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
 import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16, Compact, Option } from '@polkadot/types';
-import { H256, H160, BalanceOf, Perbill } from "@polkadot/types/interfaces";
+import { H256, H160, BalanceOf, Perbill, BlockNumber } from "@polkadot/types/interfaces";
 
 export enum EventType {
     AddedValidator = 0,
@@ -51,6 +51,7 @@ export type SignDataItem = | { Text: string }
     | { MultiHash: string }
     | { MarketType: PredictionMarketType }
     | { OutcomeReport: string }
+    | { BlockNumber: BlockNumber }
     | { 'Option<MarketDisputeMechanism>': Option<any> }
 
 export interface NonceInfo {
@@ -61,8 +62,10 @@ export interface NonceInfo {
     staking: { palletName: string; storageName: string };
     token: { palletName: string; storageName: string };
     anchor: { palletName: string; storageName: string };
-    predictionMarkets: { palletName: string; storageName: string };
+    prediction_Market: { palletName: string; storageName: string };
+    prediction_User: { palletName: string; storageName: string };
     hybridRouter: { palletName: string; storageName: string };
+    nodeManager: { palletName: string; storageName: string };
 }
 
 export type TransactionType = 'proxyAvtTransfer' |

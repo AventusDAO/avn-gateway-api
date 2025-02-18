@@ -10,7 +10,7 @@ import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
 import {
   StatusCode, CustomSQSHandler, ValidResponse,
-  ProxyParams, ProxyProof, QueryParams, PublishEventData, NonceInfo,
+  ProxyParams, ProxyProof, QueryParams, PublishEventData,
   CallConfig, ProxyTransaction, ProxyCall
 } from '/opt/handler-types';
 import { ErrorBody, SendTxResult, SignDataItem } from '/opt/types';
@@ -139,7 +139,7 @@ async function processProxyCall(callType: string, call: ProxyCall, request: stri
 }
 
 //TODO: Fix me. We should not read the nonce from the chain because we risk getting duplicate values for different tx's
-async function queryNonce(requestId: string, nonceInfo: NonceInfo, nonceKey: string): Promise<string> {
+async function queryNonce(requestId: string, nonceInfo: { palletName: string, storageName: string }, nonceKey: string): Promise<string> {
   const { palletName, storageName } = nonceInfo;
   console.info(`${requestId} - Refreshing nonce from chain for ${palletName}.${storageName} - ${nonceKey}`);
   const params: QueryParams = { requestId, palletName, storageName, params: [nonceKey] };
@@ -664,14 +664,14 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyCreateMarketAndDeployPool': {
     pallet: 'predictionMarkets',
     method: 'signedCreateMarketAndDeployPool',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_User',
     buildMethodParams: async (params) => await getCreateMarketAndDeployPoolMethodParams(params),
     buildSignData: async (params) => await getCreateMarketSignDataItems(params)
   },
   'proxyReportMarketOutcome': {
     pallet: 'predictionMarkets',
     method: 'signedReport',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_Market',
     buildMethodParams: ({ marketId, outcome }) => [marketId, outcome],
     buildSignData: ({ relayer, nonce, marketId, outcome }) => [
       { Text: 'report_market_outcome_context' },
@@ -684,7 +684,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyRedeemMarketShares': {
     pallet: 'predictionMarkets',
     method: 'signedRedeemShares',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_Market',
     buildMethodParams: ({ marketId }) => [marketId],
     buildSignData: ({ relayer, nonce, marketId }) => [
       { Text: 'redeem_shares_context' },
@@ -696,7 +696,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyTransferMarketTokens': {
     pallet: 'predictionMarkets',
     method: 'signedTransferAsset',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_User',
     buildMethodParams: ({assetEthAddress, to, amount }) => [assetEthAddress, to, amount],
     buildSignData: ({ relayer, user, nonce, assetEthAddress, to, amount }) => [
       { Text: 'transfer_tokens_context' },
@@ -747,7 +747,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyWithdrawMarketTokens': {
     pallet: 'predictionMarkets',
     method: 'signedWithdrawTokens',
-    nonceType: 'predictionMarkets',
+    nonceType: 'prediction_User',
     buildMethodParams: ({assetEthAddress, amount }) => [assetEthAddress, amount],
     buildSignData: ({ relayer, user, nonce, assetEthAddress, amount }) => [
       { Text: 'withdraw_tokens_context' },
@@ -756,6 +756,19 @@ const callConfigs: { [key: string]: CallConfig } = {
       { H160: assetEthAddress },
       { AccountId: user },
       { BalanceOf: amount }
+    ]
+  },
+  'proxyRegisterNode': {
+    pallet: 'nodeManager',
+    method: 'signedRegiserNode',
+    buildMethodParams: ({nodeId, nodeOwner, nodeSigningKey, blockNumber }) => [nodeId, nodeOwner, nodeSigningKey, blockNumber],
+    buildSignData: ({ relayer, nodeId, nodeOwner, nodeSigningKey, blockNumber }) => [
+      { Text: 'register_node' },
+      { AccountId: relayer },
+      { AccountId: nodeId },
+      { AccountId: nodeOwner },
+      { AccountId: nodeSigningKey },
+      { BlockNumber: blockNumber },
     ]
   },
 };

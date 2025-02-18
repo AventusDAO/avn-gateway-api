@@ -758,6 +758,19 @@ const callConfigs: { [key: string]: CallConfig } = {
       { BalanceOf: amount }
     ]
   },
+  'proxyRegisterNode': {
+    pallet: 'nodeManager',
+    method: 'signedRegiserNode',
+    buildMethodParams: ({nodeId, nodeOwner, nodeSigningKey, blockNumber }) => [nodeId, nodeOwner, nodeSigningKey, blockNumber],
+    buildSignData: ({ relayer, nodeId, nodeOwner, nodeSigningKey, blockNumber }) => [
+      { Text: 'register_node' },
+      { AccountId: relayer },
+      { AccountId: nodeId },
+      { AccountId: nodeOwner },
+      { AccountId: nodeSigningKey },
+      { BlockNumber: blockNumber },
+    ]
+  },
 };
 
 function validateSignData(signData: SignDataItem[]): void {

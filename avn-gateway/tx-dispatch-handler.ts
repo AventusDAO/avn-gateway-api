@@ -760,7 +760,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   },
   'proxyRegisterNode': {
     pallet: 'nodeManager',
-    method: 'signedRegiserNode',
+    method: 'signedRegisterNode',
     buildMethodParams: ({nodeId, nodeOwner, nodeSigningKey, blockNumber }) => [nodeId, nodeOwner, nodeSigningKey, blockNumber],
     buildSignData: ({ relayer, nodeId, nodeOwner, nodeSigningKey, blockNumber }) => [
       { Text: 'register_node' },

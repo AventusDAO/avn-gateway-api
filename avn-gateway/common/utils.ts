@@ -194,7 +194,7 @@ function isValidAccountId(accountId: string): boolean {
 }
 
 function isValidAmount(amount: string): boolean {
-  return /^\d+$/.test(amount) && !new BN(amount).isZero();
+  return /^\d+$/.test(amount);
 }
 
 function isValidEthereumAddress(address: string): boolean {

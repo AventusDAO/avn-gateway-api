@@ -127,7 +127,8 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getPredictionMarketCounter(call, request)
     case 'getPredictionMarketTokenBalance':
       return await getPredictionMarketTokenBalance(call, request)
-
+    case 'getCheckpointByOriginId':
+      return await getCheckpointByOriginId(call, request)
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -539,7 +540,7 @@ async function getPredictionMarketTokenBalance(call: Call, request: string): Pro
 
 async function getCheckpointByOriginId(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { chainId, originId } = call.params;
-  return await queryChain(call,request, 'avnAnchor', 'getCheckpointByOriginId', [chainId, originId]);
+  return await queryChain(call,request, 'avnAnchor', 'originIdToCheckpoint', [chainId, originId]);
 }
 
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any): Promise<ValidResponse | ErrorBody> {

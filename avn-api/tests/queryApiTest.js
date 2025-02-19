@@ -88,23 +88,23 @@ describe('Query api calls:', async () => {
 
   describe('getNonce', async () => {
     it('returns the same token nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'token');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'token'));
+      const nonce = await api.query.getUserNonce(user.address, 'token');
+      assert.equal(nonce, await api.query.getUserNonce(user.publicKey, 'token'));
     });
 
     it('returns the same payment nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'payment');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'payment'));
+      const nonce = await api.query.getUserNonce(user.address, 'payment');
+      assert.equal(nonce, await api.query.getUserNonce(user.publicKey, 'payment'));
     });
 
     it('returns the same staking nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'staking');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'staking'));
+      const nonce = await api.query.getUserNonce(user.address, 'staking');
+      assert.equal(nonce, await api.query.getUserNonce(user.publicKey, 'staking'));
     });
 
     it('returns the same confirmation nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'confirmation');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'confirmation'));
+      const nonce = await api.query.getUserNonce(user.address, 'confirmation');
+      assert.equal(nonce, await api.query.getUserNonce(user.publicKey, 'confirmation'));
     });
   });
 
@@ -213,10 +213,10 @@ describe('Query api calls:', async () => {
 
   describe('getNonce', async () => {
     it('returns correct account nonce for specific user by address', async () => {
-      helper.bnEquals(await api.query.getNonce(newUser.address, 'token'), 0);
+      helper.bnEquals(await api.query.getUserNonce(newUser.address, 'token'), 0);
     });
     it('returns correct account nonce for specific user by publicKey', async () => {
-      helper.bnEquals(await api.query.getNonce(newUser.publicKey, 'token'), 0);
+      helper.bnEquals(await api.query.getUserNonce(newUser.publicKey, 'token'), 0);
     });
   });
 

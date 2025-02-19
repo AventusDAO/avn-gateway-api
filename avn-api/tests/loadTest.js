@@ -1,6 +1,6 @@
 const AvnApi = require('avn-api');
 
-const GATEWAY_URL = 'https://uat.gateway.aventus.io';
+const GATEWAY_URL = 'https://gateway.dev.aventus.io';
 const SURI = '0xc6d7eb5f8f6bcae9bdc01f24d672fee331d1540f2902812fd2ba93ffb89887c7';
 const USER = '5HgmduT2woE1sm5maoXR3Ya3xiSeGxqgDpR1qDtYyVHKDuc3';
 const RELAYER = '5FbUQ2kJWLoqHuSTSNNqBwKwdQnBVe4HF3TeGyu6UoZaryTh';
@@ -20,7 +20,7 @@ describe('LOAD TEST', async () => {
 
   it('can transfer AVT using a recipient address', async () => {
     const requestIds = [];
-    const proxyNonceStart = await api.query.getNonce(USER, 'token');
+    const proxyNonceStart = await api.query.getUserNonce(USER, 'token');
     let proxyNonce = proxyNonceStart;
     const recipStart = await api.query.getAvtBalance(RECIPIENT);
     const timeStart = Date.now();
@@ -55,7 +55,7 @@ describe('LOAD TEST', async () => {
     console.log('Relayer nonce end  :', relayerNonceEnd);
     console.log('');
     console.log('User system nonce start:', proxyNonceStart);
-    console.log('User system nonce end  :', await api.query.getNonce(USER, 'token'));
+    console.log('User system nonce end  :', await api.query.getUserNonce(USER, 'token'));
     console.log('');
     console.log('Recipient balance start:', recipStart);
     console.log('Recipient balance end  :', await api.query.getAvtBalance(RECIPIENT));

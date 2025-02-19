@@ -51,16 +51,16 @@ class TestRedisNonceCacheProvider {
     const lock = await this.redlock.acquire([`redlock-${signerAddress}${nonceType}`], this.lockTtlMs);
     try {
       let nonceData = await this.readNonceDatafromRedis(signerAddress, nonceType);
-      if (nonceData.locked === false) {
-        const lockId = this.getLockId(signerAddress, nonceType, nonceData.nonce);
-
-        nonceData.locked = true;
-        nonceData.lockId = lockId;
-
-        await this.saveNonceDataToRedis(signerAddress, nonceType, nonceData);
-        return { lockAquired: true, data: nonceData };
+      if (nonceData.locked === true) {
+        return { lockAquired: false, data: nonceData };
       }
-      return { lockAquired: false, data: nonceData };
+
+      const lockId = this.getLockId(signerAddress, nonceType, nonceData.nonce);
+      nonceData.locked = true;
+      nonceData.lockId = lockId;
+
+      await this.saveNonceDataToRedis(signerAddress, nonceType, nonceData);
+      return { lockAquired: true, data: nonceData };
     } finally {
       await lock.unlock();
     }

@@ -29,7 +29,9 @@ import {
   UnprocessedLifts,
   EthereumEventStatus,
   GatewayUserInfo,
-  ChainSummary
+  NodeManagerConfig,
+  NodeManagerInfo,
+  NodeManagerRewardPeriodInfo
 } from './types';
 
 const AVN_URL = config.avnUrl;
@@ -1084,6 +1086,62 @@ async function predictionMarketConstants(): Promise<any> {
   return result;
 }
 
+async function nodeManagerConfig(): Promise<NodeManagerConfig> {
+  const [
+    rewardAccount,
+    signedTxLifetime,
+    nodeRegistrar,
+    heartbeatPeriod,
+    rewardAmount,
+    rewardPeriod,
+    rewardEnabled,
+  ] = await Promise.all([
+    api.consts.nodeManager.rewardPotId,
+    api.consts.nodeManager.signedTxLifetime,
+    api.query.nodeManager.nodeRegistrar(),
+    api.query.nodeManager.heartbeatPeriod(),
+    api.query.nodeManager.rewardAmount(),
+    api.query.nodeManager.rewardPeriod(),
+    api.query.nodeManager.rewardEnabled()
+  ]);
+
+  console.log('rewardEnabled', rewardEnabled.toJSON() as boolean);
+
+  return {
+    rewardAccount: rewardAccount.toString(),
+    signedTxLifetime: signedTxLifetime.toString(),
+    nodeRegistrar: nodeRegistrar.toString(),
+    heartbeatPeriod: heartbeatPeriod.toString(),
+    rewardAmount: rewardAmount.toString(),
+    rewardPeriod: rewardPeriod.toString(),
+    rewardEnabled: rewardEnabled.toJSON() as boolean
+  }
+}
+
+async function nodeManagerInfo(): Promise<NodeManagerInfo> {
+  const [
+    oldestUnpaidRewardPeriodIndex,
+    currentRewardPeriod,
+    totalRegisteredNodes
+  ] = await Promise.all([
+    api.query.nodeManager.oldestUnpaidRewardPeriodIndex(),
+    api.query.nodeManager.rewardPeriod(),
+    api.query.nodeManager.totalRegisteredNodes(),
+  ]);
+
+  console.log('currentRewardPeriod', currentRewardPeriod.toJSON());
+
+  const currentRewardPeriodObj = (currentRewardPeriod.toJSON() as unknown) as NodeManagerRewardPeriodInfo;
+  console.log('currentRewardPeriodObj', currentRewardPeriodObj);
+  let lastCompletedRewardPeriodIndex = new BN(currentRewardPeriodObj.current).toNumber() - 1;
+
+  return {
+    oldestUnpaidRewardPeriodIndex: new BN(oldestUnpaidRewardPeriodIndex.toString()).toNumber(),
+    lastCompletedRewardPeriodIndex: new BN(lastCompletedRewardPeriodIndex.toString()).toNumber(),
+    totalRegisteredNodes: new BN(totalRegisteredNodes.toString()).toNumber(),
+  }
+}
+
 const avn = {
   addNewTransaction,
   createAccount,
@@ -1116,6 +1174,8 @@ const avn = {
   validateSetSummaryRequest,
   validateGetSummaryRequest,
   predictionMarketConstants,
+  nodeManagerConfig,
+  nodeManagerInfo
 };
 
 export default avn;

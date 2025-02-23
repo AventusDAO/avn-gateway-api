@@ -129,6 +129,10 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getPredictionMarketTokenBalance(call, request)
     case 'getCheckpointByOriginId':
       return await getCheckpointByOriginId(call, request)
+    case 'getNodeManagerConfig':
+      return await getNodeManagerConfig(call, request)
+      case 'getNodeManagerInfo':
+      return await getNodeManagerInfo(call, request)
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -403,6 +407,22 @@ async function getPredictionMarketConstants(call: Call, request: string): Promis
   const method = 'getPredictionMarketConstants';
   let result = await query(call, request, method);
   console.info(`Prediction market constants: ${result}`);
+
+  return result;
+}
+
+async function getNodeManagerConfig(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const method = 'getNodeManagerConfig';
+  let result = await query(call, request, method);
+  console.info(`Node manager config: ${result}`);
+
+  return result;
+}
+
+async function getNodeManagerInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const method = 'getNodeManagerInfo';
+  let result = await query(call, request, method);
+  console.info(`Node manager info: ${result}`);
 
   return result;
 }

@@ -186,15 +186,15 @@ export interface NodeManagerConfig {
   rewardAccount: string,
   signedTxLifetime: string,
   nodeRegistrar: string,
-  heartbeatPeriod: string,
+  heartbeatPeriodInBLocks: string,
   rewardAmount: string,
-  rewardPeriod: string,
+  rewardPeriodInBLocks: string,
   rewardEnabled: boolean,
 }
 
 export interface NodeManagerInfo {
+  currentRewardPeriodIndex: number,
   oldestUnpaidRewardPeriodIndex: number,
-  lastCompletedRewardPeriodIndex: number,
   totalRegisteredNodes: number,
 }
 

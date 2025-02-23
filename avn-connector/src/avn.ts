@@ -1,7 +1,7 @@
 import '@polkadot/api-augment';
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
-import { hexToU8a, isHex, stringToHex, u8aToHex } from '@polkadot/util';
-import { keccakAsHex } from '@polkadot/util-crypto';
+import { hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat } from '@polkadot/util';
+import { keccakAsHex, encodeAddress } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
 import redis, { TransactionStatus } from './redis';
 import tier1 from './tier1';
@@ -1105,15 +1105,13 @@ async function nodeManagerConfig(): Promise<NodeManagerConfig> {
     api.query.nodeManager.rewardEnabled()
   ]);
 
-  console.log('rewardEnabled', rewardEnabled.toJSON() as boolean);
-
   return {
-    rewardAccount: rewardAccount.toString(),
+    rewardAccount: deriveNodeManagerPalletAccount(rewardAccount.toString()),
     signedTxLifetime: signedTxLifetime.toString(),
     nodeRegistrar: nodeRegistrar.toString(),
-    heartbeatPeriod: heartbeatPeriod.toString(),
+    heartbeatPeriodInBLocks: heartbeatPeriod.toString(),
     rewardAmount: rewardAmount.toString(),
-    rewardPeriod: rewardPeriod.toString(),
+    rewardPeriodInBLocks: ((rewardPeriod.toJSON() as unknown) as NodeManagerRewardPeriodInfo).length,
     rewardEnabled: rewardEnabled.toJSON() as boolean
   }
 }
@@ -1129,17 +1127,23 @@ async function nodeManagerInfo(): Promise<NodeManagerInfo> {
     api.query.nodeManager.totalRegisteredNodes(),
   ]);
 
-  console.log('currentRewardPeriod', currentRewardPeriod.toJSON());
-
   const currentRewardPeriodObj = (currentRewardPeriod.toJSON() as unknown) as NodeManagerRewardPeriodInfo;
-  console.log('currentRewardPeriodObj', currentRewardPeriodObj);
-  let lastCompletedRewardPeriodIndex = new BN(currentRewardPeriodObj.current).toNumber() - 1;
+  const currentRewardPeriodIndex = new BN(currentRewardPeriodObj.current).toNumber();
 
   return {
+    currentRewardPeriodIndex,
     oldestUnpaidRewardPeriodIndex: new BN(oldestUnpaidRewardPeriodIndex.toString()).toNumber(),
-    lastCompletedRewardPeriodIndex: new BN(lastCompletedRewardPeriodIndex.toString()).toNumber(),
     totalRegisteredNodes: new BN(totalRegisteredNodes.toString()).toNumber(),
   }
+}
+
+function deriveNodeManagerPalletAccount(palletIdHex: string) {
+  const typeId = new TextEncoder().encode('modl');
+  const encoded = u8aConcat(typeId, hexToU8a(palletIdHex));
+  const accountId = new Uint8Array(32);
+  accountId.set(encoded.subarray(0, 32));
+  let address = encodeAddress(`0x${Buffer.from(accountId).toString('hex')}`);
+  return address;
 }
 
 const avn = {

@@ -1089,7 +1089,7 @@ async function predictionMarketConstants(): Promise<any> {
 async function nodeManagerConfig(): Promise<NodeManagerConfig> {
   const [
     rewardAccount,
-    signedTxLifetime,
+    nodeRegistrationTransactionLifetime,
     nodeRegistrar,
     heartbeatPeriod,
     rewardAmount,
@@ -1107,7 +1107,7 @@ async function nodeManagerConfig(): Promise<NodeManagerConfig> {
 
   return {
     rewardAccount: deriveNodeManagerPalletAccount(rewardAccount.toString()),
-    signedTxLifetime: signedTxLifetime.toString(),
+    nodeRegistrationTransactionLifetime: nodeRegistrationTransactionLifetime.toString(),
     nodeRegistrar: nodeRegistrar.toString(),
     heartbeatPeriodInBLocks: heartbeatPeriod.toString(),
     rewardAmount: rewardAmount.toString(),

@@ -184,7 +184,7 @@ export interface ChainSummary {
 
 export interface NodeManagerConfig {
   rewardAccount: string,
-  signedTxLifetime: string,
+  nodeRegistrationTransactionLifetime: string,
   nodeRegistrar: string,
   heartbeatPeriodInBLocks: string,
   rewardAmount: string,

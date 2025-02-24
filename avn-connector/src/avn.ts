@@ -1109,9 +1109,9 @@ async function nodeManagerConfig(): Promise<NodeManagerConfig> {
     rewardAccount: deriveNodeManagerPalletAccount(rewardAccount.toString()),
     nodeRegistrationTransactionLifetime: nodeRegistrationTransactionLifetime.toString(),
     nodeRegistrar: nodeRegistrar.toString(),
-    heartbeatPeriodInBLocks: heartbeatPeriod.toString(),
+    heartbeatPeriodInBlocks: heartbeatPeriod.toString(),
     rewardAmount: rewardAmount.toString(),
-    rewardPeriodInBLocks: ((rewardPeriod.toJSON() as unknown) as NodeManagerRewardPeriodInfo).length,
+    rewardPeriodInBlocks: ((rewardPeriod.toJSON() as unknown) as NodeManagerRewardPeriodInfo).length,
     rewardEnabled: rewardEnabled.toJSON() as boolean
   }
 }

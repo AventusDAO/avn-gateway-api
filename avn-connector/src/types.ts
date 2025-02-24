@@ -186,9 +186,9 @@ export interface NodeManagerConfig {
   rewardAccount: string,
   nodeRegistrationTransactionLifetime: string,
   nodeRegistrar: string,
-  heartbeatPeriodInBLocks: string,
+  heartbeatPeriodInBlocks: string,
   rewardAmount: string,
-  rewardPeriodInBLocks: string,
+  rewardPeriodInBlocks: string,
   rewardEnabled: boolean,
 }
 

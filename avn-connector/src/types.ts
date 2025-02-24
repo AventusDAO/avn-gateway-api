@@ -181,3 +181,25 @@ export interface ChainSummary {
     txId: number;
   };
 }
+
+export interface NodeManagerConfig {
+  rewardAccount: string,
+  nodeRegistrationTransactionLifetime: string,
+  nodeRegistrar: string,
+  heartbeatPeriodInBLocks: string,
+  rewardAmount: string,
+  rewardPeriodInBLocks: string,
+  rewardEnabled: boolean,
+}
+
+export interface NodeManagerInfo {
+  currentRewardPeriodIndex: number,
+  oldestUnpaidRewardPeriodIndex: number,
+  totalRegisteredNodes: number,
+}
+
+export interface NodeManagerRewardPeriodInfo {
+  current: string,
+  first: string,
+  length: string,
+}

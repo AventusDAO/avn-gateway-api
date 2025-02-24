@@ -1,7 +1,7 @@
 import '@polkadot/api-augment';
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
-import { hexToU8a, isHex, stringToHex, u8aToHex } from '@polkadot/util';
-import { keccakAsHex } from '@polkadot/util-crypto';
+import { hexToU8a, isHex, stringToHex, u8aToHex, u8aConcat } from '@polkadot/util';
+import { keccakAsHex, encodeAddress } from '@polkadot/util-crypto';
 const config = require('multiconfig').load();
 import redis, { TransactionStatus } from './redis';
 import tier1 from './tier1';
@@ -29,7 +29,9 @@ import {
   UnprocessedLifts,
   EthereumEventStatus,
   GatewayUserInfo,
-  ChainSummary
+  NodeManagerConfig,
+  NodeManagerInfo,
+  NodeManagerRewardPeriodInfo
 } from './types';
 
 const AVN_URL = config.avnUrl;
@@ -1084,6 +1086,66 @@ async function predictionMarketConstants(): Promise<any> {
   return result;
 }
 
+async function nodeManagerConfig(): Promise<NodeManagerConfig> {
+  const [
+    rewardAccount,
+    nodeRegistrationTransactionLifetime,
+    nodeRegistrar,
+    heartbeatPeriod,
+    rewardAmount,
+    rewardPeriod,
+    rewardEnabled,
+  ] = await Promise.all([
+    api.consts.nodeManager.rewardPotId,
+    api.consts.nodeManager.signedTxLifetime,
+    api.query.nodeManager.nodeRegistrar(),
+    api.query.nodeManager.heartbeatPeriod(),
+    api.query.nodeManager.rewardAmount(),
+    api.query.nodeManager.rewardPeriod(),
+    api.query.nodeManager.rewardEnabled()
+  ]);
+
+  return {
+    rewardAccount: deriveNodeManagerPalletAccount(rewardAccount.toString()),
+    nodeRegistrationTransactionLifetime: nodeRegistrationTransactionLifetime.toString(),
+    nodeRegistrar: nodeRegistrar.toString(),
+    heartbeatPeriodInBLocks: heartbeatPeriod.toString(),
+    rewardAmount: rewardAmount.toString(),
+    rewardPeriodInBLocks: ((rewardPeriod.toJSON() as unknown) as NodeManagerRewardPeriodInfo).length,
+    rewardEnabled: rewardEnabled.toJSON() as boolean
+  }
+}
+
+async function nodeManagerInfo(): Promise<NodeManagerInfo> {
+  const [
+    oldestUnpaidRewardPeriodIndex,
+    currentRewardPeriod,
+    totalRegisteredNodes
+  ] = await Promise.all([
+    api.query.nodeManager.oldestUnpaidRewardPeriodIndex(),
+    api.query.nodeManager.rewardPeriod(),
+    api.query.nodeManager.totalRegisteredNodes(),
+  ]);
+
+  const currentRewardPeriodObj = (currentRewardPeriod.toJSON() as unknown) as NodeManagerRewardPeriodInfo;
+  const currentRewardPeriodIndex = new BN(currentRewardPeriodObj.current).toNumber();
+
+  return {
+    currentRewardPeriodIndex,
+    oldestUnpaidRewardPeriodIndex: new BN(oldestUnpaidRewardPeriodIndex.toString()).toNumber(),
+    totalRegisteredNodes: new BN(totalRegisteredNodes.toString()).toNumber(),
+  }
+}
+
+function deriveNodeManagerPalletAccount(palletIdHex: string) {
+  const typeId = new TextEncoder().encode('modl');
+  const encoded = u8aConcat(typeId, hexToU8a(palletIdHex));
+  const accountId = new Uint8Array(32);
+  accountId.set(encoded.subarray(0, 32));
+  let address = encodeAddress(`0x${Buffer.from(accountId).toString('hex')}`);
+  return address;
+}
+
 const avn = {
   addNewTransaction,
   createAccount,
@@ -1116,6 +1178,8 @@ const avn = {
   validateSetSummaryRequest,
   validateGetSummaryRequest,
   predictionMarketConstants,
+  nodeManagerConfig,
+  nodeManagerInfo
 };
 
 export default avn;

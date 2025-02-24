@@ -553,6 +553,32 @@ app.post(
   }
 );
 
+app.post(
+  '/getNodeManagerConfig',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      logger.info({ getNodeManagerConfig: JSON.stringify(req.body) });
+      const result = await avn.nodeManagerConfig();
+      res.status(200).send(JSON.stringify(result));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.post(
+  '/getNodeManagerInfo',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      logger.info({ getNodeManagerInfo: JSON.stringify(req.body) });
+      const result = await avn.nodeManagerInfo();
+      res.status(200).send(JSON.stringify(result));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(
     `Error processing request: ${err.message}. Request: ${JSON.stringify(req.body)}`,

@@ -524,7 +524,7 @@ async function getAnchorNonce(call: Call, request: string): Promise<ValidRespons
 async function getPredictionMarketsNonce(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { marketId, accountId } = call.params;
   // Note: marketId can be 0
-  if (typeof marketId === "number") {
+  if (marketId !== null || marketId !== undefined)  {
     return await queryChain(call, request, 'predictionMarkets', 'marketNonces', [accountId, marketId]);
   }
   return await queryChain(call, request, 'predictionMarkets', 'userNonces', [accountId]);

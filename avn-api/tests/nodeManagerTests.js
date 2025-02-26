@@ -5,8 +5,8 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 
 describe('Node manager tests', async () => {
-  let api, newUser;
-  let user = accounts.user;
+  let api, node;
+  let owner = accounts.user;
   let nodeManager = accounts.nodeManager;
 
   before(async () => {
@@ -24,14 +24,14 @@ describe('Node manager tests', async () => {
 
     avnGateway = await helper.avnApi(options);
     api = await avnGateway.apis(nodeManager.address);
-    newUser = avnGateway.accountUtils.generateNewAccount();
+    node = avnGateway.accountUtils.generateNewAccount();
   });
 
   describe('Register node', function () {
     let requestId, nodeManagerInfoBefore, nodeManagerInfoAfter;
     before(async () => {
       nodeManagerInfoBefore = await api.query.getNodeManagerInfo();
-      requestId = await api.send.registerNode(newUser.address, user.address, newUser.publicKey);
+      requestId = await api.send.registerNode(node.address, owner.address, node.publicKey);
     });
 
     describe('succeeds if', async function () {

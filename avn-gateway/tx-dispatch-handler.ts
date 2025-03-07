@@ -4,7 +4,7 @@ import {
   publishEvent, buildValidResponseBody, isValidString, isValidEthereumAddress, isValidNftId,
   isValidAmount, isValidEthereumTransactionHash, encodeRoyalties, convertToPublicKey,
   NONCE_INFO, WEBHOOK_EVENT_TYPES,
-  isValidArray
+  isValidArray,
 } from '/opt/utils';
 import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
@@ -99,8 +99,9 @@ async function validateAndProcessCall(call: ProxyCall, request: string, requestI
 async function callSwitch(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
   console.info(`${requestId} - Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
 
-
-  if (callConfigs[call.method]) {
+  if (call.method === 'proxyExitWithFees') {
+    return await processProxyExitWithFees(call, request, requestId);
+  } else if (callConfigs[call.method]) {
     return await processProxyCall(call.method, call, request, requestId);
   } else {
     return buildErrorBody('method', 'Method not found', call.method, request, call.id);
@@ -157,60 +158,19 @@ async function processProxyMethod(
   method: string,
   methodParams: any[]
 ): Promise<ValidResponse | ErrorBody> {
-  const { relayer, user, payer, proxySignature, currencyToken } = call.params;
+  const validationError = validateProxyCallParams(call, request);
+  if (validationError) return validationError;
 
-  try {
-    if (!isValidAccountId(relayer)) throw 'relayer';
-    if (!isValidAccountId(user)) throw 'user';
-    if (!isValidAccountId(payer)) throw 'payer';
-    if (!isValidSignatureFormat(proxySignature)) throw 'proxySignature';
-    if (!isValidCurrencyFormat(currencyToken)) throw 'currencyToken';
-
-    if (!isSplitFeeTransaction(call)) {
-      if (!isValidSignatureFormat(call.params.feePaymentSignature!)) throw 'feePaymentSignature';
-      if (!isValidNonce(call.params.paymentNonce!)) throw 'paymentNonce';
-    }
-  } catch (param) {
-    return buildErrorBody('params', `invalid proxy method ${param}: ${call.params[param]}`, param, request, call.id);
-  }
-
+  const { relayer, user, proxySignature, currencyToken } = call.params;
   const proxyProof: ProxyProof = getProxyProof(user, relayer, proxySignature);
 
   const params: ProxyParams = {
     proxyParams: [proxyProof].concat(methodParams),
     relayerAddress: relayer,
-    currencyToken: currencyToken
+    currencyToken
   };
 
-  if (isSplitFeeTransaction(call)) {
-    params.splitFeePayerAddress = call.splitFeePayerAddress!;
-    params.splitFeePayerVaultId = call.splitFeePayerVaultId!;
-    params.relayerFees = call.relayerFee!;
-    params.splitFeeProxyProof = proxyProof;
-    const eventType = WEBHOOK_EVENT_TYPES.tx_ready;
-    await publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, params.splitFeePayerAddress, {
-      relayer,
-      user,
-      proxySignature,
-      pallet,
-      method,
-      methodParams,
-      currencyToken
-    } as PublishEventData);
-  } else {
-    const paymentInfo = await fees.tryGetPaymentInfo(
-      AVN_CONNECTOR_ENDPOINT,
-      payer,
-      relayer,
-      call.params.feePaymentSignature!,
-      call.method,
-      call.params.paymentNonce!,
-      proxyProof,
-      currencyToken
-    );
-
-    params.paymentInfo = paymentInfo;
-  }
+  await setupPaymentInfo(call, proxyProof, requestId, pallet, method, params, methodParams);
 
   return await sendTx(call, request, requestId, pallet, method, params);
 }
@@ -248,7 +208,7 @@ async function getDefaultMarketOpeningValues(baseAssetEthAddress: string): Promi
   const disputeMechanism = undefined;
   const swapFee = "30000000"; //0.3% (remember its 10 decimal places not 18)
 
-  return {baseAsset, creatorFee, marketType, disputeMechanism, swapFee};
+  return { baseAsset, creatorFee, marketType, disputeMechanism, swapFee };
 }
 
 async function getCreateMarketSignDataItems(params: any): Promise<SignDataItem[]> {
@@ -264,7 +224,7 @@ async function getCreateMarketSignDataItems(params: any): Promise<SignDataItem[]
     spotPrices,
   } = params;
 
-  const {baseAsset, creatorFee, marketType, disputeMechanism, swapFee} = await getDefaultMarketOpeningValues(baseAssetEthAddress);
+  const { baseAsset, creatorFee, marketType, disputeMechanism, swapFee } = await getDefaultMarketOpeningValues(baseAssetEthAddress);
 
   return [
     { Text: 'create_market_and_deploy_pool' },
@@ -295,7 +255,7 @@ async function getCreateMarketAndDeployPoolMethodParams(params: any): Promise<an
     spotPrices,
   } = params;
 
-  const {baseAsset, creatorFee, marketType, disputeMechanism, swapFee} = await getDefaultMarketOpeningValues(baseAssetEthAddress);
+  const { baseAsset, creatorFee, marketType, disputeMechanism, swapFee } = await getDefaultMarketOpeningValues(baseAssetEthAddress);
 
   return [
     baseAsset,
@@ -697,7 +657,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'predictionMarkets',
     method: 'signedTransferAsset',
     nonceType: 'prediction_User',
-    buildMethodParams: ({assetEthAddress, to, amount }) => [assetEthAddress, to, amount],
+    buildMethodParams: ({ assetEthAddress, to, amount }) => [assetEthAddress, to, amount],
     buildSignData: ({ relayer, user, nonce, assetEthAddress, to, amount }) => [
       { Text: 'transfer_tokens_context' },
       { AccountId: relayer },
@@ -712,7 +672,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'hybridRouter',
     method: 'signedSell',
     nonceType: 'hybridRouter',
-    buildMethodParams: ({marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [marketId, assetCount, asset, amountIn, minPrice, orders, strategy],
+    buildMethodParams: ({ marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [marketId, assetCount, asset, amountIn, minPrice, orders, strategy],
     buildSignData: ({ relayer, nonce, marketId, assetCount, asset, amountIn, minPrice, orders, strategy }) => [
       { Text: 'sell outcome tokens' },
       { AccountId: relayer },
@@ -730,7 +690,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'hybridRouter',
     method: 'signedBuy',
     nonceType: 'hybridRouter',
-    buildMethodParams: ({marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [marketId, assetCount, asset, amountIn, maxPrice, orders, strategy],
+    buildMethodParams: ({ marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [marketId, assetCount, asset, amountIn, maxPrice, orders, strategy],
     buildSignData: ({ relayer, nonce, marketId, assetCount, asset, amountIn, maxPrice, orders, strategy }) => [
       { Text: 'buy outcome tokens' },
       { AccountId: relayer },
@@ -748,7 +708,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     pallet: 'predictionMarkets',
     method: 'signedWithdrawTokens',
     nonceType: 'prediction_User',
-    buildMethodParams: ({assetEthAddress, amount }) => [assetEthAddress, amount],
+    buildMethodParams: ({ assetEthAddress, amount }) => [assetEthAddress, amount],
     buildSignData: ({ relayer, user, nonce, assetEthAddress, amount }) => [
       { Text: 'withdraw_tokens_context' },
       { AccountId: relayer },
@@ -761,7 +721,7 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyRegisterNode': {
     pallet: 'nodeManager',
     method: 'signedRegisterNode',
-    buildMethodParams: ({nodeId, nodeOwner, nodeSigningKey, blockNumber }) => [nodeId, nodeOwner, nodeSigningKey, blockNumber],
+    buildMethodParams: ({ nodeId, nodeOwner, nodeSigningKey, blockNumber }) => [nodeId, nodeOwner, nodeSigningKey, blockNumber],
     buildSignData: ({ relayer, nodeId, nodeOwner, nodeSigningKey, blockNumber }) => [
       { Text: 'register_node' },
       { AccountId: relayer },
@@ -771,7 +731,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { BlockNumber: blockNumber },
     ]
   },
-  'proxyJoin':  {
+  'proxyJoin': {
     pallet: 'neoSwaps',
     method: 'signedJoin',
     buildMethodParams: ({ marketId, poolSharesAmount, maxAmountsIn }) => [marketId, poolSharesAmount, maxAmountsIn],
@@ -779,7 +739,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { Text: 'neo_swap::join_context' },
       { AccountId: relayer },
       { u128: marketId },
-      { BalanceOf: poolSharesAmount},
+      { BalanceOf: poolSharesAmount },
       { 'Vec<BalanceOf>': maxAmountsIn },
     ]
   },
@@ -791,7 +751,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { Text: 'neo_swap::exit_context' },
       { AccountId: relayer },
       { u128: marketId },
-      { BalanceOf: poolSharesAmountOut},
+      { BalanceOf: poolSharesAmountOut },
       { 'Vec<BalanceOf>': minAmountsOut },
     ]
   },
@@ -803,7 +763,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { Text: 'neo_swap::withdraw_fees_context' },
       { AccountId: relayer },
       { u128: marketId },
-      
+
     ]
   }
 };
@@ -821,5 +781,100 @@ function validateSignData(signData: SignDataItem[]): void {
   } catch (err) {
     console.error('Validation error:', err);
     throw err;
+  }
+}
+
+async function processProxyExitWithFees(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
+  const validationError = validateProxyCallParams(call, request);
+  if (validationError) return validationError;
+
+  const { relayer, user, proxySignature, currencyToken } = call.params;
+  const proxyProof = getProxyProof(user, relayer, proxySignature);
+
+  const withdrawFeesCall = {
+    palletName: 'neoSwaps',
+    method: 'signedWithdrawFees',
+    params: [call.params.marketId]
+  };
+
+  const exitCall = {
+    palletName: 'neoSwaps',
+    method: 'signedExit',
+    params: [call.params.marketId, call.params.poolSharesAmountOut, call.params.minAmountsOut]
+  };
+
+  const batchCalls = [withdrawFeesCall, exitCall]
+
+  const params: ProxyParams = {
+    proxyParams: [proxyProof, batchCalls],
+    relayerAddress: relayer,
+    currencyToken: currencyToken
+  };
+
+  await setupPaymentInfo(call, proxyProof, requestId, 'utility', 'batchAll', params, batchCalls);
+
+  return await sendTx(call, request, requestId, 'utility', 'batchAll', params);
+}
+
+function validateProxyCallParams(call: ProxyCall, request: string): ErrorBody | null {
+  const { relayer, user, payer, proxySignature, currencyToken } = call.params;
+
+  try {
+    if (!isValidAccountId(relayer)) throw 'relayer';
+    if (!isValidAccountId(user)) throw 'user';
+    if (!isValidAccountId(payer)) throw 'payer';
+    if (!isValidSignatureFormat(proxySignature)) throw 'proxySignature';
+    if (!isValidCurrencyFormat(currencyToken)) throw 'currencyToken';
+
+    if (!isSplitFeeTransaction(call)) {
+      if (!isValidSignatureFormat(call.params.feePaymentSignature)) throw 'feePaymentSignature';
+      if (!isValidNonce(call.params.paymentNonce)) throw 'paymentNonce';
+    }
+    return null;
+  } catch (param) {
+    return buildErrorBody('params', `invalid proxy method ${param}: ${call.params[param]}`, param, request, call.id);
+  }
+}
+
+async function setupPaymentInfo(
+  call: ProxyCall,
+  proxyProof: ProxyProof,
+  requestId: string,
+  pallet:string,
+  method:string,
+  params: ProxyParams,
+  methodParams: any[]
+): Promise<void> {
+  const { relayer, user, payer, proxySignature, currencyToken } = call.params;
+
+  if (isSplitFeeTransaction(call)) {
+    params.splitFeePayerAddress = call.splitFeePayerAddress;
+    params.splitFeePayerVaultId = call.splitFeePayerVaultId;
+    params.relayerFees = call.relayerFee;
+    params.splitFeeProxyProof = proxyProof;
+
+    const eventType = WEBHOOK_EVENT_TYPES.tx_ready;
+    await publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, call.splitFeePayerAddress, {
+      relayer,
+      user,
+      proxySignature,
+      pallet,
+      method,
+      methodParams,
+      currencyToken
+    });
+  } else {
+    const paymentInfo = await fees.tryGetPaymentInfo(
+      AVN_CONNECTOR_ENDPOINT,
+      payer,
+      relayer,
+      call.params.feePaymentSignature,
+      call.method,
+      call.params.paymentNonce,
+      proxyProof,
+      currencyToken,
+    );
+
+    params.paymentInfo = paymentInfo;
   }
 }

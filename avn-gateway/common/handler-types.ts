@@ -245,6 +245,9 @@ export interface ProxyCallParams {
     paymentNonce?: string;
     nonce?: string;
     currencyToken: string;
+    marketId?: number;
+    poolSharesAmountOut?: string;
+    minAmountsOut?: string;
 }
 
 export interface ProxyTransaction {

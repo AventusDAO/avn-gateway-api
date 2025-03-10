@@ -734,36 +734,38 @@ const callConfigs: { [key: string]: CallConfig } = {
   'proxyJoin': {
     pallet: 'neoSwaps',
     method: 'signedJoin',
-    buildMethodParams: ({ marketId, poolSharesAmount, maxAmountsIn }) => [marketId, poolSharesAmount, maxAmountsIn],
-    buildSignData: ({ relayer, marketId, poolSharesAmount, maxAmountsIn }) => [
+    buildMethodParams: ({ marketId, poolSharesAmount, maxAmountsIn, blockNumber }) => [marketId, poolSharesAmount, maxAmountsIn, blockNumber],
+    buildSignData: ({ relayer, marketId, poolSharesAmount, maxAmountsIn, blockNumber }) => [
       { Text: 'neo_swap::join_context' },
       { AccountId: relayer },
       { u128: marketId },
       { BalanceOf: poolSharesAmount },
       { 'Vec<BalanceOf>': maxAmountsIn },
+      { BlockNumber: blockNumber },
     ]
   },
   'proxyExit': {
     pallet: 'neoSwaps',
     method: 'signedExit',
-    buildMethodParams: ({ marketId, poolSharesAmountOut, minAmountsOut }) => [marketId, poolSharesAmountOut, minAmountsOut],
-    buildSignData: ({ relayer, marketId, poolSharesAmountOut, minAmountsOut }) => [
+    buildMethodParams: ({ marketId, poolSharesAmountOut, minAmountsOut, blockNumber }) => [marketId, poolSharesAmountOut, minAmountsOut, blockNumber],
+    buildSignData: ({ relayer, marketId, poolSharesAmountOut, minAmountsOut, blockNumber }) => [
       { Text: 'neo_swap::exit_context' },
       { AccountId: relayer },
       { u128: marketId },
       { BalanceOf: poolSharesAmountOut },
       { 'Vec<BalanceOf>': minAmountsOut },
+      { BlockNumber: blockNumber },
     ]
   },
   'proxyWithdrawFees': {
     pallet: 'neoSwaps',
     method: 'signedWithdrawFees',
-    buildMethodParams: ({ marketId }) => [marketId],
-    buildSignData: ({ relayer, marketId }) => [
+    buildMethodParams: ({ marketId, blockNumber }) => [marketId, blockNumber],
+    buildSignData: ({ relayer, marketId, blockNumber }) => [
       { Text: 'neo_swap::withdraw_fees_context' },
       { AccountId: relayer },
       { u128: marketId },
-
+      { BlockNumber: blockNumber },
     ]
   }
 };

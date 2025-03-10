@@ -248,7 +248,7 @@ export interface ProxyCallParams {
     marketId?: number;
     poolSharesAmountOut?: string;
     minAmountsOut?: string;
-    blocklNumber?: number;
+    blockNumber?: number;
 }
 
 export interface ProxyTransaction {

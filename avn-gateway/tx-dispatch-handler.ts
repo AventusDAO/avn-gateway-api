@@ -790,19 +790,19 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
   const validationError = validateProxyCallParams(call, request);
   if (validationError) return validationError;
 
-  const { relayer, user, proxySignature, currencyToken } = call.params;
+  const { relayer, user, proxySignature, currencyToken, marketId, poolSharesAmountOut, minAmountsOut, blockNumber } = call.params;
   const proxyProof = getProxyProof(user, relayer, proxySignature);
 
   const withdrawFeesCall = {
     palletName: 'neoSwaps',
     method: 'signedWithdrawFees',
-    params: [call.params.marketId]
+    params: [marketId, blockNumber]
   };
 
   const exitCall = {
     palletName: 'neoSwaps',
     method: 'signedExit',
-    params: [call.params.marketId, call.params.poolSharesAmountOut, call.params.minAmountsOut]
+    params: [marketId, poolSharesAmountOut, minAmountsOut, blockNumber]
   };
 
   const batchCalls = [withdrawFeesCall, exitCall]

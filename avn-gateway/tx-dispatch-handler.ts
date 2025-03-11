@@ -99,7 +99,7 @@ async function validateAndProcessCall(call: ProxyCall, request: string, requestI
 async function callSwitch(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
   console.info(`${requestId} - Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
 
-  if (call.method === 'proxyExitWithFees') {
+  if (call.method === 'proxyExitPredictionMarketLiquidity') {
     return await processProxyExitWithFees(call, request, requestId);
   } else if (callConfigs[call.method]) {
     return await processProxyCall(call.method, call, request, requestId);
@@ -731,7 +731,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { BlockNumber: blockNumber },
     ]
   },
-  'proxyJoin': {
+  'proxyAddPredictionMarketLiquidity': {
     pallet: 'neoSwaps',
     method: 'signedJoin',
     buildMethodParams: ({ marketId, poolSharesAmount, maxAmountsIn, blockNumber }) => [marketId, poolSharesAmount, maxAmountsIn, blockNumber],

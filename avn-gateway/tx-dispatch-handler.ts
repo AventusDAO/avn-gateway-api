@@ -738,8 +738,8 @@ const callConfigs: { [key: string]: CallConfig } = {
     buildSignData: ({ relayer, marketId, poolSharesAmount, maxAmountsIn, blockNumber }) => [
       { Text: 'neo_swap::join_context' },
       { AccountId: relayer },
-      { 'Compact<u128>': marketId },
-      { 'Compact<BalanceOf>': poolSharesAmount },
+      { u128: marketId },
+      { BalanceOf: poolSharesAmount },
       { 'Vec<BalanceOf>': maxAmountsIn },
       { BlockNumber: blockNumber },
     ]
@@ -751,8 +751,8 @@ const callConfigs: { [key: string]: CallConfig } = {
     buildSignData: ({ relayer, marketId, poolSharesAmountOut, minAmountsOut, blockNumber }) => [
       { Text: 'neo_swap::exit_context' },
       { AccountId: relayer },
-      { 'Compact<u128>': marketId },
-      { 'Compact<BalanceOf>': poolSharesAmountOut },
+      { u128: marketId },
+      { BalanceOf: poolSharesAmountOut },
       { 'Vec<BalanceOf>': minAmountsOut },
       { BlockNumber: blockNumber },
     ]

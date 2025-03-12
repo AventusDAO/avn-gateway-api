@@ -739,7 +739,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { Text: 'neo_swap::join_context' },
       { AccountId: relayer },
       { u128: marketId },
-      { BalanceOf: poolSharesAmount },
+      { 'Compact<BalanceOf>': poolSharesAmount },
       { 'Vec<BalanceOf>': maxAmountsIn },
       { BlockNumber: blockNumber },
     ]
@@ -752,7 +752,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { Text: 'neo_swap::exit_context' },
       { AccountId: relayer },
       { u128: marketId },
-      { BalanceOf: poolSharesAmountOut },
+      { 'Compact<BalanceOf>': poolSharesAmountOut },
       { 'Vec<BalanceOf>': minAmountsOut },
       { BlockNumber: blockNumber },
     ]

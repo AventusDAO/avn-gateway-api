@@ -812,9 +812,9 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
     relayerAddress: relayer,
     currencyToken: currencyToken
   };
-
+  console.log("HELP 1 !!!", params)
   await setupPaymentInfo(call, proxyProof, requestId, 'utility', 'batchAll', params, batchCalls);
-
+  console.log("HELP 2 !!!", params)
   return await sendTx(call, request, requestId, 'utility', 'batchAll', params);
 }
 

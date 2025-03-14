@@ -11,7 +11,8 @@ import * as sqs from '/opt/sqsUtils';
 import {
   StatusCode, CustomSQSHandler, ValidResponse,
   ProxyParams, ProxyProof, QueryParams, PublishEventData,
-  CallConfig, ProxyTransaction, ProxyCall
+  CallConfig, ProxyTransaction, ProxyCall,
+  BatchProxyParams
 } from '/opt/handler-types';
 import { ErrorBody, SendTxResult, SignDataItem } from '/opt/types';
 
@@ -181,7 +182,7 @@ async function sendTx(
   requestId: string,
   palletName: string,
   method: string,
-  params: ProxyParams
+  params: ProxyParams | BatchProxyParams[]
 ): Promise<SendTxResult | ErrorBody> {
   try {
     const txType = 'avnProxy';
@@ -792,36 +793,34 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
 
   const { relayer, user, proxySignature, currencyToken, marketId, poolSharesAmountOut, minAmountsOut, blockNumber } = call.params;
   const proxyProof = getProxyProof(user, relayer, proxySignature);
+  const paymentInfo = await getPaymentInfo(call, proxyProof, requestId);
 
-  const withdrawFeesCall = {
+  // Create individual calls
+  const withdrawFeesCall: BatchProxyParams = {
     palletName: 'neoSwaps',
     method: 'signedWithdrawFees',
     params: {
       proxyParams: [proxyProof, marketId, blockNumber],
       relayerAddress: relayer,
-      currencyToken: currencyToken
+      currencyToken: currencyToken,
+      paymentInfo
     }
   };
 
-  const exitCall = {
+  const exitCall: BatchProxyParams = {
     palletName: 'neoSwaps',
     method: 'signedExit',
     params: {
       proxyParams: [proxyProof, marketId, poolSharesAmountOut, minAmountsOut, blockNumber],
       relayerAddress: relayer,
-      currencyToken: currencyToken
+      currencyToken: currencyToken,
+      paymentInfo
     }
   };
 
-  const batchCalls = [withdrawFeesCall, exitCall]
+  const batchCalls = [withdrawFeesCall, exitCall];
 
-  const params: ProxyParams = {
-    proxyParams: [proxyProof, batchCalls],
-    relayerAddress: relayer,
-    currencyToken: currencyToken
-  };
-  await setupPaymentInfo(call, proxyProof, requestId, 'utility', 'batchAll', params, batchCalls);
-  return await sendTx(call, request, requestId, 'utility', 'batchAll', params);
+  return await sendTx(call, request, requestId, 'utility', 'batchAll', batchCalls);
 }
 
 function validateProxyCallParams(call: ProxyCall, request: string): ErrorBody | null {
@@ -850,8 +849,8 @@ async function setupPaymentInfo(
   requestId: string,
   pallet:string,
   method:string,
-  params: ProxyParams,
-  methodParams: any[]
+  params?: ProxyParams,
+  methodParams?: any[]
 ): Promise<void> {
   const { relayer, user, payer, proxySignature, currencyToken } = call.params;
 
@@ -885,4 +884,15 @@ async function setupPaymentInfo(
 
     params.paymentInfo = paymentInfo;
   }
+}
+
+async function getPaymentInfo(
+  call: ProxyCall,
+  proxyProof: ProxyProof,
+  requestId: string
+): Promise<any> {
+  const paymentInfo: any = {};
+  setupPaymentInfo(call, proxyProof, requestId, 'utility', 'batchAll')
+
+  return paymentInfo;
 }

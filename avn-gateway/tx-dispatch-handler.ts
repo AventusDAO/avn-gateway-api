@@ -794,7 +794,9 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
   const { relayer, user, proxySignature, currencyToken, marketId, poolSharesAmountOut, minAmountsOut, blockNumber } = call.params;
   const proxyProof = getProxyProof(user, relayer, proxySignature);
 
-  // Create individual calls
+  const withdrawFeesPaymentInfo = await getPaymentInfo(call, proxyProof, requestId, 'neoSwaps', 'signedWithdrawFees')
+  const exitPaymentInfo = await getPaymentInfo(call, proxyProof, requestId, 'neoSwaps', 'signedExit')
+
   const withdrawFeesCall: BatchProxyParams = {
     palletName: 'neoSwaps',
     method: 'signedWithdrawFees',
@@ -802,7 +804,7 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
       proxyParams: [proxyProof, marketId, blockNumber],
       relayerAddress: relayer,
       currencyToken: currencyToken,
-      paymentInfo: await getPaymentInfo(call, proxyProof, requestId, 'neoSwaps', 'signedWithdrawFees')
+      paymentInfo: withdrawFeesPaymentInfo
     }
   };
 
@@ -813,7 +815,7 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
       proxyParams: [proxyProof, marketId, poolSharesAmountOut, minAmountsOut, blockNumber],
       relayerAddress: relayer,
       currencyToken: currencyToken,
-      paymentInfo: await getPaymentInfo(call, proxyProof, requestId, 'neoSwaps', 'signedExit')
+      paymentInfo: exitPaymentInfo
     }
   };
 

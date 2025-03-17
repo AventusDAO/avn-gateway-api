@@ -817,8 +817,11 @@ function validateSignData(signData: SignDataItem[]): void {
 
 async function processProxyExitWithFees(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
    // Extract params from the nested structure
-   // @ts-expect-error
-   const { exitMarketParams, withdrawFeeParams } = call.params;
+  if(!Array.isArray(call.params)) {
+    return buildErrorBody('params', 'Expected multiple transactions', '', request, call.id);
+  }
+
+   const [ exitMarketParams, withdrawFeeParams ] = call.params;
   
    // Validate the required parameters exist
    if (!exitMarketParams || !withdrawFeeParams) {

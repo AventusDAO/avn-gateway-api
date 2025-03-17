@@ -4,7 +4,7 @@ import { init, callWithTimeout, requestFailed, buildErrorBody, publishEvent, get
   isValidCurrencyFormat, WEBHOOK_EVENT_TYPES } from '/opt/utils.js';
 import * as fees from '/opt/paymentUtils.js';
 import * as sqs from '/opt/sqsUtils.js';
-import { StatusCode, CustomSQSHandler, ValidResponse, Transaction } from '/opt/handler-types';
+import { StatusCode, CustomSQSHandler, ValidResponse, Transaction, TransactionParams } from '/opt/handler-types';
 import { ErrorBody } from '/opt/types';
 // @ts-ignore
 import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-lambda';
@@ -60,6 +60,9 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
   let tx: Transaction;
   let requestId: string;
 
+  let relayer
+  let currencyToken
+
   try {
     tx = JSON.parse(request);
     requestId = tx.awsRequestId;
@@ -70,15 +73,40 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
 
   try {
     console.info(`Processing split fee request: `, tx);
-    if (!tx.params.currencyToken) {
-      const nativeTokenCurrency = await getNativeCurrency();
-      if (!nativeTokenCurrency) throw new Error(`Unable to determine currency token`);
+
+    if (isValidString(tx.splitFeePayerVaultId) === false) throw 'splitFeePayerVaultId';
+    if (isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
+    if(Array.isArray(tx.params)) {
+      let nativeTokenCurrency = tx.params[0].currencyToken
+      if (!nativeTokenCurrency) {
+        nativeTokenCurrency = await getNativeCurrency();
+        if (!nativeTokenCurrency) throw new Error(`Unable to determine currency token`);
+      }
+      for(let i = 0; i < tx.params.length; i++) {
+        validateTransactionParams(tx.params[i]);
+        if (!tx.params[i].currencyToken) {
+          
+          tx.params[i].currencyToken = nativeTokenCurrency;
+        }
+        tx.params[i].payer = tx.splitFeePayerAddress;
+      }
+      relayer = tx.params[0].relayer
+      currencyToken = tx.params[0].currencyToken
+      
+    }else {
+      let nativeTokenCurrency = tx.params.currencyToken
+      if (!nativeTokenCurrency) {
+        nativeTokenCurrency = await getNativeCurrency();
+        if (!nativeTokenCurrency) throw new Error(`Unable to determine currency token`);
+      }
+      tx.params.payer = tx.splitFeePayerAddress;
       tx.params.currencyToken = nativeTokenCurrency;
+      validateTransactionParams(tx.params);
+      relayer = tx.params.relayer
+      currencyToken = tx.params.currencyToken
     }
 
-    validateTransaction(tx);
-
-    if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method, tx.params.currencyToken)) === false) {
+    if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method, currencyToken)) === false) {
       // transaction has been rejected by payer, inform user
       const eventType = WEBHOOK_EVENT_TYPES.tx_payer_refused;
       await publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, tx.splitFeePayerAddress, tx);
@@ -86,8 +114,8 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
       return;
     }
 
-    const relayerFee = await getRelayerFee(AVN_CONNECTOR_ENDPOINT, tx.params.relayer, tx.splitFeePayerAddress, tx.method, tx.params.currencyToken);
-    tx.params.payer = tx.splitFeePayerAddress;
+    const relayerFee = await getRelayerFee(AVN_CONNECTOR_ENDPOINT, relayer, tx.splitFeePayerAddress, tx.method, currencyToken);
+    
     tx.relayerFee = relayerFee;
 
     const data = await sqs.sendToQueue(SQS_DEFAULT_QUEUE_URL, tx);
@@ -103,14 +131,13 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
   }
 }
 
-function validateTransaction(tx: Transaction): void {
+function validateTransactionParams(params: TransactionParams): void {
   try {
-    if (isValidAccountId(tx.params.relayer) === false) throw 'relayer';
-    if (isValidAccountId(tx.params.user) === false) throw 'user';
-    if (isValidString(tx.splitFeePayerVaultId) === false) throw 'splitFeePayerVaultId';
-    if (isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
-    if (isValidSignatureFormat(tx.params.proxySignature) === false) throw 'proxy signature format';
-    if (isValidCurrencyFormat(tx.params.currencyToken) === false) throw 'currency token format';
+    if (isValidAccountId(params.relayer) === false) throw 'relayer';
+    if (isValidAccountId(params.user) === false) throw 'user';
+    
+    if (isValidSignatureFormat(params.proxySignature) === false) throw 'proxy signature format';
+    if (isValidCurrencyFormat(params.currencyToken) === false) throw 'currency token format';
   } catch (errParam) {
     throw new Error(`Invalid transaction data: ${errParam}`);
   }

@@ -245,6 +245,10 @@ export interface ProxyCallParams {
     paymentNonce?: string;
     nonce?: string;
     currencyToken: string;
+    marketId?: number;
+    poolSharesAmountOut?: string;
+    minAmountsOut?: string;
+    blockNumber?: number;
 }
 
 export interface ProxyTransaction {
@@ -252,7 +256,7 @@ export interface ProxyTransaction {
     txType: string;
     palletName: string;
     method: string;
-    params: ProxyParams;
+    params: ProxyParams | BatchProxyParams[];
 }
 
 export interface ProxyParams {
@@ -264,6 +268,12 @@ export interface ProxyParams {
     splitFeeProxyProof?: any;
     paymentInfo?: PaymentInfo;
     currencyToken: string;
+}
+
+export interface BatchProxyParams {
+    palletName: string;
+    method:string;
+    params: ProxyParams
 }
 
 export interface Transaction {

@@ -133,6 +133,8 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getNodeManagerConfig(call, request)
       case 'getNodeManagerInfo':
       return await getNodeManagerInfo(call, request)
+    case 'getPools':
+      return await getPools(call, request)
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -423,6 +425,14 @@ async function getNodeManagerInfo(call: Call, request: string): Promise<ValidRes
   const method = 'getNodeManagerInfo';
   let result = await query(call, request, method);
   console.info(`Node manager info: ${result}`);
+
+  return result;
+}
+
+async function getPools(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const method = 'pools';
+  let result = await query(call, request, method);
+  console.info(`NeoSwaps pools: ${result}`);
 
   return result;
 }

@@ -816,41 +816,75 @@ function validateSignData(signData: SignDataItem[]): void {
 }
 
 async function processProxyExitWithFees(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
-  const validationError = validateProxyCallParams(call, request);
-  if (validationError) return validationError;
-
-  const { relayer, user, proxySignature, currencyToken, marketId, poolSharesAmountOut, minAmountsOut, blockNumber } = call.params;
-  const proxyProof = getProxyProof(user, relayer, proxySignature);
-
-  const withdrawFeesPaymentInfo = await setupPaymentInfo(call, proxyProof, requestId, 'neoSwaps', 'signedWithdrawFees');//await getPaymentInfo(call, proxyProof, requestId, 'neoSwaps', 'signedWithdrawFees')
-  const exitPaymentInfo = await setupPaymentInfo(call, proxyProof, requestId, 'neoSwaps', 'signedExit');//await getPaymentInfo(call, proxyProof, requestId, 'neoSwaps', 'signedExit')
-
-  const withdrawFeesCall: BatchProxyParams = {
-    palletName: 'neoSwaps',
-    method: 'signedWithdrawFees',
-    params: {
-      proxyParams: [proxyProof, marketId, blockNumber],
-      relayerAddress: relayer,
-      currencyToken: currencyToken,
-      paymentInfo: withdrawFeesPaymentInfo.paymentInfo
-    }
-  };
-
-  const exitCall: BatchProxyParams = {
-    palletName: 'neoSwaps',
-    method: 'signedExit',
-    params: {
-      proxyParams: [proxyProof, marketId, poolSharesAmountOut, minAmountsOut, blockNumber],
-      relayerAddress: relayer,
-      currencyToken: currencyToken,
-      paymentInfo: exitPaymentInfo.paymentInfo
-    }
-  };
-
-  const batchCalls = [withdrawFeesCall, exitCall];
-
-  return await sendTx(call, request, requestId, 'utility', 'batchAll', batchCalls);
-}
+   // Extract params from the nested structure
+   // @ts-expect-error
+   const { exitMarketParams, withdrawFeeParams } = call.params;
+  
+   // Validate the required parameters exist
+   if (!exitMarketParams || !withdrawFeeParams) {
+     return buildErrorBody('params', 'Missing required parameters', 'exitMarketParams or withdrawFeeParams', request, call.id);
+   }
+   
+   // The validation needs the parameters at the top level, so extract what we need
+   const exitCall = {
+     ...call,
+     params: {
+       ...exitMarketParams,
+       currencyToken: exitMarketParams.currencyToken
+     }
+   };
+   
+   const withdrawCall = {
+     ...call,
+     params: {
+       ...withdrawFeeParams,
+       currencyToken: withdrawFeeParams.currencyToken
+     }
+   };
+   
+   // Validate parameters for both operations
+   const exitValidationError = validateProxyCallParams(exitCall, request);
+   if (exitValidationError) return exitValidationError;
+   
+   const withdrawValidationError = validateProxyCallParams(withdrawCall, request);
+   if (withdrawValidationError) return withdrawValidationError;
+   
+   // Extract the common parameters
+   const { relayer, user, proxySignature, currencyToken, marketId, blockNumber } = exitMarketParams;
+   const proxyProof = getProxyProof(user, relayer, proxySignature);
+   
+   // Get payment info for both operations
+   const withdrawFeesPaymentInfo = await setupPaymentInfo(withdrawCall, getProxyProof(withdrawFeeParams.user, withdrawFeeParams.relayer, withdrawFeeParams.proxySignature), requestId, 'neoSwaps', 'signedWithdrawFees');
+   const exitPaymentInfo = await setupPaymentInfo(exitCall, proxyProof, requestId, 'neoSwaps', 'signedExit');
+   
+   // Create the batch calls
+   const withdrawFeesCallParams: BatchProxyParams = {
+     palletName: 'neoSwaps',
+     method: 'signedWithdrawFees',
+     params: {
+       proxyParams: [getProxyProof(withdrawFeeParams.user, withdrawFeeParams.relayer, withdrawFeeParams.proxySignature), marketId, blockNumber],
+       relayerAddress: relayer,
+       currencyToken: currencyToken,
+       paymentInfo: withdrawFeesPaymentInfo.paymentInfo
+     }
+   };
+   
+   const exitCallParams: BatchProxyParams = {
+     palletName: 'neoSwaps',
+     method: 'signedExit',
+     params: {
+       proxyParams: [proxyProof, marketId, exitMarketParams.poolSharesAmountOut, exitMarketParams.minAmountsOut, blockNumber],
+       relayerAddress: relayer,
+       currencyToken: currencyToken,
+       paymentInfo: exitPaymentInfo.paymentInfo
+     }
+   };
+   
+   const batchCalls = [withdrawFeesCallParams, exitCallParams];
+   
+   // Send the transaction
+   return await sendTx(call, request, requestId, 'utility', 'batchAll', batchCalls);
+ }
 
 function validateProxyCallParams(call: ProxyCall, request: string): ErrorBody | null {
   const { relayer, user, payer, proxySignature, currencyToken } = call.params;

@@ -854,20 +854,20 @@ async function setupPaymentInfo(
     paymentInfo.paymentInfo = paymentData;
   }
 
-  validatePaymentInfo(paymentInfo, call, pallet, method);
+  // validatePaymentInfo(paymentInfo, call, pallet, method);
 
   return paymentInfo;
 }
 
-function validatePaymentInfo(paymentInfo: PaymentInfo, call: ProxyCall, pallet: string, method: string): void {
-  if (isSplitFeeTransaction(call)) {
-    if (!paymentInfo.splitFeePayerAddress || !paymentInfo.splitFeePayerVaultId ||
-      !paymentInfo.relayerFees || !paymentInfo.splitFeeProxyProof) {
-      throw new Error(`Incomplete split fee payment info for ${pallet}.${method}`);
-    }
-  } else {
-    if (!paymentInfo.paymentInfo) {
-      throw new Error(`Missing payment info for ${pallet}.${method}`);
-    }
-  }
-}
+// function validatePaymentInfo(paymentInfo: PaymentInfo, call: ProxyCall, pallet: string, method: string): void {
+//   if (isSplitFeeTransaction(call)) {
+//     if (!paymentInfo.splitFeePayerAddress || !paymentInfo.splitFeePayerVaultId ||
+//       !paymentInfo.relayerFees || !paymentInfo.splitFeeProxyProof) {
+//       throw new Error(`Incomplete split fee payment info for ${pallet}.${method}`);
+//     }
+//   } else {
+//     if (!paymentInfo.paymentInfo) {
+//       throw new Error(`Missing payment info for ${pallet}.${method}`);
+//     }
+//   }
+// }

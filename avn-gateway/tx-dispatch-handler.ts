@@ -852,17 +852,20 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
    // Extract the common parameters
    const { relayer, user, proxySignature, currencyToken, marketId, blockNumber } = exitMarketParams;
    const proxyProof = getProxyProof(user, relayer, proxySignature);
+
+   const withdrawFeeProof = getProxyProof(withdrawFeeParams.user, withdrawFeeParams.relayer, withdrawFeeParams.proxySignature)
+   const exitProof = getProxyProof(exitMarketParams.user, exitMarketParams.relayer, exitMarketParams.proxySignature)
    
    // Get payment info for both operations
-   const withdrawFeesPaymentInfo = await setupPaymentInfo(withdrawCall, getProxyProof(withdrawFeeParams.user, withdrawFeeParams.relayer, withdrawFeeParams.proxySignature), requestId, 'neoSwaps', 'signedWithdrawFees');
-   const exitPaymentInfo = await setupPaymentInfo(exitCall, proxyProof, requestId, 'neoSwaps', 'signedExit');
+   const withdrawFeesPaymentInfo = await setupPaymentInfo(withdrawCall, withdrawFeeProof, requestId, 'neoSwaps', 'signedWithdrawFees');
+   const exitPaymentInfo = await setupPaymentInfo(exitCall, exitProof, requestId, 'neoSwaps', 'signedExit');
    
    // Create the batch calls
    const withdrawFeesCallParams: BatchProxyParams = {
      palletName: 'neoSwaps',
      method: 'signedWithdrawFees',
      params: {
-       proxyParams: [getProxyProof(withdrawFeeParams.user, withdrawFeeParams.relayer, withdrawFeeParams.proxySignature), marketId, blockNumber],
+       proxyParams: [withdrawFeeProof, marketId, blockNumber],
        relayerAddress: relayer,
        currencyToken: currencyToken,
        paymentInfo: withdrawFeesPaymentInfo.paymentInfo
@@ -873,7 +876,7 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
      palletName: 'neoSwaps',
      method: 'signedExit',
      params: {
-       proxyParams: [proxyProof, marketId, exitMarketParams.poolSharesAmountOut, exitMarketParams.minAmountsOut, blockNumber],
+       proxyParams: [exitProof, marketId, exitMarketParams.poolSharesAmountOut, exitMarketParams.minAmountsOut, blockNumber],
        relayerAddress: relayer,
        currencyToken: currencyToken,
        paymentInfo: exitPaymentInfo.paymentInfo

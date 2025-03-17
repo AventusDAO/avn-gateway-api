@@ -396,7 +396,6 @@ async function getEthereumEventStatus(call: Call, request: string): Promise<any 
   const { txHash } = call.params;
   let response: any = await query(call, request, method, { txHash });
 
-  console.info(`Checked Ethereum event status: ${JSON.stringify(response)}`);
 
   if (response.result) {
     return { result: response.result.liftStatus };
@@ -408,7 +407,6 @@ async function getEthereumEventStatus(call: Call, request: string): Promise<any 
 async function getPredictionMarketConstants(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'getPredictionMarketConstants';
   let result = await query(call, request, method);
-  console.info(`Prediction market constants: ${result}`);
 
   return result;
 }
@@ -416,7 +414,6 @@ async function getPredictionMarketConstants(call: Call, request: string): Promis
 async function getNodeManagerConfig(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'getNodeManagerConfig';
   let result = await query(call, request, method);
-  console.info(`Node manager config: ${result}`);
 
   return result;
 }
@@ -424,7 +421,6 @@ async function getNodeManagerConfig(call: Call, request: string): Promise<ValidR
 async function getNodeManagerInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'getNodeManagerInfo';
   let result = await query(call, request, method);
-  console.info(`Node manager info: ${result}`);
 
   return result;
 }
@@ -432,7 +428,6 @@ async function getNodeManagerInfo(call: Call, request: string): Promise<ValidRes
 async function getPools(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'pools';
   let result = await query(call, request, method);
-  console.info(`NeoSwaps pools: ${result}`);
 
   return result;
 }

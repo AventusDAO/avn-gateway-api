@@ -803,19 +803,17 @@ function validateSignData(signData: SignDataItem[]): void {
 }
 
 async function processProxyExitWithFees(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
-   // Extract params from the nested structure
   if(!Array.isArray(call.params)) {
     return buildErrorBody('params', 'Expected multiple transactions', '', request, call.id);
   }
-
+  // the ordering of the array objects is important - they go into the batch in that order
+  // we can't use an object because we need to support other batch calls
    const [ withdrawFeeParams, exitMarketParams ] = call.params;
   
-   // Validate the required parameters exist
    if (!exitMarketParams || !withdrawFeeParams) {
      return buildErrorBody('params', 'Missing required parameters', 'exitMarketParams or withdrawFeeParams', request, call.id);
    }
    
-   // The validation needs the parameters at the top level, so extract what we need
    const exitCall = {
      ...call,
      params: {
@@ -832,25 +830,21 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
      }
    };
    
-   // Validate parameters for both operations
    const exitValidationError = validateProxyCallParams(exitCall, request);
    if (exitValidationError) return exitValidationError;
    
    const withdrawValidationError = validateProxyCallParams(withdrawCall, request);
    if (withdrawValidationError) return withdrawValidationError;
    
-   // Extract the common parameters
    const { relayer, user, proxySignature, currencyToken, marketId, blockNumber } = exitMarketParams;
    const proxyProof = getProxyProof(user, relayer, proxySignature);
 
    const withdrawFeeProof = getProxyProof(withdrawFeeParams.user, withdrawFeeParams.relayer, withdrawFeeParams.proxySignature)
    const exitProof = getProxyProof(exitMarketParams.user, exitMarketParams.relayer, exitMarketParams.proxySignature)
    
-   // Get payment info for both operations
    const withdrawFeesPaymentInfo = await setupPaymentInfo(withdrawCall, withdrawFeeProof, requestId, 'neoSwaps', 'signedWithdrawFees');
    const exitPaymentInfo = await setupPaymentInfo(exitCall, exitProof, requestId, 'neoSwaps', 'signedExit');
    
-   // Create the batch calls
    const withdrawFeesCallParams: BatchProxyParams = {
      palletName: 'neoSwaps',
      method: 'signedWithdrawFees',
@@ -875,7 +869,6 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
    
    const batchCalls = [withdrawFeesCallParams, exitCallParams];
    
-   // Send the transaction
    return await sendTx(call, request, requestId, 'utility', 'batchAll', batchCalls);
  }
 
@@ -943,7 +936,6 @@ async function setupPaymentInfo(
 
     paymentInfo.paymentInfo = paymentData;
   }
-
 
   return paymentInfo;
 }

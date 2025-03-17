@@ -22,6 +22,14 @@ import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-
 const AVN_CONNECTOR_ENDPOINT: string = process.env.AVN_CONNECTOR_ENDPOINT || '';
 const SQS_TX_QUEUE_URL: string = process.env.SQS_TX_QUEUE_URL || '';
 
+interface PaymentInfo {
+  paymentInfo?: any;
+  splitFeePayerAddress?: string;
+  splitFeePayerVaultId?: string;
+  relayerFees?: any;
+  splitFeeProxyProof?: ProxyProof;
+}
+
 export const handler: CustomSQSHandler = async (event: SQSEvent, context: Context): Promise<APIGatewayProxyResult | SQSBatchResponse> => {
   await init();
   let processedMessagesCount = 0;

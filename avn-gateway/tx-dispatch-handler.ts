@@ -22,6 +22,14 @@ import { SQSEvent, Context, SQSBatchResponse, APIGatewayProxyResult } from 'aws-
 const AVN_CONNECTOR_ENDPOINT: string = process.env.AVN_CONNECTOR_ENDPOINT || '';
 const SQS_TX_QUEUE_URL: string = process.env.SQS_TX_QUEUE_URL || '';
 
+interface PaymentInfo {
+  paymentInfo?: any;
+  splitFeePayerAddress?: string;
+  splitFeePayerVaultId?: string;
+  relayerFees?: any;
+  splitFeeProxyProof?: ProxyProof;
+}
+
 export const handler: CustomSQSHandler = async (event: SQSEvent, context: Context): Promise<APIGatewayProxyResult | SQSBatchResponse> => {
   await init();
   let processedMessagesCount = 0;
@@ -165,13 +173,23 @@ async function processProxyMethod(
   const { relayer, user, proxySignature, currencyToken } = call.params;
   const proxyProof: ProxyProof = getProxyProof(user, relayer, proxySignature);
 
+
+  const paymentInfo = await getPaymentInfo(call, proxyProof, requestId, pallet, method);
+
   const params: ProxyParams = {
     proxyParams: [proxyProof].concat(methodParams),
     relayerAddress: relayer,
     currencyToken
   };
 
-  await setupPaymentInfo(call, proxyProof, requestId, pallet, method, params, methodParams);
+  if (isSplitFeeTransaction(call)) {
+    params.splitFeePayerAddress = paymentInfo.splitFeePayerAddress;
+    params.splitFeePayerVaultId = paymentInfo.splitFeePayerVaultId;
+    params.relayerFees = paymentInfo.relayerFees;
+    params.splitFeeProxyProof = paymentInfo.splitFeeProxyProof;
+  } else {
+    params.paymentInfo = paymentInfo.paymentInfo;
+  }
 
   return await sendTx(call, request, requestId, pallet, method, params);
 }
@@ -848,18 +866,27 @@ async function setupPaymentInfo(
   call: ProxyCall,
   proxyProof: ProxyProof,
   requestId: string,
-  pallet:string,
-  method:string,
+  pallet: string,
+  method: string,
   params?: ProxyParams,
   methodParams?: any[]
-): Promise<void> {
+): Promise<PaymentInfo> {
+  if (!call || !proxyProof || !requestId) {
+    throw new Error('Missing required parameters for payment setup');
+  }
+
   const { relayer, user, payer, proxySignature, currencyToken } = call.params;
+  const paymentInfo: PaymentInfo = {};
 
   if (isSplitFeeTransaction(call)) {
-    params.splitFeePayerAddress = call.splitFeePayerAddress;
-    params.splitFeePayerVaultId = call.splitFeePayerVaultId;
-    params.relayerFees = call.relayerFee;
-    params.splitFeeProxyProof = proxyProof;
+    if (!call.splitFeePayerAddress || !call.splitFeePayerVaultId || !call.relayerFee) {
+      throw new Error('Missing required split fee transaction parameters');
+    }
+
+    paymentInfo.splitFeePayerAddress = call.splitFeePayerAddress;
+    paymentInfo.splitFeePayerVaultId = call.splitFeePayerVaultId;
+    paymentInfo.relayerFees = call.relayerFee;
+    paymentInfo.splitFeeProxyProof = proxyProof;
 
     const eventType = WEBHOOK_EVENT_TYPES.tx_ready;
     await publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, call.splitFeePayerAddress, {
@@ -872,7 +899,11 @@ async function setupPaymentInfo(
       currencyToken
     });
   } else {
-    const paymentInfo = await fees.tryGetPaymentInfo(
+    if (!call.params.feePaymentSignature || !call.params.paymentNonce) {
+      throw new Error('Missing required standard payment parameters');
+    }
+
+    const paymentData = await fees.tryGetPaymentInfo(
       AVN_CONNECTOR_ENDPOINT,
       payer,
       relayer,
@@ -883,7 +914,24 @@ async function setupPaymentInfo(
       currencyToken,
     );
 
-    params.paymentInfo = paymentInfo;
+    paymentInfo.paymentInfo = paymentData;
+  }
+
+  validatePaymentInfo(paymentInfo, call, pallet, method);
+
+  return paymentInfo;
+}
+
+function validatePaymentInfo(paymentInfo: PaymentInfo, call: ProxyCall, pallet: string, method: string): void {
+  if (isSplitFeeTransaction(call)) {
+    if (!paymentInfo.splitFeePayerAddress || !paymentInfo.splitFeePayerVaultId ||
+      !paymentInfo.relayerFees || !paymentInfo.splitFeeProxyProof) {
+      throw new Error(`Incomplete split fee payment info for ${pallet}.${method}`);
+    }
+  } else {
+    if (!paymentInfo.paymentInfo) {
+      throw new Error(`Missing payment info for ${pallet}.${method}`);
+    }
   }
 }
 
@@ -894,8 +942,10 @@ async function getPaymentInfo(
   pallet: string,
   method: string
 ): Promise<any> {
-  const paymentInfo: any = {};
-  await setupPaymentInfo(call, proxyProof, requestId, pallet, method, paymentInfo)
-
-  return paymentInfo;
+  try {
+    return await setupPaymentInfo(call, proxyProof, requestId, pallet, method);
+  } catch (error) {
+    console.error(`Failed to get payment information for ${pallet}.${method}: ${error.message}`);
+    throw error;
+  }
 }

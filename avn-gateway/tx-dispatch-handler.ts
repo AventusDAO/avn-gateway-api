@@ -187,6 +187,16 @@ async function processProxyMethod(
     params.splitFeePayerVaultId = paymentInfo.splitFeePayerVaultId;
     params.relayerFees = paymentInfo.relayerFees;
     params.splitFeeProxyProof = paymentInfo.splitFeeProxyProof;
+    const eventType = WEBHOOK_EVENT_TYPES.tx_ready;
+    await publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, call.splitFeePayerAddress, {
+      relayer,
+      user,
+      proxySignature,
+      pallet,
+      method,
+      methodParams,
+      currencyToken
+    });
   } else {
     params.paymentInfo = paymentInfo.paymentInfo;
   }
@@ -888,16 +898,6 @@ async function setupPaymentInfo(
     paymentInfo.relayerFees = call.relayerFee;
     paymentInfo.splitFeeProxyProof = proxyProof;
 
-    const eventType = WEBHOOK_EVENT_TYPES.tx_ready;
-    await publishEvent(AVN_CONNECTOR_ENDPOINT, eventType, requestId, call.splitFeePayerAddress, {
-      relayer,
-      user,
-      proxySignature,
-      pallet,
-      method,
-      methodParams,
-      currencyToken
-    });
   } else {
     if (!call.params.feePaymentSignature || !call.params.paymentNonce) {
       throw new Error('Missing required standard payment parameters');
@@ -917,23 +917,10 @@ async function setupPaymentInfo(
     paymentInfo.paymentInfo = paymentData;
   }
 
-  validatePaymentInfo(paymentInfo, call, pallet, method);
 
   return paymentInfo;
 }
 
-function validatePaymentInfo(paymentInfo: PaymentInfo, call: ProxyCall, pallet: string, method: string): void {
-  if (isSplitFeeTransaction(call)) {
-    if (!paymentInfo.splitFeePayerAddress || !paymentInfo.splitFeePayerVaultId ||
-      !paymentInfo.relayerFees || !paymentInfo.splitFeeProxyProof) {
-      throw new Error(`Incomplete split fee payment info for ${pallet}.${method}`);
-    }
-  } else {
-    if (!paymentInfo.paymentInfo) {
-      throw new Error(`Missing payment info for ${pallet}.${method}`);
-    }
-  }
-}
 
 async function getPaymentInfo(
   call: ProxyCall,

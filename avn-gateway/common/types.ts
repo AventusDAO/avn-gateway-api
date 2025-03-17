@@ -101,6 +101,7 @@ export type TransactionType = 'proxyAvtTransfer' |
     'proxyBuy' |
     'proxyWithdrawAsset'|
     'proxyExitPredictionMarketLiquidity'|
+    'proxyWithdrawPredictionMarketLiquidityFees'|
     'proxyWithdrawFees'
 
 export interface RPCError {

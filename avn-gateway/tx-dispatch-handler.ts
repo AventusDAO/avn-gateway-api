@@ -108,7 +108,7 @@ async function validateAndProcessCall(call: ProxyCall, request: string, requestI
 async function callSwitch(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
   console.info(`${requestId} - Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
 
-  if (call.method === 'proxyExitPredictionMarketLiquidity') {
+  if (call.method === 'proxyExitPredictionMarketLiquidity' || call.method === 'BatchTransaction') {
     return await processProxyExitWithFees(call, request, requestId);
   } else if (callConfigs[call.method]) {
     return await processProxyCall(call.method, call, request, requestId);

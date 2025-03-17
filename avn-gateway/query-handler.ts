@@ -432,7 +432,6 @@ async function getNodeManagerInfo(call: Call, request: string): Promise<ValidRes
 async function getPools(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'pools';
   let result = await query(call, request, method);
-  console.info(`NeoSwaps pools: ${result}`);
 
   return result;
 }

@@ -822,7 +822,7 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
       proxyParams: [proxyProof, marketId, blockNumber],
       relayerAddress: relayer,
       currencyToken: currencyToken,
-      paymentInfo: withdrawFeesPaymentInfo
+      paymentInfo: withdrawFeesPaymentInfo.paymentInfo
     }
   };
 
@@ -833,7 +833,7 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
       proxyParams: [proxyProof, marketId, poolSharesAmountOut, minAmountsOut, blockNumber],
       relayerAddress: relayer,
       currencyToken: currencyToken,
-      paymentInfo: exitPaymentInfo
+      paymentInfo: exitPaymentInfo.paymentInfo
     }
   };
 

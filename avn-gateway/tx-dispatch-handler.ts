@@ -773,20 +773,7 @@ const callConfigs: { [key: string]: CallConfig } = {
       { BlockNumber: blockNumber },
     ]
   },
-  'proxyExit': {
-    pallet: 'neoSwaps',
-    method: 'signedExit',
-    buildMethodParams: ({ marketId, poolSharesAmountOut, minAmountsOut, blockNumber }) => [marketId, poolSharesAmountOut, minAmountsOut, blockNumber],
-    buildSignData: ({ relayer, marketId, poolSharesAmountOut, minAmountsOut, blockNumber }) => [
-      { Text: 'neo_swap::exit_context' },
-      { AccountId: relayer },
-      { u128: marketId },
-      { BalanceOf: poolSharesAmountOut },
-      { 'Vec<BalanceOf>': minAmountsOut },
-      { BlockNumber: blockNumber },
-    ]
-  },
-  'proxyWithdrawFees': {
+  'proxyWithdrawPredictionMarketLiquidityFees': {
     pallet: 'neoSwaps',
     method: 'signedWithdrawFees',
     buildMethodParams: ({ marketId, blockNumber }) => [marketId, blockNumber],
@@ -821,7 +808,7 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
     return buildErrorBody('params', 'Expected multiple transactions', '', request, call.id);
   }
 
-   const [ exitMarketParams, withdrawFeeParams ] = call.params;
+   const [ withdrawFeeParams, exitMarketParams ] = call.params;
   
    // Validate the required parameters exist
    if (!exitMarketParams || !withdrawFeeParams) {

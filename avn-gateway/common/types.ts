@@ -100,7 +100,6 @@ export type TransactionType = 'proxyAvtTransfer' |
     'proxySell'|
     'proxyBuy' |
     'proxyWithdrawAsset'
-    
 
 export interface RPCError {
     parse: { code: number; message: string };

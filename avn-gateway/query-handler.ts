@@ -131,10 +131,10 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getCheckpointByOriginId(call, request)
     case 'getNodeManagerConfig':
       return await getNodeManagerConfig(call, request)
-      case 'getNodeManagerInfo':
+    case 'getNodeManagerInfo':
       return await getNodeManagerInfo(call, request)
-    case 'getPools':
-      return await getPools(call, request)
+    case 'getPredictionMarketLiquidityPoolInfo':
+      return await getPredictionMarketLiquidityPoolInfo(call, request)
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -425,8 +425,8 @@ async function getNodeManagerInfo(call: Call, request: string): Promise<ValidRes
   return result;
 }
 
-async function getPools(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
-  const method = 'pools';
+async function getPredictionMarketLiquidityPoolInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const method = 'getPredictionMarketLiquidityPoolInfo';
   let result = await query(call, request, method);
 
   return result;

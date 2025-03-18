@@ -60,9 +60,6 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
   let tx: Transaction;
   let requestId: string;
 
-  let relayer
-  let currencyToken
-
   try {
     tx = JSON.parse(request);
     requestId = tx.awsRequestId;
@@ -71,40 +68,32 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
     return buildErrorBody('parse', 'Failed to parse message as JSON', err.toString(), request, null);
   }
 
+  let relayer: string;
+  let currencyToken: string;
+
   try {
     console.info(`Processing split fee request: `, tx);
 
     if (isValidString(tx.splitFeePayerVaultId) === false) throw 'splitFeePayerVaultId';
     if (isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
-    if(Array.isArray(tx.params)) {
-      let nativeTokenCurrency = tx.params[0].currencyToken
-      if (!nativeTokenCurrency) {
-        nativeTokenCurrency = await getNativeCurrency();
-        if (!nativeTokenCurrency) throw new Error(`Unable to determine currency token`);
-      }
-      for(let i = 0; i < tx.params.length; i++) {
-        validateTransactionParams(tx.params[i]);
-        if (!tx.params[i].currencyToken) {
-          
-          tx.params[i].currencyToken = nativeTokenCurrency;
-        }
-        tx.params[i].payer = tx.splitFeePayerAddress;
-      }
-      relayer = tx.params[0].relayer
-      currencyToken = tx.params[0].currencyToken
-      
-    }else {
-      let nativeTokenCurrency = tx.params.currencyToken
-      if (!nativeTokenCurrency) {
-        nativeTokenCurrency = await getNativeCurrency();
-        if (!nativeTokenCurrency) throw new Error(`Unable to determine currency token`);
-      }
-      tx.params.payer = tx.splitFeePayerAddress;
-      tx.params.currencyToken = nativeTokenCurrency;
-      validateTransactionParams(tx.params);
-      relayer = tx.params.relayer
-      currencyToken = tx.params.currencyToken
+
+    if(!Array.isArray(tx.params)) {
+      tx.params = [tx.params];
     }
+
+    currencyToken = tx.params[0]?.currencyToken || await getNativeCurrency();
+    if (!currencyToken) throw new Error(`Unable to determine currency token`);
+
+    for(let i = 0; i < tx.params.length; i++) {
+      if (!tx.params[i].currencyToken) {
+        tx.params[i].currencyToken = currencyToken;
+      }
+
+      tx.params[i].payer = tx.splitFeePayerAddress;
+      validateTransactionParams(tx.params[i]);
+    }
+
+    relayer = tx.params[0]?.relayer
 
     if ((await payerCanPayForTransaction(tx.splitFeePayerAddress, tx.method, currencyToken)) === false) {
       // transaction has been rejected by payer, inform user
@@ -115,7 +104,7 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
     }
 
     const relayerFee = await getRelayerFee(AVN_CONNECTOR_ENDPOINT, relayer, tx.splitFeePayerAddress, tx.method, currencyToken);
-    
+
     tx.relayerFee = relayerFee;
 
     const data = await sqs.sendToQueue(SQS_DEFAULT_QUEUE_URL, tx);
@@ -135,7 +124,7 @@ function validateTransactionParams(params: TransactionParams): void {
   try {
     if (isValidAccountId(params.relayer) === false) throw 'relayer';
     if (isValidAccountId(params.user) === false) throw 'user';
-    
+
     if (isValidSignatureFormat(params.proxySignature) === false) throw 'proxy signature format';
     if (isValidCurrencyFormat(params.currencyToken) === false) throw 'currency token format';
   } catch (errParam) {

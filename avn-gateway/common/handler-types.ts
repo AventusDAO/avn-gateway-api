@@ -284,7 +284,7 @@ export interface Transaction {
     splitFeePayerAddress?: string,
     method?: TransactionType,
     relayerFee?: string,
-    params?: TransactionParams,
+    params?: TransactionParams | TransactionParams[],
     pallet?: string,
     currencyToken: string;
 }

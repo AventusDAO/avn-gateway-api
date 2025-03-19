@@ -164,6 +164,7 @@ export enum LiftStatuses {
   UNCHECKED_LIFT = 'UncheckedLift',
   PENDING_VALIDATION = 'PendingValidation',
   LIFT_PROCESSED = 'LiftProcessed',
+  LIFT_REJECTED = 'LiftRejected',
   LIFT_NOT_FOUND = 'LiftNotFound'
 }
 

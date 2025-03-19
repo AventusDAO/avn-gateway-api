@@ -353,6 +353,7 @@ async function getTotalToken(token: string): Promise<string> {
   return total;
 }
 
+// TODO: do we want to make this backwards compatible?
 async function ethereumEventStatus(
   transactionHash: string
 ): Promise<EthereumEventStatus> {
@@ -372,41 +373,10 @@ async function ethereumEventStatus(
     };
   }
 
-  await api.queryMulti(
-    [
-      api.query.ethereumEvents.uncheckedEvents,
-      api.query.ethereumEvents.eventsPendingChallenge
-    ],
-    ([rawUncheckedEvents, rawEventsPendingChallenge]) => {
-      let uncheckedEvents = rawUncheckedEvents.toJSON() as any;
-      if (
-        uncheckedEvents.find(
-          (t: any) => t.toJSON()[0].transactionHash === transactionHash
-        )
-      ) {
-        liftStatus = LiftStatuses.UNCHECKED_LIFT;
-      }
-      let eventsPendingChallenge = rawEventsPendingChallenge.toJSON() as any;
-      if (
-        eventsPendingChallenge.find(
-          (t: any) => t.toJSON()[0].transactionHash === transactionHash
-        )
-      ) {
-        liftStatus = LiftStatuses.PENDING_VALIDATION;
-      }
-    }
-  );
+  const eventProcessed = await api.query.ethBridge.processedEthereumEvents(transactionHash);
+  if (eventProcessed) {
+    liftStatus = (eventProcessed.toJSON() as any).accepted === true ? LiftStatuses.LIFT_PROCESSED : LiftStatuses.LIFT_REJECTED;
 
-  if (liftStatus !== LiftStatuses.LIFT_NOT_FOUND) {
-    return {
-      transactionHash,
-      liftStatus
-    };
-  }
-
-  const isProcessed = await api.query.ethereumEvents.processedEvents(liftEvent);
-  if (isProcessed) {
-    liftStatus = LiftStatuses.LIFT_PROCESSED;
     return {
       transactionHash,
       liftStatus

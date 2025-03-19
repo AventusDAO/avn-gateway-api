@@ -212,6 +212,7 @@ export interface CallParams {
     txHash?: string;
     predictionMarketAsset?: PredictionMarketAsset;
     originId?: string;
+    nodeId?: string;
 };
 
 type PredictionMarketAsset =

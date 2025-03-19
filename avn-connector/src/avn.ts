@@ -1129,12 +1129,43 @@ async function nodeManagerInfo(): Promise<NodeManagerInfo> {
 
   const currentRewardPeriodObj = (currentRewardPeriod.toJSON() as unknown) as NodeManagerRewardPeriodInfo;
   const currentRewardPeriodIndex = new BN(currentRewardPeriodObj.current).toNumber();
+  const totalLiveNodes = await getTotalLiveNodes();
 
   return {
     currentRewardPeriodIndex,
     oldestUnpaidRewardPeriodIndex: new BN(oldestUnpaidRewardPeriodIndex.toString()).toNumber(),
     totalRegisteredNodes: new BN(totalRegisteredNodes.toString()).toNumber(),
+    totalLiveNodes
   }
+}
+
+async function getTotalLiveNodes(): Promise<number> {
+  const pageSize = 500;
+  let lastKey;
+  const distinctSecondKeys = new Set<string>();
+
+  while (true) {
+    const keys: any[] = await api.query.nodeManager.nodeUptime.keysPaged({
+      pageSize,
+      startKey: lastKey,
+      args: []
+    });
+
+    if (!keys.length) {
+      break; // No more keys to fetch
+    }
+
+    for (const key of keys) {
+      // In a double map, key.args[0] is the first key, key.args[1] is the second.
+      if (key.args && key.args.length >= 2) {
+        distinctSecondKeys.add(key.args[1].toString());
+      }
+    }
+
+    lastKey = keys[keys.length - 1];
+  }
+
+  return distinctSecondKeys.size;
 }
 
 function deriveNodeManagerPalletAccount(palletIdHex: string) {

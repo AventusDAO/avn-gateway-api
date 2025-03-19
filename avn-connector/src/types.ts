@@ -196,6 +196,7 @@ export interface NodeManagerInfo {
   currentRewardPeriodIndex: number,
   oldestUnpaidRewardPeriodIndex: number,
   totalRegisteredNodes: number,
+  totalLiveNodes: number,
 }
 
 export interface NodeManagerRewardPeriodInfo {

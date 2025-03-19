@@ -212,6 +212,7 @@ export interface CallParams {
     txHash?: string;
     predictionMarketAsset?: PredictionMarketAsset;
     originId?: string;
+    nodeId?: string;
 };
 
 type PredictionMarketAsset =
@@ -284,7 +285,7 @@ export interface Transaction {
     splitFeePayerAddress?: string,
     method?: TransactionType,
     relayerFee?: string,
-    params?: TransactionParams,
+    params?: TransactionParams | TransactionParams[],
     pallet?: string,
     currencyToken: string;
 }

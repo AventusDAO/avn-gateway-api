@@ -917,7 +917,7 @@ async function setupPaymentInfo(
     paymentInfo.splitFeeProxyProof = proxyProof;
 
   } else {
-    if (!call.params.feePaymentSignature || !call.params.paymentNonce) {
+    if (!call.params.feePaymentSignature || call.params.paymentNonce === undefined || call.params.paymentNonce === null) {
       throw new Error('Missing required standard payment parameters');
     }
 

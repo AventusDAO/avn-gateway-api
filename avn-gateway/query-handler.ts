@@ -563,12 +563,12 @@ async function getCheckpointByOriginId(call: Call, request: string): Promise<Val
 }
 
 async function getNodeStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
-  const { nodeId } = call.params;
+  const { nodeId, rewardPeriod } = call.params;
 
   if (!isValidAccountId(nodeId)) {
     return buildErrorBody('params', 'invalid node ID', nodeId, request, call.id);
   } else {
-    return await queryChain(call, request, 'nodeManager', 'nodeUptime', [nodeId], formatAsNodeStatus);
+    return await queryChain(call, request, 'nodeManager', 'nodeUptime', [rewardPeriod, nodeId], formatAsNodeStatus);
   }
 }
 

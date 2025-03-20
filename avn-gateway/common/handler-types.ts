@@ -213,6 +213,7 @@ export interface CallParams {
     predictionMarketAsset?: PredictionMarketAsset;
     originId?: string;
     nodeId?: string;
+    rewardPeriod?: number;
 };
 
 type PredictionMarketAsset =

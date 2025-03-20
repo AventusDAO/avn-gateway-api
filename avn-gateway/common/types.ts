@@ -34,6 +34,7 @@ export type SignDataItem = | { Text: string }
     | { 'Vec<u128>': Vec<u128> }
     | { 'Vec<BalanceOf>': Vec<BalanceOf> }
     | { 'Compact<BalanceOf>': Compact<BalanceOf>}
+    | { 'Compact<u128>': Compact<u128>}
     | { 'Strategy': string }
     | { H256: H256; }
     | { U256: U256 }
@@ -98,7 +99,10 @@ export type TransactionType = 'proxyAvtTransfer' |
     'proxyTransferAsset'|
     'proxySell'|
     'proxyBuy' |
-    'proxyWithdrawAsset'
+    'proxyWithdrawAsset'|
+    'proxyExitPredictionMarketLiquidity'|
+    'proxyWithdrawPredictionMarketLiquidityFees'|
+    'BatchTransaction'
 
 export interface RPCError {
     parse: { code: number; message: string };

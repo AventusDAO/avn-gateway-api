@@ -353,60 +353,16 @@ async function getTotalToken(token: string): Promise<string> {
   return total;
 }
 
+// TODO: do we want to make this backwards compatible?
 async function ethereumEventStatus(
   transactionHash: string
 ): Promise<EthereumEventStatus> {
-  const { avnContract } = await getChainInfo();
-  const { liftEvents } = await tier1.getLiftEvents(avnContract);
+  let liftStatus = LiftStatuses.AWAITING_TO_RECEIVE;
 
-  const liftEvent = liftEvents.find(
-    (liftEvent: any) => liftEvent[1] === transactionHash
-  );
+  const eventProcessed = await api.query.ethBridge.processedEthereumEvents(transactionHash);
+  if (eventProcessed) {
+    liftStatus = (eventProcessed.toJSON() as any).accepted === true ? LiftStatuses.LIFT_PROCESSED : LiftStatuses.LIFT_REJECTED;
 
-  let liftStatus = LiftStatuses.LIFT_NOT_FOUND;
-
-  if (!liftEvent) {
-    return {
-      transactionHash,
-      liftStatus
-    };
-  }
-
-  await api.queryMulti(
-    [
-      api.query.ethereumEvents.uncheckedEvents,
-      api.query.ethereumEvents.eventsPendingChallenge
-    ],
-    ([rawUncheckedEvents, rawEventsPendingChallenge]) => {
-      let uncheckedEvents = rawUncheckedEvents.toJSON() as any;
-      if (
-        uncheckedEvents.find(
-          (t: any) => t.toJSON()[0].transactionHash === transactionHash
-        )
-      ) {
-        liftStatus = LiftStatuses.UNCHECKED_LIFT;
-      }
-      let eventsPendingChallenge = rawEventsPendingChallenge.toJSON() as any;
-      if (
-        eventsPendingChallenge.find(
-          (t: any) => t.toJSON()[0].transactionHash === transactionHash
-        )
-      ) {
-        liftStatus = LiftStatuses.PENDING_VALIDATION;
-      }
-    }
-  );
-
-  if (liftStatus !== LiftStatuses.LIFT_NOT_FOUND) {
-    return {
-      transactionHash,
-      liftStatus
-    };
-  }
-
-  const isProcessed = await api.query.ethereumEvents.processedEvents(liftEvent);
-  if (isProcessed) {
-    liftStatus = LiftStatuses.LIFT_PROCESSED;
     return {
       transactionHash,
       liftStatus
@@ -415,7 +371,7 @@ async function ethereumEventStatus(
 
   return {
     transactionHash,
-    liftStatus: LiftStatuses.AWAITING_TO_RECEIVE
+    liftStatus
   };
 }
 
@@ -1129,12 +1085,43 @@ async function nodeManagerInfo(): Promise<NodeManagerInfo> {
 
   const currentRewardPeriodObj = (currentRewardPeriod.toJSON() as unknown) as NodeManagerRewardPeriodInfo;
   const currentRewardPeriodIndex = new BN(currentRewardPeriodObj.current).toNumber();
+  const totalLiveNodes = await getTotalLiveNodes();
 
   return {
     currentRewardPeriodIndex,
     oldestUnpaidRewardPeriodIndex: new BN(oldestUnpaidRewardPeriodIndex.toString()).toNumber(),
     totalRegisteredNodes: new BN(totalRegisteredNodes.toString()).toNumber(),
+    totalLiveNodes
   }
+}
+
+async function getTotalLiveNodes(): Promise<number> {
+  const pageSize = 500;
+  let lastKey;
+  const distinctSecondKeys = new Set<string>();
+
+  while (true) {
+    const keys: any[] = await api.query.nodeManager.nodeUptime.keysPaged({
+      pageSize,
+      startKey: lastKey,
+      args: []
+    });
+
+    if (!keys.length) {
+      break; // No more keys to fetch
+    }
+
+    for (const key of keys) {
+      // In a double map, key.args[0] is the first key, key.args[1] is the second.
+      if (key.args && key.args.length >= 2) {
+        distinctSecondKeys.add(key.args[1].toString());
+      }
+    }
+
+    lastKey = keys[keys.length - 1];
+  }
+
+  return distinctSecondKeys.size;
 }
 
 function deriveNodeManagerPalletAccount(palletIdHex: string) {

@@ -65,7 +65,16 @@ async function sendMessageToDefaultQueue(tx: Transaction, awsRequestId: string):
 }
 
 async function sendMessageToPayerQueue(tx: Transaction, request: string, awsRequestId: string, authoriserContext: ValidRequestContext): Promise<any> {
-  if (tx.params && tx.params.feePaymentSignature) throw new Error('Split fee transaction already contains payment info');
+  if (tx.params) {
+    const hasFeePaymentSignature = Array.isArray(tx.params)
+      ? !!tx.params[0]?.feePaymentSignature
+      : !!tx.params.feePaymentSignature;
+
+    if (hasFeePaymentSignature) {
+      throw new Error('Split fee transaction already contains payment info');
+    }
+  }
+
   tx.splitFeePayerId = authoriserContext.splitFeePayerId!;
   tx.splitFeePayerAddress = authoriserContext.splitFeePayerAddress!;
   tx.splitFeePayerVaultId = authoriserContext.splitFeePayerVaultId!;

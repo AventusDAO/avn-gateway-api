@@ -131,8 +131,10 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getCheckpointByOriginId(call, request)
     case 'getNodeManagerConfig':
       return await getNodeManagerConfig(call, request)
-      case 'getNodeManagerInfo':
+    case 'getNodeManagerInfo':
       return await getNodeManagerInfo(call, request)
+    case 'getNodeStatus':
+      return await getNodeStatus(call, request)
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -394,7 +396,6 @@ async function getEthereumEventStatus(call: Call, request: string): Promise<any 
   const { txHash } = call.params;
   let response: any = await query(call, request, method, { txHash });
 
-  console.info(`Checked Ethereum event status: ${JSON.stringify(response)}`);
 
   if (response.result) {
     return { result: response.result.liftStatus };
@@ -406,7 +407,6 @@ async function getEthereumEventStatus(call: Call, request: string): Promise<any 
 async function getPredictionMarketConstants(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'getPredictionMarketConstants';
   let result = await query(call, request, method);
-  console.info(`Prediction market constants: ${result}`);
 
   return result;
 }
@@ -414,7 +414,6 @@ async function getPredictionMarketConstants(call: Call, request: string): Promis
 async function getNodeManagerConfig(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'getNodeManagerConfig';
   let result = await query(call, request, method);
-  console.info(`Node manager config: ${result}`);
 
   return result;
 }
@@ -422,7 +421,6 @@ async function getNodeManagerConfig(call: Call, request: string): Promise<ValidR
 async function getNodeManagerInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const method = 'getNodeManagerInfo';
   let result = await query(call, request, method);
-  console.info(`Node manager info: ${result}`);
 
   return result;
 }
@@ -564,6 +562,16 @@ async function getCheckpointByOriginId(call: Call, request: string): Promise<Val
   return await queryChain(call,request, 'avnAnchor', 'originIdToCheckpoint', [chainId, originId]);
 }
 
+async function getNodeStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { nodeId, rewardPeriod } = call.params;
+
+  if (!isValidAccountId(nodeId)) {
+    return buildErrorBody('params', 'invalid node ID', nodeId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'nodeManager', 'nodeUptime', [rewardPeriod, nodeId], formatAsNodeStatus);
+  }
+}
+
 async function query(call: Call, request: string, method: string, params: object = {}, responseFormatter?: (data: any) => any): Promise<ValidResponse | ErrorBody> {
   try {
     const avnResponse = await axios.post(`${AVN_CONNECTOR_ENDPOINT}${method}`, params);
@@ -597,6 +605,8 @@ const filterNftOwner = data => (data ? data.owner : null);
 const filterAvnContract = data => (data ? data.avnContract : null);
 
 const filterAvtContract = data => (data ? data.avtContract : null);
+
+const formatAsNodeStatus = data => (data ? 'Live' : 'Offline');
 
 const formatListingAsString = data => {
   if (!data || data.toString() === 'Unknown') {

@@ -787,6 +787,18 @@ const callConfigs: { [key: string]: CallConfig } = {
       { u128: marketId },
       { BlockNumber: blockNumber },
     ]
+  },
+  'proxyBuyCompletePredictionMarketOutcomeTokens': {
+    pallet: 'predictionMarkets',
+    method: 'signedBuyCompleteSet',
+    buildMethodParams: ({ marketId, amount }) => [marketId, amount],
+    buildSignData: ({ relayer, nonce, marketId, amount }) => [
+      { Text: 'buy_complete_set_context' },
+      { AccountId: relayer },
+      { u64: nonce },
+      { u128: marketId },
+      { BalanceOf: amount },
+    ]
   }
 };
 

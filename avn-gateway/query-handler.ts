@@ -394,7 +394,7 @@ async function queryAccountInfoFromChain(call: Call, request: string, accountId:
 async function getEthereumEventStatus(call: Call, request: string): Promise<any | ErrorBody> {
   const method = 'ethereumEventStatus';
   const { txHash } = call.params;
-  let response: any = await query(call, request, method, { txHash });
+  let response: any = await query(call, request, method, { ethTransactionHash: txHash });
 
 
   if (response.result) {

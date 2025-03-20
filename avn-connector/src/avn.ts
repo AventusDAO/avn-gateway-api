@@ -357,21 +357,7 @@ async function getTotalToken(token: string): Promise<string> {
 async function ethereumEventStatus(
   transactionHash: string
 ): Promise<EthereumEventStatus> {
-  const { avnContract } = await getChainInfo();
-  const { liftEvents } = await tier1.getLiftEvents(avnContract);
-
-  const liftEvent = liftEvents.find(
-    (liftEvent: any) => liftEvent[1] === transactionHash
-  );
-
-  let liftStatus = LiftStatuses.LIFT_NOT_FOUND;
-
-  if (!liftEvent) {
-    return {
-      transactionHash,
-      liftStatus
-    };
-  }
+  let liftStatus = LiftStatuses.AWAITING_TO_RECEIVE;
 
   const eventProcessed = await api.query.ethBridge.processedEthereumEvents(transactionHash);
   if (eventProcessed) {
@@ -385,7 +371,7 @@ async function ethereumEventStatus(
 
   return {
     transactionHash,
-    liftStatus: LiftStatuses.AWAITING_TO_RECEIVE
+    liftStatus
   };
 }
 

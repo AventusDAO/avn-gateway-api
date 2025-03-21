@@ -70,6 +70,7 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
 
   let relayer: string;
   let currencyToken: string;
+  let isBatchCall = true;
 
   try {
     console.info(`Processing split fee request: `, tx);
@@ -78,6 +79,7 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
     if (isValidAccountId(tx.splitFeePayerAddress) === false) throw 'splitFeePayerAddress';
 
     if(!Array.isArray(tx.params)) {
+      isBatchCall = false;
       tx.params = [tx.params];
     }
 
@@ -106,6 +108,11 @@ async function processRequest(request: string): Promise<ValidResponse | ErrorBod
     const relayerFee = await getRelayerFee(AVN_CONNECTOR_ENDPOINT, relayer, tx.splitFeePayerAddress, tx.method, currencyToken);
 
     tx.relayerFee = relayerFee;
+
+    // Dispatch handler will error if param is an array for non batch calls
+    if (isBatchCall === false) {
+      tx.params = tx.params[0];
+    }
 
     const data = await sqs.sendToQueue(SQS_DEFAULT_QUEUE_URL, tx);
     const eventType = WEBHOOK_EVENT_TYPES.tx_queued;

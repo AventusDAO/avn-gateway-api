@@ -201,6 +201,11 @@ pipeline {
                                     sh 'npm run pollApiTest "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=pollApiTestReport;'
                                 }
                             }
+                            stage('Proxy api') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh 'npm run proxyApiTest "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=proxyApiTestReport;'
+                                }
+                            }
                             stage('Prediction Market') {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                     sh 'npm run predictionMarketTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=predictionMarketReport;'

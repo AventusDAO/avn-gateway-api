@@ -72,11 +72,6 @@ export interface PublishEventData {
     methodParams: any[];
 }
 
-export interface NonceInfo {
-    palletName: string;
-    storageName: string;
-}
-
 export interface TransactionEvent {
     name: string;
     args: any;
@@ -109,10 +104,6 @@ export interface CrossChainTxStatus {
     signature: string;
     transactionHash: string;
 }
-
-// export interface ErrorResponse {
-//     error: string
-// }
 
 export interface LowerResult {
     statusCode: StatusCode,
@@ -220,11 +211,14 @@ export interface CallParams {
     ethTokenAddress?: string;
     txHash?: string;
     predictionMarketAsset?: PredictionMarketAsset;
+    originId?: string;
+    nodeId?: string;
+    rewardPeriod?: number;
 };
 
-type PredictionMarketAsset = 
-  | { CategoricalOutcome: [string, string] }  
-  | { ForeignAsset: string };            
+type PredictionMarketAsset =
+  | { CategoricalOutcome: [string, string] }
+  | { ForeignAsset: string };
 
 export interface Call {
     id: string | null,
@@ -253,6 +247,10 @@ export interface ProxyCallParams {
     paymentNonce?: string;
     nonce?: string;
     currencyToken: string;
+    marketId?: number;
+    poolSharesAmountOut?: string;
+    minAmountsOut?: string;
+    blockNumber?: number;
 }
 
 export interface ProxyTransaction {
@@ -260,7 +258,7 @@ export interface ProxyTransaction {
     txType: string;
     palletName: string;
     method: string;
-    params: ProxyParams;
+    params: ProxyParams | BatchProxyParams[];
 }
 
 export interface ProxyParams {
@@ -274,6 +272,12 @@ export interface ProxyParams {
     currencyToken: string;
 }
 
+export interface BatchProxyParams {
+    palletName: string;
+    method:string;
+    params: ProxyParams
+}
+
 export interface Transaction {
     id: string,
     awsRequestId?: string,
@@ -282,7 +286,7 @@ export interface Transaction {
     splitFeePayerAddress?: string,
     method?: TransactionType,
     relayerFee?: string,
-    params?: TransactionParams,
+    params?: TransactionParams | TransactionParams[],
     pallet?: string,
     currencyToken: string;
 }

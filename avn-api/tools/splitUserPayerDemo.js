@@ -20,7 +20,7 @@ async function main() {
   // The user retrieves their token nonce,
   // then uses the api in offline mode to generate a signature for the transfer they wish to make
   await api.setSURI(user.seed);
-  let userTokenNonce = await jsonRpcRequest('query', 'getNonce', { accountId: user.address, nonceType: 'token' });
+  let userTokenNonce = await jsonRpcRequest('query', 'getUserNonce', { accountId: user.address, nonceType: 'token' });
   let userProxySignature = await userGeneratedProxyTokenTransferSignature(userTokenNonce);
 
   // We switch to the payer who takes the transfer signature the user generated,
@@ -31,7 +31,7 @@ async function main() {
     user: payer.address,
     transactionType: 'proxyTokenTransfer'
   });
-  let payerPaymentNonce = await jsonRpcRequest('query', 'getNonce', { accountId: payer.address, nonceType: 'payment' });
+  let payerPaymentNonce = await jsonRpcRequest('query', 'getUserNonce', { accountId: payer.address, nonceType: 'payment' });
   let payerFeePaymentSignature = await payerGeneratedFeePaymentSignature(
     userProxySignature,
     relayerFeeForPayer,

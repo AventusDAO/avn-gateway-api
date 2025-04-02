@@ -72,7 +72,7 @@ const nfts = helper.NFTS;
             nonceType: validNonceType
           },
           selectionField: undefined,
-          testFunction: api.query.getNonce
+          testFunction: api.query.getUserNonce
         };
         describe('With invalid account', async () => {
           testConfig.selectionField = 'account';

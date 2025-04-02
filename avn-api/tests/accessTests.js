@@ -83,8 +83,8 @@ describe('Access rights:', async () => {
 
       api = await avnGateway.apis(user);
       assert.equal(await api.query.getAvtBalance(existingUser), '0'); // confirm existingUser now holds no AVT
-      assert((await api.query.getNonce(existingUser, 'payment')) > 0);
-      assert((await api.query.getNonce(existingUser, 'token')) > 0);
+      assert((await api.query.getUserNonce(existingUser, 'payment')) > 0);
+      assert((await api.query.getUserNonce(existingUser, 'token')) > 0);
 
       api = await avnGateway.apis(existingUser);
       assert.equal(await canAccessTheGateway(api), true);
@@ -92,7 +92,7 @@ describe('Access rights:', async () => {
 
     it('a new split fee user can access the gateway if they have a valid payer', async () => {
       const splitFeeUserAddress = accounts.splitFeeUser.address;
-      assert((await api.query.getNonce(splitFeeUserAddress, 'payment')) === '0');
+      assert((await api.query.getUserNonce(splitFeeUserAddress, 'payment')) === '0');
 
       const splitFeeUserBalance = new BN(await api.query.getAvtBalance(splitFeeUserAddress));
       if (splitFeeUserBalance.gt(new BN(0))) {

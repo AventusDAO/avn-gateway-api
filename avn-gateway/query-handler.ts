@@ -14,6 +14,7 @@ const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL as string;
 export const handler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
   await init();
   return {
+    // TODO: Fix this to return 500 on error
     statusCode: 200,
     body: JSON.stringify(await processRequest(event.body))
   };
@@ -47,6 +48,8 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getUserNonce(call, request);
     case 'getAvtBalance':
       return await getAvtBalance(call, request);
+    case 'getNativeTokenBalanceInfo':
+      return await getNativeTokenBalanceInfo(call, request);
     case 'getAvtContractAddress':
       return await getAvtContractAddress(call, request);
     case 'getAvnContractAddress':
@@ -125,8 +128,10 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getPredictionMarketPoolInfo(call, request)
     case 'getPredictionMarketCounter':
       return await getPredictionMarketCounter(call, request)
-    case 'getPredictionMarketTokenBalance':
-      return await getPredictionMarketTokenBalance(call, request)
+    case 'getPredictionMarketTokenBalanceInfo':
+      return await getPredictionMarketTokenBalanceInfo(call, request)
+    case 'getPredictionMarketAssetByTokenAddress':
+      return await getPredictionMarketAssetByTokenAddress(call, request)
     case 'getCheckpointByOriginId':
       return await getCheckpointByOriginId(call, request)
     case 'getNodeManagerConfig':
@@ -163,6 +168,16 @@ async function getAvtBalance(call: Call, request: string): Promise<ValidResponse
     return buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
   } else {
     return await queryChain(call, request, 'system', 'account', [accountId], formatBalanceAsString);
+  }
+}
+
+async function getNativeTokenBalanceInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { accountId } = call.params;
+
+  if (!isValidAccountId(accountId)) {
+    return buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
+  } else {
+    return await queryChain(call, request, 'system', 'account', [accountId], formatBalanceAsObject);
   }
 }
 
@@ -552,9 +567,14 @@ async function getPredictionMarketCounter(call: Call, request: string): Promise<
   return await queryChain(call, request, 'marketCommons', 'marketCounter');
 }
 
-async function getPredictionMarketTokenBalance(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+async function getPredictionMarketTokenBalanceInfo(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { accountId, predictionMarketAsset } = call.params
-  return await queryChain(call, request, 'tokens', 'accounts', [accountId, predictionMarketAsset]);
+  return await queryChain(call, request, 'tokens', 'accounts', [accountId, predictionMarketAsset], formatBalanceAsObject);
+}
+
+async function getPredictionMarketAssetByTokenAddress(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { token } = call.params
+  return await queryChain(call, request, 'assetRegistry', 'ethAddressToAssetId', [token]);
 }
 
 async function getCheckpointByOriginId(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
@@ -593,6 +613,15 @@ const formatTotal = data => data.total;
 const formatNumAsString = data => toBnString(data);
 
 const formatBalanceAsString = data => toBnString(data.data.free);
+
+const formatBalanceAsObject = data => {
+  const { free, reserved, frozen } = data.data ? data.data : data;
+  return JSON.stringify({
+    free: toBnString(free),
+    reserved: toBnString(reserved),
+    frozen: toBnString(frozen),
+  });
+};
 
 const formatNftNonceAsString = data => toBnString(data.nonce);
 

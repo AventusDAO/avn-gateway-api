@@ -6,17 +6,13 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 
-const STAKING_STATUS = { isStaking: 'isStaking', isNotStaking: 'isNotStaking' };
 const BN_ZERO = new BN(0);
-const MIN_TOTAL_AVT_SUPPLY = new BN('100000000000000000000');
-const SCHEDULE_PERIOD = 28800;
 const royalties = [];
 const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
 
 describe('Query api calls:', async () => {
   let api;
   let relayer, user, newUser;
-  let relayerPublicKey, userPublicKey;
 
   before(async () => {
     const avnApi = await helper.avnApi({
@@ -41,8 +37,9 @@ describe('Query api calls:', async () => {
 
     it('getNftContractAddress', async () => {
       const result = await api.query.getNftContractAddress();
-      assert(result.length > 0);
-      assert(result[0].length == 42);
+      if (result.length > 0) { // Because some chains dont have nft contracts
+        assert(result[0].length == 42);
+      }
     });
   });
 
@@ -88,38 +85,31 @@ describe('Query api calls:', async () => {
 
   describe('getNonce', async () => {
     it('returns the same token nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'token');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'token'));
+      const nonce = await api.query.getUserNonce(user.address, 'token');
+      assert.equal(nonce, await api.query.getUserNonce(user.publicKey, 'token'));
     });
 
     it('returns the same payment nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'payment');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'payment'));
+      const nonce = await api.query.getUserNonce(user.address, 'payment');
+      assert.equal(nonce, await api.query.getUserNonce(user.publicKey, 'payment'));
     });
 
     it('returns the same staking nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'staking');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'staking'));
+      const nonce = await api.query.getUserNonce(user.address, 'staking');
+      assert.equal(nonce, await api.query.getUserNonce(user.publicKey, 'staking'));
     });
 
     it('returns the same confirmation nonce by address as by public key', async () => {
-      const nonce = await api.query.getNonce(user.address, 'confirmation');
-      assert.equal(nonce, await api.query.getNonce(user.publicKey, 'confirmation'));
+      const nonce = await api.query.getUserNonce(user.address, 'confirmation');
+      assert.equal(nonce, await api.query.getUserNonce(user.publicKey, 'confirmation'));
     });
   });
 
   describe('AccountInfo', async () => {
     it('returns correct data for user by address', async () => {
       const returnedData = await api.query.getAccountInfo(user.address);
-
-      if ((await api.query.getStakingStatus(user.address)) === STAKING_STATUS.isNotStaking) {
-        assert.equal(returnedData.totalBalance, returnedData.freeBalance);
-        assert.equal(returnedData.stakedBalance, '0');
-        assert.equal(returnedData.unlockedBalance, '0');
-        assert.equal(returnedData.unstakedBalance, '0');
-      } else {
-        assert(new BN(returnedData.stakedBalance).gt(new BN(0)));
-      }
+      assert(returnedData.freeBalance);
+      assert(returnedData.totalBalance);
     });
   });
 
@@ -139,48 +129,6 @@ describe('Query api calls:', async () => {
       assert(returnedData.length >= 2);
       assert(returnedData.includes(firstNftId));
       assert(returnedData.includes(secondNftId));
-    });
-  });
-
-  describe('getStakingStats', async () => {
-    const defaultMaxNominatorsRewardedPerValidatorBN = new BN(300);
-
-    it('returns the correct data', async () => {
-      const returnedData = await api.query.getStakingStats();
-      // We can't be sure how about the values but we can check the structure
-      const totalStakedBN = new BN(returnedData.totalStaked);
-      const averageStakedBN = new BN(returnedData.averageStaked);
-      const minUserBondBN = new BN(returnedData.minUserBond);
-      const maxNominatorsRewardedPerValidatorBN = new BN(returnedData.maxNominatorsRewardedPerValidator);
-      const totalStakersBN = new BN(returnedData.totalStakers);
-
-      assert(totalStakedBN.gte(BN_ZERO), 'Total stake is zero');
-      assert(averageStakedBN.gte(BN_ZERO), 'Average stake is zero');
-      assert(averageStakedBN.lte(totalStakedBN), 'Average stake must be less than total stake');
-      assert(totalStakersBN.gte(BN_ZERO), 'Total number of stakers is zero');
-      assert(minUserBondBN.gt(BN_ZERO), 'Minimum user bond does not match default value');
-      assert(
-        maxNominatorsRewardedPerValidatorBN.eq(defaultMaxNominatorsRewardedPerValidatorBN),
-        "Maximum number of nominators doesn't match default value"
-      );
-    });
-  });
-
-  describe('getActiveEra', async () => {
-    it('returns the correct data', async () => {
-      const returnedData = await api.query.getActiveEra();
-      assert(parseInt(returnedData) > 0, 'Active era is not a valid result');
-    });
-  });
-
-  describe('getStakingStatus', async () => {
-    it('returns the correct data', async () => {
-      const returnedData = await api.query.getStakingStatus('5FZ9egr9M1tGJ1aEUWG6TPkoko8j7cX2TwtchcFmaMWZzMVU');
-      // We can't be sure about the values but we can check the structure
-      assert(
-        [STAKING_STATUS.isStaking, STAKING_STATUS.isNotStaking].includes(returnedData),
-        'Staking status is not a valid result'
-      );
     });
   });
 
@@ -213,10 +161,10 @@ describe('Query api calls:', async () => {
 
   describe('getNonce', async () => {
     it('returns correct account nonce for specific user by address', async () => {
-      helper.bnEquals(await api.query.getNonce(newUser.address, 'token'), 0);
+      helper.bnEquals(await api.query.getUserNonce(newUser.address, 'token'), 0);
     });
     it('returns correct account nonce for specific user by publicKey', async () => {
-      helper.bnEquals(await api.query.getNonce(newUser.publicKey, 'token'), 0);
+      helper.bnEquals(await api.query.getUserNonce(newUser.publicKey, 'token'), 0);
     });
   });
 

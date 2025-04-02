@@ -3,7 +3,7 @@ const assert = require('chai').assert;
 const BN = require('bn.js');
 const yargs = require('yargs');
 const fs = require('fs');
-const { randomAsHex } = require('@polkadot/util-crypto');
+const { randomAsHex, decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const { Keyring } = require('@polkadot/keyring');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
 const path = require('path');
@@ -90,6 +90,12 @@ async function remoteSigner(data, signerAddress, totalAccounts) {
   return signer.sign(data);
 }
 
+
+function ignoreAddressPrefix(input) {
+  const decoded = decodeAddress(input);
+  return encodeAddress(decoded, 0);
+}
+
 // keep alphabetical
 module.exports = {
   ACCOUNTS: accounts,
@@ -99,13 +105,14 @@ module.exports = {
   TEN_ETH,
   TEN_THOUSAND_WEI,
   TWO_HUNDRED_ETH,
-  confirmStatus,
   avnApi,
+  avt,
   BN,
   bnEquals,
+  confirmStatus,
+  ignoreAddressPrefix,
   randomEthTxHash,
   sleep,
   token,
-  avt,
   remoteSigner
 };

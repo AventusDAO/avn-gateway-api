@@ -21,6 +21,7 @@ pipeline {
     parameters {
         string(name: 'Report_name', defaultValue: '', description: 'Give a descriptive name to your test run');
         choice(name: 'Chain', choices: ['vow', 'dev', 'public_testnet'], description: 'Choose which chain to test');
+        string(name: 'Avn_Api_branch', defaultValue: 'main', description: 'avn-api Git branch to use || defaults to main');
         booleanParam(name: 'All', defaultValue: true, description: 'Run all tests');
         booleanParam(name: 'configurationTests', defaultValue: false);
         booleanParam(name: 'apiOffline', defaultValue: false);
@@ -55,7 +56,8 @@ pipeline {
                 sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-slackTestNotifications.git"
                 sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-googleDriveUploadService.git"
                 sh 'npm install'
-                sh 'npm install avn-api'
+                // sh 'npm install avn-api'
+                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-api.git#${params.Avn_Api_branch}"
                 sh 'npm install --save-dev mochawesome'
                 sh 'npm install mochawesome-merge --save-dev'
                 script {

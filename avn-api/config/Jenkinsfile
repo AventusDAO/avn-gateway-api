@@ -14,13 +14,15 @@ pipeline {
         SECRET_DEV_FILE = credentials('dev_gateway_tests_config');
         SECRET_TESTNET_FILE = credentials('public_testnet_gateway_tests_config');
         SECRET_VOW_FILE = credentials('vow_gateway_tests_config');
+        SECRET_TRUTH_DEV_FILE = credentials('truth_dev_gateway_tests_config');
+        SECRET_TRUTH_TESTNET_FILE = credentials('truth_testnet_gateway_tests_config');
     }
     triggers {
         cron('0 0 * * *')
     }
     parameters {
         string(name: 'Report_name', defaultValue: '', description: 'Give a descriptive name to your test run');
-        choice(name: 'Chain', choices: ['vow', 'dev', 'public_testnet'], description: 'Choose which chain to test');
+        choice(name: 'Chain', choices: ['vow', 'dev', 'public_testnet', 'truth_dev', 'truth_testnet'], description: 'Choose which chain to test');
         string(name: 'Avn_Api_branch', defaultValue: 'main', description: 'avn-api Git branch to use || defaults to main');
         booleanParam(name: 'All', defaultValue: true, description: 'Run all tests');
         booleanParam(name: 'configurationTests', defaultValue: false);
@@ -57,7 +59,6 @@ pipeline {
                 sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-googleDriveUploadService.git"
                 sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-api.git#${params.Avn_Api_branch}"
                 sh 'npm install'
-                // sh 'npm install avn-api'
                 sh 'npm install --save-dev mochawesome'
                 sh 'npm install mochawesome-merge --save-dev'
                 script {
@@ -67,6 +68,10 @@ pipeline {
                         env.TESTS_CONFIG = env.SECRET_TESTNET_FILE
                     } else if (params.Chain == 'dev') {
                         env.TESTS_CONFIG = env.SECRET_DEV_FILE
+                    } else if (params.Chain == 'truth_dev') {
+                        env.TESTS_CONFIG = env.SECRET_TRUTH_DEV_FILE
+                    } else if (params.Chain == 'truth_testnet') {
+                        env.TESTS_CONFIG = env.SECRET_TRUTH_TESTNET_FILE
                     } else {
                         sh 'echo "No chain selected"'
                     }

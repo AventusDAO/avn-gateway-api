@@ -21,7 +21,11 @@ const argsFilter = [
   'NftManager.SingleNftMinted',
   'NftManager.BatchNftMinted',
   'NftManager.BatchCreated',
-  'TokenManager.LowerRequested'
+  'TokenManager.LowerRequested',
+  'PredictionMarkets.MarketCreated',
+  'PredictionMarkets.TokensRedeemed',
+  'NeoSwaps.BuyExecuted',
+  'NeoSwaps.SellExecuted'
 ];
 
 export const handler: Handler = async (_event: unknown): Promise<APIGatewayProxyResultV2> => {

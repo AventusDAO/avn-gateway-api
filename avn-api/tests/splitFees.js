@@ -38,7 +38,7 @@ describe('Split fees calls:', async () => {
       recipientAvtBalanceBefore = new BN(await api.query.getAvtBalance(recipient));
       relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));
       payerAvtBalanceBefore = new BN(await api.query.getAvtBalance(payer));
-      payerPaymentNonce = new BN(await api.query.getNonce(payer, 'payment'));
+      payerPaymentNonce = new BN(await api.query.getUserNonce(payer, 'payment'));
       options = {
         suri: accounts.user.seed,
         relayer: relayer
@@ -50,7 +50,7 @@ describe('Split fees calls:', async () => {
       assert(userAvtBalanceBefore.sub(amount).eq(new BN(await api.query.getAvtBalance(user))));
       assert(payerAvtBalanceBefore.sub(relayerFee).eq(new BN(await api.query.getAvtBalance(payer))));
       assert(new BN(await api.query.getAvtBalance(relayer)).gt(relayerAvtBalanceBefore));
-      assert(payerPaymentNonce.add(new BN(1)).eq(new BN(await api.query.getNonce(payer, 'payment'))));
+      assert(payerPaymentNonce.add(new BN(1)).eq(new BN(await api.query.getUserNonce(payer, 'payment'))));
     };
 
     it('With valid payer address', async () => {

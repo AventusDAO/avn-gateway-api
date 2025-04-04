@@ -164,6 +164,7 @@ export enum LiftStatuses {
   UNCHECKED_LIFT = 'UncheckedLift',
   PENDING_VALIDATION = 'PendingValidation',
   LIFT_PROCESSED = 'LiftProcessed',
+  LIFT_REJECTED = 'LiftRejected',
   LIFT_NOT_FOUND = 'LiftNotFound'
 }
 
@@ -180,4 +181,27 @@ export interface ChainSummary {
     isFinalised: boolean;
     txId: number;
   };
+}
+
+export interface NodeManagerConfig {
+  rewardAccount: string,
+  nodeRegistrationTransactionLifetime: string,
+  nodeRegistrar: string,
+  heartbeatPeriodInBlocks: string,
+  rewardAmount: string,
+  rewardPeriodInBlocks: string,
+  rewardEnabled: boolean,
+}
+
+export interface NodeManagerInfo {
+  currentRewardPeriodIndex: number,
+  oldestUnpaidRewardPeriodIndex: number,
+  totalRegisteredNodes: number,
+  totalLiveNodes: number,
+}
+
+export interface NodeManagerRewardPeriodInfo {
+  current: string,
+  first: string,
+  length: string,
 }

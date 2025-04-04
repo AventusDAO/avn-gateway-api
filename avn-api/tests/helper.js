@@ -25,10 +25,10 @@ let argv = yargs
 let gatewayFile = argv.gateway;
 
 const testConfig = argv.tests_config
-    ? require(argv.tests_config)
-    : {
-        ...require(path.resolve(__dirname, `../config/environments/${gatewayFile}.json`)),
-        accounts: require(path.resolve(__dirname, `../config/accounts/${gatewayFile}.json`))?.accounts || {},
+  ? require(argv.tests_config)
+  : {
+      ...require(path.resolve(__dirname, `../config/environments/${gatewayFile}.json`)),
+      accounts: require(path.resolve(__dirname, `../config/accounts/${gatewayFile}.json`))?.accounts || {}
     };
 
 const { gateway, token, nfts, accounts, avt } = testConfig || {};
@@ -89,7 +89,6 @@ async function remoteSigner(data, signerAddress, totalAccounts) {
   const signer = keyring.addFromUri(signerSuri);
   return signer.sign(data);
 }
-
 
 function ignoreAddressPrefix(input) {
   const decoded = decodeAddress(input);

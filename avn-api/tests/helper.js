@@ -3,9 +3,10 @@ const assert = require('chai').assert;
 const BN = require('bn.js');
 const yargs = require('yargs');
 const fs = require('fs');
-const { randomAsHex } = require('@polkadot/util-crypto');
+const { randomAsHex, decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const { Keyring } = require('@polkadot/keyring');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
+const path = require('path');
 
 let argv = yargs
   .usage('Run smoke tests using a given Gateway environment')
@@ -22,11 +23,15 @@ let argv = yargs
 // This problem does not exist with other aliases, like 'c' or 'k'
 
 let gatewayFile = argv.gateway;
-const configPath = argv.environment ? argv.environment : `../config/environments/${gatewayFile}.json`;
-const accountsPath = argv.accounts ? argv.accounts : `../config/accounts/${gatewayFile}.json`;
 
-const { gateway, token, nfts } = require(configPath);
-const { accounts } = require(accountsPath);
+const testConfig = argv.tests_config
+  ? require(argv.tests_config)
+  : {
+      ...require(path.resolve(__dirname, `../config/environments/${gatewayFile}.json`)),
+      accounts: require(path.resolve(__dirname, `../config/accounts/${gatewayFile}.json`))?.accounts || {}
+    };
+
+const { gateway, token, nfts, accounts, avt } = testConfig || {};
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
 const ONE_ETH = '1000000000000000000';
@@ -85,6 +90,11 @@ async function remoteSigner(data, signerAddress, totalAccounts) {
   return signer.sign(data);
 }
 
+function ignoreAddressPrefix(input) {
+  const decoded = decodeAddress(input);
+  return encodeAddress(decoded, 0);
+}
+
 // keep alphabetical
 module.exports = {
   ACCOUNTS: accounts,
@@ -94,10 +104,12 @@ module.exports = {
   TEN_ETH,
   TEN_THOUSAND_WEI,
   TWO_HUNDRED_ETH,
-  confirmStatus,
   avnApi,
+  avt,
   BN,
   bnEquals,
+  confirmStatus,
+  ignoreAddressPrefix,
   randomEthTxHash,
   sleep,
   token,

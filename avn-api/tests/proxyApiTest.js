@@ -1,27 +1,60 @@
 const assert = require('chai').assert;
 const helper = require('./helper.js');
+const { SetupMode, SigningMode } = require('avn-api');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 const bnEquals = helper.bnEquals;
-const BAD_TOKEN = '0x0000000000000000000000000000000000000000';
-const ONE_AVT = new BN('1000000000000000000');
+const MINIMUM_REQUIRED_TEST_BALANCE = new BN(10);
 
 describe('Proxy api calls:', async () => {
-  let avnApi, api, token;
+  let api, token;
   let relayer, user, recipient;
   let relayerFee;
 
   before(async () => {
+    const signer = {
+      sign: async (data, signerAddress) => {
+        return await helper.remoteSigner(data, signerAddress);
+      }
+    };
+
+    const options = {
+      signer: signer,
+      setupMode: SetupMode.MultiUser,
+      signingMode: SigningMode.RemoteSigner
+    };
+
+    avnGateway = await helper.avnApi(options);
+    api = await avnGateway.apis(accounts.user.address);
+    bankApi = await avnGateway.apis(accounts.bank.address);
+
     token = helper.token;
-    avnApi = await helper.avnApi({
-      suri: accounts.user.seed
-    });
-    api = await avnApi.apis();
     relayer = accounts.relayer.address;
     user = accounts.user.address;
     recipient = accounts.otherUser.address;
     recipientPubKey = accounts.otherUser.publicKey;
-    relayerFee = new BN((await api.query.getRelayerFees(relayer, user)).proxyTokenTransfer);
+    relayerFee = new BN((await api.query.getRelayerFees(relayer, helper.avt, user)).proxyTokenTransfer);
+  });
+
+  describe('Test setup', function () {
+    let senderTokenBalance;
+    before(async () => {
+      senderTokenBalance = new BN(await api.query.getTokenBalance(user, token));
+    });
+
+    describe('succeeds if', async function () {
+      it('sender is funded', async function () {
+        if (senderTokenBalance.lt(MINIMUM_REQUIRED_TEST_BALANCE)) {
+          let amountLeft = MINIMUM_REQUIRED_TEST_BALANCE.sub(senderTokenBalance);
+
+          const requestId = await bankApi.send.transferToken(user, token, amountLeft);
+          await helper.confirmStatus(bankApi, requestId, 'Processed');
+
+          senderTokenBalance = new BN(await api.query.getTokenBalance(user, token));
+        }
+        assert(senderTokenBalance.gte(MINIMUM_REQUIRED_TEST_BALANCE));
+      });
+    });
   });
 
   describe('transferToken', async () => {

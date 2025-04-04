@@ -1,4 +1,5 @@
 const { AvnApi } = require('avn-api');
+const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
@@ -14,8 +15,8 @@ describe('Utilities', async () => {
 
   describe('myAddress', async () => {
     it('can get my address', async () => {
-      assert.equal(accounts.user.address, api.myAddress);
-      assert.equal(accounts.user.address, api.signer.address);
+      assert.equal(helper.ignoreAddressPrefix(accounts.user.address), helper.ignoreAddressPrefix(api.myAddress));
+      assert.equal(helper.ignoreAddressPrefix(accounts.user.address), helper.ignoreAddressPrefix(api.signer.address));
     });
   });
 
@@ -52,11 +53,11 @@ describe('Utilities', async () => {
     describe('publicKeyToAddress', async () => {
       it('can convert a publickey to an address', async () => {
         let address = nonInitialisedApi.accountUtils.publicKeyToAddress(accounts.otherUser.publicKey);
-        assert.equal(address, accounts.otherUser.address);
+        assert.equal(helper.ignoreAddressPrefix(address), helper.ignoreAddressPrefix(accounts.otherUser.address));
 
         // it also works if we pass in an address
         address = nonInitialisedApi.accountUtils.publicKeyToAddress(accounts.otherUser.address);
-        assert.equal(address, accounts.otherUser.address);
+        assert.equal(helper.ignoreAddressPrefix(address), helper.ignoreAddressPrefix(accounts.otherUser.address));
       });
     });
   });

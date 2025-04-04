@@ -37,7 +37,8 @@ describe('Query api calls:', async () => {
 
     it('getNftContractAddress', async () => {
       const result = await api.query.getNftContractAddress();
-      if (result.length > 0) { // Because some chains dont have nft contracts
+      if (result.length > 0) {
+        // Because some chains dont have nft contracts
         assert(result[0].length == 42);
       }
     });

@@ -66,7 +66,7 @@ describe('Prediction Market tests', async () => {
     otherUserApi = await avnGateway.apis(otherUser.address);
     bankApi = await avnGateway.apis(bank.address);
 
-    token = await api.query.getAvtContractAddress();
+    token = helper.pmToken;
   });
 
   describe('Test setup', function () {

@@ -22,8 +22,8 @@ pipeline {
     }
     parameters {
         string(name: 'Report_name', defaultValue: '', description: 'Give a descriptive name to your test run');
-        choice(name: 'Chain', choices: ['vow', 'dev', 'public_testnet', 'truth_dev', 'truth_testnet'], description: 'Choose which chain to test');
-        string(name: 'Avn_Api_branch', defaultValue: 'main', description: 'avn-api Git branch to use || defaults to main');
+        choice(name: 'Chain', choices: ['truth_testnet', 'vow', 'dev', 'public_testnet', 'truth_dev'], description: 'Choose which chain to test');
+        string(name: 'Avn_Api_branch', defaultValue: 'main', description: 'avn-api branch');
         booleanParam(name: 'All', defaultValue: true, description: 'Run all tests');
         booleanParam(name: 'configurationTests', defaultValue: false);
         booleanParam(name: 'apiOffline', defaultValue: false);
@@ -214,6 +214,11 @@ pipeline {
                             stage('Proxy api') {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                     sh 'npm run proxyApiTest "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=proxyApiTestReport;'
+                                }
+                            }
+                            stage('Send api') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh 'npm run sendApiTest "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiTestReport;'
                                 }
                             }
                             stage('Prediction Market') {

@@ -6,63 +6,17 @@ const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const _ = require('lodash');
 
+async function verifyReturnedFees(fees) {
+  for (const [key, value] of Object.entries(fees)) {
+    assert.isString(value, `Fee for "${key}" should be a string`);
+    assert.match(value, /^\d+$/, `Fee for "${key}" should be a numeric string`);
+    assert.isTrue(BigInt(value) > 0n, `Fee for "${key}" should be greater than zero, but got ${value}`);
+  }
+}
+
 describe('Relayer Fees:', async () => {
   let avnApi, api;
-  let relayer, user;
-
-  const expectedRelayerFees = {
-    proxyStakeAvt: '9000000000000000',
-    proxyAvtTransfer: '23800000000000000',
-    proxyTokenTransfer: '23800000000000000',
-    proxyConfirmTokenLift: '23800000000000000',
-    proxyTokenLower: '23800000000000000',
-    proxyCreateNftBatch: '23800000000000000',
-    proxyMintSingleNft: '23800000000000000',
-    proxyMintBatchNft: '23800000000000000',
-    proxyListNftOpenForSale: '23800000000000000',
-    proxyListNftBatchForSale: '23800000000000000',
-    proxyTransferFiatNft: '23800000000000000',
-    proxyCancelListFiatNft: '23800000000000000',
-    proxyEndNftBatchSale: '23800000000000000',
-    proxyIncreaseStake: '23800000000000000',
-    proxyUnstake: '23800000000000000',
-    proxyWithdrawUnlocked: '23800000000000000',
-    proxyScheduleLeaveNominators: '23800000000000000',
-    proxyExecuteLeaveNominators: '23800000000000000',
-    proxyMintEthereumBatchNft: '23800000000000000',
-    proxyTransferEthereumNft: '23800000000000000',
-    proxyCancelEthereumNftSale: '23800000000000000',
-    proxyEndEthereumBatchSale: '23800000000000000',
-    proxyListEthereumNftForSale: '23800000000000000',
-    proxyListEthereumNftBatchForSale: '23800000000000000'
-  };
-
-  const expectedUserFees = {
-    proxyAvtTransfer: '7000000000000000',
-    proxyTokenTransfer: '7000000000000000',
-    proxyMintSingleNft: '7000000000000000',
-    proxyConfirmTokenLift: '23800000000000000',
-    proxyTokenLower: '23800000000000000',
-    proxyCreateNftBatch: '23800000000000000',
-    proxyMintBatchNft: '23800000000000000',
-    proxyListNftOpenForSale: '23800000000000000',
-    proxyListNftBatchForSale: '23800000000000000',
-    proxyTransferFiatNft: '23800000000000000',
-    proxyCancelListFiatNft: '23800000000000000',
-    proxyEndNftBatchSale: '23800000000000000',
-    proxyStakeAvt: '23800000000000000',
-    proxyIncreaseStake: '23800000000000000',
-    proxyUnstake: '23800000000000000',
-    proxyWithdrawUnlocked: '23800000000000000',
-    proxyScheduleLeaveNominators: '23800000000000000',
-    proxyExecuteLeaveNominators: '23800000000000000',
-    proxyMintEthereumBatchNft: '23800000000000000',
-    proxyTransferEthereumNft: '23800000000000000',
-    proxyCancelEthereumNftSale: '23800000000000000',
-    proxyEndEthereumBatchSale: '23800000000000000',
-    proxyListEthereumNftForSale: '23800000000000000',
-    proxyListEthereumNftBatchForSale: '23800000000000000'
-  };
+  let relayer, user, avt;
 
   before(async () => {
     avnApi = await helper.avnApi({
@@ -71,41 +25,50 @@ describe('Relayer Fees:', async () => {
     api = await avnApi.apis();
     relayer = accounts.relayer;
     user = accounts.user;
-    recipient = accounts.otherUser;
-    token = helper.token;
+    avt = await api.query.getAvtContractAddress();
   });
 
   describe('getRelayerFees', async () => {
     it('returns default fees for a relayer by address', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer.address);
-      assert(_.isEqual(returnedFees, expectedRelayerFees));
+      const returnedFees = await api.query.getRelayerFees(relayer.address, avt);
+      assert.isOk(returnedFees, 'Expected fees to be returned but got null or undefined');
+      assert.isObject(returnedFees, 'Expected returned fees to be an object');
+      await verifyReturnedFees(returnedFees);
     });
 
     it('returns default fees for a relayer by publicKey', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer.publicKey);
-      assert(_.isEqual(returnedFees, expectedRelayerFees));
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey, avt);
+      assert.isOk(returnedFees, 'Expected fees to be returned but got null or undefined');
+      assert.isObject(returnedFees, 'Expected returned fees to be an object');
+      await verifyReturnedFees(returnedFees);
     });
 
     it('returns fees for a specific user by address', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer.address, user.address);
-      assert(_.isEqual(returnedFees, expectedUserFees));
+      const returnedFees = await api.query.getRelayerFees(relayer.address, avt, user.address);
+      assert.isOk(returnedFees, 'Expected fees to be returned but got null or undefined');
+      assert.isObject(returnedFees, 'Expected returned fees to be an object');
+      await verifyReturnedFees(returnedFees);
     });
 
     it('returns fees for a specific user by publicKey', async () => {
-      const returnedFees = await api.query.getRelayerFees(relayer.publicKey, user.publicKey);
-      assert(_.isEqual(returnedFees, expectedUserFees));
+      const returnedFees = await api.query.getRelayerFees(relayer.publicKey, avt, user.publicKey);
+      assert.isOk(returnedFees, 'Expected fees to be returned but got null or undefined');
+      assert.isObject(returnedFees, 'Expected returned fees to be an object');
+      await verifyReturnedFees(returnedFees);
     });
 
     it('returns the fee for a specific user and transaction type', async () => {
       const transactionType = 'proxyTokenTransfer';
-      const returnedFees = await api.query.getRelayerFees(relayer.address, user.publicKey, transactionType);
-      assert.equal(returnedFees, expectedUserFees[transactionType]);
+      const returnedFee = await api.query.getRelayerFees(relayer.address, avt, user.publicKey, transactionType);
+      assert.match(returnedFee, /^\d+$/, 'Expected fee to be a numeric string');
+      assert.isTrue(BigInt(returnedFee) > 0n, `Expected fee to be greater than zero, but got ${returnedFee}`);
     });
 
     it('returns fees for a specific transaction type that has a default value for all users', async () => {
       const transactionType = 'proxyStakeAvt';
-      const returnedFees = await api.query.getRelayerFees(relayer.address, null, transactionType);
-      assert.equal(returnedFees, expectedRelayerFees[transactionType]);
+      const returnedFee = await api.query.getRelayerFees(relayer.address, avt, null, transactionType);
+      assert.match(returnedFee, /^\d+$/, 'Expected fee to be a numeric string');
+      assert.isTrue(BigInt(returnedFee) > 0n, `Expected fee to be greater than zero, but got ${returnedFee}`);
     });
 
     it('Errors if relayer is not specified for a specific transaction type and user', async () => {

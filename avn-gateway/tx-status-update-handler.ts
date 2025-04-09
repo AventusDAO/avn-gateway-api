@@ -25,7 +25,9 @@ const argsFilter = [
   'PredictionMarkets.MarketCreated',
   'PredictionMarkets.TokensRedeemed',
   'NeoSwaps.BuyExecuted',
-  'NeoSwaps.SellExecuted'
+  'NeoSwaps.SellExecuted',
+  'NeoSwaps.ExitExecuted',
+  'NeoSwaps.PoolDestroyed'
 ];
 
 export const handler: Handler = async (_event: unknown): Promise<APIGatewayProxyResultV2> => {

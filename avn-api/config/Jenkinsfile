@@ -226,6 +226,11 @@ pipeline {
                                     sh 'npm run sendApiTest "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiTestReport;'
                                 }
                             }
+                            stage('Split fees') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh 'npm run splitFees "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=splitFeesReport;'
+                                }
+                            }
                             stage('Prediction Market') {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                     sh 'npm run predictionMarketTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=predictionMarketReport;'

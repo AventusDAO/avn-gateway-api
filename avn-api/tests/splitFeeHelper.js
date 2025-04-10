@@ -6,7 +6,6 @@ async function getAccessToken() {
     username: helper.splitFeeConfig.username,
     password: helper.splitFeeConfig.password
   });
-    console.log(`res: ${JSON.stringify(res.data, null, 2)}`);  
     return res.data?.data;
 }
 

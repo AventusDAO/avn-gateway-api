@@ -31,7 +31,7 @@ const testConfig = argv.tests_config
       accounts: require(path.resolve(__dirname, `../config/accounts/${gatewayFile}.json`))?.accounts || {}
     };
 
-const { gateway, token, nfts, accounts, avt, pmToken } = testConfig || {};
+const { gateway, token, nfts, accounts, avt, pmToken, splitFeeConfig } = testConfig || {};
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
 const ONE_ETH = '1000000000000000000';
@@ -114,5 +114,6 @@ module.exports = {
   sleep,
   token,
   pmToken,
+  splitFeeConfig,
   remoteSigner
 };

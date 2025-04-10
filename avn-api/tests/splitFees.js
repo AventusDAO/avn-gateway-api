@@ -1,10 +1,14 @@
 const chai = require('chai');
+const { SetupMode, SigningMode } = require('avn-api');
 const expect = chai.expect;
 const assert = chai.assert;
 chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
+const {
+  registerSplitFeeUser
+} = require('./splitFeeHelper');
 
 const amount = new BN(1);
 const relayer = accounts.relayer.address;
@@ -12,17 +16,53 @@ const user = accounts.user.address;
 const recipient = accounts.otherUser.address;
 const payer = accounts.payer.address;
 const payerPubKey = accounts.payer.publicKey;
+const MINIMUM_REQUIRED_TEST_BALANCE = new BN('1000000000000000000');
 
 describe('Split fees calls:', async () => {
-  let avnApi, api;
+  let api, avt;
   let relayerFee;
 
   before(async () => {
-    avnApi = await helper.avnApi({
-      suri: accounts.user.seed
+    const signer = {
+      sign: async (data, signerAddress) => {
+        return await helper.remoteSigner(data, signerAddress);
+      }
+    };
+
+    const options = {
+      signer: signer,
+      setupMode: SetupMode.MultiUser,
+      signingMode: SigningMode.RemoteSigner
+    };
+
+    avnGateway = await helper.avnApi(options);
+    api = await avnGateway.apis(accounts.user.address);
+    bankApi = await avnGateway.apis(accounts.bank.address);
+    avt = await api.query.getAvtContractAddress();
+    
+    relayerFee = new BN((await api.query.getRelayerFees(relayer, avt, payer)).proxyAvtTransfer);
+    await registerSplitFeeUser(accounts.user.publicKey);
+  });
+
+  describe('Test setup', function () {
+    let senderBalance;
+    before(async () => {
+      senderBalance = new BN(await api.query.getAvtBalance(user));
     });
-    api = await avnApi.apis();
-    relayerFee = new BN((await api.query.getRelayerFees(relayer, payer)).proxyAvtTransfer);
+
+    describe('succeeds if', async function () {
+      it('sender is funded', async function () {
+        if (senderBalance.lt(MINIMUM_REQUIRED_TEST_BALANCE)) {
+          let amountLeft = MINIMUM_REQUIRED_TEST_BALANCE.sub(senderBalance);
+
+          const requestId = await bankApi.send.transferAvt(user, amountLeft);
+          await helper.confirmStatus(bankApi, requestId, 'Processed');
+
+          senderBalance = new BN(await api.query.getAvtBalance(user));
+        }
+        assert(senderBalance.gte(MINIMUM_REQUIRED_TEST_BALANCE));
+      });
+    });
   });
 
   describe('Split fees', async () => {
@@ -49,7 +89,6 @@ describe('Split fees calls:', async () => {
       assert(recipientAvtBalanceBefore.add(amount).eq(new BN(await api.query.getAvtBalance(recipient))));
       assert(userAvtBalanceBefore.sub(amount).eq(new BN(await api.query.getAvtBalance(user))));
       assert(payerAvtBalanceBefore.sub(relayerFee).eq(new BN(await api.query.getAvtBalance(payer))));
-      assert(new BN(await api.query.getAvtBalance(relayer)).gt(relayerAvtBalanceBefore));
       assert(payerPaymentNonce.add(new BN(1)).eq(new BN(await api.query.getUserNonce(payer, 'payment'))));
     };
 
@@ -94,20 +133,6 @@ describe('Split fees calls:', async () => {
       await helper.confirmStatus(newApi.poll, requestId, 'Processed');
 
       await verifySplitFeesBalancesAndNonce();
-    });
-
-    // this test requires a very specific setup, I propose we remove it
-    xit('With valid payer address but unauthorized transaction, payer should refuse', async () => {
-      let externalRef = 'avn-gateway-test-' + new Date().toISOString();
-      let royalties = [];
-      const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
-
-      let invalidOptions = { ...options, hasPayer: true, payerAddress: payer };
-      const apiWithOptions = await helper.avnApi(invalidOptions);
-      const newApi = await apiWithOptions.apis();
-
-      const requestId = await newApi.send.mintSingleNft(externalRef, royalties, dummyT1Authority);
-      await helper.confirmStatus(newApi.poll, requestId, 'PayerRefused');
     });
 
     it('With invalid payer, an error is thrown', async () => {

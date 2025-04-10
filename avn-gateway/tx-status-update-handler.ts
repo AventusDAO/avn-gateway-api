@@ -27,7 +27,8 @@ const argsFilter = [
   'NeoSwaps.BuyExecuted',
   'NeoSwaps.SellExecuted',
   'NeoSwaps.ExitExecuted',
-  'NeoSwaps.PoolDestroyed'
+  'NeoSwaps.PoolDestroyed',
+  'NeoSwaps.JoinExecuted'
 ];
 
 export const handler: Handler = async (_event: unknown): Promise<APIGatewayProxyResultV2> => {

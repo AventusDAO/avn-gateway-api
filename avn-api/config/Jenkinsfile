@@ -18,7 +18,7 @@ pipeline {
         SECRET_TRUTH_TESTNET_FILE = credentials('truth_testnet_gateway_tests_config');
     }
     triggers {
-        cron('0 0 * * *')
+        cron('0 0 * * 0')
     }
     parameters {
         string(name: 'Report_name', defaultValue: '', description: 'Give a descriptive name to your test run');
@@ -179,6 +179,11 @@ pipeline {
                             stage('Configuration') {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                     sh 'npm run configurationTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=configurationTestsReport;'
+                                }
+                            }
+                            stage('Access') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh 'npm run accessTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;'
                                 }
                             }
                             stage('Remote signer') {

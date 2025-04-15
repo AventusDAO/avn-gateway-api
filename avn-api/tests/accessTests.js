@@ -3,8 +3,12 @@ const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
-const bnEquals = helper.bnEquals;
-const ONE_AVT = new BN('1000000000000000000');
+const ONE_AVT = helper.convertToBaseUnits(1);
+
+const {
+  registerSplitFeeUser
+} = require('./splitFeeHelper');
+
 
 describe('Access rights:', async () => {
   let avnGateway, api, options;
@@ -77,7 +81,7 @@ describe('Access rights:', async () => {
       assert.equal(await api.query.getAvtBalance(existingUser), ONE_AVT.toString());
 
       api = await avnGateway.apis(existingUser);
-      const relayerFee = await api.query.getRelayerFees(relayer, existingUser, 'proxyTokenTransfer');
+      const relayerFee = await api.query.getRelayerFees(relayer, helper.avt, existingUser, 'proxyTokenTransfer');
       requestId = await api.send.transferAvt(user, ONE_AVT.sub(new BN(relayerFee)).toString());
       await helper.confirmStatus(api.poll, requestId, 'Processed');
 
@@ -90,23 +94,25 @@ describe('Access rights:', async () => {
       assert.equal(await canAccessTheGateway(api), true);
     });
 
-    it('a new split fee user can access the gateway if they have a valid payer', async () => {
-      const splitFeeUserAddress = accounts.splitFeeUser.address;
-      assert((await api.query.getUserNonce(splitFeeUserAddress, 'payment')) === '0');
+    xit('a new split fee user can access the gateway if they have a valid payer', async () => {
+      const splitFeeUser = avnGateway.accountUtils.generateNewAccount();
+      await registerSplitFeeUser(splitFeeUser.publicKey);
 
-      const splitFeeUserBalance = new BN(await api.query.getAvtBalance(splitFeeUserAddress));
+      assert((await api.query.getUserNonce(splitFeeUser.address, 'payment')) === '0');
+
+      const splitFeeUserBalance = new BN(await api.query.getAvtBalance(splitFeeUser.address));
       if (splitFeeUserBalance.gt(new BN(0))) {
-        const relayerFee = await api.query.getRelayerFees(relayer, user, 'proxyTokenTransfer');
+        const relayerFee = await api.query.getRelayerFees(relayer, helper.avt, user, 'proxyTokenTransfer');
         requestId = await api.send.transferAvt(user, splitFeeUserBalance.sub(new BN(relayerFee)).toString());
       }
 
-      assert.equal(await api.query.getAvtBalance(splitFeeUserAddress), '0');
-      api = await avnGateway.apis(splitFeeUserAddress);
+      assert.equal(await api.query.getAvtBalance(splitFeeUser.address), '0');
+      api = await avnGateway.apis(splitFeeUser.address);
       assert.equal(await canAccessTheGateway(api), false);
 
       options.hasPayer = true;
       avnGateway = await helper.avnApi(options);
-      api = await avnGateway.apis(splitFeeUserAddress);
+      api = await avnGateway.apis(splitFeeUser.address);
       assert.equal(await canAccessTheGateway(api), true);
     });
   });

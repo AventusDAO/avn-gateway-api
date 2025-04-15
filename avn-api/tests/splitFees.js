@@ -16,7 +16,7 @@ const user = accounts.user.address;
 const recipient = accounts.otherUser.address;
 const payer = accounts.payer.address;
 const payerPubKey = accounts.payer.publicKey;
-const MINIMUM_REQUIRED_TEST_BALANCE = new BN('1000000000000000000');
+const MINIMUM_REQUIRED_TEST_BALANCE = helper.convertToBaseUnits(1);
 
 describe('Split fees calls:', async () => {
   let api, avt;
@@ -36,7 +36,7 @@ describe('Split fees calls:', async () => {
     };
 
     avnGateway = await helper.avnApi(options);
-    api = await avnGateway.apis(accounts.user.address);
+    api = await avnGateway.apis(user);
     bankApi = await avnGateway.apis(accounts.bank.address);
     avt = await api.query.getAvtContractAddress();
     
@@ -45,9 +45,10 @@ describe('Split fees calls:', async () => {
   });
 
   describe('Test setup', function () {
-    let senderBalance;
+    let senderBalance, payerBalance;
     before(async () => {
       senderBalance = new BN(await api.query.getAvtBalance(user));
+      payerBalance = new BN(await api.query.getAvtBalance(payer));
     });
 
     describe('succeeds if', async function () {
@@ -56,11 +57,23 @@ describe('Split fees calls:', async () => {
           let amountLeft = MINIMUM_REQUIRED_TEST_BALANCE.sub(senderBalance);
 
           const requestId = await bankApi.send.transferAvt(user, amountLeft);
-          await helper.confirmStatus(bankApi, requestId, 'Processed');
+          await helper.confirmStatus(bankApi.poll, requestId, 'Processed');
 
           senderBalance = new BN(await api.query.getAvtBalance(user));
         }
         assert(senderBalance.gte(MINIMUM_REQUIRED_TEST_BALANCE));
+      });
+
+      it('payer is funded', async function () {
+        if (payerBalance.lt(MINIMUM_REQUIRED_TEST_BALANCE)) {
+          let amountLeft = MINIMUM_REQUIRED_TEST_BALANCE.sub(payerBalance);
+
+          const requestId = await bankApi.send.transferAvt(payer, amountLeft);
+          await helper.confirmStatus(bankApi.poll, requestId, 'Processed');
+
+          payerBalance = new BN(await api.query.getAvtBalance(payer));
+        }
+        assert(payerBalance.gte(MINIMUM_REQUIRED_TEST_BALANCE));
       });
     });
   });

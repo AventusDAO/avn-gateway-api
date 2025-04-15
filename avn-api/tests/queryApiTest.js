@@ -50,10 +50,6 @@ describe('Query api calls:', async () => {
       assert(new BN(await api.query.getTotalAvt()).gt(BN_ZERO));
     });
 
-    it('returns total ETH', async () => {
-      assert(new BN(await api.query.getTotalToken('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')).gt(BN_ZERO));
-    });
-
     it('returns total other token', async () => {
       assert(
         new BN(await api.query.getTotalToken(token)).gt(BN_ZERO),

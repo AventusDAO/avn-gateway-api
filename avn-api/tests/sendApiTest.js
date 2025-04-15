@@ -1,9 +1,10 @@
 const assert = require('chai').assert;
+const { SetupMode, SigningMode } = require('avn-api');
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 const bnEquals = helper.bnEquals;
-const MINIMUM_REQUIRED_AVT_TEST_BALANCE = new BN('10000000000');
+const MINIMUM_REQUIRED_AVT_TEST_BALANCE = helper.convertToBaseUnits(1);
 const MINIMUM_REQUIRED_TOKEN_TEST_BALANCE = new BN('100');
 
 const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
@@ -15,17 +16,28 @@ describe('SendTx api calls:', async () => {
   let relayerFee, relayerLowerFee;
 
   before(async () => {
-    avnApi = await helper.avnApi({
-      suri: accounts.user.seed
-    });
-    api = await avnApi.apis();
-    avt = await api.query.getAvtContractAddress();
-    token = helper.token;
+    const signer = {
+      sign: async (data, signerAddress) => {
+        return await helper.remoteSigner(data, signerAddress);
+      }
+    };
 
+    const options = {
+      signer: signer,
+      setupMode: SetupMode.MultiUser,
+      signingMode: SigningMode.RemoteSigner
+    };
+
+    token = helper.token;
     relayer = accounts.relayer.address;
     user = accounts.user.address;
     recipient = accounts.otherUser.address;
     recipientPubKey = accounts.otherUser.publicKey;
+
+    avnGateway = await helper.avnApi(options);
+    api = await avnGateway.apis(user);
+    bankApi = await avnGateway.apis(accounts.bank.address);
+    avt = await api.query.getAvtContractAddress();
 
     relayerFee = new BN((await api.query.getRelayerFees(relayer, avt, user)).proxyAvtTransfer);
     relayerLowerFee = new BN((await api.query.getRelayerFees(relayer, avt, user)).proxyTokenLower);
@@ -45,7 +57,7 @@ describe('SendTx api calls:', async () => {
           let amountLeft = MINIMUM_REQUIRED_AVT_TEST_BALANCE.sub(senderBalance);
 
           const requestId = await bankApi.send.transferAvt(user, amountLeft);
-          await helper.confirmStatus(bankApi, requestId, 'Processed');
+          await helper.confirmStatus(bankApi.poll, requestId, 'Processed');
 
           senderBalance = new BN(await api.query.getAvtBalance(user));
         }
@@ -57,7 +69,7 @@ describe('SendTx api calls:', async () => {
           let amountLeft = MINIMUM_REQUIRED_TOKEN_TEST_BALANCE.sub(senderTokenBalance);
 
           const requestId = await bankApi.send.transferToken(user, token, amountLeft);
-          await helper.confirmStatus(bankApi, requestId, 'Processed');
+          await helper.confirmStatus(bankApi.poll, requestId, 'Processed');
 
           senderTokenBalance = new BN(await api.query.getTokenBalance(user, token));
         }
@@ -128,6 +140,11 @@ describe('SendTx api calls:', async () => {
     let userAvtBalanceBefore, userTokenBalanceBefore, relayerAvtBalanceBefore, userNonceBefore;
 
     beforeEach(async () => {
+      avnApi = await helper.avnApi({
+        suri: accounts.user.seed
+      });
+      api = await avnApi.apis();
+
       userAvtBalanceBefore = new BN(await api.query.getAvtBalance(user));
       userTokenBalanceBefore = new BN(await api.query.getTokenBalance(user, token));
       relayerAvtBalanceBefore = new BN(await api.query.getAvtBalance(relayer));

@@ -128,7 +128,8 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  xdescribe('confirmTokenLift', async () => { // This tests always fails - returns rejected - should we remove it?
+  xdescribe('confirmTokenLift', async () => {
+    // This tests always fails - returns rejected - should we remove it?
     it('can confirm a token lift', async () => {
       const dummyEthereumTransactionHash = helper.randomEthTxHash();
       const requestId = await api.send.confirmTokenLift(dummyEthereumTransactionHash);

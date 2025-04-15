@@ -6,7 +6,7 @@ async function getAccessToken() {
     username: helper.splitFeeConfig.username,
     password: helper.splitFeeConfig.password
   });
-    return res.data?.data;
+  return res.data?.data;
 }
 
 async function splitFeeUserExists(userPublicKey, reAttempts = 0) {
@@ -51,7 +51,7 @@ async function registerSplitFeeUser(userPublicKey) {
     {
       payerId: helper.splitFeeConfig.payerId,
       publicKey: userPublicKey,
-      description: "gateway tests split fee user"
+      description: 'gateway tests split fee user'
     },
     { headers }
   );
@@ -59,7 +59,7 @@ async function registerSplitFeeUser(userPublicKey) {
 }
 
 module.exports = {
-    getAccessToken,
-    splitFeeUserExists,
-    registerSplitFeeUser
-  };
+  getAccessToken,
+  splitFeeUserExists,
+  registerSplitFeeUser
+};

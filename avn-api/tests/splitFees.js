@@ -6,9 +6,7 @@ chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
-const {
-  registerSplitFeeUser
-} = require('./splitFeeHelper');
+const { registerSplitFeeUser } = require('./splitFeeHelper');
 
 const amount = new BN(1);
 const relayer = accounts.relayer.address;
@@ -39,7 +37,7 @@ describe('Split fees calls:', async () => {
     api = await avnGateway.apis(user);
     bankApi = await avnGateway.apis(accounts.bank.address);
     avt = await api.query.getAvtContractAddress();
-    
+
     relayerFee = new BN((await api.query.getRelayerFees(relayer, avt, payer)).proxyAvtTransfer);
     await registerSplitFeeUser(accounts.user.publicKey);
   });

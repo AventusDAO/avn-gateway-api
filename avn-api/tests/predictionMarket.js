@@ -6,7 +6,7 @@ const Decimal = require('decimal.js');
 const BN = helper.BN;
 const accounts = helper.ACCOUNTS;
 
-const MINIMUM_REQUIRED_TEST_BALANCE = 205000000000000000000n;
+const MINIMUM_REQUIRED_TEST_BALANCE = helper.convertToBaseUnits(205);
 
 async function getTimeRange() {
   const currentTimestamp = Date.now();
@@ -65,7 +65,6 @@ describe('Prediction Market tests', async () => {
     api = await avnGateway.apis(user.address);
     otherUserApi = await avnGateway.apis(otherUser.address);
     bankApi = await avnGateway.apis(bank.address);
-
     token = helper.pmToken;
   });
 
@@ -127,7 +126,6 @@ describe('Prediction Market tests', async () => {
       receiverBalanceBefore = new BN(
         (await api.query.getPredictionMarketTokenBalance(otherUser.address, { ForeignAsset: 0 })).free
       );
-
       requestId = await api.send.transferMarketToken(token, otherUser.address, buyAmount);
     });
 

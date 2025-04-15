@@ -95,6 +95,14 @@ function ignoreAddressPrefix(input) {
   return encodeAddress(decoded, 0);
 }
 
+function convertToBaseUnits(xAvt) {
+  if (argv.gateway === 'truth' || argv.gateway === 'truthTestnet') {
+    return new BN(xAvt.toString()).mul(new BN('10000000000'));
+  } else {
+    return new BN(xAvt.toString()).mul(new BN('1000000000000000000'));
+  }
+}
+
 // keep alphabetical
 module.exports = {
   ACCOUNTS: accounts,
@@ -109,6 +117,7 @@ module.exports = {
   BN,
   bnEquals,
   confirmStatus,
+  convertToBaseUnits,
   ignoreAddressPrefix,
   randomEthTxHash,
   sleep,

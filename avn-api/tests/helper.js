@@ -31,7 +31,7 @@ const testConfig = argv.tests_config
       accounts: require(path.resolve(__dirname, `../config/accounts/${gatewayFile}.json`))?.accounts || {}
     };
 
-const { gateway, token, nfts, accounts, avt } = testConfig || {};
+const { gateway, token, nfts, accounts, avt, pmToken, splitFeeConfig } = testConfig || {};
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);
 
 const ONE_ETH = '1000000000000000000';
@@ -95,6 +95,14 @@ function ignoreAddressPrefix(input) {
   return encodeAddress(decoded, 0);
 }
 
+function convertToBaseUnits(xAvt) {
+  if (argv.gateway === 'truth' || argv.gateway === 'truthTestnet') {
+    return new BN(xAvt.toString()).mul(new BN('10000000000'));
+  } else {
+    return new BN(xAvt.toString()).mul(new BN('1000000000000000000'));
+  }
+}
+
 // keep alphabetical
 module.exports = {
   ACCOUNTS: accounts,
@@ -109,9 +117,12 @@ module.exports = {
   BN,
   bnEquals,
   confirmStatus,
+  convertToBaseUnits,
   ignoreAddressPrefix,
   randomEthTxHash,
   sleep,
   token,
+  pmToken,
+  splitFeeConfig,
   remoteSigner
 };

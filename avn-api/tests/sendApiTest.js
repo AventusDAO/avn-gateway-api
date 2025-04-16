@@ -70,7 +70,7 @@ describe('SendTx api calls:', async () => {
         assert(senderBalance.gte(MINIMUM_REQUIRED_AVT_TEST_BALANCE));
       });
 
-      xit('sender is funded with erc20 token', async function () {
+      it('sender is funded with erc20 token', async function () {
         if (senderTokenBalance.lt(MINIMUM_REQUIRED_TOKEN_TEST_BALANCE)) {
           let amountLeft = MINIMUM_REQUIRED_TOKEN_TEST_BALANCE.sub(senderTokenBalance);
 
@@ -84,7 +84,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  xdescribe('transferAVT', async () => {
+  describe('transferAVT', async () => {
     let userAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore;
 
     beforeEach(async () => {
@@ -134,7 +134,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  xdescribe('confirmTokenLift', async () => { // This tests always fails - returns rejected - should we remove it?
+  describe('confirmTokenLift', async () => { // This tests always fails - returns rejected - should we remove it?
     it('can confirm a token lift', async () => {
       const dummyEthereumTransactionHash = helper.randomEthTxHash();
       const requestId = await api.send.confirmTokenLift(dummyEthereumTransactionHash);
@@ -142,7 +142,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  xdescribe('lowerToken', async () => {
+  describe('lowerToken', async () => {
     let userAvtBalanceBefore, userTokenBalanceBefore, relayerAvtBalanceBefore, userNonceBefore;
 
     beforeEach(async () => {
@@ -183,7 +183,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  xdescribe('mintSingleNft', async () => {
+  describe('mintSingleNft', async () => {
     let externalRef, royalties, royaltyRecipient1, royaltyRecipient2, royaltyRate1, royaltyRate2;
 
     before(async () => {
@@ -239,7 +239,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  xdescribe('listFiatNftForSale', async () => {
+  describe('listFiatNftForSale', async () => {
     let externalRef, nftId;
     const royalties = [];
 
@@ -256,7 +256,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  xdescribe('transferFiatNft', async () => {
+  describe('transferFiatNft', async () => {
     let externalRef, nftId;
     const royalties = [];
 
@@ -277,7 +277,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  xdescribe('cancelFiatNftListing', async () => {
+  describe('cancelFiatNftListing', async () => {
     let externalRef, nftId;
     const royalties = [];
 

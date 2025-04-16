@@ -142,7 +142,7 @@ pipeline {
                             if (params.queryApiTest) {
                                 stage('Query api') {
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        sh 'npm run queryApiTest "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiTestReport;'
+                                        sh 'npm run queryApiTest "$CHAIN" -- --gateway="$CHAIN" --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=queryApiTestReport;'
                                     }
                                 }
                             }

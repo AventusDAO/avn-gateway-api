@@ -96,6 +96,11 @@ function ignoreAddressPrefix(input) {
 }
 
 function convertToBaseUnits(xAvt) {
+  if (argv.gateway) {
+    console.log('hue hue')
+  } else {
+    console.log("hua hahaha")
+  }
   console.log(`argv: ${JSON.stringify(argv, null, 2)}`);
   console.log(`argv.gateway: ${argv.gateway}`);
   if (argv.gateway === 'truth_dev' || argv.gateway === 'truth_testnet') {

@@ -186,6 +186,11 @@ pipeline {
                                     sh 'npm run remoteSignerTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=remoteSignerTestsReport;'
                                 }
                             }
+                            stage('Access') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    sh 'npm run accessTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=accessReport;'
+                                }
+                            }
                             stage('utils') {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                     sh 'npm run utilsTest "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=utilsTestReport'

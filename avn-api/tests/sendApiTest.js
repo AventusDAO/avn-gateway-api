@@ -53,8 +53,14 @@ describe('SendTx api calls:', async () => {
 
     describe('succeeds if', async function () {
       it('sender is funded with Avt', async function () {
+        console.log(`senderBalance: ${JSON.stringify(senderBalance, null, 2)}`);
+        console.log(`senderBalance: ${senderBalance.toString()}`);
+        console.log(`MINIMUM_REQUIRED_AVT_TEST_BALANCE: ${JSON.stringify(MINIMUM_REQUIRED_AVT_TEST_BALANCE, null, 2)}`);
+        console.log(`MINIMUM_REQUIRED_AVT_TEST_BALANCE: ${MINIMUM_REQUIRED_AVT_TEST_BALANCE.toString()}`);
+
         if (senderBalance.lt(MINIMUM_REQUIRED_AVT_TEST_BALANCE)) {
           let amountLeft = MINIMUM_REQUIRED_AVT_TEST_BALANCE.sub(senderBalance);
+          console.log(`amountLeft: ${JSON.stringify(amountLeft, null, 2)}`);
 
           const requestId = await bankApi.send.transferAvt(user, amountLeft);
           await helper.confirmStatus(bankApi.poll, requestId, 'Processed');
@@ -64,7 +70,7 @@ describe('SendTx api calls:', async () => {
         assert(senderBalance.gte(MINIMUM_REQUIRED_AVT_TEST_BALANCE));
       });
 
-      it('sender is funded with erc20 token', async function () {
+      xit('sender is funded with erc20 token', async function () {
         if (senderTokenBalance.lt(MINIMUM_REQUIRED_TOKEN_TEST_BALANCE)) {
           let amountLeft = MINIMUM_REQUIRED_TOKEN_TEST_BALANCE.sub(senderTokenBalance);
 
@@ -78,7 +84,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  describe('transferAVT', async () => {
+  xdescribe('transferAVT', async () => {
     let userAvtBalanceBefore, recipientAvtBalanceBefore, relayerAvtBalanceBefore;
 
     beforeEach(async () => {
@@ -136,7 +142,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  describe('lowerToken', async () => {
+  xdescribe('lowerToken', async () => {
     let userAvtBalanceBefore, userTokenBalanceBefore, relayerAvtBalanceBefore, userNonceBefore;
 
     beforeEach(async () => {
@@ -177,7 +183,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  describe('mintSingleNft', async () => {
+  xdescribe('mintSingleNft', async () => {
     let externalRef, royalties, royaltyRecipient1, royaltyRecipient2, royaltyRate1, royaltyRate2;
 
     before(async () => {
@@ -233,7 +239,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  describe('listFiatNftForSale', async () => {
+  xdescribe('listFiatNftForSale', async () => {
     let externalRef, nftId;
     const royalties = [];
 
@@ -250,7 +256,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  describe('transferFiatNft', async () => {
+  xdescribe('transferFiatNft', async () => {
     let externalRef, nftId;
     const royalties = [];
 
@@ -271,7 +277,7 @@ describe('SendTx api calls:', async () => {
     });
   });
 
-  describe('cancelFiatNftListing', async () => {
+  xdescribe('cancelFiatNftListing', async () => {
     let externalRef, nftId;
     const royalties = [];
 

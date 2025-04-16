@@ -149,7 +149,7 @@ pipeline {
                             if (params.sendApiTest) {
                                 stage('Send api') {
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        sh 'npm run sendApiTest "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiTestReport;'
+                                        sh 'npm run sendApiTest "$CHAIN" -- --gateway="$CHAIN" --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=sendApiTestReport;'
                                     }
                                 }
                             }

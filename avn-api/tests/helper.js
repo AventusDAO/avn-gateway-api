@@ -96,17 +96,10 @@ function ignoreAddressPrefix(input) {
 }
 
 function convertToBaseUnits(xAvt) {
-  if (argv.gateway) {
-    console.log('hue hue')
-  } else {
-    console.log("hua hahaha")
-  }
-  console.log(`argv: ${JSON.stringify(argv, null, 2)}`);
-  console.log(`argv.gateway: ${argv.gateway}`);
-  if (argv.gateway === 'truth_dev' || argv.gateway === 'truth_testnet') {
-    return new BN(xAvt.toString()).mul(new BN('10000000000'));
-  } else {
+  if (argv.gateway === 'dev' || argv.gateway === 'public_testnet' || argv.gateway === 'vow') {
     return new BN(xAvt.toString()).mul(new BN('1000000000000000000'));
+  } else {
+    return new BN(xAvt.toString()).mul(new BN('10000000000'));
   }
 }
 

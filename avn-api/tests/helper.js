@@ -96,7 +96,7 @@ function ignoreAddressPrefix(input) {
 }
 
 function convertToBaseUnits(xAvt) {
-  if (argv.gateway === 'truth' || argv.gateway === 'truthTestnet') {
+  if (argv.gateway === 'truth_dev' || argv.gateway === 'truth_testnet') {
     return new BN(xAvt.toString()).mul(new BN('10000000000'));
   } else {
     return new BN(xAvt.toString()).mul(new BN('1000000000000000000'));

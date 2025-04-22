@@ -30,6 +30,8 @@ interface PaymentInfo {
   splitFeeProxyProof?: ProxyProof;
 }
 
+type ProxyMethodResult = { ok: true; params: ProxyParams, pallet: string, method: string } | { ok: false; error: ErrorBody };
+
 export const handler: CustomSQSHandler = async (event: SQSEvent, context: Context): Promise<APIGatewayProxyResult | SQSBatchResponse> => {
   await init();
   let processedMessagesCount = 0;
@@ -108,48 +110,24 @@ async function validateAndProcessCall(call: ProxyCall, request: string, requestI
 async function callSwitch(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
   console.info(`${requestId} - Processing call: ${call.method}, proxy nonce: ${(call.params || {}).nonce}`);
 
-  if (call.method === 'proxyExitPredictionMarketLiquidity') {
-    return await processProxyExitWithFees(call, request, requestId);
-  } else if (callConfigs[call.method]) {
-    return await processProxyCall(call.method, call, request, requestId);
+  switch (call.method) {
+    case 'proxyExitPredictionMarketLiquidity':
+      return await processProxyExitWithFees(call, request, requestId);
+    case 'proxyLowerFromPredictionMarket':
+      return await processLowerFromPredictionMarket(call, request, requestId);
+  }
+
+
+  if (callConfigs[call.method]) {
+    const result = await processProxyCall(call.method, call, request, requestId);
+    if (result.ok === false) {
+      return result.error;
+    }
+
+    return await sendTx(call, request, requestId, result.pallet, result.method, result.params);
   } else {
     return buildErrorBody('method', 'Method not found', call.method, request, call.id);
   }
-}
-
-async function processProxyCall(callType: string, call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
-  if(Array.isArray(call.params)) {
-    throw new Error(`call params must not be an array. To use batch calls, use an appropriate method`);
-  }
-
-  const config = callConfigs[callType];
-  if (!config) {
-    throw new Error(`No configuration found for call type ${callType}`);
-  }
-
-  const { pallet, method, buildMethodParams, buildSignData } = config;
-
-  if (config.nonceType) {
-    let nonce = call.params.nonce ?? await queryNonce(requestId, NONCE_INFO[config.nonceType], call.params.user);
-    call.params.nonce = nonce;
-  }
-
-  const methodParams = await buildMethodParams(call.params);
-  const signData = await buildSignData({ ...call.params });
-
-  try {
-    validateSignData(signData);
-
-    if (!isValidProxySignature(call.params.proxySignature, call.params.user, signData)) {
-      throw 'proxySignature';
-    }
-  } catch (err) {
-    console.error(`Error in processProxyCall:`, err);
-    const badParamValue = err.toString();
-    return buildErrorBody('params', `invalid ${badParamValue}`, badParamValue, request, call.id);
-  }
-
-  return await processProxyMethod(call, request, requestId, pallet, method, methodParams);
 }
 
 //TODO: Fix me. We should not read the nonce from the chain because we risk getting duplicate values for different tx's
@@ -163,22 +141,47 @@ async function queryNonce(requestId: string, nonceInfo: { palletName: string, st
   return nonce;
 }
 
-async function processProxyMethod(
+async function processProxyCall(
+  callType: string,
   call: ProxyCall,
   request: string,
   requestId: string,
-  pallet: string,
-  method: string,
-  methodParams: any[]
-): Promise<ValidResponse | ErrorBody> {
+): Promise<ProxyMethodResult> {
+  if(Array.isArray(call.params)) {
+    throw new Error(`call params must not be an array. To use batch calls, use an appropriate method`);
+  }
+
+  // Do not use call.method here batch calls use a different outer call method to the inner calls
+  const config = callConfigs[callType];
+  if (!config) {
+    throw new Error(`No configuration found for call type ${callType}`);
+  }
+
+  const { pallet, method, buildMethodParams } = config;
+  const methodParams = await buildMethodParams(call.params);
+
+  try {
+    validateProxySignature(config, call, request, requestId);
+  } catch (err) {
+    console.error(`Error in processProxyCall:`, err);
+    const badParamValue = err.toString();
+    return { ok: false, error: buildErrorBody('params', `invalid ${badParamValue}`, badParamValue, request, call.id)};
+  }
+
   const validationError = validateProxyCallParams(call, request);
-  if (validationError) return validationError;
+  if (validationError) return { ok: false, error: validationError };
 
   const { relayer, user, proxySignature, currencyToken } = call.params;
   const proxyProof: ProxyProof = getProxyProof(user, relayer, proxySignature);
 
 
-  const paymentInfo = await getPaymentInfo(call, proxyProof, requestId, pallet, method);
+  let paymentInfo: PaymentInfo;
+  try {
+    paymentInfo = await setupPaymentInfo(call, proxyProof, requestId);
+  } catch (error) {
+    console.error(`Failed to get payment information for ${pallet}.${method}`, error);
+    throw error;
+  }
 
   const params: ProxyParams = {
     proxyParams: [proxyProof].concat(methodParams),
@@ -205,7 +208,7 @@ async function processProxyMethod(
     params.paymentInfo = paymentInfo.paymentInfo;
   }
 
-  return await sendTx(call, request, requestId, pallet, method, params);
+  return { ok: true, params, pallet, method };
 }
 
 async function sendTx(
@@ -818,6 +821,86 @@ function validateSignData(signData: SignDataItem[]): void {
   }
 }
 
+
+async function processLowerFromPredictionMarket(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
+  if(!Array.isArray(call.params)) {
+    return buildErrorBody('params', 'Expected batch transactions', '', request, call.id);
+  }
+
+  // the ordering of the array objects is important - they go into the batch in that order
+  // we can't use an object because we need to support other batch calls
+  const [ withdrawProxyParams, lowerProxyParams ] = call.params;
+  if (!withdrawProxyParams || !lowerProxyParams) {
+    return buildErrorBody('params', 'Missing required parameters', 'withdrawProxyParams or lowerProxyParams', request, call.id);
+  }
+
+  const withdrawCall = {
+    ...call,
+    params: {
+      ...withdrawProxyParams,
+      currencyToken: withdrawProxyParams.currencyToken
+    }
+  };
+  let result = await processProxyCall(withdrawProxyParams.txType, withdrawCall, request, requestId);
+  if (result.ok === false) {
+    return result.error;
+  }
+  const withdrawCallParams = {
+    palletName: 'predictionMarkets',
+    method: 'signedWithdrawTokens',
+    params: result.params
+  }
+
+  // let paramsError = validateProxyCallParams(withdrawCall, request);
+  // if (paramsError) return paramsError;
+  // const withdrawProof = getProxyProof(withdrawProxyParams.user, withdrawProxyParams.relayer, withdrawProxyParams.proxySignature)
+  // const withdrawPaymentInfo = await setupPaymentInfo(withdrawCall, withdrawProof, requestId);
+  // const withdrawCallParams: BatchProxyParams = {
+  //   palletName: 'predictionMarkets',
+  //   method: 'signedWithdrawTokens',
+  //   params: {
+  //     proxyParams: [withdrawProxyParams.assetEthAddress, withdrawProxyParams.amount],
+  //     relayerAddress: withdrawProxyParams.relayer,
+  //     currencyToken: withdrawProxyParams.relayer.currencyToken,
+  //     paymentInfo: withdrawPaymentInfo.paymentInfo
+  //   }
+  // };
+
+  const lowerCall = {
+    ...call,
+    params: {
+      ...lowerProxyParams,
+      currencyToken: lowerProxyParams.currencyToken
+    }
+  };
+  result = await processProxyCall(lowerProxyParams.txType, lowerCall, request, requestId);
+  if (result.ok === false) {
+    return result.error;
+  }
+  const lowerCallParams = {
+    palletName: 'tokenManager',
+    method: 'scheduleSignedLower',
+    params: result.params
+  }
+  // paramsError = validateProxyCallParams(lowerCall, request);
+  // if (paramsError) return paramsError;
+  // const lowerProof = getProxyProof(lowerProxyParams.user, lowerProxyParams.relayer, lowerProxyParams.proxySignature)
+  // const lowerPaymentInfo = await setupPaymentInfo(lowerCall, lowerProof, requestId);
+  // const lowerCallParams: BatchProxyParams = {
+  //   palletName: 'tokenManager',
+  //   method: 'scheduleSignedLower',
+  //   params: {
+  //     proxyParams: [lowerProxyParams.user, lowerProxyParams.token, lowerProxyParams.t1Recipient, lowerProxyParams.amount],
+  //     relayerAddress: lowerProxyParams.relayer,
+  //     currencyToken: lowerProxyParams.currencyToken,
+  //     paymentInfo: lowerPaymentInfo.paymentInfo
+  //   }
+  // };
+
+   const batchCalls = [withdrawCallParams, lowerCallParams];
+   return await sendTx(call, request, requestId, 'utility', 'batchAll', batchCalls);
+}
+
 async function processProxyExitWithFees(call: ProxyCall, request: string, requestId: string): Promise<ValidResponse | ErrorBody> {
   if(!Array.isArray(call.params)) {
     return buildErrorBody('params', 'Expected batch transactions', '', request, call.id);
@@ -837,6 +920,15 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
        currencyToken: exitMarketParams.currencyToken
      }
    };
+   let result = await processProxyCall(exitMarketParams.txType, exitCall, request, requestId);
+   if (result.ok === false) {
+     return result.error;
+   }
+   const exitCallParams = {
+     palletName: 'neoSwaps',
+     method: 'signedExit',
+     params: result.params
+   }
 
    const withdrawCall = {
      ...call,
@@ -845,41 +937,49 @@ async function processProxyExitWithFees(call: ProxyCall, request: string, reques
        currencyToken: withdrawFeeParams.currencyToken
      }
    };
-
-   const exitValidationError = validateProxyCallParams(exitCall, request);
-   if (exitValidationError) return exitValidationError;
-
-   const withdrawValidationError = validateProxyCallParams(withdrawCall, request);
-   if (withdrawValidationError) return withdrawValidationError;
-
-   const { relayer, currencyToken, marketId, blockNumber } = exitMarketParams;
-
-   const withdrawFeeProof = getProxyProof(withdrawFeeParams.user, withdrawFeeParams.relayer, withdrawFeeParams.proxySignature)
-   const exitProof = getProxyProof(exitMarketParams.user, exitMarketParams.relayer, exitMarketParams.proxySignature)
-   const withdrawFeesPaymentInfo = await setupPaymentInfo(withdrawCall, withdrawFeeProof, requestId);
-   const exitPaymentInfo = await setupPaymentInfo(exitCall, exitProof, requestId);
-
-   const withdrawFeesCallParams: BatchProxyParams = {
+   result = await processProxyCall(withdrawFeeParams.txType, withdrawCall, request, requestId);
+   if (result.ok === false) {
+     return result.error;
+   }
+   const withdrawFeesCallParams = {
      palletName: 'neoSwaps',
      method: 'signedWithdrawFees',
-     params: {
-       proxyParams: [withdrawFeeProof, marketId, blockNumber],
-       relayerAddress: relayer,
-       currencyToken: currencyToken,
-       paymentInfo: withdrawFeesPaymentInfo.paymentInfo
-     }
-   };
+     params: result.params
+   }
+  //  const exitValidationError = validateProxyCallParams(exitCall, request);
+  //  if (exitValidationError) return exitValidationError;
 
-   const exitCallParams: BatchProxyParams = {
-     palletName: 'neoSwaps',
-     method: 'signedExit',
-     params: {
-       proxyParams: [exitProof, marketId, exitMarketParams.poolSharesAmountOut, exitMarketParams.minAmountsOut, blockNumber],
-       relayerAddress: relayer,
-       currencyToken: currencyToken,
-       paymentInfo: exitPaymentInfo.paymentInfo
-     }
-   };
+  //  const withdrawValidationError = validateProxyCallParams(withdrawCall, request);
+  //  if (withdrawValidationError) return withdrawValidationError;
+
+  //  const { relayer, currencyToken, marketId, blockNumber } = exitMarketParams;
+
+  //  const withdrawFeeProof = getProxyProof(withdrawFeeParams.user, withdrawFeeParams.relayer, withdrawFeeParams.proxySignature)
+  //  const exitProof = getProxyProof(exitMarketParams.user, exitMarketParams.relayer, exitMarketParams.proxySignature)
+  //  const withdrawFeesPaymentInfo = await setupPaymentInfo(withdrawCall, withdrawFeeProof, requestId);
+  //  const exitPaymentInfo = await setupPaymentInfo(exitCall, exitProof, requestId);
+
+  //  const withdrawFeesCallParams: BatchProxyParams = {
+  //    palletName: 'neoSwaps',
+  //    method: 'signedWithdrawFees',
+  //    params: {
+  //      proxyParams: [withdrawFeeProof, marketId, blockNumber],
+  //      relayerAddress: relayer,
+  //      currencyToken: currencyToken,
+  //      paymentInfo: withdrawFeesPaymentInfo.paymentInfo
+  //    }
+  //  };
+
+  //  const exitCallParams: BatchProxyParams = {
+  //    palletName: 'neoSwaps',
+  //    method: 'signedExit',
+  //    params: {
+  //      proxyParams: [exitProof, marketId, exitMarketParams.poolSharesAmountOut, exitMarketParams.minAmountsOut, blockNumber],
+  //      relayerAddress: relayer,
+  //      currencyToken: currencyToken,
+  //      paymentInfo: exitPaymentInfo.paymentInfo
+  //    }
+  //  };
 
    const batchCalls = [withdrawFeesCallParams, exitCallParams];
 
@@ -903,6 +1003,20 @@ function validateProxyCallParams(call: ProxyCall, request: string): ErrorBody | 
     return null;
   } catch (param) {
     return buildErrorBody('params', `invalid proxy method ${param}: ${call.params[param]}`, param, request, call.id);
+  }
+}
+
+async function validateProxySignature(config: CallConfig, call: ProxyCall, request: string, requestId: string) {
+  if (config.nonceType) {
+    let nonce = call.params.nonce ?? await queryNonce(requestId, NONCE_INFO[config.nonceType], call.params.user);
+    call.params.nonce = nonce;
+  }
+
+  const signData = await config.buildSignData({ ...call.params });
+
+  validateSignData(signData);
+  if (!isValidProxySignature(call.params.proxySignature, call.params.user, signData)) {
+    throw 'proxySignature';
   }
 }
 
@@ -948,20 +1062,4 @@ async function setupPaymentInfo(
   }
 
   return paymentInfo;
-}
-
-
-async function getPaymentInfo(
-  call: ProxyCall,
-  proxyProof: ProxyProof,
-  requestId: string,
-  pallet: string,
-  method: string
-): Promise<any> {
-  try {
-    return await setupPaymentInfo(call, proxyProof, requestId);
-  } catch (error) {
-    console.error(`Failed to get payment information for ${pallet}.${method}: ${error.message}`);
-    throw error;
-  }
 }

@@ -251,6 +251,7 @@ export interface ProxyCallParams {
     poolSharesAmountOut?: string;
     minAmountsOut?: string;
     blockNumber?: number;
+    txType?: string;
 }
 
 export interface ProxyTransaction {

@@ -140,6 +140,8 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getNodeManagerInfo(call, request)
     case 'getNodeStatus':
       return await getNodeStatus(call, request)
+    case 'getAssetMetadata':
+      return await getAssetMetadata(call, request)
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -580,6 +582,11 @@ async function getPredictionMarketAssetByTokenAddress(call: Call, request: strin
 async function getCheckpointByOriginId(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { chainId, originId } = call.params;
   return await queryChain(call,request, 'avnAnchor', 'originIdToCheckpoint', [chainId, originId]);
+}
+
+async function getAssetMetadata(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { predictionMarketAsset } = call.params;
+  return await queryChain(call,request, 'assetRegistry', 'metadata', [predictionMarketAsset]);
 }
 
 async function getNodeStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {

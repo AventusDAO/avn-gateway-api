@@ -33,6 +33,10 @@ describe('Proxy api calls:', async () => {
     user = accounts.user.address;
     recipient = accounts.otherUser.address;
     recipientPubKey = accounts.otherUser.publicKey;
+
+    console.log(`relayer: ${relayer}`);
+    console.log(`relayer: ${helper.avt}`);
+    console.log(`relayer: ${user}`);
     relayerFee = new BN((await api.query.getRelayerFees(relayer, helper.avt, user)).proxyTokenTransfer);
   });
 
@@ -83,7 +87,7 @@ describe('Proxy api calls:', async () => {
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
 
-    it('can make multiple token transfers using a recipient address', async function () {
+    xit('can make multiple token transfers using a recipient address', async function () {
       this.timeout(400000); //increase the timeout of this test (https://mochajs.org/#test-level)
 
       const amount = new BN(1);

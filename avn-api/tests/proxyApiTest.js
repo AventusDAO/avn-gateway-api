@@ -35,9 +35,10 @@ describe('Proxy api calls:', async () => {
     recipientPubKey = accounts.otherUser.publicKey;
 
     console.log(`relayer: ${relayer}`);
-    console.log(`relayer: ${helper.avt}`);
-    console.log(`relayer: ${user}`);
+    console.log(`helper.avt: ${helper.avt}`);
+    console.log(`user: ${user}`);
     relayerFee = new BN((await api.query.getRelayerFees(relayer, helper.avt, user)).proxyTokenTransfer);
+    console.log(`relayerFee: ${relayerFee}`);
   });
 
   describe('Test setup', function () {

@@ -68,7 +68,7 @@ describe('Prediction Market tests', async () => {
     token = helper.pmToken;
   });
 
-  xdescribe('Test setup', function () {
+  describe('Test setup', function () {
     let senderBalance;
     before(async () => {
       senderBalance = new BN(await api.query.getAvtBalance(user.address));
@@ -89,7 +89,7 @@ describe('Prediction Market tests', async () => {
     });
   });
 
-  xdescribe('Create market and deploy pool', function () {
+  describe('Create market and deploy pool', function () {
     let requestId;
     before(async () => {
       timeRange = await getTimeRange();
@@ -145,7 +145,7 @@ describe('Prediction Market tests', async () => {
     });
   });
 
-  xdescribe('Buy tokens via hybrid router', function () {
+  describe('Buy tokens via hybrid router', function () {
     let requestId,
       requestId2,
       winnerTokenBalanceBefore,
@@ -214,7 +214,7 @@ describe('Prediction Market tests', async () => {
     });
   });
 
-  xdescribe('Sell tokens via hybrid router', function () {
+  describe('Sell tokens via hybrid router', function () {
     let requestId,
       outcomeTokenBalanceBefore,
       foreignAssetBalanceBefore,
@@ -264,7 +264,7 @@ describe('Prediction Market tests', async () => {
     });
   });
 
-  xdescribe('Report', function () {
+  describe('Report', function () {
     let requestId;
     before(async () => {
       await waitForEndTimestamp(timeRange.Timestamp[1]);
@@ -283,7 +283,7 @@ describe('Prediction Market tests', async () => {
     });
   });
 
-  xdescribe('redeemShares', function () {
+  describe('redeemShares', function () {
     let requestId, requestId2, winnerBalanceBefore, winnerBalanceAfter, loserBalanceBefore, loserBalanceAfter;
     before(async () => {
       winnerBalanceBefore = new BN((await api.query.getPredictionMarketTokenBalance(user.address, { ForeignAsset: 0 })).free);
@@ -315,7 +315,7 @@ describe('Prediction Market tests', async () => {
     });
   });
 
-  xdescribe('withdraw tokens', function () {
+  describe('withdraw tokens', function () {
     let requestId, tokenBalanceBeforeWithdraw, ForeignAssetBalanceBefore, ForeignAssetBalanceAfter, tokenBalanceAfterWithdraw;
     let floor = '100000000';
     let withdrawAmount = '1000000000';

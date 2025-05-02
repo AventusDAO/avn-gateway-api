@@ -236,7 +236,7 @@ pipeline {
                                     sh 'npm run splitFees "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=splitFeesReport;'
                                 }
                             }
-                            if (['truth_dev', 'truth_testnet', 'vow'].contains(params.Chain)) {
+                            if (['truth_dev', 'truth_testnet'].contains(params.Chain)) {
                                 stage('Prediction Market') {
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                         sh 'npm run predictionMarketTests "$CHAIN" -- --tests_config="$TESTS_CONFIG" --reporter mochawesome --reporter-options reportDir=reportDir,reportFilename=predictionMarketReport;'

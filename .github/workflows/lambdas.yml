@@ -37,7 +37,7 @@ jobs:
           path: avn-gateway/build/
 
   upload:
-    runs-on: avn-runner-ubuntu-2404-x64
+    runs-on: gh-ubuntu-2404-x64
     needs:  [ package ]
     name: Upload lambdas to AVN internal-tools s3 bucket
     steps:

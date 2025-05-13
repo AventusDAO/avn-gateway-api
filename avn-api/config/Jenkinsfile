@@ -1,7 +1,5 @@
 import groovy.json.JsonSlurper
 
-// def skipPipeline = false
-
 pipeline {
     agent {
         docker {
@@ -49,18 +47,18 @@ pipeline {
             steps {
                 script {
                     // Trigger separate runs for each chain when 'all' is selected
-                    ['truth_testnet', 'vow'].each { chainName ->
+                    ['truth_testnet', 'vow', 'public_testnet'].each { chainName ->
                         build job: env.JOB_NAME,
                             parameters: [
                                 string(name: 'Report_name', value: "Scheduled run for ${chainName}"),
                                 string(name: 'Chain', value: chainName),
                                 string(name: 'Avn_Api_branch', value: params.Avn_Api_branch),
-                                booleanParam(name: 'All', value: false),
+                                booleanParam(name: 'All', value: true),
                                 booleanParam(name: 'configurationTests', value: false),
                                 booleanParam(name: 'apiOffline', value: false),
                                 booleanParam(name: 'accessTests', value: false),
                                 booleanParam(name: 'awtTest', value: false),
-                                booleanParam(name: 'utilsTest', value: true),
+                                booleanParam(name: 'utilsTest', value: false),
                                 booleanParam(name: 'pollApiTest', value: false),
                                 booleanParam(name: 'proxyApiTest', value: false),
                                 booleanParam(name: 'queryApiTest', value: false),
@@ -74,21 +72,15 @@ pipeline {
                             ],
                             wait: false
                     }
-                    // ✅ Properly terminate this parent job
                     echo "This build triggered downstream jobs. Exiting."
-                    // Uses an error with a specific result to end successfully
-                    // without running further stages
                     currentBuild.description = "Dispatched truth_testnet + vow"
                     currentBuild.result = 'SUCCESS'
-                    // skipPipeline = true
                 }
             }
         }
-
         stage('Build') {
             when {
                 expression { params.Chain != 'all' }
-                // expression { params.Chain != 'all' && !skipPipeline }
             }
             steps {
                 script {
@@ -130,7 +122,6 @@ pipeline {
         stage('Gateway tests') {
             when {
                 expression { params.Chain != 'all' }
-                // expression { params.Chain != 'all' && !skipPipeline }
             }
             steps {
                 script {

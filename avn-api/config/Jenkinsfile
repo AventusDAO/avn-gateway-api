@@ -72,6 +72,9 @@ pipeline {
                             ],
                             wait: false
                     }
+                    // Stop the current build so it doesn't continue to run itself
+                    currentBuild.result = 'SUCCESS'
+                    return
                 }
             }
         }

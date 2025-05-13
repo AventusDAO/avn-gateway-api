@@ -22,7 +22,7 @@ pipeline {
     }
     parameters {
         string(name: 'Report_name', defaultValue: '', description: 'Give a descriptive name to your test run');
-        choice(name: 'Chain', choices: ['truth_testnet', 'vow', 'dev', 'public_testnet', 'truth_dev'], description: 'Choose which chain to test');
+        choice(name: 'Chain', choices: ['all', 'truth_testnet', 'vow', 'dev', 'public_testnet', 'truth_dev'], description: 'Choose which chain to test');
         string(name: 'Avn_Api_branch', defaultValue: 'main', description: 'avn-api branch');
         booleanParam(name: 'All', defaultValue: true, description: 'Run all tests');
         booleanParam(name: 'configurationTests', defaultValue: false);
@@ -40,6 +40,28 @@ pipeline {
         booleanParam(name: 'predictionMarketTests', defaultValue: false);
     }
     stages {
+        stage('Dispatch') {
+            when {
+                expression { params.Chain == 'all' }
+            }
+            steps {
+                script {
+                    // Trigger separate runs for each chain when 'all' is selected
+                    ['truth_testnet', 'vow'].each { chainName ->
+                        build job: env.JOB_NAME,
+                            parameters: [
+                                string(name: 'Report_name', value: "Scheduled run for ${chainName}"),
+                                string(name: 'Chain', value: chainName),
+                                string(name: 'Avn_Api_branch', value: params.Avn_Api_branch),
+                                booleanParam(name: 'All', value: true)
+                                // All other test-specific params will default to false
+                            ],
+                            wait: false
+                    }
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 script {

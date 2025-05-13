@@ -72,9 +72,13 @@ pipeline {
                             ],
                             wait: false
                     }
-                    // Stop the current build so it doesn't continue to run itself
+                    // ✅ Properly terminate this parent job
+                    echo "This build triggered downstream jobs. Exiting."
+                    // Uses an error with a specific result to end successfully
+                    // without running further stages
+                    currentBuild.description = "Dispatched truth_testnet + vow"
                     currentBuild.result = 'SUCCESS'
-                    return
+                    error('Stopping parent pipeline after dispatch.')
                 }
             }
         }

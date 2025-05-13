@@ -1,5 +1,7 @@
 import groovy.json.JsonSlurper
 
+// def skipPipeline = false
+
 pipeline {
     agent {
         docker {
@@ -78,12 +80,16 @@ pipeline {
                     // without running further stages
                     currentBuild.description = "Dispatched truth_testnet + vow"
                     currentBuild.result = 'SUCCESS'
-                    error('Stopping parent pipeline after dispatch.')
+                    // skipPipeline = true
                 }
             }
         }
 
         stage('Build') {
+            when {
+                expression { params.Chain != 'all' }
+                // expression { params.Chain != 'all' && !skipPipeline }
+            }
             steps {
                 script {
                     def configFile = readFile "${GATEWAY_TESTS_CONFIG}"
@@ -122,6 +128,10 @@ pipeline {
             }
         }
         stage('Gateway tests') {
+            when {
+                expression { params.Chain != 'all' }
+                // expression { params.Chain != 'all' && !skipPipeline }
+            }
             steps {
                 script {
                     withEnv(["CHAIN=${params.Chain}", "TESTS_CONFIG=${env.TESTS_CONFIG}"]) {

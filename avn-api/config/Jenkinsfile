@@ -53,19 +53,19 @@ pipeline {
                                 string(name: 'Report_name', value: "Scheduled run for ${chainName}"),
                                 string(name: 'Chain', value: chainName),
                                 string(name: 'Avn_Api_branch', value: params.Avn_Api_branch),
-                                booleanParam(name: 'All', value: false)
-                                booleanParam(name: 'configurationTests', value: false)
-                                booleanParam(name: 'apiOffline', value: false)
-                                booleanParam(name: 'accessTests', value: false)
-                                booleanParam(name: 'awtTest', value: false)
-                                booleanParam(name: 'utilsTest', value: true)
-                                booleanParam(name: 'pollApiTest', value: false)
-                                booleanParam(name: 'proxyApiTest', value: false)
-                                booleanParam(name: 'queryApiTest', value: false)
-                                booleanParam(name: 'sendApiTest', value: false)
-                                booleanParam(name: 'relayerFees', value: false)
-                                booleanParam(name: 'splitFees', value: false)
-                                booleanParam(name: 'remoteSignerTests', value: false)
+                                booleanParam(name: 'All', value: false),
+                                booleanParam(name: 'configurationTests', value: false),
+                                booleanParam(name: 'apiOffline', value: false),
+                                booleanParam(name: 'accessTests', value: false),
+                                booleanParam(name: 'awtTest', value: false),
+                                booleanParam(name: 'utilsTest', value: true),
+                                booleanParam(name: 'pollApiTest', value: false),
+                                booleanParam(name: 'proxyApiTest', value: false),
+                                booleanParam(name: 'queryApiTest', value: false),
+                                booleanParam(name: 'sendApiTest', value: false),
+                                booleanParam(name: 'relayerFees', value: false),
+                                booleanParam(name: 'splitFees', value: false),
+                                booleanParam(name: 'remoteSignerTests', value: false),
                                 booleanParam(name: 'predictionMarketTests', value: false)
                                 // booleanParam(name: 'All', value: true)
                                 // All other test-specific params will default to false

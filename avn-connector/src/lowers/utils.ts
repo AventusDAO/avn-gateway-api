@@ -1,19 +1,27 @@
 import axios from 'axios';
 import logger from '../logger';
 const config = require('multiconfig').load();
-import { hexToBn, isHex } from '@polkadot/util';
+import { hexToBn, isHex, u8aToHex } from '@polkadot/util';
+import { blake2AsU8a } from '@polkadot/util-crypto';
+import { Text, U32, Tuple, TypeRegistry } from '@polkadot/types';
 import avn from '../avn';
 
+const registry = new TypeRegistry();
 const AVN_EXPLORER_URL = config.avnExplorerUrl;
-const READY_TO_CLAIM_EVENT_NAME = 'TokenManager.LowerReadyToClaim';
+
 const LOWER_REQUEST_EVENT_NAME = 'TokenManager.LowerRequested';
+const AVT_LOWERED_EVENT_NAME = 'TokenManager.AvtLowered';
+const TOKEN_LOWERED_EVENT_NAME = 'TokenManager.TokenLowered';
+const LOWER_FAILED_EVENT_NAME = 'LowerFailed';
+const READY_TO_CLAIM_EVENT_NAME = 'TokenManager.LowerReadyToClaim';
 
 const lowerStates: Record<string, number> = {
-  'TokenManager.AvtLowered': 1,
-  'TokenManager.TokenLowered': 1
+  LOWER_REQUEST_EVENT_NAME: 0,
+  AVT_LOWERED_EVENT_NAME: 1,
+  TOKEN_LOWERED_EVENT_NAME: 1,
+  LOWER_FAILED_EVENT_NAME: 2,
+  READY_TO_CLAIM_EVENT_NAME: 2
 };
-lowerStates[LOWER_REQUEST_EVENT_NAME] = 0;
-lowerStates[READY_TO_CLAIM_EVENT_NAME] = 2;
 
 interface LowerEvent {
   args: {
@@ -57,7 +65,7 @@ async function getLowersFromIndexer(
         query LowerQuery {
             events(
                 where: {
-                    name_in:["TokenManager.TokenLowered", "TokenManager.AvtLowered", "${LOWER_REQUEST_EVENT_NAME}", "${READY_TO_CLAIM_EVENT_NAME}"],
+                    name_in:["${TOKEN_LOWERED_EVENT_NAME}", "${AVT_LOWERED_EVENT_NAME}", "${LOWER_REQUEST_EVENT_NAME}", "${READY_TO_CLAIM_EVENT_NAME}"],
                     id_gte: "${fromId}"
                 },
                 limit: ${txLimit}
@@ -215,15 +223,43 @@ async function updateEventStatusIfRequired(
   return currentEvent;
 }
 
+async function isFailedLower(lowerId: string): Promise<Boolean> {
+  const tuple = new Tuple(registry, [Text, U32], ['Lower', Number(lowerId)]);
+  const hash = u8aToHex(blake2AsU8a(tuple.toU8a(), 256));
+  const query = `
+    query FailedLower {
+      events(
+        limit: 1
+        where: {
+          name_eq: "Scheduler.Dispatched",
+          args_jsonContains: "{\\"id\\":\\"${hash}\\"}"
+        }
+      ) {
+        indexInBlock
+      }
+    }
+  `;
+
+  try {
+    const response = await axios.post(AVN_EXPLORER_URL, { query, operationName: 'FailedLowerQuery' });
+    return response?.data?.data?.events?.length > 0;
+  } catch (error) {
+    logger.error('💔 Error check failed lower:', error);
+    return false;
+  }
+}
+
 const utils = {
   formatLowerEvent,
   getLowersFromIndexer,
+  LOWER_FAILED_EVENT_NAME,
   READY_TO_CLAIM_EVENT_NAME,
   lowerStates,
   canUpdateEventStatus,
   currentEventMissingArgs,
   updateEventArgs,
   updateBlockNumberAndIndex,
+  isFailedLower,
   isLowerId,
   parseBlockId,
   updateEventStatusIfRequired

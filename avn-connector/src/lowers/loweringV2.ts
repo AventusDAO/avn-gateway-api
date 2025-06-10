@@ -20,7 +20,7 @@ async function getLowers(addressOrId: string): Promise<LowerData | null> {
   await deleteClaimedLowers(avnContract);
 
   if (utils.isLowerId(addressOrId)) {
-    return await redis.getLowerById(addressOrId);
+    return await getLower(addressOrId);
   } else {
     return await getLowerByAddress(addressOrId);
   }
@@ -143,7 +143,7 @@ async function getLowerByAddress(address: string): Promise<any[]> {
   const lowerData: any[] = [];
   const lowerIds = await redis.getLowerIdsByAddress(address);
   for (const id of lowerIds) {
-    let lower = await redis.getLowerById(id);
+    let lower = await getLower(id);
     if (lower) {
       lowerData.push(lower);
     } else {
@@ -169,6 +169,19 @@ async function deleteClaimedLowers(avnContract: string): Promise<void> {
   }
 
   await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
+}
+
+async function getLower(lowerId: string): Promise<LowerData | null> {
+  const lower = await redis.getLowerById(lowerId);
+  if (!lower) return null;
+  if (lower.name === utils.READY_TO_CLAIM_EVENT_NAME || lower.name === utils.LOWER_FAILED_EVENT_NAME) return lower;
+
+  if (await utils.isFailedLower(lowerId)) {
+    lower.name = utils.LOWER_FAILED_EVENT_NAME;
+    await redis.setLowerById(lowerId, lower);
+  }
+
+  return lower;
 }
 
 const loweringV2 = {

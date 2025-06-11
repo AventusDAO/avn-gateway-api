@@ -227,9 +227,9 @@ async function isFailedLower(lowerId: string): Promise<Boolean> {
   const tuple = new Tuple(registry, [Text, U32], ['Lower', Number(lowerId)]);
   const hash = u8aToHex(blake2AsU8a(tuple.toU8a(), 256));
   const query = `
-    query FailedLower {
+    query FailedLowerQuery {
       events(
-        limit: 1
+        limit: 1,
         where: {
           name_eq: "Scheduler.Dispatched",
           args_jsonContains: "{\\"id\\":\\"${hash}\\"}"

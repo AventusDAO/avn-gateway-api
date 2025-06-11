@@ -232,7 +232,10 @@ async function isFailedLower(lowerId: string): Promise<Boolean> {
         limit: 1,
         where: {
           name_eq: "Scheduler.Dispatched",
-          args_jsonContains: "{\\"id\\":\\"${hash}\\"}"
+          args_jsonContains: "{\\"id\\":\\"${hash}\\"}",
+          AND: {
+            args_jsonContains: "{\\"result\\":{\\"__kind\\":\\"Err\\"}}"
+          }
         }
       ) {
         indexInBlock

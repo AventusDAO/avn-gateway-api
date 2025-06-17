@@ -2,7 +2,7 @@ import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
 import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16, Compact, Option } from '@polkadot/types';
-import { H256, H160, BalanceOf, Perbill, BlockNumber } from "@polkadot/types/interfaces";
+import { H256, H160, BalanceOf, Perbill, BlockNumber, AccountId } from "@polkadot/types/interfaces";
 
 export enum EventType {
     AddedValidator = 0,
@@ -36,6 +36,7 @@ export type SignDataItem = | { Text: string }
     | { 'Compact<BalanceOf>': Compact<BalanceOf>}
     | { 'Compact<u128>': Compact<u128>}
     | { 'Strategy': string }
+    | { 'Vec<AccountId>': Vec<AccountId> }
     | { H256: H256; }
     | { U256: U256 }
     | { u8: EventType | MarketType; }
@@ -68,43 +69,6 @@ export interface NonceInfo {
     hybridRouter: { palletName: string; storageName: string };
     nodeManager: { palletName: string; storageName: string };
 }
-
-export type TransactionType = 'proxyAvtTransfer' |
-    'proxyTokenTransfer' |
-    'proxyConfirmTokenLift' |
-    'proxyTokenLower' |
-    'proxyCreateNftBatch' |
-    'proxyMintSingleNft' |
-    'proxyMintBatchNft' |
-    'proxyListNftOpenForSale' |
-    'proxyListNftBatchForSale' |
-    'proxyTransferFiatNft' |
-    'proxyCancelListFiatNft' |
-    'proxyEndNftBatchSale' |
-    'proxyIncreaseStake' |
-    'proxyUnstake' |
-    'proxyWithdrawUnlocked' |
-    'proxyStakeAvt' |
-    'proxyMintEthereumBatchNft' |
-    'proxyTransferEthereumNft' |
-    'proxyCancelEthereumNftSale' |
-    'proxyEndEthereumBatchSale' |
-    'proxyListEthereumNftForSale' |
-    'proxyListEthereumNftBatchForSale'|
-    'proxyRegisterHandler'|
-    'proxySubmitCheckpoint'|
-    'proxyCreateMarketAndDeployPool'|
-    'proxyReport'|
-    'proxyRedeemShares'|
-    'proxyTransferAsset'|
-    'proxySell'|
-    'proxyBuy' |
-    'proxyWithdrawAsset'|
-    'proxyAddPredictionMarketLiquidity' |
-    'proxyExitPredictionMarketLiquidity'|
-    'proxyWithdrawPredictionMarketLiquidityFees'|
-    'proxyBuyCompletePredictionMarketOutcomeTokens' |
-    'proxyLowerFromPredictionMarket'
 
 export interface RPCError {
     parse: { code: number; message: string };

@@ -767,6 +767,19 @@ const callConfigs: { [key: string]: CallConfig } = {
       { BlockNumber: blockNumber },
     ]
   },
+  'proxyDeregisterNode': {
+    pallet: 'nodeManager',
+    method: 'signedDeregisterNode',
+    buildMethodParams: ({ nodeOwner, nodesToDeregister, blockNumber }) => [nodeOwner, nodesToDeregister, blockNumber],
+    buildSignData: ({ relayer, nodeOwner, nodesToDeregister, blockNumber }) => [
+      { Text: 'deregister_node' },
+      { AccountId: relayer },
+      { AccountId: nodeOwner },
+      { 'Vec<AccountId>': nodesToDeregister },
+      { u32: nodesToDeregister.length },
+      { BlockNumber: blockNumber }
+    ]
+  },
   'proxyAddPredictionMarketLiquidity': {
     pallet: 'neoSwaps',
     method: 'signedJoin',

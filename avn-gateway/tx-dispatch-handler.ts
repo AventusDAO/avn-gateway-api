@@ -767,9 +767,9 @@ const callConfigs: { [key: string]: CallConfig } = {
       { BlockNumber: blockNumber },
     ]
   },
-  'proxyDeregisterNode': {
+  'proxyDeregisterNodes': {
     pallet: 'nodeManager',
-    method: 'signedDeregisterNode',
+    method: 'signedDeregisterNodes',
     buildMethodParams: ({ nodeOwner, nodesToDeregister, blockNumber }) => [nodeOwner, nodesToDeregister, blockNumber],
     buildSignData: ({ relayer, nodeOwner, nodesToDeregister, blockNumber }) => [
       { Text: 'deregister_node' },

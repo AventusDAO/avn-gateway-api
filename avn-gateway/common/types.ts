@@ -70,6 +70,52 @@ export interface NonceInfo {
     nodeManager: { palletName: string; storageName: string };
 }
 
+export type TransactionType = 'proxyAvtTransfer' |
+    'proxyTokenTransfer' |
+    'proxyConfirmTokenLift' |
+    'proxyTokenLower' |
+    'proxyCreateNftBatch' |
+    'proxyMintSingleNft' |
+    'proxyMintBatchNft' |
+    'proxyListNftOpenForSale' |
+    'proxyListNftBatchForSale' |
+    'proxyTransferFiatNft' |
+    'proxyCancelListFiatNft' |
+    'proxyEndNftBatchSale' |
+    'proxyIncreaseStake' |
+    'proxyUnstake' |
+    'proxyWithdrawUnlocked' |
+    'proxyStakeAvt' |
+    'proxyMintEthereumBatchNft' |
+    'proxyTransferEthereumNft' |
+    'proxyCancelEthereumNftSale' |
+    'proxyEndEthereumBatchSale' |
+    'proxyListEthereumNftForSale' |
+    'proxyListEthereumNftBatchForSale'|
+    'proxyRegisterHandler'|
+    'proxySubmitCheckpoint'|
+    'proxyCreateMarketAndDeployPool'|
+    'proxyReport'|
+    'proxyRedeemShares'|
+    'proxyTransferAsset'|
+    'proxySell'|
+    'proxyBuy' |
+    'proxyWithdrawAsset'|
+    'proxyAddPredictionMarketLiquidity' |
+    'proxyExitPredictionMarketLiquidity'|
+    'proxyWithdrawPredictionMarketLiquidityFees'|
+    'proxyBuyCompletePredictionMarketOutcomeTokens' |
+    'proxyLowerFromPredictionMarket' |
+    'proxyRegisterNode' |
+    'proxyDeregisterNodes' |
+    'proxyScheduleLeaveNominators' |
+    'proxyExecuteLeaveNominators' |
+    'proxyReportMarketOutcome' |
+    'proxyRedeemMarketShares' |
+    'proxyTransferMarketTokens' |
+    'proxyBuyMarketOutcomeTokens' |
+    'proxySellMarketOutcomeTokens'
+
 export interface RPCError {
     parse: { code: number; message: string };
     request: { code: number; message: string };

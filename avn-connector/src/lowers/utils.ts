@@ -15,13 +15,13 @@ const TOKEN_LOWERED_EVENT_NAME = 'TokenManager.TokenLowered';
 const LOWER_FAILED_EVENT_NAME = 'LowerFailed';
 const READY_TO_CLAIM_EVENT_NAME = 'TokenManager.LowerReadyToClaim';
 
-const lowerStates: Record<string, number> = {
-  LOWER_REQUEST_EVENT_NAME: 0,
-  AVT_LOWERED_EVENT_NAME: 1,
-  TOKEN_LOWERED_EVENT_NAME: 1,
-  LOWER_FAILED_EVENT_NAME: 2,
-  READY_TO_CLAIM_EVENT_NAME: 2
-};
+let lowerStates: Record<string, number> = {};
+// Be careful when changing this object.
+lowerStates[LOWER_REQUEST_EVENT_NAME] = 0;
+lowerStates[AVT_LOWERED_EVENT_NAME] = 1;
+lowerStates[TOKEN_LOWERED_EVENT_NAME] = 1;
+lowerStates[LOWER_FAILED_EVENT_NAME] = 2;
+lowerStates[READY_TO_CLAIM_EVENT_NAME] = 2;
 
 interface LowerEvent {
   args: {

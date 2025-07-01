@@ -110,6 +110,7 @@ async function getLowersClaimedSinceBlock(
   avnContract: string,
   fromBlock: number
 ): Promise<[number, number[]]> {
+  let lastBlockChecked = fromBlock;
   const claimedLowerIds: number[] = [];
 
   try {
@@ -118,16 +119,17 @@ async function getLowersClaimedSinceBlock(
       topics: [EVENT_SIG.CLAIM],
       fromBlock
     });
-    claims.forEach(claim => {
-      const lowerId = Number(claim.topics[1]);
-      fromBlock = Math.max(fromBlock, claim.blockNumber);
+    
+    for (const claim of claims) {
+      const lowerId = ethers.BigNumber.from(claim.topics[1]).toNumber();
+      lastBlockChecked = Math.max(lastBlockChecked, claim.blockNumber);
       claimedLowerIds.push(lowerId);
-    });
+    }
   } catch (error) {
     logger.error('Error getting claimed lowers:', error);
   }
 
-  return [fromBlock, claimedLowerIds];
+  return [lastBlockChecked, claimedLowerIds];
 }
 
 function connectToBridge(

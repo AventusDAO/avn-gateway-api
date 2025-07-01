@@ -20,7 +20,8 @@ async function getLowers(addressOrId: string): Promise<LowerData | null> {
   await deleteClaimedLowers(avnContract);
 
   if (utils.isLowerId(addressOrId)) {
-    return await getLower(addressOrId);
+    const lowerId = Number(addressOrId);
+    return await getLower(lowerId);
   } else {
     return await getLowerByAddress(addressOrId);
   }
@@ -71,7 +72,8 @@ async function processLowerEvents(
     let blockNumber: number = 0;
     let index: number = 0;
     let counter = 0;
-    const distinctLowers: Record<string, LowerData> = {};
+    // Use number as the key type
+    const distinctLowers: Record<number, LowerData> = {};
 
     for (const lowerData of lowersArray) {
       [blockNumber, index] = utils.updateBlockNumberAndIndex(
@@ -80,14 +82,19 @@ async function processLowerEvents(
         index
       );
 
-      const lowerId = lowerData?.args?.lowerId?.toString();
-      if (!lowerId) continue; // Ensure lowerId is defined and a string
+      const lowerId = lowerData?.args?.lowerId;
+      // If lowerId is BN or string, convert:
+      // const lowerId = typeof lowerData?.args?.lowerId === 'number'
+      //   ? lowerData.args.lowerId
+      //   : Number(lowerData?.args?.lowerId?.toString());
+
+      if (typeof lowerId !== "number" || isNaN(lowerId)) continue; // Ensure it's a valid number
 
       let currentEvent = distinctLowers[lowerId];
       const newEvent = utils.formatLowerEvent(lowerData, avtContract);
 
-      if (newEvent.name === utils.READY_TO_CLAIM_EVENT_NAME && lowerId) {
-        newEvent.claimData = await avn.getLowerProof(Number(lowerId));
+      if (newEvent.name === utils.READY_TO_CLAIM_EVENT_NAME) {
+        newEvent.claimData = await avn.getLowerProof(lowerId);
       }
 
       if (!currentEvent) {
@@ -104,7 +111,8 @@ async function processLowerEvents(
       distinctLowers[lowerId] = currentEvent;
     }
 
-    for (const key in distinctLowers) {
+    for (const keyStr in distinctLowers) {
+      const key = Number(keyStr);
       // One last check to make sure we don't overwrite stored events.
       // This can happen if events are split across different batches (txLimits)
       let storedLower = await redis.getLowerById(key);
@@ -171,7 +179,7 @@ async function deleteClaimedLowers(avnContract: string): Promise<void> {
   await redis.setLastClaimedEthereumLowerBlock(lastBlockChecked);
 }
 
-async function getLower(lowerId: string): Promise<LowerData | null> {
+async function getLower(lowerId: number): Promise<LowerData | null> {
   const lower = await redis.getLowerById(lowerId);
   if (!lower) return null;
   if (lower.name === utils.READY_TO_CLAIM_EVENT_NAME || lower.name === utils.LOWER_FAILED_EVENT_NAME) return lower;

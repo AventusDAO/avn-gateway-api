@@ -72,7 +72,6 @@ async function processLowerEvents(
     let blockNumber: number = 0;
     let index: number = 0;
     let counter = 0;
-    // Use number as the key type
     const distinctLowers: Record<number, LowerData> = {};
 
     for (const lowerData of lowersArray) {
@@ -83,12 +82,7 @@ async function processLowerEvents(
       );
 
       const lowerId = lowerData?.args?.lowerId;
-      // If lowerId is BN or string, convert:
-      // const lowerId = typeof lowerData?.args?.lowerId === 'number'
-      //   ? lowerData.args.lowerId
-      //   : Number(lowerData?.args?.lowerId?.toString());
-
-      if (typeof lowerId !== "number" || isNaN(lowerId)) continue; // Ensure it's a valid number
+      if (typeof lowerId !== 'number' || isNaN(lowerId)) continue;
 
       let currentEvent = distinctLowers[lowerId];
       const newEvent = utils.formatLowerEvent(lowerData, avtContract);

@@ -223,7 +223,7 @@ async function updateEventStatusIfRequired(
   return currentEvent;
 }
 
-async function isFailedLower(lowerId: number): Promise<Boolean> {
+async function isFailedLower(lowerId: number): Promise<boolean> {
   const tuple = new Tuple(registry, [Text, U32], ['Lower', lowerId]);
   const hash = u8aToHex(blake2AsU8a(tuple.toU8a(), 256));
   const query = `

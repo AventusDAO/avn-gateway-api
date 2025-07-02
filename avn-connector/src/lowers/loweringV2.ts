@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import utils from './utils';
 import avn from '../avn';
 import redis from '../redis';
@@ -81,7 +82,10 @@ async function processLowerEvents(
         index
       );
 
-      const lowerId = lowerData?.args?.lowerId;
+      const lowerIdRaw = lowerData?.args?.lowerId;
+      if (lowerIdRaw == null) continue;
+
+      const lowerId = ethers.BigNumber.from(lowerIdRaw).toNumber();
       if (typeof lowerId !== 'number' || isNaN(lowerId)) continue;
 
       let currentEvent = distinctLowers[lowerId];
@@ -175,7 +179,7 @@ async function deleteClaimedLowers(avnContract: string): Promise<void> {
 
 async function getLower(lowerId: number): Promise<LowerData | null> {
   const lower = await redis.getLowerById(lowerId);
-  if (!lower) return null;
+  if (lower == null) return null;
   if (lower.name === utils.READY_TO_CLAIM_EVENT_NAME || lower.name === utils.LOWER_FAILED_EVENT_NAME) return lower;
 
   if (await utils.isFailedLower(lowerId)) {

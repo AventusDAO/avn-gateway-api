@@ -501,7 +501,7 @@ class RedisClient {
     return blockId === null ? '' : blockId;
   }
 
-  async setLowerById(lowerId: string, lowerData: any): Promise<void> {
+  async setLowerById(lowerId: number, lowerData: any): Promise<void> {
     const senderKey = LOWER_SENDER_PREFIX + lowerData?.from;
     const recipientKey = LOWER_RECIPIENT_PREFIX + lowerData?.to?.toLowerCase();
     await this.multiExec([
@@ -511,7 +511,7 @@ class RedisClient {
     ]);
   }
 
-  async getLowerById(lowerId: any): Promise<LowerData | null> {
+  async getLowerById(lowerId: number): Promise<LowerData | null> {
     const lowerData = await this.getKey(LOWER_ID_PREFIX + lowerId);
     return lowerData ? JSON.parse(lowerData) : null;
   }
@@ -533,14 +533,14 @@ class RedisClient {
     ]);
   }
 
-  async getLowerIdsByAddress(address: string): Promise<string[]> {
+  async getLowerIdsByAddress(address: string): Promise<number[]> {
     const senderKey = LOWER_SENDER_PREFIX + address;
     const recipientKey = LOWER_RECIPIENT_PREFIX + address;
     let lowerIds = await this.smembersKey(senderKey);
     if (!lowerIds || lowerIds.length === 0) {
       lowerIds = await this.smembersKey(recipientKey);
     }
-    return lowerIds || [];
+    return (lowerIds || []).map(Number);
   }
 
   async getLastClaimedEthereumLowerBlock(): Promise<number> {

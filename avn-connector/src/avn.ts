@@ -12,7 +12,8 @@ import fees from './paymentInfoHelper';
 import rds from './db/index';
 import BN from 'bn.js';
 import logger from './logger';
-import { Option } from '@polkadot/types';
+import { Option, StorageKey } from '@polkadot/types';
+import type { AnyTuple } from '@polkadot/types/types';
 import {
   Era,
   BatchInfo,
@@ -777,7 +778,7 @@ async function getUnclaimedLowerProofs(
   additionalLowerIds: number[]
 ): Promise<Record<number, string>> {
   try {
-    let entries = [],
+    let entries: StorageKey<AnyTuple>[] = [],
       startKey: any,
       unclaimedLowerIds: number[] = [],
       claimData: any[] = [];
@@ -791,7 +792,10 @@ async function getUnclaimedLowerProofs(
       if (entries.length > 0) {
         startKey = entries[entries.length - 1];
         const filteredIds = entries
-          .map(({ args: [lowerId] }) => lowerId.toJSON() as number)
+          .map(key => {
+            const [lowerId] = key.args as unknown as [BN];
+            return lowerId.toNumber();
+          })
           .filter(
             lowerId =>
               lowerId > minLowerId || additionalLowerIds.includes(lowerId)
@@ -809,7 +813,7 @@ async function getUnclaimedLowerProofs(
       const lowerId = unclaimedLowerIds[index];
       acc[lowerId] = data.toHuman().encodedLowerData;
       return acc;
-    }, {});
+    }, {} as Record<number, string>);
   } catch (error) {
     logger.error('Error in getUnclaimedLowerProofs:', error);
     throw error;

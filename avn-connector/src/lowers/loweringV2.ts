@@ -167,7 +167,7 @@ async function deleteClaimedLowers(avnContract: string): Promise<void> {
   let [lastBlockChecked, claimedLowerIdsOnEthereum] =
     await tier1.getLowersClaimedSinceBlock(
       avnContract,
-      Number(lastClaimedEthereumLowerBlock) + 1
+      Number(lastClaimedEthereumLowerBlock)
     );
   for (const lowerId of claimedLowerIdsOnEthereum) {
     logger.info(`Deleting lower id ${lowerId}`);

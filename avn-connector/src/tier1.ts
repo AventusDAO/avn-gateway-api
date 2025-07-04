@@ -19,8 +19,9 @@ const REQUIRED_CONFIRMATION_BLOCKS = Number(
 const MAX_LIFT_BLOCKS_TO_PROCESS = Number(config.tier1.maxLiftBlocksToProcess);
 
 const EVENT_SIG = {
-  LIFT: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
-  CLAIM: ethers.utils.id('LogLowerClaimed(uint32)')
+  LIFTED: ethers.utils.id('LogLifted(address,bytes32,uint256)'),
+  LOWER_CLAIMED: ethers.utils.id('LogLowerClaimed(uint32)'),
+  RELAYER_LOWERED: ethers.utils.id('LogRelayerLowered(uint32,uint256)')
 };
 
 async function getLockedBalance(
@@ -67,7 +68,7 @@ async function getLiftEvents(avnContract: string): Promise<{
     if (fromBlock <= toBlock) {
       const events = await provider.getLogs({
         address: avnContract,
-        topics: [EVENT_SIG.LIFT],
+        topics: [EVENT_SIG.LIFTED],
         fromBlock,
         toBlock
       });
@@ -82,7 +83,7 @@ async function getLiftEvents(avnContract: string): Promise<{
             .toString()
             .toLowerCase();
           if (!NATIVE_T1_TOKEN_ONLY || token === EVM_TOKEN.toLowerCase()) {
-            liftEvents.push([EVENT_SIG.LIFT, event.transactionHash]);
+            liftEvents.push([EVENT_SIG.LIFTED, event.transactionHash]);
           } else {
             logger.info(
               `Ignoring lift for token: ${token}, amount: ${amount.toString()}, block: ${event.blockNumber}`
@@ -116,7 +117,7 @@ async function getLowersClaimedSinceBlock(
   try {
     const claims = await provider.getLogs({
       address: avnContract,
-      topics: [EVENT_SIG.CLAIM],
+      topics: [[EVENT_SIG.LOWER_CLAIMED, EVENT_SIG.RELAYER_LOWERED]],
       fromBlock
     });
     

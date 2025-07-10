@@ -333,7 +333,7 @@ async function getActiveWebhooks(): Promise<Record<string, any>> {
 async function getWebhookEventTypes(): Promise<Record<string, string>> {
   try {
     const webhookEventDataSource = await dataSource.getRepository(WebhookEvent);
-    return (await webhookEventDataSource.find()).reduce(
+    return (await webhookEventDataSource.find({where: {enabled: true}})).reduce(
       (
         webhookEvents: { [type: string]: string },
         { type, description }: WebhookEvent

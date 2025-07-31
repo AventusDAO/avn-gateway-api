@@ -559,31 +559,6 @@ const callConfigs: { [key: string]: CallConfig } = {
       { u64: nonce }
     ]
   },
-  'proxyStakeAvt': {
-    pallet: 'parachainStaking',
-    method: 'signedNominate',
-    nonceType: "staking",
-    buildMethodParams: ({ targets, amount }) => [targets, amount],
-    buildSignData: ({ relayer, amount, targets, nonce }) => [
-      { Text: 'parachain authorization for nominate operation' },
-      { AccountId: convertToPublicKey(relayer) },
-      { 'Vec<LookupSource>': targets },
-      { BalanceOf: amount },
-      { u64: nonce }
-    ]
-  },
-  'proxyIncreaseStake': {
-    pallet: 'parachainStaking',
-    method: 'signedBondExtra',
-    nonceType: "staking",
-    buildMethodParams: ({ amount }) => [amount],
-    buildSignData: ({ relayer, amount, nonce }) => [
-      { Text: 'parachain authorization for nominator bond extra operation' },
-      { AccountId: relayer },
-      { BalanceOf: amount },
-      { u64: nonce }
-    ]
-  },
   'proxyUnstake': {
     pallet: 'parachainStaking',
     method: 'signedScheduleNominatorUnbond',

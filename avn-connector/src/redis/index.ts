@@ -26,8 +26,6 @@ import {
   PENDING_TX_CHECKING_WINDOW_IN_SECONDS,
   PENDING_TX_KEY,
   SLOT_PREFIX,
-  STAKING_STAT_EXPIRY_IN_SECONDS,
-  STAKING_STAT_KEY,
   TOTAL_TOKEN_EXPIRY_IN_SECONDS,
   TOTAL_TOKEN_NAMESPACE,
   WEBHOOKS_SENT_TX_KEY,
@@ -430,32 +428,6 @@ class RedisClient {
       nonce.toString(),
       NONCE_EXPIRY_IN_SECONDS
     );
-  }
-
-  async setCollatorsToNominate(collators: any): Promise<void> {
-    await this.setKey(
-      COLLATORS_KEY,
-      this.dataToJsonString(collators),
-      COLLATORS_EXPIRY_IN_SECONDS
-    );
-  }
-
-  async getCollatorsToNominate(): Promise<any | null> {
-    const collators = await this.getKey(COLLATORS_KEY);
-    return collators ? JSON.parse(collators) : null;
-  }
-
-  async setStakingStats(stakingStats: any): Promise<void> {
-    await this.setKey(
-      STAKING_STAT_KEY,
-      this.dataToJsonString(stakingStats),
-      STAKING_STAT_EXPIRY_IN_SECONDS
-    );
-  }
-
-  async getStakingStats(): Promise<any | null> {
-    const stakingStats = await this.getKey(STAKING_STAT_KEY);
-    return stakingStats ? JSON.parse(stakingStats) : null;
   }
 
   async setChainInfo(chainInfo: any): Promise<void> {

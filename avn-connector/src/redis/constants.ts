@@ -3,7 +3,6 @@ export const NONCE_NAMESPACE = 'n.';
 export const PAYER_NONCE_NAMESPACE = 'pn.';
 export const TOTAL_TOKEN_NAMESPACE = 't.';
 export const COLLATORS_KEY = 'collators';
-export const STAKING_STAT_KEY = 'stakingStats';
 export const CHAIN_INFO_KEY = 'chainInfo';
 export const LIFTS_FROM_TIER1_BLOCK_KEY = 'liftsFromBlock';
 export const LAST_SUMMARY_PREFIX = 'last_summary:';
@@ -45,7 +44,6 @@ export const PENDING_TX_CHECKING_WINDOW_IN_SECONDS = 5;
 export const NONCE_EXPIRY_IN_SECONDS = 120;
 export const TOTAL_TOKEN_EXPIRY_IN_SECONDS = 300; // 5 minutes
 export const COLLATORS_EXPIRY_IN_SECONDS = 86400; // 1 day
-export const STAKING_STAT_EXPIRY_IN_SECONDS = 86400; // 1 day
 export const CHAIN_INFO_EXPIRY_IN_SECONDS = 86400; // 1 day
 
 export { TransactionStatus };

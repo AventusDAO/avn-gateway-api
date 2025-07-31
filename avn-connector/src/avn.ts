@@ -6,7 +6,6 @@ const config = require('multiconfig').load();
 import redis, { TransactionStatus } from './redis';
 import tier1 from './tier1';
 import Vault from './vaultApp';
-import stakingHelper from './stakingHelper';
 import webhooks from './webhooks';
 import fees from './paymentInfoHelper';
 import rds from './db/index';
@@ -15,7 +14,6 @@ import logger from './logger';
 import { Option, StorageKey } from '@polkadot/types';
 import type { AnyTuple } from '@polkadot/types/types';
 import {
-  Era,
   BatchInfo,
   NftInfo,
   Nft,
@@ -25,8 +23,6 @@ import {
   PollResult,
   TxNotFoundResult,
   PollErrorResult,
-  AccountInfo,
-  AccountInfoNonStaking,
   UnprocessedLifts,
   EthereumEventStatus,
   GatewayUserInfo,
@@ -206,120 +202,6 @@ async function poll(
       `Unable to get transaction status for requestId: ${requestId}`
     );
   }
-}
-
-async function getAccountInfo(
-  accountId: string
-): Promise<AccountInfo | AccountInfoNonStaking> {
-  const balancesAll = await api.derive.balances.all(accountId);
-
-  if (VOW_MODE) {
-    return {
-      totalBalance: balancesAll.freeBalance
-        .add(balancesAll.reservedBalance)
-        .toString(),
-      freeBalance: balancesAll.availableBalance.toString()
-    };
-  }
-
-  const currentEra = (await api.query.parachainStaking.era()).toJSON() as Era;
-  const currentEraIndex = currentEra.current;
-
-  const collators = await getCollatorsToNominate();
-  let stakedBalance, unlockedBalance, unstakedBalance;
-
-  if (
-    collators.some((c: string) => c.toLowerCase() === accountId.toLowerCase())
-  ) {
-    const rawCandidateInfo =
-      await api.query.parachainStaking.candidateInfo(accountId);
-    const candidateInfo = rawCandidateInfo as any;
-
-    ({ stakedBalance, unlockedBalance, unstakedBalance } =
-      stakingHelper.calculateCollatorStakingBalances(
-        candidateInfo,
-        currentEraIndex
-      ));
-  } else {
-    const rawNominatorState =
-      await api.query.parachainStaking.nominatorState(accountId);
-    const nominatorState = rawNominatorState as unknown as Option<any>;
-    const allRequests =
-      await api.query.parachainStaking.nominationScheduledRequests.multi(
-        collators
-      );
-
-    const rawNominatorRequests = allRequests
-      .flat()
-      .filter((req: any) => req.nominator.eq(accountId));
-    const nominatorRequests = rawNominatorRequests as any;
-    ({ stakedBalance, unlockedBalance, unstakedBalance } =
-      stakingHelper.calculateNominatorStakingBalances(
-        nominatorState,
-        nominatorRequests,
-        currentEraIndex
-      ));
-  }
-
-  return {
-    totalBalance: balancesAll.freeBalance
-      .add(balancesAll.reservedBalance)
-      .toString(),
-    freeBalance: balancesAll.availableBalance.toString(),
-    stakedBalance: stakedBalance.toString(),
-    unlockedBalance: unlockedBalance.toString(),
-    unstakedBalance: unstakedBalance.toString()
-  };
-}
-
-async function getCollatorsToNominate(): Promise<any[]> {
-  if (VOW_MODE) {
-    return [];
-  }
-
-  let collators = await redis.getCollatorsToNominate();
-
-  if (collators === null) {
-    collators = await api.query.parachainStaking.selectedCandidates();
-    await redis.setCollatorsToNominate(collators);
-  }
-
-  return collators;
-}
-
-async function getStakingStats(): Promise<any> {
-  if (VOW_MODE) {
-    return {};
-  }
-
-  let stakingStats = await redis.getStakingStats();
-  if (stakingStats === null) {
-    const [
-      minUserBond,
-      maxNominatorsRewardedPerValidator,
-      rawTotalStaked,
-      stakersData
-    ] = await Promise.all([
-      api.query.parachainStaking.minTotalNominatorStake(),
-      api.consts.parachainStaking.maxTopNominationsPerCandidate,
-      api.query.parachainStaking.total(),
-      api.query['parachainStaking']['nominatorState'].keys()
-    ]);
-
-    const totalStaked = toBn(rawTotalStaked.toJSON());
-    const numActiveStakes = stakersData.length;
-    const averageStaked = totalStaked.divn(numActiveStakes).toString();
-    stakingStats = {
-      totalStaked: totalStaked.toString(),
-      minUserBond: minUserBond.toString(),
-      maxNominatorsRewardedPerValidator:
-        maxNominatorsRewardedPerValidator.toString(),
-      totalStakers: stakersData.length,
-      averageStaked: averageStaked
-    };
-    await redis.setStakingStats(stakingStats);
-  }
-  return stakingStats;
 }
 
 async function getChainInfo(): Promise<any> {
@@ -619,19 +501,6 @@ async function init(): Promise<void> {
   );
   await connectToAvN();
   await setChainInfo();
-  await startSubscriptions();
-}
-
-async function startSubscriptions(): Promise<void> {
-  if (VOW_MODE) {
-    return;
-  }
-  // variable name for descriptive porpuses if we add more subscriptions
-  const selectedCandidatesSub =
-    await api.query.parachainStaking.selectedCandidates((candidates: any) => {
-      logger.info(`Setting collators to nominate: ${candidates}`);
-      redis.setCollatorsToNominate(candidates);
-    });
 }
 
 async function setChainInfo(): Promise<void> {
@@ -1140,11 +1009,8 @@ function deriveNodeManagerPalletAccount(palletIdHex: string) {
 const avn = {
   addNewTransaction,
   createAccount,
-  getAccountInfo,
   getUnclaimedLowerProofs,
   getLowerProof,
-  getCollatorsToNominate,
-  getStakingStats,
   getChainInfo,
   getCurrentBlock,
   getGatewayUserInfo,

@@ -14,8 +14,6 @@ import {
   PollResult,
   TxNotFoundResult,
   PollErrorResult,
-  AccountInfo,
-  AccountInfoNonStaking,
   UnprocessedLifts,
   EthereumEventStatus,
   NftInfo,
@@ -53,17 +51,11 @@ app.post(
     try {
       logger.info({ avnQueryRequest: JSON.stringify(req.body) });
 
-      let result;
-
-      if (VOW_MODE && req.body.palletName in ['parachainStaking']) {
-        result = '';
-      } else {
-        result = await avn.query(
-          req.body.palletName,
-          req.body.storageName,
-          req.body.params
-        );
-      }
+      let result = await avn.query(
+        req.body.palletName,
+        req.body.storageName,
+        req.body.params
+      );
 
       res.status(200).send(result);
     } catch (err) {
@@ -135,49 +127,6 @@ app.post(
         req.body.transactionType
       );
       res.status(200).send(result);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-app.post(
-  '/avnAccountInfo',
-  async (
-    req: Request,
-    res: Response<AccountInfo | AccountInfoNonStaking>,
-    next: NextFunction
-  ) => {
-    try {
-      logger.info({ avnAccountInfoRequest: JSON.stringify(req.body) });
-      const result = await avn.getAccountInfo(req.body.accountId);
-      res.status(200).send(result);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-app.post(
-  '/avnValidatorsToNominate',
-  async (req: Request, res: Response<string>, next: NextFunction) => {
-    try {
-      logger.info({ avnValidatorsToNominateRequest: JSON.stringify(req.body) });
-      const result = await avn.getCollatorsToNominate();
-      res.status(200).send(JSON.stringify(result));
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-app.post(
-  '/avnStakingStats',
-  async (req: Request, res: Response<string>, next: NextFunction) => {
-    try {
-      logger.info({ avnStakingStatsRequest: JSON.stringify(req.body) });
-      const result = await avn.getStakingStats();
-      res.status(200).send(JSON.stringify(result));
     } catch (err) {
       next(err);
     }

@@ -100,19 +100,6 @@ export interface PollErrorResult {
   error: string;
 }
 
-export interface AccountInfo {
-  totalBalance: string;
-  freeBalance: string;
-  stakedBalance: string;
-  unlockedBalance: string;
-  unstakedBalance: string;
-}
-
-export type AccountInfoNonStaking = Pick<
-  AccountInfo,
-  'totalBalance' | 'freeBalance'
->;
-
 export interface UnprocessedLifts {
   fromBlock: number;
   toBlock: number;

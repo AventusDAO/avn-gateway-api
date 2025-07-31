@@ -74,8 +74,6 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getTotalAvt(call, request);
     case 'getTotalToken':
       return await getTotalToken(call, request);
-    case `getAccountInfo`:
-      return await getAccountInfo(call, request);
     case 'getOwnedNfts':
       return await getOwnedNfts(call, request);
     case 'getCurrentBlock':
@@ -352,28 +350,11 @@ async function getTotalToken(call, request) {
   }
 }
 
-async function getAccountInfo(call, request) {
-  const { accountId } = call.params;
-
-  if (isValidAccountId(accountId) === false) {
-    return buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryAccountInfoFromChain(call, request, accountId);
-  }
-}
-
 async function queryChain(call: Call, request: string, palletName: string, storageName: string, params: any[] = [], responseFormatter?: (data: any) => string): Promise<any> {
   const method = 'avnQuery';
   const requestParams = { callId: call.id, palletName, storageName, params };
 
   return await query(call, request, method, requestParams, responseFormatter);
-}
-
-async function queryAccountInfoFromChain(call: Call, request: string, accountId: string) {
-  const method = 'avnAccountInfo';
-  const params = { callId: call.id, accountId };
-
-  return await query(call, request, method, params);
 }
 
 async function getEthereumEventStatus(call: Call, request: string): Promise<any | ErrorBody> {

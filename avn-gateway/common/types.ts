@@ -61,7 +61,6 @@ export interface NonceInfo {
     confirmation: { palletName: string; storageName: string };
     nft: { palletName: string; storageName: string };
     payment: { palletName: string; storageName: string };
-    staking: { palletName: string; storageName: string };
     token: { palletName: string; storageName: string };
     anchor: { palletName: string; storageName: string };
     prediction_Market: { palletName: string; storageName: string };

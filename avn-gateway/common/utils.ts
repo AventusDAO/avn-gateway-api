@@ -116,7 +116,6 @@ const NONCE_INFO: NonceInfo = {
   confirmation: { palletName: 'ethereumEvents', storageName: 'proxyNonces' },
   nft: { palletName: 'nftManager', storageName: 'nfts' },
   payment: { palletName: 'avnProxy', storageName: 'paymentNonces' },
-  staking: { palletName: 'parachainStaking', storageName: 'proxyNonces' },
   token: { palletName: 'tokenManager', storageName: 'nonces' },
   anchor: { palletName: 'avnAnchor', storageName: 'nonces' },
   prediction_Market: { palletName: 'predictionMarkets', storageName: 'marketNonces' },

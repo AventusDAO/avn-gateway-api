@@ -559,53 +559,6 @@ const callConfigs: { [key: string]: CallConfig } = {
       { u64: nonce }
     ]
   },
-  'proxyUnstake': {
-    pallet: 'parachainStaking',
-    method: 'signedScheduleNominatorUnbond',
-    nonceType: "staking",
-    buildMethodParams: ({ amount }) => [amount],
-    buildSignData: ({ relayer, amount, nonce }) => [
-      { Text: 'parachain authorization for scheduling nominator unbond operation' },
-      { AccountId: relayer },
-      { BalanceOf: amount },
-      { u64: nonce }
-    ]
-  },
-  'proxyWithdrawUnlocked': {
-    pallet: 'parachainStaking',
-    method: 'signedExecuteNominationRequest',
-    nonceType: 'staking',
-    buildMethodParams: ({ user }) => [user],
-    buildSignData: ({ relayer, user, nonce }) => [
-      { Text: 'parachain authorization for executing nomination requests operation' },
-      { AccountId: relayer },
-      { BalanceOf: user },
-      { u64: nonce }
-    ]
-  },
-  'proxyScheduleLeaveNominators': {
-    pallet: 'parachainStaking',
-    method: 'signedScheduleLeaveNominators',
-    nonceType: 'staking',
-    buildMethodParams: ({ }) => [],
-    buildSignData: ({ relayer, user, nonce }) => [
-      { Text: 'parachain authorization for scheduling leaving nominators operation' },
-      { AccountId: relayer },
-      { u64: nonce }
-    ]
-  },
-  'proxyExecuteLeaveNominators': {
-    pallet: 'parachainStaking',
-    method: 'signedExecuteLeaveNominators',
-    nonceType: 'staking',
-    buildMethodParams: ({ user }) => [user],
-    buildSignData: ({ relayer, user, nonce }) => [
-      { Text: 'parachain authorization for executing leave nominators operation' },
-      { AccountId: relayer },
-      { AccountId: user },
-      { u64: nonce }
-    ]
-  },
   'proxyRegisterHandler': {
     pallet: 'avnAnchor',
     method: 'signedRegisterChainHandler',

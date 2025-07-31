@@ -76,22 +76,8 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getTotalToken(call, request);
     case `getAccountInfo`:
       return await getAccountInfo(call, request);
-    case 'getStakingStatus':
-      return await getStakingStatus(call, request);
-    case 'getValidatorsToNominate':
-      return await queryValidatorsToNominateFromChain(call, request);
-    case 'getMinTotalNominatorStake':
-      return await getMinTotalNominatorStake(call, request);
-    case 'getActiveEra':
-      return await queryActiveEra(call, request);
-    case 'getStakingDelay':
-      return await queryStakingDelay(call, request);
     case 'getOwnedNfts':
       return await getOwnedNfts(call, request);
-    case 'getStakingStats':
-      return await getStakingStats(call, request);
-    case 'getStakerRewardsEarned':
-      return await getStakerRewardsEarned(call, request);
     case 'getCurrentBlock':
       return await getCurrentBlock(call, request);
     case 'getChainInfo':
@@ -376,29 +362,11 @@ async function getAccountInfo(call, request) {
   }
 }
 
-async function queryActiveEra(call: Call, request: string): Promise<ValidResponse | ValidError> {
-  return await queryChain(call, request, 'parachainStaking', 'era', [], formatEraAsString);
-}
-
-async function queryStakingDelay(call: Call, request: string): Promise<ValidResponse | ValidError> {
-  return await queryChain(call, request, 'parachainStaking', 'delay');
-}
-
 async function queryChain(call: Call, request: string, palletName: string, storageName: string, params: any[] = [], responseFormatter?: (data: any) => string): Promise<any> {
   const method = 'avnQuery';
   const requestParams = { callId: call.id, palletName, storageName, params };
 
   return await query(call, request, method, requestParams, responseFormatter);
-}
-
-async function getStakingStatus(call, request) {
-  const { accountId } = call.params;
-
-  if (isValidAccountId(accountId) === false) {
-    return buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    return await queryChain(call, request, 'parachainStaking', 'nominatorState', [accountId], formatAsNominatingEnum);
-  }
 }
 
 async function queryAccountInfoFromChain(call: Call, request: string, accountId: string) {
@@ -442,17 +410,6 @@ async function getNodeManagerInfo(call: Call, request: string): Promise<ValidRes
   return result;
 }
 
-async function queryValidatorsToNominateFromChain(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
-  const method = 'avnValidatorsToNominate';
-  const params = { callId: call.id };
-
-  return await query(call, request, method, params);
-}
-
-async function getMinTotalNominatorStake(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
-  return await queryChain(call, request, 'parachainStaking', 'minTotalNominatorStake', [], formatNumAsString);
-}
-
 async function getOwnedNfts(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { accountId } = call.params;
 
@@ -462,53 +419,6 @@ async function getOwnedNfts(call: Call, request: string): Promise<ValidResponse 
     let nfts = await queryChain(call, request, 'nftManager', 'nfts', ['entries']);
     nfts.result = nfts.result.filter(nft => nft[1].owner === accountId).map(nft => toBnString(nft[1].nftId));
     return nfts;
-  }
-}
-
-async function getStakingStats(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
-  const method = 'avnStakingStats';
-  const params = { callId: call.id };
-
-  return await query(call, request, method, params);
-}
-
-async function getStakerRewardsEarned(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
-  let { accountId, fromTimestamp, toTimestamp } = call.params;
-
-  if (!isValidAccountId(accountId)) {
-    return buildErrorBody('params', 'invalid account ID', accountId, request, call.id);
-  } else {
-    try {
-      const account = convertToPublicKey(accountId);
-      const eventsLimit = 500;
-      let events = [],
-        sumRewards = new BN(0);
-
-      let fromTimestampDate = parseInt(fromTimestamp ?? '0') > 0 ? new Date(parseInt(fromTimestamp) * 1000 - 1) : new Date(0);
-      let toTimestampDate = parseInt(toTimestamp ?? '0') > 0 ? new Date(parseInt(toTimestamp) * 1000) : new Date(32503679999000); // 31/12/2999
-      let formattedFromTimestamp = fromTimestampDate.toISOString();
-      let formattedToTimestamp = toTimestampDate.toISOString();
-
-      do {
-        const query = `query GatewayApiStakerRewardsEarned { events (where: { name_eq: "ParachainStaking.Rewarded",
-          args_jsonContains: ${JSON.stringify(JSON.stringify({ account }))},
-          block: { timestamp_gt: "${formattedFromTimestamp}", timestamp_lte: "${formattedToTimestamp}"}},
-          limit: ${eventsLimit}, orderBy: id_ASC) { args block { timestamp } } }`;
-        const response = await axios.post(BLOCK_EXPLORER_BASE_URL, {
-          query,
-          operationName: 'GatewayApiStakerRewardsEarned'
-        });
-        events = response.data.data.events;
-        if (events.length > 0) {
-          events.forEach(event => (sumRewards = sumRewards.add(new BN(event.args.rewards))));
-          formattedFromTimestamp = events[events.length - 1].block.timestamp;
-        }
-      } while (events.length === eventsLimit);
-
-      return buildValidResponseBody(call.id, sumRewards.toString());
-    } catch (err) {
-      return buildErrorBody('internal', err.toString(), err.toString(), request, call.id);
-    }
   }
 }
 
@@ -631,10 +541,6 @@ const formatBalanceAsObject = data => {
 };
 
 const formatNftNonceAsString = data => toBnString(data.nonce);
-
-const formatAsNominatingEnum = data => (data ? 'isStaking' : 'isNotStaking');
-
-const formatEraAsString = data => (data ? data.current : 0);
 
 const filterNftOwner = data => (data ? data.owner : null);
 

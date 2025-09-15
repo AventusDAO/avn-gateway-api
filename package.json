@@ -60,5 +60,9 @@
     "prettier": "^2.5.1",
     "redlock": "4.2.0",
     "slack-notify": "^2.0.2"
+  },
+  "overrides": {
+    "strip-ansi": "6.0.1",
+    "error-ex": "1.3.2"
   }
 }

@@ -14,5 +14,9 @@
     "express": "^4.18.3",
     "localtunnel": "^2.0.2",
     "minimist": "^1.2.8"
+  },
+  "overrides": {
+    "strip-ansi": "6.0.1",
+    "error-ex": "1.3.2"
   }
 }

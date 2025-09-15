@@ -10,7 +10,7 @@ RUN apk update && \
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN ((npm ci || npm install) || npm install)
 
 # Copy the rest of the application code to the working directory
 COPY . .
@@ -24,6 +24,6 @@ RUN cp -r src/. build/
 # Build the TypeScript code
 RUN npm run build
 
-RUN npm ci --production
+RUN npm ci --omit=dev
 
 ENTRYPOINT npm start

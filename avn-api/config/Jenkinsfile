@@ -20,25 +20,6 @@ pipeline {
     triggers {
         cron('0 0 * * *')
     }
-    parameters {
-        string(name: 'Report_name', defaultValue: '', description: 'Give a descriptive name to your test run');
-        choice(name: 'Chain', choices: ['all', 'truth_testnet', 'vow', 'dev', 'public_testnet', 'truth_dev'], description: 'Choose which chain to test');
-        string(name: 'Avn_Api_branch', defaultValue: 'main', description: 'avn-api branch');
-        booleanParam(name: 'All', defaultValue: true, description: 'Run all tests');
-        booleanParam(name: 'configurationTests', defaultValue: false);
-        booleanParam(name: 'apiOffline', defaultValue: false);
-        booleanParam(name: 'accessTests', defaultValue: false);
-        booleanParam(name: 'awtTest', defaultValue: false);
-        booleanParam(name: 'utilsTest', defaultValue: false);
-        booleanParam(name: 'pollApiTest', defaultValue: false);
-        booleanParam(name: 'proxyApiTest', defaultValue: false);
-        booleanParam(name: 'queryApiTest', defaultValue: false);
-        booleanParam(name: 'sendApiTest', defaultValue: false);
-        booleanParam(name: 'relayerFees', defaultValue: false);
-        booleanParam(name: 'splitFees', defaultValue: false);
-        booleanParam(name: 'remoteSignerTests', defaultValue: false);
-        booleanParam(name: 'predictionMarketTests', defaultValue: false);
-    }
     stages {
         stage('Dispatch') {
             when {

@@ -25,11 +25,20 @@ let argv = yargs
 let gatewayFile = argv.gateway;
 
 const testConfig = argv.tests_config
-  ? require(argv.tests_config)
+  ? getTmpFileContents(argv.tests_config)
   : {
       ...require(path.resolve(__dirname, `../config/environments/${gatewayFile}.json`)),
       accounts: require(path.resolve(__dirname, `../config/accounts/${gatewayFile}.json`))?.accounts || {}
     };
+
+function getTmpFileContents(tmpFilePath) {
+  let data;
+  if (fs.existsSync(tmpFilePath)) {
+      data = JSON.parse(fs.readFileSync(tmpFilePath, 'utf8'));
+  }
+  if (data === undefined) throw Error("Config file is undefined")
+  return data;
+}
 
 const { gateway, token, nfts, accounts, avt, pmToken, splitFeeConfig } = testConfig || {};
 console.log(`*** Test Configuration: ***\nGateway: ${gateway} - ERC20 Token: ${token}`);

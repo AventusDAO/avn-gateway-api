@@ -5,10 +5,7 @@ const accounts = helper.ACCOUNTS;
 const BN = helper.BN;
 const ONE_AVT = helper.convertToBaseUnits(1);
 
-const {
-  registerSplitFeeUser
-} = require('./splitFeeHelper');
-
+const { registerSplitFeeUser } = require('./splitFeeHelper');
 
 describe('Access rights:', async () => {
   let avnGateway, api, options;

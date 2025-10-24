@@ -10,7 +10,7 @@
     "outDir": "./dist",
     "skipLibCheck": true,
     "module": "node16",
-    "target": "es2020"
+    "target": "es2020",
   },
   "include": ["./**/*"],
   "exclude": ["node_modules"]

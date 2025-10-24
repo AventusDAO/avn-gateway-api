@@ -2,7 +2,6 @@
 import { init, callWithTimeout, requestFailed, buildErrorBody, publishEvent, getRelayerFee,
   buildValidResponseBody, isValidAccountId, isValidString, axios, isValidSignatureFormat,
   isValidCurrencyFormat, WEBHOOK_EVENT_TYPES } from '/opt/utils.js';
-import * as fees from '/opt/paymentUtils.js';
 import * as sqs from '/opt/sqsUtils.js';
 import { StatusCode, CustomSQSHandler, ValidResponse, Transaction, TransactionParams } from '/opt/handler-types';
 import { ErrorBody } from '/opt/types';

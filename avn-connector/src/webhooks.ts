@@ -1,5 +1,4 @@
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import avn from './avn';
 import rds from './db/index';
 import redis from './redis';
 import * as crypto from 'crypto';

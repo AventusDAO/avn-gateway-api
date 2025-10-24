@@ -20,6 +20,11 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,  
+    "alwaysStrict": true,
     "types": ["node"]
   },
   "include": ["src/**/*"],

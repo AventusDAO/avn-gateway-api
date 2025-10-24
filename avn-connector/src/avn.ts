@@ -19,7 +19,6 @@ import {
   BatchInfo,
   NftInfo,
   Nft,
-  liftStatus,
   accountInfo,
   LiftStatuses,
   PollResult,
@@ -627,11 +626,10 @@ async function startSubscriptions(): Promise<void> {
     return;
   }
   // variable name for descriptive porpuses if we add more subscriptions
-  const selectedCandidatesSub =
-    await api.query.parachainStaking.selectedCandidates((candidates: any) => {
-      logger.info(`Setting collators to nominate: ${candidates}`);
-      redis.setCollatorsToNominate(candidates);
-    });
+  await api.query.parachainStaking.selectedCandidates((candidates: any) => {
+    logger.info(`Setting collators to nominate: ${candidates}`);
+    redis.setCollatorsToNominate(candidates);
+  });
 }
 
 async function setChainInfo(): Promise<void> {

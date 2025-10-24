@@ -10,7 +10,7 @@ import * as fees from '/opt/paymentUtils';
 import * as sqs from '/opt/sqsUtils';
 import {
   StatusCode, CustomSQSHandler, ValidResponse,
-  ProxyParams, ProxyProof, QueryParams, PublishEventData,
+  ProxyParams, ProxyProof, QueryParams,
   CallConfig, ProxyTransaction, ProxyCall,
   BatchProxyParams
 } from '/opt/handler-types';

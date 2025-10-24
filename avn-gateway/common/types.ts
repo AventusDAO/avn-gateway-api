@@ -2,7 +2,7 @@ import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
 import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16, Compact, Option } from '@polkadot/types';
-import { H256, H160, BalanceOf, Perbill, BlockNumber, AccountId } from "@polkadot/types/interfaces";
+import { H256, H160, BalanceOf, BlockNumber, AccountId } from "@polkadot/types/interfaces";
 
 export enum EventType {
     AddedValidator = 0,

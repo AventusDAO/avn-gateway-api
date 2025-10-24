@@ -27,6 +27,7 @@ describe('Access rights:', async () => {
   before(async () => {
     relayer = accounts.relayer.address;
     user = accounts.user.address;
+    payer = accounts.payer.address;
     userSURI = accounts.user.seed;
 
     const signer = {
@@ -94,10 +95,9 @@ describe('Access rights:', async () => {
       assert.equal(await canAccessTheGateway(api), true);
     });
 
-    xit('a new split fee user can access the gateway if they have a valid payer', async () => {
+    it('a new split fee user can access the gateway if they have a valid payer', async () => {
       const splitFeeUser = avnGateway.accountUtils.generateNewAccount();
       await registerSplitFeeUser(splitFeeUser.publicKey);
-
       assert((await api.query.getUserNonce(splitFeeUser.address, 'payment')) === '0');
 
       const splitFeeUserBalance = new BN(await api.query.getAvtBalance(splitFeeUser.address));
@@ -110,7 +110,12 @@ describe('Access rights:', async () => {
       api = await avnGateway.apis(splitFeeUser.address);
       assert.equal(await canAccessTheGateway(api), false);
 
-      options.hasPayer = true;
+      let options = {
+        suri: splitFeeUser.seed,
+        relayer: relayer,
+        hasPayer: true,
+        payer: payer
+      };
       avnGateway = await helper.avnApi(options);
       api = await avnGateway.apis(splitFeeUser.address);
       assert.equal(await canAccessTheGateway(api), true);

@@ -20,7 +20,6 @@ const nfts = helper.NFTS;
   const api = await avnApi.apis();
   const validRelayer = accounts.relayer;
   const validUser = accounts.user;
-  const otherUser = accounts.otherUser;
   const validToken = helper.token;
   const unlistedUserNft = nfts.user.unlistedNft;
   const validNonceType = 'token';
@@ -110,9 +109,6 @@ const nfts = helper.NFTS;
           testConfig.selectionField = 'relayer';
           await testPatterns.invalidAccount(testConfig);
         });
-        //TODO: investigate unexpected error when passing 2 arguments and we are validating the second argument
-        //TypeError: Cannot read property 'postRequest' of undefined should be 'Expected non-null, non-empty base58 input'
-        //This occurs on undefined and empty string tests only
         describe('With invalid account: User', async () => {
           testConfig.validCallData = {
             relayer: validRelayer.address,
@@ -170,9 +166,6 @@ const nfts = helper.NFTS;
 
     describe('getNftOwner', async () => {
       describe('fails when called', async () => {
-        let validCallData = {
-          nftId: 'valid_id'
-        };
         testConfig = {
           validCallData: {
             nftId: unlistedUserNft

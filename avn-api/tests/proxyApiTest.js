@@ -79,12 +79,11 @@ describe('Proxy api calls:', async () => {
       bnEquals(recipientTokenBalanceBefore.add(amount), new BN(await api.query.getTokenBalance(recipient, token)));
       bnEquals(userNonceBefore.add(new BN(1)), new BN(await api.query.getUserNonce(user, 'token')));
       bnEquals(userAvtBalanceBefore.sub(relayerFee), new BN(await api.query.getAvtBalance(user)));
-      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
 
     it('can make multiple token transfers using a recipient address', async function () {
-      this.timeout(400000); //increase the timeout of this test (https://mochajs.org/#test-level)
+      this.timeout(400000);
 
       const amount = new BN(1);
       const numTx = 10;
@@ -101,7 +100,6 @@ describe('Proxy api calls:', async () => {
       bnEquals(recipientTokenBalanceBefore.add(amount.mul(numTxBn)), new BN(await api.query.getTokenBalance(recipient, token)));
       bnEquals(userNonceBefore.add(numTxBn), new BN(await api.query.getUserNonce(user, 'token')));
       bnEquals(userAvtBalanceBefore.sub(relayerFee.mul(numTxBn)), new BN(await api.query.getAvtBalance(user)));
-      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee.mul(numTxBn))));
     });
   });

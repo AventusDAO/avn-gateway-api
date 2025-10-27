@@ -2,7 +2,6 @@ const { AvnApi } = require('avn-api');
 const assert = require('chai').assert;
 const BN = require('bn.js');
 const yargs = require('yargs');
-const fs = require('fs');
 const { randomAsHex, decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const { Keyring } = require('@polkadot/keyring');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
@@ -16,11 +15,6 @@ let argv = yargs
   .describe('c', 'Configuration file with gateway parameters')
   .string('c')
   .alias('c', 'gateway').argv;
-// For some reason, an alias 'g' will prevent some tests from running when we call with
-// npm run solo ./avn-api/tests/awtTest.js -- -g cba
-// even though the full option would work fine:
-// npm run solo ./avn-api/tests/awtTest.js -- --gateway cba
-// This problem does not exist with other aliases, like 'c' or 'k'
 
 let gatewayFile = argv.gateway;
 

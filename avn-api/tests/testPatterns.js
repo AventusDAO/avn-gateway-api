@@ -1,9 +1,6 @@
 const chai = require('chai');
 const expect = chai.expect;
-const assert = chai.assert;
 chai.use(require('chai-as-promised'));
-const helper = require('./helper.js');
-const accounts = helper.ACCOUNTS;
 
 /**
  * This method encapsulates in one call all the possible tests for an invalid account. It could be used with any account.

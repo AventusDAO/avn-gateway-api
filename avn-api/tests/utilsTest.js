@@ -1,5 +1,4 @@
 const { AvnApi } = require('avn-api');
-const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;

@@ -1,12 +1,11 @@
 {
-    "gateway": "gateway_url",
-    "token": "erc20_token",
-    "avt": "native_token",
-    "splitFeeConfig": {
-      "baseUrl": "admin_portal_url",
-      "username": "admin_portal_username",
-      "password": "admin_portal_pw",
-      "payerId": "admin_portal_payerd_id"
-    }
+  "gateway": "gateway_url",
+  "token": "erc20_token",
+  "avt": "native_token",
+  "splitFeeConfig": {
+    "baseUrl": "admin_portal_url",
+    "username": "admin_portal_username",
+    "password": "admin_portal_pw",
+    "payerId": "admin_portal_payerd_id"
   }
-  
+}

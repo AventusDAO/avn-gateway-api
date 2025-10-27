@@ -116,7 +116,9 @@ export type TransactionType = 'proxyAvtTransfer' |
     'proxyRedeemMarketShares' |
     'proxyTransferMarketTokens' |
     'proxyBuyMarketOutcomeTokens' |
-    'proxySellMarketOutcomeTokens'
+    'proxySellMarketOutcomeTokens'|
+    'proxyWatchtowerSubmitProposal' |
+    'proxyWatchtowerVote'
 
 export interface RPCError {
     parse: { code: number; message: string };

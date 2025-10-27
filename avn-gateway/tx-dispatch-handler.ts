@@ -130,7 +130,6 @@ async function callSwitch(call: ProxyCall, request: string, requestId: string): 
   }
 }
 
-//TODO: Fix me. We should not read the nonce from the chain because we risk getting duplicate values for different tx's
 async function queryNonce(requestId: string, nonceInfo: { palletName: string, storageName: string }, nonceKey: string): Promise<string> {
   const { palletName, storageName } = nonceInfo;
   console.info(`${requestId} - Refreshing nonce from chain for ${palletName}.${storageName} - ${nonceKey}`);

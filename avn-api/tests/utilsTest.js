@@ -20,7 +20,7 @@ describe('Utilities', async () => {
   });
 
   describe('myPublicKey', async () => {
-    it('@NO_BASELINE can get my public key', async () => {
+    it('can get my public key', async () => {
       assert.equal(accounts.user.publicKey, api.myPublicKey);
     });
   });

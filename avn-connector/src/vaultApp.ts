@@ -1,8 +1,6 @@
 import axios from 'axios';
 import logger from './logger';
 
-// TODO - Check with Admin Portal version and align
-
 async function post(url: string, data: any, token?: string): Promise<any> {
   const tokenReq = typeof token === 'undefined';
   const headers: { [key: string]: string } = {

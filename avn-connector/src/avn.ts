@@ -353,7 +353,6 @@ async function getTotalToken(token: string): Promise<string> {
   return total;
 }
 
-// TODO: do we want to make this backwards compatible?
 async function ethereumEventStatus(
   transactionHash: string
 ): Promise<EthereumEventStatus> {
@@ -633,7 +632,6 @@ async function startSubscriptions(): Promise<void> {
 }
 
 async function setChainInfo(): Promise<void> {
-  // TODO: Remove defaulting to the old "liftingContractAddress" once the chain has been upgraded in all environments
   let avnContract;
   try {
     avnContract = await api.query.avn.avnBridgeContractAddress();

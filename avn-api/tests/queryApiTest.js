@@ -69,7 +69,7 @@ describe('Query api calls:', async () => {
   });
 
   describe('getChainInfo', async () => {
-    it('@NO_BASELINE can get the current chain information', async () => {
+    it('can get the current chain information', async () => {
       let chainInfo = await api.query.getChainInfo();
       assert(chainInfo.hasOwnProperty('name'));
       assert(chainInfo.hasOwnProperty('version'));

@@ -124,8 +124,6 @@ describe('Access rights:', async () => {
 
     describe('Signing mode', async () => {
       it('can set a remote signer', async () => {
-        // update options.signer to include a new property called avnAddress // TO DO
-
         const newSigner = {
           sign: signer.sign,
           address: accounts.user.address

@@ -393,6 +393,19 @@ app.post(
 );
 
 app.post(
+  '/canCallMethod',
+  async (req: Request, res: Response<Boolean>, next: NextFunction) => {
+    try {
+      logger.info({ pallet: JSON.stringify(req.body.palletName), extrinsic: JSON.stringify(req.body.method) });
+      let result = avn.canCallMethod(req.body.palletName, req.body.method);
+      res.status(200).send(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+app.post(
   '/setTransactionRefusedByPayerStatus',
   async (req: Request, res: Response<null>, next: NextFunction) => {
     try {

@@ -669,6 +669,15 @@ async function connectToAvN(): Promise<void> {
   );
 }
 
+function canCallMethod(palletName: string, method: string): boolean {
+  if (!api.tx[palletName]) {
+    return false;
+  }
+
+  const palletMethods = api.tx[palletName];
+  return typeof palletMethods[method] === 'function';
+}
+
 function createAccount(suri: string): any {
   const keyring = new Keyring({ type: 'sr25519' });
   return keyring.addFromUri(suri);
@@ -1139,6 +1148,7 @@ function deriveNodeManagerPalletAccount(palletIdHex: string) {
 
 const avn = {
   addNewTransaction,
+  canCallMethod,
   createAccount,
   getAccountInfo,
   getUnclaimedLowerProofs,

@@ -670,12 +670,7 @@ async function connectToAvN(): Promise<void> {
 }
 
 function canCallMethod(palletName: string, method: string): boolean {
-  if (!api.tx[palletName]) {
-    return false;
-  }
-
-  const palletMethods = api.tx[palletName];
-  return typeof palletMethods[method] === 'function';
+  return typeof api?.tx?.[palletName]?.[method] === 'function';
 }
 
 function createAccount(suri: string): any {

@@ -665,8 +665,8 @@ async function connectToAvN(): Promise<void> {
   );
 }
 
-function canCallMethod(palletName: string, method: string): boolean {
-  return typeof api?.tx?.[palletName]?.[method] === 'function';
+function canCallMethod(pallet: string, method: string): boolean {
+  return typeof api?.tx?.[pallet]?.[method] === 'function';
 }
 
 function createAccount(suri: string): any {

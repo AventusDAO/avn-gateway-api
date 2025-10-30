@@ -1,7 +1,7 @@
 'use strict';
 
 import { TypeRegistry } from '@polkadot/types';
-import { u8aConcat } from '@polkadot/util'; // here?
+import { u8aConcat } from '@polkadot/util';
 const registry = new TypeRegistry();
 const VAULT_PAYER_USERNAME_PREFIX = 'GatewayPayer_';
 const FEE_PAYMENT_CONTEXT = 'authorization for proxy payment';

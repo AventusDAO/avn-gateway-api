@@ -396,7 +396,7 @@ app.post(
   '/canCallMethod',
   async (req: Request, res: Response<Boolean>, next: NextFunction) => {
     try {
-      logger.info({ pallet: JSON.stringify(req.body.palletName), extrinsic: JSON.stringify(req.body.method) });
+      logger.info({ pallet: JSON.stringify(req.body.palletName), method: JSON.stringify(req.body.method) });
       let result = avn.canCallMethod(req.body.palletName, req.body.method);
       res.status(200).send(result);
     } catch (err) {

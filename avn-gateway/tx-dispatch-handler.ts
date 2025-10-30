@@ -158,6 +158,12 @@ async function processProxyCall(
   }
 
   const { pallet, method, buildMethodParams } = config;
+
+  const canCallMethod = await axios.post(`${AVN_CONNECTOR_ENDPOINT}canCallMethod`, { pallet, method });
+  if (!canCallMethod.data) {
+    throw new Error(`Method ${pallet}.${method} is not available`);
+  }
+
   const methodParams = await buildMethodParams(call.params);
 
   try {
@@ -220,11 +226,6 @@ async function sendTx(
   params: ProxyParams | BatchProxyParams[]
 ): Promise<SendTxResult | ErrorBody> {
   try {
-    const canCallMethod = await axios.post(`${AVN_CONNECTOR_ENDPOINT}canCallMethod`, { palletName, method });
-    if (!canCallMethod) {
-      throw new Error(`Method ${palletName}.${method} is not available`);
-    }
-
     const txType = 'avnProxy';
     const tx: ProxyTransaction = { requestId, txType, palletName, method, params };
     const result = await sqs.sendToQueue(SQS_TX_QUEUE_URL, tx);

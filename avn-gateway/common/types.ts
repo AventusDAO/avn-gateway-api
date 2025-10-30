@@ -1,7 +1,7 @@
 import { SendMessageCommandOutput } from "@aws-sdk/client-sqs";
 import { InterfaceTypes } from "@polkadot/types/types";
 
-import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16, Compact, Option } from '@polkadot/types';
+import { GenericEthereumLookupSource, Vec, u8, u32, u64, u128, U256, u16, Compact, Option, Bool } from '@polkadot/types';
 import { H256, H160, BalanceOf, Perbill, BlockNumber, AccountId } from "@polkadot/types/interfaces";
 
 export enum EventType {
@@ -55,6 +55,8 @@ export type SignDataItem = | { Text: string }
     | { OutcomeReport: string }
     | { BlockNumber: BlockNumber }
     | { 'Option<MarketDisputeMechanism>': Option<any> }
+    | { ProposalRequest: ProposalRequest }
+    | { bool: Bool };
 
 export interface NonceInfo {
     batch: { palletName: string; storageName: string };
@@ -114,7 +116,9 @@ export type TransactionType = 'proxyAvtTransfer' |
     'proxyRedeemMarketShares' |
     'proxyTransferMarketTokens' |
     'proxyBuyMarketOutcomeTokens' |
-    'proxySellMarketOutcomeTokens'
+    'proxySellMarketOutcomeTokens'|
+    'proxyWatchtowerSubmitProposal' |
+    'proxyWatchtowerVote'
 
 export interface RPCError {
     parse: { code: number; message: string };
@@ -201,3 +205,33 @@ export type ExtendedInterfaceTypes = keyof InterfaceTypes | 'SkipEncode';
 export interface Royalty { recipient_t1_address: string; rate: { parts_per_million: number } }
 
 export type SendTxResult = RPCResponse<SendMessageCommandOutput>
+
+export type RawPayload =
+| { type: "Inline"; value: Vec<u8> }
+| { type: "Uri"; value: Vec<u8> };
+
+export type ProposalSource =
+| { type: "Internal"; value: ProposalType }
+| { type: "External" };
+
+
+export enum DecisionRule {
+    SimpleMajority,
+}
+
+type ProposalType =
+  | { type: "Summary" }
+  | { type: "Anchor" }
+  | { type: "Governance" }
+  | { type: "Other"; value: number };
+
+export interface ProposalRequest {
+    title: Uint8Array,
+    payload: RawPayload,
+    threshold: Perbill,
+    source: ProposalSource,
+    decisionRule: DecisionRule,
+    externalRef: H256,
+    createdAt: number,
+    voteDuration: number,
+}

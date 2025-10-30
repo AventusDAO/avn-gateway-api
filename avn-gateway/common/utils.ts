@@ -84,6 +84,41 @@ const customTypes = {
       "Categorical": "CategoryIndex",
       "Scalar": "u128",
     }
+  },
+  "RawPayload" : {
+    "_enum": {
+      "Inline": "Vec<u8>",
+      "Uri": "Vec<u8>"
+    }
+  },
+  "ProposalType": {
+    "_enum": {
+      "Summary": null,
+      "Anchor": null,
+      "Governance": null,
+      "Other": "u8",
+    }
+  },
+  "ProposalSource": {
+    "_enum": {
+      "External": null,
+      "Internal": "ProposalType"
+    }
+  },
+  "DecisionRule": {
+    "_enum": {
+      "SimpleMajority": null,
+    }
+  },
+  "ProposalRequest": {
+    "title": "Vec<u8>",
+    "payload": "RawPayload",
+    "threshold": "Perbill",
+    "source": "ProposalSource",
+    "decision_rule": "DecisionRule",
+    "external_ref": "H256",
+    "created_at": "u32",
+    "vote_duration": "Option<u32>",
   }
 };
 

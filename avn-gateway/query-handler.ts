@@ -141,6 +141,14 @@ async function callSwitch(call: Call, request: string): Promise<ValidResponse | 
       return await getNodeStatus(call, request)
     case 'getAssetMetadata':
       return await getAssetMetadata(call, request)
+    case 'getActiveSummaryWatchtowerProposal':
+      return await getActiveSummaryWatchtowerProposal(call, request)
+    case 'watchtowerHasVoted':
+      return await watchtowerHasVoted(call, request)
+    case 'getWatchtowerProposal':
+      return await getWatchtowerProposal(call, request)
+    case 'getWatchtowerProposalId':
+      return await getWatchtowerProposalId(call, request)
     default:
       return buildErrorBody('method', 'method not found', call.method, request, call.id);
   }
@@ -588,6 +596,25 @@ async function getAssetMetadata(call: Call, request: string): Promise<ValidRespo
   return await queryChain(call,request, 'assetRegistry', 'metadata', [predictionMarketAsset]);
 }
 
+async function getActiveSummaryWatchtowerProposal(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  return await queryChain(call, request, 'summaryWatchtower', 'rootInfo', [], parseRootInfo);
+}
+
+async function watchtowerHasVoted(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { watchtower, proposalId } = call.params;
+  return await queryChain(call, request, 'watchtower', 'voters', [proposalId, watchtower]);
+}
+
+async function getWatchtowerProposal(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { proposalId } = call.params;
+  return await queryChain(call, request, 'watchtower', 'proposals', [proposalId]);
+}
+
+async function getWatchtowerProposalId(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
+  const { externalRef } = call.params;
+  return await queryChain(call, request, 'watchtower', 'externalRef', [externalRef]);
+}
+
 async function getNodeStatus(call: Call, request: string): Promise<ValidResponse | ErrorBody> {
   const { nodeId, rewardPeriod } = call.params;
 
@@ -657,5 +684,15 @@ const formatAsLowerStatus = data => {
   }
   return `Enabled`
 }
+
+const parseRootInfo = data => {
+    if (data) {
+      const [proposalId, rootData] = data;
+      rootData.proposalId = proposalId;
+      return rootData;
+    }
+
+    return null;
+};
 
 const formatAsNull = data => (data || null)

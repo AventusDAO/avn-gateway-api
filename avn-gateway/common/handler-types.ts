@@ -214,6 +214,8 @@ export interface CallParams {
     originId?: string;
     nodeId?: string;
     rewardPeriod?: number;
+    watchtower?: string;
+    proposalId?: string;
 };
 
 type PredictionMarketAsset =

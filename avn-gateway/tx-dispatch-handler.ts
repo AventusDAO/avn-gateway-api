@@ -834,6 +834,29 @@ const callConfigs: { [key: string]: CallConfig } = {
       { BlockNumber: blockNumber }
     ]
   },
+  'proxyWatchtowerSubmitProposal': {
+    pallet: 'watchtower',
+    method: 'signedSubmitExternalProposal',
+    buildMethodParams: ({ proposal, blockNumber }) => [proposal, blockNumber],
+    buildSignData: ({ relayer, blockNumber, proposal }) => [
+      { Text: 'wt_submit_external_proposal' },
+      { AccountId: relayer },
+      { ProposalRequest: proposal },
+      { BlockNumber: blockNumber }
+    ]
+  },
+  'proxyWatchtowerVote': {
+    pallet: 'watchtower',
+    method: 'signedVote',
+    buildMethodParams: ({ proposalId, inFavor, blockNumber }) => [proposalId, inFavor, blockNumber],
+    buildSignData: ({ relayer, blockNumber, proposalId, inFavor }) => [
+      { Text: 'wt_submit_vote' },
+      { AccountId: relayer },
+      { H256: proposalId },
+      { bool: inFavor },
+      { BlockNumber: blockNumber }
+    ]
+  },
 };
 
 function validateSignData(signData: SignDataItem[]): void {

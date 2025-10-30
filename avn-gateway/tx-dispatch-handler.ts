@@ -158,6 +158,12 @@ async function processProxyCall(
   }
 
   const { pallet, method, buildMethodParams } = config;
+
+  const canCallMethod = await axios.post(`${AVN_CONNECTOR_ENDPOINT}canCallMethod`, { pallet, method });
+  if (!canCallMethod.data) {
+    throw new Error(`Method ${pallet}.${method} is not available`);
+  }
+
   const methodParams = await buildMethodParams(call.params);
 
   try {

@@ -161,7 +161,7 @@ class RedisClient {
       const results = await multi.exec();
       // Check for errors in the pipeline results
       if (results) {
-        for (const [error, result] of results) {
+        for (const [error, _] of results) {
           if (error) {
             logger.error(`Redis command error: ${error.message}`);
             throw new Error(`Redis command error: ${error.message}`);

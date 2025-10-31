@@ -1,5 +1,3 @@
-import { TransactionStatus } from './constants';
-
 export interface Transaction {
   senderAddress: string;
   senderNonce: string;

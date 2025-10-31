@@ -94,7 +94,6 @@ describe('SendTx api calls:', async () => {
 
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipient));
       bnEquals(userAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
-      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
 
@@ -105,7 +104,6 @@ describe('SendTx api calls:', async () => {
 
       bnEquals(recipientAvtBalanceBefore.add(amount), await api.query.getAvtBalance(recipientPubKey));
       bnEquals(userAvtBalanceBefore.sub(relayerFee).sub(amount), new BN(await api.query.getAvtBalance(user)));
-      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerFee)));
     });
 
@@ -125,15 +123,6 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(newApi.poll, requestId, 'Processed');
 
       bnEquals(recipientAvtBalanceBefore.add(amount), new BN(await newApi.query.getAvtBalance(recipient)));
-    });
-  });
-
-  xdescribe('confirmTokenLift', async () => {
-    // This tests always fails - returns rejected - should we remove it?
-    it('can confirm a token lift', async () => {
-      const dummyEthereumTransactionHash = helper.randomEthTxHash();
-      const requestId = await api.send.confirmTokenLift(dummyEthereumTransactionHash);
-      await helper.confirmStatus(api.poll, requestId, 'Validating');
     });
   });
 
@@ -161,7 +150,6 @@ describe('SendTx api calls:', async () => {
       bnEquals(userTokenBalanceBefore, new BN(await api.query.getTokenBalance(user, token)));
       bnEquals(userNonceBefore.add(new BN(1)), new BN(await api.query.getUserNonce(user, 'token')));
       bnEquals(userAvtBalanceBefore.sub(relayerLowerFee), new BN(await api.query.getAvtBalance(user)));
-      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerLowerFee)));
     });
 
@@ -173,7 +161,6 @@ describe('SendTx api calls:', async () => {
 
       bnEquals(userAvtBalanceBefore.sub(relayerLowerFee), new BN(await api.query.getAvtBalance(user)));
       bnEquals(userNonceBefore.add(new BN(1)), new BN(await api.query.getUserNonce(user, 'token')));
-      // TODO: include network fees when we've sorted the accounts out
       bnEquals(new BN(await api.query.getAvtBalance(relayer)).gte(relayerAvtBalanceBefore.add(relayerLowerFee)));
     });
   });

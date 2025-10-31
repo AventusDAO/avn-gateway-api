@@ -1,6 +1,5 @@
 const chai = require('chai');
 const expect = chai.expect;
-const assert = chai.assert;
 const testPatterns = require('./testPatterns.js');
 chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
@@ -20,14 +19,11 @@ const BN = helper.BN;
     suri: accounts.user.seed
   });
   const api = await avnApi.apis();
-  const validUser = accounts.user;
   const validOtherUser = accounts.otherUser;
   const validToken = helper.token;
 
   const royaltyRecipient1 = '0xf8f77379A1C6b5CA66702b5943c5b229E310Ec03';
-  const royaltyRecipient2 = '0xE566A65705F2d8D6C1Da9063A29b6F0f1Ac1e6Da';
   const royaltyRate1 = 10000;
-  const royaltyRate2 = 20000;
   const dummyT1Authority = '0xd6ae8250b8348c94847280928c79fb3b63ca453e';
   const externalRef = 'avn-gateway-test-' + new Date().toISOString();
   const royalties = [
@@ -42,10 +38,6 @@ const BN = helper.BN;
   //Nfts owned by User
   const unlistedUserNft = nfts.user.unlistedNft;
   const listedUserNft = nfts.user.listedNft;
-
-  //Nfts owned by User
-  const unlistedOtherUserNft = nfts.otherUser.unlistedNft;
-  const listedOtherUserNft = nfts.otherUser.listedNft;
 
   let testConfig;
 

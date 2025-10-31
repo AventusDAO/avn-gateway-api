@@ -19,7 +19,6 @@ import {
   BatchInfo,
   NftInfo,
   Nft,
-  liftStatus,
   accountInfo,
   LiftStatuses,
   PollResult,
@@ -354,7 +353,6 @@ async function getTotalToken(token: string): Promise<string> {
   return total;
 }
 
-// TODO: do we want to make this backwards compatible?
 async function ethereumEventStatus(
   transactionHash: string
 ): Promise<EthereumEventStatus> {
@@ -627,15 +625,13 @@ async function startSubscriptions(): Promise<void> {
     return;
   }
   // variable name for descriptive porpuses if we add more subscriptions
-  const selectedCandidatesSub =
-    await api.query.parachainStaking.selectedCandidates((candidates: any) => {
-      logger.info(`Setting collators to nominate: ${candidates}`);
-      redis.setCollatorsToNominate(candidates);
-    });
+  await api.query.parachainStaking.selectedCandidates((candidates: any) => {
+    logger.info(`Setting collators to nominate: ${candidates}`);
+    redis.setCollatorsToNominate(candidates);
+  });
 }
 
 async function setChainInfo(): Promise<void> {
-  // TODO: Remove defaulting to the old "liftingContractAddress" once the chain has been upgraded in all environments
   let avnContract;
   try {
     avnContract = await api.query.avn.avnBridgeContractAddress();
@@ -669,8 +665,8 @@ async function connectToAvN(): Promise<void> {
   );
 }
 
-function canCallMethod(palletName: string, method: string): boolean {
-  return typeof api?.tx?.[palletName]?.[method] === 'function';
+function canCallMethod(pallet: string, method: string): boolean {
+  return typeof api?.tx?.[pallet]?.[method] === 'function';
 }
 
 function createAccount(suri: string): any {

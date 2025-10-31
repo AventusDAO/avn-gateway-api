@@ -6,9 +6,6 @@ const expect = chai.expect;
 const assert = chai.assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
-const BN = helper.BN;
-const bnEquals = helper.bnEquals;
-const ONE_AVT = new BN('1000000000000000000');
 
 class TestNonceCacheProvider {
   constructor() {}
@@ -22,19 +19,6 @@ class TestNonceCacheProvider {
 }
 
 describe('Access rights:', async () => {
-  let multiUserApi, api;
-  let relayer, user, userSURI, newUser, newUserSURI, existingUserTestAccount, existingUser, existingUserSURI;
-
-  async function canAccessTheGateway(api) {
-    try {
-      // Any call which actually accesses the gateway (ie: is not cached in the api object) will do here
-      await api.query.getTotalAvt();
-    } catch (e) {
-      return false;
-    }
-    return true;
-  }
-
   const signer = {
     sign: async (data, signerAddress) => {
       return await helper.remoteSigner(data, signerAddress, accounts);
@@ -140,8 +124,6 @@ describe('Access rights:', async () => {
 
     describe('Signing mode', async () => {
       it('can set a remote signer', async () => {
-        // update options.signer to include a new property called avnAddress
-
         const newSigner = {
           sign: signer.sign,
           address: accounts.user.address

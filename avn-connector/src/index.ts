@@ -22,7 +22,6 @@ import {
   BatchInfo,
   GatewayUserInfo,
   PayerInfo,
-  SuccessResponse,
   TotalToken,
   LowerData
 } from './types';
@@ -38,7 +37,7 @@ app.use(express.json({ limit: '50mb' }));
 
 app.get(
   '/health',
-  async (req: Request, res: Response<null>, next: NextFunction) => {
+  async (_: Request, res: Response<null>, next: NextFunction) => {
     try {
       res.status(200).send(null);
     } catch (err) {
@@ -93,7 +92,7 @@ app.post(
 
 app.get(
   '/pendingTransactions',
-  async (req: Request, res: Response<string[]>, next: NextFunction) => {
+  async (_: Request, res: Response<string[]>, next: NextFunction) => {
     try {
       logger.info('pendingTransactions invoked');
       const result = await redis.getNextTransactionsToCheck();
@@ -225,7 +224,7 @@ app.post(
 
 app.get(
   '/unprocessedLifts',
-  async (req: Request, res: Response<UnprocessedLifts>, next: NextFunction) => {
+  async (_: Request, res: Response<UnprocessedLifts>, next: NextFunction) => {
     try {
       logger.info('unprocessedLifts invoked');
       const result = await avn.getUnprocessedLifts();
@@ -238,7 +237,7 @@ app.get(
 
 app.get(
   '/autolower',
-  async (req: Request, res: Response<string>, next: NextFunction) => {
+  async (_: Request, res: Response<string>, next: NextFunction) => {
     try {
       logger.info('autolower invoked');
       const result = await autolowering.autolower();
@@ -396,8 +395,8 @@ app.post(
   '/canCallMethod',
   async (req: Request, res: Response<Boolean>, next: NextFunction) => {
     try {
-      logger.info({ pallet: JSON.stringify(req.body.palletName), method: JSON.stringify(req.body.method) });
-      let result = avn.canCallMethod(req.body.palletName, req.body.method);
+      logger.info({ pallet: JSON.stringify(req.body.pallet), method: JSON.stringify(req.body.method) });
+      let result = avn.canCallMethod(req.body.pallet, req.body.method);
       res.status(200).send(result);
     } catch (err) {
       next(err);

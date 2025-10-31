@@ -14,7 +14,6 @@ const BLOCK_EXPLORER_BASE_URL = process.env.BLOCK_EXPLORER_BASE_URL as string;
 export const handler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
   await init();
   return {
-    // TODO: Fix this to return 500 on error
     statusCode: 200,
     body: JSON.stringify(await processRequest(event.body))
   };

@@ -1,24 +1,15 @@
-const { AvnApi, SetupMode, SigningMode, NonceCacheType } = require('avn-api');
+const { SetupMode, SigningMode } = require('avn-api');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const { u8aToHex } = require('@polkadot/util');
 
 const accounts = helper.ACCOUNTS;
-const BN = helper.BN;
-const bnEquals = helper.bnEquals;
-const ONE_AVT = new BN('1000000000000000000');
 
 const { Keyring } = require('@polkadot/keyring');
 const keyring = new Keyring({ type: 'sr25519', ss58Format: 42 });
 
 function getUserSeedFromAddress(userAddress) {
   return Object.keys(accounts).flatMap(a => (accounts[a].address === userAddress ? [accounts[a].seed] : []))[0];
-}
-
-function signData(data, signerAddress) {
-  const signerSuri = getUserSeedFromAddress(signerAddress);
-  const signer = keyring.addFromUri(signerSuri);
-  return signer.sign(data);
 }
 
 async function signDataAsync(data, signerAddress) {

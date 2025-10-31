@@ -1,5 +1,4 @@
 const chai = require('chai');
-const expect = chai.expect;
 const assert = chai.assert;
 chai.use(require('chai-as-promised'));
 const helper = require('./helper.js');
@@ -46,7 +45,6 @@ describe('Query api calls:', async () => {
 
   describe('get totals', async () => {
     it('returns total AVT', async () => {
-      let avt = await api.query.getAvtContractAddress();
       assert(new BN(await api.query.getTotalAvt()).gt(BN_ZERO));
     });
 
@@ -71,7 +69,7 @@ describe('Query api calls:', async () => {
   });
 
   describe('getChainInfo', async () => {
-    it('@NO_BASELINE can get the current chain information', async () => {
+    it('can get the current chain information', async () => {
       let chainInfo = await api.query.getChainInfo();
       assert(chainInfo.hasOwnProperty('name'));
       assert(chainInfo.hasOwnProperty('version'));
@@ -166,8 +164,6 @@ describe('Query api calls:', async () => {
   });
 
   describe('NFT data', async () => {
-    let externalRef, requestId, nftId;
-
     describe('NFT data', async () => {
       let externalRef, nftId;
 

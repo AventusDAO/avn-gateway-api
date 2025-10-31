@@ -1,5 +1,4 @@
 const { AvnApi } = require('avn-api');
-const { decodeAddress, encodeAddress } = require('@polkadot/util-crypto');
 const assert = require('chai').assert;
 const helper = require('./helper.js');
 const accounts = helper.ACCOUNTS;
@@ -21,7 +20,7 @@ describe('Utilities', async () => {
   });
 
   describe('myPublicKey', async () => {
-    it('@NO_BASELINE can get my public key', async () => {
+    it('can get my public key', async () => {
       assert.equal(accounts.user.publicKey, api.myPublicKey);
     });
   });

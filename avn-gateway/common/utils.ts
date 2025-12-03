@@ -126,7 +126,6 @@ const customTypes = {
 registry.register(customTypes);
 
 const EXECUTION_MARGIN = 1000;
-const AVT_DECIMALS = new BN(10).pow(new BN(18));
 const STASH_REWARD_DESTINATION = 'Stash';
 const SIGNING_CONTEXT = 'awt_gateway_api';
 const NUM_TYPES = [
@@ -284,11 +283,11 @@ function toBnString(val: number | typeof BN): string {
   return typeof val === 'number' || !isHex(val) ? new BN(val).toString() : new BN(val.replace('0x', ''), 16).toString();
 }
 
-function toWholeAVT(val: string | number): number {
+function toWholeAVT(val: string | number, decimals: number): number {
   if (val === 0) return val;
   const valueStr = typeof val === 'number' ? val.toString() : val;
   const attoAmount = new BN(valueStr.replace('0x', ''), 16);
-  const wholeAmount = attoAmount.div(AVT_DECIMALS);
+  const wholeAmount = attoAmount.div(new BN(10).pow(new BN(decimals)));
   return parseInt(wholeAmount.toString());
 }
 

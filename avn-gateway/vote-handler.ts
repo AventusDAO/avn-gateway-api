@@ -8,7 +8,6 @@ import { VoterIntention, ProposalData, FormattedVote, FormattedProposal } from '
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 const AVN_VOTES_BUCKET: string | undefined = process.env.AVN_VOTES_BUCKET;
-const DECIMALS: number = parseInt(process.env.DECIMALS || "18");
 
 const s3 = new S3Client();
 
@@ -192,8 +191,8 @@ async function weightVote(voterIntention: VoterIntention, proposalData: Proposal
       const params = ['at', proposalData.blockNumber, voterIntention.publicKey];
       const query = { palletName: 'system', storageName: 'account', params: params };
       const avnResponse = await axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
-      const voterBalanceAtBlock = toWholeAVT(avnResponse.data.data.free, DECIMALS);
-      const voterStakedBalanceAtBlock = toWholeAVT(avnResponse.data.data.frozen, DECIMALS);
+      const voterBalanceAtBlock = toWholeAVT(avnResponse.data.data.free);
+      const voterStakedBalanceAtBlock = toWholeAVT(avnResponse.data.data.frozen);
       const voterUnstakedBalanceAtBlock = voterBalanceAtBlock - voterStakedBalanceAtBlock;
       return voterStakedBalanceAtBlock + voterUnstakedBalanceAtBlock;
   } catch (err) {

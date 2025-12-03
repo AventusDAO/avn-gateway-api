@@ -8,6 +8,17 @@ import { VoterIntention, ProposalData, FormattedVote, FormattedProposal } from '
 
 const AVN_CONNECTOR_ENDPOINT: string | undefined = process.env.AVN_CONNECTOR_ENDPOINT;
 const AVN_VOTES_BUCKET: string | undefined = process.env.AVN_VOTES_BUCKET;
+const DECIMALS_ENV = process.env.DECIMALS;
+
+let DECIMALS: number = 18;
+if (DECIMALS_ENV !== undefined) {
+  const parsed = parseInt(DECIMALS_ENV, 10);
+  if (Number.isInteger(parsed) && parsed > 0) {
+    DECIMALS = parsed;
+  } else {
+    console.warn(`Invalid DECIMALS environment variable "${DECIMALS_ENV}", defaulting to 18.`);
+  }
+}
 
 const s3 = new S3Client();
 
@@ -191,8 +202,8 @@ async function weightVote(voterIntention: VoterIntention, proposalData: Proposal
       const params = ['at', proposalData.blockNumber, voterIntention.publicKey];
       const query = { palletName: 'system', storageName: 'account', params: params };
       const avnResponse = await axios.post(AVN_CONNECTOR_ENDPOINT + 'avnQuery', query);
-      const voterBalanceAtBlock = toWholeAVT(avnResponse.data.data.free);
-      const voterStakedBalanceAtBlock = toWholeAVT(avnResponse.data.data.frozen);
+      const voterBalanceAtBlock = toWholeAVT(avnResponse.data.data.free, DECIMALS);
+      const voterStakedBalanceAtBlock = toWholeAVT(avnResponse.data.data.frozen, DECIMALS);
       const voterUnstakedBalanceAtBlock = voterBalanceAtBlock - voterStakedBalanceAtBlock;
       return voterStakedBalanceAtBlock + voterUnstakedBalanceAtBlock;
   } catch (err) {

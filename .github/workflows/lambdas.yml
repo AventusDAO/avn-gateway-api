@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   package:
-    runs-on: ubuntu-latest
+    runs-on: arc-ubuntu-2404-x64
     name: package lambda functions
     steps:
       - uses: actions/checkout@v3
@@ -37,7 +37,7 @@ jobs:
           path: avn-gateway/build/
 
   upload:
-    runs-on: gh-ubuntu-2404-x64
+    runs-on: arc-ubuntu-2404-x64
     needs:  [ package ]
     name: Upload lambdas to AVN internal-tools s3 bucket
     steps:
@@ -51,7 +51,7 @@ jobs:
         aws s3 sync build/. s3://aventus-internal-artefact/gateway-lambdas --acl bucket-owner-full-control
 
   cleanup-artifacts:
-    runs-on: ubuntu-latest
+    runs-on: arc-ubuntu-2404-x64
     needs:  [ upload ]
     if: always()
     steps:

@@ -35,6 +35,7 @@ jobs:
         with:
           name: avn-gateway
           path: avn-gateway/build/
+          retention-days: 1
 
   upload:
     runs-on: arc-ubuntu-2404-x64
@@ -66,12 +67,3 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           files: avn-gateway/build/**
-
-  cleanup-artifacts:
-    runs-on: arc-ubuntu-2404-x64
-    needs:  [ upload ]
-    if: always()
-    steps:
-      - uses: geekyeggo/delete-artifact@v5
-        with:
-          name: avn-gateway

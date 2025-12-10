@@ -50,6 +50,23 @@ jobs:
       run: |
         aws s3 sync build/. s3://aventus-internal-artefact/gateway-lambdas --acl bucket-owner-full-control
 
+  add-artifacts-to-gh-release:
+    runs-on: arc-ubuntu-2404-x64
+    needs: [ package ]
+    if: startsWith(github.ref, 'refs/tags/v')
+    name: Add artifacts to GitHub Release
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: avn-gateway
+          path: avn-gateway/build/
+
+      - name: Create GitHub release with artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: avn-gateway/build/**
+
   cleanup-artifacts:
     runs-on: arc-ubuntu-2404-x64
     needs:  [ upload ]

@@ -80,6 +80,7 @@ async function getFormattedProposalList(): Promise<FormattedProposal[]> {
 async function checkVoteAndUpdateProposal(requestData: string): Promise<{result:string}> {
   let voterIntention: VoterIntention, proposalData: ProposalData;
 
+  console.log(`Processing vote: ${requestData}`);
   try {
     voterIntention = JSON.parse(requestData);
     voterIntention.publicKey = convertToPublicKey(voterIntention.address);

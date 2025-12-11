@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   package:
-    runs-on: arc-ubuntu-2404-x64
+    runs-on: ubuntu-latest
     name: package lambda functions
     steps:
       - uses: actions/checkout@v3

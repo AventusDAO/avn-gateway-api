@@ -95,10 +95,14 @@ async function checkVoteAndUpdateProposal(requestData: string): Promise<{result:
 
   if (voteStatus(proposalData) !== 'Active') {
     return { result: 'vote is inactive' };
-  } else if (voterIntention.publicKey in proposalData.votes) {
-    return { result: await changeVoteAndUpdateProposal(voterIntention, proposalData) };
-  } else if (!verifyVotingSignature(voterIntention)) {
+  }
+
+  if (!verifyVotingSignature(voterIntention)) {
     return { result: 'invalid signature provided' };
+  }
+
+  if (voterIntention.publicKey in proposalData.votes) {
+    return { result: await changeVoteAndUpdateProposal(voterIntention, proposalData) };
   } else {
     return { result: await weightVoteAndUpdateProposal(voterIntention, proposalData) };
   }

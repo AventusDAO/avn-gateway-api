@@ -80,6 +80,7 @@ async function getFormattedProposalList(): Promise<FormattedProposal[]> {
 async function checkVoteAndUpdateProposal(requestData: string): Promise<{result:string}> {
   let voterIntention: VoterIntention, proposalData: ProposalData;
 
+  console.log(`Processing vote: ${requestData}`);
   try {
     voterIntention = JSON.parse(requestData);
     voterIntention.publicKey = convertToPublicKey(voterIntention.address);
@@ -95,10 +96,14 @@ async function checkVoteAndUpdateProposal(requestData: string): Promise<{result:
 
   if (voteStatus(proposalData) !== 'Active') {
     return { result: 'vote is inactive' };
-  } else if (voterIntention.publicKey in proposalData.votes) {
-    return { result: await changeVoteAndUpdateProposal(voterIntention, proposalData) };
-  } else if (!verifyVotingSignature(voterIntention)) {
+  }
+
+  if (!verifyVotingSignature(voterIntention)) {
     return { result: 'invalid signature provided' };
+  }
+
+  if (voterIntention.publicKey in proposalData.votes) {
+    return { result: await changeVoteAndUpdateProposal(voterIntention, proposalData) };
   } else {
     return { result: await weightVoteAndUpdateProposal(voterIntention, proposalData) };
   }

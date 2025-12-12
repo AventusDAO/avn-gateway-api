@@ -7,8 +7,8 @@ const AVN_CONNECTOR_ENDPOINT = process.env.AVN_CONNECTOR_ENDPOINT;
 export const handler: Handler = async (_): Promise<void> => {
   try {
     const response = await axios.get(AVN_CONNECTOR_ENDPOINT + 'autolower');
-    return console.log(response.data);
+    console.info('Autolower response:', response.data);
   } catch (error) {
-    return console.error(error);
+    console.error('Autolower handler error:', error);
   }
 };

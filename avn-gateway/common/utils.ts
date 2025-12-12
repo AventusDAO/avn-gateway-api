@@ -359,7 +359,7 @@ function verifyEthereumSignature(encodedData: Uint8Array, signature: string, pub
     const messageHash = ethers.utils.hashMessage(encodedDataString);
     const ethereumAddress = ethers.utils.recoverAddress(messageHash, signature);
     const derivedPublicKey = keccakAsHex(hexToU8a(ethereumAddress));
-    console.log(`[verifyEthereumSignature] - Encoded data: ${u8aToHex(encodedData)},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
+    console.debug(`[verifyEthereumSignature] - Encoded data: ${u8aToHex(encodedData)},\nMessage hash: ${messageHash},\nrecovered eth address: ${ethereumAddress},\nderived public key: ${derivedPublicKey},\nsigner public key: ${signerPublicKey}`);
     return derivedPublicKey === signerPublicKey;
   } catch (error) {
     console.error(`Ethereum signature verification error:`, error);

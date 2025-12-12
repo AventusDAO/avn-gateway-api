@@ -2,7 +2,7 @@ name: avn-connector
 
 on:
   workflow_dispatch:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - main
@@ -35,13 +35,21 @@ jobs:
       - name: Run npm pretty
         run: npm run pretty
 
-  avn-docker-connector:
-    name: (AVN) build docker connector
+  docker-connector:
+    name: Build docker connector
     needs: run-npm-pretty
-    uses: ./.github/workflows/docker-build.yaml
+    uses: Aventus-Network-Services/shared-workflows/.github/workflows/docker-build.yaml@v5.17.0
     with:
-      aws_region: eu-west-1
+      ecr_registry_type: public
+      config_creds: false
+      aws_region: us-east-1
       aws_account_id: 931945598683
-      context: avn-connector
-      short_image_name: connector
-      ecr_repository_prefix: gateway
+      git_context: avn-connector
+      ecr_repository_name: gateway/connector
+      default_branch: main
+      create_pr_dtag: ${{ startsWith(github.ref, 'refs/pull/') }}
+      create_latest_dtag: ${{ github.ref == 'refs/heads/main' }}
+      create_commit_hash_dtag: true
+      create_git_ref_dtag: ${{ startsWith(github.ref, 'refs/tags/') }}
+      docker_args_list: VERSION=${{ github.ref_name }}
+    secrets: inherit

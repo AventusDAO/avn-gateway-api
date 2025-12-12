@@ -609,7 +609,7 @@ const callConfigs: { [key: string]: CallConfig } = {
     buildSignData: ({ relayer, user, nonce }) => [
       { Text: 'parachain authorization for executing nomination requests operation' },
       { AccountId: relayer },
-      { BalanceOf: user },
+      { AccountId: user },
       { u64: nonce }
     ]
   },

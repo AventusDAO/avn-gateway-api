@@ -55,9 +55,9 @@ pipeline {
                 sh 'rm -rf node_modules'
                 sh 'rm -f package-lock.json'
                 sh 'npm cache clean --force'
-                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-slackTestNotifications.git"
-                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-googleDriveUploadService.git"
-                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-api.git#${params.Avn_Api_branch}"
+                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/AventusDAO/avn-lib-slackTestNotifications.git"
+                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/AventusDAO/avn-lib-googleDriveUploadService.git"
+                sh "npm install git+https://${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/AventusDAO/avn-api.git#${params.Avn_Api_branch}"
                 sh 'npm install'
                 sh 'npm install --save-dev mochawesome'
                 sh 'npm install mochawesome-merge --save-dev'

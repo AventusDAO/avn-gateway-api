@@ -1,6 +1,6 @@
-[![avn-gateway](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/lambdas.yml/badge.svg?branch=main)](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/lambdas.yml)
+[![avn-gateway](https://github.com/AventusDAO/avn-gateway-api/actions/workflows/lambdas.yml/badge.svg?branch=main)](https://github.com/AventusDAO/avn-gateway-api/actions/workflows/lambdas.yml)
 
-[![avn-connector](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/connector.yml/badge.svg?branch=main)](https://github.com/Aventus-Network-Services/avn-gateway-api/actions/workflows/connector.yml)
+[![avn-connector](https://github.com/AventusDAO/avn-gateway-api/actions/workflows/connector.yml/badge.svg?branch=main)](https://github.com/AventusDAO/avn-gateway-api/actions/workflows/connector.yml)
 
 # avn-gateway-api
 
@@ -1789,7 +1789,7 @@ npm install
 Avn-api is imported directly from github public repo, this allows us to test avn-api before we publish it on npm.
 If you want to test a specific branch, update package.json 'install' script to use a branch reference instead:
 "scripts": {
-    "install": "npm install git://github.com/Aventus-Network-Services/avn-api.git#<branch_name>",
+    "install": "npm install git://github.com/AventusDAO/avn-api.git#<branch_name>",
     ...
 }
 

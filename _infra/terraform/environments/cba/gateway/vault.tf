@@ -9,7 +9,7 @@ resource "aws_secretsmanager_secret" "vault" {
 }
 
 module "avn-vault" {
-  source                   = "git@github.com:Aventus-Network-Services/avn-vault-infrastructure//terraform-module/avn-vault?ref=2.1.0"
+  source                   = "git@github.com:AventusDAO/avn-vault-infrastructure//terraform-module/avn-vault?ref=2.1.0"
   name                     = local.environment
   project                  = "avn-gateway"
   ssh-key                  = "technical-account-vault"

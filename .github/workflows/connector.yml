@@ -38,7 +38,7 @@ jobs:
   docker-connector:
     name: Build docker connector
     needs: run-npm-pretty
-    uses: Aventus-Network-Services/shared-workflows/.github/workflows/docker-build.yaml@v5.17.0
+    uses: AventusDAO/shared-workflows/.github/workflows/docker-build.yaml@v5.17.0
     with:
       ecr_registry_type: public
       config_creds: false

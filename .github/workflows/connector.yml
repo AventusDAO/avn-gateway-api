@@ -3,7 +3,7 @@ name: avn-connector
 on:
   workflow_dispatch:
   pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
     branches:
       - main
     paths:
@@ -38,7 +38,7 @@ jobs:
   docker-connector:
     name: Build docker connector
     needs: run-npm-pretty
-    uses: Aventus-Network-Services/shared-workflows/.github/workflows/docker-build.yaml@v5.17.0
+    uses: Aventus-Network-Services/shared-workflows/.github/workflows/docker-build.yaml@v5.20.0
     with:
       ecr_registry_type: public
       config_creds: false
@@ -52,4 +52,6 @@ jobs:
       create_commit_hash_dtag: true
       create_git_ref_dtag: ${{ startsWith(github.ref, 'refs/tags/') }}
       docker_args_list: VERSION=${{ github.ref_name }}
+      checkout_repository: ${{github.event.pull_request.head.repo.full_name}}
+      checkout_ref: ${{github.event.pull_request.head.ref}}
     secrets: inherit

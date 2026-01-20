@@ -16,6 +16,7 @@ pipeline {
         SECRET_VOW_FILE = credentials('vow_gateway_tests_config');
         SECRET_TRUTH_DEV_FILE = credentials('truth_dev_gateway_tests_config');
         SECRET_TRUTH_TESTNET_FILE = credentials('truth_testnet_gateway_tests_config');
+        GITHUB_TOKEN = credentials('scheduledTestsGithubCreds');
     }
     triggers {
         cron('0 0 * * *')
@@ -68,18 +69,15 @@ pipeline {
                     def configFile = readFile "${GATEWAY_TESTS_CONFIG}"
                     def config = new JsonSlurper().parseText(configFile)
 
-                    env.SCHEDULED_TESTS_GITHUB_CREDS = config.githubCreds
-                    env.GOOGLE_DRIVE_SHARED_DRIVE_ID = config.googleDriveSharedId
                     env.SLACK_WEBHOOK_URL = config.slackWebUrl
-                    env.GOOGLE_DRIVE_SERVICE_ACCOUNT_KEY = config.googleDriveServiceAccountKey
                 }
 
                 sh 'rm -rf node_modules'
                 sh 'rm -f package-lock.json'
                 sh 'npm cache clean --force'
-                sh "npm install git+https://x-access-token:${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-slackTestNotifications.git"
-                sh "npm install git+https://x-access-token:${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-lib-googleDriveUploadService.git"
-                sh "npm install git+https://x-access-token:${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/Aventus-Network-Services/avn-api.git#${params.Avn_Api_branch}"
+                sh "npm install --save-dev git+https://github.com/AventusDAO/avn-test-reports.git#tests_report_publisher"
+                sh "npm install --save-dev git+https://github.com/AventusDAO/avn-lib-slackTestNotifications.git#fixes_to_slack_reports"
+                sh "npm install git+https://x-access-token:${SCHEDULED_TESTS_GITHUB_CREDS}@github.com/AventusDAO/avn-api.git#${params.Avn_Api_branch}"
                 sh 'npm install'
                 sh 'npm install --save-dev mochawesome'
                 sh 'npm install mochawesome-merge --save-dev'
@@ -274,8 +272,21 @@ pipeline {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh "npx mochawesome-merge ./reportDir/*.json -o finalReport.json"
                             sh "npx mochawesome-report-generator finalReport.json --reportDir ./ --inline"
-                            sh "npm run upload ${params.Chain} -- --test_descriptive=${params.Descriptive_name}"
-                            sh "npm run slack ${params.Chain}"
+                            // sh "npm run upload ${params.Chain} -- --test_descriptive=${params.Descriptive_name}"
+                            // sh "npm run slack ${params.Chain}"
+                            sh """
+                                npx avn-publish-report \
+                                    --suite gateway \
+                                    --chain ${params.Chain} \
+                                    --reportPath ./finalReport.html \
+                                    --retainDays 30
+                            """
+                            sh """
+                                npx avn-slack-report \
+                                    --suite gateway \
+                                    --chain ${params.Chain} \
+                                    --reportJsonPath ./finalReport.json
+                            """
                         }
                     }
                 }

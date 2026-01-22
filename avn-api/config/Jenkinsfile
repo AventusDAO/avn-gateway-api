@@ -68,8 +68,8 @@ pipeline {
                 sh 'rm -rf node_modules'
                 sh 'rm -f package-lock.json'
                 sh 'npm cache clean --force'
-                sh "npm install --save-dev git+https://github.com/AventusDAO/avn-test-reports.git#tests_report_publisher"
-                sh "npm install --save-dev git+https://github.com/AventusDAO/avn-lib-slackTestNotifications.git#fixes_to_slack_reports"
+                sh "npm install --save-dev git+https://github.com/AventusDAO/avn-test-reports.git#main"
+                sh "npm install --save-dev git+https://github.com/AventusDAO/avn-lib-slackTestNotifications.git#main"
                 sh "npm install git+https://x-access-token:${GITHUB_TOKEN}@github.com/AventusDAO/avn-api.git#${params.Avn_Api_branch}"
                 sh 'npm install'
                 sh 'npm install --save-dev mochawesome'

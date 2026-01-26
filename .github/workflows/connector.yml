@@ -44,7 +44,7 @@ jobs:
       config_creds: false
       aws_region: us-east-1
       aws_account_id: 931945598683
-      git_context: avn-connector
+      context: avn-connector
       ecr_repository_name: gateway/connector
       default_branch: main
       create_pr_dtag: ${{ startsWith(github.ref, 'refs/pull/') }}

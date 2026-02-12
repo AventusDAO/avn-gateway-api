@@ -45,6 +45,7 @@ jobs:
       aws_region: us-east-1
       aws_account_id: 931945598683
       context: avn-connector
+      docker_file_path: ./avn-connector/Dockerfile
       ecr_repository_name: gateway/connector
       default_branch: main
       create_pr_dtag: ${{ startsWith(github.ref, 'refs/pull/') }}

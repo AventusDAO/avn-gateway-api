@@ -16,11 +16,11 @@ const logFormat = (requestId: string | null) =>
   combine(
     timestamp(),
     printf(info => {
-      const splat = info[Symbol.for('splat')] || {};
+      const splat = info[Symbol.for('splat')] || [];
       const stack = info.stack;
       const data = info.data;
       const dataStr = data ? `\n${JSON.stringify(data)}` : '';
-      const context = splat[0]?.context || info.stack?.[0] || '';
+      const context = Array.isArray(splat) ? splat[0]?.context : '';
 
       return (
         `${info.timestamp} ` +

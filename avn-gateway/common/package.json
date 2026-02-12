@@ -3,7 +3,7 @@
   "dependencies": {
     "@aws-sdk/client-kms": "^3.533.0",
     "@aws-sdk/client-sqs": "^3.490.0",
-    "@polkadot/types": "^3.0.1",
+    "@polkadot/types": "^16.5.4",
     "axios": "^0.24.0",
     "bn.js": "^5.2.0",
     "ethers": "^5.7.2",

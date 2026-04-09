@@ -49,8 +49,6 @@ pipeline {
                                 booleanParam(name: 'splitFees', value: false),
                                 booleanParam(name: 'remoteSignerTests', value: false),
                                 booleanParam(name: 'predictionMarketTests', value: false)
-                                // booleanParam(name: 'All', value: true)
-                                // All other test-specific params will default to false
                             ],
                             wait: false
                     }

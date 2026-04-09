@@ -53,11 +53,6 @@ describe('SendTx api calls:', async () => {
 
     describe('succeeds if', async function () {
       it('sender is funded with Avt', async function () {
-        console.log(`senderBalance: ${JSON.stringify(senderBalance, null, 2)}`);
-        console.log(`senderBalance: ${senderBalance.toString()}`);
-        console.log(`MINIMUM_REQUIRED_AVT_TEST_BALANCE: ${JSON.stringify(MINIMUM_REQUIRED_AVT_TEST_BALANCE, null, 2)}`);
-        console.log(`MINIMUM_REQUIRED_AVT_TEST_BALANCE: ${MINIMUM_REQUIRED_AVT_TEST_BALANCE.toString()}`);
-
         if (senderBalance.lt(MINIMUM_REQUIRED_AVT_TEST_BALANCE)) {
           let amountLeft = MINIMUM_REQUIRED_AVT_TEST_BALANCE.sub(senderBalance);
           console.log(`amountLeft: ${JSON.stringify(amountLeft, null, 2)}`);
@@ -131,14 +126,6 @@ describe('SendTx api calls:', async () => {
       await helper.confirmStatus(newApi.poll, requestId, 'Processed');
 
       bnEquals(recipientAvtBalanceBefore.add(amount), new BN(await newApi.query.getAvtBalance(recipient)));
-    });
-  });
-
-  xdescribe('confirmTokenLift', async () => { // This tests always fails - returns rejected - should we remove it?
-    it('can confirm a token lift', async () => {
-      const dummyEthereumTransactionHash = helper.randomEthTxHash();
-      const requestId = await api.send.confirmTokenLift(dummyEthereumTransactionHash);
-      await helper.confirmStatus(api.poll, requestId, 'Validating');
     });
   });
 
